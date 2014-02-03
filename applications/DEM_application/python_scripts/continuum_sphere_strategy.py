@@ -91,7 +91,7 @@ def AddVariables(model_part, Param):
 
     if (Var_Translator(Param.PostExportId)):
         model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    if (Var_Translator(Param.PredefinedSkinOption) | Var_Translator(Param.ConcreteTestOption)):
+    if (Var_Translator(Param.PredefinedSkinOption) | (Param.TestType != "None") ):
         model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
         model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
     if (Var_Translator(Param.PostGroupId)):
@@ -144,13 +144,12 @@ class ExplicitStrategy:
         if(Var_Translator(Param.DontSearchUntilFailure)):
           print ("Search is not active until a bond is broken.")
           self.activate_search                = 0
-          if (len(fem_model_part.Nodes)>0 or Param.ConcreteTestOption== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+          if (len(fem_model_part.Nodes)>0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
             print ("WARNING: Search should be activated since there might contact with FEM.")
 
         self.fix_velocities_flag                 = 0       
 
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
-        self.stress_strain_operations = Var_Translator(Param.StressStrainOperationsOption)
         self.MoveMeshFlag = True
         
         self.virtual_mass_option            = 0
@@ -160,46 +159,29 @@ class ExplicitStrategy:
            
         
         self.delta_option = Var_Translator(Param.DeltaOption)
-
-        self.continuum_simulating_option = Var_Translator(Param.ContinuumOption)
-        self.dempack_option = Var_Translator(Param.Dempack)
-        if(self.dempack_option):
-            self.dempack_damping = Param.DempackDamping
-            self.dempack_global_damping = Param.DempackGlobalDamping
-            self.area_factor = Param.AreaFactor
-        self.contact_mesh_option = Var_Translator(Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption))
-        self.concrete_test_option = Param.ConcreteTestOption
+        self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
+        self.test_type = Param.TestType
         self.automatic_bounding_box_option = Var_Translator(Param.AutomaticBoundingBoxOption)
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
-        self.amplified_continuum_search_radius_extension = 1.0;
+        self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension;
 
-        if (Param.DeltaOption == "OFF"):
+        if (Param.DeltaOption == "None"):
             self.delta_option = 0
 
-        elif (Param.DeltaOption == "ABSOLUTE"):
+        elif (Param.DeltaOption == "Absolute"):
             self.delta_option = 1
             self.search_tolerance = Param.SearchTolerance
 
-        elif (Param.DeltaOption == "COORDINATION_NUMBER"):
+        elif (Param.DeltaOption == "Coordination_Number"):
             self.delta_option = 2
             self.coordination_number = Param.CoordinationNumber
             self.search_tolerance = 0.01 * Param.MeanRadius
-
-        if (self.continuum_simulating_option):
-            self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension;
-
+       
         if(self.delta_option > 0):
-            if(self.continuum_simulating_option):
-                self.case_option = 2
-            else:
-                self.case_option = 1
-        elif(not self.delta_option):
-            if(not self.continuum_simulating_option):
-                self.case_option = 0
-            else:
-                self.case_option = 3
+           self.case_option = 2     #MSIMSI. nomes 2 casos amb delta o sense. pero sempre continu.
+
                 
         self.fixed_vel_top = Param.LoadingVelocityTop
         self.fixed_vel_bot = Param.LoadingVelocityBot
@@ -228,23 +210,23 @@ class ExplicitStrategy:
         self.gravity[0] = Param.GravityX
         self.gravity[1] = Param.GravityY
         self.gravity[2] = Param.GravityZ
-
-        if (Param.NormalForceCalculationType == "Linear"):
+        
+        if (Param.MaterialModel == "Linear"):
             self.force_calculation_type_id = 0
-        elif (Param.NormalForceCalculationType == "Hertz"):
+        elif (Param.MaterialModel == "Hertz"):
             self.force_calculation_type_id = 1
-        elif (Param.NormalForceCalculationType == "PlasticityAndDamage1D"):
+        elif (Param.MaterialModel == "1DPlasticity"):
             self.force_calculation_type_id = 2
-        elif (Param.NormalForceCalculationType == "NonLinearDonze"):
+        elif (Param.MaterialModel == "ExpHard"):
             self.force_calculation_type_id = 3
 
         if (self.force_calculation_type_id == 2):
-            self.C1 = Param.C1
-            self.C2 = Param.C2
-            self.C3 = Param.C3
-            self.N1 = Param.N1
-            self.N2 = Param.N2
-            self.N3 = Param.N3
+            self.LCS1 = Param.LCS1
+            self.LCS2 = Param.LCS2
+            self.LCS3 = Param.LCS3
+            self.YRC1 = Param.YRC1
+            self.YRC2 = Param.YRC2
+            self.YRC3 = Param.YRC3
             self.plastic_young_modulus_ratio = Param.PlasticYoungModulus
             self.plastic_yield_stress = Param.PlasticYieldStress
             self.damage_deformation_factor = Param.DamageDeformationFactor
@@ -255,21 +237,25 @@ class ExplicitStrategy:
             self.donze_g3 = Param.G3
             self.donze_max_def = Param.MaxDef
 
-        if (Param.NormalDampingType == "ViscDamp"):
-
-            if (Param.TangentialDampingType == "ViscDamp"):
-                self.damp_id = 11
-
-            else:
-                self.damp_id = 10
+        if (Param.LocalContactDamping == "Both"):         
+            self.damp_id = 11
+              
+        elif (Param.LocalContactDamping == "Normal"):
+            self.damp_id = 10
+            
+        elif (Param.LocalContactDamping == "Tangential"):
+            self.damp_id = 1
         else:
-
-            if (Param.TangentialDampingType == "ViscDamp"):
-                self.damp_id = 1
-
-            else:
-                self.damp_id = 0
-
+            self.damp_id = 0
+            
+        self.dempack_option = Var_Translator(Param.Dempack)
+        
+        if(self.dempack_option):
+            self.local_damping = Param.LocalDampingFactor
+            self.global_damping = Param.GlobalForceReduction
+            
+        
+        self.rolling_friction_option = 0
         if (Var_Translator(Param.RollingFrictionOption)):
             self.rolling_friction_option = 1
 
@@ -279,8 +265,8 @@ class ExplicitStrategy:
         elif (Param.FailureCriterionType == "Uncoupled"):
             self.failure_criterion_option = 2
 
-        self.tau_zero = Param.TauZero
-        self.sigma_min = Param.SigmaMin
+        self.tangential_strength = Param.TangentialStrength
+        self.normal_tensile_strength = Param.NormalTensileStrength
         self.internal_fricc = Param.InternalFriction
 
         # PRINTING VARIABLES
@@ -297,7 +283,7 @@ class ExplicitStrategy:
         self.final_time = Param.FinalTime
 
         # RESOLUTION METHODS AND PARAMETERS
-        self.n_step_search = int(Param.TimeStepsPerSearchStep)
+        self.n_step_search = int(Param.NeighbourSearchFrequency)
         self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
 
         # CREATOR-DESTRUCTOR
@@ -322,12 +308,10 @@ class ExplicitStrategy:
 
         self.search_strategy = OMP_DEMSearch()
 
-        if (Param.IntegrationScheme == 'forward_euler'):
-            self.time_scheme = ForwardEulerScheme()
-        elif (Param.IntegrationScheme == 'mid_point_rule'):
-            self.time_scheme = MidPointScheme()
-        elif (Param.IntegrationScheme == 'const_average_acc'):
-            self.time_scheme = ConstAverageAccelerationScheme()
+        if (Param.IntegrationScheme == 'Forward_Euler'):
+            self.time_integration_scheme = ForwardEulerScheme()
+        elif (Param.IntegrationScheme == 'Mid_Point_Rule'):
+            self.time_integration_scheme = MidPointScheme()
         else:
             print('scheme not defined')
 
@@ -441,22 +425,21 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
 
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
-        self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
-        self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
+        self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.normal_tensile_strength)
+        self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tangential_strength)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
 
         if(self.dempack_option):
-            self.model_part.ProcessInfo.SetValue(DEMPACK_DAMPING, self.dempack_damping)
-            self.model_part.ProcessInfo.SetValue(DEMPACK_GLOBAL_DAMPING, self.dempack_global_damping)
-            self.model_part.ProcessInfo.SetValue(AREA_FACTOR, self.area_factor)
+            self.model_part.ProcessInfo.SetValue(DEMPACK_DAMPING, self.local_damping)           #MSIMSI 2 change name
+            self.model_part.ProcessInfo.SetValue(DEMPACK_GLOBAL_DAMPING, self.global_damping)   #MSIMSI 2 change name
 
         if (self.force_calculation_type_id == 2):
-            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
-            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
-            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N3, self.N3)
-            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
-            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
-            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C3, self.C3)
+            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.YRC1)
+            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.YRC2)
+            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N3, self.YRC3)
+            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.LCS1)
+            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.LCS2)
+            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C3, self.LCS3)
             self.model_part.ProcessInfo.SetValue(YOUNG_MODULUS_PLASTIC, self.plastic_young_modulus_ratio)
             self.model_part.ProcessInfo.SetValue(PLASTIC_YIELD_STRESS, self.plastic_yield_stress)
             self.model_part.ProcessInfo.SetValue(DAMAGE_FACTOR, self.damage_deformation_factor)
@@ -467,7 +450,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(DONZE_G3, self.donze_g3)
             self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.donze_max_def)
 
-        if ( (self.concrete_test_option == "TRIAXIAL") or (self.concrete_test_option == "HYDROSTATIC")):
+        if ( (self.test_type == "Triaxial") or (self.test_type == "Hydrostatic")):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
@@ -482,7 +465,7 @@ class ExplicitStrategy:
         # Creating the solution strategy
 
         self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.fem_model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                      self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_scheme, self.search_strategy)
+                                                      self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
         self.solver.Initialize()  # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
 
