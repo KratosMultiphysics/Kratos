@@ -5,7 +5,6 @@ from KratosMultiphysics.DEMApplication import *
 # from KratosMultiphysics.mpi import *
 
 import math
-from numpy import *
 import datetime
 import shutil
 
@@ -486,14 +485,11 @@ def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top,
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
-
+        values = [0.0,0.0,0.0]
+        
         cross_section = 3.141592 * r * r
 
-        vect = zeros(3, double)
+        vect = [0.0,0.0,0.0]
 
         # vector normal al centre:
         vect_moduli = math.sqrt(x * x + z * z)
@@ -516,10 +512,7 @@ def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top,
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
@@ -536,10 +529,7 @@ def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top,
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
@@ -556,14 +546,11 @@ def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top,
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
-        vect = zeros(3, double)
+        vect = [0.0,0.0,0.0]
 
         # vector normal al centre:
         vect_moduli = math.sqrt(x * x + z * z)
@@ -586,14 +573,11 @@ def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top,
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
-        vect = zeros(3, double)
+        vect = [0.0,0.0,0.0]
 
         # vector normal al centre:
         vect_moduli = math.sqrt(x * x + z * z)
@@ -619,14 +603,11 @@ def ApplyLateralPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alp
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
-        vect = zeros(3, double)
+        vect = [0.0,0.0,0.0]
 
         # vector normal al centre:
         vect_moduli = math.sqrt(x * x + z * z)
@@ -649,14 +630,11 @@ def ApplyLateralPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alp
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
-        vect = zeros(3, double)
+        vect = [0.0,0.0,0.0]
 
         # vector normal al centre:
         vect_moduli = math.sqrt(x * x + z * z)
@@ -679,14 +657,11 @@ def ApplyLateralPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alp
         y = node.Y
         z = node.Z
 
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        values = [0.0,0.0,0.0]
 
         cross_section = 3.141592 * r * r
 
-        vect = zeros(3, double)
+        vect = [0.0,0.0,0.0]
 
         # vector normal al centre:
         vect_moduli = math.sqrt(x * x + z * z)
