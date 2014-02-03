@@ -143,22 +143,23 @@ class ExplicitStrategy:
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option = Var_Translator(Param.AutomaticBoundingBoxOption)
 
-        if (Param.DeltaOption == "OFF"):
+        self.delta_option = Var_Translator(Param.DeltaOption)
+
+        if (Param.DeltaOption == "None"):
             self.delta_option = 0
 
-        elif (Param.DeltaOption == "ABSOLUTE"):
+        elif (Param.DeltaOption == "Absolute"):
             self.delta_option = 1
             self.search_tolerance = Param.SearchTolerance
 
-        elif (Param.DeltaOption == "COORDINATION_NUMBER"):
+        elif (Param.DeltaOption == "Coordination_Number"):
             self.delta_option = 2
             self.coordination_number = Param.CoordinationNumber
-
+            self.search_tolerance = 0.01 * Param.MeanRadius
+            
         self.move_mesh_flag = True
         self.deactivate_search = 0
         self.case_option = 3
-
-        self.ComputeMovementOption = Var_Translator(Param.ComputeMovementOption)
 
         # MODEL
         self.model_part = model_part
@@ -175,26 +176,7 @@ class ExplicitStrategy:
         self.bottom_corner[0] = Param.BoundingBoxMinY
         self.bottom_corner[0] = Param.BoundingBoxMinZ
 
-        # RigidFace movement
-        if(self.ComputeMovementOption):
-            self.RotationSpeed = Param.RotationSpeed
-            self.AxialSpeed = Param.AxialSpeed
-            self.PROP_ID = Param.PropID
-            self.GLOBAL_VEL = Vector(3)
-            self.GLOBAL_VEL[0] = Param.GLOBAL_X_VEL
-            self.GLOBAL_VEL[1] = Param.GLOBAL_Y_VEL
-            self.GLOBAL_VEL[2] = Param.GLOBAL_Z_VEL
-            self.ROTA_ORIGIN_COORD = Vector(3)
-            self.ROTA_ORIGIN_COORD[0] = Param.ROTA_ORIGIN_COORD_X
-            self.ROTA_ORIGIN_COORD[1] = Param.ROTA_ORIGIN_COORD_Y
-            self.ROTA_ORIGIN_COORD[2] = Param.ROTA_ORIGIN_COORD_Z
-            self.ROTA_AXIAL_NORMAL = Vector(3)
-            self.ROTA_AXIAL_NORMAL[0] = Param.ROTA_AXIAL_NORMAL_X
-            self.ROTA_AXIAL_NORMAL[1] = Param.ROTA_AXIAL_NORMAL_Y
-            self.ROTA_AXIAL_NORMAL[2] = Param.ROTA_AXIAL_NORMAL_Z
-            self.BEGIN_TIME = Param.BEGIN_TIME
-            self.END_TIME = Param.END_TIME
-
+       
         # BOUNDARY
 #        if (Param.LimitSurfaceOption > 0):
 #          self.surface_normal_dir_1           = Vector(3)
@@ -320,16 +302,19 @@ class ExplicitStrategy:
         self.gravity[2] = Param.GravityZ
 
         # GLOBAL MATERIAL PROPERTIES
+        self.virtual_mass_option            = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
            self.virtual_mass_option            = 1
            
-        if (Param.NormalForceCalculationType == "Linear"):
+        if (Param.MaterialModel == "Linear"):
             self.force_calculation_type_id = 0
-
-        elif (Param.NormalForceCalculationType == "Hertz"):
+        elif (Param.MaterialModel == "Hertz"):
             self.force_calculation_type_id = 1
-
+        elif (Param.MaterialModel == "1DPlasticity"):
+            self.force_calculation_type_id = 2
+        elif (Param.MaterialModel == "ExpHard"):
+            self.force_calculation_type_id = 3
         else:
 
             raise Exception('Specified NormalForceCalculationType is not defined')
@@ -346,13 +331,13 @@ class ExplicitStrategy:
             self.damp_id = 0
             
         self.rolling_friction_option = Var_Translator(Param.RollingFrictionOption)
-        self.tau_zero                = Param.TauZero
 
-        self.tangential_strenght = Param.TangentialStrenght
+        self.tangential_strength = Param.TangentialStrength
 
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_group_id = Var_Translator(Param.PostGroupId)
+        self.print_export_skin_sphere = 0
 
         # TIME RELATED PARAMETERS
         self.delta_time = Param.MaxTimeStep
@@ -360,23 +345,7 @@ class ExplicitStrategy:
         self.final_time = Param.FinalTime
 
         # RESOLUTION METHODS AND PARAMETERS
-
-        if (Param.TimeStepsPerSearchStep < 1):
-
-            raise Exception('Variable TimeStepsPerSearchStep must be an integer, grater or equal to 1. The current input value is ', Param.TimeStepsPerSearchStep)
-
-        elif (not isinstance(Param.TimeStepsPerSearchStep, int)):
-
-            print('Variable TimeStepsPerSearchStep is not an integer. Its input value is ', Param.TimeStepsPerSearchStep, 'Rounding up to ', int(Param.TimeStepsPerSearchStep))
-
-            self.n_step_search = int(Param.TimeStepsPerSearchStep)
-
-        else:
-            self.n_step_search = int(Param.TimeStepsPerSearchStep)
-
-        if (self.deactivate_search):
-            self.n_step_search = sys.maxsize
-
+        self.n_step_search = int(Param.NeighbourSearchFrequency)                
         self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
 
         # CREATOR-DESTRUCTOR
@@ -402,20 +371,14 @@ class ExplicitStrategy:
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
 
-        self.search_strategy = OMP_DEMSearch()
-
-        if (Param.IntegrationScheme == 'forward_euler'):
-            self.time_scheme = ForwardEulerScheme()
-
-        elif (Param.IntegrationScheme == 'mid_point_rule'):
-            self.time_scheme = MidPointScheme()
-
-        elif (Param.IntegrationScheme == 'const_average_acc'):
-            self.time_scheme = ConstAverageAccelerationScheme()
-
+        self.search_strategy = OMP_DEMSearch()            
+            
+        if (Param.IntegrationScheme == 'Forward_Euler'):
+            self.time_integration_scheme = ForwardEulerScheme()
+        elif (Param.IntegrationScheme == 'Mid_Point_Rule'):
+            self.time_integration_scheme = MidPointScheme()
         else:
-
-            print('Specified IntegrationScheme is not defined')
+            print('scheme not defined')
 
     #
 
@@ -434,25 +397,13 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
-        self.model_part.ProcessInfo.SetValue(RIGID_FACE_FLAG, self.ComputeMovementOption)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 1)  # needed in the basic for the continuum.
 
         # TOTAL NUMBER OF INITIALIZED ELEMENTS
         self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0);
 
         # TOLERANCES
-        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
-
-        # Rigid Face setting
-        if(self.ComputeMovementOption):
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_SPEED, self.RotationSpeed)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_AXIAL_SPEED, self.AxialSpeed)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_PROP_ID, self.PROP_ID)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_ORIGIN_COORD, self.ROTA_ORIGIN_COORD)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_AXIAL_DIR, self.ROTA_AXIAL_NORMAL)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_GLOBAL_VELOCITY, self.GLOBAL_VEL)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_BEGIN_TIME, self.BEGIN_TIME)
-            self.model_part.ProcessInfo.SetValue(RIGID_FACE_END_TIME, self.END_TIME)
+        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);       
 
         # BOUNDARY
 #        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_option)
@@ -539,7 +490,7 @@ class ExplicitStrategy:
         # Creating the solution strategy
 
         self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
-                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_scheme, self.search_strategy)
+                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
         self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
 
