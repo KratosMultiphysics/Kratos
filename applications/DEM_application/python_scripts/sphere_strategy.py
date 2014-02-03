@@ -334,23 +334,21 @@ class ExplicitStrategy:
 
             raise Exception('Specified NormalForceCalculationType is not defined')
 
-        if (Param.NormalDampingType == "ViscDamp"):
-
-            if (Param.TangentialDampingType == "ViscDamp"):
-                self.damp_id = 11
-
-            else:
-                self.damp_id = 10
+        if (Param.LocalContactDamping == "Both"):         
+            self.damp_id = 11
+              
+        elif (Param.LocalContactDamping == "Normal"):
+            self.damp_id = 10
+            
+        elif (Param.LocalContactDamping == "Tangential"):
+            self.damp_id = 1
         else:
-
-            if (Param.TangentialDampingType == "ViscDamp"):
-                self.damp_id = 1
-
-            else:
-                self.damp_id = 0
-
+            self.damp_id = 0
+            
         self.rolling_friction_option = Var_Translator(Param.RollingFrictionOption)
         self.tau_zero                = Param.TauZero
+
+        self.tangential_strenght = Param.TangentialStrenght
 
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
