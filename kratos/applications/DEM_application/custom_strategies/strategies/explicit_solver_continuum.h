@@ -792,7 +792,7 @@ namespace Kratos
           bool fix_y = bool(properties[IMPOSED_VELOCITY_Y]);
           bool fix_z = bool(properties[IMPOSED_VELOCITY_Z]);
 
-          KRATOS_WATCH(fix_y)
+          //KRATOS_WATCH(fix_y)
           
          if( fix_x || fix_y || fix_z )
          {
