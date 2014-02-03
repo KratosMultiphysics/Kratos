@@ -63,7 +63,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericContinuumParticle::SetInitialContacts() //vull ficar que sigui zero si no son veins cohesius.
+      void SphericContinuumParticle::SetInitialContacts() 
       {   
                 
           /*
@@ -125,63 +125,58 @@ namespace Kratos
 
             mIniNeighbourToIniContinuum[ini_size - 1] = -1; //-1 is initial but not continuum.             
 
-            if (mDeltaOption == true) {
+
                 mIniNeighbourDelta[ini_size - 1] = initial_delta;
-            }
 
-            if (mContinuumSimulationOption == true) {
 
-                if ((r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0)) {
+            if ((r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0)) 
+            {
 
-                    mIniNeighbourToIniContinuum[ini_size - 1] = cont_ini_mapping_index;
+                mIniNeighbourToIniContinuum[ini_size - 1] = cont_ini_mapping_index;
 
-                    mIniNeighbourFailureId[ini_size - 1] = 0;
+                mIniNeighbourFailureId[ini_size - 1] = 0;
 
-                    mFailureId = 0; // if a cohesive contact exist, the FailureId becomes 0. 
+                mFailureId = 0; // if a cohesive contact exist, the FailureId becomes 0. 
 
-                    continuum_ini_size++;
-                    cont_ini_mapping_index++;
+                continuum_ini_size++;
+                cont_ini_mapping_index++;
 
-                    r_continuum_ini_neighbours.push_back(*ineighbour);
+                r_continuum_ini_neighbours.push_back(*ineighbour);
 
-                    r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
+                r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
 
-                    mMapping_New_Cont.resize(continuum_ini_size);
-                    mMapping_New_Cont[continuum_ini_size - 1] = -1;
+                mMapping_New_Cont.resize(continuum_ini_size);
+                mMapping_New_Cont[continuum_ini_size - 1] = -1;
 
-                    mHistory.resize(continuum_ini_size);
+                mHistory.resize(continuum_ini_size);
 
-                    mHistory[continuum_ini_size - 1][0] = 0.0; //maximum indentation reached
-                    mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
-                    mHistory[continuum_ini_size - 1][2] = 0.0; //acumulated_damage
-                    mHistory[continuum_ini_size - 1][3] = 1.0; //degradation factor for G reducing in Dempack;
+                mHistory[continuum_ini_size - 1][0] = 0.0; //maximum indentation reached
+                mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
+                mHistory[continuum_ini_size - 1][2] = 0.0; //acumulated_damage
+                mHistory[continuum_ini_size - 1][3] = 1.0; //degradation factor for G reducing in Dempack;
 
-                    r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+                r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
 
-                    if (mContactMeshOption) {
+                if (mContactMeshOption) {
 
-                        (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
+                    (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
 
-                    } //if(mContactMeshOption) 
+                } //if(mContactMeshOption) 
 
-                }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
-
-            }//for mContinuumSimulationOption      
+            }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
 
         } //end for: ParticleWeakIteratorType ineighbour
 
-
-        if (mContinuumSimulationOption == true) {
-
-            if (mDimension == 3) {
-                ContactAreaWeighting3D();
-            } else if (mDimension == 2) {
-
-                ContactAreaWeighting2D();
-
-            }
-
+        if (mDimension == 3) 
+        {
+            ContactAreaWeighting3D();
+        } 
+        
+        else if (mDimension == 2) 
+        {
+            ContactAreaWeighting2D();
         }
+
 
 
     }//SetInitialContacts
@@ -443,18 +438,7 @@ namespace Kratos
             double aux_norm_to_tang = 0.0;
 
             if(mDempack){
-                
-              
-              /*
-                double rad_squared = mRadius * other_radius;
-                
-                calculation_area = mAreaFactorInv*4.0*M_PI*(rad_squared*rad_squared)*radius_sum_i*radius_sum_i;
-                
-                double equiv_shear = equiv_young/(2*(1+equiv_poisson));
-                
-                kn_el = equiv_young*calculation_area*radius_sum_i;
-                kt_el = equiv_shear*calculation_area*radius_sum_i;
-              */
+
 
               double rmin = mRadius;
               if(other_radius<mRadius) rmin = other_radius;
@@ -466,27 +450,12 @@ namespace Kratos
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
 
-             
-//               if(rCurrentProcessInfo[TIME_STEPS]==1)
-//               {
-//                  KRATOS_WATCH(kn_el)
-//                 if(kn_el>rCurrentProcessInfo[PRESSURE])
-//                 {
-//                   rCurrentProcessInfo[PRESSURE]=kn_el;
-//                 }
-//                 
-//               }
-//               if(rCurrentProcessInfo[TIME_STEPS]==2)
-//               {
-//                 KRATOS_WATCH(rCurrentProcessInfo[PRESSURE])
-//               }
-//               
             }
             
             else
             {
 
-                if(mContinuumSimulationOption==1 && (mapping_new_ini !=-1))
+                if( mapping_new_ini !=-1 )
                 {
                   calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
                 }
@@ -511,7 +480,7 @@ namespace Kratos
             if(mDempack){
             
             equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
-            equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal; // dempack no l'utilitza...
+            equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
             
             }
               
@@ -1027,7 +996,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
            
            mDempack_damping = r_process_info[DEMPACK_DAMPING]; 
            mDempack_global_damping = r_process_info[DEMPACK_GLOBAL_DAMPING];
-           mAreaFactorInv = 1/r_process_info[AREA_FACTOR];
 
          }
          
@@ -1055,9 +1023,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
          {
              mFinalPressureTime      = 0.01*r_process_info[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
          }
-         
-         AuxiliaryFunctions::SwitchCase(mpCaseOption, mDeltaOption, mContinuumSimulationOption);
-         
+
          mTanContactInternalFriccion    = r_process_info[CONTACT_INTERNAL_FRICC];
          double atanInternalFriccion    = atan(mTanContactInternalFriccion);
          mSinContactInternalFriccion    = sin(atanInternalFriccion);
