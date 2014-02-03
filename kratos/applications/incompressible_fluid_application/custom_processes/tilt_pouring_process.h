@@ -110,8 +110,6 @@ public:
 		CalculateRotationMatrix(rotation_matrix, mRotationAxis, alpha);
 
 		array_1d<double,3> new_gravity = prod(trans(rotation_matrix), mGravity);
-		KRATOS_WATCH(mGravity);
-		KRATOS_WATCH(new_gravity);
 		ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
 		for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
         {
