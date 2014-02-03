@@ -90,6 +90,7 @@ protected:
       double   critical_dissipation;
  
       double   reference_error;
+     
 
       void Initialize (){
 	
@@ -103,6 +104,71 @@ protected:
       };
 
     };
+
+
+    struct InfoVariables
+    {      
+    public: 
+
+      int   number_of_elements;
+      int   number_of_nodes;
+      int   number_of_conditions;
+
+      int   critical_elements;
+      
+      int   inserted_nodes;
+      int   removed_nodes;
+
+      int   number_new_elements;
+      int   number_new_nodes;
+      int   number_new_conditions;
+
+      bool  geometrical_smooth_required;
+      bool  mechanical_smooth_required;
+
+      void Initialize (){
+	
+	number_of_elements   = 0;
+	number_of_nodes      = 0;
+	number_of_conditions = 0;
+
+	critical_elements = 0;
+      
+	inserted_nodes = 0;
+	removed_nodes = 0 ;
+
+	number_new_elements = 0;
+	number_new_nodes = 0;
+	number_new_conditions = 0;
+
+	geometrical_smooth_required = false;
+	mechanical_smooth_required  = false;
+
+      };
+      
+      void CheckGeometricalSmooth(){
+
+	if( inserted_nodes * 100 > number_of_nodes || removed_nodes * 100 > number_of_nodes )
+	  geometrical_smooth_required = true;
+	else
+	  geometrical_smooth_required = false;
+
+      }
+
+
+      void CheckMechanicalSmooth(){
+
+	if( critical_elements > 0 || number_new_elements != 0 )
+	  geometrical_smooth_required = true;
+	else
+	  geometrical_smooth_required = false;
+
+      }
+
+
+
+    };
+
 
 
     struct BoundingBoxVariables
@@ -179,6 +245,8 @@ protected:
       // double  critical_side;
       // double  reference_error;
       
+      InfoVariables RemeshInfo;
+
       std::vector<RigidWallBoundingBox::Pointer> RigidWalls;
 
       BoundingBoxVariables BoundingBox;
@@ -198,8 +266,9 @@ protected:
 	offset_factor  = 0;
 
 	Refine.Initialize();
+	RemeshInfo.Initialize();
 	BoundingBox.Initialize();
-
+	
       };
     };
 
