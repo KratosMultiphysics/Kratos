@@ -785,58 +785,58 @@ namespace Kratos
       {
         
 
-          ElementsArrayType& pElements = mesh_it->Elements();
+        
           Properties properties =  mesh_it->GetProperties(0);  
 
           bool fix_x = bool(properties[IMPOSED_VELOCITY_X]);
           bool fix_y = bool(properties[IMPOSED_VELOCITY_Y]);
           bool fix_z = bool(properties[IMPOSED_VELOCITY_Z]);
 
-          //KRATOS_WATCH(fix_y)
-          
          if( fix_x || fix_y || fix_z )
          {
             
           double vel_x = properties[IMPOSED_VELOCITY_X_VALUE];
           double vel_y = properties[IMPOSED_VELOCITY_Y_VALUE];  
           double vel_z = properties[IMPOSED_VELOCITY_Z_VALUE];  
-          
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+          NodesArrayType& pNodes = mesh_it->Nodes();
+        
+          vector<unsigned int> node_partition;
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
 
           #pragma omp parallel 
-          
           #pragma omp for
           
-          for (int k = 0; k < this->GetNumberOfThreads(); k++)
-          
+          for(int k=0; k<this->GetNumberOfThreads(); k++)
           {
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+              typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+              typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
-              for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
               {
 
-                array_1d<double, 3>& velocity = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
                 
                 if(fix_x)
                 {
                   velocity[0] = vel_x;
-                  unsigned int pos_x = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);  
-                  (it)->GetGeometry()(0)->GetDof(VELOCITY_X, pos_x).FixDof();  
+                  unsigned int pos_x = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);  
+                  i->GetDof(VELOCITY_X, pos_x).FixDof();  
                 }
                 
                 if(fix_y)
                 {
                   velocity[1] = vel_y;
-                  unsigned int pos_y = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);  
-                  (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos_y).FixDof();  
+                  unsigned int pos_y = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);  
+                  i->GetDof(VELOCITY_Y, pos_y).FixDof();  
+
                 }
                 
                 if(fix_z)
                 {
                   velocity[2] = vel_z;
-                  unsigned int pos_z = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);  
-                  (it)->GetGeometry()(0)->GetDof(VELOCITY_Z, pos_z).FixDof();  
+                  unsigned int pos_z = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);  
+                  i->GetDof(VELOCITY_Z, pos_z).FixDof();  
                 
                 }
      
