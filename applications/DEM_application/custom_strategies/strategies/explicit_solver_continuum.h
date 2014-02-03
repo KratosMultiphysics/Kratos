@@ -784,20 +784,23 @@ namespace Kratos
       for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it)
       {
         
+
           ElementsArrayType& pElements = mesh_it->Elements();
           Properties properties =  mesh_it->GetProperties(0);  
 
           bool fix_x = bool(properties[IMPOSED_VELOCITY_X]);
           bool fix_y = bool(properties[IMPOSED_VELOCITY_Y]);
           bool fix_z = bool(properties[IMPOSED_VELOCITY_Z]);
-          
-          double vel_x = properties[IMPOSED_VELOCITY_X_VALUE];
-          double vel_y = properties[IMPOSED_VELOCITY_Y_VALUE];  
-          double vel_z = properties[IMPOSED_VELOCITY_Z_VALUE];  
+
+          KRATOS_WATCH(fix_y)
           
          if( fix_x || fix_y || fix_z )
          {
             
+          double vel_x = properties[IMPOSED_VELOCITY_X_VALUE];
+          double vel_y = properties[IMPOSED_VELOCITY_Y_VALUE];  
+          double vel_z = properties[IMPOSED_VELOCITY_Z_VALUE];  
+          
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel 
