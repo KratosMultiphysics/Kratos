@@ -48,105 +48,75 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    template<> bool                                 KratosLog<KRATOS_SEVERITY_ERROR>::mInstanceFalg = 0;
-    template<> KratosLog<KRATOS_SEVERITY_ERROR> *   KratosLog<KRATOS_SEVERITY_ERROR>::mpInstance    = NULL;
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_ERROR>::mInstanceFalg    = 0;
+    template<> KratosLog<KRATOS_SEVERITY_ERROR> *    KratosLog<KRATOS_SEVERITY_ERROR>::mpInstance       = NULL;
     
-    template<> KratosLog<KRATOS_SEVERITY_ERROR>::KratosLog()
-    {
-        mOutputFile = new std::ofstream();
-    }
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_WARNING>::mInstanceFalg  = 0;
+    template<> KratosLog<KRATOS_SEVERITY_WARNING> *  KratosLog<KRATOS_SEVERITY_WARNING>::mpInstance     = NULL;
     
-    template<> KratosLog<KRATOS_SEVERITY_ERROR>::~KratosLog()
-    {
-        free(mOutputFile);
-    }
-
-    template<> void KratosLog<KRATOS_SEVERITY_ERROR>::SetOutput(std::string const& LogFileName)
-    {
-        if(mOutputFile->is_open())
-
-            mOutputFile->close();
-
-        mOutputFile->open(LogFileName.c_str());
-    }
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_INFO>::mInstanceFalg     = 0;
+    template<> KratosLog<KRATOS_SEVERITY_INFO> *     KratosLog<KRATOS_SEVERITY_INFO>::mpInstance        = NULL;
     
-    template<> KratosLog<KRATOS_SEVERITY_ERROR>& KratosLog<KRATOS_SEVERITY_ERROR>::GetInstance() 
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_DETAIL>::mInstanceFalg   = 0;
+    template<> KratosLog<KRATOS_SEVERITY_DETAIL> *   KratosLog<KRATOS_SEVERITY_DETAIL>::mpInstance      = NULL;
+    
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_DEBUG>::mInstanceFalg    = 0;
+    template<> KratosLog<KRATOS_SEVERITY_DEBUG> *    KratosLog<KRATOS_SEVERITY_DEBUG>::mpInstance       = NULL;
+    
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_TRACE>::mInstanceFalg    = 0;
+    template<> KratosLog<KRATOS_SEVERITY_TRACE> *    KratosLog<KRATOS_SEVERITY_TRACE>::mpInstance       = NULL;
+    
+    /**
+    * Returns the current time in HH:MM:SS format
+    */
+    const std::string KratosLogUtils::CurrentDateTime() 
     {
-        if(!mInstanceFalg)
-        {   
-            mInstanceFalg = 1;
-            mpInstance = new KratosLog<KRATOS_SEVERITY_ERROR>();
-            mpInstance->SetOutput("KRATOS_LOG_TEST.log");
-        }
+        time_t     now = time(0);
+        struct tm  tstruct;
         
-        return (*mpInstance);
-    }
-    
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_WARNING>::mInstanceFalg = 0;
-    template<> KratosLog<KRATOS_SEVERITY_WARNING> *  KratosLog<KRATOS_SEVERITY_WARNING>::mpInstance    = NULL;
-    
-    template<> KratosLog<KRATOS_SEVERITY_WARNING>::KratosLog()
-    {
-        mOutputFile = new std::ofstream();
-    }
-    
-    template<> KratosLog<KRATOS_SEVERITY_WARNING>::~KratosLog()
-    {
-        free(mOutputFile);
-    }
-
-    template<> void KratosLog<KRATOS_SEVERITY_WARNING>::SetOutput(std::string const& LogFileName)
-    {
-        if(mOutputFile->is_open())
-
-            mOutputFile->close();
-
-        mOutputFile->open(LogFileName.c_str());
-    }
-    
-    template<> KratosLog<KRATOS_SEVERITY_WARNING>& KratosLog<KRATOS_SEVERITY_WARNING>::GetInstance() 
-    {
-        if(!mInstanceFalg)
-        {   
-            mInstanceFalg = 1;
-            mpInstance = new KratosLog<KRATOS_SEVERITY_WARNING>();
-            mpInstance->SetOutput("KRATOS_LOG_TEST.log");
-        }
+        char       buf[80];
+        tstruct = *localtime(&now);
         
-        return (*mpInstance);
-    }
+        strftime(buf, sizeof(buf), "%X", &tstruct);
 
-//         /**
-//      * Returns the current time in HH:MM:SS format
-//      */
-//     inline const std::string KratosLogger::CurrentDateTime() 
-//     {
-//         time_t     now = time(0);
-//         struct tm  tstruct;
-//         
-//         char       buf[80];
-//         tstruct = *localtime(&now);
-//         
-//         strftime(buf, sizeof(buf), "%X", &tstruct);
-// 
-//         return buf;
-//     }
-//     
-//     /**
-//     * Returns the current time in the specified format
-//     * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
-//     *                   for more details.
-//     */
-//     inline const std::string KratosLogger::CurrentDateTime(const char * format) 
-//     {
-//         time_t     now = time(0);
-//         struct tm  tstruct;
-//         
-//         char       buf[80];
-//         tstruct = *localtime(&now);
-//         
-//         strftime(buf, sizeof(buf), format, &tstruct);
-// 
-//         return buf;
-//     }
+        return buf;
+    }
+        
+    /**
+    * Returns the current time in the specified format
+    * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
+    *                   for more details.
+    */
+    const std::string KratosLogUtils::CurrentDateTime(const char * format) 
+    {
+        time_t     now = time(0);
+        struct tm  tstruct;
+        
+        char       buf[80];
+        tstruct = *localtime(&now);
+        
+        strftime(buf, sizeof(buf), format, &tstruct);
+
+        return buf;
+    }
+    
+    std::vector<std::string> KratosLogUtils::GetFilterNamespaces()
+    {
+        std::vector<std::string> filters(2);
+        
+        filters.push_back("Kratos");
+        filters.push_back("Kernel");
+        
+        return filters;
+    }
+    
+    const char * KratosLogUtils::FilterNamespace(const char * inputString, std::vector<std::string> remove)
+    {
+        std::string s(inputString);
+      
+        //for(unsigned int i = 0; i < remove.size(); i++)
+        s = s.substr(s.find("Kratos::"));
+
+        return s.c_str();
+    }
 }

@@ -59,43 +59,98 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 // External includes
-#include <boost/array.hpp>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
 
-// Preambles
-#define KRATOS_LOG_ERROR_PREAMBLE KRATOS_LOG_ERROR_INFO(__FILE__,__LINE__,BOOST_CURRENT_FUNCTION,KRATOS_SEVERITY_ERROR)
-#define KRATOS_LOG_ERROR_INFO(file,line,function,severity) "[KRATOS_ERROR]:" << (file) << ":" << (line) << ":"
+// Aux
+#define KRATOS_LOG_FILTER(STRING) KratosLogUtils::FilterNamespace(STRING,KratosLogUtils::GetFilterNamespaces())  
 
-#define KRATOS_LOG_WARNING_PREAMBLE KRATOS_LOG_WARNING_INFO(__FILE__,__LINE__,BOOST_CURRENT_FUNCTION,KRATOS_SEVERITY_ERROR)
-#define KRATOS_LOG_WARNING_INFO(file,line,function,severity) "[KRATOS_WARNING]:" << (file) << ":" << (line) << ":"
+//#define KRATOS_LOG_FILTER(STRING) STRING
+#define KRATOS_TIME_STAMP "[" << KratosLogUtils::CurrentDateTime() << "]"
+#define KRATOS_PROCESS_ID "[PID=" << getpid() << "]"
 
-// Check is only defined for KRATOS_SEVERITY_ERROR
-#define KRATOS_CHECK(C)         KRATOS_LOG_IF(KRATOS_SEVERITY_ERROR,C) << KRATOS_LOG_ERROR_PREAMBLE
+// Stamps
+#define KRATOS_LOG_ERROR_STAMP_DETAIL(file,line,function) "ERROR:" << (file) << ":" << (line) << ":" << "\n" << "\t in function: " << function << ":\n"
+#define KRATOS_LOG_ERROR_STAMP KRATOS_LOG_ERROR_STAMP_DETAIL(__FILE__,__LINE__,KRATOS_LOG_FILTER(BOOST_CURRENT_FUNCTION))
 
-#define KRATOS_ERROR_LOG          KRATOS_LOG(KRATOS_SEVERITY_ERROR)      << KRATOS_LOG_ERROR_PREAMBLE
-#define KRATOS_ERROR_LOG_N(N)     KRATOS_LOG_N(KRATOS_SEVERITY_ERROR,N)  << KRATOS_LOG_ERROR_PREAMBLE
-#define KRATOS_ERROR_LOG_IF(C)    KRATOS_LOG_IF(KRATOS_SEVERITY_ERROR,C) << KRATOS_LOG_ERROR_PREAMBLE
+#define KRATOS_LOG_WARNING_STAMP_DETAIL(file,line) "WARNING:" << (file) << ":" << (line) << ":"
+#define KRATOS_LOG_WARNING_STAMP KRATOS_LOG_WARNING_STAMP_DETAIL(__FILE__,__LINE__)
 
-#define KRATOS_WARNING_LOG        KRATOS_LOG(KRATOS_SEVERITY_WARNING)      << KRATOS_LOG_WARNING_PREAMBLE
-#define KRATOS_WARNING_LOG_N(N)   KRATOS_LOG_N(KRATOS_SEVERITY_WARNING,N)  << KRATOS_LOG_WARNING_PREAMBLE
-#define KRATOS_WARNING_LOG_IF(C)  KRATOS_LOG_IF(KRATOS_SEVERITY_WARNING,C) << KRATOS_LOG_WARNING_PREAMBLE
+#define KRATOS_LOG_INFO_STAMP_DETAIL ""
+#define KRATOS_LOG_INFO_STAMP KRATOS_LOG_INFO_STAMP_DETAIL
+
+#define KRATOS_LOG_DETAI_STAMP_DETAIL KRATOS_TIME_STAMP << ":"
+#define KRATOS_LOG_DETAI_STAMP KRATOS_LOG_DETAI_STAMP_DETAIL
+
+#define KRATOS_LOG_DEBUG_STAMP_DETAIL(file,line) KRATOS_TIME_STAMP << ":" << (file) << ":" << (line) << ":"
+#define KRATOS_LOG_DEBUG_STAMP KRATOS_LOG_DEBUG_STAMP_DETAIL(__FILE__,__LINE__)
+
+#define KRATOS_LOG_TRACE_STAMP_DETAIL(file,line,function) KRATOS_TIME_STAMP << KRATOS_PROCESS_ID << ":" << (file) << ":" << (line) << ":" << "\n" << "\t in function: " << function << ":\n"
+#define KRATOS_LOG_TRACE_STAMP KRATOS_LOG_TRACE_STAMP_DETAIL(__FILE__,__LINE__,KRATOS_LOG_FILTER(BOOST_CURRENT_FUNCTION))
+
+// Logs
+#define KRATOS_ASSERT(C)              KRATOS_LOG_IF(KRATOS_SEVERITY_ERROR,C)        << KRATOS_LOG_ERROR_STAMP
+
+#define KRATOS_LOG_ERROR              KRATOS_LOG(KRATOS_SEVERITY_ERROR)             << KRATOS_LOG_ERROR_STAMP
+#define KRATOS_LOG_ERROR_N(N)         KRATOS_LOG_N(KRATOS_SEVERITY_ERROR,N)         << KRATOS_LOG_ERROR_STAMP
+#define KRATOS_LOG_ERROR_IF(C)        KRATOS_LOG_IF(KRATOS_SEVERITY_ERROR,C)        << KRATOS_LOG_ERROR_STAMP
+#define KRATOS_LOG_ERROR_IF_N(C,N)    KRATOS_LOG_IF_N(KRATOS_SEVERITY_ERROR,C,N)    << KRATOS_LOG_ERROR_STAMP
+#define KRATOS_LOG_ERROR_FIRST_N(N)   KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_ERROR,N)   << KRATOS_LOG_ERROR_STAMP
+#define KRATOS_LOG_ERROR_CHECK(C)     KRATOS_LOG_IF(KRATOS_SEVERITY_ERROR,C)        << KRATOS_LOG_ERROR_STAMP
+
+#define KRATOS_LOG_WARNING            KRATOS_LOG(KRATOS_SEVERITY_WARNING)           << KRATOS_LOG_WARNING_STAMP
+#define KRATOS_LOG_WARNING_N(N)       KRATOS_LOG_N(KRATOS_SEVERITY_WARNING,N)       << KRATOS_LOG_WARNING_STAMP
+#define KRATOS_LOG_WARNING_IF(C)      KRATOS_LOG_IF(KRATOS_SEVERITY_WARNING,C)      << KRATOS_LOG_WARNING_STAMP
+#define KRATOS_LOG_WARNING_IF_N(C,N)  KRATOS_LOG_IF_N(KRATOS_SEVERITY_WARNING,C,N)  << KRATOS_LOG_WARNING_STAMP
+#define KRATOS_LOG_WARNING_FIRST_N(N) KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_WARNING,N) << KRATOS_LOG_WARNING_STAMP
+#define KRATOS_LOG_WARNING_CHECK(C)   KRATOS_LOG_IF(KRATOS_SEVERITY_WARNING,C)      << KRATOS_LOG_WARNING_STAMP
+
+#define KRATOS_LOG_INFO               KRATOS_LOG(KRATOS_SEVERITY_INFO)              << KRATOS_LOG_INFO_STAMP
+#define KRATOS_LOG_INFO_N(N)          KRATOS_LOG_N(KRATOS_SEVERITY_INFO,N)          << KRATOS_LOG_INFO_STAMP
+#define KRATOS_LOG_INFO_IF(C)         KRATOS_LOG_IF(KRATOS_SEVERITY_INFO,C)         << KRATOS_LOG_INFO_STAMP
+#define KRATOS_LOG_INFO_IF_N(C,N)     KRATOS_LOG_IF_N(KRATOS_SEVERITY_INFO,C)       << KRATOS_LOG_INFO_STAMP
+#define KRATOS_LOG_INFO_FIRST_N(N)    KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_INFO,N)    << KRATOS_LOG_INFO_STAMP
+
+#define KRATOS_LOG_DETAIL             KRATOS_LOG(KRATOS_SEVERITY_DETAIL)            << KRATOS_LOG_DETAIL_STAMP
+#define KRATOS_LOG_DETAIL_N(N)        KRATOS_LOG_N(KRATOS_SEVERITY_DETAIL,N)        << KRATOS_LOG_DETAIL_STAMP
+#define KRATOS_LOG_DETAIL_IF(C)       KRATOS_LOG_IF(KRATOS_SEVERITY_DETAIL,C)       << KRATOS_LOG_DETAIL_STAMP
+#define KRATOS_LOG_DETAIL_IF_N(C,N)   KRATOS_LOG_IF_N(KRATOS_SEVERITY_DETAIL,C)     << KRATOS_LOG_DETAIL_STAMP
+#define KRATOS_LOG_DETAIL_FIRST_N(N)  KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_DETAIL,N)  << KRATOS_LOG_DETAIL_STAMP
 
 #ifdef  KRATOS_DEBUG
-#define KRATOS_DEBUG_LOG        KRATOS_LOG(KRATOS_DEBUG)
-#define KRATOS_TRACE_LOG        KRATOS_LOG(KRATOS_TRACE)
+#define KRATOS_LOG_DEBUG              KRATOS_LOG(KRATOS_SEVERITY_DEBUG)             << KRATOS_LOG_DEBUG_STAMP
+#define KRATOS_LOG_DEBUG_N(N)         KRATOS_LOG_N(KRATOS_SEVERITY_DEBUG,N)         << KRATOS_LOG_DEBUG_STAMP
+#define KRATOS_LOG_DEBUG_IF(C)        KRATOS_LOG_IF(KRATOS_SEVERITY_DEBUG,C)        << KRATOS_LOG_DEBUG_STAMP
+#define KRATOS_LOG_DEBUG_IF_N(C,N)    KRATOS_LOG_IF_N(KRATOS_SEVERITY_DEBUG,C)      << KRATOS_LOG_DEBUG_STAMP
+#define KRATOS_LOG_DEBUG_FIRST_N(N)   KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_DEBUG,N)   << KRATOS_LOG_DEBUG_STAMP
+
+#define KRATOS_LOG_TRACE              KRATOS_LOG(KRATOS_SEVERITY_TRACE)             << KRATOS_LOG_TRACE_STAMP
+#define KRATOS_LOG_TRACE_N(N)         KRATOS_LOG_N(KRATOS_SEVERITY_TRACE,N)         << KRATOS_LOG_TRACE_STAMP
+#define KRATOS_LOG_TRACE_IF(C)        KRATOS_LOG_IF(KRATOS_SEVERITY_TRACE,C)        << KRATOS_LOG_TRACE_STAMP
+#define KRATOS_LOG_TRACE_IF_N(C,N)    KRATOS_LOG_IF_N(KRATOS_SEVERITY_TRACE,C)      << KRATOS_LOG_TRACE_STAMP
+#define KRATOS_LOG_TRACE_FIRST_N(N)   KRATOS_LOG_FIRST_N(KRATOS_SEVERITY_TRACE,N)   << KRATOS_LOG_TRACE_STAMP
 #else
-#define KRATOS_DEBUG_LOG    
-#define KRATOS_TRACE_LOG    
+#define KRATOS_LOG_DEBUG              
+#define KRATOS_LOG_DEBUG_N(N)         
+#define KRATOS_LOG_DEBUG_IF(C)        
+#define KRATOS_LOG_DEBUG_IF_N(C,N)    
+#define KRATOS_LOG_DEBUG_FIRST_N(N)   
+
+#define KRATOS_LOG_TRACE              
+#define KRATOS_LOG_TRACE_N(N)         
+#define KRATOS_LOG_TRACE_IF(C)        
+#define KRATOS_LOG_TRACE_IF_N(C,N)    
+#define KRATOS_LOG_TRACE_FIRST_N(N)   
 #endif
 
 // Normal log
 #define KRATOS_LOG(SEVERITY) KratosLog<SEVERITY>::GetInstance()
 
 // Each-N block
-#define KRATOS_LOG_OCCURRENCES KRATOS_LOG_OCCURRENCES_LINE(__LINE__)
 #define KRATOS_LOG_OCCURRENCES_LINE(line) kratos_log_loop_counter##line
+#define KRATOS_LOG_OCCURRENCES KRATOS_LOG_OCCURRENCES_LINE(__LINE__)
 
 #define KRATOS_LOG_N(KRATOS_SEVERITY,N) \
   static int KRATOS_LOG_OCCURRENCES = 0;\
@@ -103,12 +158,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   if (KRATOS_LOG_OCCURRENCES == 1) \
     KRATOS_LOG(KRATOS_SEVERITY)
     
-// If-block
+// If block
 #define KRATOS_LOG_IF(KRATOS_SEVERITY,C) \
   if (C) \
     KRATOS_LOG(KRATOS_SEVERITY)
-
-#define KRATOS_TIME_STAMP   "[" << CurrentDateTime() << "]"
+    
+// If-Each-N block
+#define KRATOS_LOG_IF_N(KRATOS_SEVERITY,C,N) \
+  static int KRATOS_LOG_OCCURRENCES = 0;\
+  if (++KRATOS_LOG_OCCURRENCES > N) KRATOS_LOG_OCCURRENCES -= N; \
+  if (C && KRATOS_LOG_OCCURRENCES == 1) \
+    KRATOS_LOG(KRATOS_SEVERITY)
+    
+// First-N block
+#define KRATOS_LOG_FIRST_N(KRATOS_SEVERITY,N) \
+  static int KRATOS_LOG_OCCURRENCES = 0;\
+  if (++KRATOS_LOG_OCCURRENCES < N) \
+    KRATOS_LOG(KRATOS_SEVERITY)
 
 namespace Kratos
 {
@@ -136,7 +202,7 @@ enum KRATOS_SEVERITY {
   KRATOS_SEVERITY_ERROR,
   KRATOS_SEVERITY_WARNING,
   KRATOS_SEVERITY_INFO,
-  KRATOS_SEVERITY_DETEAIL,
+  KRATOS_SEVERITY_DETAIL,
   KRATOS_SEVERITY_DEBUG,
   KRATOS_SEVERITY_TRACE,
   KRATOS_LOG_SOLVER
@@ -153,6 +219,8 @@ class KratosLog : public std::ostream
     static KratosLog *  mpInstance;
     
   public:
+         
+    ~KratosLog<S>();
     
     static KratosLog<S>& GetInstance();
     
@@ -166,10 +234,27 @@ class KratosLog : public std::ostream
     int             mSeverityLevel;
     std::ofstream * mOutputFile;
     
-    ~KratosLog<S>();
-    
 };  
 
+class KratosLogUtils
+{
+  private:
+  
+    KratosLogUtils();
+    
+    static bool mInstanceFlag;
+    static KratosLogUtils * mpInstance;
+    
+  public:
+    
+    ~KratosLogUtils();
+    
+    static const std::string CurrentDateTime();
+    static const std::string CurrentDateTime(const char * format);
+    static std::vector<std::string> GetFilterNamespaces();
+    static const char * FilterNamespace(const char * inputString, std::vector<std::string> remove);
+    
+};
 
 ///@}
 
@@ -183,16 +268,83 @@ class KratosLog : public std::ostream
   
 // Generic Specialization
 template<KRATOS_SEVERITY S>
+KratosLog<S>::KratosLog()
+{
+    mOutputFile = new std::ofstream();
+};
+
+template<KRATOS_SEVERITY S>
+KratosLog<S>::~KratosLog()
+{
+    free(mOutputFile);
+};
+
+template<KRATOS_SEVERITY S>
+void KratosLog<S>::SetOutput(std::string const& LogFileName)
+{
+    if(mOutputFile->is_open())
+
+    mOutputFile->close();
+
+    mOutputFile->open(LogFileName.c_str());
+};
+
+template<KRATOS_SEVERITY S>
+KratosLog<S>& KratosLog<S>::GetInstance() 
+{
+    if(!mInstanceFalg)
+    {   
+        mInstanceFalg = 1;
+        mpInstance = new KratosLog<S>();
+        mpInstance->SetOutput("KratosLog.log");
+    }
+    
+    return (*mpInstance);
+};
+
+// Error specialization
+inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, std::ostream& (*fn)(std::ostream&))
+{ 
+  if(out.mPrintLogOnScreen)
+    fn(std::cout);
+  
+  fn((*out.mOutputFile));
+  (*out.mOutputFile).flush();
+  
+  //TODO: Throw exception abort();
+
+  return out;
+}
+      
+template<class T>
+inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, const T& data)
+{
+  if(out.mPrintLogOnScreen)
+  {
+      std::cout << data;
+  }
+
+  (*out.mOutputFile) << data;
+  
+  //TODO: Throw exception abort();
+  
+  return out;  
+}
+    
+// Error specialization
+template<KRATOS_SEVERITY S>
 inline KratosLog<S> & operator << (KratosLog<S> &out, std::ostream& (*fn)(std::ostream&))
 { 
   if(out.mPrintLogOnScreen)
     fn(std::cout);
-     
+  
   fn((*out.mOutputFile));
   (*out.mOutputFile).flush();
-        
+  
+  //TODO: Throw exception abort();
+
   return out;
-};
+}
   
 template<class T, KRATOS_SEVERITY S>
 inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
@@ -203,37 +355,11 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
   }
 
   (*out.mOutputFile) << data;
-
+  
+  //TODO: Throw exception abort();
+  
   return out;  
-};
-  
-// Error specialization
-inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, std::ostream& (*fn)(std::ostream&))
-{ 
-  if(out.mPrintLogOnScreen)
-    fn(std::cout);
-     
-  fn((*out.mOutputFile));
-  (*out.mOutputFile).flush();
-  
-  abort();
-        
-  return out;
-};
-  
-template<class T>
-inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, const T& data)
-{
-  if(out.mPrintLogOnScreen)
-  {
-      std::cout << data;
-  }
-
-  (*out.mOutputFile) << data;
-
-  return out;  
-};
-
+}
 
 ///@}
 
