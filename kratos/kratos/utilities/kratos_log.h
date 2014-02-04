@@ -64,14 +64,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 
-// Aux
-#define KRATOS_LOG_FILTER(STRING) KratosLogUtils::FilterNamespace(STRING,KratosLogUtils::GetFilterNamespaces())  
-
-//#define KRATOS_LOG_FILTER(STRING) STRING
-#define KRATOS_TIME_STAMP "[" << KratosLogUtils::CurrentDateTime() << "]"
-#define KRATOS_PROCESS_ID "[PID=" << getpid() << "]"
+// Filters
+#define KRATOS_LOG_ADD_CUSTOM_FILTER(STRING) KratosLogUtils::GetInstance().AddCustomFilter(STRING);
+#define KRATOS_LOG_FILTER(STRING)            KratosLogUtils::GetInstance().Filter(STRING)  
 
 // Stamps
+#define KRATOS_TIME_STAMP "[" << KratosLogUtils::GetInstance().CurrentDateTime() << "]"
+#define KRATOS_PROCESS_ID "[PID=" << getpid() << "]"
+
 #define KRATOS_LOG_ERROR_STAMP_DETAIL(file,line,function) "ERROR:" << (file) << ":" << (line) << ":" << "\n" << "\t in function: " << function << ":\n"
 #define KRATOS_LOG_ERROR_STAMP KRATOS_LOG_ERROR_STAMP_DETAIL(__FILE__,__LINE__,KRATOS_LOG_FILTER(BOOST_CURRENT_FUNCTION))
 
@@ -215,7 +215,7 @@ class KratosLog : public std::ostream
     
     KratosLog<S>();
     
-    static bool         mInstanceFalg;
+    static bool         mInstanceFlag;
     static KratosLog *  mpInstance;
     
   public:
@@ -245,14 +245,21 @@ class KratosLogUtils
     static bool mInstanceFlag;
     static KratosLogUtils * mpInstance;
     
+    std::vector<std::string> * mFilterString;
+    
   public:
     
     ~KratosLogUtils();
     
-    static const std::string CurrentDateTime();
-    static const std::string CurrentDateTime(const char * format);
-    static std::vector<std::string> GetFilterNamespaces();
-    static const char * FilterNamespace(const char * inputString, std::vector<std::string> remove);
+    static KratosLogUtils& GetInstance();
+    
+    void AddCustomFilter(const std::string filter);
+    
+    const std::string CurrentDateTime();
+    const std::string CurrentDateTime(const char * format);
+    const char * Filter(const char * inputString);
+    const char * FilterNamespace(const char * inputString);
+    const char * FilterCustom(const char * inputString, std::vector<std::string> remove);
     
 };
 
@@ -271,13 +278,13 @@ template<KRATOS_SEVERITY S>
 KratosLog<S>::KratosLog()
 {
     mOutputFile = new std::ofstream();
-};
+}
 
 template<KRATOS_SEVERITY S>
 KratosLog<S>::~KratosLog()
 {
     free(mOutputFile);
-};
+}
 
 template<KRATOS_SEVERITY S>
 void KratosLog<S>::SetOutput(std::string const& LogFileName)
@@ -287,20 +294,20 @@ void KratosLog<S>::SetOutput(std::string const& LogFileName)
     mOutputFile->close();
 
     mOutputFile->open(LogFileName.c_str());
-};
+}
 
 template<KRATOS_SEVERITY S>
 KratosLog<S>& KratosLog<S>::GetInstance() 
 {
-    if(!mInstanceFalg)
+    if(!mInstanceFlag)
     {   
-        mInstanceFalg = 1;
+        mInstanceFlag = 1;
         mpInstance = new KratosLog<S>();
         mpInstance->SetOutput("KratosLog.log");
     }
     
     return (*mpInstance);
-};
+}
 
 // Error specialization
 inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY_ERROR> &out, std::ostream& (*fn)(std::ostream&))
@@ -311,6 +318,7 @@ inline KratosLog<KRATOS_SEVERITY_ERROR> & operator << (KratosLog<KRATOS_SEVERITY
   fn((*out.mOutputFile));
   (*out.mOutputFile).flush();
   
+    abort();
   //TODO: Throw exception abort();
 
   return out;
@@ -340,8 +348,6 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, std::ostream& (*fn)(std::o
   
   fn((*out.mOutputFile));
   (*out.mOutputFile).flush();
-  
-  //TODO: Throw exception abort();
 
   return out;
 }
@@ -355,8 +361,6 @@ inline KratosLog<S> & operator << (KratosLog<S> &out, const T& data)
   }
 
   (*out.mOutputFile) << data;
-  
-  //TODO: Throw exception abort();
   
   return out;  
 }
