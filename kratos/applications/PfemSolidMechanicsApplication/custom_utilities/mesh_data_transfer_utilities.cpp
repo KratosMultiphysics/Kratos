@@ -167,6 +167,10 @@ namespace Kratos
 	      }
 
 	}
+
+  
+      //*******************************************************************************************
+      //*******************************************************************************************
 	
       void MeshDataTransferUtilities::TransferNodalValuesToElements(const Variable<double>& rVariable,
 								    ModelPart& rModelPart,
@@ -209,6 +213,92 @@ namespace Kratos
 
 		    
             std::cout<<" [ Finished NODE to ELEMENT Transfer ]"<<std::endl;
+	    
+	    KRATOS_CATCH( "" )
+	}
+      
+
+
+
+      //*******************************************************************************************
+      //*******************************************************************************************
+	
+      void MeshDataTransferUtilities::TransferNodalValuesToElements(const Variable<double>& rVariable,
+								    const Variable<double>& rCriticalVariable,
+								    const double& rCriticalValue,
+								    ModelPart& rModelPart,
+								    ModelPart::IndexType MeshId)
+	{
+
+	    KRATOS_TRY
+		    
+            std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<" based on critical values of "<<rCriticalVariable<<std::endl;
+
+	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
+
+            std::vector<double> Jacobians(1);
+	    std::vector<double> InitialJacobians(1);
+	    double Jacobian = 0;	  
+            std::vector<double> ComputedValues(1);
+	    double computed_value=0;
+	    int counter = 0;
+
+	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	      {
+		
+		ie->GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
+	    
+		computed_value = ComputedValues[0] * ie->GetGeometry().Area();
+	
+		if( computed_value > rCriticalValue)
+		  {
+		    for(unsigned int i = 0; i<ie->GetGeometry().size(); i++)
+		      {
+			ie->GetGeometry()[i].Set(TO_REFINE);
+		      }
+		  }
+	      }
+
+	     
+	    for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	      {
+		  		
+		  Geometry<Node<3> >& elem_geometry = (ie)->GetGeometry();
+		  double size = elem_geometry.size();
+
+		  Jacobians[0]    = 0;
+		  bool apply_smoothing = false;
+
+		  for( unsigned int node_i = 0 ; node_i <elem_geometry.size(); node_i++)
+		    {
+		      Jacobian = elem_geometry[node_i].FastGetSolutionStepValue(rVariable);
+		      Jacobians[0] += (Jacobian/size);
+		      
+		      if(elem_geometry[node_i].Is(TO_REFINE))
+			apply_smoothing = true;
+		    }
+		
+		  if( apply_smoothing ){
+
+		    ie->GetValueOnIntegrationPoints(rVariable,InitialJacobians,CurrentProcessInfo);
+		    //std::cout<<" Element: "<<ie->Id()<<" Jacobian 0: "<<InitialJacobians[0]<<" Jacobian 1: "<<Jacobians[0]<<std::endl;
+		    Jacobians[0] = (alpha)*Jacobians[0]+(1-alpha)*InitialJacobians[0];
+
+		    ie->SetValueOnIntegrationPoints(rVariable,Jacobians,CurrentProcessInfo);
+
+		    counter ++;
+		  }
+	      }
+
+		    
+	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
+	      {
+		in->Reset(TO_REFINE);
+	      }
+
+            std::cout<<" [ Finished NODE to ELEMENT Transfer ] : ( Performed "<<counter<<" transfers of "<<rModelPart.NumberOfElements(MeshId)<<" possible )"<<std::endl;
 	    
 	    KRATOS_CATCH( "" )
 	}

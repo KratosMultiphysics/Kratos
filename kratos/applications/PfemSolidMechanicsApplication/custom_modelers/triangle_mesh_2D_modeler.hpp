@@ -118,6 +118,8 @@ protected:
       
       int   inserted_nodes;
       int   removed_nodes;
+      int   inserted_boundary_nodes;
+      int   inserted_conditions;
 
       int   number_new_elements;
       int   number_new_nodes;
@@ -136,7 +138,10 @@ protected:
       
 	inserted_nodes = 0;
 	removed_nodes = 0 ;
-
+	
+	inserted_boundary_nodes = 0;
+	inserted_conditions = 0;
+	
 	number_new_elements = 0;
 	number_new_nodes = 0;
 	number_new_conditions = 0;
