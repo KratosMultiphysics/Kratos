@@ -108,8 +108,8 @@ namespace Kratos
         
     /**
     * Returns the current time in the specified format
-    * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
-    *                   for more details.
+    * @param format:        valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
+    *                       for more details.
     */
     const std::string KratosLogUtils::CurrentDateTime(const char * format) 
     {
@@ -154,13 +154,15 @@ namespace Kratos
         std::string s(inputString);
       
         // Apply default filters
-        //filterKernel(s,"Kratos::");
+        filterKernel(s,"Kratos::");
         
         // apply custom filters
         for(unsigned int i = 0; i < mFilterString->size(); i++)
         {
             filterKernel(s,(*mFilterString)[i]);
         }
+        
+        s.append(" ");
 
         return s.c_str();
     }
