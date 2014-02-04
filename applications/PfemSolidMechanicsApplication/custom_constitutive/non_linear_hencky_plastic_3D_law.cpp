@@ -9,7 +9,6 @@
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 
 #include "../PfemSolidMechanicsApplication/custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 
 #include "solid_mechanics_application.h"
 //Molt important, el tema de constructors... etc
@@ -238,7 +237,7 @@ if (false) {
         ConstitutiveMatrix.clear();
 
         Matrix ElastoPlasticTangentMatrix;
-        double rAlpha = 0.0;
+        double rAlpha = ReturnMappingVariables.DeltaGamma;
         
         mpFlowRule->ComputeElastoPlasticTangentMatrix( ReturnMappingVariables,  NewElasticLeftCauchyGreen, rAlpha, ElastoPlasticTangentMatrix);
 
