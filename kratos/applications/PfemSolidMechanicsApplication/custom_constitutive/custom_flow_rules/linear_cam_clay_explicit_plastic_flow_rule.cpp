@@ -8,6 +8,8 @@
 #include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "utilities/math_utils.h"
 #include "includes/ublas_interface.h"
+#include "pfem_solid_mechanics_application.h"
+
 namespace Kratos
 {
 
@@ -103,7 +105,7 @@ void LinearCamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetri
 {
 
     double ReferencePressure = 80.0;
-    double SwellingSlope = 0.0078;
+    double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
 
 
     rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) ;
@@ -114,7 +116,10 @@ void LinearCamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetri
 
 void LinearCamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
 {
-    double ShearModulus = 1200.0;
+    double YoungModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    double PoissonCoef  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    double ShearModulus = YoungModulus / 2.0 / (1.0 + PoissonCoef);
+    ShearModulus = 120.0;
 
     rDeviatoricStress = rDeviatoricStrainVector;
     rDeviatoricStress *= 3.0*ShearModulus;
@@ -132,6 +137,11 @@ void LinearCamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVol
 void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix )
 {
 
+    double YoungModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    double PoissonCoef  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    double ShearModulus = YoungModulus / 2.0 / (1.0 + PoissonCoef);
+    ShearModulus = 120.0;
+    double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
 
     Matrix FourthOrderIdentity = ZeroMatrix(6);
     for (unsigned int i = 0; i<3; ++i)
@@ -159,8 +169,6 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
    MeanStress /= 3.0;
 
 
-   double SwellingSlope = 0.0078;
-   double ShearModulus = 1200.0;
 
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;

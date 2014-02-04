@@ -8,6 +8,7 @@
 #include "includes/define.h"
 #include "solid_mechanics_application.h"
 #include "../PfemSolidMechanicsApplication/custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
+#include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
 {
@@ -70,15 +71,20 @@ double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, c
    this->CalculateInvariants( rStressVector, MeanStress, DeviatoricQ);
    
    double Beta = 1.0;
-   double ShearM = 0.9;
+   double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
    double PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
 
    rStateFunction = pow(DeviatoricQ/ShearM, 2.0);
 //   rStateFunction += pow(1/Beta, 2.0)*(MeanStress*(MeanStress-PreconsolidationStress) - pow(PreconsolidationStress, 2.0)*( 1.0-pow(Beta,2.0)));
-   rStateFunction += pow(1.0/Beta, 2.0)*(MeanStress*(MeanStress-2.0*PreconsolidationStress) - pow(PreconsolidationStress, 2.0)*(1.0-pow(Beta, 2.0)));
-if (MeanStress > -10.0)
-    rStateFunction = -1.0;
+   rStateFunction += pow(1.0/Beta, 2.0)*(MeanStress*(MeanStress-2.0*PreconsolidationStress)); // - pow(PreconsolidationStress, 2.0)*(1.0-pow(Beta, 2.0)));
+
+
+//if (MeanStress > -10.0)
+//    rStateFunction = -1.0;
+
+//   std::cout << "P " << MeanStress << " Q " << DeviatoricQ << " PC " << PreconsolidationStress << " st " << rStateFunction << std::endl;
+//   std::cout << " SV " << rStressVector << std::endl;
 
 
    rStateFunction /= 1000.0;
@@ -156,7 +162,7 @@ void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStre
        ShearVector(i) = 2.0*rStressVector(i);
  
     double Beta = 1.0;
-    double ShearM = 0.9;
+    double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
   
     rYieldFunctionD = 2.0/pow(Beta, 2.0)*(MeanStress-PreconsolidationStress)*IdentityVector;
    

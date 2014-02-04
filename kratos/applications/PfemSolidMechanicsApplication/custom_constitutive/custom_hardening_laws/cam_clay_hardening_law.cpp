@@ -17,6 +17,7 @@
 #include "includes/properties.h"
 #include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "pfem_solid_mechanics_application.h"
 
 
 namespace Kratos
@@ -73,11 +74,9 @@ double& CamClayKinematicHardeningLaw::CalculateHardening(double &rHardening, con
 {
 	
 
-
-
-    double FirstPreconsolidationPressure = 40.0;
-    double SwellingSlope = 0.0078;
-    double OtherSlope = 0.085;
+    double FirstPreconsolidationPressure = GetProperties()[PRE_CONSOLIDATION_STRESS];
+    double SwellingSlope = GetProperties()[SWELLING_SLOPE];
+    double OtherSlope = GetProperties()[NORMAL_COMPRESSION_SLOPE];
 
 
     rHardening = -FirstPreconsolidationPressure*(std::exp (-rAlpha/(OtherSlope-SwellingSlope)) ) ;

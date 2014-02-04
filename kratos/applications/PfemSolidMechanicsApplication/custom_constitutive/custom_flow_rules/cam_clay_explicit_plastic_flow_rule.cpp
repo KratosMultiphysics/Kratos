@@ -8,6 +8,8 @@
 #include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
 #include "utilities/math_utils.h"
 #include "includes/ublas_interface.h"
+#include "pfem_solid_mechanics_application.h"
+
 namespace Kratos
 {
 
@@ -102,10 +104,9 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const Vector& rHenckyStrainVec
 void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress)
 {
 
-
-    double ReferencePressure = 80.0;
-    double SwellingSlope = 0.0078;
-    double AlphaShear = 120.0;
+    double ReferencePressure = 20.0;
+    double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+    double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 
     double DeviatoricStrain2Norm = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
@@ -116,6 +117,7 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 
     rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
+
 }
 
 
@@ -123,9 +125,9 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
 {
-    double ReferencePressure = 80.0;
-    double SwellingSlope = 0.0078;
-    double AlphaShear = 120.0;
+    double ReferencePressure = 20.0;
+    double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+    double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 
     rDeviatoricStress = rDeviatoricStrainVector;
     rDeviatoricStress *= 2.0*AlphaShear*ReferencePressure* std::exp(-rVolumetricStrain / SwellingSlope);
@@ -170,9 +172,9 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
    MeanStress /= 3.0;
 
 
-   double SwellingSlope = 0.0078;
-   double AlphaShear = 120.0;
-   double ReferencePressure = 80.0;
+   double ReferencePressure = 20.0;
+   double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+   double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
@@ -199,11 +201,11 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
        }
    }
 
-   if ( fabs(VolumetricStrain) > 0.50) {
-     for (unsigned int i = 0; i<6; ++i) {
-       rElasticMatrix(i,i) += 0000.1;
-     }
-   }
+//   if ( fabs(VolumetricStrain) > 0.50) {
+//     for (unsigned int i = 0; i<6; ++i) {
+//       rElasticMatrix(i,i) += 0000.1;
+//     }
+//   }
 //std::cout << "ELASTIC MATRIX " << rElasticMatrix << "ElasticVector " << rElasticStrainVector << " StressV " << StressVector << "Mean Stress " << MeanStress << std::endl;
 
 }
@@ -215,20 +217,16 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
    double MeanStress;
    this->CalculateMeanStress(rHenckyStrainVector, MeanStress);
 
-   double PreconsolidationStress;
-   PreconsolidationStress = mpYieldCriterion->GetHardeningLaw().CalculateHardening(PreconsolidationStress, rAlpha);
-
-
-
-    double SwellingSlope = 0.0078;
-    double OtherSlope = 0.085;
-    double Beta = 1.0;
+   double PreconsolidationStress = mpYieldCriterion->GetHardeningLaw().CalculateHardening(PreconsolidationStress, rAlpha);
+   double SwellingSlope          = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
+   double OtherSlope             = mpYieldCriterion->GetHardeningLaw().GetProperties()[NORMAL_COMPRESSION_SLOPE];
 
 
    rH = (MeanStress-PreconsolidationStress) ;
-   rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
+ //  rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
+   rH *= (-MeanStress);
    rH *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
-   rH *= 4.0 / pow(Beta, 4.0);
+   rH *= 4.0;
    rH *= 3.0;
  
    rH /= 1000.0;
