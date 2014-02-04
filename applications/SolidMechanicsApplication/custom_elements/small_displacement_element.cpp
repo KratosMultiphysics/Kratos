@@ -516,8 +516,9 @@ void SmallDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rVariables.N);
 
-    if(rVariables.detJ<0)
-        KRATOS_ERROR( std::invalid_argument,"detJ < 0", "" )
+    if(rVariables.detJ<0){
+        KRATOS_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", rVariables.detJ )
+    }
 
     rValues.SetDeterminantF0(rVariables.detF0);
     rValues.SetDeformationGradientF0(rVariables.F0);
