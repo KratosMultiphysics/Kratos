@@ -3,7 +3,6 @@ import time as timer
 import os
 import sys
 import math
-from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -117,6 +116,8 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
 post_utility = PostUtilities()
+
+os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
 
@@ -284,8 +285,8 @@ while (time < DEM_parameters.FinalTime):
     #########################CONCRETE_TEST_STUFF#########################################
     
     if( DEM_parameters.TestType != "None"):
-      
-      MaterialTest.Main(DEM_parameters)
+   
+      MaterialTest.CreateTopAndBotGraph(DEM_parameters)
       
      
     ##########################___GiD IO____#########################################4 
