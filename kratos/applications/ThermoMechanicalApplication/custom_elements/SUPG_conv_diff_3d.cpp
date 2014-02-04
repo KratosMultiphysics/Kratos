@@ -116,8 +116,8 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
         rRightHandSideVector.resize(matsize,false); //false says not to preserve existing storage!!
 
 
-//         noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
-//         noalias(rRightHandSideVector) = ZeroVector(matsize);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
+        noalias(rRightHandSideVector) = ZeroVector(matsize);
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
@@ -128,6 +128,15 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     double Volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
     array_1d<double, 3 > ms_vel_gauss;
+    
+    //4 Gauss points coordinates
+    bounded_matrix<double, 4, 4 > GaussCrd = ZeroMatrix(4, 4);
+    GaussCrd(0,0) = 0.58541020; GaussCrd(0,1) = 0.13819660; GaussCrd(0,2) = 0.13819660; GaussCrd(0,3) = 0.13819660;
+    GaussCrd(1,0) = 0.13819660; GaussCrd(1,1) = 0.58541020; GaussCrd(1,2) = 0.13819660; GaussCrd(1,3) = 0.13819660;	
+    GaussCrd(2,0) = 0.13819660; GaussCrd(2,1) = 0.13819660; GaussCrd(2,2) = 0.58541020; GaussCrd(2,3) = 0.13819660;
+    GaussCrd(3,0) = 0.13819660; GaussCrd(3,1) = 0.13819660; GaussCrd(3,2) = 0.13819660; GaussCrd(3,3) = 0.58541020;
+    
+    double wgauss = lumping_factor;
 
 
     //calculating viscosity
@@ -140,112 +149,119 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
     const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
 
-
-    double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
-    double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
-    double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
-    double heat_source = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
-    const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
-    const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
-
-
-    for (unsigned int j = 0; j < dim; j++)
-        ms_vel_gauss[j] = v[j] - w[j];
-
-    for (unsigned int i = 1; i < nodes_number; i++)
-    {
-        conductivity += GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
-        density += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
-        specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
-        heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
-
-        const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
-        const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
-        for (unsigned int j = 0; j < dim; j++)
-            ms_vel_gauss[j] += v[j] - w[j];
-
-    }
-    conductivity *= lumping_factor;
-    density *= lumping_factor;
-    specific_heat *= lumping_factor;
-    heat_source *= lumping_factor;
-    ms_vel_gauss *= lumping_factor;
-
-    //we divide conductivity by (ro*C) and heat_source by C
-// 	conductivity /= (density*specific_heat);
-// 	heat_source /= (specific_heat);
-    double tau;
-    double conductivity_scaled = conductivity/(density*specific_heat);    
-    CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
-//        tau *= density * specific_heat;
-
-    //Crank-Nicholson factor
-    double cr_nk = 0.5;
-    double dt_inv = 1.0/ delta_t;
-
-    //INERTIA CONTRIBUTION
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
-    noalias(rLeftHandSideMatrix) = dt_inv * density * specific_heat * msMassFactors;
-
-    //viscous term
+    //compute common matrix terms ( Laplacian, mass)
     boost::numeric::ublas::bounded_matrix<double, 4, 4 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
-    noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * conductivity * Laplacian_Matrix;
-
-    //Advective term
-    array_1d<double, 4 > a_dot_grad;
-    noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
-    noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * density * specific_heat * Advective_Matrix;
-
-    //stabilization terms
-    array_1d<double, 4 > a_dot_grad_and_mass;
-    a_dot_grad_and_mass = density * specific_heat *(dt_inv * N  +  (1.0-cr_nk) * a_dot_grad);
-    noalias(rLeftHandSideMatrix) += tau * outer_prod(a_dot_grad, a_dot_grad_and_mass);
-
-    //Add heat_source
-    noalias(rRightHandSideVector) = heat_source * N;
-
+    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 1.0 / 4.0 * IdentityMatrix(4, 4);
     //Take N_value terms
     array_1d<double, 4 > step_unknown;
     for (unsigned int iii = 0; iii < nodes_number; iii++)
-        step_unknown[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, 1);
-
-    //Add N_mass terms
-// 	noalias(rRightHandSideVector) += dt_inv * prod(msMassFactors, step_unknown);
-//
-// 	//Add N_advective terms
-// 	noalias(rRightHandSideVector) -= cr_nk * prod(Advective_Matrix, step_unknown);
-//
-// 	//Add N_Laplacian terms
-// 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
-
-    //Add all n_step terms
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
-    old_step_matrix -= ( cr_nk * density * specific_heat * Advective_Matrix + cr_nk* conductivity *Laplacian_Matrix);
-    noalias(rRightHandSideVector) += prod(old_step_matrix, step_unknown);
-
-    //Add n_Stabilization terms
-    a_dot_grad_and_mass = density * specific_heat * (dt_inv * N  -  cr_nk * a_dot_grad);
-    double old_res = inner_prod(a_dot_grad_and_mass, step_unknown);
-    old_res += heat_source;
-    noalias(rRightHandSideVector) +=  tau * a_dot_grad * old_res;
+	step_unknown[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, 1);
     
-    //add shock capturing 
-    double art_visc = 0.0;
-    //CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
-    //noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	    
-    CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
-    noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;	 
+    
+    //4GP integration rule
+    for(unsigned int gp = 0; gp<4; ++gp)
+    {
+        N[0] = GaussCrd(gp,0); N[1] = GaussCrd(gp,1); N[2] = GaussCrd(gp,2); N[3] = GaussCrd(gp,3); 
+       
+	double conductivity = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
+	double specific_heat = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
+	double density = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
+	double heat_source = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
+	const array_1d<double, 3 > & v = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
+	const array_1d<double, 3 > & w = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
+
+	for (unsigned int j = 0; j < dim; j++)
+	    ms_vel_gauss[j] = v[j] - w[j];
+
+	for (unsigned int i = 1; i < nodes_number; i++)
+	{
+	    conductivity += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
+	    density += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
+	    specific_heat += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
+	    heat_source += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
+
+	    const array_1d<double, 3 > & v = N[i]*GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
+	    const array_1d<double, 3 > & w = N[i]*GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
+	    for (unsigned int j = 0; j < dim; j++)
+		ms_vel_gauss[j] += v[j] - w[j];
+
+	}
+// 	conductivity *= lumping_factor;
+// 	density *= lumping_factor;
+// 	specific_heat *= lumping_factor;
+// 	heat_source *= lumping_factor;
+// 	ms_vel_gauss *= lumping_factor;
+
+	//we divide conductivity by (ro*C) and heat_source by C
+    // 	conductivity /= (density*specific_heat);
+    // 	heat_source /= (specific_heat);
+	double tau;
+	double conductivity_scaled = conductivity/(density*specific_heat);    
+	CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
+    //        tau *= density * specific_heat;
+
+	//Crank-Nicholson factor
+	double cr_nk = 0.5;
+	double dt_inv = 1.0/ delta_t;
+
+	//INERTIA CONTRIBUTION
+	noalias(rLeftHandSideMatrix) += dt_inv * density * specific_heat * msMassFactors;
+
+	//viscous term
+	noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * conductivity * Laplacian_Matrix;
+
+	//Advective term
+	array_1d<double, 4 > a_dot_grad;
+	noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
+	boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+	noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * density * specific_heat * Advective_Matrix;
+
+	//stabilization terms
+	array_1d<double, 4 > a_dot_grad_and_mass;
+	a_dot_grad_and_mass = density * specific_heat *(dt_inv * N  +  (1.0-cr_nk) * a_dot_grad);
+	noalias(rLeftHandSideMatrix) += tau * outer_prod(a_dot_grad, a_dot_grad_and_mass);
+
+	//Add heat_source
+	noalias(rRightHandSideVector) += heat_source * N;
+
+
+	//Add N_mass terms
+    // 	noalias(rRightHandSideVector) += dt_inv * prod(msMassFactors, step_unknown);
+    //
+    // 	//Add N_advective terms
+    // 	noalias(rRightHandSideVector) -= cr_nk * prod(Advective_Matrix, step_unknown);
+    //
+    // 	//Add N_Laplacian terms
+    // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
+
+	//Add all n_step terms
+	boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv * density * specific_heat * msMassFactors ;
+	old_step_matrix -= ( cr_nk * density * specific_heat * Advective_Matrix + cr_nk * conductivity * Laplacian_Matrix);
+	noalias(rRightHandSideVector) += prod(old_step_matrix, step_unknown);
+
+	//Add n_Stabilization terms
+	a_dot_grad_and_mass = density * specific_heat * (dt_inv * N  -  cr_nk * a_dot_grad);
+	double old_res = inner_prod(a_dot_grad_and_mass, step_unknown);
+	old_res += heat_source;
+	noalias(rRightHandSideVector) +=  tau * a_dot_grad * old_res;
+	
+	//add shock capturing 
+	double art_visc = 0.0;
+	//CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
+	//noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	    
+	CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
+	noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;	 
+    }
     //subtracting the dirichlet term
     // RHS -= LHS*temperatures
     for (unsigned int iii = 0; iii < nodes_number; iii++)
-        step_unknown[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
+	step_unknown[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, step_unknown);
+    
 
-
-    rRightHandSideVector *= Volume;
-    rLeftHandSideMatrix *= Volume;
+    rRightHandSideVector *= (wgauss * Volume);
+    rLeftHandSideMatrix *= (wgauss * Volume);
 
     KRATOS_CATCH("")
 }
