@@ -24,6 +24,7 @@
 #include "custom_processes/nodal_neighbours_search_process.hpp"
 #include "custom_processes/boundary_skin_build_process.hpp"
 #include "custom_processes/rigid_wall_contact_search_process.hpp"
+#include "custom_processes/model_volume_calculation_process.hpp"
 
 //Modeler Bounding Boxes
 #include "custom_modelers/rigid_wall_bounding_box.hpp"
@@ -78,6 +79,16 @@ namespace Kratos
 	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
 	;
 
+
+      //********MODEL VOLUME CALCULATION*********//
+
+      class_<ModelVolumeCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "ModelVolumeCalculation", init<ModelPart&, int>()
+	 )
+	 .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
+	 .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
+	;
 
     }
  

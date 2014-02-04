@@ -54,7 +54,7 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
   mChildConditions.clear();
   for (ConditionConstantIterator cn = rOther.mChildConditions.begin() ; cn != rOther.mChildConditions.end(); ++cn)
     {
-      mChildConditions.push_back(*cn);
+      mChildConditions.push_back(*(cn.base()));
     }
 
   this->Set(BOUNDARY);
@@ -75,7 +75,7 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
   mChildConditions.clear();
   for (ConditionConstantIterator cn = rOther.mChildConditions.begin() ; cn != rOther.mChildConditions.end(); ++cn)
     {
-      mChildConditions.push_back(*cn);
+      mChildConditions.push_back(*(cn.base()));
     }
 
   this->Set(BOUNDARY);
