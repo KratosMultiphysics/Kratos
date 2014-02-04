@@ -205,7 +205,6 @@ message( " ")
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/omptl )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
 # include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/gidpost )
 
 #defines needed
@@ -216,6 +215,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 #include subdirectories
+add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
