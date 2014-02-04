@@ -205,6 +205,7 @@ message( " ")
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/omptl )
+include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
 # include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/gidpost )
 
 #defines needed
