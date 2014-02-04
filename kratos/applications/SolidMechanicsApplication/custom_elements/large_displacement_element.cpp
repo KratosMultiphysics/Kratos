@@ -508,35 +508,32 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
     if(rVariables.detF<0){
         
 	std::cout<<" Element: "<<this->Id()<<std::endl;
+
 	unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
 	    array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
 	    array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 	    array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-	    std::cout<<" Previous  Position  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<std::endl;
-	  }
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-	    std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
-	  }
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    std::cout<<" Previous Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousDisplacement<<std::endl;
+	    std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
+	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
 	  }
 
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	  {
-	    array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	    std::cout<<" Current  Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentDisplacement<<std::endl;
+	    if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
+	      array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+	      array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	      std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
+	    }
+	    else{
+	      std::cout<<" ---Contact_Force: NULL "<<std::endl;
+	    }
 	  }
-	std::cout<<" F  "<<rVariables.F<<std::endl;
-	std::cout<<" F0 "<<rVariables.F0<<std::endl;
 	
-        KRATOS_ERROR( std::invalid_argument,"DeterminantF < 0", "" )
+        KRATOS_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
     }
     
     rValues.SetDeterminantF0(rVariables.detF0);
