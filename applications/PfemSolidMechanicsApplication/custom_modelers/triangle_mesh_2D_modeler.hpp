@@ -159,9 +159,9 @@ protected:
       void CheckMechanicalSmooth(){
 
 	if( critical_elements > 0 || number_new_elements != 0 )
-	  geometrical_smooth_required = true;
+	  mechanical_smooth_required = true;
 	else
-	  geometrical_smooth_required = false;
+	  mechanical_smooth_required = false;
 
       }
 

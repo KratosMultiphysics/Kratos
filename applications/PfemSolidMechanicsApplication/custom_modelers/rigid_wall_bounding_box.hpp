@@ -123,9 +123,10 @@ public:
 	  // changed to represent a negative (decreasing) line
 	  WallNose.ClearanceAngle = ( 180 + ClearanceAngles[i] ); 
 
+	  bool valid_angle = CheckValidAngle( WallNose.RakeAngle );
+
 	  //check if the angle is 0 or 180 before performing this operation
-	  if( WallNose.RakeAngle != 90 &&  WallNose.RakeAngle != 180 &&
-	       WallNose.RakeAngle != 270 &&  WallNose.RakeAngle != 360 ){
+	  if( valid_angle ){
 	    WallNose.RakeAngle *= pi / 180.0;
 	    WallNose.TangentRakeAngle = tan(0.5*pi-WallNose.RakeAngle);
 	  }
@@ -133,10 +134,11 @@ public:
 	    WallNose.RakeAngle *= pi / 180.0;
 	    WallNose.TangentRakeAngle = 0;
 	  }
-	  
+
+	  valid_angle = CheckValidAngle( WallNose.ClearanceAngle );
+
 	  //check if the angle is 0 or 180 before performing this operation
-	  if( WallNose.ClearanceAngle != 90 && WallNose.ClearanceAngle != 180 &&
-	      WallNose.ClearanceAngle != 270 && WallNose.ClearanceAngle != 360 ){
+	  if( valid_angle ){
 	    WallNose.ClearanceAngle *= pi / 180.0;
 	    WallNose.TangentClearanceAngle = tan(0.5*pi-WallNose.ClearanceAngle);
 	  }
@@ -204,6 +206,21 @@ public:
     ///@}
     ///@name Operations
     ///@{
+  
+    bool CheckValidAngle( double& rAngle )
+    {
+      bool valid_angle = true;
+      double tol = 1e-3;
+      for( int i = 0; i<=360; i+=90 ){
+	if( fabs(rAngle) < double(i + tol) && fabs(rAngle) > double(i - tol) ){
+	  valid_angle = false;
+	  break;
+	}
+      }
+      
+      return valid_angle;
+    }
+
 
     TPointType Center(const TPointType& rPoint)
     {

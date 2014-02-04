@@ -100,8 +100,8 @@ namespace Kratos
     if(mVariables.size() == 1 && MeshId != 0)
       std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
 
-    //other reference variables (JuanManuel)
-    double side_tolerance = 4; //6; //3;
+    //other reference variables
+    double side_tolerance = 4; //6;
 
     mVariables[MeshId].refine                      = refine;
 
@@ -3039,10 +3039,13 @@ namespace Kratos
     double size_for_non_tip_contact_side  = 2.0 * rVariables.Refine.critical_side; //compared with contact size wich master node do not belongs to a tip
 
     //RIGID WALL CONTACT:
-    double size_for_wall_tip_contact_side      = 0.5  * rVariables.Refine.critical_side; 
-    double size_for_energy_side                = 1.75 * rVariables.Refine.critical_side; // non contact side which dissipates energy
-    double size_for_wall_non_tip_contact_side  = 1.75 * rVariables.Refine.critical_side; // semi contact or contact which
-    double size_for_non_contact_side           = 3    * rVariables.Refine.critical_side;
+    double size_for_wall_tip_contact_side      = 0.50 * rVariables.Refine.critical_side; 
+    double size_for_wall_semi_tip_contact_side = 0.75 * rVariables.Refine.critical_side; // semi contact or contact which
+    double size_for_wall_non_tip_contact_side  = 1.50 * rVariables.Refine.critical_side; // semi contact or contact which
+    
+    //NON CONTACT:
+    double size_for_energy_side                = 0.75  * rVariables.Refine.critical_side; // non contact side which dissipates energy
+    double size_for_non_contact_side           = 3.0  * rVariables.Refine.critical_side;
 
 
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -3593,10 +3596,8 @@ namespace Kratos
 		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
 
 		  //condition_radius = mModelerUtilities.CalculateCircRadius (pGeom);
-
 		  double critical_side_size = 0;
 		  
-
 		  bool on_tip = false;
 		  if( contact_semi_active ){
 		    
@@ -3604,9 +3605,9 @@ namespace Kratos
 		      on_tip = true;
 		    
 		    if( on_tip == true )
-		      critical_side_size = size_for_wall_non_tip_contact_side;
+		      critical_side_size = size_for_wall_semi_tip_contact_side;
 		    else
-		      critical_side_size = size_for_non_contact_side;
+		      critical_side_size = size_for_wall_non_tip_contact_side;
 		    
 		  }
 		  else if( contact_active ){
@@ -3615,9 +3616,9 @@ namespace Kratos
 		      on_tip = true;
 		    
 		    if( on_tip == true )
-		      critical_side_size = size_for_wall_non_tip_contact_side;
+		      critical_side_size = size_for_wall_semi_tip_contact_side;
 		    else
-		      critical_side_size = size_for_non_contact_side;
+		      critical_side_size = size_for_wall_non_tip_contact_side;
 
 		  }
 		  else{
