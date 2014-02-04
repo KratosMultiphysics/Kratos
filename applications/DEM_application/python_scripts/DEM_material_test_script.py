@@ -58,8 +58,11 @@ class MaterialTest:
           self.tau_rel_std_dev_table.append(0.0)
           self.sigma_ratio_table.append(0.0)
  
+ 
+      self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+      
       self.strain = 0.0; self.total_stress = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
-      self.strain_fem = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0; self.total_stress_fem = 0.0
+      self.strain_fem = 0.0; self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0; self.total_stress_fem = 0.0
       
       # for the graph plotting    
       self.loading_velocity = 0.0
@@ -134,10 +137,12 @@ class MaterialTest:
     
  
   
-  def Main(self,DEM_parameters):
+  def CreateTopAndBotGraph(self,DEM_parameters):
+       
     
-    graph_frequency        = int(DEM_parameters.GraphExportFreq/self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
-   
+    top_mesh_nodes = self.balls_model_part.GetMesh(111).Nodes
+    bot_mesh_nodes = self.balls_model_part.GetMesh(222).Nodes
+     
     if( (DEM_parameters.TestType == "Triaxial" ) and (DEM_parameters.ConfinementPressure != 0.0) ):
           
       if( self.renew_pressure == 10):
@@ -148,23 +153,23 @@ class MaterialTest:
 
       self.renew_pressure += 1
       
-    total_force_top = 0.0
-    total_force_bot = 0.0
-    total_force_bts = 0.0
-    total_fem_force = 0.0
-
-    if( DEM_parameters.TestType != "None" ):
+    if (len(top_mesh_nodes)*len(bot_mesh_nodes)):
+       
+      total_force_top = 0.0
+      total_force_bot = 0.0
+      total_force_bts = 0.0
+      total_fem_force = 0.0
       
       dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-      self.strain += -1.0*DEM_parameters.LoadingVelocityTop*dt/DEM_parameters.SpecimenLength
+      self.strain += 1.0*DEM_parameters.LoadingVelocityTop*dt/DEM_parameters.SpecimenLength
 
-      if( self.graph_counter == graph_frequency):
+      if( self.graph_counter == self.graph_frequency):
         
         self.graph_counter = 0
         
         if( DEM_parameters.TestType =="BTS"):
 
-          for node in self.sup_layer_fm:
+          for node in top_mesh_nodes:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
@@ -177,7 +182,7 @@ class MaterialTest:
 
           radial_strain = MeasureRadialStrain(self.Procedures.XLAT)
           
-          for node in self.sup_layer_fm:
+          for node in top_mesh_nodes:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
@@ -185,7 +190,7 @@ class MaterialTest:
 
           self.total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
           
-          for node in self.inf_layer_fm:
+          for node in bot_mesh_nodes:
 
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
@@ -706,3 +711,5 @@ def MeasureRadialStrain(LAT):
     radial_strain = mean_radial_strain/weight
    
    return radial_strain
+   
+ 
