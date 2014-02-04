@@ -4469,7 +4469,8 @@ namespace Kratos
 
 		}
 		else{
-		  // std::cout<<" Create Condition "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
+		  
+		  std::cout<<"   NOT FOUND CONDITION :: CREATED-> "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
 		  p_cond = rReferenceCondition.Create(id, face, properties);
 		      
 		  //if a condition is created new nodes must be labeled TO_REFINE
