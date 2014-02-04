@@ -258,12 +258,12 @@ private:
 	      if( dimension > 2 )
 		std::cout<<" Axisymmetric problem with dimension: "<<dimension<<std::endl;
 
-	      for( int i=0; i<ie->GetGeometry().size(); i++ )
+	      for( unsigned int i=0; i<ie->GetGeometry().size(); i++ )
 		radius += ie->GetGeometry()[i].X();
 
 	      radius/=double(ie->GetGeometry().size());
 		
-	      rMeshVolume[MeshId] += ie->GetGeometry().Area() * radius ;
+	      rMeshVolume[MeshId] += ie->GetGeometry().Area() * two_pi * radius ;
 
 
 	    }
