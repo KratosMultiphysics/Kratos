@@ -48,23 +48,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_ERROR>::mInstanceFalg    = 0;
-    template<> KratosLog<KRATOS_SEVERITY_ERROR> *    KratosLog<KRATOS_SEVERITY_ERROR>::mpInstance       = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_ERROR>::mInstanceFlag    = 0;
+    template<> KratosLog<KRATOS_SEVERITY_ERROR> *   KratosLog<KRATOS_SEVERITY_ERROR>::mpInstance       = NULL;
     
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_WARNING>::mInstanceFalg  = 0;
-    template<> KratosLog<KRATOS_SEVERITY_WARNING> *  KratosLog<KRATOS_SEVERITY_WARNING>::mpInstance     = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_WARNING>::mInstanceFlag  = 0;
+    template<> KratosLog<KRATOS_SEVERITY_WARNING> * KratosLog<KRATOS_SEVERITY_WARNING>::mpInstance     = NULL;
     
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_INFO>::mInstanceFalg     = 0;
-    template<> KratosLog<KRATOS_SEVERITY_INFO> *     KratosLog<KRATOS_SEVERITY_INFO>::mpInstance        = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_INFO>::mInstanceFlag     = 0;
+    template<> KratosLog<KRATOS_SEVERITY_INFO> *    KratosLog<KRATOS_SEVERITY_INFO>::mpInstance        = NULL;
     
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_DETAIL>::mInstanceFalg   = 0;
-    template<> KratosLog<KRATOS_SEVERITY_DETAIL> *   KratosLog<KRATOS_SEVERITY_DETAIL>::mpInstance      = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_DETAIL>::mInstanceFlag   = 0;
+    template<> KratosLog<KRATOS_SEVERITY_DETAIL> *  KratosLog<KRATOS_SEVERITY_DETAIL>::mpInstance      = NULL;
     
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_DEBUG>::mInstanceFalg    = 0;
-    template<> KratosLog<KRATOS_SEVERITY_DEBUG> *    KratosLog<KRATOS_SEVERITY_DEBUG>::mpInstance       = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_DEBUG>::mInstanceFlag    = 0;
+    template<> KratosLog<KRATOS_SEVERITY_DEBUG> *   KratosLog<KRATOS_SEVERITY_DEBUG>::mpInstance       = NULL;
     
-    template<> bool                                  KratosLog<KRATOS_SEVERITY_TRACE>::mInstanceFalg    = 0;
-    template<> KratosLog<KRATOS_SEVERITY_TRACE> *    KratosLog<KRATOS_SEVERITY_TRACE>::mpInstance       = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_TRACE>::mInstanceFlag    = 0;
+    template<> KratosLog<KRATOS_SEVERITY_TRACE> *   KratosLog<KRATOS_SEVERITY_TRACE>::mpInstance       = NULL;
+    
+    bool             KratosLogUtils::mInstanceFlag    = 0;
+    KratosLogUtils * KratosLogUtils::mpInstance       = NULL;
+    
+    KratosLogUtils& KratosLogUtils::GetInstance() 
+    {
+        if(!mInstanceFlag)
+        {   
+            mInstanceFlag = 1;
+            mpInstance = new KratosLogUtils();
+        }
+        
+        return (*mpInstance);
+    }
+    
+    KratosLogUtils::KratosLogUtils()
+    {
+        mFilterString = new std::vector<std::string>(0);
+    }
+    
+    KratosLogUtils::~KratosLogUtils()
+    {
+        delete mFilterString;
+    }
     
     /**
     * Returns the current time in HH:MM:SS format
@@ -100,22 +124,43 @@ namespace Kratos
         return buf;
     }
     
-    std::vector<std::string> KratosLogUtils::GetFilterNamespaces()
+    void KratosLogUtils::AddCustomFilter(const std::string filter)
     {
-        std::vector<std::string> filters(2);
-        
-        filters.push_back("Kratos");
-        filters.push_back("Kernel");
-        
-        return filters;
+        std::string s(filter);
+        s.append("::");
+        mFilterString->push_back(s);
     }
     
-    const char * KratosLogUtils::FilterNamespace(const char * inputString, std::vector<std::string> remove)
+
+    /**
+     * Kenrel function for filters
+     * @param input:        input string
+     * @param filter:       string to be filtered
+     */
+    void filterKernel(std::string& input, const std::string& filter)
+    {
+        while(input.find(filter) != std::string::npos)
+        {
+            input = input.substr(0,input.find(filter)).append(input.substr(input.find(filter)+filter.size()));
+        }
+    }
+    
+    /**
+     * Filter kratos generic namespaces (Kratos:: boost:: ...)
+     * @param inputString:  string containintg the namespace chain for a function call 
+     */   
+    const char * KratosLogUtils::Filter(const char * inputString)
     {
         std::string s(inputString);
       
-        //for(unsigned int i = 0; i < remove.size(); i++)
-        s = s.substr(s.find("Kratos::"));
+        // Apply default filters
+        //filterKernel(s,"Kratos::");
+        
+        // apply custom filters
+        for(unsigned int i = 0; i < mFilterString->size(); i++)
+        {
+            filterKernel(s,(*mFilterString)[i]);
+        }
 
         return s.c_str();
     }
