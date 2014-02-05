@@ -153,10 +153,15 @@ protected:
       
       void CheckGeometricalSmooth(){
 
-	if( inserted_nodes * 100 > number_of_nodes || removed_nodes * 100 > number_of_nodes )
+	if( inserted_nodes * 100 > number_of_nodes || removed_nodes * 100 > number_of_nodes ){
 	  geometrical_smooth_required = true;
-	else
+	}
+	else if( (inserted_nodes + removed_nodes) * 200> number_of_nodes ){
+	  geometrical_smooth_required = true;
+	}
+	else{
 	  geometrical_smooth_required = false;
+	}
 
       }
 

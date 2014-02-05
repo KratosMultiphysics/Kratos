@@ -134,11 +134,11 @@ namespace Kratos
 			    
 			    if(!success)
 			      {
-				std::cout<<" ERROR:  Skin Search FAILED on mesh : ["<<MeshId<<"] "<<std::endl;
+				std::cout<<"    ERROR:  Skin Search FAILED on mesh : ["<<MeshId<<"] "<<std::endl;
 			      }
 			    else
 			      {
-				std::cout<<"Skin Search on mesh ["<<MeshId<<"] performed in time = "<<auxiliary.elapsed()<<std::endl;
+				std::cout<<"    [ Skin Search on Mesh["<<MeshId<<"] performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
 				//PrintSkin(MeshId);
 			      }
 			  }
@@ -548,9 +548,10 @@ namespace Kratos
 			//mr_model_part.Elements().Unique();
 
 			//now the boundary faces
-			std::cout<<" mr_model_part.Conditions("<<MeshId<<").size(): "<<mr_model_part.Conditions(MeshId).size()<<std::endl;
-			std::cout<<" m_conditions.size(): "<< m_conditions.size()<<std::endl;
-			std::cout<<" Preserved Conditions "<<PreservedConditions.size()<<std::endl;
+			// std::cout<<" mr_model_part.Conditions("<<MeshId<<").size(): "<<mr_model_part.Conditions(MeshId).size()<<std::endl;
+			// std::cout<<" m_conditions.size(): "<< m_conditions.size()<<std::endl;
+			// std::cout<<" Preserved Conditions "<<PreservedConditions.size()<<std::endl;
+
 			int id=0;
 			for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(MeshId); ie != mr_model_part.ElementsEnd(MeshId); ie++)
 			{
@@ -703,9 +704,9 @@ namespace Kratos
 			std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
 
 			if(all_assigned == true)
-			    std::cout<<"Boundary Conditions RELOCATED "<<std::endl;
+			    std::cout<<"    Boundary Conditions RELOCATED "<<std::endl;
 			else
-			    std::cout<<"Boundary Conditions NOT relocated "<<std::endl;
+			    std::cout<<"    Boundary Conditions NOT relocated "<<std::endl;
 
 	
 			return true;
@@ -746,9 +747,9 @@ namespace Kratos
 			//mr_model_part.Elements().Unique();
 
 			//now the boundary faces
-			std::cout<<" mr_model_part.Conditions("<<MeshId<<").size(): "<<mr_model_part.Conditions(MeshId).size()<<std::endl;
-			std::cout<<" m_conditions.size(): "<< m_conditions.size()<<std::endl;
-			std::cout<<" Preserved Conditions "<<PreservedConditions.size()<<std::endl;
+			// std::cout<<" mr_model_part.Conditions("<<MeshId<<").size(): "<<mr_model_part.Conditions(MeshId).size()<<std::endl;
+			// std::cout<<" m_conditions.size(): "<< m_conditions.size()<<std::endl;
+			// std::cout<<" Preserved Conditions "<<PreservedConditions.size()<<std::endl;
 			int id=0;
 			for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(MeshId); ie != mr_model_part.ElementsEnd(MeshId); ie++)
 			{

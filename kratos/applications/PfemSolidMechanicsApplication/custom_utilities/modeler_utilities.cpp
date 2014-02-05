@@ -1046,5 +1046,84 @@ namespace Kratos
 
 
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+ 
+  bool ModelerUtilities::CheckContactActive(GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes)
+  {
+    unsigned int size = rConditionGeometry.size();
+    unsigned int counter = 0;
+
+    rSemiActiveContact = false;
+    rSemiActiveNodes.resize(size);
+    std::fill( rSemiActiveNodes.begin(), rSemiActiveNodes.end(), false );
+     
+    for(unsigned int i=0; i<rConditionGeometry.size(); i++){
+            
+      array_1d<double, 3 > & ContactForceNormal  = rConditionGeometry[1].FastGetSolutionStepValue(CONTACT_FORCE);
+      
+      if(norm_2(ContactForceNormal)>0){
+	rSemiActiveContact  = true;
+	rSemiActiveNodes[i] = true;
+	counter++;
+      }
+    }
+
+    if(counter == size)
+      return true;
+    else
+      return false;
+      
+  }
+
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool ModelerUtilities::CheckNodeCloseWallTip(std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor)
+  {
+    // double tip_radius = 0;
+    // Vector tip_center = ZeroVector(3);
+    
+    Vector Point(3);
+    Point[0] = rNode.X();
+    Point[1] = rNode.Y();
+    Point[2] = rNode.Z();
+
+    int ContactFace = 0; //free surface
+    for( unsigned int i = 0; i < rRigidWalls.size(); i++ )
+      {
+	ContactFace = 0;
+	if( rRigidWalls[i]->IsInside( Point, rCurrentProcessInfo[TIME], ContactFace ) ){
+	  // tip_radius = rRigidWalls[i]->Radius(Point);
+	  // tip_center = rRigidWalls[i]->Center(Point);
+	  break;
+	}
+      }
+
+    // Point[0]-=tip_center[0];
+    // Point[1]-=tip_center[1];
+    // Point[2]-=tip_center[2];
+    
+    // double distance=norm_2(Point);
+    
+    //criterion A:
+    if( ContactFace == 2 )
+      return true;
+
+    //criterion B:
+    // if( ((1-rFactor)*tip_radius < distance &&  (1+rFactor)*tip_radius > distance) )
+    //   return true;
+    // else
+    //   return false;
+      
+    return false;
+
+  }
+
+
 } // Namespace Kratos
 

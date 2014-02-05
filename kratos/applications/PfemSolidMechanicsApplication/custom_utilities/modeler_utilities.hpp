@@ -57,6 +57,7 @@ public:
 
     typedef Node<3>                                                       PointType;
     typedef Node<3>::Pointer                                       PointPointerType;
+    typedef Geometry< Node<3> >                                        GeometryType;
     typedef std::vector<PointPointerType>                        PointPointerVector;
     typedef ModelPart::PropertiesType                                PropertiesType;
     typedef ModelPart::PropertiesContainerType              PropertiesContainerType;
@@ -190,7 +191,9 @@ public:
 
     Condition::Pointer FindMasterCondition(Condition::Pointer& pCond, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found);
     
-        
+    bool CheckContactActive(GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes);
+    
+    bool CheckNodeCloseWallTip(std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
 
     ///@}
     ///@name Access
