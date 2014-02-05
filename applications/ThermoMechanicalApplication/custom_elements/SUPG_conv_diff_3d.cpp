@@ -399,7 +399,7 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	       alpha = 0.0;
 	  
 	  //art_visc = 100.0*0.5 * alpha * ele_length * a_parallel;
-	  art_visc =  0.5 *  alpha * ele_length * a_parallel;
+	  art_visc =  20.0 *  alpha * ele_length * a_parallel;
 	  
 	}
 	
