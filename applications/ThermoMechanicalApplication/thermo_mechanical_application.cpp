@@ -48,6 +48,11 @@ KRATOS_CREATE_VARIABLE(double, MACRO_POROSITY )
 Kratos::Variable<double> MAX_VEL( "MAX_VEL (m/s)" );
 KRATOS_CREATE_VARIABLE(int, IS_GRAVITY_FILLING)
 
+KRATOS_CREATE_VARIABLE(double, VOLUME_FRACTION ) 
+
+KRATOS_CREATE_VARIABLE(double, KAPPA ) 
+KRATOS_CREATE_VARIABLE(double, EPSILON ) 
+
 KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
 // 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 /*		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),*/
@@ -56,14 +61,15 @@ KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
     mThermalFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
     mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mEnvironmentContact(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-
+    mEnvironmentContact3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 
     mSUPGConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mSUPGConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConv3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConvDiffPhaseChange2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mSUPGConvDiffPhaseChange3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mPoisson3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
     
     
 
@@ -90,8 +96,12 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_VARIABLE(SOLIDIF_MODULUS)
     KRATOS_REGISTER_VARIABLE(MACRO_POROSITY)
     KRATOS_REGISTER_VARIABLE(FILLTIME)
-	KRATOS_REGISTER_VARIABLE(MAX_VEL)
-	KRATOS_REGISTER_VARIABLE(IS_GRAVITY_FILLING)
+    KRATOS_REGISTER_VARIABLE(MAX_VEL)
+    KRATOS_REGISTER_VARIABLE(IS_GRAVITY_FILLING)
+    KRATOS_REGISTER_VARIABLE(VOLUME_FRACTION ) 
+    KRATOS_REGISTER_VARIABLE(KAPPA ) 
+    KRATOS_REGISTER_VARIABLE(EPSILON )     
+
 // 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
@@ -103,6 +113,8 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_CONDITION("ThermalFace2D", mThermalFace2D);
     KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
     KRATOS_REGISTER_CONDITION("EnvironmentContact", mEnvironmentContact);
+    KRATOS_REGISTER_CONDITION("EnvironmentContact3D", mEnvironmentContact3D);    
+    
 
 
     KRATOS_REGISTER_ELEMENT("SUPGConvDiff2D", mSUPGConvDiff2D);
@@ -111,6 +123,7 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange2D", mSUPGConvDiffPhaseChange2D);
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange3D", mSUPGConvDiffPhaseChange3D); 
     KRATOS_REGISTER_ELEMENT("SUPGConv2D", mSUPGConv2D);
+    KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);    
 }
 
 }  // namespace Kratos.
