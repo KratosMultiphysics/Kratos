@@ -37,6 +37,8 @@
 #include "custom_elements/SUPG_conv_diff_phase_change_2d.h"
 #include "custom_elements/SUPG_conv_diff_phase_change_3d.h"
 #include "custom_elements/SUPG_conv_2d.h"
+#include "custom_elements/Poisson_3d.h"
+#include "custom_elements/environment_contact_3d.h"
 
 namespace Kratos
 {
@@ -60,6 +62,11 @@ KRATOS_DEFINE_VARIABLE(double, FILLTIME  )
 KRATOS_DEFINE_VARIABLE(double, MACRO_POROSITY  )
 KRATOS_DEFINE_VARIABLE(double, MAX_VEL  )
 KRATOS_DEFINE_VARIABLE(int, IS_GRAVITY_FILLING)
+
+KRATOS_DEFINE_VARIABLE(double,VOLUME_FRACTION ) 
+
+KRATOS_DEFINE_VARIABLE(double,KAPPA ) 
+KRATOS_DEFINE_VARIABLE(double,EPSILON ) 
 ///@}
 ///@name Type Definitions
 ///@{
@@ -217,13 +224,15 @@ private:
     const ThermalFace2D  mThermalFace2D;
     const ThermalFace3D  mThermalFace3D;
     const EnvironmentContact  mEnvironmentContact;
+    const EnvironmentContact3D  mEnvironmentContact3D;    
 
     const SUPGConvDiff2D  mSUPGConvDiff2D;
     const SUPGConvDiff3D  mSUPGConvDiff3D;
     const SUPGConv3D  mSUPGConv3D;
     const SUPGConvDiffPhaseChange2D  mSUPGConvDiffPhaseChange2D;
     const SUPGConvDiffPhaseChange3D  mSUPGConvDiffPhaseChange3D;  
-    const SUPGConv2D  mSUPGConv2D;   
+    const SUPGConv2D  mSUPGConv2D;  
+    const Poisson3D mPoisson3D;
     ///@}
     ///@name Private Operators
     ///@{
