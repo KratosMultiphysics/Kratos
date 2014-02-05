@@ -388,7 +388,7 @@ namespace Kratos
 	    //recover DETERMINANT_F FOR VARIABLES SMOOTHING from nodes
 	    if( mVariables[MeshId].RemeshInfo.critical_elements > 0 ){
 	      
-	      double critical_value = mVariables[MeshId].Refine.critical_dissipation * 0.5;
+	      double critical_value = mVariables[MeshId].Refine.critical_dissipation * 0.1;
 
 	      //Smoothing performed only in critical elements (based in Energy Dissipation)
 	      MeshDataTransfer.TransferNodalValuesToElements(DETERMINANT_F,PLASTIC_DISSIPATION,critical_value,rModelPart,MeshId);
@@ -3067,7 +3067,7 @@ namespace Kratos
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     
     //DEFORMABLE CONTACT:
-    double factor_for_tip_radius     = 0.6; //deformable contact tolerance in radius for detection tip sides to refine
+    double factor_for_tip_radius     = 0.2; //deformable contact tolerance in radius for detection tip sides to refine
     double factor_for_non_tip_side   = 3.0; // will be multiplied for nodal_h of the master node to compare with boundary nodes average nodal_h in a contact conditio which master node do not belongs to a tip
 
     double size_for_tip_contact_side      = 0.4 * rVariables.Refine.critical_side; // length size for the contact tip side
@@ -3075,11 +3075,11 @@ namespace Kratos
 
     //RIGID WALL CONTACT:
     double size_for_wall_tip_contact_side      = 0.50 * rVariables.Refine.critical_side; 
-    double size_for_wall_semi_tip_contact_side = 0.75 * rVariables.Refine.critical_side; // semi contact or contact which
-    double size_for_wall_non_tip_contact_side  = 1.50 * rVariables.Refine.critical_side; // semi contact or contact which
+    double size_for_wall_semi_tip_contact_side = 0.75 * rVariables.Refine.critical_side; // semi contact or contact which a node in a tip
+    double size_for_wall_non_tip_contact_side  = 1.25 * rVariables.Refine.critical_side; // semi contact or contact which no node in a tip
     
     //NON CONTACT:
-    double size_for_energy_side                = 0.75  * rVariables.Refine.critical_side; // non contact side which dissipates energy
+    double size_for_energy_side                = 1.50 * rVariables.Refine.critical_side; // non contact side which dissipates energy
     double size_for_non_contact_side           = 3.0  * rVariables.Refine.critical_side;
 
 
@@ -3101,6 +3101,30 @@ namespace Kratos
 
     typedef Node<3>                         PointType;
     typedef std::vector<PointType>        PointVector;
+
+
+    //*********************************************************************************
+    // DETECTION OF NODES ON TIP CONTACTS START
+    //*********************************************************************************
+    
+    unsigned int nodes_on_wall_tip = 0;
+    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
+      {
+	if( mModelerUtilities.CheckNodeCloseWallTip(rVariables.RigidWalls,(*in),CurrentProcessInfo,factor_for_tip_radius) ){
+	  in->Set(TO_SPLIT);
+	  nodes_on_wall_tip ++;
+	}
+
+      }
+
+    std::cout <<"   [ NODES ON WALL TIP: ( " <<nodes_on_wall_tip <<" ) ]"<<std::endl;
+
+    //*********************************************************************************
+    // DETECTION OF NODES ON TIP CONTACTS END
+    //*********************************************************************************
+   
+    
+
 
     //if the insert switches are activated, we check if the boundaries got too coarse
     if (rVariables.RefiningOptions.Is(Modeler::REFINE_INSERT_NODES) && rVariables.RefiningOptions.Is(Modeler::REFINE_BOUNDARY) )
@@ -3129,13 +3153,14 @@ namespace Kratos
 	bool contact_active = false;
 	bool contact_semi_active = false;
 	bool tool_project = false;
-
+	
+	std::vector<bool> semi_active_nodes;
 	Node<3> new_point(0,0.0,0.0,0.0);
 
-	//std::cout<<"   Contact Area Refine Start "<<std::endl;
-
-
-	//LOOP TO CONSIDER ONLY CONTACT CONDITIONS
+	//*********************************************************************************
+	// DEFORMABLE CONTACT CONDITIONS START
+	//*********************************************************************************
+	
 	for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 	  {
 
@@ -3150,10 +3175,8 @@ namespace Kratos
 	    Geometry< Node<3> > rConditionGeom;
 	    array_1d<double,3> tip_center;
 
-	    //*********************************************************************************
-	    // DEFORMABLE CONTACT CONDITIONS
-	    //*********************************************************************************
 
+	    //LOOP TO CONSIDER ONLY CONTACT CONDITIONS
 	    if( ic->Is(CONTACT) )   //Refine radius on the workpiece for the ContactDomain zone
 	      {
 
@@ -3167,32 +3190,30 @@ namespace Kratos
 		  if( MasterCondition->IsNot(TO_ERASE) ){
 
 
-		    // The order is determined to detect wall tip contact nodes on boundary
-		    // independently if they are on active contact or not (they are marked as TO_SPLIT)
-
 		    rConditionGeom  = MasterCondition->GetGeometry(); 
 
-		    //to recover TIP definition on conditions   
-			  
+		    //to recover TIP definition on conditions		  
 		    if( MasterNode.SolutionStepsDataHas( WALL_TIP_RADIUS ) ) //master node in tool -->  refine workpiece  // 
 		      {
 			    
 			tool_radius = MasterNode.FastGetSolutionStepValue( WALL_TIP_RADIUS );
 			tip_center  = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
-			    					    
-			PointType center (0,tip_center[0],tip_center[1],tip_center[2]);
+			// WARNING THE UPDATED OF THE TIP CENTER IS NEEDED !!!!
+
 			array_1d<double, 3 > radius;
-			radius[0]=rConditionGeom[0].X()-center.X();
-			radius[1]=rConditionGeom[0].Y()-center.Y();
-			radius[2]=rConditionGeom[0].Z()-center.Z();
+			radius[0]=rConditionGeom[0].X()-tip_center[0];
+			radius[1]=rConditionGeom[0].Y()-tip_center[1];
+			radius[2]=rConditionGeom[0].Z()-tip_center[2];
 			double distance1=norm_2(radius);
 
-			radius[0]=rConditionGeom[1].X()-center.X();
-			radius[1]=rConditionGeom[1].Y()-center.Y();
-			radius[2]=rConditionGeom[1].Z()-center.Z();
+			radius[0]=rConditionGeom[1].X()-tip_center[0];
+			radius[1]=rConditionGeom[1].Y()-tip_center[1];
+			radius[2]=rConditionGeom[1].Z()-tip_center[2];
 
 			double distance2=norm_2(radius);
-			    
+			  
+
+			// TO SPLIT DETECTION START
 			//If a node is detected in the wall tip is set TO_SPLIT
 			//the criteria to splitting will be applied later in the nodes marked as TO_SPLIT
 
@@ -3201,35 +3222,30 @@ namespace Kratos
 			    
 			if( (1-factor_for_tip_radius)*tool_radius < distance2 &&  distance2 < (1+factor_for_tip_radius)*tool_radius )
 			  rConditionGeom[1].Set(TO_SPLIT);
-			  
+
+			// TO SPLIT DETECTION END			  
 			
 
-			array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
-			array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
-			if(norm_2(ContactForceNormal1)>0 && norm_2(ContactForceNormal2)>0){
-			  contact_active = true;
+			// ACTIVE CONTACT DETECTION START
+
+			contact_active = mModelerUtilities.CheckContactActive(rConditionGeom, contact_semi_active, semi_active_nodes);
+			if(contact_active){
 			  number_contacts_active ++;
 			}
+
+			// ACTIVE CONTACT DETECTION END
+
 		    
 			side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
 
 			if( side_length > size_for_tip_contact_side ){
 
-			  // std::cout<<"   //*** MASTER CONDITION "<<MasterCondition->Id()<<" ("<<rConditionGeom[0].Id()<<","<<rConditionGeom[1].Id()<<") ***// "<<std::endl;
-			  // std::cout<<"   {side_length "<<side_length<<" > critical_side "<<size_for_tip_contact_side<<"} "<<std::endl;
-			  // std::cout<<"   CENTER A: "<<tip_center<<" TOOL_NODE "<<MasterNode.Id()<<std::endl;
-			  // std::cout<<"   NODE1 "<<rConditionGeom[0].Id()<<" ("<<rConditionGeom[0].X()<<"; "<<rConditionGeom[0].Y()<<"; "<<rConditionGeom[0].Z()<<") "<<std::endl;
-			  // std::cout<<"   NODE2 "<<rConditionGeom[1].Id()<<" ("<<rConditionGeom[1].X()<<"; "<<rConditionGeom[1].Y()<<"; "<<rConditionGeom[1].Z()<<") "<<std::endl;
-			  // std::cout<<"   Distances: (d1:"<<distance1<<", d2:"<<distance2<<", radius:"<<tool_radius<<")"<<std::endl;
 			      
 			  if( ((1-factor_for_tip_radius)*tool_radius < distance1 &&  (1-factor_for_tip_radius)*tool_radius < distance2) && 
 			      (distance1 < (1+factor_for_tip_radius)*tool_radius  &&  distance2 < (1+factor_for_tip_radius)*tool_radius) )
 			    {
 			      radius_insert = true;
 				  
-			      // std::cout<<" {side_length "<<side_length<<" > critical_side "<<size_for_tip_contact_side<<"} "<<std::endl;
-			      // std::cout<<"  distances [1: "<<distance1<<", 2: "<<distance2<<"]"<<" tool_radius "<<tool_radius<<std::endl;
-			      // std::cout<<"   insert on radius "<<std::endl;
 			    }
 			  // else if( side_length > size_for_tip_contact_side && 
 			  // 	       ( distance1 < (1 + (side_size_factor+factor_for_tip_radius))*tool_radius && distance2 < (1 + (side_size_factor+factor_for_tip_radius))*tool_radius) ) {
@@ -3368,11 +3384,15 @@ namespace Kratos
 
 	// std::cout<<"   [ Contact Conditions : "<<total_contact_conditions<<", (contacts in domain: "<<number_contacts_domain<<", of them active: "<<number_contacts_active<<") ] "<<std::endl;
 	// std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
-	// std::cout<<"   Boundary Search Start "<<std::endl;
 	    
+	//*********************************************************************************
+	// DEFORMABLE CONTACT CONDITIONS END
+	//*********************************************************************************
+
+
 
 	//*********************************************************************************
-	// RIGID CONTACT CONDITIONS AND OTHER BOUNDARY
+	// RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS START
 	//*********************************************************************************
 
 
@@ -3418,39 +3438,26 @@ namespace Kratos
 	      if( ic->IsNot(TO_ERASE) ){
 
 		//*********************************************************************************
-		// RIGID CONTACT CONDITIONS
+		// RIGID CONTACT CONDITIONS ON TIP START
 		//*********************************************************************************
 
 		// TOOL TIP INSERT;
 
-		//std::cout<<" Condition "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<", "<<ic->GetGeometry()[1].Id()<<") NOT RELEASE  (number: "<<cond_counter<<") "<<std::endl;
 
-		  
+		// ACTIVE CONTACT DETECTION START
+
 		rConditionGeom = ic->GetGeometry();
-		array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
-		array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
-
-		//std::cout<<" Forces : [1] "<<norm_2(ContactForceNormal1)<<" [2] "<<norm_2(ContactForceNormal2)<<std::endl;
-		if(norm_2(ContactForceNormal1)>0 && norm_2(ContactForceNormal2)>0){
-		  contact_active = true;
-		}
-		else if(norm_2(ContactForceNormal1)>0 || norm_2(ContactForceNormal2)>0){
-		  //std::cout<<" FC1: ["<<rConditionGeom[0].Id()<<"]: "<<norm_2(ContactForceNormal1)<<" FC2: ["<<rConditionGeom[1].Id()<<"]: "<<norm_2(ContactForceNormal2)<<std::endl;
-		  contact_semi_active = true;
-		}
-
-		      
+		contact_active = mModelerUtilities.CheckContactActive(rConditionGeom, contact_semi_active, semi_active_nodes);
+		
+		// ACTIVE CONTACT DETECTION END
+		
+	      
 		if( contact_active ){
 
 		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
 
-
 		  if( side_length > size_for_wall_tip_contact_side ){
 		  
-
-		    //std::cout<<"   rigid {side_length "<<side_length<<" > critical_side "<<size_for_wall_tip_side<<"} "<<std::endl;
-
-
 		    bool on_tip = false;
 		    if(rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)){
 		      on_tip = true;
@@ -3489,7 +3496,6 @@ namespace Kratos
 
 		      if( on_radius ){
 
-			//std::cout<<" On radius "<<std::endl;
 			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 			double Time = CurrentProcessInfo[TIME];  
 			for( unsigned int i = 0; i < rVariables.RigidWalls.size(); i++ )
@@ -3497,6 +3503,7 @@ namespace Kratos
 			    if( rVariables.RigidWalls[i]->IsInside( Point, Time ) ){
 			      tool_radius = rVariables.RigidWalls[i]->Radius(Point);
 			      tip_center  = rVariables.RigidWalls[i]->Center(Point);
+			      break;
 			    }
 			  }
 		      }
@@ -3520,42 +3527,26 @@ namespace Kratos
 
 			double distance2=norm_2(radius);
 			    
-			// std::cout<<"   CENTER B: "<<center<<std::endl;
-			// std::cout<<"   Distances: (d1:"<<distance1<<", d2:"<<distance2<<", radius:"<<tool_radius<<")"<<std::endl;
 
 			if( ((1-factor_for_tip_radius)*tool_radius < distance1 &&  (1-factor_for_tip_radius)*tool_radius < distance2) && 
 			    (distance1 < (1+factor_for_tip_radius)*tool_radius  &&  distance2 < (1+factor_for_tip_radius)*tool_radius) )
 			  {
 			    radius_insert = true;
-			    // std::cout<<" {side_length "<<side_length<<" > critical_side "<<rsize_for_wall_tip_contact_side<<"} "<<std::endl;
-			    // std::cout<<"  distances [1: "<<distance1<<", 2: "<<distance2<<"]"<<" tool_radius "<<tool_radius<<std::endl;
-			    // std::cout<<"   insert on radius "<<std::endl;
 			  }
-
-			// std::cout<<"   RIGID TOOL insert : "<<radius_insert<<std::endl;
 					      
-		      }
-		    // else{
-
-		      //std::cout<<" Condition is not in wall Tip "<<std::endl;
-
-		      // if(rConditionGeom[0].IsNot(TO_SPLIT))
-		      // 	std::cout<<" Node ["<<rConditionGeom[0].Id()<<"] not tool tip "<<std::endl;
-			    
-		      // if(rConditionGeom[1].IsNot(TO_SPLIT))
-		      // 	std::cout<<" Node ["<<rConditionGeom[1].Id()<<"] not tool tip "<<std::endl;
-		      
-
-		    //}
-			  
+		      }	  
 
 		  }
 
 		}
 
+		//*********************************************************************************
+		// RIGID CONTACT CONDITIONS ON TIP END
+		//*********************************************************************************
+
 
 		//*********************************************************************************
-		// FREE BOUNDARY CONDITIONS ENERGY INSERTION
+		// FREE BOUNDARY CONDITIONS ENERGY INSERTION START
 		//*********************************************************************************
 
 
@@ -3563,19 +3554,14 @@ namespace Kratos
 
 		unsigned int vsize=ic->GetValue(MASTER_ELEMENTS).size();
 
-		//std::cout<<" MASTER_ELEMENTS_SIZE: "<<vsize<<std::endl;
-
 		if (!radius_insert && rVariables.RefiningOptions.Is(Modeler::CRITERION_ENERGY) && vsize>0){
 		   
 		  Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
-
-		  //std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
 
 		  plastic_power=0;
 		  std::vector<double> Value(1);
 		  MasterElement.GetValueOnIntegrationPoints(PLASTIC_DISSIPATION,Value,CurrentProcessInfo);
 			
-		  //std::cout<<"   Plastic Power "<<Value[0]<<std::endl;
 				  
 		  Geometry<Node<3> >& pGeom = MasterElement.GetGeometry();
 		  plastic_power = Value[0] * pGeom.Area();
@@ -3597,14 +3583,14 @@ namespace Kratos
 		  //if( plastic_power > rVariables.Refine.critical_dissipation && condition_radius > rVariables.Refine.critical_radius )
 		  if( plastic_power > rVariables.Refine.critical_dissipation && side_length > size_for_energy_side )
 		    {
-		      energy_insert = true;
-
-		      // std::cout<<" PlasticPower "<<plastic_power<<" > Critical Dissipation "<<rVariables.Refine.critical_dissipation<<std::endl;
-		      // std::cout<<" ConditionRadius "<<condition_radius<<" > Critical Radius "<<size_for_energy_side<<std::endl;
-		      // std::cout<<"   insert on energy "<<std::endl;
-		      
+		      energy_insert = true;		      
 		    }
 		}
+
+
+		//*********************************************************************************
+		// FREE BOUNDARY CONDITIONS ENERGY INSERTION END
+		//*********************************************************************************
 
 
 		//*********************************************************************************
@@ -3642,13 +3628,15 @@ namespace Kratos
 		      critical_side_size = size_for_wall_semi_tip_contact_side;
 		    else
 		      critical_side_size = size_for_wall_non_tip_contact_side;
+
+
 		    
 		  }
 		  else if( contact_active ){
 		    
 		    if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
 		      on_tip = true;
-		    
+
 		    if( on_tip == true )
 		      critical_side_size = size_for_wall_semi_tip_contact_side;
 		    else
@@ -3688,7 +3676,11 @@ namespace Kratos
 
 
 		//*********************************************************************************
-		//                               BOUNDARY REBUILD                                //
+		// RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS END
+		//*********************************************************************************
+
+		//*********************************************************************************
+		//                   BOUNDARY REBUILD START                                      //
 		//*********************************************************************************
 
 
@@ -3701,6 +3693,8 @@ namespace Kratos
 		    new_point.Y() = 0.5*( rConditionGeom[1].Y() + rConditionGeom[0].Y() );
 		    new_point.Z() = 0.5*( rConditionGeom[1].Z() + rConditionGeom[0].Z() );
 		      
+
+		    std::cout<<"   NEW NODE  "<<new_point<<std::endl;
 
 		    new_point.SetId(ic->Id()); //set condition Id
 		      
@@ -3743,7 +3737,6 @@ namespace Kratos
 
 		      if( on_radius ){
 
-			//std::cout<<" On radius "<<std::endl;
 			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 			double Time = CurrentProcessInfo[TIME];  
 			for( unsigned int i = 0; i < rVariables.RigidWalls.size(); i++ )
@@ -3751,6 +3744,7 @@ namespace Kratos
 			    if( rVariables.RigidWalls[i]->IsInside( Point, Time ) ){
 			      tool_radius = rVariables.RigidWalls[i]->Radius(Point);
 			      tip_center  = rVariables.RigidWalls[i]->Center(Point);
+			      break;
 			    }
 			  }
 		      }
@@ -3761,26 +3755,24 @@ namespace Kratos
 		      if(on_radius){
 
 			if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
-			    
-			  // std::cout<<"   new_point  ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;
-			  // std::cout<<"   tip_center ("<<tip_center[0]<<", "<<tip_center[1]<<") radius "<<tool_radius<<std::endl;
-			    
+			    		    
 			  array_1d<double,3> tip_normal = tip_center-new_point;
 
 			  if(norm_2(tip_normal)<tool_radius){ //if is in the tool tip
+			  
 			    tip_normal -= (tool_radius/norm_2(tip_normal)) * tip_normal;		
+			    
 			    if(norm_2(tip_normal)<tool_radius*0.08)
 			      new_point  += tip_normal;
-				
-			    // std::cout<<"   B: Tool Tip Correction COND ("<<ic->Id()<<") "<<std::endl;
-			    // std::cout<<"   new_point ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;
-
 			  }
 
-			  
 			}
-			  
+			
+			std::cout<<"   TOOL PROJECT::on radius  "<<new_point<<std::endl;
+
 		      }
+
+		      
 		    }
 
 		    if(radius_insert)
@@ -3791,6 +3783,9 @@ namespace Kratos
 		      exterior_bound++;
 
 		    ic->Set(TO_ERASE);
+
+		    std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
+
 		    list_of_nodes.push_back(new_point);
 		    list_of_conditions.push_back(*(ic.base()));
 
@@ -3805,17 +3800,23 @@ namespace Kratos
 		  }
 		
 
+		//*********************************************************************************
+		//                   BOUNDARY REBUILD END                                        //
+		//*********************************************************************************
+
+
 	      }
-	      // else{
-	      //   std::cout<<" Condition "<<ic->Id()<<" Released "<<std::endl;
-	      // }
+	      else{
+		std::cout<<" Condition "<<ic->Id()<<" Released "<<std::endl;
+	      }
 	    
 	    }
 	  }	  
 	    
 	  
-	// std::cout<<"   Boundary Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
- 
+	//*********************************************************************************
+	//                   DOFS AND NEW CONDITIONS REBUILD START                       //
+	//*********************************************************************************
 
 	//node to get the DOFs from
 	Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin(MeshId))->GetDofs();
@@ -3825,6 +3826,7 @@ namespace Kratos
 	unsigned int initial_node_size = rModelPart.Nodes().size()+1; //total model part node size
 	unsigned int initial_cond_size = rModelPart.Conditions().size()+1; //total model part node size
 	int id=0;
+
 	//if points were added, new nodes must be added to ModelPart
 	for(unsigned int i = 0; i<list_of_nodes.size(); i++)
 	  {
@@ -3833,8 +3835,7 @@ namespace Kratos
 	    double& x= list_of_nodes[i].X();
 	    double& y= list_of_nodes[i].Y();
 
-	    //std::cout<<" boundary node id "<<id<<std::endl;		
-	    //std::cout<<" node creation position [CondID: "<<list_of_nodes[i]<<"] ("<<x<<", "<<y<<")"<<std::endl;
+
 	    Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 		
 	    //set to the main mesh (Mesh 0) to avoid problems in the PreIds (number of nodes: change) in other methods
@@ -3865,7 +3866,6 @@ namespace Kratos
 	      }
 		 
 	
-
 		
 	    //int cond_id = list_of_nodes[i].Id();
 	    //Geometry< Node<3> >& rConditionGeom = (*(rModelPart.Conditions(MeshId).find(cond_id).base()))->GetGeometry();
@@ -3899,7 +3899,7 @@ namespace Kratos
 	    const array_1d<double,3> ZeroNormal(3,0.0);
 	    //correct normal interpolation
 	    noalias(pnode->GetSolutionStepValue(NORMAL)) = list_of_conditions[i]->GetValue(NORMAL);
-	    //std::cout<<" NORMAL "<<pnode->GetSolutionStepValue(NORMAL)<<std::endl;
+
 
 	    //correct contact_normal interpolation (laplacian boundary projection uses it)
 	    array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
@@ -3926,7 +3926,7 @@ namespace Kratos
 	    face2.push_back(rConditionGeom(1));
 		
 	    id   = initial_cond_size+(i*2);
-	    //properties to be used in the generation
+
 	    Condition::Pointer pcond1      = list_of_conditions[i]->Clone(id, face1);
 	    // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 	    id   = initial_cond_size+(i*2+1);
@@ -3954,6 +3954,18 @@ namespace Kratos
 	  }
 
 	
+	//*********************************************************************************
+	//                   DOFS AND NEW CONDITIONS REBUILD END                         //
+	//*********************************************************************************
+
+
+
+
+	//*********************************************************************************
+	//                   CLEAN CONDITIONS AND FLAGS START                            //
+	//*********************************************************************************
+
+
 	//Clean Conditions
 	ModelPart::ConditionsContainerType RemoveConditions;
 	    
@@ -3979,12 +3991,17 @@ namespace Kratos
 	    
 	rModelPart.Conditions(MeshId).swap(RemoveConditions);
 	
-      }
+	
+	//*********************************************************************************
+	//                   CLEAN CONDITIONS AND FLAGS END                              //
+	//*********************************************************************************
 
 
-    //std::cout<<"   Nodes and Conditions : "<<rModelPart.Nodes(MeshId).size()<<", "<<rModelPart.Conditions(MeshId).size()<<std::endl;
 
-    //std::cout<<"   Added nodes on boundary: "<<list_of_nodes.size()<<std::endl;
+
+      } // REFINE END;
+
+    
 
     rVariables.RemeshInfo.inserted_conditions     = rModelPart.NumberOfConditions(MeshId)-rVariables.RemeshInfo.inserted_conditions;
     rVariables.RemeshInfo.inserted_boundary_nodes = rModelPart.NumberOfNodes(MeshId)-rVariables.RemeshInfo.inserted_boundary_nodes;

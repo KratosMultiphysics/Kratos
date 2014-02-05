@@ -84,11 +84,57 @@ namespace Kratos
     
     PointRigidContactPenalty2DCondition::CalculateKinematics(rVariables, rPointNumber);
     
-  
     KRATOS_CATCH( "" )
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void AxisymPointRigidContactPenalty2DCondition::CalculateContactFactors(GeneralVariables &rVariables)
+  {
+
+    KRATOS_TRY
+      
+    WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+
+    array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
+    array_1d<double,3> Neighb_Point;
+
+    double radius   = 0;
+    double distance = 0;
+    double counter  = 0;
+
+    for(unsigned int i = 0; i < rN.size(); i++)
+      {
+	if(rN[i].Is(BOUNDARY)){
+	    
+	  Neighb_Point[0] = rN[i].X();
+	  Neighb_Point[1] = rN[i].Y();
+	  Neighb_Point[2] = rN[i].Z();
+	    
+	  radius = fabs(Contact_Point[0] - rN[i].X());
+	  
+	  distance += norm_2(Contact_Point-Neighb_Point) * radius;
+
+	  counter ++;
+	}
       }
 
+    distance /= counter;
+    
+    //get contact properties and parameters
+    double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
+    double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
+    rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
+    
+
+    //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
+    
+    KRATOS_CATCH( "" )
+      }
 
   //************************************************************************************
   //************************************************************************************

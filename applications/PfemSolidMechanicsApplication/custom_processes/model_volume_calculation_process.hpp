@@ -103,18 +103,19 @@ public:
 
       KRATOS_TRY
 
-      unsigned int start=0;
-      unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
-	start=1;
-
       mModelVolume = ComputeModelVolume(mMeshVolume);
       
       std::cout<<" [ Model Volume : "<<mModelVolume<<" ]"<<std::endl;
-      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	{
-	  std::cout<<"   [ Mesh Volume ["<<MeshId<<"]: "<<mMeshVolume[MeshId]<<" ]"<<std::endl;
-	}
+
+
+      // unsigned int start=0;
+      // unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
+      // if(NumberOfMeshes>1) 
+      // 	start=1;
+      // for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+      // 	{
+      // 	  std::cout<<"   [ Mesh Volume ["<<MeshId<<"]: "<<mMeshVolume[MeshId]<<" ]"<<std::endl;
+      // 	}
 
       KRATOS_CATCH( "" )
 	
@@ -125,20 +126,19 @@ public:
     {
       KRATOS_TRY	 
 
-      unsigned int start=0;
-      unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
-      if(NumberOfMeshes>1) 
-	start=1;
-
       std::vector<double> MeshVolume;
       double ModelVolume = ComputeModelVolume(MeshVolume);
       
       std::cout<<" [ Model Volume : "<<ModelVolume<<" ] [ Step increment : "<<ModelVolume-mModelVolume<<" ] "<<std::endl;
 
-      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	{
-	  std::cout<<"   [ Mesh Volume ["<<MeshId<<"]: "<<MeshVolume[MeshId]<<" ] [ Step increment : "<<MeshVolume[MeshId]-mMeshVolume[MeshId]<<" ] "<<std::endl;
-	}
+      // unsigned int start=0;
+      // unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
+      // if(NumberOfMeshes>1) 
+      // 	start=1;
+      // for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+      // 	{
+      // 	  std::cout<<"   [ Mesh Volume ["<<MeshId<<"]: "<<MeshVolume[MeshId]<<" ] [ Step increment : "<<MeshVolume[MeshId]-mMeshVolume[MeshId]<<" ] "<<std::endl;
+      // 	}
 
       KRATOS_CATCH( "" )      
     }
@@ -246,30 +246,35 @@ private:
 
       if( mAxisymmetric ){
 
-      double radius = 0;
-      double two_pi = 6.28318530717958647693;
+	//std::cout<<"  AXISYMMETRIC MODEL "<<std::endl;
 
-      //By the way: set meshes options from bools
-      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	{
-	  for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(MeshId); ie != mrModelPart.ElementsEnd(MeshId); ie++)
-	    {
-	      const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
-	      if( dimension > 2 )
-		std::cout<<" Axisymmetric problem with dimension: "<<dimension<<std::endl;
+	double radius = 0;
+	double two_pi = 6.28318530717958647693;
 
-	      for( unsigned int i=0; i<ie->GetGeometry().size(); i++ )
-		radius += ie->GetGeometry()[i].X();
-
-	      radius/=double(ie->GetGeometry().size());
+	//By the way: set meshes options from bools
+	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	  {
+	    for(ModelPart::ElementsContainerType::const_iterator ie = mrModelPart.ElementsBegin(MeshId); ie != mrModelPart.ElementsEnd(MeshId); ie++)
+	      {
 		
-	      rMeshVolume[MeshId] += ie->GetGeometry().Area() * two_pi * radius ;
+		const unsigned int dimension = ie->GetGeometry().WorkingSpaceDimension();
+
+		if( dimension > 2 )
+		  std::cout<<" Axisymmetric problem with dimension: "<<dimension<<std::endl;
+
+		radius = 0;
+		for( unsigned int i=0; i<ie->GetGeometry().size(); i++ )
+		  radius += ie->GetGeometry()[i].X();
+
+		radius/=double(ie->GetGeometry().size());
+		
+		rMeshVolume[MeshId] += ie->GetGeometry().Area() * two_pi * radius ;
 
 
-	    }
+	      }
 	  
-	  ModelVolume += rMeshVolume[MeshId];
-	}
+	    ModelVolume += rMeshVolume[MeshId];
+	  }
 
       }
       else{

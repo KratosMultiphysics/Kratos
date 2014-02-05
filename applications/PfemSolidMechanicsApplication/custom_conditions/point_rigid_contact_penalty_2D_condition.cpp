@@ -154,16 +154,8 @@ namespace Kratos
 
       rVariables.Options.Set(ACTIVE,true);
 
-      if(ContactFace == 2){ //tip surface
-	GetGeometry()[0].Set(TO_SPLIT);
-	//std::cout<<" Node ["<<GetGeometry()[0].Id()<<"] set TO_SPLIT "<<std::endl;
-      }
-      else{
-	GetGeometry()[0].Set(TO_SPLIT,false);
-      }
-
       //get contact properties and parameters
-      CalculateContactFactors( rVariables );
+      this->CalculateContactFactors( rVariables );
 
     }
     else{
@@ -217,12 +209,6 @@ namespace Kratos
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
-    // if( GetGeometry()[0].Is(TO_SPLIT) ){ // to relax the tool tip
-
-    //   rVariables.Penalty.Normal  *= 0.25;
-    //   rVariables.Penalty.Tangent *= 0.25;
-
-    // }
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     

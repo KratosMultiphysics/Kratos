@@ -157,6 +157,12 @@ protected:
     void CalculateRadius(double & rCurrentRadius,
 			 double & rReferenceRadius);
 
+
+    /**
+     * Calculation of the Contact Force Factors
+     */
+    void CalculateContactFactors(GeneralVariables &rContact);
+
     ///@}
     ///@name Protected  Access
     ///@{

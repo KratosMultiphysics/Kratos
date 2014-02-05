@@ -213,6 +213,13 @@ protected:
 
     double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
 
+
+    /**
+     * Calculation of the Contact Force Factors
+     */
+    virtual void CalculateContactFactors(GeneralVariables &rContact);
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -240,11 +247,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * Calculation of the Contact Force Factors
-     */
-    void CalculateContactFactors(GeneralVariables &rContact);
 
 
     /**

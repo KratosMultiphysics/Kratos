@@ -241,6 +241,7 @@ public:
 
     }
 
+
     virtual void UpdatePosition(double & rTime)
     {
       
@@ -252,6 +253,65 @@ public:
 	}
     }
 
+
+    //************************************************************************************
+    //************************************************************************************
+   
+
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace)
+    {
+      bool is_inside = false;
+
+      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+      
+      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+
+
+      if( rWallNose.Convexity == 1)
+	rWallNose.Radius *= 1.25; //increase the bounding box 
+
+      if( rWallNose.Convexity == -1)
+       	rWallNose.Radius *= 0.75; //decrease the bounding box 
+
+
+       switch( ContactSearch(rPoint, rWallNose) )
+	{
+  	case FreeSurface:      
+	  is_inside = false;
+	  ContactFace = 0;
+	  break;
+	case RakeSurface:      
+	  is_inside = true;
+	  ContactFace = 1;
+	  break;
+	case TipSurface:       
+	  is_inside = true;
+	  ContactFace = 2;
+	  break;
+	case ClearanceSurface: 
+	  is_inside = true;
+	  ContactFace = 3;
+	  break;
+	default:               
+	  is_inside = false;
+	  break;
+	}
+
+
+      if( rWallNose.Convexity == 1)
+	rWallNose.Radius /= 1.25; //increase the bounding box 
+
+      if( rWallNose.Convexity == -1)
+       	rWallNose.Radius /= 0.75; //decrease the bounding box 
+
+
+      return is_inside;
+      
+    } 
+
+    //************************************************************************************
+    //************************************************************************************
+   
 
     bool IsInside (const TPointType& rPoint, double& rCurrentTime)
     {
@@ -499,6 +559,7 @@ private:
 
 	  NoseDistanceVector[i] = NoseDistance;
 
+
 	  if( NoseDistance < MinimumDistance ){
 	    MinimumDistance = NoseDistance;
 	    SelectedNoseDistance    = i;
@@ -524,14 +585,27 @@ private:
 	
 	if( mBoxNoses[SelectedNoseDistance].Convexity > mBoxNoses[SelectedNoseRadius].Convexity ){
 
+	  
 	  if( NoseDistanceVector[SelectedNoseDistance] > mBoxNoses[SelectedNoseDistance].Radius ){
 
-	    if ( NoseDistanceVector[SelectedNoseRadius] > mBoxNoses[SelectedNoseRadius].Radius + (mBoxNoses[SelectedNoseDistance].Radius * 0.01) ){
-	      SelectedNose = SelectedNoseDistance;
-	    }
-	    else{
+
+	    TPointType TipPoint =  GetTipPoint( mBoxNoses[SelectedNoseRadius] ); //slave point : convexity -
+
+	    double sign = GetOrientation( rPoint, mBoxNoses[SelectedNoseDistance].Center, mBoxNoses[SelectedNoseRadius].Center, TipPoint );
+   
+	    if( sign > 0 )
 	      SelectedNose = SelectedNoseRadius;
-	    }
+	    else
+	      SelectedNose = SelectedNoseDistance;
+
+	    //std::cout<<" SELECTED NOSE A "<<SelectedNose<<" sign "<<sign<<std::endl;
+
+ 	    // if ( NoseDistanceVector[SelectedNoseRadius] > mBoxNoses[SelectedNoseRadius].Radius + (mBoxNoses[SelectedNoseDistance].Radius * 0.02) ){
+	    //   SelectedNose = SelectedNoseDistance;
+	    // }
+	    // else{
+	    //   SelectedNose = SelectedNoseRadius;
+	    // }
 
 	  }
 	  else{
@@ -546,14 +620,25 @@ private:
 
 	  if( mBoxNoses[SelectedNoseDistance].Radius < mBoxNoses[SelectedNoseRadius].Radius ){
 
-	    if ( NoseDistanceVector[SelectedNoseDistance] < mBoxNoses[SelectedNoseDistance].Radius + (mBoxNoses[SelectedNoseDistance].Radius * 0.01) ){
-	      SelectedNose = SelectedNoseDistance;
-	    }
-	    else{
-	      SelectedNose = SelectedNoseRadius;
-	    }
+  
+	    TPointType TipPoint =  GetTipPoint( mBoxNoses[SelectedNoseRadius] ); //slave point : convexity +
 
-	    //std::cout<< " Selected Nose "<<SelectedNose<< " SelectedNoseDistance.Radius "<<mBoxNoses[SelectedNoseDistance].Radius<<" SelectedNoseRadius.Radius "<<mBoxNoses[SelectedNoseRadius].Radius<<std::endl;
+	    double sign = GetOrientation( rPoint, mBoxNoses[SelectedNoseDistance].Center, mBoxNoses[SelectedNoseRadius].Center, TipPoint );
+   
+	    if( sign > 0 )
+	      SelectedNose = SelectedNoseRadius;
+	    else
+	      SelectedNose = SelectedNoseDistance;
+
+	    //std::cout<<" SELECTED NOSE B "<<SelectedNose<<" sign "<<sign<<std::endl;
+
+	    // if ( NoseDistanceVector[SelectedNoseDistance] < mBoxNoses[SelectedNoseDistance].Radius + (mBoxNoses[SelectedNoseDistance].Radius * 0.01) ){
+	    //   SelectedNose = SelectedNoseDistance;
+	    // }
+	    // else{
+	    //   SelectedNose = SelectedNoseRadius;
+	    // }
+
 
 	  }
 	  else{
@@ -579,6 +664,64 @@ private:
 
     //************************************************************************************
     //************************************************************************************
+    double GetOrientation(const TPointType& rPoint, const TPointType& rMasterCenter, const TPointType& rSlaveCenter, const TPointType& rSlaveTipPoint )
+    {
+      
+      TPointType DistanceToPoint  = (rPoint - rMasterCenter);
+      TPointType DistanceToCenter = (rSlaveCenter - rMasterCenter);
+      TPointType DistanceToTip    = (rSlaveTipPoint - rMasterCenter);
+
+      TPointType ReferenceOrientation = MathUtils<double>::CrossProduct( DistanceToTip, DistanceToCenter );
+      TPointType Orientation = MathUtils<double>::CrossProduct( DistanceToPoint, DistanceToCenter );
+
+      double sign = (Orientation[2] * ReferenceOrientation[2]);
+
+      return sign;
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+    TPointType GetTipPoint(const BoxNoseVariables& rWallNose)
+    {
+
+      double pi = 3.141592654;
+
+      //-----------
+	    
+      TPointType RakePoint(3);
+	    
+      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[2] = 0;
+      
+      TPointType ClearancePoint(3);
+	    
+      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[2] = 0;
+      
+      TPointType TipPoint(3);
+      
+      TipPoint  = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
+      TipPoint *= ( rWallNose.Radius/norm_2(TipPoint) );
+      
+      //open angle to get the correct tip direction
+      double OpenAngle = ( rWallNose.ClearanceAngle - rWallNose.RakeAngle ) * ( 180.0 / pi ) - 90;
+      
+      if( OpenAngle < 90 )
+	TipPoint  = rWallNose.Center + TipPoint;
+      else
+	TipPoint  = rWallNose.Center - TipPoint;
+      
+      return TipPoint;
+
+    }
+
+    //************************************************************************************
+    //************************************************************************************
 
 
     ContactFace ContactSearch(const TPointType& rPoint, const BoxNoseVariables& rWallNose)
@@ -595,9 +738,6 @@ private:
       double Face1=0, Face2=0, Face3=0;
       CalculateAuxiliarFaces( Face1, Face2, Face3, rPoint, rWallNose );
 
-      //The nodes in the wall tip, are marked as TO_SPLIT 
-      //in order to be susceptible to refine
-      //rPoint.Reset(TO_SPLIT);
       
       // bool node_in =false;
       // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
@@ -616,8 +756,6 @@ private:
 	}
 	else if(FaceT>0 && Face1>0 && Face2>0){
 	  Face = TipSurface;
-	  //It must be set to be able to refine boundaries later on REFINE
-	  //rPoint.Set(TO_SPLIT);
 	}
 	else if(FaceC>0 && Face3>0 && Face2<0){
 	  Face = ClearanceSurface;
@@ -634,8 +772,6 @@ private:
 	}
 	else if(FaceT<0 && Face1>0 && Face2>0){
 	  Face = TipSurface;
-	  //It must be set to be able to refine boundaries later on REFINE
-	  //rPoint.Set(TO_SPLIT);
 	}
 	else if(FaceC<0 && Face3>0 && Face2<0){
 	  Face = ClearanceSurface;
