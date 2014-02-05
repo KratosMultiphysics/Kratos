@@ -302,7 +302,7 @@ namespace Kratos
 			      KRATOS_WATCH(delta_solid);
 		double new_dt = (solidification_percent /  delta_solid) * current_dt;
 		if( new_dt > dt_max)
-		  new_dt = dt_max;
+		  new_dt = 1.5 * current_dt;//dt_max;
 		else if( new_dt < dt_min)
 		  new_dt = dt_min;
 
@@ -310,9 +310,8 @@ namespace Kratos
 		return new_dt;	      
 	      }
 	      else{
-	
 		return current_dt;}
-		}
+	    }
 	   }
 	    
 	   }
@@ -467,21 +466,22 @@ namespace Kratos
 	 int CheckMaxTemperature(ModelPart& ThisModelPart)
 	 {
 	    double last_temp = ThisModelPart.GetTable(3).Data().back().first;
-		double is_hot_point = 0.0;
+		double is_hot_point = 1.0;
 		int node_size = ThisModelPart.Nodes().size();
 
 		for (int ii = 0; ii < node_size; ii++)
-			{
-			 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+		    {
+		      ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 
-			 double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-		 
-			if( current_temp > last_temp)
-			  is_hot_point = 1.0;
-			 
-			}
+		      double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+	      
+		      if( current_temp < last_temp){
+			is_hot_point = 0.0;
+			break;
+		      }		      
+		    }
 	       
-		ThisModelPart.GetCommunicator().MaxAll(is_hot_point);
+		ThisModelPart.GetCommunicator().MinAll(is_hot_point);
 
 		return (is_hot_point==1.0)? 1 : 0;
 
