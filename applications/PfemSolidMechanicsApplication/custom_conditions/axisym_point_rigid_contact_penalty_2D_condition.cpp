@@ -113,7 +113,7 @@ namespace Kratos
 	  Neighb_Point[1] = rN[i].Y();
 	  Neighb_Point[2] = rN[i].Z();
 	    
-	  radius = fabs(Contact_Point[0] - rN[i].X());
+	  radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
 	  
 	  distance += norm_2(Contact_Point-Neighb_Point) * radius;
 
