@@ -30,6 +30,8 @@ set( KRATOS_THERMO_MECHANICAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SUPG_conv_diff_phase_change_2d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SUPG_conv_diff_phase_change_3d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SUPG_conv_2d.cpp  
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Poisson_3d.cpp  
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/environment_contact_3d.cpp  
 )
 
 ###############################################################
