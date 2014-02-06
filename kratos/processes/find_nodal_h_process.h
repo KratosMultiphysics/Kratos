@@ -156,8 +156,12 @@ public:
                 double xc = in->X();
                 double yc = in->Y();
                 double zc = in->Z();
+		
+		//this is not unit independent; commented 06-02-2014
+                //double h = 1000.0; 
 
-                double h = 1000.0;
+		double h = 0;
+		
                 for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
@@ -168,21 +172,27 @@ public:
                     l += (y-yc)*(y-yc);
                     l += (z-zc)*(z-zc);
 
-                    //if(l>h) h = l;
-                    if(l<h) h = l;
+                    if(l>h) h = l;
+                    //if(l<h) h = l;
                 }
                 h = sqrt(h);
                 havg += h;
                 h_nodes += 1;
 
                 in->FastGetSolutionStepValue(NODAL_H) = h;
+
+		//std::cout<<" Set NODAL_H ["<<in->Id()<<"]: "<<h<<std::endl;
             }
         }
 
-        //calculate average h
+        //check the number of nodes
         if(h_nodes == 0)
             KRATOS_ERROR(std::logic_error,"no node has neighbours!!!!","");
+
+	//average h calculation
         havg /= h_nodes;
+
+	double h_max = havg*100;
 
         //set the h to the average to the nodes without neighours
         for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
@@ -191,7 +201,12 @@ public:
             {
                 in->FastGetSolutionStepValue(NODAL_H) = havg;
             }
-        }
+	    else if (in->FastGetSolutionStepValue(NODAL_H) >= h_max)
+	    {
+	        in->FastGetSolutionStepValue(NODAL_H) = havg;
+	    }
+
+	}
         KRATOS_CATCH("")
     }
 
