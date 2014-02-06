@@ -1002,6 +1002,7 @@ private:
       }
       else{
 	std::cout<<" Critical point reached and accepted on a Face "<<std::endl;
+	std::cout<<" LINE "<<rLinePoint<<" CENTER "<<rCenterPoint<<" REFERENCE "<<rReferencePoint<<" POINT "<<rPoint<<std::endl;
 	rFace = +1;
       }
 

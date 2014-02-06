@@ -724,6 +724,9 @@ namespace Kratos
 	vertices[0].Set(BOUNDARY);
 	vertices[1].Set(BOUNDARY);
 	vertices[2].Set(BOUNDARY);
+
+	//std::cout<<" detJ "<<detJ<<" h "<<h<<" alpha_param "<<alpha_param<<std::endl;
+
 	return false;
       }
     else
@@ -744,6 +747,8 @@ namespace Kratos
 	noalias(mC) = prod(mJinv,mRhs);
 
 	double radius = sqrt(pow(mC[0]-x0,2)+pow(mC[1]-y0,2));
+
+	//std::cout<<" radius "<<radius<<" h "<<h<<" alpha_param "<<alpha_param<<std::endl;
 
 	if (radius < h*alpha_param)
 	  {
