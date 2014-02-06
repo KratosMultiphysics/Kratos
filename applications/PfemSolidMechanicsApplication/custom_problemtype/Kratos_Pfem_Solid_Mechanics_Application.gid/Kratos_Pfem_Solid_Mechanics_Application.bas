@@ -61,6 +61,7 @@ Begin Properties *MatNum
  CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
 *format "%10.5e"
  ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
+*endif
 End Properties
 
 *endif
