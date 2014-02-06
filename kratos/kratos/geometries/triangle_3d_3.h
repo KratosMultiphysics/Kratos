@@ -542,7 +542,7 @@ public:
             rResult[1] += DeltaXi[1];
             rResult[2] = 0.0;
 
-            if ( norm_2( DeltaXi ) > 30 )
+            if ( k>0 && norm_2( DeltaXi ) > 30 )
             {
                 KRATOS_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
             }
