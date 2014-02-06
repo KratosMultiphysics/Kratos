@@ -199,8 +199,10 @@ def ConstructSolver(configuration):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB
             elif(krylov_type == "CG"):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.CG
+            elif(krylov_type == "BICGSTAB_WITH_GMRES_FALLBACK"):
+                amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK             
             else:
-                print("ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG")
+                print("ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG, BICGSTAB_WITH_GMRES_FALLBACK")
                 return None
         else:
             print("WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES")
