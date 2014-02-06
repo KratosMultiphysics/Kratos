@@ -101,9 +101,11 @@ namespace Kratos
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
 
-    double radius   = 0;
+    // double radius   = 0;
     double distance = 0;
     double counter  = 0;
+
+    // double meanradius = 0;
 
     for(unsigned int i = 0; i < rN.size(); i++)
       {
@@ -113,16 +115,25 @@ namespace Kratos
 	  Neighb_Point[1] = rN[i].Y();
 	  Neighb_Point[2] = rN[i].Z();
 	    
-	  radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
+	  // radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
 	  
-	  distance += norm_2(Contact_Point-Neighb_Point) * radius;
+	  // meanradius += radius;
+
+	  // distance += norm_2(Contact_Point-Neighb_Point) * radius;
+
+	  distance += norm_2(Contact_Point-Neighb_Point);
 
 	  counter ++;
 	}
       }
 
-    distance /= ( counter + Contact_Point[0] );
-    
+    // if( Contact_Point[0] > 0)
+    //   distance /= ( counter * Contact_Point[0] );
+    // else
+    //   distance /= ( counter * (meanradius/counter) ); 
+
+    distance /= counter;
+
     //get contact properties and parameters
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];

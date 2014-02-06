@@ -401,8 +401,6 @@ for step in range(istep, nstep):
             if(execute_write):
                 clock_time = StartTimeMeasuring();
                 current_id = output_print.operation_id()
-                if(save_restart):
-                    current_id = current_step
                 # print gid output file
                 gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
                 # print on list files

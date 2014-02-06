@@ -209,7 +209,7 @@ public:
 	}
 
 
-      std::cout<<" EXECUTE FINALIZE CONTACT "<< mpRigidWall->Velocity()<<" number : "<<counter<<std::endl;
+      std::cout<<" EXECUTE FINALIZE CONTACT : wall velocity:"<< mpRigidWall->Velocity()<<" wall nodes : "<<counter<<std::endl;
 
       //Clean Rigid Contact Conditions
       ModelPart::ConditionsContainerType NonRigidContactConditions;

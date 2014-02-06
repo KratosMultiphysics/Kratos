@@ -1527,7 +1527,7 @@ namespace Kratos
 
 		// if(count_dissipative>0)
 		//   std::cout<<" Count REFINE nodes "<<count_dissipative<<std::endl;
-		//std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
+		// std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
 		
 		bool refine_candidate = true;
 		if (rVariables.BoundingBox.is_set == true ){
@@ -1548,7 +1548,7 @@ namespace Kratos
 		//if h is the height of a equilateral triangle, the area is 1/2*h*h
 		double element_ideal_radius = 0.5*(1.5*prescribed_h*1.5*prescribed_h);
 		
-
+		//std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
 
 		if( refine_candidate ){
 
@@ -1877,7 +1877,7 @@ namespace Kratos
 					  MeshingVariables & rVariables,
 					  struct triangulateio & out)
   {
-    std::cout<<" [ SELECT MESH ELEMENTS: "<<std::endl;
+    std::cout<<" [ SELECT MESH ELEMENTS: ("<<(out.numberoftriangles)<<") "<<std::endl;
 
     rVariables.PreservedElements.clear();
     rVariables.PreservedElements.resize(out.numberoftriangles);
@@ -2041,6 +2041,11 @@ namespace Kratos
 		    accepted=mModelerUtilities.CheckInnerCentre(vertices);
 		  }
 	      }
+	    // else{
+	      
+	    //   std::cout<<" Element DID NOT pass Alpha Shape ("<<Alpha<<") "<<std::endl;
+	    // }
+	      
 
 	    if(accepted)
 	      {
@@ -2048,6 +2053,11 @@ namespace Kratos
 		rVariables.PreservedElements[el] = 1;
 		number+=1;
 	      }
+	    // else{
+	      
+	    //   std::cout<<" Element DID NOT pass INNER/OUTER check "<<std::endl;
+	    // }
+
 
 	  }
 
@@ -2710,7 +2720,7 @@ namespace Kratos
 
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double critical_angle        = -140;
-    double size_for_side_normal  =  rVariables.Refine.critical_radius;
+    double size_for_side_normal  =  0.1 * rVariables.Refine.critical_radius;
 
 
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(rModelPart.NumberOfNodes()+1); //all domain nodes
