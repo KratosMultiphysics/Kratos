@@ -121,7 +121,7 @@ namespace Kratos
 	}
       }
 
-    distance /= counter;
+    distance /= ( counter + Contact_Point[0] );
     
     //get contact properties and parameters
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
