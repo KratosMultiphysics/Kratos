@@ -8,7 +8,7 @@ CheckForPreviousImport()
 class ModelerUtility:
     #
 
-    def __init__(self, model_part, domain_size, remesh_domains, contact_search):
+    def __init__(self, model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search):
 
         self.model_part = model_part
         self.domain_size = domain_size
@@ -16,6 +16,7 @@ class ModelerUtility:
         # set remesh flags
         self.remesh_domains = remesh_domains
         self.contact_search = contact_search
+        self.rigid_wall_contact_search = rigid_wall_contact_search
         self.neighbours_set = False
 
         # set mesh modeler
@@ -78,7 +79,7 @@ class ModelerUtility:
         # set active search
         self.search_active = False
 
-        if(self.remesh_domains or self.contact_search):
+        if(self.remesh_domains or self.contact_search or self.rigid_wall_contact_search):
             self.search_active = True
 
         self.neighbours_set = False
