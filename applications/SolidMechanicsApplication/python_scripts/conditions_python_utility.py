@@ -73,7 +73,8 @@ class ConditionsUtility:
             for node in self.model_part.Nodes:
                 # line and surface load conditions
                 force = node.GetSolutionStepValue(FACE_LOAD);
-                force = force / (time_step * (incr_steps))
+                for dim in range(0,len(force)):
+                    force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
                 node.SetSolutionStepValue(FACE_LOAD, force);
 
@@ -89,7 +90,8 @@ class ConditionsUtility:
 
                 # point load conditions
                 force = node.GetSolutionStepValue(FORCE);
-                force = force / (time_step * (incr_steps))
+                for dim in range(0,len(force)):
+                    force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
                 node.SetSolutionStepValue(FORCE, force);
 
