@@ -136,6 +136,7 @@ control = 0.0
 os.chdir(main_path)
 
 print('Initializing Problem....')
+sys.stdout.flush()
 
 solver.Initialize()
 
@@ -148,6 +149,7 @@ solver.Initialize()
 # physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 # properties_list = []
 print('Initialitzation Complete' + '\n')
+sys.stdout.flush()
 
 # BENCHMARK ###
 # BENCHMARK ###
@@ -204,6 +206,7 @@ total_steps_expected = int(DEM_parameters.FinalTime / dt)
 print(('Main loop starts at instant: ' + str(initial_pr_time) + '\n'))
 
 print(('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n'))
+sys.stdout.flush()
 
 while (time < DEM_parameters.FinalTime):
 
@@ -225,24 +228,27 @@ while (time < DEM_parameters.FinalTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
         print('Real time calculation: ' + str(timer.time() - initial_real_time))
+        print('Simulation time: ' + str(time))
         print('Percentage Completed: ' + str(percentage) + ' %')
         print("TIME STEP = " + str(step) + '\n')
+
         sys.stdout.flush()
 
         prev_time = (timer.time() - initial_real_time)
-
-    if ((timer.time() - initial_real_time > 60) and first_print and step != 0):
+    
+    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):
         first_print = False
-        estimated_sim_duration = 60.0 * (total_steps_expected / step)  # seconds
+        estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
-        print(('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n'))
-        print(('in minutes:' + str(estimated_sim_duration / 60.0) + 'min.' + '\n'))
-        print(('in hours:' + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n'))
-        print(('in days:' + str(estimated_sim_duration / 86400.0) + 'days' + '\n'))
+        print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
+        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
 
         if (estimated_sim_duration / 86400 > 2.0):
-            print(('WARNING!!!:       VERY LASTING CALCULATION' + '\n'))
+
+          print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
     # CONCRETE_TEST_STUFF#########################################4
 
@@ -255,6 +261,11 @@ while (time < DEM_parameters.FinalTime):
     time_to_print = time - time_old_print
 
     if (time_to_print >= DEM_parameters.OutputTimeStep):
+        
+        print("")
+        print("*******************  PRINTING RESULTS FOR GID  ***************************")
+        sys.stdout.flush()
+        
         # BENCHMARK ###
         os.chdir(data_and_results)
 
