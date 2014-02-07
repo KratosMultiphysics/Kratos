@@ -406,8 +406,7 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
 
 	//std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
 
-        //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
-
+       
 	//calculation of the force and the pressure loads
 	VectorForce = this->CalculateVectorForce( VectorForce, Variables );
 
@@ -524,11 +523,6 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 
 double& ForceLoadCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // if( dimension == 2 )
-    //     rIntegrationWeight *= GetProperties()[THICKNESS];
-
     return rIntegrationWeight;
 }
 

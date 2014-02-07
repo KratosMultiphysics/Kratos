@@ -186,10 +186,6 @@ void PointLoad3DCondition::CalculateConditionSystem(LocalSystemComponents& rLoca
 
 double& PointLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // if( dimension == 2 )
-    //   rIntegrationWeight *= GetProperties()[THICKNESS];
 
     return rIntegrationWeight;
 }
