@@ -99,6 +99,30 @@ creator_destructor = ParticleCreatorDestructor()
 
 solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part, creator_destructor, DEM_parameters)  # here, solver variables initialize as default
 
+# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
+inlet_option                     = 1
+dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+
+if (inlet_option):
+    DEM_inlet_model_part = ModelPart("DEMInletPart")
+    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
+    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+
+    # setting up the buffer size:
+    DEM_inlet_model_part.SetBufferSize(1)
+
+    # adding nodal degrees of freedom
+    SolverStrategy.AddDofs(DEM_inlet_model_part)
+    DEM_inlet_parameters = DEM_inlet_model_part.Properties
+
+    # constructiong the inlet and intializing it
+    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
+
+
+
 # Creating necessary directories
 
 main_path = os.getcwd()
@@ -142,7 +166,7 @@ solver.Initialize()
 
 #-------------------------------------------------------------------------------------------------------------------------
 
-#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
+#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 
 
 # Initialization of physics monitor and of the initial position of the center of mass
@@ -217,10 +241,15 @@ while (time < DEM_parameters.FinalTime):
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
-    # _SOLVE_#########################################4
+    # _SOLVE_###########################################
     os.chdir(main_path)
     solver.Solve()
-    # TIME CONTROL######################################4
+    # TIME CONTROL######################################
+        
+    # adding DEM elements by the inlet
+
+    if (inlet_option):
+        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
 
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
