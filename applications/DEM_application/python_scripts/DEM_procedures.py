@@ -227,6 +227,7 @@ class Procedures:
         area = 0.0
         mean = 0.0
         var  = 0.0
+        rel_std_dev = 0.0
 
         for node in balls_model_part.Nodes:
 
@@ -245,7 +246,8 @@ class Procedures:
         if(abs(var) > 1e-9):
             std_dev = var ** 0.5
 
-        rel_std_dev = std_dev / mean
+        if (i>0.0):
+            rel_std_dev = std_dev / mean
 
         Model_Data.write("Radius Mean: " + str(mean) + '\n')
         Model_Data.write("Std Deviation: " + str(std_dev) + '\n')
