@@ -113,7 +113,7 @@ void HeatContact2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vector
     }
 
     rRightHandSideVector = ZeroVector(2);
-    array_1d<double,2> length_normal;
+    array_1d<double,3> length_normal;
     length_normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
     double length = norm_2(length_normal);
 
@@ -136,7 +136,7 @@ void HeatContact2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vector
 
     //Residual
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-    array_1d<double, 2 > unknown_vec;
+    array_1d<double, 3 > unknown_vec;
     for ( int iii = 0; iii < nodes_number; iii++)
         unknown_vec[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
 
