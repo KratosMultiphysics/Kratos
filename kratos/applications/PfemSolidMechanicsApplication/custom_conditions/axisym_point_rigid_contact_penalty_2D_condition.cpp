@@ -200,7 +200,10 @@ namespace Kratos
   void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+
+    if( GetProperties()[THICKNESS] > 0 )
+      IntegrationWeight /=  GetProperties()[THICKNESS];
 
     //contributions to stiffness matrix calculated on the reference config
 
@@ -215,7 +218,10 @@ namespace Kratos
 
   void  AxisymPointRigidContactPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+
+    if( GetProperties()[THICKNESS] > 0 )
+      IntegrationWeight /=  GetProperties()[THICKNESS];
 
     //contribution to external forces
 

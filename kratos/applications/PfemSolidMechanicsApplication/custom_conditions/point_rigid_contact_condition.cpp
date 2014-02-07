@@ -516,11 +516,6 @@ void PointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLoca
 
 double& PointRigidContactCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // if( dimension == 2 )
-    //     rIntegrationWeight *= GetProperties()[THICKNESS];
-
     return rIntegrationWeight;
 }
 

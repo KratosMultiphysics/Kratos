@@ -222,7 +222,7 @@ namespace Kratos
   { 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if ( dimension == 2 ) 
+    if ( dimension == 2 && GetProperties()[THICKNESS]>0 ) 
       rIntegrationWeight *= GetProperties()[THICKNESS];
 
     return rIntegrationWeight;
