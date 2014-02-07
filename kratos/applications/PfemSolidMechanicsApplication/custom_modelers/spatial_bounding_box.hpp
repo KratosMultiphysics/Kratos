@@ -16,6 +16,8 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include <limits>
+
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 
@@ -240,13 +242,13 @@ public:
    SpatialBoundingBox(ModelPart &rModelPart,const double& rRadius)
     {
       
-      double max=9.999999999999999e300;
-      //double min=1e-300;
+      double max=std::numeric_limits<double>::max();
+      double min=std::numeric_limits<double>::min();
       
       ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
       const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
-      TPointType Maximum(dimension,-max);
+      TPointType Maximum(dimension, min);
       TPointType Minimum(dimension, max);
 
       //Get inside point of the subdomains
