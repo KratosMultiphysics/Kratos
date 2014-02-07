@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 #include <algorithm>
-
+#include <limits>
 // External includes
 
 
@@ -157,10 +157,8 @@ public:
                 double yc = in->Y();
                 double zc = in->Z();
 		
-		//this is not unit independent; commented 06-02-2014
-                //double h = 1000.0; 
 
-		double h = 0;
+		double h = std::numeric_limits<double>::max();
 		
                 for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
@@ -172,8 +170,8 @@ public:
                     l += (y-yc)*(y-yc);
                     l += (z-zc)*(z-zc);
 
-                    if(l>h) h = l;
-                    //if(l<h) h = l;
+                    //if(l>h) h = l;
+                    if(l<h) h = l;
                 }
                 h = sqrt(h);
                 havg += h;
@@ -192,19 +190,13 @@ public:
 	//average h calculation
         havg /= h_nodes;
 
-	double h_max = havg*100;
-
-        //set the h to the average to the nodes without neighours
+       //set the h to the average to the nodes without neighours
         for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
             if((in->GetValue(NEIGHBOUR_NODES)).size() == 0)
             {
                 in->FastGetSolutionStepValue(NODAL_H) = havg;
             }
-	    else if (in->FastGetSolutionStepValue(NODAL_H) >= h_max)
-	    {
-	        in->FastGetSolutionStepValue(NODAL_H) = havg;
-	    }
 
 	}
         KRATOS_CATCH("")
