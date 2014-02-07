@@ -125,14 +125,16 @@ void PointLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius, double
 
 void PointLoadAxisym2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+    if( GetProperties()[THICKNESS] > 0 )
+      IntegrationWeight /=  GetProperties()[THICKNESS];
+
 
     //contributions to stiffness matrix calculated on the reference config
 
     ForceLoadCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -141,13 +143,15 @@ void PointLoadAxisym2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLoca
 
 void PointLoadAxisym2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+  double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+
+    if( GetProperties()[THICKNESS] > 0 )
+      IntegrationWeight /=  GetProperties()[THICKNESS];
 
     //contribution to external forces
 
     ForceLoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
-    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 //***********************************************************************************

@@ -167,7 +167,8 @@ Vector& LineLoad2DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 
 double& LineLoad2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-  rIntegrationWeight *= (GetProperties()[THICKNESS] );
+    if( GetProperties()[THICKNESS] > 0 )
+      rIntegrationWeight *=  GetProperties()[THICKNESS];
 
   return rIntegrationWeight;
 }
