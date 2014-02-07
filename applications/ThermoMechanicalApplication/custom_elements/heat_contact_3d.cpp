@@ -113,7 +113,7 @@ void HeatContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vector
     }
 
     rRightHandSideVector = ZeroVector(2);
-    array_1d<double,2> area_normal;
+    array_1d<double,3> area_normal;
     area_normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
     double area = MathUtils<double>::Norm3(area_normal);
 
@@ -136,7 +136,7 @@ void HeatContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vector
 
     //Residual
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-    array_1d<double, 2 > unknown_vec;
+    array_1d<double, 3 > unknown_vec;
     for (unsigned int iii = 0; iii < nodes_number; iii++)
         unknown_vec[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
 
