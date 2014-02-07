@@ -3,7 +3,6 @@ import math
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralApplication import *
 
 def VectSum(v, w):
     return [x + y for x, y in zip(v, w)]
@@ -166,11 +165,11 @@ def MoveEmbeddedStructure(model_part, time):
         for mesh_number in range(1, model_part.NumberOfMeshes()):
             mesh_nodes       = model_part.GetMesh(mesh_number).Nodes
             # print model_part.Properties[mesh_number]
-            linear_velocity  = model_part.Properties[mesh_number][VELOCITY]
-            linear_period    = model_part.Properties[mesh_number][VELOCITY_PERIOD]
-            angular_velocity = model_part.Properties[mesh_number][ANGULAR_VELOCITY]
-            angular_period   = model_part.Properties[mesh_number][ANGULAR_VELOCITY_PERIOD]
-            initial_center   = model_part.Properties[mesh_number][ROTATION_CENTER]
+            linear_velocity  = model_part.GetMesh(mesh_number).Properties[0][VELOCITY]
+            linear_period    = model_part.GetMesh(mesh_number).Properties[0][VELOCITY_PERIOD]
+            angular_velocity = model_part.GetMesh(mesh_number).Properties[0][ANGULAR_VELOCITY]
+            angular_period   = model_part.GetMesh(mesh_number).Properties[0][ANGULAR_VELOCITY_PERIOD]
+            initial_center   = model_part.GetMesh(mesh_number).Properties[0][ROTATION_CENTER]
 
             if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
@@ -201,11 +200,9 @@ def MoveEmbeddedStructure(model_part, time):
                     relative_position[0] = new_axes1[0] * local_X + new_axes2[0] * local_Y + new_axes3[0] * local_Z
                     relative_position[1] = new_axes1[1] * local_X + new_axes2[1] * local_Y + new_axes3[1] * local_Z
                     relative_position[2] = new_axes1[2] * local_X + new_axes2[2] * local_Y + new_axes3[2] * local_Z
-
-            # NEW POSITION
-            [node.X, node.Y, node.Z] = VectSum(center_position, relative_position)
-            velocity_due_to_rotation = Cross(relative_position, angular_velocity)
-
-            # NEW VELOCITY
-            node.SetSolutionStepValue(VELOCITY, VectSum(linear_velocity, velocity_due_to_rotation))
+                    # NEW POSITION
+                    [node.X, node.Y, node.Z] = VectSum(center_position, relative_position)
+                    velocity_due_to_rotation = Cross(relative_position, angular_velocity)
+                    # NEW VELOCITY
+                    node.SetSolutionStepValue(VELOCITY, VectSum(linear_velocity, velocity_due_to_rotation))
 
