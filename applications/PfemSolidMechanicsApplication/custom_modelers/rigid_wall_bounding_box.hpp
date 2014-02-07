@@ -515,8 +515,10 @@ private:
 
     unsigned int BoxNoseSearch(const TPointType& rPoint)
     {
-      double MinimumDistance       =9.999999999999999e300;
-      double MinimumDistanceRadius =9.999999999999999e300;
+      double MinimumDistance       =std::numeric_limits<double>::max();
+      double MinimumDistanceRadius =std::numeric_limits<double>::max();
+
+      //std::cout<<" Minimum Distance "<<MinimumDistance<<std::endl;
 
       unsigned int NumberBoxNoses = mBoxNoses.size();
 
