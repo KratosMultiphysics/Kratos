@@ -116,6 +116,7 @@ class mesh_modeler_config:
 #####################################
 
 FindContacts = *GenData(FindContacts)
+FindRigidWallContacts = *GenData(Rigid_Wall_Contact)
 
 class contact_modeler_config:
     contact_condition        = "*GenData(ContactCondition)"

@@ -115,7 +115,8 @@ rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variab
 
 remesh_domains = general_variables.RemeshDomains
 contact_search = general_variables.FindContacts
-modeler = modeler_utils.ModelerUtility(model_part, domain_size, remesh_domains, contact_search)
+rigid_wall_contact_search = general_variables.FindRigidWallContacts
+modeler = modeler_utils.ModelerUtility(model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search)
 
 # print check
 print(" MESH CONDITIONS :", len(general_variables.MeshConditions))
@@ -124,7 +125,8 @@ for conditions in general_variables.MeshConditions:
 
 # build mesh modeler
 modeler.BuildMeshModeler(general_variables.mesh_modeler_config)
-modeler.SetRigidWall(rigid_wall)
+if(rigid_wall_contact_search):
+    modeler.SetRigidWall(rigid_wall)
 
 # --CONTACT SEARCH START--####################
 
