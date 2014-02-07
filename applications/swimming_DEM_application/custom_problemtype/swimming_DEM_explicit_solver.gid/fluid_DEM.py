@@ -19,7 +19,6 @@ import math
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralApplication import *
 import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
@@ -207,9 +206,9 @@ import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(balls_model_part, DEMParameters)
 
 # reading the balls model part
-model_part_io_solid = ModelPartIO(DEMParameters.problem_name)
+model_part_io_solid = ModelPartIO(DEMParameters.problem_name + "DEM")
 model_part_io_solid.ReadModelPart(balls_model_part)
-rigidFace_mp_filename = DEMParameters.problem_name + "_FEM_boundary"
+rigidFace_mp_filename = DEMParameters.problem_name + "DEM_FEM_boundary"
 model_part_io_solid = ModelPartIO(rigidFace_mp_filename)
 model_part_io_solid.ReadModelPart(fem_dem_model_part)
 
@@ -414,7 +413,7 @@ dem_solver = SolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_par
 
 if (ProjectParameters.inlet_option):
     DEM_inlet_model_part = ModelPart("DEMInletPart")
-    DEM_Inlet_filename = DEMParameters.problem_name + "_Inlet"
+    DEM_Inlet_filename = DEMParameters.problem_name + "DEM_Inlet"
     SolverStrategy.AddVariables(DEM_inlet_model_part, DEMParameters)
     swimming_DEM_procedures.AddNodalVariables(DEM_inlet_model_part, DEM_inlet_variables_to_add)
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
