@@ -436,7 +436,13 @@ public:
                     for(ResultIteratorType result_it = TempResults.begin(); result_it != remoteResultsPointer; ++result_it)
                     {
                         Communicator.LocalMesh(destination).Elements().push_back((*result_it));
-                        Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
+                        
+                        //bool repeat = 0;
+                        //for(ModelPart::NodesContainerType::iterator it = Communicator.LocalMesh(destination).Nodes().begin(); !repeat && it != Communicator.LocalMesh(destination).Nodes().end(); ++it)
+                        //  if((*result_it)->GetGeometry()(0)->Id() == it->Id())
+                        //    repeat = 0;
+                        //if(!repeat)
+                            Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
 
                         (remoteResults[i].GetContainer()).push_back(*result_it);
 
@@ -483,10 +489,17 @@ public:
                             NumberOfResults[j]++;
                             
                             Communicator.GhostMesh().Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
-                            Communicator.GhostMesh().Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
-                            
                             Communicator.GhostMesh(origin).Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
-                            Communicator.GhostMesh(origin).Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
+                            
+                            bool repeat = 0;
+                            for(ModelPart::NodesContainerType::iterator it = Communicator.GhostMesh(origin).Nodes().begin(); !repeat && it != Communicator.GhostMesh(origin).Nodes().end(); ++it)
+                              if((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0)->Id() == it->Id())
+                                repeat = 0;
+                            if(!repeat)
+                            {
+                                Communicator.GhostMesh().Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
+                                Communicator.GhostMesh(origin).Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
+                            }
                             
                             ResultCounter++;
                         }
@@ -495,9 +508,6 @@ public:
                 }
             }
         }
-        
-        Communicator.GhostMesh().Nodes().Unique();
-        Communicator.SynchronizeNodalSolutionStepsData();
     }
 
 //************************************************************************
