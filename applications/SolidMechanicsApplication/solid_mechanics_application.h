@@ -55,6 +55,9 @@
 #include "custom_elements/axisym_spatial_lagrangian_U_P_element.hpp"
 #include "custom_elements/membrane_element.hpp"
 
+#include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D3N.hpp"
+
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
@@ -95,10 +98,16 @@
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
 
+//cross sections
+#include "custom_utilities/shell_cross_section.hpp"
+
 namespace Kratos
 {
-///@name Type	Definitions
+///@name Type Definitions
 ///@{
+typedef array_1d<double,3> Vector3;
+typedef array_1d<double,6> Vector6;
+///@}
 
 ///@name Kratos Globals
 ///@{
@@ -126,6 +135,35 @@ KRATOS_DEFINE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX )
 KRATOS_DEFINE_VARIABLE(Matrix, DEFORMATION_GRADIENT )
 KRATOS_DEFINE_VARIABLE(double, DETERMINANT_F )
 KRATOS_DEFINE_VARIABLE(bool,   IMPLEX  )
+
+//cross section
+KRATOS_DEFINE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
+KRATOS_DEFINE_VARIABLE( int,						SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
+KRATOS_DEFINE_VARIABLE( double,						SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
+
+//shell generalized variables
+KRATOS_DEFINE_VARIABLE( Matrix,  SHELL_STRAIN )
+KRATOS_DEFINE_VARIABLE( Matrix,  SHELL_FORCE )
+KRATOS_DEFINE_VARIABLE( Matrix,  SHELL_STRAIN_GLOBAL )
+KRATOS_DEFINE_VARIABLE( Matrix,  SHELL_FORCE_GLOBAL )
+KRATOS_DEFINE_VARIABLE( Vector3, SHELL_CURVATURE )
+KRATOS_DEFINE_VARIABLE( Vector3, SHELL_MOMENT )
+
+//material orientation
+KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DX )
+KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DY )
+KRATOS_DEFINE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DZ )
+
+//othotropic/anisotropic constants
+KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_X )
+KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_Y )
+KRATOS_DEFINE_VARIABLE( double, YOUNG_MODULUS_Z )
+KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_XY )
+KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_YZ )
+KRATOS_DEFINE_VARIABLE( double, SHEAR_MODULUS_XZ )
+KRATOS_DEFINE_VARIABLE( double, POISSON_RATIO_XY )
+KRATOS_DEFINE_VARIABLE( double, POISSON_RATIO_YZ )
+KRATOS_DEFINE_VARIABLE( double, POISSON_RATIO_XZ )
 
 //material : hyperelastic_plastic
 KRATOS_DEFINE_VARIABLE(double, NORM_ISOCHORIC_STRESS )
@@ -336,7 +374,11 @@ private:
     //shells
 
     const IsotropicShellElement  mIsotropicShellElement3D3N;
-
+	const ShellThickElement3D4N  mShellThickElement3D4N;
+	const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
+	const ShellThinElement3D3N   mShellThinElement3D3N;
+	const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
+	
     //solid
 
     //small displacement
