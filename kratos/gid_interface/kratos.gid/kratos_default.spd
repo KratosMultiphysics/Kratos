@@ -83,7 +83,11 @@
 	  <Container id="SolidElement3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Small Displacement 3D" open="0"/>
 	  <Container id="BeamElement" pid="Beam Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" strucType="Beam" idTemplate="BeamElement" GiDEntity="line" icon="femelements.gif" help="Beam Element type" open="0"/>
 	  <Container id="CrisfieldTrussElement" pid="Crisfield truss element" state="hidden" class="Groups" strucType="Truss" idTemplate="TrussElement" GiDEntity="line" nDim="3D" icon="femelements.gif" help="Crisfield truss element" open="0"/>	     
-	  <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell isotropic" open="0"/>
+	  <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell isotropic" open="0"/>
+	  <Container id="ShellThick" pid="Shell thick" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Quadrilateral" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell thick" open="0"/>
+	  <Container id="ShellThickCR" pid="Shell thick LD" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Quadrilateral" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell thick" open="0"/>
+	  <Container id="ShellThin" pid="Shell thin" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell thin" open="0"/>
+	  <Container id="ShellThinCR" pid="Shell thin LD" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell thin" open="0"/>
 	  <Container id="ShellAnisotropic" pid="Shell anisotropic" state="hidden" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="ShellAnisotropic" open="0"/>
 	  <Container id="EBST" pid="EBST (formulation)" state="hidden" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Total Lagrangian" open="0"/>
 	  <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Membrane" idTemplate="MembraneElement" icon="femelements.gif" help="Membrane element type" open="0"/>
@@ -145,6 +149,15 @@
                 <Item id="DeltaPlasticStrain" pid="Plastic strain rate" dv="No" strucType="Solid,General" ivalues="Yes,No" values="Yes,No" help="Plastic strain rate scalar"/>
 		<Item id="BeamMoments" pid="Beam moments" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
 		<Item id="BeamForces" pid="Beam forces" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
+		<Item id="ShellForcesLocal" pid="Shell forces - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell forces - local"/>
+		<Item id="ShellForcesGlobal" pid="Shell forces - global" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell forces - global"/>
+		<Item id="ShellMomentsLocal" pid="Shell moments - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell moments - local"/>
+		<Item id="ShellStrainLocal" pid="Shell strain - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell strain - local"/>
+		<Item id="ShellStrainGlobal" pid="Shell strain - global" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell strain - global"/>
+		<Item id="ShellCurvatureLocal" pid="Shell curvature - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell curvature - local"/>
+		<Item id="MaterialDirectionX" pid="Material direction X" dv="No" strucType="Shell,Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Material direction X"/>
+		<Item id="MaterialDirectionY" pid="Material direction Y" dv="No" strucType="Shell,Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Material direction Y"/>
+		<Item id="MaterialDirectionZ" pid="Material direction Z" dv="No" strucType="Shell,Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Material direction Z"/>
 	    </Container>
 	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
@@ -465,7 +478,7 @@
         </Template>
 	<Template id="ShellElement" icon="groupsTree.gif" help="Isotropic shell formulation">
             <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
-                <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
+                <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle,Quadrilateral" values="Triangle,Quadrilateral" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>

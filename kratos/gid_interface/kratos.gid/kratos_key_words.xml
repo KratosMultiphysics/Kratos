@@ -16,6 +16,14 @@
       usennode="Yes" />
       <Item id="ShellIsotropic" kkword="IsotropicShellElement"
       usennode="Yes" />
+	  <Item id="ShellThick" kkword="ShellThickElement"
+      usennode="Yes" />
+	  <Item id="ShellThickCR" kkword="ShellThickElementCorotational"
+      usennode="Yes" />
+	  <Item id="ShellThin" kkword="ShellThinElement"
+      usennode="Yes" />
+	  <Item id="ShellThinCR" kkword="ShellThinElementCorotational"
+      usennode="Yes" />
       <Item id="ShellAnisotropic" kkword="ShellAnisotropic"
       usennode="No" />
       <Item id="Membrane" kkword="MembraneElement"
@@ -80,6 +88,15 @@
       <Item id="StressTensor" kkword="CAUCHY_STRESS_TENSOR" />
       <Item id="PlasticStrain" kkword="PLASTIC_STRAIN" />
       <Item id="DeltaPlasticStrain" kkword="DELTA_PLASTIC_STRAIN" />
+	  <Item id="ShellForcesLocal" kkword="SHELL_FORCE" />
+	  <Item id="ShellForcesGlobal" kkword="SHELL_FORCE_GLOBAL" />
+	  <Item id="ShellMomentsLocal" kkword="SHELL_MOMENT" />
+	  <Item id="ShellStrainLocal" kkword="SHELL_STRAIN" />
+	  <Item id="ShellStrainGlobal" kkword="SHELL_STRAIN_GLOBAL" />
+	  <Item id="ShellCurvatureLocal" kkword="SHELL_CURVATURE" />
+	  <Item id="MaterialDirectionX" kkword="MATERIAL_ORIENTATION_DX" />
+	  <Item id="MaterialDirectionY" kkword="MATERIAL_ORIENTATION_DY" />
+	  <Item id="MaterialDirectionZ" kkword="MATERIAL_ORIENTATION_DZ" />
       <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
       <Item id="SuperLU" kkword="Super LU" />
       <Item id="SuperLUIterative" kkword="SuperLUIterativeSolver" />
@@ -426,6 +443,18 @@
     claws="Elastic-Isotropic"
     active="1" />
     <Item id="ShellIsotropic" 
+    claws="Elastic-Isotropic"
+    active="1" />
+	<Item id="ShellThick" 
+    claws="Elastic-Isotropic"
+    active="1" />
+	<Item id="ShellThickCR" 
+    claws="Elastic-Isotropic"
+    active="1" />
+	<Item id="ShellThin" 
+    claws="Elastic-Isotropic"
+    active="1" />
+	<Item id="ShellThinCR" 
     claws="Elastic-Isotropic"
     active="1" />
     <Item id="Membrane" 
