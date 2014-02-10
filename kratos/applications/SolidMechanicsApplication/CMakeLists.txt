@@ -11,6 +11,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.cpp
@@ -49,10 +50,14 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.cpp
-
+	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
+	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement_element.cpp

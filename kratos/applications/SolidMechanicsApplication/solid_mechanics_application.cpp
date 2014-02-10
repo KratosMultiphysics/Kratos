@@ -76,6 +76,35 @@ KRATOS_CREATE_VARIABLE(Matrix, DEFORMATION_GRADIENT )
 KRATOS_CREATE_VARIABLE(double, DETERMINANT_F )
 KRATOS_CREATE_VARIABLE(bool ,  IMPLEX  )
 
+//cross section
+KRATOS_CREATE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
+KRATOS_CREATE_VARIABLE( int,						SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
+KRATOS_CREATE_VARIABLE( double,						SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
+
+//shell generalized variables
+KRATOS_CREATE_VARIABLE( Matrix,  SHELL_STRAIN )
+KRATOS_CREATE_VARIABLE( Matrix,  SHELL_FORCE )
+KRATOS_CREATE_VARIABLE( Matrix,  SHELL_STRAIN_GLOBAL )
+KRATOS_CREATE_VARIABLE( Matrix,  SHELL_FORCE_GLOBAL )
+KRATOS_CREATE_VARIABLE( Vector3, SHELL_CURVATURE )
+KRATOS_CREATE_VARIABLE( Vector3, SHELL_MOMENT )
+
+//material orientation
+KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DX )
+KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DY )
+KRATOS_CREATE_VARIABLE( Vector3, MATERIAL_ORIENTATION_DZ )
+
+//othotropic/anisotropic constants
+KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_X )
+KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_Y )
+KRATOS_CREATE_VARIABLE( double, YOUNG_MODULUS_Z )
+KRATOS_CREATE_VARIABLE( double, SHEAR_MODULUS_XY )
+KRATOS_CREATE_VARIABLE( double, SHEAR_MODULUS_YZ )
+KRATOS_CREATE_VARIABLE( double, SHEAR_MODULUS_XZ )
+KRATOS_CREATE_VARIABLE( double, POISSON_RATIO_XY )
+KRATOS_CREATE_VARIABLE( double, POISSON_RATIO_YZ )
+KRATOS_CREATE_VARIABLE( double, POISSON_RATIO_XZ )
+
 //material : hyperelastic_plastic
 KRATOS_CREATE_VARIABLE(double, NORM_ISOCHORIC_STRESS )
 KRATOS_CREATE_VARIABLE(double, PLASTIC_STRAIN )
@@ -127,7 +156,11 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
 
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-
+    mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), false ),
+    mShellThickCorotationalElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3>>( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), true ),
+	mShellThinElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), false ),
+    mShellThinCorotationalElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3>>( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ), true ),
+    
     mSmallDisplacementElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mSmallDisplacementElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mSmallDisplacementElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
@@ -221,6 +254,10 @@ void KratosSolidMechanicsApplication::Register()
     //Register shells
 
     KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N",  mIsotropicShellElement3D3N )
+	KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N",  mShellThickElement3D4N )
+	KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N",  mShellThickCorotationalElement3D4N )
+	KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N",  mShellThinElement3D3N )
+	KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N",  mShellThinCorotationalElement3D3N )
 
     //Register solids
 
@@ -381,7 +418,36 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( DEFORMATION_GRADIENT )
     KRATOS_REGISTER_VARIABLE( DETERMINANT_F )
     KRATOS_REGISTER_VARIABLE( IMPLEX )
-
+    
+    //cross section
+    KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION )
+    KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
+    KRATOS_REGISTER_VARIABLE( SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
+    
+    //shell generalized variables
+    KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
+    KRATOS_REGISTER_VARIABLE( SHELL_FORCE )
+    KRATOS_REGISTER_VARIABLE( SHELL_STRAIN_GLOBAL )
+    KRATOS_REGISTER_VARIABLE( SHELL_FORCE_GLOBAL )
+    KRATOS_REGISTER_VARIABLE( SHELL_CURVATURE )
+    KRATOS_REGISTER_VARIABLE( SHELL_MOMENT )
+    
+    //material orientation
+    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DX )
+    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DY )
+    KRATOS_REGISTER_VARIABLE( MATERIAL_ORIENTATION_DZ )
+    
+    //othotropic/anisotropic constants
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_X )
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Y )
+    KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_Z )
+    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XY )
+    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_YZ )
+    KRATOS_REGISTER_VARIABLE( SHEAR_MODULUS_XZ )
+    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XY )
+    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_YZ )
+    KRATOS_REGISTER_VARIABLE( POISSON_RATIO_XZ )
+    
     //material : hyperelastic_plastic
     KRATOS_REGISTER_VARIABLE( NORM_ISOCHORIC_STRESS )
     KRATOS_REGISTER_VARIABLE( PLASTIC_STRAIN )
