@@ -1,0 +1,415 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 3.2.9523
+Initializing KratosExternalSolversApplication... 
+Initializing KratosSolidMechanicsApplication... 
+Thread 0 getting environment info...
+  | ------------ OMP IN USE --------- |
+  | Machine number of processors  = 8 |
+  | Number of threads set         = 8 |
+  | Max threads in use            = 8 |
+  | In parallel?                  = 1 |
+  | Dynamic threads enabled?      = 0 |
+  | Nested parallelism supported? = 0 |
+  | --------------------------------- |
+
+Shell_T3_Thin__BendingRollUpStructuralAnalysis opened for io
+Shell_T3_Thin__BendingRollUpStructuralAnalysis.node opened for io
+Shell_T3_Thin__BendingRollUpStructuralAnalysis.prop opened for io
+Shell_T3_Thin__BendingRollUpStructuralAnalysis.elem opened for io
+Shell_T3_Thin__BendingRollUpStructuralAnalysis.cond opened for io
+Shell_T3_Thin__BendingRollUpStructuralAnalysis.init opened for io
+initializing result files
+Reading Nodes : 243 nodes read
+Reading Elements : 320 ShellThinElementCorotational3D3N read
+lines read : 640
+ MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= 0 beta= 0.25 gamma= 0.5]
+ STRATEGY: ResidualBasedNewtonRaphsonStrategy 
+ mechanical elements are initialized 
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29340.6;  Norm   = 25520
+RESIDUAL CRITERIA :: Ratio = 7.1097;  Norm   = 6.18391
+RESIDUAL CRITERIA :: Ratio = 26.0203;  Norm   = 22.632
+RESIDUAL CRITERIA :: Ratio = 7.57875;  Norm   = 6.59188
+RESIDUAL CRITERIA :: Ratio = 0.0909373;  Norm   = 0.0790959
+RESIDUAL CRITERIA :: Ratio = 0.0311194;  Norm   = 0.0270672
+RESIDUAL CRITERIA :: Ratio = 9.41961e-006;  Norm   = 8.19304e-006
+RESIDUAL CRITERIA :: Ratio = 7.37414e-008;  Norm   = 6.41391e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29350.3;  Norm   = 25528.4
+RESIDUAL CRITERIA :: Ratio = 7.76125;  Norm   = 6.75061
+RESIDUAL CRITERIA :: Ratio = 25.1696;  Norm   = 21.8921
+RESIDUAL CRITERIA :: Ratio = 5.98779;  Norm   = 5.20809
+RESIDUAL CRITERIA :: Ratio = 0.345418;  Norm   = 0.300439
+RESIDUAL CRITERIA :: Ratio = 0.11109;  Norm   = 0.0966246
+RESIDUAL CRITERIA :: Ratio = 0.000437769;  Norm   = 0.000380765
+RESIDUAL CRITERIA :: Ratio = 4.97515e-007;  Norm   = 4.32731e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29367.2;  Norm   = 25543.1
+RESIDUAL CRITERIA :: Ratio = 7.80625;  Norm   = 6.78975
+RESIDUAL CRITERIA :: Ratio = 25.061;  Norm   = 21.7977
+RESIDUAL CRITERIA :: Ratio = 3.78809;  Norm   = 3.29483
+RESIDUAL CRITERIA :: Ratio = 0.83366;  Norm   = 0.725105
+RESIDUAL CRITERIA :: Ratio = 0.0904302;  Norm   = 0.0786548
+RESIDUAL CRITERIA :: Ratio = 0.00142886;  Norm   = 0.0012428
+RESIDUAL CRITERIA :: Ratio = 9.26381e-007;  Norm   = 8.05752e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29391.3;  Norm   = 25564.1
+RESIDUAL CRITERIA :: Ratio = 7.67571;  Norm   = 6.67622
+RESIDUAL CRITERIA :: Ratio = 25.1436;  Norm   = 21.8695
+RESIDUAL CRITERIA :: Ratio = 2.3324;  Norm   = 2.02869
+RESIDUAL CRITERIA :: Ratio = 1.28452;  Norm   = 1.11726
+RESIDUAL CRITERIA :: Ratio = 0.0416074;  Norm   = 0.0361895
+RESIDUAL CRITERIA :: Ratio = 0.00123387;  Norm   = 0.0010732
+RESIDUAL CRITERIA :: Ratio = 4.03709e-007;  Norm   = 3.5114e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29422.5;  Norm   = 25591.3
+RESIDUAL CRITERIA :: Ratio = 7.47571;  Norm   = 6.50226
+RESIDUAL CRITERIA :: Ratio = 25.3122;  Norm   = 22.0162
+RESIDUAL CRITERIA :: Ratio = 1.53195;  Norm   = 1.33246
+RESIDUAL CRITERIA :: Ratio = 1.32411;  Norm   = 1.15169
+RESIDUAL CRITERIA :: Ratio = 0.0151835;  Norm   = 0.0132064
+RESIDUAL CRITERIA :: Ratio = 0.000411383;  Norm   = 0.000357815
+RESIDUAL CRITERIA :: Ratio = 9.02888e-008;  Norm   = 7.85318e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29461;  Norm   = 25624.7
+RESIDUAL CRITERIA :: Ratio = 7.23724;  Norm   = 6.29484
+RESIDUAL CRITERIA :: Ratio = 25.5955;  Norm   = 22.2626
+RESIDUAL CRITERIA :: Ratio = 1.12179;  Norm   = 0.975716
+RESIDUAL CRITERIA :: Ratio = 0.947278;  Norm   = 0.823928
+RESIDUAL CRITERIA :: Ratio = 0.00519271;  Norm   = 0.00451654
+RESIDUAL CRITERIA :: Ratio = 6.78791e-005;  Norm   = 5.90402e-005
+RESIDUAL CRITERIA :: Ratio = 3.57839e-008;  Norm   = 3.11243e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29506.7;  Norm   = 25664.4
+RESIDUAL CRITERIA :: Ratio = 6.97257;  Norm   = 6.06463
+RESIDUAL CRITERIA :: Ratio = 26.0121;  Norm   = 22.6249
+RESIDUAL CRITERIA :: Ratio = 0.920564;  Norm   = 0.800692
+RESIDUAL CRITERIA :: Ratio = 0.44341;  Norm   = 0.385671
+RESIDUAL CRITERIA :: Ratio = 0.00160556;  Norm   = 0.00139649
+RESIDUAL CRITERIA :: Ratio = 6.08648e-006;  Norm   = 5.29392e-006
+RESIDUAL CRITERIA :: Ratio = 3.52969e-008;  Norm   = 3.07007e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29559.4;  Norm   = 25710.3
+RESIDUAL CRITERIA :: Ratio = 6.68853;  Norm   = 5.81758
+RESIDUAL CRITERIA :: Ratio = 26.5038;  Norm   = 23.0526
+RESIDUAL CRITERIA :: Ratio = 0.827111;  Norm   = 0.719408
+RESIDUAL CRITERIA :: Ratio = 0.0973935;  Norm   = 0.0847114
+RESIDUAL CRITERIA :: Ratio = 0.000269889;  Norm   = 0.000234746
+RESIDUAL CRITERIA :: Ratio = 4.03635e-007;  Norm   = 3.51075e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29619.2;  Norm   = 25762.4
+RESIDUAL CRITERIA :: Ratio = 6.39034;  Norm   = 5.55822
+RESIDUAL CRITERIA :: Ratio = 26.9747;  Norm   = 23.4622
+RESIDUAL CRITERIA :: Ratio = 0.782146;  Norm   = 0.680298
+RESIDUAL CRITERIA :: Ratio = 0.0103707;  Norm   = 0.00902025
+RESIDUAL CRITERIA :: Ratio = 1.97115e-005;  Norm   = 1.71448e-005
+RESIDUAL CRITERIA :: Ratio = 3.16539e-008;  Norm   = 2.75321e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29686.1;  Norm   = 25820.5
+RESIDUAL CRITERIA :: Ratio = 6.08291;  Norm   = 5.29082
+RESIDUAL CRITERIA :: Ratio = 27.3626;  Norm   = 23.7996
+RESIDUAL CRITERIA :: Ratio = 0.748944;  Norm   = 0.65142
+RESIDUAL CRITERIA :: Ratio = 0.115026;  Norm   = 0.100048
+RESIDUAL CRITERIA :: Ratio = 0.000382095;  Norm   = 0.00033234
+RESIDUAL CRITERIA :: Ratio = 4.13365e-007;  Norm   = 3.59538e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29759.9;  Norm   = 25884.7
+RESIDUAL CRITERIA :: Ratio = 5.7713;  Norm   = 5.01979
+RESIDUAL CRITERIA :: Ratio = 27.654;  Norm   = 24.053
+RESIDUAL CRITERIA :: Ratio = 0.707936;  Norm   = 0.615752
+RESIDUAL CRITERIA :: Ratio = 0.263579;  Norm   = 0.229257
+RESIDUAL CRITERIA :: Ratio = 0.000776947;  Norm   = 0.000675776
+RESIDUAL CRITERIA :: Ratio = 1.63883e-006;  Norm   = 1.42543e-006
+RESIDUAL CRITERIA :: Ratio = 4.75162e-008;  Norm   = 4.13288e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29840.6;  Norm   = 25954.9
+RESIDUAL CRITERIA :: Ratio = 5.46072;  Norm   = 4.74965
+RESIDUAL CRITERIA :: Ratio = 27.8635;  Norm   = 24.2352
+RESIDUAL CRITERIA :: Ratio = 0.650915;  Norm   = 0.566156
+RESIDUAL CRITERIA :: Ratio = 0.351509;  Norm   = 0.305737
+RESIDUAL CRITERIA :: Ratio = 0.000838582;  Norm   = 0.000729386
+RESIDUAL CRITERIA :: Ratio = 2.44005e-006;  Norm   = 2.12232e-006
+RESIDUAL CRITERIA :: Ratio = 3.59056e-008;  Norm   = 3.12302e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 29928.1;  Norm   = 26031
+RESIDUAL CRITERIA :: Ratio = 5.15624;  Norm   = 4.48482
+RESIDUAL CRITERIA :: Ratio = 28.0148;  Norm   = 24.3668
+RESIDUAL CRITERIA :: Ratio = 0.574671;  Norm   = 0.49984
+RESIDUAL CRITERIA :: Ratio = 0.349712;  Norm   = 0.304174
+RESIDUAL CRITERIA :: Ratio = 0.000607761;  Norm   = 0.000528621
+RESIDUAL CRITERIA :: Ratio = 1.95064e-006;  Norm   = 1.69664e-006
+RESIDUAL CRITERIA :: Ratio = 4.56739e-008;  Norm   = 3.97264e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30022.4;  Norm   = 26113.1
+RESIDUAL CRITERIA :: Ratio = 4.86248;  Norm   = 4.22931
+RESIDUAL CRITERIA :: Ratio = 28.1306;  Norm   = 24.4675
+RESIDUAL CRITERIA :: Ratio = 0.479705;  Norm   = 0.41724
+RESIDUAL CRITERIA :: Ratio = 0.286088;  Norm   = 0.248835
+RESIDUAL CRITERIA :: Ratio = 0.000316139;  Norm   = 0.000274973
+RESIDUAL CRITERIA :: Ratio = 1.08086e-006;  Norm   = 9.40117e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30123.4;  Norm   = 26200.9
+RESIDUAL CRITERIA :: Ratio = 4.58325;  Norm   = 3.98644
+RESIDUAL CRITERIA :: Ratio = 28.2264;  Norm   = 24.5509
+RESIDUAL CRITERIA :: Ratio = 0.372895;  Norm   = 0.324338
+RESIDUAL CRITERIA :: Ratio = 0.203904;  Norm   = 0.177353
+RESIDUAL CRITERIA :: Ratio = 0.000122643;  Norm   = 0.000106673
+RESIDUAL CRITERIA :: Ratio = 4.84932e-007;  Norm   = 4.21786e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30231;  Norm   = 26294.4
+RESIDUAL CRITERIA :: Ratio = 4.32132;  Norm   = 3.75862
+RESIDUAL CRITERIA :: Ratio = 28.3094;  Norm   = 24.6231
+RESIDUAL CRITERIA :: Ratio = 0.267641;  Norm   = 0.23279
+RESIDUAL CRITERIA :: Ratio = 0.132875;  Norm   = 0.115573
+RESIDUAL CRITERIA :: Ratio = 3.8129e-005;  Norm   = 3.3164e-005
+RESIDUAL CRITERIA :: Ratio = 2.05271e-007;  Norm   = 1.78541e-007
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30345;  Norm   = 26393.6
+RESIDUAL CRITERIA :: Ratio = 4.07835;  Norm   = 3.54729
+RESIDUAL CRITERIA :: Ratio = 28.3809;  Norm   = 24.6852
+RESIDUAL CRITERIA :: Ratio = 0.177972;  Norm   = 0.154797
+RESIDUAL CRITERIA :: Ratio = 0.0831882;  Norm   = 0.0723558
+RESIDUAL CRITERIA :: Ratio = 1.10197e-005;  Norm   = 9.58473e-006
+RESIDUAL CRITERIA :: Ratio = 9.9591e-008;  Norm   = 8.66227e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30465.5;  Norm   = 26498.5
+RESIDUAL CRITERIA :: Ratio = 3.85501;  Norm   = 3.35302
+RESIDUAL CRITERIA :: Ratio = 28.4392;  Norm   = 24.7359
+RESIDUAL CRITERIA :: Ratio = 0.111412;  Norm   = 0.0969046
+RESIDUAL CRITERIA :: Ratio = 0.0527661;  Norm   = 0.0458951
+RESIDUAL CRITERIA :: Ratio = 3.64928e-006;  Norm   = 3.17409e-006
+RESIDUAL CRITERIA :: Ratio = 5.44283e-008;  Norm   = 4.73409e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30592.4;  Norm   = 26608.8
+RESIDUAL CRITERIA :: Ratio = 3.65113;  Norm   = 3.1757
+RESIDUAL CRITERIA :: Ratio = 28.4835;  Norm   = 24.7746
+RESIDUAL CRITERIA :: Ratio = 0.0672947;  Norm   = 0.0585319
+RESIDUAL CRITERIA :: Ratio = 0.0355938;  Norm   = 0.0309589
+RESIDUAL CRITERIA :: Ratio = 1.60484e-006;  Norm   = 1.39586e-006
+RESIDUAL CRITERIA :: Ratio = 4.42709e-008;  Norm   = 3.85062e-008
+Convergence is achieved.
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.869785
+RESIDUAL CRITERIA :: Ratio = 30725.5;  Norm   = 26724.5
+RESIDUAL CRITERIA :: Ratio = 3.46604;  Norm   = 3.01471
+RESIDUAL CRITERIA :: Ratio = 28.515;  Norm   = 24.8019
+RESIDUAL CRITERIA :: Ratio = 0.0402927;  Norm   = 0.035046
+RESIDUAL CRITERIA :: Ratio = 0.0261769;  Norm   = 0.0227682
+RESIDUAL CRITERIA :: Ratio = 8.96991e-007;  Norm   = 7.80189e-007
+Convergence is achieved.
+Mon Feb 10 17:00:08 2014
+Importing KratosExternalSolversApplication
+Initializing  KratosExternalSolversApplication
+Importing KratosSolidMechanicsApplication
+Initializing  KratosExternalSolversApplication
+Initializing  KratosSolidMechanicsApplication
+Num Threads =  8
+Construction structural solver finished
+Linear Solver Set Super LU
+variables for the structural solver added correctly
+Start: -remove previous problem files-
+dofs for the structural solver added correctly
+SolidDomain model part
+    Buffer Size : 3
+    Number of tables : 0
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 243
+    Number of Properties : 1
+    Number of Elements   : 320
+    Number of Conditions : 4
+
+Properties
+    DENSITY : 0
+    YOUNG_MODULUS : 2e+011
+    POISSON_RATIO : 0
+    THICKNESS : 0.025
+    BODY_FORCE : [3](0,0,0)
+    CONSTITUTIVE_LAW : 000000000430EAE0
+
+ [Initialization mechanical solver finished] 
+STEP =  0
+TIME =  0.05000000000000002
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.23017569100104357 ] 
+ WRITING RESULTS: [ID:  1 ] [STEP:  0 ] [TIME:  0.05000000000000002 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04601153297291044 ] 
+STEP =  1
+TIME =  0.1
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1884770103279867 ] 
+ WRITING RESULTS: [ID:  2 ] [STEP:  1 ] [TIME:  0.1 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.045060326283954066 ] 
+STEP =  2
+TIME =  0.15
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.20906627330841254 ] 
+ WRITING RESULTS: [ID:  3 ] [STEP:  2 ] [TIME:  0.15 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.045439596042718966 ] 
+STEP =  3
+TIME =  0.20000000000000004
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.18929759520580625 ] 
+ WRITING RESULTS: [ID:  4 ] [STEP:  3 ] [TIME:  0.20000000000000004 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04614215478404726 ] 
+STEP =  4
+TIME =  0.25
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.19357825855934419 ] 
+ WRITING RESULTS: [ID:  5 ] [STEP:  4 ] [TIME:  0.25 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.045747023805358555 ] 
+STEP =  5
+TIME =  0.30000000000000004
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.19181346458959325 ] 
+ WRITING RESULTS: [ID:  6 ] [STEP:  5 ] [TIME:  0.30000000000000004 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.046464977260142204 ] 
+STEP =  6
+TIME =  0.35
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.19079134891744842 ] 
+ WRITING RESULTS: [ID:  7 ] [STEP:  6 ] [TIME:  0.35 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.0455552896468685 ] 
+STEP =  7
+TIME =  0.4
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1715451580593892 ] 
+ WRITING RESULTS: [ID:  8 ] [STEP:  7 ] [TIME:  0.4 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04461994417783588 ] 
+STEP =  8
+TIME =  0.45000000000000007
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1711672878200292 ] 
+ WRITING RESULTS: [ID:  9 ] [STEP:  8 ] [TIME:  0.45000000000000007 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04653168768511584 ] 
+STEP =  9
+TIME =  0.5000000000000001
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1699520384699893 ] 
+ WRITING RESULTS: [ID:  10 ] [STEP:  9 ] [TIME:  0.5000000000000001 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04603392528339123 ] 
+STEP =  10
+TIME =  0.55
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1947967734546623 ] 
+ WRITING RESULTS: [ID:  11 ] [STEP:  10 ] [TIME:  0.55 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04609223859193401 ] 
+STEP =  11
+TIME =  0.6000000000000001
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.19108291546016432 ] 
+ WRITING RESULTS: [ID:  12 ] [STEP:  11 ] [TIME:  0.6000000000000001 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04661659186235445 ] 
+STEP =  12
+TIME =  0.65
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1919902705410963 ] 
+ WRITING RESULTS: [ID:  13 ] [STEP:  12 ] [TIME:  0.65 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04608850654018726 ] 
+STEP =  13
+TIME =  0.7000000000000001
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1705575638659016 ] 
+ WRITING RESULTS: [ID:  14 ] [STEP:  13 ] [TIME:  0.7000000000000001 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04604885349037824 ] 
+STEP =  14
+TIME =  0.7500000000000001
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1731574044139914 ] 
+ WRITING RESULTS: [ID:  15 ] [STEP:  14 ] [TIME:  0.7500000000000001 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.0466338526016834 ] 
+STEP =  15
+TIME =  0.8
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.17506821490833335 ] 
+ WRITING RESULTS: [ID:  16 ] [STEP:  15 ] [TIME:  0.8 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04644398446906717 ] 
+STEP =  16
+TIME =  0.8500000000000001
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.17198460715257013 ] 
+ WRITING RESULTS: [ID:  17 ] [STEP:  16 ] [TIME:  0.8500000000000001 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.0458869757458622 ] 
+STEP =  17
+TIME =  0.9
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1728313163926174 ] 
+ WRITING RESULTS: [ID:  18 ] [STEP:  17 ] [TIME:  0.9 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04635721426595474 ] 
+STEP =  18
+TIME =  0.9500000000000001
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1709373001311354 ] 
+ WRITING RESULTS: [ID:  19 ] [STEP:  18 ] [TIME:  0.9500000000000001 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.04618367385972988 ] 
+STEP =  19
+TIME =  1.0
+ MECHANICAL SOLUTION START 
+ MECHANICAL SOLUTION PERFORMED 
+  Solving  [ spent time =  0.1516397935615581 ] 
+ WRITING RESULTS: [ID:  19 ] [STEP:  19 ] [TIME:  1.0 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+  Write Results  [ spent time =  0.046762608386947235 ] 
+Analysis Finalized 
+Mon Feb 10 17:00:14 2014
+Analysis Completed  [Process Time =  5.287868545941324 ] 
+KRATOS TERMINATED CORRECTLY
