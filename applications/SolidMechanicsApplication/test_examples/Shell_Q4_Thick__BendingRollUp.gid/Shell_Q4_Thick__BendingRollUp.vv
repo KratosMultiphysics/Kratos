@@ -1,0 +1,37 @@
+BeginZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__BendingRollUp.gid\Shell_Q4_Thick__BendingRollUp.vv
+   x -1.6291428804397583 2.16943359375
+   y 2.2275636196136475 -2.0435619354248047
+   z -9.1967906951904297 12.341400146484375
+   e 5.5277080535888672
+   v -0.36516808413445445 0.12243655853604271 0.31008386945399197
+   r -0.86920050616269962
+   m 0.77771455049514771 0.4496302604675293 -0.43930929899215698 0 -0.62846994400024414 0.54100054502487183 -0.55887734889984131 0 -0.013621627353131771 0.71073979139328003 0.7033231258392334 0 0 0 0 1
+   c -6.7147207793993857e-009 0.125 -1.5723049640655518
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 1
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__BendingRollUp.gid\Shell_Q4_Thick__BendingRollUp.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

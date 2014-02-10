@@ -1,0 +1,64 @@
+BeginZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__DrillingRollUp.gid\Shell_Q4_Thick__DrillingRollUpStructuralAnalysis.post.vv
+   x -4.6147713661193848 4.7362861633300781
+   y 3.9623100757598877 -0.39204615354537964
+   z -10.797154426574707 10.797154426574707
+   e 5.5277080535888672
+   v -0 -0 -8.7422776573475858e-008
+   r -1
+   m 1 -1.7484555314695172e-007 0 0 1.7484555314695172e-007 1 0 0 0 0 1 0 0 0 0 1
+   c 0.0013688073959201574 1.7925586700439453 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__DrillingRollUp.gid\Shell_Q4_Thick__DrillingRollUpStructuralAnalysis.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 0
+  Num sets: 1
+  Num cuts: 0
+  Set: 0
+  State: On
+    Name: "Kratos_Quadrilateral3D4_Mesh_1"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 1048606
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 1.00031 32 32
+  ResultView: {Id 116} {Contour Fill} Kratos 1.0 SHELL_FORCE Sxx-SHELL_FORCE 0.0 4 0
+EndPostState
+
