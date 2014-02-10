@@ -97,36 +97,37 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 {
     KRATOS_TRY
 
-    const unsigned int number_of_points = GetGeometry().size();
+      const unsigned int number_of_points = GetGeometry().size();
     const double lumping_factor = 1.00 / double(number_of_points);
     unsigned int TDim = 3;
-
+    const int Stationary = rCurrentProcessInfo[STATIONARY];		
+    
     const boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 0.25 * IdentityMatrix(4, 4);
     boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
     array_1d<double, 4 > msN;
     array_1d<double, 3 > ms_vel_gauss;
     array_1d<double, 4 > ms_temp_vec_np;
     array_1d<double, 4 > ms_u_DN;
-
+    
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > First = ZeroMatrix(3, 3);
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > Second = ZeroMatrix(3, 3);
     boost::numeric::ublas::bounded_matrix<double, 3, 4 > Third = ZeroMatrix(3, 4);
     boost::numeric::ublas::bounded_matrix<double, 3, 3 > Identity = 1.0 * IdentityMatrix(3, 3);
-
+    
     array_1d<double, 3 > grad_g = ZeroVector(3); //dimesion coincides with space dimension
 
-
+    
     if (rLeftHandSideMatrix.size1() != number_of_points)
-        rLeftHandSideMatrix.resize(number_of_points, number_of_points, false);
-
+      rLeftHandSideMatrix.resize(number_of_points, number_of_points, false);
+    
     if (rRightHandSideVector.size() != number_of_points)
-        rRightHandSideVector.resize(number_of_points, false);
-
+      rRightHandSideVector.resize(number_of_points, false);
+    
     //getting data for the given geometry
     double Area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-
+    
     const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
     const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
@@ -135,8 +136,8 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
     const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
     const Variable<double>& rSpecificHeatVar = my_settings->GetSpecificHeatVariable();
-
-
+    
+    
     double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
     double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
     double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(rSpecificHeatVar);	
@@ -144,15 +145,15 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     double heat_flux = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
     double proj = GetGeometry()[0].FastGetSolutionStepValue(rProjectionVariable);
     //double nu = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-
-//    const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    
+    //    const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double, 3 > & v= GetGeometry()[0].FastGetSolutionStepValue(rVelocityVar); 
     const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar);
     for (unsigned int j = 0; j < TDim; j++)
-        ms_vel_gauss[j] = v[j] - w[j];
-
+      ms_vel_gauss[j] = v[j] - w[j];
+    
     for (unsigned int i = 1; i < number_of_points; i++)
-    {
+      {
         conductivity += GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
         density += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
 	specific_heat += GetGeometry()[i].FastGetSolutionStepValue(rSpecificHeatVar);
@@ -160,13 +161,13 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         heat_flux += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
         proj += GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable);
         //nu += GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
-
+	
 	const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rVelocityVar);
-//        const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+	//        const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
         for (unsigned int j = 0; j < TDim; j++)
-            ms_vel_gauss[j] += v[j] - w[j];
-
+	  ms_vel_gauss[j] += v[j] - w[j];
+	
     }
     conductivity *= lumping_factor;
     density *= lumping_factor;
@@ -174,87 +175,95 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     heat_flux *= lumping_factor;
     proj *= lumping_factor;
     ms_vel_gauss *= lumping_factor;
-//    nu *= lumping_factor;
-
+    //    nu *= lumping_factor;
+    
     //getting the BDF2 coefficients (not fixed to allow variable time step)
     //the coefficients INCLUDE the time step
     const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-
+    
     for (unsigned int i = 0; i < TDim; i++)
-    {
+      {
         for (unsigned int j = 0; j < number_of_points; j++)
-        {
+	  {
             grad_g[i] += msDN_DX(j, i) * GetGeometry()[j].FastGetSolutionStepValue(rUnknownVar);
-        }
-    }
-
+	  }
+      }
+    
     //double norm_g = norm_2(grad_g);
 
     double res = (inner_prod(ms_vel_gauss, grad_g)); //+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
     double aux_res = fabs(res - proj);
     if (fabs(res) > aux_res)
-        res = aux_res;
+      res = aux_res;
     //        res -= proj;
     res *= density*specific_heat;
     double norm_grad = norm_2(grad_g);
     double k_aux = fabs(res) / (norm_grad + 1e-6);
     k_aux *= 0.707;
-
-
+    
+    
     //calculating parameter tau
     double c1 = 4.00;
     double c2 = 2.00;
     double h = pow(6.00 * Area, 0.3333333);
     double norm_u = norm_2(ms_vel_gauss);
-    double tau1 = (h * h) / (density * specific_heat * BDFcoeffs[0] * h * h + c1 * conductivity + c2 * density * specific_heat * (norm_u + 1e-6) * h);
-
+    double tau1;
+    if(Stationary==1){
+      tau1 = (h * h) / ( c1 * conductivity + c2 * density * specific_heat * (norm_u + 1e-6) * h);
+    }
+    else{
+      tau1 = (h * h) / (density * specific_heat * BDFcoeffs[0] * h * h + c1 * conductivity + c2 * density * specific_heat * (norm_u + 1e-6) * h);
+    }
 
     noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
     First /= ((norm_u + 1e-6)*(norm_u + 1e-6));
     noalias(Second) = Identity - First;
     noalias(Third) = prod(Second, trans(msDN_DX));
-
+    
     //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
     noalias(ms_u_DN) = prod(msDN_DX, ms_vel_gauss);
     noalias(rLeftHandSideMatrix) = (density * specific_heat) * outer_prod(msN, ms_u_DN);
-
+    
     //CONVECTION STABILIZING CONTRIBUTION (Suu)
-
+    
     noalias(rLeftHandSideMatrix) += density * specific_heat * density * specific_heat * tau1 * outer_prod(ms_u_DN, ms_u_DN);
-
+    
     //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
     noalias(rLeftHandSideMatrix) += conductivity  * prod(msDN_DX, trans(msDN_DX)) + k_aux * h * prod(msDN_DX, Third);
-
-    //INERTIA CONTRIBUTION
-    noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * (density * specific_heat) * msMassFactors;
-
+    
+    if(Stationary!=1){
+      //INERTIA CONTRIBUTION
+      noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * (density * specific_heat) * msMassFactors;
+    }
+    
     // RHS = Fext
     noalias(rRightHandSideVector) = (heat_flux * density) * msN;
-
+    
     //RHS += Suy * proj[component]
     noalias(rRightHandSideVector) += density * specific_heat * density * specific_heat * (tau1 * proj) * ms_u_DN;
-    //adding the inertia terms
-    // RHS += M*vhistory
-    //calculating the historical velocity
-    for (unsigned int iii = 0; iii < number_of_points; iii++)
+    if(Stationary!=1){
+      //adding the inertia terms
+      // RHS += M*vhistory
+      //calculating the historical velocity
+      for (unsigned int iii = 0; iii < number_of_points; iii++)
         ms_temp_vec_np[iii] = BDFcoeffs[1] * GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, 1);
-    for (unsigned int step = 2; step < BDFcoeffs.size(); step++)
-    {
-        for (unsigned int iii = 0; iii < number_of_points; iii++)
+      for (unsigned int step = 2; step < BDFcoeffs.size(); step++)
+	{
+	  for (unsigned int iii = 0; iii < number_of_points; iii++)
             ms_temp_vec_np[iii] += BDFcoeffs[step] * GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, step);
+	}
+      noalias(rRightHandSideVector) -= prod(msMassFactors, ms_temp_vec_np * density * specific_heat);
     }
-    noalias(rRightHandSideVector) -= prod(msMassFactors, ms_temp_vec_np * density * specific_heat);
-
     //subtracting the dirichlet term
     // RHS -= LHS*temperatures
     for (unsigned int iii = 0; iii < number_of_points; iii++)
-        ms_temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
+      ms_temp_vec_np[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, ms_temp_vec_np);
-
+    
     //multiplying by area
     rRightHandSideVector *= Area;
     rLeftHandSideMatrix *= Area;
-
+    
     KRATOS_CATCH("");
 }
 
