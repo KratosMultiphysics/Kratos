@@ -457,7 +457,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
 	    set xitem [lindex $kwordlist 0]
 	    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem // GUI puntual load group identifier: $cgroupid"
 	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-		GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Fx
+		GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Mx
 	    }
 	    GiD_File fprintf $filechannel "%s" "End NodalData"
 	    GiD_File fprintf $filechannel ""        
@@ -466,7 +466,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
 	    set yitem [lindex $kwordlist 1]
 	    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem // GUI puntual load group identifier: $cgroupid"
 	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-		GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Fy
+		GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $My
 	    }
 	    GiD_File fprintf $filechannel "%s" "End NodalData"
 	    GiD_File fprintf $filechannel ""       
@@ -475,7 +475,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
 	    set zitem [lindex $kwordlist 2]
 	    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem // GUI puntual load group identifier: $cgroupid"
 	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-		GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Fz
+		GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Mz
 	    }
 	    GiD_File fprintf $filechannel "%s" "End NodalData"
 	    GiD_File fprintf $filechannel "%s" ""        
@@ -1363,7 +1363,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set useshells "No"
     set usebeams "No"
 
-    set shelllist [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
+    set shelllist [list "ShellIsotropic" "ShellAnisotropic" "EBST" "ShellThick" "ShellThickCR" "ShellThin" "ShellThinCR"]
     set beamlist  [list "BeamElement"]
 
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
@@ -1607,7 +1607,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # WarnWinText "nodal_results:$nodal_results"
 
     # On Gauss point results
-    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "PlasticStrain" "DeltaPlasticStrain" "BeamMoments" "BeamForces"]
+    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "PlasticStrain" "DeltaPlasticStrain" "BeamMoments" "BeamForces" "ShellForcesLocal" "ShellForcesGlobal" "ShellMomentsLocal" "ShellStrainLocal" "ShellStrainGlobal" "ShellCurvatureLocal" "MaterialDirectionX" "MaterialDirectionY" "MaterialDirectionZ"]
     set gauss_points_results "gauss_points_results=\["
     foreach cgr $cgrlist {
 	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.[list ${cgr}]"
