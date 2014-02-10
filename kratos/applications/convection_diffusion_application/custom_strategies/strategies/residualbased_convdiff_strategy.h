@@ -189,71 +189,75 @@ public:
     //**********************************************************************
     double Solve()
     {
-        KRATOS_TRY
+      KRATOS_TRY
 
         //calculate the BDF coefficients
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-        double Dt = rCurrentProcessInfo[DELTA_TIME];
-
-        if(mtime_order == 2)
-        {
-            if(BaseType::GetModelPart().GetBufferSize() < 3)
+      double Dt = rCurrentProcessInfo[DELTA_TIME];
+      int stationary= rCurrentProcessInfo[STATIONARY];
+      
+      double Dp_norm;
+      if(stationary==1)
+	{
+	  CalculateProjection();
+	  rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
+	  Dp_norm = mstep1->Solve();
+	}
+      else
+	{
+	  if(mtime_order == 2)
+	    {
+	      if(BaseType::GetModelPart().GetBufferSize() < 3)
                 KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
-
-
-
-
-                double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
-            double rho = dt_old/Dt;
-            double coeff = 1.0/(Dt*rho*rho+Dt*rho);
-
-            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
-            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-            BDFcoeffs[0] =	coeff*(rho*rho+2.0*rho);	//coefficient for step n+1
-            BDFcoeffs[1] =	-coeff*(rho*rho+2.0*rho+1.0);//coefficient for step n
-            BDFcoeffs[2] =	coeff;
-        }
-        else
-        {
-            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2);
-            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-            BDFcoeffs[0] =	1.0 / Dt;	//coefficient for step n+1
-            BDFcoeffs[1] =	-1.0 / Dt;//coefficient for step n
-        }
-
-        //second order prediction for the velocity
-        if(mprediction_order == 2)
-        {
-            if(BaseType::GetModelPart().GetBufferSize() < 3)
+		  double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+	      
+	      double rho = dt_old/Dt;
+	      double coeff = 1.0/(Dt*rho*rho+Dt*rho);
+	      
+	      rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
+	      Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+	      BDFcoeffs[0] =	coeff*(rho*rho+2.0*rho);	//coefficient for step n+1
+	      BDFcoeffs[1] =	-coeff*(rho*rho+2.0*rho+1.0);//coefficient for step n
+	      BDFcoeffs[2] =	coeff;
+	    }
+	  else
+	    {
+	      rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2);
+	      Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+	      BDFcoeffs[0] =	1.0 / Dt;	//coefficient for step n+1
+	      BDFcoeffs[1] =	-1.0 / Dt;//coefficient for step n
+	    }
+	  
+	  //second order prediction for the velocity
+	  if(mprediction_order == 2)
+	    {
+	      if(BaseType::GetModelPart().GetBufferSize() < 3)
                 KRATOS_ERROR(std::logic_error,"insufficient buffer size for second order prediction","")
-
-                ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-            const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
-
-            for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ;
+		  
+		  ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+	      const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
+	      
+	      for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ;
                     i != BaseType::GetModelPart().NodesEnd() ; ++i)
-            {
-                i->FastGetSolutionStepValue(rUnknownVar) = 2.00*i->FastGetSolutionStepValue(rUnknownVar,1) - i->FastGetSolutionStepValue(rUnknownVar,2);
-            }
-            CalculateProjection();
-        }
-
-        //SOLVING THE PROBLEM
-        rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
-
-        double Dp_norm = mstep1->Solve();
+		{
+		  i->FastGetSolutionStepValue(rUnknownVar) = 2.00*i->FastGetSolutionStepValue(rUnknownVar,1) - i->FastGetSolutionStepValue(rUnknownVar,2);
+		}
+	      CalculateProjection();
+	    }
+	  
+	  //SOLVING THE PROBLEM
+	  rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
+	  
+	  Dp_norm = mstep1->Solve();
         CalculateProjection();
-
-
-        return Dp_norm;
-        KRATOS_CATCH("")
-    }
-
-
-
-
-
+	
+	}
+      return Dp_norm;
+      KRATOS_CATCH("")
+	}
+    
+    
+    
     //******************************************************************************************************
     //******************************************************************************************************
     //calculation of projection
