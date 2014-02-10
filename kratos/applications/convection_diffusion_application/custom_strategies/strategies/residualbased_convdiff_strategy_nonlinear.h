@@ -192,81 +192,111 @@ public:
 
     double Solve()
     {
-        KRATOS_TRY
-
+      KRATOS_TRY
+	
         //calculate the BDF coefficients
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-        double Dt = rCurrentProcessInfo[DELTA_TIME];
-
+      double Dt = rCurrentProcessInfo[DELTA_TIME];
+      int stationary= rCurrentProcessInfo[STATIONARY];
+	
+      unsigned int iter = 0;
+      double ratio;
+      bool is_converged = false;
+      double dT_norm = 0.0;
+      double T_norm = 0.0;
+      
+      if(stationary==1){
+	iter = 0;
+        ratio;
+        is_converged = false;
+        dT_norm = 0.0;
+        T_norm = 0.0;
+	while (iter++ < mmax_iter && is_converged == false)
+	  {
+            rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
+            dT_norm = mstep1->Solve();
+            T_norm = CalculateTemperatureNorm();
+            CalculateProjection();
+	    
+            ratio = 1.00;
+            if (T_norm != 0.00)
+	      ratio = dT_norm / T_norm;
+            else
+	      {
+                std::cout << "T_norm = " << T_norm << " dT_norm = " << dT_norm << std::endl;
+	      }
+	    
+            if (dT_norm < 1e-11)
+	      ratio = 0; //converged
+	    
+            if (ratio < mtoll)
+	      is_converged = true;
+	    
+            std::cout << " iter = " << iter << " ratio = " << ratio << std::endl;
+	  }
+      }
+      else{
+	
         if (mOldDt == 0.00) //needed for the first step
-            mOldDt = Dt;
+	  mOldDt = Dt;
         if (mtime_order == 2)
-        {
+	  {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
-
+	      KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
+		
                 double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
+	    
             double rho = dt_old / Dt;
             double coeff = 1.0 / (Dt * rho * rho + Dt * rho);
-
+	    
             rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
             BDFcoeffs[0] = coeff * (rho * rho + 2.0 * rho); //coefficient for step n+1
             BDFcoeffs[1] = -coeff * (rho * rho + 2.0 * rho + 1.0); //coefficient for step n
             BDFcoeffs[2] = coeff;
-        }
+	  }
         else
-        {
+	  {
             rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
             BDFcoeffs[0] = 1.0 / Dt; //coefficient for step n+1
             BDFcoeffs[1] = -1.0 / Dt; //coefficient for step n
         }
-
-
-
-        unsigned int iter = 0;
-        double ratio;
-        bool is_converged = false;
-        double dT_norm = 0.0;
-        double T_norm = 0.0;
-
+	
+	iter = 0;
+        ratio;
+        is_converged = false;
+        dT_norm = 0.0;
+        T_norm = 0.0;
+	
         while (iter++ < mmax_iter && is_converged == false)
-        {
+	  {
             rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
             dT_norm = mstep1->Solve();
             T_norm = CalculateTemperatureNorm();
             CalculateProjection();
-
-
+	    
             ratio = 1.00;
             if (T_norm != 0.00)
-                ratio = dT_norm / T_norm;
+	      ratio = dT_norm / T_norm;
             else
             {
-                std::cout << "T_norm = " << T_norm << " dT_norm = " << dT_norm << std::endl;
+	      std::cout << "T_norm = " << T_norm << " dT_norm = " << dT_norm << std::endl;
             }
-
+	    
             if (dT_norm < 1e-11)
-                ratio = 0; //converged
-
-
+	      ratio = 0; //converged
+	    
             if (ratio < mtoll)
-                is_converged = true;
-
+	      is_converged = true;
+	    
             std::cout << " iter = " << iter << " ratio = " << ratio << std::endl;
-
-        }
-
-
-
-        return dT_norm;
-        KRATOS_CATCH("")
-    }
-
-
-
+	  }
+      }
+      
+      return dT_norm;
+      KRATOS_CATCH("")
+	}
     //******************************************************************************************************
     //******************************************************************************************************
     ///calculation of temperature norm
