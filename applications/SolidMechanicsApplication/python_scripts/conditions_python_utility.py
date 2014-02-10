@@ -94,6 +94,13 @@ class ConditionsUtility:
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
                 node.SetSolutionStepValue(FORCE, force);
+                
+                # point load conditions
+                moment = node.GetSolutionStepValue(MOMENT);
+                for comp in [0,1,2]:
+                    moment[comp] = moment[comp] / (time_step * (incr_steps))
+                    moment[comp] = moment[comp] * time_step * (incr_steps + 1)
+                node.SetSolutionStepValue(MOMENT, moment);
 
     #
     def RestartImposedDisp(self):
