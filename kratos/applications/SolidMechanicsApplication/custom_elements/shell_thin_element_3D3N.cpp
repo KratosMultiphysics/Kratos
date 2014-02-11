@@ -2,7 +2,6 @@
 ==============================================================================
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
-/*
 ==============================================================================
 KratosMultiScaleApplication
 A library based on:
@@ -289,7 +288,7 @@ namespace Kratos
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
         const Properties& props = GetProperties();
-        for(int i = 0; i < mSections.size(); i++)
+        for(SizeType i = 0; i < mSections.size(); i++)
             mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
 
         KRATOS_CATCH("")
@@ -302,7 +301,7 @@ namespace Kratos
 
         GeometryType & geom = this->GetGeometry();
 
-        for(int i = 0; i < geom.size(); i++)
+        for(SizeType i = 0; i < geom.size(); i++)
         {
             int index = i * 6;
             NodeType & iNode = geom[i];
@@ -324,7 +323,7 @@ namespace Kratos
 
         GeometryType & geom = this->GetGeometry();
 
-        for (int i = 0; i < geom.size(); i++)
+        for (SizeType i = 0; i < geom.size(); i++)
         {
             NodeType & iNode = geom[i];
 
@@ -422,7 +421,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (int i = 0; i < geom.size(); i++)
+        for (SizeType i = 0; i < geom.size(); i++)
         {
             const NodeType & iNode = geom[i];
             const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
@@ -446,7 +445,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (int i = 0; i < geom.size(); i++)
+        for (SizeType i = 0; i < geom.size(); i++)
         {
             const NodeType & iNode = geom[i];
             const array_1d<double,3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
@@ -468,7 +467,7 @@ namespace Kratos
 
         const GeometryType & geom = GetGeometry();
 
-        for (int i = 0; i < geom.size(); i++)
+        for (SizeType i = 0; i < geom.size(); i++)
         {
             const NodeType & iNode = geom[i];
             const array_1d<double,3>& acc = iNode.FastGetSolutionStepValue(ACCELERATION, Step);
@@ -489,7 +488,7 @@ namespace Kratos
 
         const GeometryType & geom = this->GetGeometry();
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-        for(int i = 0; i < mSections.size(); i++)
+        for(SizeType i = 0; i < mSections.size(); i++)
             mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
     }
 
@@ -499,7 +498,7 @@ namespace Kratos
 
         const GeometryType & geom = this->GetGeometry();
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-        for(int i = 0; i < mSections.size(); i++)
+        for(SizeType i = 0; i < mSections.size(); i++)
             mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
     }
 
@@ -509,7 +508,7 @@ namespace Kratos
         const GeometryType & geom = GetGeometry();
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-        for(int i = 0; i < mSections.size(); i++)
+        for(SizeType i = 0; i < mSections.size(); i++)
             mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 
         mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
@@ -521,7 +520,7 @@ namespace Kratos
         const GeometryType& geom = GetGeometry();
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-        for(int i = 0; i < mSections.size(); i++)
+        for(SizeType i = 0; i < mSections.size(); i++)
             mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 
         mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
@@ -532,10 +531,6 @@ namespace Kratos
         if((rMassMatrix.size1() != OPT_NUM_DOFS) || (rMassMatrix.size2() != OPT_NUM_DOFS))
             rMassMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
         noalias(rMassMatrix) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
-
-        // get some references
-
-        const GeometryType & geom = GetGeometry();
 
         // Compute the local coordinate system.
 
@@ -638,7 +633,7 @@ namespace Kratos
         if(crossSections.size() != OPT_NUM_GP)
             KRATOS_ERROR(std::logic_error, "The number of cross section is wrong", crossSections.size());
         mSections.clear();
-        for(int i = 0; i <crossSections.size(); i++)
+        for(SizeType i = 0; i <crossSections.size(); i++)
             mSections.push_back(crossSections[i]);
         this->SetupOrientationAngles();
         KRATOS_CATCH("")
@@ -654,16 +649,13 @@ namespace Kratos
     {
         double norm = norm_2(a);
         double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-        for(int i = 0; i < a.size(); i++)
+        for(SizeType i = 0; i < a.size(); i++)
             if(std::abs(a(i)) < tolerance)
                 a(i) = 0.0;
     }
 
     void ShellThinElement3D3N::SetupOrientationAngles()
     {
-        const GeometryType & geom = this->GetGeometry();
-        const PropertiesType & props = this->GetProperties();
-
         ShellT3_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
         Vector3Type normal;
@@ -1131,7 +1123,6 @@ namespace Kratos
 	void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS)
 	{
 		// get some references
-		PropertiesType & props = GetProperties();
         GeometryType & geom = GetGeometry();
 
 		// shape functions and their cartesian derivatives.
@@ -1337,12 +1328,6 @@ namespace Kratos
         if(rValues.size() != OPT_NUM_GP)
             rValues.resize(OPT_NUM_GP);
 
-        // Get some references.
-
-        PropertiesType & props = GetProperties();
-        GeometryType & geom = GetGeometry();
-        const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
-
         // Compute the local coordinate system.
 
         ShellT3_LocalCoordinateSystem localCoordinateSystem( 
@@ -1404,7 +1389,6 @@ namespace Kratos
 
 		// get some references
 
-		PropertiesType & props = GetProperties();
         GeometryType & geom = GetGeometry();
 
 		// Just to store the rotation matrix for visualization purposes
@@ -1524,7 +1508,6 @@ namespace Kratos
 
 		// get some references
 
-		PropertiesType & props = GetProperties();
         GeometryType & geom = GetGeometry();
 
 		// Just to store the rotation matrix for visualization purposes

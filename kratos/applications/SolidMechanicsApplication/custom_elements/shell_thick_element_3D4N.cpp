@@ -2,7 +2,6 @@
 ==============================================================================
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
-/*
 ==============================================================================
 KratosMultiScaleApplication
 A library based on:
@@ -513,7 +512,7 @@ namespace Kratos
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
 		const Properties& props = GetProperties();
-        for(int i = 0; i < mSections.size(); i++)
+        for(size_t i = 0; i < mSections.size(); i++)
             mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
 
         KRATOS_CATCH("")
@@ -768,10 +767,6 @@ namespace Kratos
             rMassMatrix.resize(24, 24, false);
         noalias(rMassMatrix) = ZeroMatrix(24, 24);
 
-        // get some references
-
-        const GeometryType & geom = GetGeometry();
-
         // Compute the local coordinate system.
 
         ShellQ4_LocalCoordinateSystem referenceCoordinateSystem( 
@@ -836,18 +831,18 @@ namespace Kratos
 
 		std::vector<double> temp(size);
 
-		for(int i = 0; i < size; i++)
+		for(SizeType i = 0; i < size; i++)
 			mSections[i]->GetValue(rVariable, temp[i]);
 
 		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
 		Vector N(size);
 
-		for(int i = 0; i < size; i++)
+		for(SizeType i = 0; i < size; i++)
 		{
 			noalias(N) = row(shapeFunctions, i);
 			double& ival = rValues[i];
 			ival = 0.0;
-			for(int j = 0; j < size; j++)
+			for(SizeType j = 0; j < size; j++)
 			{
 				ival += N(j) * temp[j];
 			}
@@ -888,7 +883,7 @@ namespace Kratos
 		if(crossSections.size() != 4)
 			KRATOS_ERROR(std::logic_error, "Cannot set a number of cross section different from 4", "");
 		mSections.clear();
-		for(int i = 0; i <crossSections.size(); i++)
+		for(SizeType i = 0; i <crossSections.size(); i++)
 			mSections.push_back(crossSections[i]);
 		this->SetupOrientationAngles();
 		KRATOS_CATCH("")
@@ -904,16 +899,13 @@ namespace Kratos
 	{
 		double norm = norm_2(a);
 		double tolerance = std::max(norm * 1.0E-12, 1.0E-12);
-		for(int i = 0; i < a.size(); i++)
+		for(SizeType i = 0; i < a.size(); i++)
 			if(std::abs(a(i)) < tolerance)
 				a(i) = 0.0;
 	}
 
     void ShellThickElement3D4N::SetupOrientationAngles()
     {
-        const GeometryType & geom = this->GetGeometry();
-        const PropertiesType & props = this->GetProperties();
-
         ShellQ4_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
         Vector3Type normal;
@@ -1405,7 +1397,7 @@ namespace Kratos
 
         // Gauss Loop
 
-        for(int i = 0; i < size; i++)
+        for(SizeType i = 0; i < size; i++)
         {
 
             // get a reference of the current integration point and shape functions
@@ -1418,10 +1410,6 @@ namespace Kratos
             // and Shape functions derivatives in the local coordinate system
 
             jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
-
-            // compute the 'area' of the current integration point
-
-            double dA = ip.Weight() * jacOp.Determinant();
 
             // Compute all strain-displacement matrices
 
