@@ -1,47 +1,4 @@
-﻿/*
-==============================================================================
-KratosMultiScaleApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-//
+﻿//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
 //   Date:                $Date: 2013-10-03 19:00:00 $
@@ -67,44 +24,44 @@ namespace Kratos
 {
 
 
-///@name Kratos Globals
-///@{
-///@}
+  ///@name Kratos Globals
+  ///@{
+  ///@}
 
-///@name Type Definitions
-///@{
-///@}
+  ///@name Type Definitions
+  ///@{
+  ///@}
 
-class ShellQ4_CoordinateTransformation;
+  class ShellQ4_CoordinateTransformation;
 
-class ShellQ4_LocalCoordinateSystem;
+  class ShellQ4_LocalCoordinateSystem;
 
-///@name  Enum's
-///@{
-///@}
+  ///@name  Enum's
+  ///@{
+  ///@}
 
-///@name  Functions
-///@{
-///@}
+  ///@name  Functions
+  ///@{
+  ///@}
 
-///@name Kratos Classes
-///@{
+  ///@name Kratos Classes
+  ///@{
 
-/** \brief ShellThickElement3D4N
-*
-* This element represents a 4-node bilinear Shell element
-* based on the Enhanced Assumed Strain Method (E.A.S.) for the membrane part
-* and on the Mixed Interpolation of Tensorial Components (M.I.T.C.) 
-* for the trasverse shear part.
-* This element is formulated for small strains, 
-* but can be used in Geometrically nonlinear problems
-* involving large displacements and rotations 
-* using a Corotational Coordinate Transformation.
-* Material nonlinearity is handled by means of the cross section object.
-*/
-class ShellThickElement3D4N : public Element
-{
-public:
+  /** \brief ShellThickElement3D4N
+   *
+   * This element represents a 4-node bilinear Shell element
+   * based on the Enhanced Assumed Strain Method (E.A.S.) for the membrane part
+   * and on the Mixed Interpolation of Tensorial Components (M.I.T.C.) 
+   * for the trasverse shear part.
+   * This element is formulated for small strains, 
+   * but can be used in Geometrically nonlinear problems
+   * involving large displacements and rotations 
+   * using a Corotational Coordinate Transformation.
+   * Material nonlinearity is handled by means of the cross section object.
+   */
+  class ShellThickElement3D4N : public Element
+  {
+  public:
 
     ///@name Type Definitions
     ///@{
@@ -115,7 +72,7 @@ public:
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
-	typedef boost::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    typedef boost::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
 
     typedef array_1d<double, 3> Vector3Type;
 
@@ -123,201 +80,201 @@ public:
 
     ///@}
 
-	///@name Classes
+    ///@name Classes
     ///@{
 
-	/** \brief JacobianOperator
-	*
-    * This class is a utility to compute at a given integration point,
-    * the Jacobian, its inverse, its determinant
-    * and the derivatives of the shape functions in the local
-    * cartesian coordinate system.
-	*/
-	class JacobianOperator
+    /** \brief JacobianOperator
+     *
+     * This class is a utility to compute at a given integration point,
+     * the Jacobian, its inverse, its determinant
+     * and the derivatives of the shape functions in the local
+     * cartesian coordinate system.
+     */
+    class JacobianOperator
     {
     public:
 
-        JacobianOperator();
+      JacobianOperator();
 
-        void Calculate(const ShellQ4_LocalCoordinateSystem & CS, const Matrix & dN);
+      void Calculate(const ShellQ4_LocalCoordinateSystem & CS, const Matrix & dN);
 
-        inline const Matrix & Jacobian()const { return mJac; }
+      inline const Matrix & Jacobian()const { return mJac; }
 
-        inline const Matrix & Inverse()const { return mInv; }
+      inline const Matrix & Inverse()const { return mInv; }
 
-        inline const Matrix & XYDerivatives()const { return mXYDeriv; }
+      inline const Matrix & XYDerivatives()const { return mXYDeriv; }
 
-        inline const double Determinant()const { return mDet; }
+      inline const double Determinant()const { return mDet; }
 
-	private:
+    private:
 
-        Matrix mJac;     /*!< Jacobian matrix */
-        Matrix mInv;     /*!< Inverse of the Jacobian matrix */
-        Matrix mXYDeriv; /*!< Shape function derivatives in cartesian coordinates */
-        double mDet;     /*!< Determinant of the Jacobian matrix */
+      Matrix mJac;     /*!< Jacobian matrix */
+      Matrix mInv;     /*!< Inverse of the Jacobian matrix */
+      Matrix mXYDeriv; /*!< Shape function derivatives in cartesian coordinates */
+      double mDet;     /*!< Determinant of the Jacobian matrix */
     };
 
-	/** \brief MITC4Params
-	*
-	* This class performs some operations and stores some data to compute
-    * the transverse shear contribution of the stiffness matrix using the
-    * M.I.T.C. formulation.
-	*
-    * References:
-    * -   Dvorkin,Bathe, "A continuum mechanics based four node shell
-    *     element for general nonlinear analysis",
-    *     Eng.Comput.,vol. 1, 77-88, 1984
-    * -   Bathe, Dvorkin, "Short communication A four-node plate bending element
-    *     based on Mindlin/Reissner plate theory and a Mixed Interpolation",
-    *     International Journal for Numerical Methods in Eng.,
-    *     vol. 21, 367-383, 1985
-	*/
-	struct MITC4Params
+    /** \brief MITC4Params
+     *
+     * This class performs some operations and stores some data to compute
+     * the transverse shear contribution of the stiffness matrix using the
+     * M.I.T.C. formulation.
+     *
+     * References:
+     * -   Dvorkin,Bathe, "A continuum mechanics based four node shell
+     *     element for general nonlinear analysis",
+     *     Eng.Comput.,vol. 1, 77-88, 1984
+     * -   Bathe, Dvorkin, "Short communication A four-node plate bending element
+     *     based on Mindlin/Reissner plate theory and a Mixed Interpolation",
+     *     International Journal for Numerical Methods in Eng.,
+     *     vol. 21, 367-383, 1985
+     */
+    struct MITC4Params
     {
 
-        double Ax;
-        double Ay;
-        double Bx;
-        double By;
-        double Cx;
-        double Cy;
-        Matrix Transformation;
-        Matrix ShearStrains;
+      double Ax;
+      double Ay;
+      double Bx;
+      double By;
+      double Cx;
+      double Cy;
+      Matrix Transformation;
+      Matrix ShearStrains;
 
-        MITC4Params(const ShellQ4_LocalCoordinateSystem & LCS);
+      MITC4Params(const ShellQ4_LocalCoordinateSystem & LCS);
 
     };
 
-	class EASOperator; // forward declaration
+    class EASOperator; // forward declaration
 
-	/** \brief EASOperatorStorage
-	*
-	* This class is meant to store persistent data for the EAS calculations.
-	* This class is stored in the element and used by the EASOperator.
-	*/
-	class EASOperatorStorage
-	{
+    /** \brief EASOperatorStorage
+     *
+     * This class is meant to store persistent data for the EAS calculations.
+     * This class is stored in the element and used by the EASOperator.
+     */
+    class EASOperatorStorage
+    {
 
-	public:
+    public:
 
-		friend class EASOperator;
+      friend class EASOperator;
 
-		typedef Element::GeometryType GeometryType;
+      typedef Element::GeometryType GeometryType;
 
-	public:
+    public:
 
-		EASOperatorStorage();
+      EASOperatorStorage();
 
-		inline void Initialize(const GeometryType& geom);
+      inline void Initialize(const GeometryType& geom);
 
-		inline void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+      inline void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-		inline void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+      inline void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-		inline void FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo);
+      inline void FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo);
 
-	private:
+    private:
 
-		array_1d<double, 5> alpha;              /*!< (trial) vector containing the 5 enhanced strain parameters */
-		array_1d<double, 5> alpha_converged;    /*!< (converged) vector containing the 5 enhanced strain parameters */
+      array_1d<double, 5> alpha;              /*!< (trial) vector containing the 5 enhanced strain parameters */
+      array_1d<double, 5> alpha_converged;    /*!< (converged) vector containing the 5 enhanced strain parameters */
 											    
-		array_1d<double, 24> displ;             /*!< (trial) vector containing the 5 enhanced strain parameters */
-		array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the 5 enhanced strain parameters */
+      array_1d<double, 24> displ;             /*!< (trial) vector containing the 5 enhanced strain parameters */
+      array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the 5 enhanced strain parameters */
 
-		array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-		bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-		bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+      array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
+      bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
+      bounded_matrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
 
-		bool mInitialized;                      /*!< Initialization flag */
+      bool mInitialized;                      /*!< Initialization flag */
 
-	private:
+    private:
 
-		friend class Serializer;
+      friend class Serializer;
 
-		virtual void save(Serializer& rSerializer) const
-		{
-			rSerializer.save("A0", alpha);
-			rSerializer.save("A1", alpha_converged);
-			rSerializer.save("U0", displ);
-			rSerializer.save("U1", displ_converged);
-			rSerializer.save("init", mInitialized);
-		}
+      virtual void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("A0", alpha);
+	rSerializer.save("A1", alpha_converged);
+	rSerializer.save("U0", displ);
+	rSerializer.save("U1", displ_converged);
+	rSerializer.save("init", mInitialized);
+      }
 
-		virtual void load(Serializer& rSerializer)
-		{
-			rSerializer.load("A0", alpha);
-			rSerializer.load("A1", alpha_converged);
-			rSerializer.load("U0", displ);
-			rSerializer.load("U1", displ_converged);
-			rSerializer.load("init", mInitialized);
-		}
-	};
+      virtual void load(Serializer& rSerializer)
+      {
+	rSerializer.load("A0", alpha);
+	rSerializer.load("A1", alpha_converged);
+	rSerializer.load("U0", displ);
+	rSerializer.load("U1", displ_converged);
+	rSerializer.load("init", mInitialized);
+      }
+    };
 
-	/** \brief EASOperator
-	*
-	* This class performs some operations and stores some data to compute
-    * the membrane contribution of the stiffness matrix using the
-    * Enhanced Assumed Strain formulation.
-	*
-    * References:
-    * -   J.C.Simo,M.S.Rifai, "A class of mixed assumed strain methods
-    *     and the method of incompatible modes",
-    *     International Journal for Numerical Methods in Eng.,
-    *     vol. 29, 1595-1638, 1990
-	*/
-	class EASOperator
-	{
+    /** \brief EASOperator
+     *
+     * This class performs some operations and stores some data to compute
+     * the membrane contribution of the stiffness matrix using the
+     * Enhanced Assumed Strain formulation.
+     *
+     * References:
+     * -   J.C.Simo,M.S.Rifai, "A class of mixed assumed strain methods
+     *     and the method of incompatible modes",
+     *     International Journal for Numerical Methods in Eng.,
+     *     vol. 29, 1595-1638, 1990
+     */
+    class EASOperator
+    {
 
-	public:
+    public:
 
-		/**
-		* Constructor
-		*/
-		EASOperator(const ShellQ4_LocalCoordinateSystem& LCS, EASOperatorStorage& storage);
+      /**
+       * Constructor
+       */
+      EASOperator(const ShellQ4_LocalCoordinateSystem& LCS, EASOperatorStorage& storage);
 
-	public:
+    public:
 
-		/**
-		* this method should be called in the Gauss Loop
-		* after the standard strain-displacement matrix has been computed, as well as the standard
-		* generalized strains, but before the computation of the constitutive laws.
-		*/
-		inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac, 
-			                                    Vector& generalizedStrains,
-			                                    EASOperatorStorage& storage);
+      /**
+       * this method should be called in the Gauss Loop
+       * after the standard strain-displacement matrix has been computed, as well as the standard
+       * generalized strains, but before the computation of the constitutive laws.
+       */
+      inline void GaussPointComputation_Step1(double xi, double eta, const JacobianOperator& jac, 
+					      Vector& generalizedStrains,
+					      EASOperatorStorage& storage);
 
-		/**
-		* this method should be called in the Gauss Loop
-		* after the standard computation of the constitutive laws.
-		* note:
-		* the input algorithmic tangent and generalized stress vector are assumed to be already multiplied
-		* by the integration weight, and their size is assumed to be those of a standard shell element
-		* (i.e. algorithmicTangent(8x8), generalizedStresses(8x1))
-		*/
-		inline void GaussPointComputation_Step2(const Matrix& D, 
-			                                    const Matrix& B,
-			                                    const Vector& S,
-			                                    EASOperatorStorage& storage);
+      /**
+       * this method should be called in the Gauss Loop
+       * after the standard computation of the constitutive laws.
+       * note:
+       * the input algorithmic tangent and generalized stress vector are assumed to be already multiplied
+       * by the integration weight, and their size is assumed to be those of a standard shell element
+       * (i.e. algorithmicTangent(8x8), generalizedStresses(8x1))
+       */
+      inline void GaussPointComputation_Step2(const Matrix& D, 
+					      const Matrix& B,
+					      const Vector& S,
+					      EASOperatorStorage& storage);
 
-		/**
-		* this method should be called at the end of the Gauss Loop,
-		* when the integration is terminated, but before transforming everything
-		* to the global system: Here we are still operating in the element local
-		* coordinate system.
-		*/
-		inline void ComputeModfiedTangentAndResidual(Matrix& rLeftHandSideMatrix,
-			                                         Vector& rRightHandSideVector,
-			                                         EASOperatorStorage& storage);
+      /**
+       * this method should be called at the end of the Gauss Loop,
+       * when the integration is terminated, but before transforming everything
+       * to the global system: Here we are still operating in the element local
+       * coordinate system.
+       */
+      inline void ComputeModfiedTangentAndResidual(Matrix& rLeftHandSideMatrix,
+						   Vector& rRightHandSideVector,
+						   EASOperatorStorage& storage);
 
-	private:
+    private:
 
-		Matrix mF0inv;           /*!< 3x3 inverse deformation matrix at the element center */
-		double mJ0;              /*!< determinant of the jacobian at the element center */
-		Vector mEnhancedStrains; /*!< vector of 3 enhanced strains [e.xx, e.yy, 2e.xy] */
-		Matrix mG;               /*!< 3x5 interpolation matrix in cartesian coordinates */
-	};
+      Matrix mF0inv;           /*!< 3x3 inverse deformation matrix at the element center */
+      double mJ0;              /*!< determinant of the jacobian at the element center */
+      Vector mEnhancedStrains; /*!< vector of 3 enhanced strains [e.xx, e.yy, 2e.xy] */
+      Matrix mG;               /*!< 3x5 interpolation matrix in cartesian coordinates */
+    };
 
-	///@}
+    ///@}
 
     ///@name Life Cycle
     ///@{
@@ -390,48 +347,48 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-	void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-	void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-	void GetValueOnIntegrationPoints(const Variable<array_1d<double,6>>& rVariable, std::vector<array_1d<double,6>>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
 
-	///@name Public specialized Access - Temporary
+    ///@name Public specialized Access - Temporary
     ///@{
 
-	void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
+    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
 
-	///@}
+    ///@}
 
-protected:
+  protected:
     
     ///@name Protected Lyfe Cycle
     ///@{
     
     /**
-    * Protected empty constructor
-    */
+     * Protected empty constructor
+     */
     ShellThickElement3D4N() : Element()
     {
     }
     
     ///@}
 
-private:
+  private:
 
     ///@name Private Operations
     ///@{
 
-	void DecimalCorrection(Vector& a);
+    void DecimalCorrection(Vector& a);
 
     void SetupOrientationAngles();
 
-	void CalculateBMatrix(double xi, double eta, 
-		                  const JacobianOperator& Jac, const MITC4Params& params, 
-						  const Vector& N, 
-						  Matrix& B, Vector& Bdrill);
+    void CalculateBMatrix(double xi, double eta, 
+			  const JacobianOperator& Jac, const MITC4Params& params, 
+			  const Vector& N, 
+			  Matrix& B, Vector& Bdrill);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
@@ -439,17 +396,17 @@ private:
                       const bool LHSrequired,
                       const bool RHSrequired);
 
-    bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3>>& rVariable,
-		                                                    std::vector<array_1d<double,3>>& rValues, 
-														    const ProcessInfo& rCurrentProcessInfo);
+    bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
+							    std::vector<array_1d<double,3> >& rValues, 
+							    const ProcessInfo& rCurrentProcessInfo);
 
-	bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<array_1d<double,3>>& rVariable,
-		                                                             std::vector<array_1d<double,3>>& rValues, 
-																	 const ProcessInfo& rCurrentProcessInfo);
+    bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<array_1d<double,3> >& rVariable,
+								     std::vector<array_1d<double,3> >& rValues, 
+								     const ProcessInfo& rCurrentProcessInfo);
 
-	bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-		                                                             std::vector<Matrix>& rValues, 
-																	 const ProcessInfo& rCurrentProcessInfo);
+    bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+								     std::vector<Matrix>& rValues, 
+								     const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
 
@@ -491,7 +448,7 @@ private:
     ///@{
     ///@}
     
-};
+  };
 
 } 
 #endif // SHELL_THICK_ELEMENT_3D4N_H_INCLUDED
