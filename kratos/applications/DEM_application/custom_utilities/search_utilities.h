@@ -141,10 +141,15 @@ namespace Kratos
           {
               std::size_t node_size = rSearchNodes.size();
               
+              std::cout << rSearchNodes.size();
+              
               mResultsDistances.resize(node_size);
               mSearchRadius.resize(node_size);
               mNodesResults.resize(node_size);
               
+              mResultsDistances.clear();
+              mSearchRadius.clear();
+              mNodesResults.clear();
         
               for(NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
               {
@@ -153,22 +158,29 @@ namespace Kratos
 
               mSpatialSearch->SearchNodesInRadiusExclusive(rBinsNodes,rSearchNodes,mSearchRadius,mNodesResults,mResultsDistances);
               
-              for(std::size_t i = 0; i < node_size; i++)
-              {
-                  double minDist = 0;
+              for(NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
+              { 
+                  int i = it - rSearchNodes.begin();
+                  double minDist = 1;
                       
                   if(mResultsDistances[i].size())
                   {
-                      minDist = mResultsDistances[i][0];
+                      minDist = mResultsDistances[i][0] - mNodesResults[i][0]->FastGetSolutionStepValue(RADIUS);
                           
                       for(std::size_t j = 0; j < mResultsDistances[i].size() ; j++)
                       {
-                          mResultsDistances[i][j] -= mNodesResults[i][j]->FastGetSolutionStepValue(RADIUS);
+                          mResultsDistances[i][j] = mResultsDistances[i][j] - mNodesResults[i][j]->FastGetSolutionStepValue(RADIUS);
                           minDist = minDist < mResultsDistances[i][j] ? minDist : mResultsDistances[i][j];
+//                           std::cout << mNodesResults[i][j]->Id() << " ";
                       }
+                                     
+                      std::cout << "--> " << minDist << std::endl;
+                  }
+                  else
+                  {
+                      //std::cout << "Error no neighbours found for node " << it->Id() << " with radius: " << mSearchRadius[i] << std::endl;
                   }
                       
-                  NodesArrayType::iterator it = rSearchNodes.begin() + i;
                   it->FastGetSolutionStepValue(rDistanceVar) = minDist;
               }
           }
