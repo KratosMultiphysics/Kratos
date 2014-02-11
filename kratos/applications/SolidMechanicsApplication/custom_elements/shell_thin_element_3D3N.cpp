@@ -1,50 +1,4 @@
-﻿/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-==============================================================================
-KratosMultiScaleApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-//
+﻿//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
 //   Date:                $Date: 2013-10-03 19:00:00 $
@@ -72,10 +26,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#define OPT_1_POINT_INTEGRATION
 
 #ifdef OPT_1_POINT_INTEGRATION
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::IntegrationMethod::GI_GAUSS_1
+#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
 #define OPT_NUM_GP 1 
 #else
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::IntegrationMethod::GI_GAUSS_2
+#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
 #define OPT_NUM_GP 3
 #endif // OPT_1_POINT_INTEGRATION
 
@@ -172,9 +126,10 @@ namespace Kratos
 
     ShellThinElement3D3N::CalculationData::CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
 		                                                   const ProcessInfo& rCurrentProcessInfo)
-		: CurrentProcessInfo(rCurrentProcessInfo)
+	        : LCS0( pCoordinateTransformation->CreateReferenceCoordinateSystem() )
 		, LCS( pCoordinateTransformation->CreateLocalCoordinateSystem() )
-		, LCS0( pCoordinateTransformation->CreateReferenceCoordinateSystem() )
+	        , CurrentProcessInfo(rCurrentProcessInfo)
+
 	{
 	}
 
@@ -612,8 +567,8 @@ namespace Kratos
         if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
     }
 
-    void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, 
-                                                           std::vector<array_1d<double,3>>& rValues, 
+    void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, 
+                                                           std::vector<array_1d<double,3> >& rValues, 
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
         if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
@@ -621,8 +576,8 @@ namespace Kratos
         if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
     }
 
-    void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6>>& rVariable, 
-                                                           std::vector<array_1d<double,6>>& rValues, 
+    void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
+                                                           std::vector<array_1d<double,6> >& rValues, 
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -740,7 +695,7 @@ namespace Kratos
 		// implementation of a variable thickness
 
 		double h = 0.0;
-		for(int i = 0; i < mSections.size(); i++)
+		for(unsigned int i = 0; i < mSections.size(); i++)
 			h += mSections[i]->GetThickness();
 		h /= (double)mSections.size();
 
@@ -1305,8 +1260,8 @@ namespace Kratos
         AddBodyForces(data.LCS0, rRightHandSideVector);
     }
 
-    bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3>>& rVariable,
-                                                                                  std::vector<array_1d<double,3>>& rValues, 
+    bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
+                                                                                  std::vector<array_1d<double,3> >& rValues, 
                                                                                   const ProcessInfo& rCurrentProcessInfo)
     {
         // Check the required output
@@ -1366,8 +1321,8 @@ namespace Kratos
         return true;
     }
 
-    bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<array_1d<double,3>>& rVariable,
-                                                                                           std::vector<array_1d<double,3>>& rValues, 
+    bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<array_1d<double,3> >& rVariable,
+                                                                                           std::vector<array_1d<double,3> >& rValues, 
                                                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		// Check the required output
