@@ -75,4 +75,4 @@ LoadRestart = False
 Restart_Step = 0
 
 problem_name="Shell_Q4_Thick__BendingRollUpStructuralAnalysis"
-problem_path="C:/KRATOS_TUT/ShellElementTest/Shell_Q4_Thick__BendingRollUp.gid"
+problem_path="/home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_Q4_Thick__BendingRollUp.gid"
