@@ -2720,7 +2720,7 @@ namespace Kratos
 
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double critical_angle        = -140;
-    double size_for_side_normal  =  0.1 * rVariables.Refine.critical_radius;
+    double size_for_side_normal  =  rVariables.Refine.critical_radius;
 
 
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(rModelPart.NumberOfNodes()+1); //all domain nodes
