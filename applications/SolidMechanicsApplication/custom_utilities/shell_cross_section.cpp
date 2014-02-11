@@ -1,46 +1,3 @@
-/*
-==============================================================================
-KratosMultiScaleApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
@@ -155,7 +112,7 @@ namespace Kratos
 				ss << " - Location :" << iPly.GetLocation() << std::endl;
 				ss << " - Orientation Angle: " << iPly.GetOrientationAngle() << " (degrees)" << std::endl;
 				ss << " - Through-The-Thickness Integration Points (" << iPly.GetIntegrationPoints().size() << "):" << std::endl;
-				for(int i = 0; i < iPly.GetIntegrationPoints().size(); i++) {
+				for(unsigned int i = 0; i < iPly.GetIntegrationPoints().size(); i++) {
 					const IntegrationPoint& iPoint = iPly.GetIntegrationPoints()[i];
 					ss << " - - [" << i << "] " 
 					   << "[ H: " << iPoint.GetWeight() << "; POS: " << iPoint.GetLocation() << "; C-LAW: " << iPoint.GetConstitutiveLaw() << "]" 
@@ -208,7 +165,7 @@ namespace Kratos
 		for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
 		{
 			Ply& iPly = *ply_it;
-			const Properties& iPlyProps = iPly.GetProperties();
+			//const Properties& iPlyProps = iPly.GetProperties();
 			for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
 			{
 				IntegrationPoint& iPoint = *intp_it;
@@ -310,7 +267,7 @@ namespace Kratos
 			
 			if(mNeedsOOPCondensation)
 			{
-				int condensed_strain_size = mBehavior == Thick ? 1 : 3;
+				unsigned int condensed_strain_size = mBehavior == Thick ? 1 : 3;
 				
 				if(mOOP_CondensedStrains.size() != condensed_strain_size)
 					mOOP_CondensedStrains.resize(condensed_strain_size, false);
@@ -725,7 +682,7 @@ namespace Kratos
 		for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
 		{
 			Ply& iPly = *ply_it;
-			const Properties& iPlyProps = iPly.GetProperties();
+			//const Properties& iPlyProps = iPly.GetProperties();
 			for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it)
 			{
 				IntegrationPoint& iPoint = *intp_it;
