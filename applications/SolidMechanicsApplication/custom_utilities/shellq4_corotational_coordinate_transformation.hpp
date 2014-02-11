@@ -458,8 +458,6 @@ namespace Kratos
 			RealType x13 = - x31;
 			RealType y31 = D13(1);
 			RealType y13 = - y31;
-			RealType z31 = D13(2);
-			RealType z21 = D12(2);
 
 			// Note, assuming the input vectors are in local CR, 
 			// l12 is the length of the side 1-2 projected onto the xy plane.
@@ -504,7 +502,6 @@ namespace Kratos
 		inline MatrixType RotationGradient()
 		{
 			Matrix G(3, 24, 0.0);
-			const GeometryType & geom = GetGeometry();
 
 			ShellQ4_LocalCoordinateSystem a( CreateReferenceCoordinateSystem() ); // current coordinate system
 

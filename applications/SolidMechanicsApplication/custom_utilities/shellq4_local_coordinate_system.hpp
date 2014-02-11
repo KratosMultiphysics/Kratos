@@ -104,8 +104,8 @@ namespace Kratos
 								      const Vector3Type & P2global,
 								      const Vector3Type & P3global,
 								      const Vector3Type & P4global)
-			: mOrientation(3, 3)
-			, mP(4)
+			: mP(4)
+			, mOrientation(3, 3)
 		{
 			// Form the basis vectors alligning the local X direction
 			// with the 1-2 side
