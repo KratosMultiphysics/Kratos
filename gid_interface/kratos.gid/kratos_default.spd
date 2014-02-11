@@ -642,7 +642,7 @@
         </Template>
         <Template id="PropertiesStruct" icon="propsTree.gif" help="Property">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
-                <Item id="ElemType" pid="Property type" dv="" state="normal" GCV="ElemType" help="Element type"/>
+                <Item id="ElemType" pid="Property type" dv="" state="normal" ivalues="Beam,Shell,Membrane,Solid"  values="Beam,Shell,Membrane,Solid" help="Element type"/>
                 <Item id="MatModel" pid="Constitutive law" state="normal" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
                 <Item id="Material" pid="Material" dv="" state="normal" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" state="normal" dv="1.0" help="Thickness"/>
