@@ -67,6 +67,11 @@ Text += DEM_benchmarks.Run()
 
 # Add other directories here
 
+# SolidMechanics application
+os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
+import solid_mechanics_run_all_benchmarks
+Text += solid_mechanics_run_all_benchmarks.Run()
+
 # print Text
 os.chdir(CurrentDir)
 outputfile = open("benchmarking_output.txt", "w")
