@@ -80,92 +80,95 @@ namespace Kratos
       {
         
         KRATOS_TRY
-
          
-         std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << "\n" <<std::endl;
+        std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << "\n" <<std::endl;
 
-          ModelPart& r_model_part            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+        ModelPart& r_model_part             = BaseType::GetModelPart();
+        ModelPart& fem_model_part           = BaseType::GetFemModelPart();
+        ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+                
+        mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
+        
+        unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
                   
-          mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
-          
-          unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
-                    
-          if(this->GetResults().size() != number_of_elements)
-            this->GetResults().resize(number_of_elements);
-          
-          this->GetResultsDistances().resize(number_of_elements);
-          
-           
-          //Cfeng
+        if(this->GetResults().size() != number_of_elements)
+          this->GetResults().resize(number_of_elements);
+        
+        this->GetResultsDistances().resize(number_of_elements);
+                  
+        if(fem_model_part.Nodes().size()>0)
+        {
           this->GetRigidFaceResults().resize(number_of_elements);
           this->GetRigidFaceResultsDistances().resize(number_of_elements);
+        }
 
-
-          // Omp initializations
-          this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
-     
-          rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
-          this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
-          
-          this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
-
-          BaseType::InitializeSolutionStep();
-          BaseType::InitializeElements();
-          this->GetInitializeWasPerformed() = true;
-          
-          this->ApplyPrescribedBoundaryConditions();
-          
-          // 0. Set search radius
-          BaseType::SetSearchRadius(r_model_part, 1.0);
-
-          // 3. Search Neighbours with tolerance (after first repartition process)
-          BaseType::SearchNeighbours();
-          
-           if(this->GetDeltaOption() == 2)
-          {
-          
-            BaseType::SetCoordinationNumber(r_model_part);
-            
-          }
-          // 4. Set Initial Contacts
-          
-          if( rCurrentProcessInfo[CASE_OPTION] !=0 ) 
-          {            
-            this->Set_Initial_Contacts();
-          }   
-          
-          BaseType::ComputeNewNeighboursHistoricalData();                    
-          
-          BaseType::SearchRigidFaceNeighbours();
-          BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
-
-          
-          //the search radius is modified for the next steps.
+        // Omp initializations
+        this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
+    
+        rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
+        this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
         
+        this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+
+        BaseType::InitializeSolutionStep();
+        BaseType::InitializeElements();
+        this->GetInitializeWasPerformed() = true;
+        
+        this->ApplyPrescribedBoundaryConditions();
+        
+        // 0. Set search radius
+        BaseType::SetSearchRadius(r_model_part, 1.0);
+
+        // 3. Search Neighbours with tolerance (after first repartition process)
+        BaseType::SearchNeighbours();
+        
+          if(this->GetDeltaOption() == 2)
+        {
+        
+          BaseType::SetCoordinationNumber(r_model_part);
+          
+        }
+        // 4. Set Initial Contacts
+        
+        if( rCurrentProcessInfo[CASE_OPTION] !=0 ) 
+        {            
+          this->SetInitialDemContacts();
+        }   
+        
+        BaseType::ComputeNewNeighboursHistoricalData();                    
+        
+         if(fem_model_part.Nodes().size()>0)
+        {
+        
+          BaseType::SearchRigidFaceNeighbours();
+          this->SetInitialFemContacts();
+          BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+        
+        }
+
+          //the search radius is modified for the next steps.
           BaseType::SetSearchRadius(r_model_part, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
 
+        if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
           
-          if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
-            
-          {   
-              this->CreateContactElements();
-              this->InitializeContactElements();
-              rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
-              this->Particle_Area_Calculate(); //first time;
-              rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
-              this->Contact_Calculate_Area();
-              this->Particle_Area_Calculate(); //2nd time
-          }
-     
-          // 5. Finalize Solution Step
-          
-          BaseType::FinalizeSolutionStep();
-          KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
-          
-          KRATOS_CATCH("")
-          
-          //KRATOS_TIMER_STOP("INITIALIZE")
+        {   
+            this->CreateContactElements();
+            this->InitializeContactElements();
+            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
+            this->Particle_Area_Calculate(); //first time;
+            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
+            this->Contact_Calculate_Area();
+            this->Particle_Area_Calculate(); //2nd time
+        }
+    
+        // 5. Finalize Solution Step
+        
+        BaseType::FinalizeSolutionStep();
+        KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
+        
+        KRATOS_CATCH("")
+        
+        //KRATOS_TIMER_STOP("INITIALIZE")
 
       }// Initialize()
 
@@ -250,7 +253,11 @@ namespace Kratos
           }
           //KRATOS_TIMER_STOP("SearchNeighbours")
                     // 5. Synchronize
-          BaseType::SynchronizeSolidMesh(r_model_part);
+          BaseType::SynchronizeSolidMesh(r_model_part);   
+          
+          //CHARLIE_MPI: pot ser el syncronize dintre del if de busqueda.
+          //CHARLIE_MPI: on es tria quines son les variables que sincronitzem? crec que si fem integració de ghosts només cal sincronitzar la força.
+          
           
           //KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
@@ -698,7 +705,7 @@ namespace Kratos
 
     } //Particle_Area_Calculate
  
-    void Set_Initial_Contacts()
+    void SetInitialDemContacts()
     {
            
       KRATOS_TRY
@@ -719,7 +726,7 @@ namespace Kratos
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
             
-              (it)->Calculate(CALCULATE_SET_INITIAL_CONTACTS,Output,rCurrentProcessInfo); 
+              (it)->Calculate(CALCULATE_SET_INITIAL_DEM_CONTACTS,Output,rCurrentProcessInfo); 
             
           } //loop over particles
 
@@ -727,7 +734,38 @@ namespace Kratos
       
       KRATOS_CATCH("")
 
-    } //ConsistentAreaRecovering
+    } //SetInitialDemContacts
+    
+    void SetInitialFemContacts()
+    {
+           
+      KRATOS_TRY
+
+      ModelPart& r_model_part           = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+      ElementsArrayType& pElements      = GetElements(r_model_part);
+      
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+      
+      double Output = 0.0;
+      
+      #pragma omp parallel for
+      for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          {
+            
+              (it)->Calculate(CALCULATE_SET_INITIAL_FEM_CONTACTS,Output,rCurrentProcessInfo); 
+            
+          } //loop over particles
+
+      }// loop threads OpenMP
+      
+      KRATOS_CATCH("")
+
+    } //SetInitialDemContacts
  
     void FixHorizontalVelocities()
     {
@@ -784,14 +822,12 @@ namespace Kratos
       for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it)
       {
         
-
-        
           Properties properties =  mesh_it->GetProperties(0);  
 
           bool fix_x = bool(properties[IMPOSED_VELOCITY_X]);
           bool fix_y = bool(properties[IMPOSED_VELOCITY_Y]);
           bool fix_z = bool(properties[IMPOSED_VELOCITY_Z]);
-
+          
          if( fix_x || fix_y || fix_z )
          {
             
