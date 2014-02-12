@@ -258,7 +258,7 @@ namespace Kratos
                     
           //Cfeng
           this->GetRigidFaceResults().resize(number_of_elements);
-      this->GetRigidFaceResultsDistances().resize(number_of_elements);
+          this->GetRigidFaceResultsDistances().resize(number_of_elements);
 
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo          
           InitializeSolutionStep();
@@ -283,15 +283,14 @@ namespace Kratos
           // 3. Get and Calculate the forces
           GetForce();
           
-          // 4. Motion Integration
-          PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
-          
-
-          // 5. Synchronize
+          // 4. Synchronize (should be just FORCE and TORQUE)
           SynchronizeSolidMesh(r_model_part);
           
+          // 5. Motion Integration
+          PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot                  
+          
            ////Cfeng, compute rigid face movement
-      Compute_RigidFace_Movement();
+          Compute_RigidFace_Movement();
               
           FinalizeSolutionStep();         
 
