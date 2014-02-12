@@ -95,8 +95,7 @@ namespace Kratos
 
 
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-      virtual void ComputeNewNeighboursHistoricalData();
-      
+    
       void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
@@ -201,10 +200,10 @@ namespace Kratos
       
     protected:
 
-
        SphericContinuumParticle();
 
-        void SetInitialContacts();
+        void SetInitialSphereContacts();
+        void SetInitialFemContacts();
         void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         void CheckPairWiseBreaking(); //MSIMSI DEBUG
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
@@ -234,7 +233,9 @@ namespace Kratos
         void ComputeParticleRotationSpring();
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
-             
+
+        virtual void ComputeNewNeighboursHistoricalData();
+        virtual void ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo);
         
         //member variables DEM_CONTINUUM
 
@@ -284,16 +285,12 @@ namespace Kratos
         double mSinContactInternalFriccion;
         double mCosContactInternalFriccion;
 
-        Vector mcont_ini_neigh_area;
+        //sphere neighbour information
         
+        Vector mcont_ini_neigh_area;
         std::vector<int> mIniNeighbourIds;
-        //vector<int> mIniContinuumNeighbourIds;
         Vector mIniNeighbourDelta;
-               
-        /*Vector mNeighbourDelta;//candidate to std::vector                
-        vector<int> mMapping_New_Ini; //candidate to std::vector
-        vector<int> mMapping_New_Cont; //candidate to std::vector
-        vector<int> mNeighbourFailureId; //candidate to std::vector*/
+
         vector<int> mIniNeighbourFailureId;
         vector<int> mIniNeighbourToIniContinuum;
         
@@ -308,8 +305,23 @@ namespace Kratos
         std::vector<int>                  mTempNeighboursMapping;
         std::vector<int>                  mTempContNeighboursMapping;
         
-        
         Vector mHistDist;
+  
+        
+        //fem neighbour information
+        
+        ConditionWeakVectorType           mFemTempNeighbours;
+        
+        std::vector<int>                  mFemIniNeighbourIds;
+        Vector                            mFemIniNeighbourDelta;
+        std::vector<int>                  mFemMappingNewIni;
+        
+        std::vector<double>               mFemTempNeighboursDelta;
+        std::vector<int>                  mFemTempNeighboursMapping;
+        
+         std::vector<double>              mFemNeighbourDelta;
+        
+        
         
         //Non-linear
          double mN1;
