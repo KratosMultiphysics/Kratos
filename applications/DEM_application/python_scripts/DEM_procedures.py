@@ -16,7 +16,17 @@ def Var_Translator(variable):
         variable = 1
 
     return variable
+    
+def FindMaxNodeIdInModelPart(model_part):
 
+    max = 0
+
+    for node in model_part.Nodes:
+
+        if (node.Id > max):
+            max = node.Id
+
+    return max
 
 class MdpaCreator:
 
