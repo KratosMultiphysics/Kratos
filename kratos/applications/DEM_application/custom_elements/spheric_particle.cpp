@@ -127,7 +127,7 @@ namespace Kratos
           }
 		  
 		  //Cfeng,RigidFace
-		  if( mOldRigidFaceNeighbourIds.size() > 0)
+		  if( mFemOldNeighbourIds.size() > 0)
 		  {
 			  ComputeBallToRigidFaceContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 		  }
@@ -331,8 +331,8 @@ namespace Kratos
        ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
        unsigned int new_size                = rNeighbours.size();
        unsigned int neighbour_counter       = 0;
-       vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
-       vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);       
+       std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
+       std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);       
        
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
@@ -344,12 +344,12 @@ namespace Kratos
            temp_neighbours_ids[neighbour_counter] = static_cast<int>(i->Id());
            temp_neighbours_contact_forces[neighbour_counter] = vector_of_zeros;
 
-           for (unsigned int j = 0; j != mOldRigidFaceNeighbourIds.size(); j++)
+           for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++)
 			{
 
-               if (static_cast<int>(i->Id()) == mOldRigidFaceNeighbourIds[j])
+               if (static_cast<int>(i->Id()) == mFemOldNeighbourIds[j])
 			   {
-                   temp_neighbours_contact_forces[neighbour_counter] = mOldRigidFaceNeighbourContactForces[j];
+                   temp_neighbours_contact_forces[neighbour_counter] = mFemOldNeighbourContactForces[j];
                    break;
                }
 
@@ -358,8 +358,8 @@ namespace Kratos
             neighbour_counter++;
         }
 
-        mOldRigidFaceNeighbourIds.swap(temp_neighbours_ids);
-        mOldRigidFaceNeighbourContactForces.swap(temp_neighbours_contact_forces);
+        mFemOldNeighbourIds.swap(temp_neighbours_ids);
+        mFemOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
 
       }
 
@@ -572,8 +572,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
-
+          ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);          
           // KINEMATICS
 
           double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -755,7 +754,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 		double Friction       = mTgOfFrictionAngle;
 		double young          = mYoung;
 		double poisson        = mPoisson;
-		double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+		double radius         = this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
 		double area           = M_PI * radius * radius;
 		double kn             = 1.0*young * area / (2.0 * radius);      
 		double ks             = kn / (2.0 * (1.0 + poisson));
@@ -819,9 +818,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
             //////120323,for global storage
 			
-		    GlobalContactForceOld[0] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][0];
-		    GlobalContactForceOld[1] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][1];
-		    GlobalContactForceOld[2] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][2];
+		    GlobalContactForceOld[0] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][0];
+		    GlobalContactForceOld[1] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][1];
+		    GlobalContactForceOld[2] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][2];
 			
 			
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
@@ -838,16 +837,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 			{
 				LocalContactForce[2] = 0.0;
 			}
-// 			if(this->Id()==2)
-//             {
-//             KRATOS_WATCH(*mpTimeStep)
-//             KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
-//             }
-// 			if(*mpTimeStep == 0)
-//             {
-// 			KRATOS_WATCH((DistPToB - radius))
-//             }
-				
+
 
             bool If_sliding = false;
 			
@@ -883,9 +873,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
             GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
-            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][0] = GlobalContactForce[0];
-            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
-            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
+            mFemOldNeighbourContactForces[iRigidFaceNeighbour][0] = GlobalContactForce[0];
+            mFemOldNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
+            mFemOldNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
 			
 	    ///Global stored contact force between rigid face and particle, used by fem elements
             Vector& neighbour_rigid_faces_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
