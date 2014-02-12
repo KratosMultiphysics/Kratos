@@ -186,8 +186,7 @@ class StructuralSolver:
                 # to keep matrix blocks in builder
                 self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
             else:
-                if(self.block_builder):
-                    self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+                self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
 
     #
     def SetSolutionScheme(self):
