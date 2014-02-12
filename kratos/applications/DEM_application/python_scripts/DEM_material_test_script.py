@@ -11,9 +11,10 @@ import shutil
 
 class MaterialTest:
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, balls_model_part):
+  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part):
     
       self.graphs_path = graphs_path
+      self.post_path = post_path
       self.balls_model_part = balls_model_part
       self.Procedures = procedures
       self.solver = solver
@@ -72,7 +73,6 @@ class MaterialTest:
       self.initial_time = datetime.datetime.now()
 
       os.chdir(self.graphs_path)
-
       self.chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", 'w')
 
       if(DEM_parameters.TestType == "BTS"):
@@ -127,7 +127,6 @@ class MaterialTest:
 
         (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = self.Procedures.CylinderSkinDetermination(self.balls_model_part,self.solver,DEM_parameters) # defines the skin and areas
       
-      
       if ( ( DEM_parameters.TestType == "Triaxial") or ( DEM_parameters.TestType == "Hydrostatic") ):
 
         #Correction Coefs
@@ -142,12 +141,12 @@ class MaterialTest:
     
     top_mesh_nodes = self.balls_model_part.GetMesh(111).Nodes
     bot_mesh_nodes = self.balls_model_part.GetMesh(222).Nodes
-     
+
     if( (DEM_parameters.TestType == "Triaxial" ) and (DEM_parameters.ConfinementPressure != 0.0) ):
           
       if( self.renew_pressure == 10):
         
-        ApplyLateralPressure(self.Pressure, self.Procedures.XLAT, self.Procedures.XBOT, self.Procedures.XTOP, self.Procedures.XBOTCORNER, self.Procedures.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
+        self.ApplyLateralPressure(self.Pressure, self.Procedures.XLAT, self.Procedures.XBOT, self.Procedures.XTOP, self.Procedures.XBOTCORNER, self.Procedures.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
                 
         self.renew_pressure = 0
 
@@ -180,16 +179,16 @@ class MaterialTest:
           
         else:
 
-          radial_strain = MeasureRadialStrain(self.Procedures.XLAT)
+          radial_strain = self.MeasureRadialStrain(self.Procedures.XLAT)
           
           for node in top_mesh_nodes:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
             total_force_top += force_node_y
-
+            
           self.total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
-          
+ 
           for node in bot_mesh_nodes:
 
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
@@ -312,7 +311,6 @@ class MaterialTest:
     self.chart.close()
     
     a_chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf","r")
-
     for line in a_chart.readlines():
       print(line)
     a_chart.close()
@@ -350,12 +348,14 @@ class MaterialTest:
     if(DEM_parameters.TestType == "BTS"):
       self.bts_export.close()
   
-  def OrientationStudy(self,contact_model_part):
+  def OrientationStudy(self,contact_model_part,step):
     
-    #OrientationChart = open("OrientationChart", 'w')
-      
-    #OrientationChart.write(str(j)+"    "+str(alpha_deg)+'\n')
-      
+    os.chdir(self.post_path)
+    
+    OrientationChart = open("OrientationChart_"+str(step), 'w')
+    
+    counter = 1
+    
     for element in contact_model_part.Elements:
 
       u1 = element.GetNode(1).X - element.GetNode(0).X
@@ -365,7 +365,16 @@ class MaterialTest:
       alpha = abs(math.asin(abs(u2)/math.sqrt((u1*u1)+(u2*u2)+(u3*u3))))
       
       alpha_deg = alpha/math.pi*180
-
+      
+      element.SetValue(CONTACT_ORIENTATION,alpha_deg)
+      
+      
+      sigma = element.GetValue(CONTACT_SIGMA) 
+    
+      OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean*1e6))+'\n')
+      counter += 1
+    
+    
       if(alpha_deg >= 0.0 and alpha_deg < 5.0):
         self.bond_00_05.append(element)
 
@@ -420,6 +429,7 @@ class MaterialTest:
       if(alpha_deg >= 85.0 and alpha_deg < 90.0):
         self.bond_85_90.append(element)
     
+
     ii=0 
     for item in [self.bond_00_05, self.bond_05_10, self.bond_10_15, self.bond_15_20, self.bond_20_25, self.bond_25_30, self.bond_30_35, self.bond_35_40, self.bond_40_45,  self.bond_45_50, self.bond_50_55, self.bond_55_60, self.bond_60_65, self.bond_65_70, self.bond_70_75, self.bond_75_80, self.bond_80_85, self.bond_85_90]:
       
@@ -479,237 +489,147 @@ class MaterialTest:
       ii+=1
       
     print(self.sigma_ratio_table)
-  
-      
-def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
-
-    for node in XLAT:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-        
-        cross_section = 3.141592 * r * r
-
-        vect = [0.0,0.0,0.0]
-
-        # vector normal al centre:
-        vect_moduli = math.sqrt(x * x + z * z)
-
-        if(vect_moduli > 0.0):
-            vect[0] = -x / vect_moduli
-            vect[1] = 0
-            vect[2] = -z / vect_moduli
-
-        values[0] = cross_section * alpha_lat * Pressure * vect[0]
-        values[1] = 0.0
-        values[2] = cross_section * alpha_lat * Pressure * vect[2]
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-    for node in XTOP:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        values[0] = 0.0
-        values[1] = -cross_section * alpha_top * Pressure
-        values[2] = 0.0
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-    for node in XBOT:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        values[0] = 0.0
-        values[1] = cross_section * alpha_bot * Pressure
-        values[2] = 0.0
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-    for node in XTOPCORNER:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        vect = [0.0,0.0,0.0]
-
-        # vector normal al centre:
-        vect_moduli = math.sqrt(x * x + z * z)
-
-        if(vect_moduli > 0.0):
-            vect[0] = -x / vect_moduli
-            vect[1] = 0
-            vect[2] = -z / vect_moduli
-
-        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-        values[1] = -cross_section * alpha_top * Pressure * 0.70710678
-        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-    for node in XBOTCORNER:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        vect = [0.0,0.0,0.0]
-
-        # vector normal al centre:
-        vect_moduli = math.sqrt(x * x + z * z)
-
-        if(vect_moduli > 0.0):
-            vect[0] = -x / vect_moduli
-            vect[1] = 0
-            vect[2] = -z / vect_moduli
-
-        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-        values[1] = cross_section * alpha_bot * Pressure * 0.70710678
-        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-
-def ApplyLateralPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
-
-    for node in XLAT:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        vect = [0.0,0.0,0.0]
-
-        # vector normal al centre:
-        vect_moduli = math.sqrt(x * x + z * z)
-
-        if(vect_moduli > 0.0):
-            vect[0] = -x / vect_moduli
-            vect[1] = 0
-            vect[2] = -z / vect_moduli
-
-        values[0] = cross_section * alpha_lat * Pressure * vect[0]
-        values[1] = 0.0
-        values[2] = cross_section * alpha_lat * Pressure * vect[2]
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-    for node in XTOPCORNER:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        vect = [0.0,0.0,0.0]
-
-        # vector normal al centre:
-        vect_moduli = math.sqrt(x * x + z * z)
-
-        if(vect_moduli > 0.0):
-            vect[0] = -x / vect_moduli
-            vect[1] = 0
-            vect[2] = -z / vect_moduli
-
-        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-        values[1] = 0.0
-        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-    for node in XBOTCORNER:
-
-        r = node.GetSolutionStepValue(RADIUS)
-        x = node.X
-        y = node.Y
-        z = node.Z
-
-        values = [0.0,0.0,0.0]
-
-        cross_section = 3.141592 * r * r
-
-        vect = [0.0,0.0,0.0]
-
-        # vector normal al centre:
-        vect_moduli = math.sqrt(x * x + z * z)
-
-        if(vect_moduli > 0.0):
-            vect[0] = -x / vect_moduli
-            vect[1] = 0
-            vect[2] = -z / vect_moduli
-
-        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
-        values[1] = 0.0
-        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
-
-        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
-
-def MeasureRadialStrain(LAT):
+    OrientationChart.close()
     
-   mean_radial_strain = 0.0
-   weight = 0.0
-   
-   for node in LAT:
-     
-     r = node.GetSolutionStepValue(RADIUS)
-     x = node.X
-     z = node.Z
-     
-     x0 = node.X0
-     z0 = node.Z0
-     
-     dist_initial = math.sqrt(x0 * x0 + z0 * z0)
-     dist_now = math.sqrt(x * x + z * z)
-     
-     node_radial_strain = (dist_now - dist_initial) / dist_initial
-     
-     mean_radial_strain += node_radial_strain*r*r
-     weight += r*r
-   
-   if(weight == 0.0):
-     print ("Error in MeasureRadialStrain. Lateral skin particles not well defined")
-   else:
-     
-    radial_strain = mean_radial_strain/weight
-   
-   return radial_strain
+  def PoissonMeasure(self):
+    
+    print("Not Working now")
+    #left_nodes = list()
+    #right_nodes = list()
+
+    #xleft_weight  = 0.0         
+    #xright_weight  = 0.0
+
+    #left_counter = 0.0
+    #right_counter = 0.0
+
+    #if(DEM_parameters.PoissonMeasure == "ON"):
+            
+          #for node in balls_model_part.Nodes:
+            
+            #if (node.GetSolutionStepValue(GROUP_ID)==4):
+              
+              #left_nodes.append(node)
+              #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #left_counter = +node.GetSolutionStepValue(RADIUS)
+              
+            #elif(node.GetSolutionStepValue(GROUP_ID)==8):
+              
+              #right_nodes.append(node)
+              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #right_counter = +node.GetSolutionStepValue(RADIUS)
+              
+          #width_ini = xright_weight/right_counter - xleft_weight/left_counter
+          
+
+  def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
+
+      for node in XLAT:
+          
+          r = node.GetSolutionStepValue(RADIUS)
+          x = node.X
+          y = node.Y
+          z = node.Z
+
+          values = Array3()
+          vect = Array3()
+          
+          cross_section = 3.141592 * r * r
+
+          # vector normal al centre:
+          vect_moduli = math.sqrt(x * x + z * z)
+
+          if(vect_moduli > 0.0):
+              vect[0] = -x / vect_moduli
+              vect[1] = 0
+              vect[2] = -z / vect_moduli
+
+          values[0] = cross_section * alpha_lat * Pressure * vect[0]
+          values[1] = 0.0
+          values[2] = cross_section * alpha_lat * Pressure * vect[2]
+          
+          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+                  
+      for node in XTOPCORNER:
+
+          r = node.GetSolutionStepValue(RADIUS)
+          x = node.X
+          y = node.Y
+          z = node.Z
+
+          values = Array3()
+          vect = Array3()
+          
+          cross_section = 3.141592 * r * r
+
+          # vector normal al centre:
+          vect_moduli = math.sqrt(x * x + z * z)
+
+          if(vect_moduli > 0.0):
+              vect[0] = -x / vect_moduli
+              vect[1] = 0
+              vect[2] = -z / vect_moduli
+
+          values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+          values[1] = 0.0
+          values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+
+          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+
+      for node in XBOTCORNER:
+
+          r = node.GetSolutionStepValue(RADIUS)
+          x = node.X
+          y = node.Y
+          z = node.Z
+
+          values = Array3()
+          vect = Array3()
+          
+          cross_section = 3.141592 * r * r
+
+          # vector normal al centre:
+          vect_moduli = math.sqrt(x * x + z * z)
+
+          if(vect_moduli > 0.0):
+              vect[0] = -x / vect_moduli
+              vect[1] = 0
+              vect[2] = -z / vect_moduli
+
+          values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+          values[1] = 0.0
+          values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+
+          node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+
+  def MeasureRadialStrain(self,XLAT):
+      
+    mean_radial_strain = 0.0
+    weight = 0.0
+    
+    for node in XLAT:
+      
+      r = node.GetSolutionStepValue(RADIUS)
+      x = node.X
+      z = node.Z
+      
+      x0 = node.X0
+      z0 = node.Z0
+      
+      dist_initial = math.sqrt(x0 * x0 + z0 * z0)
+      dist_now = math.sqrt(x * x + z * z)
+      
+      node_radial_strain = (dist_now - dist_initial) / dist_initial
+      
+      mean_radial_strain += node_radial_strain*r*r
+      weight += r*r
+    
+    if(weight == 0.0):
+      print ("Error in MeasureRadialStrain. Lateral skin particles not well defined")
+    else:
+      
+      radial_strain = mean_radial_strain/weight
+    
+    return radial_strain
    
  
