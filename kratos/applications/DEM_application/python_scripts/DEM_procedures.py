@@ -189,39 +189,6 @@ class Procedures:
         else:
             self.print_export_skin_sphere = 0
 
-    def AddMpiVariables(self, model_part):
-
-        model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
-        model_part.AddNodalSolutionStepVariable(INTERNAL_ENERGY)
-        model_part.AddNodalSolutionStepVariable(OSS_SWITCH)
-
-    def PerformInitialPartition(self, model_part, model_part_io_solid, input_file_name):
-
-        self.domain_size = 3
-
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
-        number_of_partitions = mpi.size  # we set it equal to the number of processors
-
-        if mpi.rank == 0:
-            print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
-            partitioner = MortonDivideInputToPartitionsProcess(model_part_io_solid, number_of_partitions, data.domain_size)
-            partitioner.Execute()
-
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
-        mpi.world.barrier()
-
-        MPICommSetup = SetMPICommunicatorProcess(model_part)
-        MPICommSetup.Execute()
-
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Comunicator Set")
-
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: " + input_file_name + "_" + str(mpi.rank))
-
-        my_input_filename = input_file_name + "_" + str(mpi.rank)
-        model_part_io_solid = ModelPartIO(my_input_filename)
-
-        return model_part_io_solid
-
     def ModelData(self, balls_model_part, contact_model_part, solver):
     # Previous Calculations.
 
@@ -300,7 +267,7 @@ class Procedures:
 
         h = DEM_parameters.SpecimenLength
         d = DEM_parameters.SpecimenDiameter
-
+        
         eps = 2.0
 
         surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
@@ -320,7 +287,7 @@ class Procedures:
             x = node.X
             y = node.Y
             z = node.Z
-            node_group = node.GetSolutionStepValue(GROUP_ID)
+            
             cross_section = 3.141592 * r * r
 
             if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
@@ -568,6 +535,8 @@ class Procedures:
 
     def PrintingContactElementsVariables(self, gid_io, export_model_part, time):
         if (self.contact_mesh_OPTION):  # xapuza
+        
+            gid_io.PrintOnGaussPoints(CONTACT_ORIENTATION, export_model_part, time)
             if (self.print_local_contact_force):
                 gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE, export_model_part, time)
             if (self.print_mean_contact_area):
