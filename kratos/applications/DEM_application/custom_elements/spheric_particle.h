@@ -275,9 +275,10 @@ namespace Kratos
       const int *mpActivateSearch;
 	  
       //Cfeng,RigidFace
-      vector<int> mOldRigidFaceNeighbourIds;
-      vector< array_1d<double, 3> >  mOldRigidFaceNeighbourContactForces;     
-      
+      std::vector<int> mFemOldNeighbourIds;
+      std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
+      std::vector<int> mFemTempNeighboursIds;
+      std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
       
       //ParticleWeakVectorType mrNeighbours;
 
