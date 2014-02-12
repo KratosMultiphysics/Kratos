@@ -3,11 +3,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.MetisApplication import *
 
-from DEM_explicit_solver_var import *
-from pressure_script import *
-
-from numpy import *
-
 from KratosMultiphysics.mpi import *
 
 
