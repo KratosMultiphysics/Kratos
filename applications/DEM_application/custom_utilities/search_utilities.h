@@ -60,7 +60,7 @@ namespace Kratos
       // Elemental Distance Calcualtion                      
       //************************************************************************
       
-      //TO BE IMPLEMENTED
+      
 
       //************************************************************************
       // Nodal Distance Calcualtion                      
@@ -141,8 +141,6 @@ namespace Kratos
           {
               std::size_t node_size = rSearchNodes.size();
               
-              std::cout << rSearchNodes.size();
-              
               mResultsDistances.resize(node_size);
               mSearchRadius.resize(node_size);
               mNodesResults.resize(node_size);
@@ -171,14 +169,7 @@ namespace Kratos
                       {
                           mResultsDistances[i][j] = mResultsDistances[i][j] - mNodesResults[i][j]->FastGetSolutionStepValue(RADIUS);
                           minDist = minDist < mResultsDistances[i][j] ? minDist : mResultsDistances[i][j];
-//                           std::cout << mNodesResults[i][j]->Id() << " ";
                       }
-                                     
-                      std::cout << "--> " << minDist << std::endl;
-                  }
-                  else
-                  {
-                      //std::cout << "Error no neighbours found for node " << it->Id() << " with radius: " << mSearchRadius[i] << std::endl;
                   }
                       
                   it->FastGetSolutionStepValue(rDistanceVar) = minDist;
