@@ -28,7 +28,7 @@ class SolverSettings:
     convergence_criterion = "Residual_criteria"
     displacement_relative_tolerance = 1.0E-6
     displacement_absolute_tolerance = 1.0E-9
-    residual_relative_tolerance = 1.0E-6
+    residual_relative_tolerance = 1.0E-3
     residual_absolute_tolerance = 1.0E-6
     max_iteration = 30
     class linear_solver_config:
@@ -75,4 +75,4 @@ LoadRestart = False
 Restart_Step = 0
 
 problem_name="Shell_Q4_Thick__BendingRollUpStructuralAnalysis"
-problem_path="/home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_Q4_Thick__BendingRollUp.gid"
+problem_path="/NO_DIR_FOR_OUTPUT"

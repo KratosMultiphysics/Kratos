@@ -75,4 +75,4 @@ LoadRestart = False
 Restart_Step = 0
 
 problem_name="Shell_T3_Thin__DrillingRollUpStructuralAnalysis"
-problem_path="C:/KRATOS_TUT/ShellElementTest/Shell_T3_Thin__DrillingRollUp.gid"
+problem_path="/NO_DIR_FOR_OUTPUT"

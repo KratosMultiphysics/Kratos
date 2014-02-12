@@ -13,8 +13,6 @@ from time import *
 print(ctime())
 # measure process time
 t0p = clock()
-# measure wall time
-# t0w = time()
 
 # ----------------------------------------------------------------#
 # --CONFIGURATIONS START--####################
@@ -32,11 +30,11 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 
 # import the python utilities:
-import restart_utility as restart_utils
-import gid_output_utility as gid_utils
+# import restart_utility as restart_utils
+# import gid_output_utility as gid_utils
 
 import conditions_python_utility as condition_utils
-import list_files_python_utility as files_utils
+# import list_files_python_utility as files_utils
 
 import time_operation_utility as operation_utils
 # import modeler_python_utility       as modeler_utils
@@ -103,13 +101,13 @@ main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
 
 # set the restart of the problem
 restart_step = general_variables.Restart_Step
-problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
+# problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
 
 # set the results file list of the problem (managed by the problem_restart and gid_print)
 print_lists = general_variables.PrintLists
 output_mode = general_variables.GidOutputConfiguration.GiDPostMode
-list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode)
-list_files.Initialize(general_variables.file_list)
+# list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode)
+# list_files.Initialize(general_variables.file_list)
 
 # --READ AND SET MODEL FILES END--############
 
@@ -120,35 +118,6 @@ incr_load = general_variables.Incremental_Load
 conditions = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load)
 
 # --DEFINE CONDITIONS END--###################
-
-
-# --GID OUTPUT OPTIONS START--###############
-# set gid print options
-gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutputConfiguration)
-
-# --GID OUTPUT OPTIONS END--##################
-
-
-# --PLOT GRAPHS OPTIONS START--###############
-
-# plot_active    = general_variables.PlotGraphs
-# plot_frequency = general_variables.PlotFrequency
-
-# graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
-
-# x_var   = "TIME"
-# y_var   = "REACTION"
-# mesh_id = 1
-
-# plot variables on the domain which is remeshed
-# for conditions in general_variables.MeshConditions:
-#  if(conditions["Remesh"] == 1):
-#    mesh_id =int(conditions["Subdomain"])
-
-# print " Graph Subdomain ", mesh_id
-# graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
-
-# --PLOT GRAPHS OPTIONS END--#################
 
 # --CONFIGURATIONS END--######################
 # ----------------------------------------------------------------#
@@ -166,52 +135,27 @@ buffer_size = 3
 # define problem variables:
 solver_constructor.AddVariables(model_part, SolverSettings)
 
-
 # --- READ MODEL ------#
-if(load_restart == False):
+# reading the model
+model_part_io = ModelPartIO(problem_name)
+model_part_io.ReadModelPart(model_part)
 
-    # remove results, restart, graph and list previous files
-    problem_restart.CleanPreviousFiles()
-    list_files.RemoveListFiles()
+# set the buffer size
+model_part.SetBufferSize(buffer_size)
+# Note: the buffer size should be set once the mesh is read for the first time
 
-    # reading the model
-    model_part_io = ModelPartIO(problem_name)
-    model_part_io.ReadModelPart(model_part)
+# set the degrees of freedom
+solver_constructor.AddDofs(model_part, SolverSettings)
 
-    # set the buffer size
-    model_part.SetBufferSize(buffer_size)
-    # Note: the buffer size should be set once the mesh is read for the first time
+# set the constitutive law
+import constitutive_law_python_utility as constitutive_law_utils
 
-    # set the degrees of freedom
-    solver_constructor.AddDofs(model_part, SolverSettings)
-
-    # set the constitutive law
-    import constitutive_law_python_utility as constitutive_law_utils
-
-    constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
-    constitutive_law.Initialize();
-
-else:
-
-    # reading the model from the restart file
-    problem_restart.Load(restart_step);
-
-    # remove results, restart, graph and list posterior files
-    problem_restart.CleanPosteriorFiles(restart_step)
-    list_files.ReBuildListFiles()
-
-# set mesh searches and modeler
-# modeler.InitializeDomains();
-
-# if(load_restart == False):
-    # find nodal h
-    # modeler.SearchNodalH();
-
+constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
+constitutive_law.Initialize();
 
 # --- PRINT CONTROL ---#
 print(model_part)
 print(model_part.Properties[1])
-
 
 # --INITIALIZE--###########################
 #
@@ -224,25 +168,12 @@ main_step_solver.SetRestart(load_restart)
 # modeler.InitialContactSearch()
 
 # define time steps and loop range of steps
-if(load_restart):
-
-    istep = model_part.ProcessInfo[TIME_STEPS] + 1
-    nstep = int(general_variables.nsteps)
-    time_step = model_part.ProcessInfo[DELTA_TIME]
-    current_step = istep
-    buffer_size = 0
-
-else:
-
-    istep = 0
-    nstep = int(general_variables.nsteps) + buffer_size
-    time_step = general_variables.time_step
-    current_step = 0
-
-    model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
-
-    conditions.Initialize(time_step);
-
+istep = 0
+nstep = int(general_variables.nsteps) + buffer_size
+time_step = general_variables.time_step
+current_step = 0
+model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
+conditions.Initialize(time_step);
 
 # initialize step operations
 starting_time = current_step * time_step
@@ -252,23 +183,8 @@ output_print = operation_utils.TimeOperationUtility()
 gid_time_frequency = general_variables.GiDWriteFrequency
 output_print.InitializeTime(starting_time, ending_time, time_step, gid_time_frequency)
 
-restart_print = operation_utils.TimeOperationUtility()
-restart_time_frequency = general_variables.RestartFrequency
-restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
-
-
-# initialize mesh modeling variables for time integration
-# modeler.Initialize(current_step,current_step)
-
-# initialize graph plot variables for time integration
-# graph_plot.Initialize(current_step)
-
-
 # --TIME INTEGRATION--#######################
 #
-
-# writing a single file
-gid_print.initialize_results(model_part)
 
 # initialize time integration variables
 start_steps = buffer_size - 1
@@ -307,36 +223,11 @@ for step in range(istep, nstep):
         # incremental load
         incr_steps = current_step + 1
         conditions.SetIncrementalLoad(incr_steps, time_step);
-
-        # print the results at the end of the step
-        if(general_variables.WriteResults == "PreMeshing"):
-            execute_write = output_print.perform_time_operation(current_time)
-            if(execute_write):
-                clock_time = StartTimeMeasuring();
-                # print gid output file
-                gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, output_print.operation_id())
-                # print on list files
-                list_files.PrintListFiles(current_step);
-                StopTimeMeasuring(clock_time, "Write Results");
-                # plot graphs
-                # graph_plot.Plot(current_time)
-
-        # print restart file
-        if(save_restart):
-            execute_save = restart_print.perform_time_operation(current_time)
-            if(execute_save):
-                clock_time = StartTimeMeasuring();
-                problem_restart.Save(current_time, current_step, restart_print.operation_id());
-                StopTimeMeasuring(clock_time, "Restart");
-
         
         conditions.RestartImposedDisp()
 
 # --FINALIZE--############################
 #
-
-# writing a single file
-gid_print.finalize_results()
 
 print("Analysis Finalized ")
 
@@ -345,11 +236,7 @@ print("Analysis Finalized ")
 
 # measure process time
 tfp = clock()
-# measure wall time
-# tfw = time()
-
 print(ctime())
-# print "Analysis Completed  [Process Time = ", tfp - t0p, "seconds, Wall Time = ", tfw - t0w, " ]"
 print("Analysis Completed  [Process Time = ", tfp - t0p, "] ")
 
 # benchmarking...
