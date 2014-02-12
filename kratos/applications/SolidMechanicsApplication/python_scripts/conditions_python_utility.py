@@ -95,7 +95,7 @@ class ConditionsUtility:
                 force = force * time_step * (incr_steps + 1)
                 node.SetSolutionStepValue(FORCE, force);
                 
-                # point load conditions
+                # point moment conditions
                 moment = node.GetSolutionStepValue(MOMENT);
                 for comp in [0,1,2]:
                     moment[comp] = moment[comp] / (time_step * (incr_steps))
