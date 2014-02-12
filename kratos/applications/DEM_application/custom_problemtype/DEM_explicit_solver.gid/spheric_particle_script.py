@@ -104,6 +104,12 @@ inlet_option                     = 1
 dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 
 if (inlet_option):
+    max_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(balls_model_part)
+    max_FEM_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(RigidFace_model_part)
+    if ( max_FEM_node_Id > max_node_Id):
+        max_node_Id = max_FEM_node_Id
+    creator_destructor.SetMaxNodeId(max_node_Id)
+        
     DEM_inlet_model_part = ModelPart("DEMInletPart")
     DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
     SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
