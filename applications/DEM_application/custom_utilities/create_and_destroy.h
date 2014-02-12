@@ -434,8 +434,8 @@ public:
           }
 
       }
-      if(num_erased)
-        std::cout<<num_erased<<" particles are about to be erased."<<std::endl;
+      //if(num_erased)
+      //  std::cout<<num_erased<<" particles are about to be erased."<<std::endl;
 
       KRATOS_CATCH("")
     }
