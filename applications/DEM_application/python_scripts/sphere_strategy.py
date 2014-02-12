@@ -145,6 +145,9 @@ class ExplicitStrategy:
 
         self.delta_option = Var_Translator(Param.DeltaOption)
 
+        self.search_tolerance = 0.0
+        self.coordination_number = 10.0
+
         if (Param.DeltaOption == "None"):
             self.delta_option = 0
 
@@ -175,125 +178,6 @@ class ExplicitStrategy:
         self.bottom_corner[0] = Param.BoundingBoxMinX
         self.bottom_corner[0] = Param.BoundingBoxMinY
         self.bottom_corner[0] = Param.BoundingBoxMinZ
-
-       
-        # BOUNDARY
-#        if (Param.LimitSurfaceOption > 0):
-#          self.surface_normal_dir_1           = Vector(3)
-#          self.surface_normal_dir_1[0]        = Param.SurfaceNormalDirX1
-#          self.surface_normal_dir_1[1]        = Param.SurfaceNormalDirY1
-#          self.surface_normal_dir_1[2]        = Param.SurfaceNormalDirZ1
-#          self.surface_point_coor_1           = Vector(3)
-#          self.surface_point_coor_1[0]        = Param.SurfacePointCoorX1
-#          self.surface_point_coor_1[1]        = Param.SurfacePointCoorY1
-#          self.surface_point_coor_1[2]        = Param.SurfacePointCoorZ1
-#          self.surface_friction_angle_1       = Param.SurfaceFrictionAngle1
-#        if (Param.LimitSurfaceOption > 1):
-#          self.surface_normal_dir_2           = Vector(3)
-#          self.surface_normal_dir_2[0]        = Param.SurfaceNormalDirX2
-#          self.surface_normal_dir_2[1]        = Param.SurfaceNormalDirY2
-#          self.surface_normal_dir_2[2]        = Param.SurfaceNormalDirZ2
-#          self.surface_point_coor_2           = Vector(3)
-#          self.surface_point_coor_2[0]        = Param.SurfacePointCoorX2
-#          self.surface_point_coor_2[1]        = Param.SurfacePointCoorY2
-#          self.surface_point_coor_2[2]        = Param.SurfacePointCoorZ2
-#          self.surface_friction_angle_2       = Param.SurfaceFrictionAngle2
-#        if (Param.LimitSurfaceOption > 2):
-#          self.surface_normal_dir_3           = Vector(3)
-#          self.surface_normal_dir_3[0]        = Param.SurfaceNormalDirX3
-#          self.surface_normal_dir_3[1]        = Param.SurfaceNormalDirY3
-#          self.surface_normal_dir_3[2]        = Param.SurfaceNormalDirZ3
-#          self.surface_point_coor_3           = Vector(3)
-#          self.surface_point_coor_3[0]        = Param.SurfacePointCoorX3
-#          self.surface_point_coor_3[1]        = Param.SurfacePointCoorY3
-#          self.surface_point_coor_3[2]        = Param.SurfacePointCoorZ3
-#          self.surface_friction_angle_3       = Param.SurfaceFrictionAngle3
-#        if (Param.LimitSurfaceOption > 3):
-#          self.surface_normal_dir_4           = Vector(3)
-#          self.surface_normal_dir_4[0]        = Param.SurfaceNormalDirX4
-#          self.surface_normal_dir_4[1]        = Param.SurfaceNormalDirY4
-#          self.surface_normal_dir_4[2]        = Param.SurfaceNormalDirZ4
-#          self.surface_point_coor_4           = Vector(3)
-#          self.surface_point_coor_4[0]        = Param.SurfacePointCoorX4
-#          self.surface_point_coor_4[1]        = Param.SurfacePointCoorY4
-#          self.surface_point_coor_4[2]        = Param.SurfacePointCoorZ4
-#          self.surface_friction_angle_4       = Param.SurfaceFrictionAngle4
-#        if (Param.LimitSurfaceOption > 4):
-#          self.surface_normal_dir_5           = Vector(3)
-#          self.surface_normal_dir_5[0]        = Param.SurfaceNormalDirX5
-#          self.surface_normal_dir_5[1]        = Param.SurfaceNormalDirY5
-#          self.surface_normal_dir_5[2]        = Param.SurfaceNormalDirZ5
-#          self.surface_point_coor_5           = Vector(3)
-#          self.surface_point_coor_5[0]        = Param.SurfacePointCoorX5
-#          self.surface_point_coor_5[1]        = Param.SurfacePointCoorY5
-#          self.surface_point_coor_5[2]        = Param.SurfacePointCoorZ5
-#          self.surface_friction_angle_5       = Param.SurfaceFrictionAngle5
-#
-#        if (Param.LimitCylinderOption > 0):
-#          self.cylinder_axis_dir_1              = Vector(3)
-#          self.cylinder_axis_dir_1[0]           = Param.CylinderAxisX1
-#          self.cylinder_axis_dir_1[1]           = Param.CylinderAxisY1
-#          self.cylinder_axis_dir_1[2]           = Param.CylinderAxisZ1
-#          self.cylinder_initial_base_centre_1   = Vector(3)
-#          self.cylinder_initial_base_centre_1[0]= Param.CylinderInitialBaseCentreX1
-#          self.cylinder_initial_base_centre_1[1]= Param.CylinderInitialBaseCentreY1
-#          self.cylinder_initial_base_centre_1[2]= Param.CylinderInitialBaseCentreZ1
-#          self.cylinder_radius_1                = Param.CylinderRadius1
-#          self.cylinder_velocity_1              = Param.CylinderVelocity1
-#          self.cylinder_angular_velocity_1      = Param.CylinderAngularVelocity1
-#          self.cylinder_friction_angle_1        = Param.CylinderFrictionAngle1
-#        if (Param.LimitCylinderOption > 1):
-#          self.cylinder_axis_dir_2              = Vector(3)
-#          self.cylinder_axis_dir_2[0]           = Param.CylinderAxisX2
-#          self.cylinder_axis_dir_2[1]           = Param.CylinderAxisY2
-#          self.cylinder_axis_dir_2[2]           = Param.CylinderAxisZ2
-#          self.cylinder_initial_base_centre_2   = Vector(3)
-#          self.cylinder_initial_base_centre_2[0]= Param.CylinderInitialBaseCentreX2
-#          self.cylinder_initial_base_centre_2[1]= Param.CylinderInitialBaseCentreY2
-#          self.cylinder_initial_base_centre_2[2]= Param.CylinderInitialBaseCentreZ2
-#          self.cylinder_radius_2                = Param.CylinderRadius2
-#          self.cylinder_velocity_2              = Param.CylinderVelocity2
-#          self.cylinder_angular_velocity_2      = Param.CylinderAngularVelocity2
-#          self.cylinder_friction_angle_2        = Param.CylinderFrictionAngle2
-#        if (Param.LimitCylinderOption > 2):
-#          self.cylinder_axis_dir_3              = Vector(3)
-#          self.cylinder_axis_dir_3[0]           = Param.CylinderAxisX3
-#          self.cylinder_axis_dir_3[1]           = Param.CylinderAxisY3
-#          self.cylinder_axis_dir_3[2]           = Param.CylinderAxisZ3
-#          self.cylinder_initial_base_centre_3   = Vector(3)
-#          self.cylinder_initial_base_centre_3[0]= Param.CylinderInitialBaseCentreX3
-#          self.cylinder_initial_base_centre_3[1]= Param.CylinderInitialBaseCentreY3
-#          self.cylinder_initial_base_centre_3[2]= Param.CylinderInitialBaseCentreZ3
-#          self.cylinder_radius_3                = Param.CylinderRadius3
-#          self.cylinder_velocity_3              = Param.CylinderVelocity3
-#          self.cylinder_angular_velocity_3      = Param.CylinderAngularVelocity3
-#          self.cylinder_friction_angle_3        = Param.CylinderFrictionAngle3
-#        if (Param.LimitCylinderOption > 3):
-#          self.cylinder_axis_dir_4              = Vector(3)
-#          self.cylinder_axis_dir_4[0]           = Param.CylinderAxisX4
-#          self.cylinder_axis_dir_4[1]           = Param.CylinderAxisY4
-#          self.cylinder_axis_dir_4[2]           = Param.CylinderAxisZ4
-#          self.cylinder_initial_base_centre_4   = Vector(3)
-#          self.cylinder_initial_base_centre_4[0]= Param.CylinderInitialBaseCentreX4
-#          self.cylinder_initial_base_centre_4[1]= Param.CylinderInitialBaseCentreY4
-#          self.cylinder_initial_base_centre_4[2]= Param.CylinderInitialBaseCentreZ4
-#          self.cylinder_radius_4                = Param.CylinderRadius4
-#          self.cylinder_velocity_4              = Param.CylinderVelocity4
-#          self.cylinder_angular_velocity_4      = Param.CylinderAngularVelocity4
-#          self.cylinder_friction_angle_4        = Param.CylinderFrictionAngle4
-#        if (Param.LimitCylinderOption > 4):
-#          self.cylinder_axis_dir_5              = Vector(3)
-#          self.cylinder_axis_dir_5[0]           = Param.CylinderAxisX5
-#          self.cylinder_axis_dir_5[1]           = Param.CylinderAxisY5
-#          self.cylinder_axis_dir_5[2]           = Param.CylinderAxisZ5
-#          self.cylinder_initial_base_centre_5   = Vector(3)
-#          self.cylinder_initial_base_centre_5[0]= Param.CylinderInitialBaseCentreX5
-#          self.cylinder_initial_base_centre_5[1]= Param.CylinderInitialBaseCentreY5
-#          self.cylinder_initial_base_centre_5[2]= Param.CylinderInitialBaseCentreZ5
-#          self.cylinder_radius_5                = Param.CylinderRadius5
-#          self.cylinder_velocity_5              = Param.CylinderVelocity5
-#          self.cylinder_angular_velocity_5      = Param.CylinderAngularVelocity5
-#          self.cylinder_friction_angle_5        = Param.CylinderFrictionAngle5
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity = Vector(3)
@@ -367,9 +251,6 @@ class ExplicitStrategy:
             self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
 
         # STRATEGIES
-
-        self.search_tolerance = 0.0
-        self.coordination_number = 10.0
 
         self.search_strategy = OMP_DEMSearch()            
             
