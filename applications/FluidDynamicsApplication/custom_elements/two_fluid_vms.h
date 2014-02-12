@@ -193,15 +193,14 @@ public:
     {
         return Element::Pointer(new TwoFluidVMS(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties));
     }
-    /// Provides local contributions from body forces and projections to the RHS
+    /// Provides local contributions from body forces to the RHS
     /**
      * This is called during the assembly process and provides the RHS terms of the
      * system that are either constant or computed explicitly (from the 'old'
-     * iteration variables). In this case this means the body force terms and the
-     * OSS projections, that are treated explicitly.
+     * iteration variables). In this case this means the body force terms 
      * @param rRightHandSideVector Will be filled with the elemental right hand side
      * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
-     * expected to contain values for OSS_SWITCH, DYNAMIC_TAU and DELTA_TIME
+     * expected to contain values for DYNAMIC_TAU and DELTA_TIME
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo)
@@ -503,31 +502,22 @@ KRATOS_WATCH(Ngauss);  */
             // Calculate this element's fluid properties
             double Density;
             this->EvaluateInPoint(Density, DENSITY, N);
-            /* For ASGS: add dynamic stabilization terms.
-             * These terms are not used in OSS, as they belong to the finite element
-             * space and cancel out with their projections.
-             */
-            if (rCurrentProcessInfo[OSS_SWITCH] != 1)
-            {
-                double KinViscosity;
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-                // Get Advective velocity
-                array_1d<double, 3 > AdvVel;
-                this->GetAdvectiveVel(AdvVel, N);
-                // Calculate stabilization parameters
-                double TauOne, TauTwo;
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 
-                // Add dynamic stabilization terms ( all terms involving a delta(u) )
-                this->AddMassStabTerms(MassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
- 
-                this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, wGauss, rCurrentProcessInfo[DELTA_TIME]);
+            double KinViscosity;
+            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            double Viscosity;
+            this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            // Get Advective velocity
+            array_1d<double, 3 > AdvVel;
+            this->GetAdvectiveVel(AdvVel, N);
+            // Calculate stabilization parameters
+            double TauOne, TauTwo;
+            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 
-            }
+            // Add dynamic stabilization terms ( all terms involving a delta(u) )
+            this->AddMassStabTerms(MassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
+
         }
-//           KRATOS_WATCH("line 476");         
         
         //****************************************************
         //consider contributions of mass to LHS and RHS
@@ -714,17 +704,10 @@ KRATOS_WATCH(Ngauss);  */
 //       KRATOS_WATCH("finished elem")
     }
 
-    /// Implementation of Calculate to compute the local OSS projections.
-    /**
-     * If rVariable == ADVPROJ, This function computes the OSS projection
-     * terms using pressure and velocity values from the previous iteration. The
-     * projections are then added to the nodal variables ADVPROJ (Momentum residual)
-     * and DIVPROJ (Mass continuity residual). It is assumed that the scheme will
-     * divide the result by the assembled NODAL_AREA, which is equivalent to a
-     * nodal interpolation using a lumped mass matrix.
-     * @param rVariable Use ADVPROJ
-     * @param Output Will be overwritten with the elemental momentum error
-     * @param rCurrentProcessInfo Process info instance (unused)
+    /** does nothing for this element
+     * @param rVariable 
+     * @param Output 
+     * @param rCurrentProcessInfo 
      */
     virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
@@ -913,16 +896,14 @@ KRATOS_WATCH(Ngauss);  */
             KRATOS_ERROR(std::invalid_argument, "DENSITY Key is 0. Check if the application was correctly registered.", "");
         if (VISCOSITY.Key() == 0)
             KRATOS_ERROR(std::invalid_argument, "VISCOSITY Key is 0. Check if the application was correctly registered.", "");
-        if (OSS_SWITCH.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "OSS_SWITCH Key is 0. Check if the application was correctly registered.", "");
         if (DYNAMIC_TAU.Key() == 0)
             KRATOS_ERROR(std::invalid_argument, "DYNAMIC_TAU Key is 0. Check if the application was correctly registered.", "");
         if (DELTA_TIME.Key() == 0)
             KRATOS_ERROR(std::invalid_argument, "DELTA_TIME Key is 0. Check if the application was correctly registered.", "");
-        if (ADVPROJ.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "ADVPROJ Key is 0. Check if the application was correctly registered.", "");
-        if (DIVPROJ.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "DIVPROJ Key is 0. Check if the application was correctly registered.", "");
+//         if (ADVPROJ.Key() == 0)
+//             KRATOS_ERROR(std::invalid_argument, "ADVPROJ Key is 0. Check if the application was correctly registered.", "");
+//         if (DIVPROJ.Key() == 0)
+//             KRATOS_ERROR(std::invalid_argument, "DIVPROJ Key is 0. Check if the application was correctly registered.", "");
         if (NODAL_AREA.Key() == 0)
             KRATOS_ERROR(std::invalid_argument, "NODAL_AREA Key is 0. Check if the application was correctly registered.", "");
         if (C_SMAGORINSKY.Key() == 0)
@@ -950,7 +931,7 @@ KRATOS_WATCH(Ngauss);  */
             if (this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
                 KRATOS_ERROR(std::invalid_argument, "missing PRESSURE component degree of freedom on node ", this->GetGeometry()[i].Id());
         }
-        // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
+
         // If this is a 2D problem, check that nodes are in XY plane
         if (this->GetGeometry().WorkingSpaceDimension() == 2)
         {
