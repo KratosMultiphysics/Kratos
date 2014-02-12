@@ -25,6 +25,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(FORCE)
     model_part.AddNodalSolutionStepVariable(FACE_LOAD)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(MOMENT)
 
     if config is not None:
         if hasattr(config, "RotationDofs"):
@@ -32,7 +33,6 @@ def AddVariables(model_part, config=None):
                 # add specific variables for the problem (rotation dofs)
                 model_part.AddNodalSolutionStepVariable(ROTATION);
                 model_part.AddNodalSolutionStepVariable(MOMENTUM);
-                model_part.AddNodalSolutionStepVariable(MOMENT);
         if hasattr(config, "PressureDofs"):
             if config.PressureDofs:
                 # add specific variables for the problem (pressure dofs)
