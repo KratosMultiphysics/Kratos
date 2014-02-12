@@ -63,7 +63,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericContinuumParticle::SetInitialContacts() 
+      void SphericContinuumParticle::SetInitialSphereContacts() 
       {   
                 
           /*
@@ -119,14 +119,10 @@ namespace Kratos
 
             ini_size++;
             mIniNeighbourIds[ini_size - 1] = ((*ineighbour).lock())->Id();
-            mIniNeighbourDelta[ini_size - 1] = 0.0;
             mIniNeighbourFailureId[ini_size - 1] = 1;
             mMapping_New_Ini[ini_size - 1] = ini_size - 1;
-
             mIniNeighbourToIniContinuum[ini_size - 1] = -1; //-1 is initial but not continuum.             
-
-
-                mIniNeighbourDelta[ini_size - 1] = initial_delta;
+            mIniNeighbourDelta[ini_size - 1] = initial_delta;
 
 
             if ((r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0)) 
@@ -177,9 +173,54 @@ namespace Kratos
             ContactAreaWeighting2D();
         }
 
+    }//SetInitialSphereContacts
+    
+    
+  //**************************************************************************************************************************************************
+  //**************************************************************************************************************************************************
 
+    
+    void SphericContinuumParticle::SetInitialFemContacts() 
+    {   
+        
+        Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+        ConditionWeakVectorType& rFemNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+        
+        unsigned int fem_neighbours_size = rFemNeighbours.size();
+        
+        std::size_t iRigidFaceNeighbour = 0;
+        
+        mFemIniNeighbourIds.resize(fem_neighbours_size);
+        mFemMappingNewIni.resize(fem_neighbours_size);
+        mFemIniNeighbourDelta.resize(fem_neighbours_size);
+        
+        for(ConditionWeakIteratorType ineighbour = rFemNeighbours.begin(); ineighbour != rFemNeighbours.end(); ineighbour++)
+        { 
+          
+          double Weight[4] = {0.0};
+          
+          int ino1               = iRigidFaceNeighbour * 15;
+          
+          double DistPToB        = RF_Pram[ino1 + 9];
+          Weight[0]              = RF_Pram[ino1 + 10];
+          Weight[1]              = RF_Pram[ino1 + 11];
+          Weight[2]              = RF_Pram[ino1 + 12];
+          Weight[3]              = RF_Pram[ino1 + 13];
+          int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
+     
+          double initial_delta = - ( DistPToB - mRadius);
 
-    }//SetInitialContacts
+          mFemIniNeighbourIds[iRigidFaceNeighbour] = iNeighborID;
+          //((*ineighbour).lock())->Id();
+
+          mFemMappingNewIni[iRigidFaceNeighbour] = iRigidFaceNeighbour;
+          mFemIniNeighbourDelta[iRigidFaceNeighbour] = initial_delta;
+
+          iRigidFaceNeighbour++;
+       
+        }
+      
+    }//SetInitialFemContacts
       
         void SphericContinuumParticle::NeighNeighMapping( ProcessInfo& rCurrentProcessInfo  ) 
         {
@@ -332,12 +373,6 @@ namespace Kratos
                  
         KRATOS_TRY
 
-        
-//         if(this->Id()==2) //MSIMSI 0
-//             {
-//             KRATOS_WATCH(*mpTimeStep)
-//             KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
-//             }
         ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS); 
 
         double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -478,7 +513,6 @@ namespace Kratos
             //DAMPING:
 
             if(mDempack){
-            
             equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
             equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
             
@@ -1141,7 +1175,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     vector_of_zeros[2]                   = 0.0;
     
     for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
-    
     {
 
       double                ini_delta           = 0.0;
@@ -1155,16 +1188,16 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
         
       for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
-        {
-          if (  static_cast<int>((i)->Id()) == mIniNeighbourIds[k]) //****
-          {                               
-            ini_delta  = mIniNeighbourDelta[k];
-            failure_id = mIniNeighbourFailureId[k];
-            mapping_new_ini = k; 
-            mapping_new_cont = mIniNeighbourToIniContinuum[k];
-            break;
-          }
+      {
+        if (  static_cast<int>((i)->Id()) == mIniNeighbourIds[k]) //****
+        {                               
+          ini_delta  = mIniNeighbourDelta[k];
+          failure_id = mIniNeighbourFailureId[k];
+          mapping_new_ini = k; 
+          mapping_new_cont = mIniNeighbourToIniContinuum[k];
+          break;
         }
+      }
                   
       //Loop Over Last time-step Neighbours
         for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
@@ -1217,10 +1250,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
     
   } //ComputeNewNeighboursHistoricalData
-      
-    
   
-
+  
   
  /*
   //RIC!!!!!
@@ -1362,8 +1393,117 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
      */
 
-  
+ 
+    void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo)
+      {
+
+      ConditionWeakVectorType& rFemTempNeighbours   = mFemTempNeighbours;
+      ConditionWeakVectorType& rFemNeighbours       = this->GetValue(NEIGHBOUR_RIGID_FACES);
+      
+      rFemTempNeighbours.swap(rFemNeighbours); 
+      
+      unsigned int fem_temp_size = rFemTempNeighbours.size();
+      
+      //unsigned int new_size                = rFemNeighbours.size();
+      
+      rFemNeighbours.clear();        
+      
+      unsigned int fem_neighbour_counter       = 0;
+      
+      //vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
+      //vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);       
+      
+      std::vector<int>&                  fem_temp_neighbours_ids = mFemTempNeighboursIds;
+      std::vector<double>&               fem_temp_neighbours_delta = mFemTempNeighboursDelta;
+      std::vector<array_1d<double, 3> >& fem_temp_neighbours_contact_forces = mFemTempNeighboursContactForces;
+      std::vector<int>&                  fem_temp_neighbours_mapping = mFemTempNeighboursMapping;
+      
+    //       vector<int> mFemOldNeighbourIds;
+    //       vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
+    //       std::vector<int> mFemTempNeighboursIds;
+    //       std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
+      
+      fem_temp_neighbours_ids.resize(fem_temp_size);
+      fem_temp_neighbours_delta.resize(fem_temp_size);
+      fem_temp_neighbours_contact_forces.resize(fem_temp_size);
+      fem_temp_neighbours_mapping.resize(fem_temp_size);
+
+      array_1d<double, 3> vector_of_zeros;
+      vector_of_zeros[0]                   = 0.0;
+      vector_of_zeros[1]                   = 0.0;
+      vector_of_zeros[2]                   = 0.0;
+
+      unsigned int iTempFemNeighbour = 0;
+      
+      Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+            
+      for (ConditionWeakIteratorType i = rFemTempNeighbours.begin(); i != rFemTempNeighbours.end(); i++)
+      {
+        
+          int ino1               = iTempFemNeighbour * 15; 
+          double DistPToB        = RF_Pram[ino1 + 9];
+          int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
+      
+          double                ini_delta           = 0.0;
+          array_1d<double, 3>   neigh_forces        = vector_of_zeros;
+          double                mapping_new_ini     = -1;  
+          
+          for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) 
+          {
+            
+            if (  iNeighborID == mFemIniNeighbourIds[k]) //****
+            {                               
+              ini_delta  = mFemIniNeighbourDelta[k];
+              mapping_new_ini = k; 
+              break;
+            }
+          }
+
+          for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++)  
+          {
+            
+            if ( static_cast<int>((i)->Id()) == mFemOldNeighbourIds[j])
+            {
+              neigh_forces = mFemOldNeighbourContactForces[j];
+              break;
+            }
+          }
+          
+          //Judge if its neighbour  
+                
+          double indentation = -(DistPToB - mRadius) - ini_delta;
+          
+          if ( indentation > 0.0 )  
+          {
+              rFemNeighbours.push_back(*(i.base()));                
+              
+              fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((i)->Id());
+              fem_temp_neighbours_mapping[fem_neighbour_counter]          = mapping_new_ini;
+              fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
+              fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
+              
+              fem_neighbour_counter++;
+              
+          }
+          
+          iTempFemNeighbour++;
+
+      }//for ConditionWeakIteratorType i
+      
+      int final_size = rFemNeighbours.size();
+      fem_temp_neighbours_ids.resize(final_size);
+      fem_temp_neighbours_delta.resize(final_size);
+      fem_temp_neighbours_contact_forces.resize(final_size);
+      fem_temp_neighbours_mapping.resize(final_size);
+      
+      mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
+      mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
+      mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
+      mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
+        
+      }
    
+  
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
         //KRATOS_WATCH(rVariable)
@@ -1375,7 +1515,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         }
         ////////////////////////////////////////////////////////////////////////
         if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
-            ComputeNewRigidFaceNeighboursHistoricalData();
+            ComputeNewRigidFaceNeighboursHistoricalData(rCurrentProcessInfo);
             return;
         }
         ////////////////////////////////////////////////////////////////////////
@@ -1532,11 +1672,19 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             return;
         }                                   
         ////////////////////////////////////////////////////////////////////////
-        if (rVariable == CALCULATE_SET_INITIAL_CONTACTS)
+        if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
         {            
-            SetInitialContacts();
+            SetInitialSphereContacts();
             return;
-        }        
+        }
+        
+        if (rVariable == CALCULATE_SET_INITIAL_FEM_CONTACTS)
+        {            
+            SetInitialFemContacts();
+            return;
+        }
+        
+        
         
       KRATOS_CATCH("")
       
