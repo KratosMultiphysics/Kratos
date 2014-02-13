@@ -540,9 +540,9 @@ namespace Kratos
 
             //////120323,for global storage
 			
-		    GlobalContactForceOld[0] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][0];
-		    GlobalContactForceOld[1] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][1];
-		    GlobalContactForceOld[2] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][2];
+		    GlobalContactForceOld[0] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][0];
+		    GlobalContactForceOld[1] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][1];
+		    GlobalContactForceOld[2] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][2];
 			
 			
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
@@ -616,9 +616,9 @@ namespace Kratos
 
             GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
-            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][0] = GlobalContactForce[0];
-            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
-            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
+            mFemOldNeighbourContactForces[iRigidFaceNeighbour][0] = GlobalContactForce[0];
+            mFemOldNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
+            mFemOldNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
 			
 	    ///Global stored contact force between rigid face and particle, used by fem elements
             Vector& neighbour_rigid_faces_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
