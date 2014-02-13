@@ -6,6 +6,9 @@ import math
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+#
+#
+#
 
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
@@ -18,7 +21,7 @@ import DEM_material_test_script
 # Defining a model part for the solid part
 
 my_timer = Timer();
-balls_model_part = ModelPart("SolidPart");
+balls_model_part = ModelPart("SpheresPart");
 
 RigidFace_model_part   = ModelPart("RigidFace_Part");  
 mixed_model_part       = ModelPart("Mixed_Part");
@@ -34,6 +37,8 @@ RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 import continuum_sphere_strategy as SolverStrategy
 
 SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
+
+#
 
 # Reading the model_part: binary or ascii, multifile or single --> only binary and single for mpi.
 
@@ -54,12 +59,23 @@ write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 spheres_mp_filename = DEM_parameters.problem_name + "DEM"
-model_part_io_solid = ModelPartIO(spheres_mp_filename)
-model_part_io_solid.ReadModelPart(balls_model_part)
+
+#
+model_part_io_spheres = ModelPartIO(spheres_mp_filename)
+#
+#
+#
+#
+#
+#
+#
+
+model_part_io_spheres.ReadModelPart(balls_model_part)
 
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-model_part_io_solid = ModelPartIO(rigidFace_mp_filename)
-model_part_io_solid.ReadModelPart(RigidFace_model_part)
+
+model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
+model_part_io_fem.ReadModelPart(RigidFace_model_part)
 
 # Setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 
@@ -106,6 +122,14 @@ multifile_50.write('Multiple\n')
 os.chdir(main_path)
 
 print ("Initializing Problem....")
+#
+#
+#
+#
+#
+#
+#
+#
 
 solver.Initialize()
 
@@ -116,6 +140,8 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
 post_utility = PostUtilities()
+
+#
 
 os.chdir(post_path)
 
@@ -133,14 +159,15 @@ if (DEM_parameters.Multifile == "single_file"):
   gid_io.FinalizeMesh()
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
   
-
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
 
-MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, balls_model_part)
+if(DEM_parameters.TestType != "None"):
+ 
+ MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part)
 
 print ("Initialization Complete" + "\n")
 
@@ -167,9 +194,12 @@ if(DEM_parameters.TestType == "Edometric"):
 
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
-    (coordination_number) = Procedures.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-    print ("Coordination Number: " + str(coordination_number) + "\n")
-    os.chdir(main_path)
+    if (DEM_parameters.ContactMeshOption == "ON"):
+      (coordination_number) = Procedures.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
+      print ("Coordination Number: " + str(coordination_number) + "\n")
+      os.chdir(main_path)
+    else:
+      print("Activate Contact Mesh for ModelData information")
 
 if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
@@ -204,34 +234,9 @@ print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
-#left_nodes = list()
-#right_nodes = list()
-
-#xleft_weight  = 0.0         
-#xright_weight  = 0.0
-
-#left_counter = 0.0
-#right_counter = 0.0
-
 #if(DEM_parameters.PoissonMeasure == "ON"):
-        
-      #for node in balls_model_part.Nodes:
-        
-        #if (node.GetSolutionStepValue(GROUP_ID)==4):
-          
-           #left_nodes.append(node)
-           #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-           #left_counter = +node.GetSolutionStepValue(RADIUS)
-           
-        #elif(node.GetSolutionStepValue(GROUP_ID)==8):
-          
-           #right_nodes.append(node)
-           #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-           #right_counter = +node.GetSolutionStepValue(RADIUS)
-           
-      #width_ini = xright_weight/right_counter - xleft_weight/left_counter
-        
-
+	#MaterialTest.PoissonMeasuure()
+  
 while (time < DEM_parameters.FinalTime):
 
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
@@ -289,7 +294,7 @@ while (time < DEM_parameters.FinalTime):
       MaterialTest.CreateTopAndBotGraph(DEM_parameters)
       
      
-    ##########################___GiD IO____#########################################4 
+    ##########################___GiD IO____#########################################
     
     os.chdir(list_path)    
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
@@ -353,15 +358,13 @@ while (time < DEM_parameters.FinalTime):
         time_old_print = time
   
     step += 1
-    
-    if((step%100) == 0):
-      if ( DEM_parameters.ContactMeshOption =="ON")  :
-          MaterialTest.OrientationStudy(contact_model_part)
+
+    if((step%500) == 0):
+      if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
+          MaterialTest.OrientationStudy(contact_model_part, step)
     
 
 #-----------------------FINALIZATION OPERATIONS-------------------------------------------------------------------------------------- 
-
-#ProceduresPlotPhysicalProperties(properties_list, graphs_path)
 
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
@@ -369,8 +372,7 @@ if (DEM_parameters.Multifile == "single_file"):
 if (DEM_parameters.TestType!= "None"):
   
   MaterialTest.FinalizeGraphs(DEM_parameters)
-    
- 
+
 multifile.close()
 multifile_5.close()
 multifile_10.close()
