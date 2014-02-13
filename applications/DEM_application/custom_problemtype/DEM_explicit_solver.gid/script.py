@@ -4,7 +4,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from DEM_explicit_solver_var import *
 
-if (ElementType == "SphericPartDEMElement3D" or ElementType == "CylinderParticle2D"):
+print (ElementType)
+if (ElementType == "SphericPartDEMElement3D" or ElementType == "CylinderPartDEMElement2D"):
     import spheric_particle_script
-elif (ElementType == "SphericContPartDEMElement3D" or ElementType == "CylinderContinuumParticle2D"):
+    
+    
+elif (ElementType == "SphericContPartDEMElement3D" or ElementType == "CylinderContPartDEMElement2D"):
     import continuum_spheric_particle_script
+    
