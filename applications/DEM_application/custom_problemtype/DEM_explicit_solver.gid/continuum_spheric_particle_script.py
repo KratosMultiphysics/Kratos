@@ -16,6 +16,8 @@ Procedures = DEM_procedures.Procedures(DEM_parameters)
 
 import DEM_material_test_script 
 
+import mesh_motion
+
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
@@ -249,6 +251,9 @@ while (time < DEM_parameters.FinalTime):
     RigidFace_model_part.ProcessInfo[TIME] = time
     RigidFace_model_part.ProcessInfo[DELTA_TIME] = dt
     RigidFace_model_part.ProcessInfo[TIME_STEPS] = step
+    
+    #walls movement:
+    mesh_motion.MoveAllMeshes(RigidFace_model_part, time)
     
     if(DEM_parameters.FemPlates == "ON"):
       translation_operation.ExecuteInitializeSolutionStep()
