@@ -138,7 +138,7 @@ namespace Kratos
     static inline void ComputeContactLocalCoordSystem(array_1d<double,3>& NormalDirection, const double& distance, double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
     {
            
-        double inv_distance = 1.0/distance;
+        double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
         NormalDirection[0] *= inv_distance;
         NormalDirection[1] *= inv_distance;
         NormalDirection[2] *= inv_distance;
@@ -173,7 +173,7 @@ namespace Kratos
        
         //normalize(Vector0);
         double distance0 = sqrt(LocalCoordSystem[0][0] * LocalCoordSystem[0][0] + LocalCoordSystem[0][1] * LocalCoordSystem[0][1] + LocalCoordSystem[0][2] * LocalCoordSystem[0][2]);
-        double inv_distance0 = 1 / distance0;
+        double inv_distance0 = (distance0 != 0.0) ?  1.0 / distance0 : 0.00;
         LocalCoordSystem[0][0] = LocalCoordSystem[0][0] * inv_distance0;
         LocalCoordSystem[0][1] = LocalCoordSystem[0][1] * inv_distance0;
         LocalCoordSystem[0][2] = LocalCoordSystem[0][2] * inv_distance0;
