@@ -260,35 +260,35 @@ class IncompressibleFluidSolver:
     def do_divergence_clearance(self):
         print("Calculating divergence-free initial condition")
         # initialize with a Stokes solution step
-        try:
-            import KratosMultiphysics.ExternalSolversApplication as kes
-            smoother_type = kes.AMGLCSmoother.ILU0
-            # smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
-            solver_type = kes.AMGCLSolver.BICGSTAB
-            # solver_type = kes.AMGCLIterativeSolverType.CG
-            gmres_size = 50
-            max_iter = 200
-            tol = 1e-7
-            verbosity = 1
-            stokes_linear_solver = kes.AMGCLSolver(
-                smoother_type,
-                solver_type,
-                tol,
-                max_iter,
-                verbosity,
-                gmres_size)
-        except:
-            pPrecond = DiagonalPreconditioner()
-            stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
-        stokes_process = StokesInitializationProcess(
-            self.model_part,
-            stokes_linear_solver,
-            self.domain_size,
-                PATCH_INDEX)
-        # copy periodic conditions to Stokes problem
-        stokes_process.SetConditions(self.model_part.Conditions)
-        # execute Stokes process
-        stokes_process.Execute()
+        #try:
+            #import KratosMultiphysics.ExternalSolversApplication as kes
+            #smoother_type = kes.AMGLCSmoother.ILU0
+            ## smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
+            #solver_type = kes.AMGCLSolver.BICGSTAB
+            ## solver_type = kes.AMGCLIterativeSolverType.CG
+            #gmres_size = 50
+            #max_iter = 200
+            #tol = 1e-7
+            #verbosity = 1
+            #stokes_linear_solver = kes.AMGCLSolver(
+                #smoother_type,
+                #solver_type,
+                #tol,
+                #max_iter,
+                #verbosity,
+                #gmres_size)
+        #except:
+            #pPrecond = DiagonalPreconditioner()
+            #stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
+        #stokes_process = StokesInitializationProcess(
+            #self.model_part,
+            #stokes_linear_solver,
+            #self.domain_size,
+                #PATCH_INDEX)
+        ## copy periodic conditions to Stokes problem
+        #stokes_process.SetConditions(self.model_part.Conditions)
+        ## execute Stokes process
+        #stokes_process.Execute()
 
         dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, 100.0 * dt)
