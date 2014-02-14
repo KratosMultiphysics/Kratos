@@ -3,20 +3,6 @@ import math
 import os
 from KratosMultiphysics import *
 
-def VectSum(v, w):
-    return [x + y for x, y in zip(v, w)]
-
-def VectTimes(v, c):
-    return [c * x for x in v]
-
-def InnerProd(v, w):
-    res = 0.0
-
-    for x, y in zip(v, w):
-        res += x * y
-
-    return res
-
 def Norm(v):
     res = 0.0
 
@@ -82,25 +68,56 @@ def MoveAllMeshes(model_part, time):
 
             if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
-                center_position = VectSum(initial_center, VectTimes(linear_velocity, math.sin(linear_omega * time) / linear_omega))
+                #center_position = VectSum(initial_center, VectTimes(linear_velocity, math.sin(linear_omega * time) / linear_omega))
+                center_position = initial_center + linear_velocity * math.sin(linear_omega * time) / linear_omega
+                
             else:
                 center_position = initial_center + time * linear_velocity
 
             if (angular_period > 0.0):
                 angular_omega = 2 * math.pi / angular_period
-                angle = VectTimes(angular_velocity, math.sin(angular_omega * time) / angular_omega)
+                angle = angular_velocity * math.sin(angular_omega * time) / angular_omega
             else:
-                angle = VectTimes(angular_velocity, time)
+                angle = angular_velocity * time
 
             mod_angular_velocity = Norm(angular_velocity)
-            relative_position = [0.0, 0.0, 0.0]
-
+            relative_position = Vector(3)
+            relative_position[0] = 0.0
+            relative_position[1] = 0.0
+            relative_position[2] = 0.0                                    
+            
             if (mod_angular_velocity > 0.0):
                 ang = Norm(angle)
                 rotation_axis = Normalize(angular_velocity)
-                e1 = [1.0, 0, 0]
-                e2 = [0, 1.0, 0]
-                [new_axes1, new_axes2, new_axes3] = RotateRightHandedBasisAroundAxis(e1, e2, rotation_axis, ang)
+                e1 = Vector(3)
+                e1[0] = 1.0
+                e1[1] = 0.0
+                e1[2] = 0.0
+                
+                e2 = Vector(3)
+                e2[0] = 0.0
+                e2[1] = 1.0
+                e2[2] = 0.0
+                
+                [new_axes1, new_axes2, new_axes3] = RotateRightHandedBasisAroundAxis(e1, e2, rotation_axis, ang)  
+                
+            else:
+                new_axes1 = Vector(3)
+                new_axes1[0] = 1.0
+                new_axes1[1] = 0.0
+                new_axes1[2] = 0.0
+                
+                new_axes2 = Vector(3)
+                new_axes2[0] = 0.0
+                new_axes2[1] = 1.0
+                new_axes2[2] = 0.0
+                
+                new_axes3 = Vector(3)
+                new_axes3[0] = 0.0
+                new_axes3[1] = 0.0
+                new_axes3[2] = 1.0
+            
+            if (mod_angular_velocity>0.0 or Norm(linear_velocity)>0.0):
 
                 for node in mesh_nodes:
                     local_X = node.X0 - initial_center[0]
@@ -110,7 +127,7 @@ def MoveAllMeshes(model_part, time):
                     relative_position[1] = new_axes1[1] * local_X + new_axes2[1] * local_Y + new_axes3[1] * local_Z
                     relative_position[2] = new_axes1[2] * local_X + new_axes2[2] * local_Y + new_axes3[2] * local_Z
                     # NEW POSITION
-                    [node.X, node.Y, node.Z] = VectSum(center_position, relative_position)
+                    [node.X, node.Y, node.Z] = center_position + relative_position
                     velocity_due_to_rotation = Cross(relative_position, angular_velocity)
                     # NEW VELOCITY                    
                     vel = Vector(3)
