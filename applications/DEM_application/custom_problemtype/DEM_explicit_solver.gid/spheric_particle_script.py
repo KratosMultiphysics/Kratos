@@ -24,6 +24,8 @@ import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 proc = DEM_procedures.Procedures(DEM_parameters)
 
+import mesh_motion
+
 # BENCHMARK ###
 
 # BENCHMARK ###
@@ -246,14 +248,16 @@ while (time < DEM_parameters.FinalTime):
     balls_model_part.ProcessInfo[TIME] = time
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
-
+    
+    #walls movement:
+    mesh_motion.MoveAllMeshes(RigidFace_model_part, time)
+    
     # _SOLVE_###########################################
     os.chdir(main_path)
     solver.Solve()
     # TIME CONTROL######################################
         
-    # adding DEM elements by the inlet
-
+    # adding DEM elements by the inlet:
     if (inlet_option):
         DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
 
