@@ -100,7 +100,7 @@ namespace Kratos
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
           array_1d<double, 3> initial_rotation_moment;     
-           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
 
           contact_force.clear();
           contact_moment.clear();
