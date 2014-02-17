@@ -572,8 +572,6 @@ namespace Kratos
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
         if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
-
-        if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
     }
 
     void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
@@ -735,6 +733,7 @@ namespace Kratos
 
 #endif // OPT_1_POINT_INTEGRATION
 
+		// cartesian derivatives
 		data.dNxy.resize(3, 2, false);
 		data.dNxy(0, 0) = (y13 - y12)/A2; data.dNxy(0, 1) = (x12 - x13)/A2;
 		data.dNxy(1, 0) =        -y13/A2; data.dNxy(1, 1) =         x13/A2;
@@ -1075,17 +1074,26 @@ namespace Kratos
 		data.beta0 = 1.0; // to be changed!
 	}
 
+	void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
+	{
+#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
+		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
+		for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
+			data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid); 
+#else
+		const array_1d<double,3>& loc = data.gpLocations[data.gpIndex];
+		data.N(0) = 1.0 - loc[1] - loc[2];
+		data.N(1) = loc[1];
+		data.N(2) = loc[2];
+#endif // !OPT_USES_INTERIOR_GAUSS_POINTS
+
+		ShellCrossSection::Pointer& section = mSections[data.gpIndex];
+		data.SectionParameters.SetShapeFunctionsValues( data.N );
+		section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
+	}
+
 	void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS)
 	{
-		// get some references
-        GeometryType & geom = GetGeometry();
-
-		// shape functions and their cartesian derivatives.
-		// we just need them for the cross section parameters...
-		const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
-		for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
-			data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
-
 		// calculate beta0
 		CalculateBeta0( data );
 
@@ -1096,9 +1104,7 @@ namespace Kratos
 		noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
 
 		// calculate section response
-		ShellCrossSection::Pointer& section = mSections[data.gpIndex];
-		data.SectionParameters.SetShapeFunctionsValues( data.N );
-		section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
+		CalculateSectionResponse( data );
 
 		// multiply the section tangent matrices and stress resultants by 'dA'
 		data.D *= data.dA;
@@ -1111,12 +1117,10 @@ namespace Kratos
 		data.generalizedStresses *= data.dA;
 
 		// Add all contributions to the Stiffness Matrix
-
         noalias( data.BTD ) = prod( trans( data.B ), data.D );
         noalias( LHS ) += prod( data.BTD, data.B );
 
         // Add all contributions to the residual vector
-
         noalias( RHS ) -= prod( trans( data.B ), data.generalizedStresses );
 	}
 
@@ -1321,114 +1325,6 @@ namespace Kratos
         return true;
     }
 
-    bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<array_1d<double,3> >& rVariable,
-                                                                                           std::vector<array_1d<double,3> >& rValues, 
-                                                                                           const ProcessInfo& rCurrentProcessInfo)
-    {
-		// Check the required output
-
-        int ijob = 0;
-		if(rVariable == SHELL_CURVATURE)
-			ijob = 1;
-		else if(rVariable == SHELL_MOMENT)
-			ijob = 2;
-
-        // quick return
-
-        if(ijob == 0) return false;
-
-        // resize output
-
-        if(rValues.size() != OPT_NUM_GP)
-            rValues.resize(OPT_NUM_GP);
-
-		// get some references
-
-        GeometryType & geom = GetGeometry();
-
-		// Just to store the rotation matrix for visualization purposes
-
-        Matrix R(OPT_STRAIN_SIZE, OPT_STRAIN_SIZE);
-
-		// Initialize common calculation variables
-
-        CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
-		data.CalculateLHS = false;
-		data.CalculateRHS = true;
-		InitializeCalculationData(data);
-
-        // Gauss Loop.
-
-		for(size_t i = 0; i < OPT_NUM_GP; i++)
-		{
-			// set the current integration point index
-			data.gpIndex = i;
-			ShellCrossSection::Pointer& section = mSections[i];
-
-			// shape functions and their cartesian derivatives.
-			// we just need them for the cross section parameters...
-			const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
-			for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
-				data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
-
-			// calculate beta0
-			CalculateBeta0( data );
-
-			// calculate the total strain displ. matrix
-			CalculateBMatrix( data );
-
-			// compute generalized strains
-			noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
-
-			if(ijob == 2)
-			{
-				// calculate section response
-				data.SectionParameters.SetShapeFunctionsValues( data.N );
-				section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
-			}
-
-			// adjust output
-			DecimalCorrection( data.generalizedStrains );
-			DecimalCorrection( data.generalizedStresses );
-
-			// store the results, but first rotate them back to the section coordinate system.
-            // we want to visualize the results in that system not in the element one!
-            if(section->GetOrientationAngle() != 0.0)
-            {
-				if (ijob == 1)
-				{
-					section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
-					data.generalizedStrains = prod( R, data.generalizedStrains );
-				}
-				else // if(ijob == 2)
-				{
-					section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
-					data.generalizedStresses = prod( R, data.generalizedStresses ); 
-				}
-            }
-
-			// save results
-			array_1d<double, 3> & iValue = rValues[i];
-
-            if(ijob == 1) // curvatures
-			{
-				iValue[0] = data.generalizedStrains[3]; // C.xx
-                iValue[1] = data.generalizedStrains[4]; // C.yy
-				iValue[2] = data.generalizedStrains[5]; // C.zz
-			}
-			else if(ijob == 2) // stress couples
-			{
-				iValue[0] = data.generalizedStresses[3]; // M.xx
-                iValue[1] = data.generalizedStresses[4]; // M.yy
-				iValue[2] = data.generalizedStresses[5]; // M.zz
-			}
-		}
-
-		OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
-
-		return true;
-    }
-
     bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
                                                                                            std::vector<Matrix>& rValues, 
                                                                                            const ProcessInfo& rCurrentProcessInfo)
@@ -1444,11 +1340,25 @@ namespace Kratos
 			ijob = 1;
 			bGlobal = true;
 		}
+		else if(rVariable == SHELL_CURVATURE) {
+			ijob = 2;
+		}
+		else if(rVariable == SHELL_CURVATURE_GLOBAL) {
+			ijob = 2;
+			bGlobal = true;
+		}
         else if(rVariable == SHELL_FORCE) {
-            ijob = 2;
+            ijob = 3;
 		}
 		else if(rVariable == SHELL_FORCE_GLOBAL) {
-			ijob = 2;
+			ijob = 3;
+			bGlobal = true;
+		}
+		else if(rVariable == SHELL_MOMENT) {
+            ijob = 4;
+		}
+		else if(rVariable == SHELL_MOMENT_GLOBAL) {
+			ijob = 4;
 			bGlobal = true;
 		}
 
@@ -1460,10 +1370,6 @@ namespace Kratos
 
         if(rValues.size() != OPT_NUM_GP)
             rValues.resize(OPT_NUM_GP);
-
-		// get some references
-
-        GeometryType & geom = GetGeometry();
 
 		// Just to store the rotation matrix for visualization purposes
 
@@ -1485,12 +1391,6 @@ namespace Kratos
 			data.gpIndex = i;
 			ShellCrossSection::Pointer& section = mSections[i];
 
-			// shape functions and their cartesian derivatives.
-			// we just need them for the cross section parameters...
-			const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
-			for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
-				data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
-
 			// calculate beta0
 			CalculateBeta0( data );
 
@@ -1500,12 +1400,8 @@ namespace Kratos
 			// compute generalized strains
 			noalias( data.generalizedStrains ) = prod( data.B, data.localDisplacements );
 
-			if(ijob == 2)
-			{
-				// calculate section response
-				data.SectionParameters.SetShapeFunctionsValues( data.N );
-				section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
-			}
+			// calculate section response
+			if(ijob > 2) CalculateSectionResponse( data );
 
 			// adjust output
 			DecimalCorrection( data.generalizedStrains );
@@ -1515,15 +1411,15 @@ namespace Kratos
             // we want to visualize the results in that system not in the element one!
             if(section->GetOrientationAngle() != 0.0 && !bGlobal)
             {
-				if (ijob == 1)
-				{
-					section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
-					data.generalizedStrains = prod( R, data.generalizedStrains );
-				}
-				else // if(ijob == 2)
+				if (ijob > 2)
 				{
 					section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
-					data.generalizedStresses = prod( R, data.generalizedStresses ); 
+					data.generalizedStresses = prod( R, data.generalizedStresses );
+				}
+				else
+				{
+					 section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
+					 data.generalizedStrains = prod( R, data.generalizedStrains );
 				}
             }
 
@@ -1532,16 +1428,25 @@ namespace Kratos
 			if(iValue.size1() != 3 || iValue.size2() != 3)
 				iValue.resize(3, 3, false);
 
-            if(ijob == 1)
+            if(ijob == 1) // strains
             {
 				iValue(0, 0) = data.generalizedStrains(0);
 				iValue(1, 1) = data.generalizedStrains(1);
-				iValue(2, 2) = 0.0; // it would be useful to show the condensed strains...
+				iValue(2, 2) = 0.0;
 				iValue(0, 1) = iValue(1, 0) = 0.5 * data.generalizedStrains(2);
-				iValue(0, 2) = iValue(2, 0) = 0.0; // it would be useful to show the condensed strains...
-				iValue(1, 2) = iValue(2, 1) = 0.0; // it would be useful to show the condensed strains...
+				iValue(0, 2) = iValue(2, 0) = 0.0;
+				iValue(1, 2) = iValue(2, 1) = 0.0;
             }
-            else if(ijob == 2)
+			else if(ijob == 2) // curvatures
+			{
+				iValue(0, 0) = data.generalizedStrains(3);
+				iValue(1, 1) = data.generalizedStrains(4);
+				iValue(2, 2) = 0.0;
+				iValue(0, 1) = iValue(1, 0) = 0.5 * data.generalizedStrains(5);
+				iValue(0, 2) = iValue(2, 0) = 0.0;
+				iValue(1, 2) = iValue(2, 1) = 0.0;
+			}
+            else if(ijob == 3) // forces
             {
 				iValue(0, 0) = data.generalizedStresses(0);
 				iValue(1, 1) = data.generalizedStresses(1);
@@ -1550,6 +1455,15 @@ namespace Kratos
 				iValue(0, 2) = iValue(2, 0) = 0.0;
 				iValue(1, 2) = iValue(2, 1) = 0.0;
             }
+			else if(ijob == 4) // moments
+			{
+				iValue(0, 0) = data.generalizedStresses(3);
+				iValue(1, 1) = data.generalizedStresses(4);
+				iValue(2, 2) = 0.0;
+				iValue(0, 1) = iValue(1, 0) = data.generalizedStresses(5);
+				iValue(0, 2) = iValue(2, 0) = 0.0;
+				iValue(1, 2) = iValue(2, 1) = 0.0;
+			}
 
 			// if requested, rotate the results in the global coordinate system
 			if(bGlobal)

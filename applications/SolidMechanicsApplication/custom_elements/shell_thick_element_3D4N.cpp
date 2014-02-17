@@ -821,8 +821,6 @@ namespace Kratos
 															const ProcessInfo& rCurrentProcessInfo)
 	{
 		if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
-
-		if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 	}
 
 	void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, 
@@ -1214,9 +1212,7 @@ namespace Kratos
 
         // Get some references.
 
-        //PropertiesType & props = GetProperties();
         GeometryType & geom = GetGeometry();
-        //const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
 
         // Compute the local coordinate system.
 
@@ -1256,175 +1252,6 @@ namespace Kratos
         return true;
 	}
 
-	bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<array_1d<double,3> >& rVariable,
-		                                                                                    std::vector<array_1d<double,3> >& rValues, 
-																	                        const ProcessInfo& rCurrentProcessInfo)
-	{
-		// Check the required output
-
-        int ijob = 0;
-		if(rVariable == SHELL_CURVATURE)
-			ijob = 1;
-		else if(rVariable == SHELL_MOMENT)
-			ijob = 2;
-
-        // quick return
-
-        if(ijob == 0) return false;
-
-        // resize output
-
-        size_t size = 4;
-        if(rValues.size() != size)
-            rValues.resize(size);
-
-        // Get some references.
-
-        PropertiesType & props = GetProperties();
-        GeometryType & geom = GetGeometry();
-        const Matrix & shapeFunctions = geom.ShapeFunctionsValues();
-		Vector iN(shapeFunctions.size2());
-
-        // Compute the local coordinate system.
-
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem( 
-            mpCoordinateTransformation->CreateLocalCoordinateSystem() );
-
-		ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
-			mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
-
-        // Prepare all the parameters needed for the MITC formulation.
-        // This is to be done here outside the Gauss Loop.
-
-        MITC4Params shearParameters(referenceCoordinateSystem);
-
-        // Instantiate the Jacobian Operator.
-        // This will store:
-        // the jacobian matrix, its inverse, its determinant
-        // and the derivatives of the shape functions in the local
-        // coordinate system
-
-        JacobianOperator jacOp;
-
-        // Instantiate all strain-displacement matrices.
-
-        Matrix B(8, 24, 0.0);
-		Vector Bdrilling(24, 0.0);
-
-        // Instantiate all section tangent matrices.
-
-        Matrix D(8, 8, 0.0);
-
-        // Instantiate strain and stress-resultant vectors
-
-        Vector generalizedStrains(8);
-        Vector generalizedStresses(8);
-
-        // Get the current displacements in global coordinate system
-
-        Vector globalDisplacements(24);
-        GetValuesVector(globalDisplacements, 0);
-
-        // Get the current displacements in local coordinate system
-
-        Vector localDisplacements( 
-            mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements) );
-
-        // Instantiate the EAS Operator.
-        // This will apply the Enhanced Assumed Strain Method for the calculation
-        // of the membrane contribution.
-
-        EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
-
-        // Just to store the rotation matrix for visualization purposes
-        Matrix R(8, 8);
-
-		// Initialize parameters for the cross section calculation
-
-		ShellCrossSection::Parameters parameters(geom, props, rCurrentProcessInfo);
-		parameters.SetGeneralizedStrainVector( generalizedStrains );
-		parameters.SetGeneralizedStressVector( generalizedStresses );
-		parameters.SetConstitutiveMatrix( D );
-		Flags& options = parameters.GetOptions();
-		options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-        // Gauss Loop
-
-        for(SizeType i = 0; i < size; i++)
-        {
-
-            // get a reference of the current integration point and shape functions
-
-            const GeometryType::IntegrationPointType & ip = geom.IntegrationPoints()[i];
-
-            noalias( iN ) = row( shapeFunctions, i );
-
-            // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
-            // and Shape functions derivatives in the local coordinate system
-
-            jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
-
-            // Compute all strain-displacement matrices
-
-            CalculateBMatrix( ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling );
-
-            // Calculate strain vectors in local coordinate system
-
-            noalias( generalizedStrains ) = prod( B, localDisplacements );
-
-            // Apply the EAS method to modify the membrane part of the strains computed above.
-
-            EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
-
-            // Calculate the response of the Cross Section
-
-            ShellCrossSection::Pointer & section = mSections[i];
-			parameters.SetShapeFunctionsValues( iN );
-			parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
-			section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
-
-            // save the results
-
-			DecimalCorrection( generalizedStrains );
-			DecimalCorrection( generalizedStresses );
-
-            // ... but first rotate them back to the section coordinate system.
-            // we want to visualize the results in that system not in the element one!
-            if(section->GetOrientationAngle() != 0.0)
-            {
-				if (ijob == 1)
-				{
-					section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
-					generalizedStrains = prod( R, generalizedStrains );
-				}
-				else // if(ijob == 2)
-				{
-					section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
-					generalizedStresses = prod( R, generalizedStresses ); 
-				}
-            }
-
-            array_1d<double, 3> & iValue = rValues[i];
-
-            if(ijob == 1) // curvatures
-			{
-				iValue[0] = generalizedStrains[3]; // C.xx
-                iValue[1] = generalizedStrains[4]; // C.yy
-				iValue[2] = generalizedStrains[5]; // C.zz
-			}
-			else if(ijob == 2) // stress couples
-			{
-				iValue[0] = generalizedStresses[3]; // M.xx
-                iValue[1] = generalizedStresses[4]; // M.yy
-				iValue[2] = generalizedStresses[5]; // M.zz
-			}
-
-        } // Gauss Loop
-
-		return true;
-	}
-
 	bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
 		                                                                                    std::vector<Matrix>& rValues, 
 																	                        const ProcessInfo& rCurrentProcessInfo)
@@ -1440,11 +1267,25 @@ namespace Kratos
 			ijob = 1;
 			bGlobal = true;
 		}
+		else if(rVariable == SHELL_CURVATURE) {
+			ijob = 2;
+		}
+		else if(rVariable == SHELL_CURVATURE_GLOBAL) {
+			ijob = 2;
+			bGlobal = true;
+		}
         else if(rVariable == SHELL_FORCE) {
-            ijob = 2;
+            ijob = 3;
 		}
 		else if(rVariable == SHELL_FORCE_GLOBAL) {
-			ijob = 2;
+			ijob = 3;
+			bGlobal = true;
+		}
+		else if(rVariable == SHELL_MOMENT) {
+            ijob = 4;
+		}
+		else if(rVariable == SHELL_MOMENT_GLOBAL) {
+			ijob = 4;
 			bGlobal = true;
 		}
 
@@ -1547,10 +1388,6 @@ namespace Kratos
 
             jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
 
-            // compute the 'area' of the current integration point
-
-            //double dA = ip.Weight() * jacOp.Determinant();
-
             // Compute all strain-displacement matrices
 
             CalculateBMatrix( ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling );
@@ -1566,9 +1403,12 @@ namespace Kratos
             // Calculate the response of the Cross Section
 
             ShellCrossSection::Pointer & section = mSections[i];
-			parameters.SetShapeFunctionsValues( iN );
-			parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
-			section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
+			if(ijob > 2) 
+			{
+				parameters.SetShapeFunctionsValues( iN );
+				parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
+				section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
+			}
 
             // save the results
 
@@ -1579,15 +1419,15 @@ namespace Kratos
             // if necessary, rotate the results in the section (local) coordinate system
             if(section->GetOrientationAngle() != 0.0 && !bGlobal)
             {
-				if (ijob == 1)
-				{
-					section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
-					generalizedStrains = prod( R, generalizedStrains );
-				}
-				else // if(ijob == 2)
+				if (ijob > 2)
 				{
 					section->GetRotationMatrixForGeneralizedStresses( -(section->GetOrientationAngle()), R );
 					generalizedStresses = prod( R, generalizedStresses );
+				}
+				else
+				{
+					 section->GetRotationMatrixForGeneralizedStrains( -(section->GetOrientationAngle()), R );
+					 generalizedStrains = prod( R, generalizedStrains );
 				}
             }
 
@@ -1595,16 +1435,25 @@ namespace Kratos
 			if(iValue.size1() != 3 || iValue.size2() != 3)
 				iValue.resize(3, 3, false);
 
-            if(ijob == 1)
+			if(ijob == 1) // strains
             {
 				iValue(0, 0) = generalizedStrains(0);
 				iValue(1, 1) = generalizedStrains(1);
-				iValue(2, 2) = 0.0; // it would be useful to show the condensed strains...
+				iValue(2, 2) = 0.0;
 				iValue(0, 1) = iValue(1, 0) = 0.5 * generalizedStrains(2);
 				iValue(0, 2) = iValue(2, 0) = 0.5 * generalizedStrains(7);
 				iValue(1, 2) = iValue(2, 1) = 0.5 * generalizedStrains(6);
             }
-            else if(ijob == 2)
+			else if(ijob == 2) // curvatures
+			{
+				iValue(0, 0) = generalizedStrains(3);
+				iValue(1, 1) = generalizedStrains(4);
+				iValue(2, 2) = 0.0;
+				iValue(0, 1) = iValue(1, 0) = 0.5 * generalizedStrains(5);
+				iValue(0, 2) = iValue(2, 0) = 0.0;
+				iValue(1, 2) = iValue(2, 1) = 0.0;
+			}
+            else if(ijob == 3) // forces
             {
 				iValue(0, 0) = generalizedStresses(0);
 				iValue(1, 1) = generalizedStresses(1);
@@ -1613,6 +1462,15 @@ namespace Kratos
 				iValue(0, 2) = iValue(2, 0) = generalizedStresses(7);
 				iValue(1, 2) = iValue(2, 1) = generalizedStresses(6);
             }
+			else if(ijob == 4) // moments
+			{
+				iValue(0, 0) = generalizedStresses(3);
+				iValue(1, 1) = generalizedStresses(4);
+				iValue(2, 2) = 0.0;
+				iValue(0, 1) = iValue(1, 0) = generalizedStresses(5);
+				iValue(0, 2) = iValue(2, 0) = 0.0;
+				iValue(1, 2) = iValue(2, 1) = 0.0;
+			}
 
 			// if requested, rotate the results in the global coordinate system
 			if(bGlobal)
