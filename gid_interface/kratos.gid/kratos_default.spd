@@ -152,9 +152,11 @@
 		<Item id="ShellForcesLocal" pid="Shell forces - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell forces - local"/>
 		<Item id="ShellForcesGlobal" pid="Shell forces - global" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell forces - global"/>
 		<Item id="ShellMomentsLocal" pid="Shell moments - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell moments - local"/>
+		<Item id="ShellMomentsGlobal" pid="Shell moments - global" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell moments - global"/>
 		<Item id="ShellStrainLocal" pid="Shell strain - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell strain - local"/>
 		<Item id="ShellStrainGlobal" pid="Shell strain - global" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell strain - global"/>
 		<Item id="ShellCurvatureLocal" pid="Shell curvature - local" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell curvature - local"/>
+		<Item id="ShellCurvatureGlobal" pid="Shell curvature - global" dv="No" strucType="Shell,Generic" ivalues="Yes,No" values="Yes,No" help="Shell curvature - global"/>
 		<Item id="MaterialDirectionX" pid="Material direction X" dv="No" strucType="Shell,Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Material direction X"/>
 		<Item id="MaterialDirectionY" pid="Material direction Y" dv="No" strucType="Shell,Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Material direction Y"/>
 		<Item id="MaterialDirectionZ" pid="Material direction Z" dv="No" strucType="Shell,Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Material direction Z"/>
