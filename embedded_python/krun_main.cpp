@@ -53,16 +53,17 @@
 
         // set this because otherwise will not work...
         std::string programName(argv[0]);
-        std::string pythonPath = programName.substr(0, programName.find_last_of("\\/")+1); //sould work both with winx and linx....
         
-        Py_SetPath(std::wstring(pythonPath.begin(),pythonPath.end()).append(L"Lib").c_str());
-        Py_Initialize();
+        std::string pythonPath = programName.substr(0, programName.find_last_of("\\/")+1); //sould work both with winx and linx....
+        Py_SetPath(std::wstring(pythonPath.begin(),pythonPath.end()).append(L"Lib").c_str());
+        
+        Py_Initialize();
 
-        // apparently Python 3 have some sort of problem with relative paths here...
-        PyObject* sysPath = PySys_GetObject("path");
-        PyList_Insert(sysPath,0, PyUnicode_FromString(pythonPath.c_str()));
-        PyList_Insert(sysPath,0, PyUnicode_FromString(pythonPath.append("python_embedded_stdlib.zip").c_str()));
-
+        // apparently Python 3 have some sort of problem with relative paths here...
+        PyObject* sysPath = PySys_GetObject("path");
+        PyList_Insert(sysPath,0, PyUnicode_FromString(pythonPath.c_str()));
+        PyList_Insert(sysPath,0, PyUnicode_FromString(pythonPath.append("python_embedded_stdlib.zip").c_str()));
+
         PySys_SetArgv(argc-1, &wchar_argv[1] );
 
         int error_code = Py_Main(argc,wchar_argv);
