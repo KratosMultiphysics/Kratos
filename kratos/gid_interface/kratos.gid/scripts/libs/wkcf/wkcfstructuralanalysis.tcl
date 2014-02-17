@@ -53,40 +53,46 @@ proc ::wkcf::WriteDispRotBC {AppId ccondid kwordlist} {
 	# Get the condition properties
 	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fix_x xval fix_y yval fix_z zval
 	# WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval"
-	
+
 	# DISPLACEMENT_X or ROTATION_X
 	set nodes [GiD_EntitiesGroups get $cgroupid nodes]
-	
+
 	if {[llength $nodes]} {
 	    set xitem [lindex $kwordlist 0]
-	    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem"
-	    foreach nodeid $nodes {
-		GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_x $xval
-	    }
-	    GiD_File fprintf $filechannel "End NodalData"
-	    GiD_File fprintf $filechannel "" 
+	    if {($fix_x ne 0) && ($xval ne 0)} {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem"
+		    foreach nodeid $nodes {
+			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_x $xval
+		    }
+		    GiD_File fprintf $filechannel "End NodalData"
+		    GiD_File fprintf $filechannel "" 
+		}
 	}
-	
+
 	# DISPLACEMENT_Y or ROTATION_Y
 	if {[llength $nodes]} {
 	    set yitem [lindex $kwordlist 1]
-	    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem"
-	    foreach nodeid $nodes {
-		GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_y $yval
-	    }
-	    GiD_File fprintf $filechannel "End NodalData"
-	    GiD_File fprintf $filechannel "" 
+	    if {($fix_y ne 0) && ($yval ne 0)} {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem"
+		    foreach nodeid $nodes {
+			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_y $yval
+		    }
+		    GiD_File fprintf $filechannel "End NodalData"
+		    GiD_File fprintf $filechannel "" 
+		}
 	}
 
 	# DISPLACEMENT_Z or ROTATION_Z
 	if {($ndime eq "3D") && ([llength $nodes])} {
 	    set zitem [lindex $kwordlist 2]
-	    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem"
-	    foreach nodeid $nodes {
-		GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_z $zval
-	    }
-	    GiD_File fprintf $filechannel "End NodalData"
-	    GiD_File fprintf $filechannel "" 
+	    if {($fix_z ne 0) && ($zval ne 0)} {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem"
+		    foreach nodeid $nodes {
+			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_z $zval
+		    }
+		    GiD_File fprintf $filechannel "End NodalData"
+		    GiD_File fprintf $filechannel "" 
+		}
 	}
     }  
 
@@ -96,7 +102,7 @@ proc ::wkcf::WriteDispRotBC {AppId ccondid kwordlist} {
 	set ttime [expr $endtime-$inittime]
 	# WarnWinText "endtime:$endtime ttime:$ttime"
 	WarnWinText "Write structural analysis displacements or rotation boundary condition: [::KUtils::Duration $ttime]"
-	
+
     }
 }
 
@@ -295,7 +301,7 @@ proc ::wkcf::WritePointLoads {AppId cloadtid kwordlist} {
 	} 
 
 	set usepointforce "No"
-	
+
 	switch -exact -- $ndime {
 	    "2D" {
 		set pointforcekword "PointLoad2DCondition"
@@ -340,7 +346,7 @@ proc ::wkcf::WritePointLoads {AppId cloadtid kwordlist} {
 	} 
 	set IsFixed "0"
 	# WarnWinText "Fx:$Fx Fy:$Fy Fz:$Fz"
-	
+
 	# DISPLACEMENT_X or ROTATION_X
 	if {$Fx ne 0} {
 	    set xitem [lindex $kwordlist 0]
@@ -406,7 +412,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
 	} 
 
 	set usepointforce "No"
-	
+
 	switch -exact -- $ndime {
 	    "2D" {
 		set pointforcekword "PointMoment2DCondition"
@@ -451,7 +457,7 @@ proc ::wkcf::WritePointMoments {AppId cloadtid kwordlist} {
 	} 
 	set IsFixed "0"
 	# WarnWinText "Fx:$Fx Fy:$Fy Fz:$Fz"
-	
+
 	# DISPLACEMENT_X or ROTATION_X
 	if {$Mx ne 0} {
 	    set xitem [lindex $kwordlist 0]
@@ -546,7 +552,7 @@ proc ::wkcf::WriteLineLoad {AppId cloadtid} {
 
     # Write uniformly distributed load values for all nodes inside a group identifier 
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-	
+
 	# Get the load properties
 	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
 	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
@@ -555,7 +561,7 @@ proc ::wkcf::WriteLineLoad {AppId cloadtid} {
 	    foreach {cvar cval} $item {
 		set $cvar $cval
 		# wa "cvar:$cvar cval:$cval"
-		
+
 		# Get the current keyword
 		set ckword [::xmlutils::getKKWord $kwxpath "$cvar"]
 		# WarnWinText "ckword:$ckword"
@@ -709,7 +715,7 @@ proc ::wkcf::WritePointLoadsAxisym {AppId cloadtid kwordlist} {
 	} 
 
 	set usepointforce "No"
-	
+
 	switch -exact -- $ndime {
 	    "2D" {
 		set pointforcekword "PointLoadAxiSym2DCondition"
@@ -746,7 +752,7 @@ proc ::wkcf::WritePointLoadsAxisym {AppId cloadtid kwordlist} {
 	} 
 	set IsFixed "0"
 	# WarnWinText "Fx:$Fx Fy:$Fy Fz:$Fz"
-	
+
 	# DISPLACEMENT_X or ROTATION_X
 	if {$Fx ne 0} {
 	    set xitem [lindex $kwordlist 0]
@@ -841,7 +847,7 @@ proc ::wkcf::WriteLineLoadAxisym {AppId cloadtid} {
 
     # Write uniformly distributed load values for all nodes inside a group identifier 
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-	
+
 	# Get the load properties
 	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
 	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
@@ -850,7 +856,7 @@ proc ::wkcf::WriteLineLoadAxisym {AppId cloadtid} {
 	    foreach {cvar cval} $item {
 		set $cvar $cval
 		# wa "cvar:$cvar cval:$cval"
-		
+
 		# Get the current keyword
 		set ckword [::xmlutils::getKKWord $kwxpath "$cvar"]
 		# WarnWinText "ckword:$ckword"
@@ -1110,7 +1116,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 	#        <Item id="Ay" pid="Y active" dv="1" ivalues="1,0" values="1,0" help="Fix Y degree of freedom"/>
 	#        <Item id="Az" pid="Z active" dv="0" nDim="3D" ivalues="1,0" values="1,0" help="Fix Z degree of freedom"/>
 	#</Container>
-	
+
 	# WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
 	if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)} {
 	    
@@ -1179,7 +1185,7 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
 	    # Write SurfaceLoad condition
 	    GiD_File fprintf $filechannel "%s" "Begin Conditions $SurfacePressureCondition // GUI face load group identifier: $cgroupid"
 	    foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-		
+
 		if {$useqelem=="1"} {
 		    set nodes [lrange [GiD_Mesh get element $elem_id] 6 end]
 		    set N1 [lindex $nodes 0]
@@ -1224,7 +1230,7 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
 	    # Write SurfaceLoad condition
 	    GiD_File fprintf $filechannel "%s" "Begin Conditions $SurfacePressureCondition // GUI face load group identifier: $cgroupid"
 	    foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-		
+
 		if {$useqelem=="1"} {
 		    set nodes [lrange [GiD_Mesh get element $elem_id] 8 end]
 		    set N1 [lindex $nodes 0]
@@ -1415,7 +1421,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	set EndTime [::xmlutils::setXml $cxpath $cproperty]
 	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
 	puts $fileid "nsteps    = $NumberOfSteps"
-	
+
     } elseif {$SolutionType =="Quasi-Static"} {
 
 	puts $fileid "SolverType = \"QuasiStaticSolver\""
@@ -1572,7 +1578,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	} else {
 	    puts $fileid "Incremental_Displacement = \"False\""
 	}
-	
+
     } else {
 
 	puts $fileid "Incremental_Load = \"False\""
@@ -1680,7 +1686,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 
     # Write the kratos path
     # puts $fileid "kratos_path=\"${KratosPath}\"" 
-	
+
 }
 
 
@@ -1743,7 +1749,7 @@ proc ::wkcf::WriteLinearSolver {rootid fileid trailing_spaces config_name} {
 	puts $fileid "${trailing_spaces}    scaling = False"
 
     } elseif {$LinearSolverType =="Iterative"} {
-	
+
 	# Iterative solver type
 	set cxpath "$rootid//c.SolutionStrategy//c.LinearSolver//i.IterativeSolverType"
 	set solvertype [::xmlutils::setXml $cxpath $cproperty]
@@ -1777,7 +1783,7 @@ proc ::wkcf::WriteLinearSolver {rootid fileid trailing_spaces config_name} {
         puts $fileid "${trailing_spaces}    #AMG: (requires block_builder)"
         puts $fileid "${trailing_spaces}    smoother_type  = \"ILU0\" #\"DAMPED_JACOBI\""
 	puts $fileid "${trailing_spaces}    krylov_type    = \"GMRES\""
-	
+
     }
 
     puts $fileid ""
@@ -1848,7 +1854,7 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 	if {[info exists dprops($AppId,CrossSection,$PropertyId,CProps)]} { 
 	    set CrossSectionProps $dprops($AppId,CrossSection,$PropertyId,CProps)
 	}
-	
+
 	# Select the section type
 	if {([info exists dprops($AppId,CrossSection,$PropertyId,SectionType)]) && ([llength $CrossSectionProps])} {
 	    set SectionType $dprops($AppId,CrossSection,$PropertyId,SectionType)
@@ -1904,7 +1910,7 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 		puts $fileid "    prop = SetProperties($csectiontype,$endprop,prop)\;" 
 	    }
 	}
-	
+
     }
 
     close $fileid
@@ -1999,7 +2005,7 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
 	    }
 	}
 	# WarnWinText "cyf:$cyf"
-	
+
 	set dprops($AppId,Material,$MatId,Fluency) "${cyf}(${cstate},PotencialPlastic.Associated)"
     }
     # WarnWinText "dprops($AppId,Material,$MatId,Fluency):$dprops($AppId,Material,$MatId,Fluency)"
@@ -2025,7 +2031,7 @@ proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
 
 
     if {$MatModel == "HyperElastic-Plastic"} {
-	
+
 	# HyperElastic-plastic models
 
 	# Get the FLOW RULE
@@ -2104,7 +2110,7 @@ proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
 	    }
 	}
 	# WarnWinText "csl:$csl"
-	
+
 	set dprops($AppId,Material,$MatId,SaturationLaw) "$csl"
 
 	# WarnWinText "dprops($AppId,Material,$MatId,SaturationLaw):$dprops($AppId,Material,$MatId,SaturationLaw)"
@@ -2133,7 +2139,7 @@ proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
 	    }
 	}
 	# WarnWinText "cyc:$cyc"
-	
+
 	set dprops($AppId,Material,$MatId,YieldCriterion) "$cyc"
     }
     # WarnWinText "dprops($AppId,Material,$MatId,YieldCriterion):$dprops($AppId,Material,$MatId,YieldCriterion)"

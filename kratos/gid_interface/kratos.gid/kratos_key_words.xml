@@ -91,9 +91,11 @@
 	  <Item id="ShellForcesLocal" kkword="SHELL_FORCE" />
 	  <Item id="ShellForcesGlobal" kkword="SHELL_FORCE_GLOBAL" />
 	  <Item id="ShellMomentsLocal" kkword="SHELL_MOMENT" />
+	  <Item id="ShellMomentsGlobal" kkword="SHELL_MOMENT_GLOBAL" />
 	  <Item id="ShellStrainLocal" kkword="SHELL_STRAIN" />
 	  <Item id="ShellStrainGlobal" kkword="SHELL_STRAIN_GLOBAL" />
 	  <Item id="ShellCurvatureLocal" kkword="SHELL_CURVATURE" />
+	  <Item id="ShellCurvatureGlobal" kkword="SHELL_CURVATURE_GLOBAL" />
 	  <Item id="MaterialDirectionX" kkword="MATERIAL_ORIENTATION_DX" />
 	  <Item id="MaterialDirectionY" kkword="MATERIAL_ORIENTATION_DY" />
 	  <Item id="MaterialDirectionZ" kkword="MATERIAL_ORIENTATION_DZ" />
