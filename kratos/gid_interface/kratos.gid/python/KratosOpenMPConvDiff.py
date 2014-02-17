@@ -84,8 +84,9 @@ step = 0
 Stationary=ProjectParameters.Stationary
 if(Stationary==True):
     
-    
     model_part.ProcessInfo.SetValue(STATIONARY,1)
+    time = 0.01
+    model_part.CloneTimeStep(time)	
     	
     conv_diff_solver.Solve()
     gid_io.write_results(time,model_part,ProjectParameters.nodal_results,ProjectParameters.gauss_points_results)	
@@ -98,7 +99,7 @@ else:
     
         if(step > 3):
             conv_diff_solver.Solve()
-            print("sss")
+            
 	
         if(output_time <= out):
             gid_io.write_results(time,model_part,ProjectParameters.nodal_results,ProjectParameters.gauss_points_results)
