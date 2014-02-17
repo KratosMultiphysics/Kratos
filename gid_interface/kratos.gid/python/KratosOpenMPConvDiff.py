@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 import ProjectParameters
@@ -52,7 +53,7 @@ solver_module.AddDofs(model_part,SolverSettings)
 conv_diff_solver = solver_module.CreateSolver( model_part, SolverSettings)
 conv_diff_solver.Initialize()
 
-print "conv_diff solver created"
+print("conv_diff solver created")
 
 # initialize GiD  I/O
 from gid_output import GiDOutput
@@ -97,7 +98,7 @@ else:
     
         if(step > 3):
             conv_diff_solver.Solve()
-            print "sss"
+            print("sss")
 	
         if(output_time <= out):
             gid_io.write_results(time,model_part,ProjectParameters.nodal_results,ProjectParameters.gauss_points_results)
