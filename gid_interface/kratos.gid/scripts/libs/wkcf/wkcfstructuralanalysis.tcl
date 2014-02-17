@@ -1613,7 +1613,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # WarnWinText "nodal_results:$nodal_results"
 
     # On Gauss point results
-    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "PlasticStrain" "DeltaPlasticStrain" "BeamMoments" "BeamForces" "ShellForcesLocal" "ShellForcesGlobal" "ShellMomentsLocal" "ShellStrainLocal" "ShellStrainGlobal" "ShellCurvatureLocal" "MaterialDirectionX" "MaterialDirectionY" "MaterialDirectionZ"]
+    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "PlasticStrain" "DeltaPlasticStrain" "BeamMoments" "BeamForces" "ShellForcesLocal" "ShellForcesGlobal" "ShellMomentsLocal" "ShellMomentsGlobal" "ShellStrainLocal" "ShellStrainGlobal" "ShellCurvatureLocal" "ShellCurvatureGlobal" "MaterialDirectionX" "MaterialDirectionY" "MaterialDirectionZ"]
     set gauss_points_results "gauss_points_results=\["
     foreach cgr $cgrlist {
 	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.[list ${cgr}]"
