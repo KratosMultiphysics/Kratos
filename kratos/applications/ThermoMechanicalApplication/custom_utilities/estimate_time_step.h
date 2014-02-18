@@ -210,7 +210,8 @@ namespace Kratos
 	   {
          //pre solidification Dt
         int is_hot = CheckMaxTemperature(ThisModelPart);
-		if( is_hot == 1 ){
+		if( is_hot == 1 )
+		{
 			KRATOS_WATCH("<<<<<<<<<<<<<<<<<<<<pre solidification Dt>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 			double max_presolodification_delta_tem = 10.0;
 			int node_size = ThisModelPart.Nodes().size();
@@ -232,7 +233,8 @@ namespace Kratos
 	   
 			if( max_delta_temp > 0.0 ){
 			  double new_delta_time = max_presolodification_delta_tem / max_delta_temp;
-			  new_delta_time *= current_dt; 
+			  //new_delta_time *= current_dt; 
+			  new_delta_time = 1.5*current_dt;
 
 			  if( new_delta_time > dt_max)
 			new_delta_time = dt_max;
