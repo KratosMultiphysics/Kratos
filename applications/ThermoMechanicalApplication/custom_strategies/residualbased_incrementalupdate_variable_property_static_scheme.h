@@ -203,12 +203,13 @@ public:
 			  double rho = rDensityVar_table.GetValue(unknown_val);
 			  double cc =C_table.GetValue(unknown_val);
 		      ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(rho*cc);	*/
+			  double specific_heat_var =C_table.GetValue(unknown_val);
 			  double htc_var = HTC_table.GetValue(unknown_val);
 			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 		      
 		    if(dist < 0){			      
 		     // double density_var = rDensityVar_table.GetValue(unknown_val);
-		      double specific_heat_var =C_table.GetValue(unknown_val);
+		     // double specific_heat_var =C_table.GetValue(unknown_val);
 		      double solid_fraction_var = F_table.GetValue(unknown_val);
 		      double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
 		      double conductvity_var = rDiffusionVar_table.GetValue(unknown_val);
@@ -230,7 +231,8 @@ public:
 		      ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
 		      ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;	
 
-			 // ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
+			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
+			  	 
 
 		    }
 		    else
@@ -241,7 +243,7 @@ public:
 		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
 		      ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;	
 
-			  //ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
+			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var*1000.0/(density_var*specific_heat_var);
 			 // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		    }
 			
@@ -299,12 +301,12 @@ public:
 		const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
 		const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
+		double specific_heat_var =C_table.GetValue(unknown_val);
 		double htc_var = HTC_table.GetValue(unknown_val);
 		ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
 		if(dist < 0){		
 		//double density_var = rDensityVar_table.GetValue(unknown_val);
-		double specific_heat_var =C_table.GetValue(unknown_val);
 		double solid_fraction_var = F_table.GetValue(unknown_val);
 		double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
 		double conductvity_var = rDiffusionVar_table.GetValue(unknown_val);
@@ -314,6 +316,7 @@ public:
 		ind->FastGetSolutionStepValue(SOLID_FRACTION) = solid_fraction_var;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = solid_fraction_rate_var;		
 		ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
+	    //ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 		}
 		else
 		{
@@ -322,7 +325,7 @@ public:
 		ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
 		ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
-	    //ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
+	    ind->FastGetSolutionStepValue(rTransferCoef) = htc_var*1000.0/(density_var*specific_heat_var);
 	    //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		}
 			
