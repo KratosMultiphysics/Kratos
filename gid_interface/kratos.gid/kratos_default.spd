@@ -430,8 +430,8 @@
       </Container>
       <Container id="Results" pid="Results" help="Results" open="0">
         <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
-        <Item id="OutputDeltaTime" pid="Output delta time" dv="0.1" help="Output delata time"/>
-        <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
+        <Item id="OutputDeltaTime" pid="Output delta time" CD-soluType="Dynamic" dv="0.1" help="Output delata time"/>
+        <Item id="PrintInLayer" pid="Print in layer" state="hidden" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
         <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
           <Item id="Temperature" pid="Temperature" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Temperature"/>
         </Container>
@@ -882,6 +882,6 @@
 	<Item id="WriteAllGiDGroups" pid="Write all GiD groups" dv="0" widget="check" state="hidden" help="Write all GiD groups to the Kratos meshes"/>
     </GlobalProjectSettings>
     <ClassConfiguration>
-        <Class>nDim,axiSym,kinemType,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,BaseCFType,cddeltatimetype,CDLinearSolverType,DEM-deltatimetype,DEM-BBox,DEM-BBoxType,CDAnalysisType,PressureIterativeSolverType,VelocityIterativeSolverType,CD-soluType</Class>
+        <Class>nDim,axiSym,kinemType,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,BaseCFType,cddeltatimetype,CDLinearSolverType,CD-soluType,DEM-deltatimetype,DEM-BBox,DEM-BBoxType,CDAnalysisType,PressureIterativeSolverType,VelocityIterativeSolverType,CD-soluType</Class>
     </ClassConfiguration>
 </Kratos_Data>
