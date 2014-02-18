@@ -41,11 +41,11 @@ KRATOS_CREATE_VARIABLE(bool, IS_ESCAPED)
 KRATOS_CREATE_VARIABLE(int, IS_SOLIDIFIED)
 Kratos::Variable<double> SOLIDFRACTION( "SOLID FRACTION" );
 Kratos::Variable<double> SOLIDIF_TIME( "SOLIDIF TIME" );
-Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS" );
+Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS (cm)" );
 Kratos::Variable<double> FILLTIME( "FILLTIME (s)" );
 //KRATOS_CREATE_VARIABLE(double, FILLTIME );
 KRATOS_CREATE_VARIABLE(double, MACRO_POROSITY )    
-Kratos::Variable<double> MAX_VEL( "MAX_VEL (m/s)" );
+Kratos::Variable<double> MAX_VEL( "MAX VEL (m/s)" );
 KRATOS_CREATE_VARIABLE(int, IS_GRAVITY_FILLING)
 
 KRATOS_CREATE_VARIABLE(double, VOLUME_FRACTION ) 
@@ -68,8 +68,8 @@ KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
     mSUPGConv3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConvDiffPhaseChange2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mSUPGConvDiffPhaseChange3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mPoisson3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+   // mPoisson3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
     
     
 
@@ -123,7 +123,7 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange2D", mSUPGConvDiffPhaseChange2D);
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange3D", mSUPGConvDiffPhaseChange3D); 
     KRATOS_REGISTER_ELEMENT("SUPGConv2D", mSUPGConv2D);
-    KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);    
+    //KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);    
 }
 
 }  // namespace Kratos.
