@@ -95,7 +95,7 @@ class Solver:
         self.normal_tools = BodyNormalCalculationUtils()
 
         # self.conv_criteria = ResidualCriteria(1e-3,1e-4)
-        self.conv_criteria = IncrementalDisplacementCriteria(1e-6, 1e-14)
+        self.conv_criteria = IncrementalDisplacementCriteria(1e-4, 1e-6)
         self.max_iter = 3
 
         BiphasicFillingUtilities().ComputeNodalVolume(self.model_part)
