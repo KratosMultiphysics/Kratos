@@ -93,6 +93,7 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeSolidificationCoolingDt", &EstimateTimeStep < 3 >::ComputeSolidificationCoolingDt)
     .def("EstimateSolidificationTime", &EstimateTimeStep < 3 >::EstimateSolidificationTime)
     .def("CheckStopTemperature", &EstimateTimeStep < 3 >::CheckStopTemperature)
+    .def("ComputeSurfaceWaveDt", &EstimateTimeStep < 3 >::ComputeSurfaceWaveDt)
     ;
     
     class_<ParticleLevelSetUtils < 2 > >("ParticleLevelSetUtils2D", init<>())
@@ -123,7 +124,10 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeFillPercentage", &BiphasicFillingUtilities::ComputeFillPercentage) 
 	.def("ComputeNetInletVolume", &BiphasicFillingUtilities::ComputeNetInletVolume)
 	.def("ComputeNodalVolume", &BiphasicFillingUtilities::ComputeNodalVolume)	
-    .def("ApplyVelocityLimitation", &BiphasicFillingUtilities::ApplyVelocityLimitation)   
+    .def("ApplyVelocityLimitation", &BiphasicFillingUtilities::ApplyVelocityLimitation) 
+	.def("LastStepExtrapolations", &BiphasicFillingUtilities::LastStepExtrapolations)  
+	.def("SolidificationDuringFilling", &BiphasicFillingUtilities::SolidificationDuringFilling)  
+	.def("ViscosityBasedSolidification", &BiphasicFillingUtilities::ViscosityBasedSolidification)  
     ; 
 
 
