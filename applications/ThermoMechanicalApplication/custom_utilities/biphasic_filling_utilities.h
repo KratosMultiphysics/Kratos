@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "thermo_mechanical_application.h"
 // #include "custom_conditions/environment_contact.h"
 //#include "includes/variables.h"
+#include "../incompressible_fluid_application/custom_utilities/parallel_extrapolation_utilities.h"
 
 
 
@@ -254,6 +255,16 @@ public:
             if(dist<0.0)
                 wet_nodes++;
 
+
+            //filling time
+            double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+            if(is_visited == 0.0 && dist<=0.0)
+            {
+                it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+
+                double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+                it->FastGetSolutionStepValue(FILLTIME) = filling_time;
+            }
         }
 
         //syncronoze
@@ -347,8 +358,8 @@ public:
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
 
         //volume loss is just corrected
-//          if(volume_difference > 0.0)
-//         {
+         if(volume_difference > 0.0)
+         {
 //             TODO: this is not correct in MPI parallel
             #pragma omp parallel for firstprivate(node_size)
             for (int ii = 0; ii < node_size; ii++)
@@ -356,10 +367,14 @@ public:
 // 		  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
                 ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 
-                it->FastGetSolutionStepValue(DISTANCE) -= correction;
 
-            }
-//         }
+		  double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
+		  
+		  it->FastGetSolutionStepValue(DISTANCE) -= (1.0-alpha)*correction;
+		  
+		}
+	}
+
         std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
     }
@@ -466,7 +481,191 @@ public:
     }
     //**********************************************************************************************
     //**********************************************************************************************
+    double SolidificationDuringFilling(ModelPart& ThisModelPart, double BandWidth)
+	{	
+	  KRATOS_TRY;
+	   //Assign temperature dependent reducing factor, 
+	   //this factor later is used in volume correction 
+	   //procedure to stop correctione in solidifed zones 
+        AssignDecelerateFactor(ThisModelPart);
+
+		//Velocity reduction in solidified zones
+        //VelocityReduction(ThisModelPart);
+
+        //Check for stop criteria
+        double is_hot = StopSolidifCriteria(ThisModelPart,BandWidth);
+
+		return is_hot;
+
+	  KRATOS_CATCH("")
+	}
+	//**********************************************************************************************
+	//**********************************************************************************************
+	void LastStepExtrapolations(ModelPart& ThisModelPart)
+	{
+	  KRATOS_TRY;
+      //Check if there is any dry node
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
+	  double is_wet = 1.0;
+	  #pragma omp parallel for firstprivate(node_size)
+	  for (int ii = 0; ii < node_size; ii++)
+		{
+			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+			double dist = it->FastGetSolutionStepValue(DISTANCE);
+			if(dist>=0.0)
+			{
+				is_wet = 0.0;
+				//dist = -1.0;
+			}
+	  }
+
+        //syncronoze
+        ThisModelPart.GetCommunicator().MinAll(is_wet);
+
+		//If there is a dry node then do extrapolation for velocity
+		if(is_wet == 0.0)
+		{
+		 ParallelExtrapolationUtilities<3>::ParallelExtrapolationUtilities().ExtrapolateTemperature(ThisModelPart, DISTANCE, TEMPERATURE, NODAL_AREA,10);
+		 //ParallelExtrapolationUtilities<3>::ParallelExtrapolationUtilities().ExtrapolateVelocity(ThisModelPart, DISTANCE, VELOCITY, NODAL_AREA,10);
+
+		 #pragma omp parallel for firstprivate(node_size)
+		 for (int ii = 0; ii < node_size; ii++)
+		 {
+			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+			double& dist = it->FastGetSolutionStepValue(DISTANCE);
+			if(dist>=0.0)
+				dist = -1.0;	
+		 
+            //filling time
+            double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+            if(is_visited == 0.0 && dist<=0.0)
+            {
+                it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+
+                double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+                it->FastGetSolutionStepValue(FILLTIME) = filling_time;
+            }		 
+		 }
+		}
+
+	  KRATOS_CATCH("")
+	}
+	//**********************************************************************************************
+	//**********************************************************************************************
+	void ViscosityBasedSolidification(ModelPart& ThisModelPart, double ViscosityFactor)
+	{
+	   KRATOS_TRY;
+
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
+
+	  #pragma omp parallel for firstprivate(node_size)
+	  for (int ii = 0; ii < node_size; ii++)
+	  {
+		ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+		double dist = it->FastGetSolutionStepValue(DISTANCE);
+		if(dist<=0.0)
+		{
+			double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
+			double& visc = it->FastGetSolutionStepValue(VISCOSITY);
+
+			visc *= (ViscosityFactor - (ViscosityFactor -1.0)*(1.0 - alpha));
+		}
+
+	  }
+	  KRATOS_CATCH("")
+	}
+	//**********************************************************************************************
+	//**********************************************************************************************	
 private:
+	void AssignDecelerateFactor(ModelPart& ThisModelPart)
+	{
+	   KRATOS_TRY; 
+
+      double solidus_temp = ThisModelPart.GetTable(3).Data().front().first;
+      double liquidus_temp = ThisModelPart.GetTable(3).Data().back().first;
+
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
+
+	  #pragma omp parallel for firstprivate(node_size)
+	  for (int ii = 0; ii < node_size; ii++)
+		{
+			double alpha = 0.0;
+			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+
+			double dist = it->FastGetSolutionStepValue(DISTANCE);
+			if( dist<=0.0)
+			{
+			  double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+
+			  if(temperature < solidus_temp) alpha = 1.0;
+			  else if( temperature >= solidus_temp && temperature < liquidus_temp) alpha = 1.0-(temperature - solidus_temp)/(liquidus_temp - solidus_temp);
+
+			}
+			it->FastGetSolutionStepValue(DP_ALPHA1) = alpha;
+		}
+
+	  KRATOS_CATCH("")
+	}
+	//**********************************************************************************************
+	//**********************************************************************************************
+	void VelocityReduction(ModelPart& ThisModelPart)
+	{
+	   KRATOS_TRY;
+
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
+
+	  #pragma omp parallel for firstprivate(node_size)
+	  for (int ii = 0; ii < node_size; ii++)
+	  {
+		ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+		double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
+
+		if(alpha > 0.9){
+			it->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+			it->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+			it->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+			it->Fix(VELOCITY_X);
+			it->Fix(VELOCITY_Y);
+			it->Fix(VELOCITY_Z);
+		}
+	  }
+	  KRATOS_CATCH("")
+	}
+
+	//**********************************************************************************************
+	//**********************************************************************************************
+	double StopSolidifCriteria(ModelPart& ThisModelPart, double ref_dist)
+	{
+	   KRATOS_TRY;
+
+	  double is_hot = 0.0;
+	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
+
+	  #pragma omp parallel for firstprivate(node_size)
+	  for (int ii = 0; ii < node_size; ii++)
+	  {
+		ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
+		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+		double distance = it->FastGetSolutionStepValue(DISTANCE);
+		if(distance <= 0 && fabs(distance) <= ref_dist){
+			double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
+			if(alpha < 0.85)
+				is_hot=1.0;
+		}
+	  }
+
+	  ThisModelPart.GetCommunicator().MaxAll(is_hot);
+
+	  return is_hot;
+
+	  KRATOS_CATCH("")
+	}
+
+	//**********************************************************************************************
+	//**********************************************************************************************
 
     void AirSmagorinskey(ModelPart& ThisModelPart, double C_Smagorinsky)
     {
@@ -581,7 +780,7 @@ private:
             Geometry<Node < 3 > >& element_geometry = it->GetGeometry();
 
             for (unsigned int i = 0; i < 4; i++)
-                dist[i] = element_geometry[i].GetValue(DISTANCE);
+                dist[i] = element_geometry[i].FastGetSolutionStepValue(DISTANCE);
 
             bool is_divided = IsDivided(dist);
             if (is_divided == true)
