@@ -208,6 +208,151 @@ public:
         KRATOS_CATCH("")
     }
 
+    ///Function to extrapolate the temperature from the interior of the level set domain.
+    ///the extrapolation temperature is taken from the first layer of nodes INSIDE the level set domain
+    ///@param rmodel_part is the ModelPart on which we will operate
+    ///@param rDistanceVar is the Variable that we will use in calculating the distance
+    ///@param rVelocityVar is the Variable being extrapolated
+    ///@param rAreaVar is the Variable that we will use for L2 projections
+    ///@param max_levels is the number of maximum "layers" of element that will be used in the calculation of the distances
+
+    void ExtrapolateTemperature(ModelPart& rmodel_part,
+                             const Variable<double>& rDistanceVar,
+                             const Variable<double>& rTemperatureVar,
+                             const Variable<double>& rAreaVar,
+                             const unsigned int max_levels)
+    {
+        KRATOS_TRY
+
+        bool is_distributed = false;
+        if (rmodel_part.GetCommunicator().TotalProcesses() > 1)
+            is_distributed = true;
+
+        //check that variables needed are in the model part
+        if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)))
+            KRATOS_ERROR(std::logic_error, "distance Variable is not in the model part", "")
+            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rTemperatureVar)))
+                KRATOS_ERROR(std::logic_error, "velocity Variable is not in the model part", "")
+                if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)))
+                    KRATOS_ERROR(std::logic_error, "Area Variable is not in the model part", "")
+
+                    if (is_distributed == true)
+                        if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
+                            KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
+
+                            //set as active the internal nodes
+                            int node_size = rmodel_part.Nodes().size();
+        #pragma omp parallel for
+        for (int i = 0; i < node_size; i++)
+        {
+            ModelPart::NodesContainerType::iterator it = rmodel_part.NodesBegin() + i;
+            it->FastGetSolutionStepValue(rAreaVar) = 0.0;
+            const double& dist = it->FastGetSolutionStepValue(rDistanceVar);
+            if (dist < 0.0)
+                it->SetValue(IS_VISITED, 1.0);
+            else{
+                it->SetValue(IS_VISITED, 0.0); 
+				double real_temp = it->FastGetSolutionStepValue(rTemperatureVar);
+				it->SetValue(rTemperatureVar, real_temp); 
+				it->FastGetSolutionStepValue(rTemperatureVar) = 0.0;
+			    }
+        }
+
+        //now extrapolate the velocity var from all of the nodes that have at least one internal node_size
+        array_1d<double, TDim + 1 > visited;
+        array_1d<double, TDim + 1 > N;
+        double avg;
+        double lumping_factor = 1.0 / double(TDim + 1);
+        boost::numeric::ublas::bounded_matrix <double, TDim + 1, TDim> DN_DX;
+        int elem_size = rmodel_part.Elements().size();
+        for (unsigned int level = 0; level < max_levels; level++)
+        {
+            #pragma omp parallel for private(DN_DX,N,visited,avg) firstprivate(lumping_factor,elem_size)
+            for (int i = 0; i < elem_size; i++)
+            {
+                PointerVector< Element>::iterator it = rmodel_part.ElementsBegin() + i;
+
+                Geometry<Node < 3 > >&geom = it->GetGeometry();
+
+                for (unsigned int k = 0; k < TDim + 1; k++)
+                    visited[k] = geom[k].GetValue(IS_VISITED);
+
+                if (IsActive(visited))
+                {
+                    double Volume;
+                    GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+
+                    //calculated average value of "velocity"
+                    avg = 0.0;
+                    double counter = 0.0;
+                    for (unsigned int k = 0; k < TDim + 1; k++)
+                    {
+                        if (visited[k] > 0.0)
+                        {
+                            avg += geom[k].FastGetSolutionStepValue(rTemperatureVar);
+                            counter += 1.0;
+                        }
+
+                    }
+                    avg /= counter;
+					
+                    for (unsigned int k = 0; k < TDim + 1; k++)
+                    {
+                        if (visited[k] == 0.0)
+                        {
+                            geom[k].SetLock();
+                            geom[k].FastGetSolutionStepValue(rTemperatureVar) += avg * Volume*lumping_factor;
+                            geom[k].FastGetSolutionStepValue(rAreaVar) += Volume*lumping_factor;
+                            geom[k].UnSetLock();
+                        }
+                    }
+                }
+            }
+
+            //mpi sync variables
+            if (is_distributed == true)
+            {
+                int my_rank = rmodel_part.GetCommunicator().MyPID();
+                #pragma omp parallel for firstprivate(node_size,my_rank)
+                for (int i = 0; i < node_size; i++)
+                {
+                    ModelPart::NodesContainerType::iterator it = rmodel_part.NodesBegin() + i;
+                    if (it->GetValue(IS_VISITED) == 1.0 && my_rank != it->FastGetSolutionStepValue(PARTITION_INDEX))
+                    {
+                        it->FastGetSolutionStepValue(rAreaVar) = 0.0;
+                        it->FastGetSolutionStepValue(rTemperatureVar) = 0.0;
+                    }
+                }
+                rmodel_part.GetCommunicator().AssembleCurrentData(rAreaVar);
+                rmodel_part.GetCommunicator().AssembleCurrentData(rTemperatureVar);
+            }
+
+            #pragma omp parallel for firstprivate(node_size)
+            for (int i = 0; i < node_size; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = rmodel_part.NodesBegin() + i;
+                const double& area = it->FastGetSolutionStepValue(rAreaVar);
+                if (area > 1e-20 && it->GetValue(IS_VISITED) == 0.0) //this implies that node was computed
+                {
+                    it->FastGetSolutionStepValue(rTemperatureVar) /= area;
+                    it->SetValue(IS_VISITED, 1.0); //node is marked as already visitedz
+                }
+
+            }
+        }
+		  //Rewrite the old value on non-updated temp
+		  #pragma omp parallel for firstprivate(node_size)
+				for (int i = 0; i < node_size; i++)
+				{
+					ModelPart::NodesContainerType::iterator it = rmodel_part.NodesBegin() + i;
+					if(it->GetValue(IS_VISITED) == 0.0)
+						it->FastGetSolutionStepValue(rTemperatureVar) = it->GetValue(rTemperatureVar);
+				}
+
+        KRATOS_CATCH("")
+    }
+
+
     ///Function to extrapolate the pressure projection from the interior of the level set domain.
     ///the extrapolation velocity is taken from the SECOND layer of nodes INSIDE the level set domain,
     ///that is, the nodes that correspond to elements cut by the free surface ARE NOT used as a source for the extrapolation
