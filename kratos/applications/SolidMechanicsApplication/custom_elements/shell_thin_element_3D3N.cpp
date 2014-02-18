@@ -641,11 +641,16 @@ namespace Kratos
         Vector3Type& a = elem_dirX;
         Vector3Type& b = dirX;
         double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
+		if(a_dot_b < -1.0) a_dot_b = -1.0;
+		if(a_dot_b >  1.0) a_dot_b =  1.0;
         double angle = std::acos( a_dot_b );
 
         // if they are not counter-clock-wise, let's change the sign of the angle
-        if( (a(1)*b(2)-b(1)*a(2) - (a(0)*b(2)-b(0)*a(2)) + a(0)*b(1)-b(0)*a(1)) < 0.0 )
-            angle = -angle;
+        if(angle != 0.0) {
+			const MatrixType& R = lcs.Orientation();
+			if( dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0 )
+				angle = -angle;
+		}
 
         for(CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
             (*it)->SetOrientationAngle(angle);
