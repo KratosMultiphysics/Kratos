@@ -493,13 +493,10 @@ namespace Kratos
 
           if (mRollingFrictionOption){  // rolling friction 
               double rolling_friction_coeff            = mRollingFriction * mRadius;
-              double equiv_rolling_friction_coeff;
-
-
               const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
-              equiv_rolling_friction_coeff         = 2 * rolling_friction_coeff * other_rolling_friction_coeff / (rolling_friction_coeff + other_rolling_friction_coeff);
-              
+              //equiv_rolling_friction_coeff         = 2 * rolling_friction_coeff * other_rolling_friction_coeff / (rolling_friction_coeff + other_rolling_friction_coeff);
+              double equiv_rolling_friction_coeff  = std::min(rolling_friction_coeff,other_rolling_friction_coeff);
 
               if (equiv_rolling_friction_coeff != 0.0){
                   double MaxRotaMoment[3]      = {0.0};
@@ -920,16 +917,83 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 			}
 			
 			/////////////////////////////////////////////////////////////////////////////
+      
+            if (mRotationOption){
+                     double MA[3]                     = {0.0};
+                     double RotaMoment[3]             = {0.0};
 
-            if ( mRotationOption)
-            {
-                double MA[3] = {0.0};
-                GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
-                rContactMoment[0] -= MA[0] * radius;
-                rContactMoment[1] -= MA[1] * radius;
-                rContactMoment[2] -= MA[2] * radius;
-            }
+                     RotaMoment[0] = rContactMoment[0];
+                     RotaMoment[1] = rContactMoment[1];
+                     RotaMoment[2] = rContactMoment[2];
 
+                     GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+
+                     RotaMoment[0] -= MA[0] * radius;
+                     RotaMoment[1] -= MA[1] * radius;
+                     RotaMoment[2] -= MA[2] * radius;
+
+                     if (mRollingFrictionOption){  // Rolling friction type
+                         double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                         double rolling_friction_coeff       = rolling_friction * radius;
+
+                         if (rolling_friction_coeff != 0.0){
+							 double MaxRotaMoment[3]      = {0.0};
+							 double CoordSystemMoment1[3] = {0.0};
+                             double CoordSystemMoment2[3] = {0.0};
+                             double MR[3]                 = {0.0};
+
+                             MaxRotaMoment[0] = rInitialRotaMoment[0] + RotaMoment[0];
+                             MaxRotaMoment[1] = rInitialRotaMoment[1] + RotaMoment[1];
+                             MaxRotaMoment[2] = rInitialRotaMoment[2] + RotaMoment[2];
+                             
+                             GeometryFunctions::CrossProduct(LocalCoordSystem[2], MaxRotaMoment, CoordSystemMoment1);
+                             double det_coor_sys_moment_i_1 = 1 / sqrt(CoordSystemMoment1[0] * CoordSystemMoment1[0] + CoordSystemMoment1[1] * CoordSystemMoment1[1] + CoordSystemMoment1[2] * CoordSystemMoment1[2]);                             
+                             CoordSystemMoment1[0] *= det_coor_sys_moment_i_1;
+                             CoordSystemMoment1[1] *= det_coor_sys_moment_i_1;
+                             CoordSystemMoment1[2] *= det_coor_sys_moment_i_1;
+                                                          
+                             GeometryFunctions::CrossProduct(MaxRotaMoment, CoordSystemMoment1, CoordSystemMoment2);
+                             double det_coor_sys_moment_i_2 = 1 / sqrt(CoordSystemMoment2[0] * CoordSystemMoment2[0] + CoordSystemMoment2[1] * CoordSystemMoment2[1] + CoordSystemMoment2[2] * CoordSystemMoment2[2]);
+
+                             CoordSystemMoment2[0] *= det_coor_sys_moment_i_2;
+                             CoordSystemMoment2[1] *= det_coor_sys_moment_i_2;
+                             CoordSystemMoment2[2] *= det_coor_sys_moment_i_2;
+                             
+                             GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
+                             MR[0] *= fabs(LocalContactForce[2]);
+                             MR[1] *= fabs(LocalContactForce[2]);
+                             MR[2] *= fabs(LocalContactForce[2]);
+
+                             double det_MR = sqrt(MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2]);
+                             double MR_now = det_MR * rolling_friction_coeff;
+                             double MR_max = sqrt(MaxRotaMoment[0] * MaxRotaMoment[0] + MaxRotaMoment[1] * MaxRotaMoment[1] + MaxRotaMoment[2] * MaxRotaMoment[2]);
+
+                             if (MR_max > MR_now){
+                                 RotaMoment[0]    += MR[0] * rolling_friction_coeff;
+                                 RotaMoment[1]    += MR[1] * rolling_friction_coeff;
+                                 RotaMoment[2]    += MR[2] * rolling_friction_coeff;
+
+                                 MaxRotaMoment[0] += MR[0] * rolling_friction_coeff;
+                                 MaxRotaMoment[1] += MR[1] * rolling_friction_coeff;
+                                 MaxRotaMoment[2] += MR[2] * rolling_friction_coeff;
+                             }
+
+                             else 
+							{
+                                 RotaMoment[0]     = -rInitialRotaMoment[0];
+                                 RotaMoment[1]     = -rInitialRotaMoment[1];
+                                 RotaMoment[2]     = -rInitialRotaMoment[2];
+                             }
+
+                         } // if (rolling_friction_coeff != 0.0)
+
+                     } // if (mRollingFrictionOption)
+            
+                     rContactMoment[0] = RotaMoment[0];
+                     rContactMoment[1] = RotaMoment[1];
+                     rContactMoment[2] = RotaMoment[2];
+
+                 } //if (mRotationOption)
 
             iRigidFaceNeighbour++;
 
@@ -1032,7 +1096,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  GlobalSurfContactForce[2] = 0.0;  // 2: normal force
           }
 
-          if (indentation > 0.0 && point_coor[1] <= 0.25){
+          if (indentation > 0.0){
                      // MACRO PARAMETERS
 
                      double kn;
