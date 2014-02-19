@@ -293,6 +293,7 @@ void AddCustomUtilitiesToPython()
     .def("ExtrapolateVelocity", &ParallelExtrapolationUtilities < 3 > ::ExtrapolateVelocity)
     .def("ExtrapolatePressureProjection", &ParallelExtrapolationUtilities < 3 > ::ExtrapolatePressureProjection)
     .def("AssignFreeSurfacePressure", &ParallelExtrapolationUtilities < 3 > ::AssignFreeSurfacePressure)
+	.def("ExtrapolateTemperature", &ParallelExtrapolationUtilities < 3 > ::ExtrapolateTemperature)
     ;
 
     class_< WaveGenerator, boost::noncopyable > ("WaveGenerator", init<>())
