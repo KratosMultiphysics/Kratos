@@ -9,7 +9,7 @@
 
 // System includes
 #include <string>
-#include <iostream>
+#include <iostream> 
 
 // External includes
 
@@ -1396,7 +1396,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
  
     void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo)
       {
-
+        
       ConditionWeakVectorType& rFemTempNeighbours   = mFemTempNeighbours;
       ConditionWeakVectorType& rFemNeighbours       = this->GetValue(NEIGHBOUR_RIGID_FACES);
       
@@ -1436,24 +1436,27 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       unsigned int iTempFemNeighbour = 0;
       
       Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
-            
+           
       for (ConditionWeakIteratorType i = rFemTempNeighbours.begin(); i != rFemTempNeighbours.end(); i++)
       {
         
           int ino1               = iTempFemNeighbour * 15; 
           double DistPToB        = RF_Pram[ino1 + 9];
           int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
-      
           double                ini_delta           = 0.0;
           array_1d<double, 3>   neigh_forces        = vector_of_zeros;
           double                mapping_new_ini     = -1;  
           
           for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) 
           {
-            
             if (  iNeighborID == mFemIniNeighbourIds[k]) //****
             {                               
+             
+              
               ini_delta  = mFemIniNeighbourDelta[k];
+     
+              
+         
               mapping_new_ini = k; 
               break;
             }
@@ -1472,6 +1475,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           //Judge if its neighbour  
                 
           double indentation = -(DistPToB - mRadius) - ini_delta;
+          
+          
           
           if ( indentation > 0.0 )  
           {
@@ -1747,6 +1752,14 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
       }
 
+      double SphericContinuumParticle::GetInitialDelta(int index)
+      
+      {
+	double delta = mFemNeighbourDelta[index];
+	
+	return delta;
+      }
+      
       
       void SphericContinuumParticle::EvaluateFailureCriteria(double LocalElasticContactForce[3],double ShearForceNow,double calculation_area, int i_neighbour_count,double& contact_sigma, double& contact_tau,double& failure_criterion_state, bool& sliding, int mapping_new_ini)
       {             
