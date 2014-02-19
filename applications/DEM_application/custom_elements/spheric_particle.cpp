@@ -739,7 +739,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                                                           ProcessInfo& rCurrentProcessInfo)
 	{
 		  
-		  KRATOS_TRY
+	KRATOS_TRY
 		  
 
           ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
@@ -757,12 +757,12 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 		double ks             = kn / (2.0 * (1.0 + poisson));
                 //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 		array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                
+
         std::size_t iRigidFaceNeighbour = 0;
 
         for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
         {
-			
+
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
             double GlobalContactForceOld[3] = {0.0};			            
@@ -771,10 +771,15 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             noalias(other_to_me_vel) = ZeroVector(3);
 
             double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};			
-            double DistPToB = 0.0;
+            
+	    double ini_delta = GetInitialDelta(iRigidFaceNeighbour);
+
+	    double DistPToB = 0.0;
 
 	    ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);						
 
+	    double indentation = -(DistPToB - mRadius) - ini_delta;
+	    	    
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
 
@@ -826,14 +831,14 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             //LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
 			
 		
-			 if(DistPToB < radius)
-			{
-				LocalContactForce[2] =  -kn * (DistPToB - radius);
-			}
-			else
-			{
-				LocalContactForce[2] = 0.0;
-			}
+	    if(indentation > 0.0)
+	    {
+		    LocalContactForce[2] =  kn * indentation;
+	    }
+	    else
+	    {
+		    LocalContactForce[2] = 0.0;
+	    }
 
 
             bool If_sliding = false;
@@ -905,7 +910,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
 				equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks / kn);
 			
-				CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce,DistPToB, equiv_visco_damp_coeff_normal,
+				CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal,
 									  equiv_visco_damp_coeff_tangential, If_sliding);
 				
 				double GlobalDampForce[3]   = {0.0};
@@ -2216,6 +2221,19 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
+      double SphericParticle::GetInitialDelta(int index)
+      
+      {
+	double delta = 0.0; //only available in continuum_particle
+
+	return delta;
+	
+      }
+      
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      
       void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
           
