@@ -209,7 +209,8 @@ namespace Kratos
           mInitializeWasPerformed = true;
           
           // 0. Set search radius
-                    
+          
+          SetOriginalRadius(r_model_part);
           SetSearchRadius(r_model_part, 1.0);
           
           SearchNeighbours();
@@ -669,6 +670,26 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    
+    void SetOriginalRadius(ModelPart& r_model_part)
+    {
+        KRATOS_TRY
+     
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+        
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+        
+        this->GetOriginalRadius().resize(number_of_elements);
+
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
+
+            this->GetOriginalRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void KRATOS_CHECK_SIZE(const char* msg, int id)
     {
@@ -840,7 +861,7 @@ namespace Kratos
             }
            
 
-            moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
+            moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
             
             #pragma omp for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
@@ -1105,6 +1126,7 @@ namespace Kratos
     VectorResultElementsContainerType&           GetResults(){return(mResults);}
     VectorDistanceType&                          GetResultsDistances(){return(mResultsDistances);}
     RadiusArrayType&                             GetRadius(){return(mRadius);}
+    RadiusArrayType&                             GetOriginalRadius(){return(mOriginalRadius);}
 
     bool&                                        GetElementsAreInitialized(){return (mElementsAreInitialized);}
     bool&                                        GetInitializeWasPerformed(){return (mInitializeWasPerformed);}
@@ -1141,6 +1163,7 @@ namespace Kratos
     VectorResultElementsContainerType            mResults;
     VectorDistanceType                           mResultsDistances;
     RadiusArrayType                              mRadius;
+    RadiusArrayType                              mOriginalRadius;
 
     bool                                         mElementsAreInitialized;
     bool                                         mInitializeWasPerformed;
