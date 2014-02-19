@@ -169,7 +169,7 @@ if (DEM_parameters.Multifile == "single_file"):
 
 if(DEM_parameters.TestType != "None"):
  
- MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part)
+ MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
 
 print ("Initialization Complete" + "\n")
 
@@ -207,19 +207,6 @@ if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
  MaterialTest.PrintChart(DEM_parameters);
  
-if(DEM_parameters.FemPlates == "ON"):
-
-  meshes_to_translate = Vector(1)
-  meshes_to_translate[0] = 1
-
-  xyz_displacements = Vector(3)
-  xyz_displacements[0]=1
-  xyz_displacements[1]=2
-  xyz_displacements[2]=3
-
-  translation_operation = TranslationOperation(RigidFace_model_part,meshes_to_translate,xyz_displacements,0)
-  translation_operation.Execute()
-
 #------------------------------------------------------------------------------------------
  
 ###########################################################################################
@@ -255,9 +242,6 @@ while (time < DEM_parameters.FinalTime):
     #walls movement:
     mesh_motion.MoveAllMeshes(RigidFace_model_part, time)
     
-    if(DEM_parameters.FemPlates == "ON"):
-      translation_operation.ExecuteInitializeSolutionStep()
-
     #########################_SOLVE_#########################################4
 
     solver.Solve()
@@ -364,9 +348,9 @@ while (time < DEM_parameters.FinalTime):
   
     step += 1
 
-    if((step%500) == 0):
-      if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
-          MaterialTest.OrientationStudy(contact_model_part, step)
+    #if((step%500) == 0):
+      #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
+          #MaterialTest.OrientationStudy(contact_model_part, step)
     
 
 #-----------------------FINALIZATION OPERATIONS-------------------------------------------------------------------------------------- 
