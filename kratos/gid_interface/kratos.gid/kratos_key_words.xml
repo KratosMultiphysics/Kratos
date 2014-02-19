@@ -14,8 +14,6 @@
       usennode="Yes" />
       <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement"
       usennode="Yes" />
-      <Item id="ShellIsotropic" kkword="IsotropicShellElement"
-      usennode="Yes" />
 	  <Item id="ShellThick" kkword="ShellThickElement"
       usennode="Yes" />
 	  <Item id="ShellThickCR" kkword="ShellThickElementCorotational"
@@ -24,8 +22,6 @@
       usennode="Yes" />
 	  <Item id="ShellThinCR" kkword="ShellThinElementCorotational"
       usennode="Yes" />
-      <Item id="ShellAnisotropic" kkword="ShellAnisotropic"
-      usennode="No" />
       <Item id="Membrane" kkword="MembraneElement"
       usennode="Yes" />
       <Item id="EBST" kkword="EBST3DN" 
@@ -444,9 +440,6 @@
     <Item id="CrisfieldTrussElement" 
     claws="Elastic-Isotropic"
     active="1" />
-    <Item id="ShellIsotropic" 
-    claws="Elastic-Isotropic"
-    active="1" />
 	<Item id="ShellThick" 
     claws="Elastic-Isotropic"
     active="1" />
@@ -461,9 +454,6 @@
     active="1" />
     <Item id="Membrane" 
     claws="Elastic-Isotropic" 
-    active="1" />
-    <Item id="ShellAnisotropic" 
-    claws="Elastic-Anisotropic"
     active="1" />
     <Item id="EBST"
     claws="Elastic-Isotropic,Elastic-Orthotropic"
