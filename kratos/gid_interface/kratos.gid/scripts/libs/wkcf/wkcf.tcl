@@ -813,7 +813,7 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
                         set useshells2 "No"
 			set usebeams "No"
 			set beamlist [list "BeamElement"]
-                        set shelllist2 [list "ShellIsotropic" "ShellAnisotropic" "EBST" "ShellThick" "ShellThickCR" "ShellThin" "ShellThinCR"]
+                        set shelllist2 [list "EBST" "ShellThick" "ShellThickCR" "ShellThin" "ShellThinCR"]
                         if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
                             # For all defined kratos elements        
                             foreach celemid $dprops($AppId,AllKElemId) {
