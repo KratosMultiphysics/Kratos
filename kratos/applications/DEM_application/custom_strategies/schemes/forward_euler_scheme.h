@@ -116,7 +116,7 @@ namespace Kratos
                   array_1d<double, 3 > & coor            = i->Coordinates();
                   array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
-                  
+
                   double mass                            = i->FastGetSolutionStepValue(SQRT_OF_MASS);
                   mass                                  *= mass;
                   
