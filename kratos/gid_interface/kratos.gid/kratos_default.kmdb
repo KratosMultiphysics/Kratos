@@ -87,8 +87,8 @@
                 <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                     <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                         <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="Conductivity" pid="Conductivity" value="54.0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="SpecificHeat" pid="Specific heat" value="465.0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
                     <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
                         <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -197,8 +197,8 @@
                 <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                     <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                         <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="Conductivity" pid="Conductivity" value="130.0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="SpecificHeat" pid="Specific heat" value="1047.0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
                     <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
                         <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
