@@ -137,7 +137,7 @@ def ApplyEmbeddedBCsToFluid(model_part):
 
                 for node in mesh_nodes:
                     dist = node.GetSolutionStepValue(DISTANCE)
-                    distance_to_highest = InnerProd(VectTimes([node.X, node.Y, node.Z], -1), normalized_bf)
+                    distance_to_highest = maxheight - InnerProd(VectTimes([node.X, node.Y, node.Z], -1), normalized_bf)
 
                     if (dist > 0.0):
                         node.Fix(PRESSURE)
