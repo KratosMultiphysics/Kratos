@@ -581,17 +581,7 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 			WarnWin "$txt."
 			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
 		    }
-                } elseif { $selCombo == "Shell" } {
-		    # Check the special case of kinematic type
-		    set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
-		    set KinematicType [::xmlutils::setXml "$xpath" dv]
-		    # wa "KinematicType:$KinematicType"
-		    if { $KinematicType == "LargeDisplacements" } {
-			set txt [= "Shell structural type can not be used with the large displacements formulation in this version"]  
-			WarnWin "$txt."
-			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
-		    }
-                }
+            }
 	    } elseif { $var == "kinemType" } {
 		if { $selCombo == "LargeDisplacements" } {
 		    # Check the special case of kinematic type
@@ -603,13 +593,8 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 			WarnWin "$txt."
 			set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
 			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
-		    } elseif { $StructuralType == "Shell" } {
-			set txt [= "The large displacements formulation can not be used with the shell structural type in this version"]  
-			WarnWin "$txt."
-			set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
-			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
 		    }
-                }
+            }
 	    } 
         }
     }
