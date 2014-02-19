@@ -116,7 +116,9 @@ namespace Kratos
         
         this->ApplyPrescribedBoundaryConditions();
         
-        // 0. Set search radius
+        // 0. Set search radius.
+        
+        BaseType::SetOriginalRadius(r_model_part);
         BaseType::SetSearchRadius(r_model_part, 1.0);
 
         // 3. Search Neighbours with tolerance (after first repartition process)
