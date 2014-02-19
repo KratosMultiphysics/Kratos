@@ -210,7 +210,9 @@ namespace Kratos
                                   ParticleWeakIteratorType neighbour_iterator);
 
       virtual void CustomInitialize();
-
+      
+      virtual double GetInitialDelta(int index);
+      
       virtual void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
                                            array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo);
 
@@ -279,6 +281,11 @@ namespace Kratos
       std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
       std::vector<int> mFemTempNeighboursIds;
       std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
+
+      std::vector<double>               mFemTempNeighboursDelta;
+      std::vector<int>                  mFemTempNeighboursMapping;
+
+      std::vector<double>              mFemNeighbourDelta;
       
       //ParticleWeakVectorType mrNeighbours;
 
