@@ -51,12 +51,18 @@
 
         Py_SetProgramName(wchar_argv[0]);
 
-        // set this because otherwise will not work...
+
         std::string programName(argv[0]);
-        
-        std::string pythonPath = programName.substr(0, programName.find_last_of("\\/")+1); //sould work both with winx and linx....
-        Py_SetPath(std::wstring(pythonPath.begin(),pythonPath.end()).append(L"Lib").c_str());
-        
+        wchar_t* original_path = Py_GetPath();
+           
+        std::string pythonPath;
+        if(wcslen(original_path) == 0)
+        {
+           std::string programName(argv[0]);      
+           std::string pythonPath = programName.substr(0, programName.find_last_of("\\/")+1); //should work both with winx and linx....
+           Py_SetPath(std::wstring(pythonPath.begin(),pythonPath.end()).append(L"Lib").c_str());
+        }        
+                        
         Py_Initialize();
 
         // apparently Python 3 have some sort of problem with relative paths here...
