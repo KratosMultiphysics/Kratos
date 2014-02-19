@@ -1369,7 +1369,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set useshells "No"
     set usebeams "No"
 
-    set shelllist [list "ShellIsotropic" "ShellAnisotropic" "EBST" "ShellThick" "ShellThickCR" "ShellThin" "ShellThinCR"]
+    set shelllist [list "EBST" "ShellThick" "ShellThickCR" "ShellThin" "ShellThinCR"]
     set beamlist  [list "BeamElement"]
 
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
