@@ -213,6 +213,9 @@ namespace Kratos
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         
         virtual void CustomInitialize();
+	
+	virtual double GetInitialDelta(int index);
+      
         void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
         virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
         //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
@@ -316,10 +319,7 @@ namespace Kratos
         Vector                            mFemIniNeighbourDelta;
         std::vector<int>                  mFemMappingNewIni;
         
-        std::vector<double>               mFemTempNeighboursDelta;
-        std::vector<int>                  mFemTempNeighboursMapping;
         
-         std::vector<double>              mFemNeighbourDelta;
         
         
         
