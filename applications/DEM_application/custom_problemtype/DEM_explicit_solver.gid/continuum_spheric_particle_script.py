@@ -133,6 +133,11 @@ print ("Initializing Problem....")
 #
 #
 
+#MIQUEL
+#Procedures.SetCustomSkin(balls_model_part)
+
+
+
 solver.Initialize()
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
@@ -166,6 +171,8 @@ if (DEM_parameters.Multifile == "single_file"):
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
+   
+
 
 if(DEM_parameters.TestType != "None"):
  
@@ -280,7 +287,7 @@ while (time < DEM_parameters.FinalTime):
     
     if( DEM_parameters.TestType != "None"):
    
-      MaterialTest.CreateTopAndBotGraph(DEM_parameters)
+      MaterialTest.CreateTopAndBotGraph(DEM_parameters,step)
       
      
     ##########################___GiD IO____#########################################
