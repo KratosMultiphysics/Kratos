@@ -82,7 +82,7 @@ proc ::KMValid::CreateReportWindow {w} {
     set ValidateModel [::kps::getConfigValue "ValidateModel"]
     
     if { !$ValidateModel } {
-	
+
 	return 0
     }
     
@@ -188,10 +188,10 @@ proc ::KMValid::CreateReportWindow {w} {
     }
     
     if { $structural == "Yes" } {
-	
+
 	set reportAux {}
 	set reportAux [::KMValid::ValidateAssignedGroupsInModel $reportAux StructuralAnalysis]
-	
+
 	if {[llength $reportAux]} {
 	    lappend allreportlist "Error: STRUCTURAL ANALYSIS APPLICATION:\n"
 	    lappend allreportlist "Error:\n"
@@ -279,7 +279,7 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
     $tpath tag configure bluemargins2 -foreground blue -lmargin1 14m -lmargin2 6m -rmargin 10m
     
     if {[llength $allreportlist]>0} {
-	
+
 	set errorlist [list]
 	set warninglist [list]
 	# Add all the text with your format
@@ -301,13 +301,13 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
 	set bcount -1
 	# Error
 	#set applications [list "Structural Annalysis" "Fluid" ]
-	
+
 	if {[llength $errorlist]>0} {
 	    set ::KMValid::Errors 1
 	    $tpath insert end "***** Begin error *****\n\n"  bigred
 	    
 	    foreach items $errorlist {
-		
+
 		#Opciones especiales para resaltar la aplicación y solo imprimirla si tiene errores
 		if { $items == "STRUCTURAL ANALYSIS APPLICATION:" } {
 		    
@@ -327,7 +327,7 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
 	    }
 	    $tpath insert end "\n***** End error *****\n\n"  bigred
 	}
-	
+
 	# Warning
 	if {[llength $warninglist]>0} {
 	    
@@ -338,13 +338,13 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
 		# Check the end key
 		set bkey [lindex $items end]
 		$tpath insert end "${items}\n" 
-		
+
 	    }
 	    $tpath insert end "\n***** End warning *****\n\n"  bigblue
 	}
-	
+
     } else {
-	
+
 	::KMValid::CreateReportWindowbClose $w
     }
     
@@ -373,17 +373,17 @@ proc ::KMValid::ValidateGroups { allreportlist } {
     
     set groups [::xmlutils::getXmlChildIds $xml $xpath ] 
     if { $groups == 0 } {
-	
+
 	lappend allreportlist "Error: There are no groups defined."
 	lappend allreportlist "Error: \n"
-	
+
 	set line1 ""
 	set line2 ""
 	lappend allreportlist ${line1}
 	lappend allreportlist ${line2}
-	
+
     } else {
-	
+
 	set noEntitiesGroups [list ]
     
 	foreach group $groups {
@@ -391,19 +391,19 @@ proc ::KMValid::ValidateGroups { allreportlist } {
 	    set hasent [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
 	    # msg "Hasent for $group $hasent"
 	    if {$hasent eq "0"} {
-		
+
 		lappend noEntitiesGroups $group
 	    }
 	}
 	if { [llength $noEntitiesGroups] } {
 	    
 	    if { [llength $noEntitiesGroups] == [llength $groups] } {
-		
+
 		lappend allreportlist "Error: There are no groups with entities defined."
 		lappend allreportlist "Error: \n"
-		
+
 	    } else  {
-		
+
 		lappend allreportlist "Warning: There are groups with no entities: "
 		foreach group $noEntitiesGroups {
 		    lappend allreportlist "Warning: $group"
@@ -465,9 +465,9 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     set nodes [$xml selectNodes $xpath]
     
     foreach node $nodes {
-	
+
 	set idElem [$node getAttribute id ""]
-	
+
 	set groupsXPath "${xpath}\[@id='$idElem'\]/Container"
 	set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ] 
 	# msg "idElem$idElem   groups:$groups\n"
@@ -490,7 +490,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 		} else {
 		    lappend groupwithoutEntitiesList [list $idElem $group]
 		}
-		
+
 		# Now check the property assigned to this group
 		set grNodeXPath "${groupsXPath}\[@id='$group'\]/Container"
 		set grNodeConainers [$xml selectNodes "$grNodeXPath"]
@@ -613,7 +613,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     set xpath "$appPath/Container\[@id='Properties'\]/Container"
     set nodes [$xml selectNodes $xpath]
     if { [llength $nodes] == 0 } {
-	
+
 	lappend propsMessages "Error: There are no properties defined."
     } else {
 	foreach node $nodes {
@@ -627,7 +627,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     }
     
     if { [llength $noMaterialProps] } {
-	
+
 	lappend propsMessages "Error: There are properties without an associated material:\n$noMaterialProps"
     }
     if { [llength $nullProperty] } {
@@ -646,7 +646,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     }
     
     if { [llength $propsMessages] } {
-	
+
 	#lappend allreportlist "Error:PROPERTIES:"        
 	foreach prop $propsMessages {
 	    
@@ -656,12 +656,16 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 
     set allreportlist [::KMValid::checkGroups $xml $appPath "Conditions" $allreportlist]
     
-    if { $application == "StructuralAnalysis" } {
-	
-	set allreportlist [::KMValid::checkGroups $xml $appPath "Loads" $allreportlist]
-	
-    } elseif { $application == "Fluid" } {
-	
+    
+    # Check over loads in Structural application is not required - S.Zaghi
+    #if { $application == "StructuralAnalysis" } {
+	#
+	#set allreportlist [::KMValid::checkGroups $xml $appPath "Loads" $allreportlist]
+	#
+    #} else
+    
+    if { $application == "Fluid" } {
+
 	# Ahora ya no es un error, es un warning, por lo que se gestiona de forma distinta
 	set allreportlist [::KMValid::checkGroups $xml $appPath "InitialConditions" $allreportlist]
     }
@@ -703,14 +707,14 @@ proc ::KMValid::groupsWithEntities { xml xpath {returnNodes 0}} {
 	    }            
 	}
     }
-	
+
     
     
     foreach {node groupsXPath} $nodes {
-	
+
 	set groups [$xml selectNodes $groupsXPath]
 	#set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ]
-	
+
 	foreach nodeGroup $groups {
 	    
 	    set idGroup [$nodeGroup getAttribute id ""]
@@ -756,7 +760,7 @@ proc ::KMValid::ValidateProjectInformation { allreportlist } {
     set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ProjectInfo'\]/Item"
     set nodes [$xml selectNodes $xpath]
     foreach node $nodes {
-	
+
 	set style [$node getAttribute style ""]
 	if { $style == "*" } {
 	    if { [$node getAttribute dv ""]        == "" } {
@@ -833,7 +837,7 @@ proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 		}
 
     } else {
-	
+
 	#En el caso de Initial conditions se ha cambiado de error a warning, por lo que se ha creado
 	# una variable global para tratar este caso particular en vez de cambiar el diseño
 	if { $rootContainer == "InitialConditions" } {
@@ -855,7 +859,7 @@ proc ::KMValid::SlipNoSlipList { {type "slip"} } {
     
     if { $type == "slip"} {
 	set sliplist ""
-	
+
 	set root "/Kratos_Data/RootData\[@id='Fluid'\]/Container\[@id='Conditions'\]/Container\[@id='Is-Slip'\]"
 	set slipnode [$KPriv(xml) selectNodes "$root"]
 	set nodes [$slipnode childNodes]
@@ -864,7 +868,7 @@ proc ::KMValid::SlipNoSlipList { {type "slip"} } {
 	}
 	return $sliplist
     } else {
-	
+
 	set nosliplist ""
 	set root "/Kratos_Data/RootData\[@id='Fluid'\]/Container\[@id='Conditions'\]/Container\[@id='No-Slip'\]"
 	set noslipnode [$KPriv(xml) selectNodes "$root"]
@@ -872,7 +876,7 @@ proc ::KMValid::SlipNoSlipList { {type "slip"} } {
 	foreach node $nodes {
 	    lappend nosliplist [$node getAttribute id ""]
 	}
-	
+
 	return $nosliplist
     }
 }
@@ -915,7 +919,7 @@ proc ::KMValid::ValidateGroupRepeat { firstcomp secondcomp } {
 	    set txt [= "Warning: Repeated groups (%s) between %s and %s" $retval $firstcomp $secondcomp]
 	    return "$txt" 
 	} 
-	
+
 	# Ahora vamos a comporbar que no hayan nodos repetidos
 	set msn [::KMValid::CheckRepeatedNodes $listcomp1 $listcomp2 $firstcomp $secondcomp]
 	return $msn
@@ -946,7 +950,7 @@ proc ::KMValid::CheckRepeatedNodes { grouplist1 grouplist2 Item1 Item2 } {
 	    }
 	}
 	# wa "l2nlist:$l2nlist"
-	
+
 	# Check only if l2nlist is not empty
 	if {[llength $l2nlist]} {
 	    set rnodes [list]
@@ -972,7 +976,7 @@ proc ::KMValid::FindRepeated {nlist1 nlist2} {
     set b [llength $rec]
     if { $a != $b } {
 	set i 1
-	
+
 	foreach item $total {
 	    
 	    if { $item == [lindex $total $i] } {
@@ -996,7 +1000,7 @@ proc ::KMValid::ValidateDragFiles { allreportlist } {
     #msg [$noded asXML]
     set nodes [$noded childNodes]
     foreach node $nodes {
-	
+
 	set nitem [lindex [$node childNodes] 0]
 	#msg [$nitem asXML]
 	set item [$nitem childNodes]
