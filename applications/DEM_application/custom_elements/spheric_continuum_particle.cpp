@@ -1563,7 +1563,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             {
                 
                   Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(cont_neigh_index)).lock();
-                 
+
                   if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
                   {
                   
