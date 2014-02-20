@@ -101,19 +101,16 @@ class MaterialTest:
         self.graph_export_fem_bot = open(DEM_parameters.problem_name +"_graph_BOT_FEM.grf", 'w')
         self.graph_export_fem_mean = open(DEM_parameters.problem_name +"_graph_MEAN_FEM.grf", 'w')
         self.graph_export_volumetric = open(DEM_parameters.problem_name+"_graph_VOL.grf",'w')
-        
-        if(DEM_parameters.FemPlates == "ON"):
-          self.graph_export_fem = open(DEM_parameters.problem_name +"_graph_PLATE.grf", 'w')
+        self.graph_export_fem = open(DEM_parameters.problem_name +"_graph_PLATE.grf", 'w')
 
         #measuring height:
         #pre_utilities = PreUtilities(self.balls_model_part)
       
         #(subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(self.balls_model_part)
         #(subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(self.balls_model_part)
-    
-        #if(DEM_parameters.FemPlates == "ON"):
-          #mean_top = 0.30
-          #mean_bot = 0.00
+
+        #mean_top = 0.30
+        #mean_bot = 0.00
           
         #else:
           #(subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(self.balls_model_part)
@@ -143,7 +140,7 @@ class MaterialTest:
     
  
   
-  def CreateTopAndBotGraph(self,DEM_parameters):
+  def CreateTopAndBotGraph(self,DEM_parameters,step):
        
     top_mesh_nodes = self.balls_model_part.GetMesh(111).Nodes
     bot_mesh_nodes = self.balls_model_part.GetMesh(222).Nodes
@@ -151,12 +148,14 @@ class MaterialTest:
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
     self.strain += 1.0*DEM_parameters.LoadingVelocityTop*dt/DEM_parameters.SpecimenLength
  
-    radial_strain = self.MeasureRadialStrain(self.Procedures.XLAT)
-
-    volumetric_strain = self.strain - 2*radial_strain
+    if( DEM_parameters.TestType != "BTS"):
       
-    self.graph_export_volumetric.write(str(volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
-    self.graph_export_volumetric.flush()
+      radial_strain = self.MeasureRadialStrain(self.Procedures.XLAT)
+
+      volumetric_strain = self.strain - 2*radial_strain
+        
+      self.graph_export_volumetric.write(str(volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
+      self.graph_export_volumetric.flush()
   
     if( ( (DEM_parameters.TestType == "Triaxial") or (DEM_parameters.TestType == "Hydrostatic") ) and (DEM_parameters.ConfinementPressure != 0.0) ):
           
@@ -229,85 +228,83 @@ class MaterialTest:
                 self.first_time_entry_2 = 0
                          
     ##################################PLATE##################################
-          
-    if(DEM_parameters.FemPlates == "ON"):
 
-      top_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(111).Nodes
-      bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(222).Nodes
+    top_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(111).Nodes
+    bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(222).Nodes
 
-      if (len(top_mesh_fem_nodes)*len(bot_mesh_fem_nodes)):
-        
-        total_fem_force_top = 0.0
-        total_fem_force_bot = 0.0
-        total_fem_force_bts = 0.0
-
-        if( self.graph_counter_fem == self.graph_frequency):
-          
-          self.graph_counter_fem = 0
-          
-          if( DEM_parameters.TestType =="BTS"):
-
-            for node in top_mesh_fem_nodes:
-
-              force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]    #MSIMSI 5: ELASTIC_FORCES.
-
-              total_fem_force_bts += force_node_y
-              
-            self.bts_fem_export.write(str(step)+"  "+str(total_fem_force_bts)+'\n')
-            self.bts_fem_export.flush()
-            
-          else:
-
-            for node in top_mesh_fem_nodes:
-
-              force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-
-              total_fem_force_top += force_node_y
-              
-            self.total_stress_fem_top = total_fem_force_top/(DEM_parameters.MeasuringSurface*1000000)
-
-            for node in bot_mesh_fem_nodes:
-
-              force_node_y = -node.GetSolutionStepValue(TOTAL_FORCES)[1]
-
-              total_fem_force_bot += force_node_y
-
-            self.total_stress_fem_bot = total_fem_force_bot/(DEM_parameters.MeasuringSurface*1000000)
-            
-            self.graph_export_fem_top.write(str(self.strain)+"    "+str(self.total_stress_fem_top)+'\n')
-            self.graph_export_fem_bot.write(str(self.strain)+"    "+str(self.total_stress_fem_bot)+'\n')
-            self.total_stress_fem_mean = 0.5*(self.total_stress_fem_bot + self.total_stress_fem_top)
-            self.graph_export_fem_mean.write(str(self.strain)+"    "+str(self.total_stress_fem_mean)+'\n')
-            
-            self.graph_export_fem_top.flush()
-            self.graph_export_fem_bot.flush()
-            self.graph_export_fem_mean.flush()
+    if (len(top_mesh_fem_nodes)*len(bot_mesh_fem_nodes)):
       
-            ##################################POISSON##################################
+      total_fem_force_top = 0.0
+      total_fem_force_bot = 0.0
+      total_fem_force_bts = 0.0
+
+      if( self.graph_counter_fem == self.graph_frequency):
+        
+        self.graph_counter_fem = 0
+        
+        if( DEM_parameters.TestType =="BTS"):
+
+          for node in top_mesh_fem_nodes:
+
+            force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]    #MSIMSI 5: ELASTIC_FORCES.
+
+            total_fem_force_bts += force_node_y
             
-            #if(DEM_parameters.PoissonMeasure == "ON"):
-                        
-              #xleft_weight  = 0.0         
-              #xright_weight  = 0.0
+          self.bts_fem_export.write(str(step)+"  "+str(total_fem_force_bts)+'\n')
+          self.bts_fem_export.flush()
+          
+        else:
 
-              #left_counter = 0.0
-              #right_counter = 0.0
+          for node in top_mesh_fem_nodes:
 
-              #for node in left_nodes:
-                
-                #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-                #left_counter = +node.GetSolutionStepValue(RADIUS)
-                
-              #for node in right_nodes:
-                
-                #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-                #right_counter = +node.GetSolutionStepValue(RADIUS)
+            force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+
+            total_fem_force_top += force_node_y
+            
+          self.total_stress_fem_top = total_fem_force_top/(DEM_parameters.MeasuringSurface*1000000)
+
+          for node in bot_mesh_fem_nodes:
+
+            force_node_y = -node.GetSolutionStepValue(TOTAL_FORCES)[1]
+
+            total_fem_force_bot += force_node_y
+
+          self.total_stress_fem_bot = total_fem_force_bot/(DEM_parameters.MeasuringSurface*1000000)
+          
+          self.graph_export_fem_top.write(str(self.strain)+"    "+str(self.total_stress_fem_top)+'\n')
+          self.graph_export_fem_bot.write(str(self.strain)+"    "+str(self.total_stress_fem_bot)+'\n')
+          self.total_stress_fem_mean = 0.5*(self.total_stress_fem_bot + self.total_stress_fem_top)
+          self.graph_export_fem_mean.write(str(self.strain)+"    "+str(self.total_stress_fem_mean)+'\n')
+          
+          self.graph_export_fem_top.flush()
+          self.graph_export_fem_bot.flush()
+          self.graph_export_fem_mean.flush()
+    
+          ##################################POISSON##################################
+          
+          #if(DEM_parameters.PoissonMeasure == "ON"):
+                      
+            #xleft_weight  = 0.0         
+            #xright_weight  = 0.0
+
+            #left_counter = 0.0
+            #right_counter = 0.0
+
+            #for node in left_nodes:
               
-              #width_now = xright_weight/right_counter - xleft_weight/left_counter
-
-              #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+              #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #left_counter = +node.GetSolutionStepValue(RADIUS)
               
-              #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
+            #for node in right_nodes:
+              
+              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #right_counter = +node.GetSolutionStepValue(RADIUS)
+            
+            #width_now = xright_weight/right_counter - xleft_weight/left_counter
+
+            #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+            
+            #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
 
     self.graph_counter += 1
     self.graph_counter_fem += 1
@@ -374,16 +371,18 @@ class MaterialTest:
         shutil.copy(filename, filename+"COPY")
         os.rename(filename+"COPY", DEM_parameters.problem_name + "_graph_" + str(self.initial_time) + "_PLATE.csv")
 
+    if(DEM_parameters.TestType == "BTS"):
+      self.bts_export.close()
+    
+    else:
+    
       self.graph_export_top.close()
       self.graph_export_bot.close()
       self.graph_export_mean.close()
       self.graph_export_volumetric.close()
-      
-      if(DEM_parameters.FemPlates == "ON"):
-        self.graph_export_fem.close()
+      self.graph_export_fem.close()
 
-    if(DEM_parameters.TestType == "BTS"):
-      self.bts_export.close()
+    
   
   def OrientationStudy(self,contact_model_part,step):
     
@@ -642,6 +641,7 @@ class MaterialTest:
   def MeasureRadialStrain(self,XLAT):
       
     mean_radial_strain = 0.0
+    radial_strain = 0.0
     weight = 0.0
     
     for node in XLAT:
@@ -668,5 +668,10 @@ class MaterialTest:
       radial_strain = mean_radial_strain/weight
     
     return radial_strain
+
+        
+    
+    
+    
    
  
