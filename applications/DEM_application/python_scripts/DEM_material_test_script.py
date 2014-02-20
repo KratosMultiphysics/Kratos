@@ -82,6 +82,7 @@ class MaterialTest:
 
           self.bts_export = open(DEM_parameters.problem_name + "_bts" + ".grf", 'w');
           self.bts_fem_export = open(DEM_parameters.problem_name + "_bts_FEM" + ".grf", 'w');
+          self.bts_stress_export = open(DEM_parameters.problem_name + "_stress_bts" + ".grf", 'w');
           self.Procedures.BtsSkinDetermination(self.balls_model_part, self.solver)
 
       else:
@@ -184,10 +185,14 @@ class MaterialTest:
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
             total_force_bts += force_node_y
+
+          total_stress_bts = 2.0*total_force_bts/(3.14159*DEM_parameters.SpecimenLength*DEM_parameters.SpecimenDiameter*1e6)
+            
             
           self.bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
           self.bts_export.flush()
-          
+          self.bts_stress_export.write(str(step)+"  "+str(total_stress_bts)+'\n')
+          self.bts_stress_export.flush()          
         else:
           
           for node in top_mesh_nodes:
@@ -373,6 +378,7 @@ class MaterialTest:
 
     if(DEM_parameters.TestType == "BTS"):
       self.bts_export.close()
+      self.bts_stress_export.close()
     
     else:
     
