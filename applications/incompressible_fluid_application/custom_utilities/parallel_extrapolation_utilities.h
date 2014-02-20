@@ -216,7 +216,7 @@ public:
     ///@param rAreaVar is the Variable that we will use for L2 projections
     ///@param max_levels is the number of maximum "layers" of element that will be used in the calculation of the distances
 
-    void ExtrapolateTemperature(ModelPart& rmodel_part,
+    static void ExtrapolateTemperature(ModelPart& rmodel_part,
                              const Variable<double>& rDistanceVar,
                              const Variable<double>& rTemperatureVar,
                              const Variable<double>& rAreaVar,
@@ -853,7 +853,7 @@ protected:
 
     //*******************************************************************
 
-    bool IsActive(array_1d<double, TDim + 1 > & visited)
+    static bool IsActive(array_1d<double, TDim + 1 > & visited)
     {
         unsigned int positive = 0;
 

@@ -525,7 +525,7 @@ public:
 		//If there is a dry node then do extrapolation for velocity
 		if(is_wet == 0.0)
 		{
-		 ParallelExtrapolationUtilities<3>::ParallelExtrapolationUtilities().ExtrapolateTemperature(ThisModelPart, DISTANCE, TEMPERATURE, NODAL_AREA,10);
+		 ParallelExtrapolationUtilities<3>::ExtrapolateTemperature(ThisModelPart, DISTANCE, TEMPERATURE, NODAL_AREA,10);
 		 //ParallelExtrapolationUtilities<3>::ParallelExtrapolationUtilities().ExtrapolateVelocity(ThisModelPart, DISTANCE, VELOCITY, NODAL_AREA,10);
 
 		 #pragma omp parallel for firstprivate(node_size)
