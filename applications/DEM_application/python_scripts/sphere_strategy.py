@@ -100,6 +100,9 @@ def AddVariables(model_part, Param):
 #    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
 
     # ONLY VISUALIZATION
+    if (Var_Translator(Param.PostExportSkinSphere) ):
+        model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
+        model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
     model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
     if (Var_Translator(Param.PostGroupId)):
