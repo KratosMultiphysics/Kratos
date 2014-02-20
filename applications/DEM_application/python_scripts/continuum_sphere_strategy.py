@@ -91,7 +91,8 @@ def AddVariables(model_part, Param):
 
     if (Var_Translator(Param.PostExportId)):
         model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    if (Var_Translator(Param.PredefinedSkinOption) | (Param.TestType != "None") ):
+    #if (Var_Translator(Param.PredefinedSkinOption) | (Param.TestType != "None") ):
+    if (Var_Translator(Param.PostExportSkinSphere) ):
         model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
         model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
     if (Var_Translator(Param.PostGroupId)):
