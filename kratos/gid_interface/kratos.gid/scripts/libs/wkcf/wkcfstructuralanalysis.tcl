@@ -59,7 +59,7 @@ proc ::wkcf::WriteDispRotBC {AppId ccondid kwordlist} {
 
 	if {[llength $nodes]} {
 	    set xitem [lindex $kwordlist 0]
-	    if {($fix_x ne 0) && ($xval ne 0)} {
+	    if {$fix_x != "0" || $xval != "0.000000"} {
 		    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem"
 		    foreach nodeid $nodes {
 			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_x $xval
@@ -72,7 +72,7 @@ proc ::wkcf::WriteDispRotBC {AppId ccondid kwordlist} {
 	# DISPLACEMENT_Y or ROTATION_Y
 	if {[llength $nodes]} {
 	    set yitem [lindex $kwordlist 1]
-	    if {($fix_y ne 0) && ($yval ne 0)} {
+	    if {$fix_y != "0" || $yval != "0.000000"} {
 		    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem"
 		    foreach nodeid $nodes {
 			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_y $yval
@@ -85,7 +85,7 @@ proc ::wkcf::WriteDispRotBC {AppId ccondid kwordlist} {
 	# DISPLACEMENT_Z or ROTATION_Z
 	if {($ndime eq "3D") && ([llength $nodes])} {
 	    set zitem [lindex $kwordlist 2]
-	    if {($fix_z ne 0) && ($zval ne 0)} {
+	    if {$fix_z != "0" || $zval != "0.000000"} {
 		    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem"
 		    foreach nodeid $nodes {
 			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_z $zval
