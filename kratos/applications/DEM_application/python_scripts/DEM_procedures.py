@@ -175,7 +175,8 @@ class Procedures:
         self.print_group_id = Var_Translator(DEM_parameters.PostGroupId)
         self.print_export_id = Var_Translator(DEM_parameters.PostExportId)
 
-        if (DEM_parameters.ElementType == "SphericContPartDEMElement3D"):
+        
+        if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
             self.predefined_skin_option = Var_Translator(DEM_parameters.PredefinedSkinOption)
             if (self.contact_mesh_OPTION):
@@ -187,7 +188,7 @@ class Procedures:
                 self.print_contact_sigma = Var_Translator(DEM_parameters.PostContactSigma)
                 self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
         else:
-            self.print_export_skin_sphere = 0
+            self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
 
     def ModelData(self, balls_model_part, contact_model_part, solver):
     # Previous Calculations.
@@ -564,6 +565,25 @@ class Procedures:
             if (element.GetNode(0).GetSolutionStepValue(PREDEFINED_SKIN) > 0.0):  # PREDEFINED_SKIN is a double
 
                 element.SetValue(SKIN_SPHERE, 1)
+                
+    def SetCustomSkin(self,balls_model_part):
+    
+      for element in balls_model_part.Elements:
+      
+        x = element.GetNode(0).X
+        y = element.GetNode(0).Y
+        #z = element.GetNode(0).Z
+      
+        if(x>3.1):
+          element.SetValue(SKIN_SPHERE,1)
+        if(x<1.25):
+          element.SetValue(SKIN_SPHERE,1)
+        if(y>1.9):
+          element.SetValue(SKIN_SPHERE,1)
+        if(y<0.1):
+          element.SetValue(SKIN_SPHERE,1)
+          
+          
 
  
 
