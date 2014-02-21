@@ -3,6 +3,7 @@ import math
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.DEMApplication import *
 
 def VectSum(v, w):
     return [x + y for x, y in zip(v, w)]
@@ -206,3 +207,48 @@ def MoveEmbeddedStructure(model_part, time):
                     # NEW VELOCITY
                     node.SetSolutionStepValue(VELOCITY, VectSum(linear_velocity, velocity_due_to_rotation))
 
+class SearchEmbeddedDEMTools:
+
+    def __init__(self):
+        self.search_tools = DemSearchUtilities(OMP_DEMSearch())
+
+    def SearchNodeNeighboursDistances(self, model_part, dem_model_part, search_radius):
+        self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, DISTANCE)
+
+    def SearchElementNeighbourDistances(self, model_part, intersecting_surface_semi_thickness):
+
+        for node in model_part.Nodes:
+            distance = node.GetSolutionStepValue(DISTANCE) - intersecting_surface_semi_thickness
+            distance = node.GetSolutionStepValue(DISTANCE)
+            node.SetSolutionStepValue(DISTANCE, 0, distance)
+
+            if (distance < 0):
+                node.Fix(PRESSURE)
+                node.Fix(VELOCITY_X)
+                node.Fix(VELOCITY_Y)
+                node.Fix(VELOCITY_Z)
+
+        for element in model_part.Elements:
+            negative = 0
+            positive = 0
+
+            for node in element.GetNodes():
+                d = node.GetSolutionStepValue(DISTANCE)
+
+                if (d >= 0.0):
+                    positive = positive + 1
+
+                else:
+                    negative = negative + 1
+
+            if ((negative > 0) and (positive > 0)):
+                tmp = Vector(4)
+                i = 0
+                element.SetValue(SPLIT_ELEMENT, True)
+
+                for node in element.GetNodes():
+                    d = node.GetSolutionStepValue(DISTANCE)
+                    tmp[i] = d
+                    i = i + 1
+
+                element.SetValue(ELEMENTAL_DISTANCES, tmp)
