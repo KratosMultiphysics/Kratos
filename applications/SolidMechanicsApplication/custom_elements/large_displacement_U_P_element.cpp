@@ -21,6 +21,17 @@
 namespace Kratos
 {
 
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+LargeDisplacementUPElement::LargeDisplacementUPElement()
+    : LargeDisplacementElement()
+{
+  //DO NOT CALL IT: only needed for Register and Serialization!!!
+}
+
+
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 

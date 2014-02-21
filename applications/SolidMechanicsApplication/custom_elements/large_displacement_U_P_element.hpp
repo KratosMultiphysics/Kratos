@@ -64,6 +64,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Empty constructor needed for serialization
+    LargeDisplacementUPElement();
+
     /// Default constructors
     LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -193,9 +196,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    LargeDisplacementUPElement() : LargeDisplacementElement()
-    {
-    }
 
     ///@}
     ///@name Protected Operations
