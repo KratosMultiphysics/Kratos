@@ -33,6 +33,15 @@ KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_LHS_MATRIX_WITH_COMP
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
+LargeDisplacementElement::LargeDisplacementElement( )
+    : Element( )
+{
+  //DO NOT CALL IT: only needed for Register and Serialization!!!
+}
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
 LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {

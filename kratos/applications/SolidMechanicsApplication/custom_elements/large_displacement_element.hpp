@@ -213,6 +213,10 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Empty constructor needed for serialization
+    LargeDisplacementElement();
+  
+
     /// Default constructors
     LargeDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -555,10 +559,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    LargeDisplacementElement() : Element()
-    {
-    }
-
+ 
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and

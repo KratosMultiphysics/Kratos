@@ -1217,7 +1217,7 @@ namespace Kratos
 
         // Get some references.
 
-        GeometryType & geom = GetGeometry();
+        //GeometryType & geom = GetGeometry();
 
         // Compute the local coordinate system.
 
