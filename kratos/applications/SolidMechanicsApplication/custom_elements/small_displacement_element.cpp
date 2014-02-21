@@ -1272,7 +1272,7 @@ Matrix& SmallDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    /*const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
@@ -1286,6 +1286,23 @@ Matrix& SmallDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition
         {
             rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
         }
+    }
+
+    return rDeltaPosition;*/
+
+	GeometryType& geom = GetGeometry();
+	const unsigned int number_of_nodes = geom.PointsNumber();
+    unsigned int dimension = geom.WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+		const NodeType& iNode = geom[i];
+        rDeltaPosition(i, 0) = iNode.X() - iNode.X0();
+		rDeltaPosition(i, 1) = iNode.Y() - iNode.Y0();
+		if(dimension == 3)
+			rDeltaPosition(i, 2) = iNode.Z() - iNode.Z0();
     }
 
     return rDeltaPosition;
