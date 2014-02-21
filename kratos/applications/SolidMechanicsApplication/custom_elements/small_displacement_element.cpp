@@ -1920,20 +1920,6 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    //verify compatibility with the constitutive law
-    ConstitutiveLaw::Features LawFeatures;
-    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
-
-    bool correct_strain_measure = false;
-    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
-    {
-	    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
-		    correct_strain_measure = true;
-    }
-
-    if( correct_strain_measure == false )
-	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
-
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
@@ -1967,6 +1953,20 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
+	//verify compatibility with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
+
+    bool correct_strain_measure = false;
+    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    {
+	    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
+		    correct_strain_measure = true;
+    }
+
+    if( correct_strain_measure == false )
+	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
+
     //Verify that the body force is defined
     // if ( this->GetProperties().Has( BODY_FORCE ) == false )
     // {
@@ -1995,10 +1995,12 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //check constitutive law
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    /*for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
     {
         return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }
+    }*/
+	// FIXED: At this point the constitutive law vector is not set yet.
+	this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     //check if it is in the XY plane for 2D case
 
