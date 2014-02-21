@@ -270,12 +270,12 @@ namespace Kratos
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
               }
-              SetSearchRadius(r_model_part, 1.0);
               
+              SetSearchRadius(r_model_part, 1.0);              
               SearchNeighbours();
               ComputeNewNeighboursHistoricalData();  
               
-              ///Cfeng RigidFace search
+              SetOriginalRadius(r_model_part);              
               SearchRigidFaceNeighbours();
               ComputeNewRigidFaceNeighboursHistoricalData();
               
@@ -290,9 +290,6 @@ namespace Kratos
           // 5. Motion Integration
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot                  
           
-           ////Cfeng, compute rigid face movement
-          Compute_RigidFace_Movement();
-              
           FinalizeSolutionStep();         
 
           return 0.00;
@@ -935,103 +932,7 @@ namespace Kratos
                 
         KRATOS_CATCH("")
     }
-    
-    
-    
-    void Compute_RigidFace_Movement()
-    {
-        KRATOS_TRY
-        
-        ProcessInfo& rCurrentProcessInfo  = mpDem_model_part->GetProcessInfo();
-        
-        if(rCurrentProcessInfo[RIGID_FACE_FLAG])
-        {
-            double delta_t                    = rCurrentProcessInfo[DELTA_TIME];
-            int time_step                     = rCurrentProcessInfo[TIME_STEPS];
-            
-            double begin_time  = rCurrentProcessInfo[RIGID_FACE_BEGIN_TIME];
-            double end_time    = rCurrentProcessInfo[RIGID_FACE_END_TIME];
-            double time_now    = delta_t * time_step;
-            
-            if(time_now >= begin_time && time_now <= end_time)
-            {
-                
-                int PropID         = rCurrentProcessInfo[RIGID_FACE_PROP_ID];
-                
-                ConditionsArrayType& pContitions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
-            
-                OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContitions.size(), this->GetConditionPartition());
-                
-                /////Calculate node velocity
-                #pragma omp parallel for
-                for (int k = 0; k < this->GetNumberOfThreads(); k++)
-                {
-                    typename ConditionsArrayType::iterator it_begin = pContitions.ptr_begin() + this->GetConditionPartition()[k];
-                    typename ConditionsArrayType::iterator it_end   = pContitions.ptr_begin() + this->GetConditionPartition()[k + 1];
-                    
-                    for (ConditionsArrayType::iterator ip = it_begin; ip != it_end; ++ip)
-                    {
-                        if(static_cast<int>(ip->GetProperties().Id()) == PropID)
-                        {
-                            Vector VelocityArray;
-                            ip->Calculate(RIGID_FACE_COMPUTE_MOVEMENT, VelocityArray, rCurrentProcessInfo);
-                            
-                            Condition::GeometryType& geom = ip->GetGeometry();
-                            
-                            const unsigned int& dim       = geom.WorkingSpaceDimension();
-                            
-                            for (unsigned int i = 0; i <geom.size(); i++)
-                            {
-                                unsigned int index = i * dim;
-                                
-                                array_1d<double,3>& node_vel = geom(i)->FastGetSolutionStepValue(VELOCITY);
-                                
-                                for(unsigned int kk=0; kk < dim; kk++)
-                                {
-                                    geom(i)->SetLock();
-                                    node_vel[kk] = VelocityArray[index+kk];
-                                    geom(i)->UnSetLock();
-                                }
-                            }
-                            
-                        }
-                    }
-                }
-                
-                
-                /////Feng Chun::Calculate Node Movement
-                
-                vector<unsigned int> node_partition;
-                        
-                NodesArrayType& pNodes = mpFem_model_part->GetCommunicator().LocalMesh().Nodes();
-                OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
-                
-                #pragma omp parallel for
-                for(int k = 0; k < this->GetNumberOfThreads(); k++)
-                {
-                      NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-                      NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-                     
-                      for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-                      {      
-                          array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
-                          array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
-                          array_1d<double, 3 > & coor            = i->Coordinates();
-                          array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
-                                                
-                          displ += vel * delta_t;
-                          coor   = initial_coor + displ;
-                      }
-                }
-                
-            }
-        }
-    
-        KRATOS_CATCH("")
-    }
-    
-    
-
+                   
     void CalculateInitialMaxIndentations(){
 
         KRATOS_TRY

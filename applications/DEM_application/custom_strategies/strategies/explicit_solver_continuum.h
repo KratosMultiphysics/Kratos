@@ -202,9 +202,7 @@ namespace Kratos
           }                    
  
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
- 
-          BaseType::Compute_RigidFace_Movement();
-          
+           
           BaseType::SynchronizeSolidMesh(r_model_part);
           
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
