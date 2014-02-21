@@ -48,6 +48,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
+#include "includes/serializer.h"
 
 #include "solid_mechanics_application.h"
 
@@ -224,20 +225,20 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mAxisymSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     
-    mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointLoadAxisym2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointMoment3DCondition( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mLineLoadAxisymCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mLineLoadAxisymCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mLineLoadCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mSurfaceLoadCondition3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSurfaceLoadCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mSurfaceLoadCondition3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mSurfaceLoadCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mSurfaceLoadCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointLoadAxisym2DCondition( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointMoment3DCondition( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mLineLoadAxisymCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mLineLoadAxisymCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Condition::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Condition::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Condition::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Condition::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
 
 {}
 
@@ -251,19 +252,19 @@ void KratosSolidMechanicsApplication::Register()
 
     //Register beams
 
-    KRATOS_REGISTER_ELEMENT( "BeamElement3D2N",     mBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "BeamElement3D2N", mBeamElement3D2N )
 
     //Register shells
 
-    KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N",  mIsotropicShellElement3D3N )
-    KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N",  mShellThickElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N",  mShellThickCorotationalElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N",  mShellThinElement3D3N )
-    KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N",  mShellThinCorotationalElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N", mIsotropicShellElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "ShellThickElement3D4N", mShellThickElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "ShellThickElementCorotational3D4N", mShellThickCorotationalElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "ShellThinElement3D3N", mShellThinElement3D3N )
+    KRATOS_REGISTER_ELEMENT( "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N )
 
     //Register solids
 
-    //Register small displacement
+    //Register small displacement elements
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D3N", mSmallDisplacementElement2D3N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D4N", mSmallDisplacementElement2D4N )
     KRATOS_REGISTER_ELEMENT( "SmallDisplacementElement2D6N", mSmallDisplacementElement2D6N )
@@ -280,6 +281,11 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D4N", mAxisymSmallDisplacementElement2D4N )
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D6N", mAxisymSmallDisplacementElement2D6N )
     KRATOS_REGISTER_ELEMENT( "AxisymSmallDisplacementElement2D8N", mAxisymSmallDisplacementElement2D8N )
+
+
+    //Register large displacement elements
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementElement", mLargeDisplacementElement )
+    KRATOS_REGISTER_ELEMENT( "LargeDisplacementUPElement", mLargeDisplacementUPElement )
 
     //Register total lagrangian
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement2D3N", mTotalLagrangianElement2D3N )
@@ -332,17 +338,19 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
     //Register Conditions
+    KRATOS_REGISTER_CONDITION( "ForceLoadCondition", mForceLoadCondition )
 
-    KRATOS_REGISTER_CONDITION( "PointLoad2DCondition",             mPointLoad2DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoad3DCondition", mPointLoad3DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoad2DCondition", mPointLoad2DCondition )
     KRATOS_REGISTER_CONDITION( "PointLoadAxisym2DCondition", mPointLoadAxisym2DCondition )
-    KRATOS_REGISTER_CONDITION( "PointLoad3DCondition",             mPointLoad3DCondition )
-    KRATOS_REGISTER_CONDITION( "PointMoment3DCondition",         mPointMoment3DCondition )
 
-    KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N",   mLineLoadCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N",   mLineLoadCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "LineLoadAxisymCondition2D2N",   mLineLoadAxisymCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "LineLoadAxisymCondition2D3N",   mLineLoadAxisymCondition2D3N )
-    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N",   mLineLoadCondition3D2N )
+    KRATOS_REGISTER_CONDITION( "PointMoment3DCondition", mPointMoment3DCondition )
+
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N", mLineLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N", mLineLoadCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineLoadAxisymCondition2D2N", mLineLoadAxisymCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "LineLoadAxisymCondition2D3N", mLineLoadAxisymCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N", mLineLoadCondition3D2N )
 
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D3N", mSurfaceLoadCondition3D3N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D4N )
@@ -354,50 +362,50 @@ void KratosSolidMechanicsApplication::Register()
     //Register Constitutive Laws
 
     //Hyperelastic laws
-    Serializer::Register("HyperElastic3DLaw",mHyperElastic3DLaw);
-    Serializer::Register("HyperElasticPlaneStrain2DLaw",mHyperElasticPlaneStrain2DLaw);
-    Serializer::Register("HyperElasticAxisym2DLaw",mHyperElasticAxisym2DLaw);
+    Serializer::Register( "HyperElastic3DLaw", mHyperElastic3DLaw );
+    Serializer::Register( "HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw );
+    Serializer::Register( "HyperElasticAxisym2DLaw", mHyperElasticAxisym2DLaw );
 
     //Hyperelastic laws U-P
-    Serializer::Register("HyperElasticUP3DLaw",mHyperElasticUP3DLaw);
-    Serializer::Register("HyperElasticUPPlaneStrain2DLaw",mHyperElasticUPPlaneStrain2DLaw);
-    Serializer::Register("HyperElasticUPAxisym2DLaw",mHyperElasticUPAxisym2DLaw);
+    Serializer::Register( "HyperElasticUP3DLaw", mHyperElasticUP3DLaw );
+    Serializer::Register( "HyperElasticUPPlaneStrain2DLaw", mHyperElasticUPPlaneStrain2DLaw );
+    Serializer::Register( "HyperElasticUPAxisym2DLaw", mHyperElasticUPAxisym2DLaw );
 
     //Linear Elastic laws
-    Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw);
-    Serializer::Register("LinearElasticPlaneStrain2DLaw",mLinearElasticPlaneStrain2DLaw);
-    Serializer::Register("LinearElasticPlaneStress2DLaw",mLinearElasticPlaneStress2DLaw);
-    Serializer::Register("LinearElasticAxisym2DLaw",mLinearElasticAxisym2DLaw);
+    Serializer::Register( "LinearElastic3DLaw", mLinearElastic3DLaw );
+    Serializer::Register( "LinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw );
+    Serializer::Register( "LinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw );
+    Serializer::Register( "LinearElasticAxisym2DLaw", mLinearElasticAxisym2DLaw );
 
     //Hyperelastic Plastic laws
-    Serializer::Register("HyperElasticPlastic3DLaw",mHyperElasticPlastic3DLaw);
-    Serializer::Register("HyperElasticPlasticPlaneStrain2DLaw",mHyperElasticPlasticPlaneStrain2DLaw);
-    Serializer::Register("HyperElasticPlasticAxisym2DLaw",mHyperElasticPlasticAxisym2DLaw);
+    Serializer::Register( "HyperElasticPlastic3DLaw", mHyperElasticPlastic3DLaw );
+    Serializer::Register( "HyperElasticPlasticPlaneStrain2DLaw", mHyperElasticPlasticPlaneStrain2DLaw );
+    Serializer::Register( "HyperElasticPlasticAxisym2DLaw", mHyperElasticPlasticAxisym2DLaw );
 
     //Hyperelastic Plastic laws U-P
-    Serializer::Register("HyperElasticPlasticUP3DLaw",mHyperElasticPlastic3DLaw);
-    Serializer::Register("HyperElasticPlasticUPPlaneStrain2DLaw",mHyperElasticPlasticUPPlaneStrain2DLaw);
-    Serializer::Register("HyperElasticPlasticUPAxisym2DLaw",mHyperElasticPlasticUPAxisym2DLaw);
+    Serializer::Register( "HyperElasticPlasticUP3DLaw", mHyperElasticPlastic3DLaw );
+    Serializer::Register( "HyperElasticPlasticUPPlaneStrain2DLaw", mHyperElasticPlasticUPPlaneStrain2DLaw );
+    Serializer::Register( "HyperElasticPlasticUPAxisym2DLaw", mHyperElasticPlasticUPAxisym2DLaw );
 
     //Hyperelastic Plastic J2 specilization laws 
-    Serializer::Register("HyperElasticPlasticJ23DLaw",mHyperElasticPlasticJ23DLaw);
-    Serializer::Register("HyperElasticPlasticJ2PlaneStrain2DLaw",mHyperElasticPlasticJ2PlaneStrain2DLaw);
-    Serializer::Register("HyperElasticPlasticJ2Axisym2DLaw",mHyperElasticPlasticJ2Axisym2DLaw);
+    Serializer::Register( "HyperElasticPlasticJ23DLaw", mHyperElasticPlasticJ23DLaw );
+    Serializer::Register( "HyperElasticPlasticJ2PlaneStrain2DLaw", mHyperElasticPlasticJ2PlaneStrain2DLaw );
+    Serializer::Register( "HyperElasticPlasticJ2Axisym2DLaw", mHyperElasticPlasticJ2Axisym2DLaw );
 
     //Hyperelastic Plastic J2 specilization laws U-P
-    Serializer::Register("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
-    Serializer::Register("HyperElasticPlasticUPJ2Axisym2DLaw",mHyperElasticPlasticUPJ2Axisym2DLaw);
+    Serializer::Register( "HyperElasticPlasticUPJ2PlaneStrain2DLaw", mHyperElasticPlasticUPJ2PlaneStrain2DLaw );
+    Serializer::Register( "HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw );
 
     //Flow Rules
-    Serializer::Register("NonLinearAssociativePlasticFlowRule",mNonLinearAssociativePlasticFlowRule);
-    Serializer::Register("LinearAssociativePlasticFlowRule",mLinearAssociativePlasticFlowRule);
+    Serializer::Register( "NonLinearAssociativePlasticFlowRule", mNonLinearAssociativePlasticFlowRule );
+    Serializer::Register( "LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule );
 
     //Yield Criteria
-    Serializer::Register("MisesHuberYieldCriterion",mMisesHuberYieldCriterion);
+    Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
     
     //Hardening Laws
-    Serializer::Register("NonLinearIsotropicKinematicHardeningLaw",mNonLinearIsotropicKinematicHardeningLaw);
-    Serializer::Register("LinearIsotropicKinematicHardeningLaw",mLinearIsotropicKinematicHardeningLaw);
+    Serializer::Register( "NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw );
+    Serializer::Register( "LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw );
 
     //Register Variables
 

@@ -34,9 +34,11 @@
 #include "custom_conditions/point_load_2D_condition.hpp"
 #include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "custom_conditions/point_load_3D_condition.hpp"
+
 #include "custom_conditions/line_load_2D_condition.hpp"
 #include "custom_conditions/line_load_axisym_2D_condition.hpp"
 #include "custom_conditions/line_load_3D_condition.hpp"
+
 #include "custom_conditions/surface_load_3D_condition.hpp"
 
 //elements
@@ -138,8 +140,8 @@ KRATOS_DEFINE_VARIABLE(bool,   IMPLEX  )
 
 //cross section
 KRATOS_DEFINE_VARIABLE( ShellCrossSection::Pointer, SHELL_CROSS_SECTION )
-KRATOS_DEFINE_VARIABLE( int,						SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
-KRATOS_DEFINE_VARIABLE( double,						SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
+KRATOS_DEFINE_VARIABLE( int,          SHELL_CROSS_SECTION_OUTPUT_PLY_ID )
+KRATOS_DEFINE_VARIABLE( double,	SHELL_CROSS_SECTION_OUTPUT_PLY_LOCATION )
 
 //shell generalized variables
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN )
@@ -376,10 +378,10 @@ private:
     //shells
 
     const IsotropicShellElement  mIsotropicShellElement3D3N;
-	const ShellThickElement3D4N  mShellThickElement3D4N;
-	const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
-	const ShellThinElement3D3N   mShellThinElement3D3N;
-	const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
+    const ShellThickElement3D4N  mShellThickElement3D4N;
+    const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D3N   mShellThinElement3D3N;
+    const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
 	
     //solid
 
@@ -402,6 +404,9 @@ private:
     const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
     const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D8N;
 
+    //large displacement
+    const LargeDisplacementElement     mLargeDisplacementElement;
+    const LargeDisplacementUPElement mLargeDisplacementUPElement;
 
     //total lagrangian
     const TotalLagrangianElement mTotalLagrangianElement2D3N;
@@ -455,9 +460,11 @@ private:
     const SpatialLagrangianUPElement             mSpatialLagrangianUPElement2D3N;
     const AxisymSpatialLagrangianUPElement mAxisymSpatialLagrangianUPElement2D3N;
 	
-	const MembraneElement mMembraneElement3D3N;
+    const MembraneElement mMembraneElement3D3N;
     
     //conditions
+    const ForceLoadCondition                  mForceLoadCondition;
+
     const PointLoad2DCondition              mPointLoad2DCondition;
     const PointLoadAxisym2DCondition  mPointLoadAxisym2DCondition;
     const PointLoad3DCondition              mPointLoad3DCondition;
