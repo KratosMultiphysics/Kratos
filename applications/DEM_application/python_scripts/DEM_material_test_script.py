@@ -20,6 +20,11 @@ class MaterialTest:
       self.Procedures = procedures
       self.solver = solver
       
+      self.top_mesh_nodes = [];
+      self.bot_mesh_nodes = [];
+      self.top_mesh_fem_nodes = [];
+      self.bot_mesh_fem_nodes = [];
+      
       self.sup_layer_fm = list()
       self.inf_layer_fm = list()
       self.others = list()
@@ -142,10 +147,13 @@ class MaterialTest:
  
   
   def CreateTopAndBotGraph(self,DEM_parameters,step):
-       
-    top_mesh_nodes = self.balls_model_part.GetMesh(111).Nodes
-    bot_mesh_nodes = self.balls_model_part.GetMesh(222).Nodes
-    
+     
+    for mesh_number in range(1, self.balls_model_part.NumberOfMeshes()):
+      if(self.balls_model_part.GetMesh(mesh_number).Properties[0][TOP]):
+        self.top_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
+      if(self.balls_model_part.GetMesh(mesh_number).Properties[0][BOTTOM]):
+        self.bot_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
+
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
     self.strain += 1.0*DEM_parameters.LoadingVelocityTop*dt/DEM_parameters.SpecimenLength
  
@@ -168,8 +176,8 @@ class MaterialTest:
 
       self.renew_pressure += 1
       
-    if (len(top_mesh_nodes)*len(bot_mesh_nodes)):
-       
+    if (len(self.top_mesh_nodes)*len(self.bot_mesh_nodes)):
+      
       total_force_top = 0.0
       total_force_bot = 0.0
       total_force_bts = 0.0
@@ -180,7 +188,7 @@ class MaterialTest:
         
         if( DEM_parameters.TestType =="BTS"):
 
-          for node in top_mesh_nodes:
+          for node in self.top_mesh_nodes:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
@@ -195,7 +203,7 @@ class MaterialTest:
           self.bts_stress_export.flush()          
         else:
           
-          for node in top_mesh_nodes:
+          for node in self.top_mesh_nodes:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
@@ -203,7 +211,7 @@ class MaterialTest:
             
           self.total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
  
-          for node in bot_mesh_nodes:
+          for node in self.bot_mesh_nodes:
 
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
@@ -234,11 +242,14 @@ class MaterialTest:
                          
     ##################################PLATE##################################
 
-    top_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(111).Nodes
-    bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(222).Nodes
+    for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+      if(self.RigidFace_model_part.GetMesh(mesh_number).Properties[0][TOP]):
+        self.top_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+      if(self.RigidFace_model_part.GetMesh(mesh_number).Properties[0][BOTTOM]):
+        self.bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
 
-    if (len(top_mesh_fem_nodes)*len(bot_mesh_fem_nodes)):
-      
+    if (len(self.top_mesh_fem_nodes)*len(self.bot_mesh_fem_nodes)):
+
       total_fem_force_top = 0.0
       total_fem_force_bot = 0.0
       total_fem_force_bts = 0.0
@@ -249,7 +260,7 @@ class MaterialTest:
         
         if( DEM_parameters.TestType =="BTS"):
 
-          for node in top_mesh_fem_nodes:
+          for node in self.top_mesh_fem_nodes:
 
             force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]    #MSIMSI 5: ELASTIC_FORCES.
 
@@ -260,7 +271,7 @@ class MaterialTest:
           
         else:
 
-          for node in top_mesh_fem_nodes:
+          for node in self.top_mesh_fem_nodes:
 
             force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
 
@@ -268,7 +279,7 @@ class MaterialTest:
             
           self.total_stress_fem_top = total_fem_force_top/(DEM_parameters.MeasuringSurface*1000000)
 
-          for node in bot_mesh_fem_nodes:
+          for node in self.bot_mesh_fem_nodes:
 
             force_node_y = -node.GetSolutionStepValue(TOTAL_FORCES)[1]
 
