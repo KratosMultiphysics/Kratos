@@ -773,7 +773,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};			
             
 	    double ini_delta = GetInitialDelta(iRigidFaceNeighbour);
-
+            
 	    double DistPToB = 0.0;
 
 	    ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);						
