@@ -181,7 +181,8 @@ public:
     {
         msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,Create<TDataType>));
         msRegisteredObjectsName.insert(RegisteredObjectsNameContainerType::value_type(typeid(TDataType).name(), rName));
-//    msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
+	//std::cout<<" REGISTERED OBJECT "<<rName<<" TypeID "<<typeid (TDataType).name()<<std::endl;
+	//msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
     }
 
     template<class TDataType>
