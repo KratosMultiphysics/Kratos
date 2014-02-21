@@ -26,21 +26,24 @@ def Cross(v, w):
     return v_x_w
 
 def RotateRightHandedBasisAroundAxis(e1, e2, axis, ang):
+    
+    cang         = math.cos(ang)
+    sang         = math.sin(ang)
+    
+    new_axes1    = Vector(3)
+    new_axes1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (- axis[2] * e1[1] + axis[1] * e1[2]) * sang
+    new_axes1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang +   (axis[2] * e1[0] - axis[0] * e1[2]) * sang
+    new_axes1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (- axis[1] * e1[0] + axis[0] * e1[1]) * sang
+    
+    new_axes2    = Vector(3)   
+    new_axes2[0] = axis[0] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[0] * cang + (- axis[2] * e2[1] + axis[1] * e2[2]) * sang
+    new_axes2[1] = axis[1] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[1] * cang +   (axis[2] * e2[0] - axis[0] * e2[2]) * sang
+    new_axes2[2] = axis[2] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[2] * cang + (- axis[1] * e2[0] + axis[0] * e2[1]) * sang    
 
-    cang = math.cos(ang)
-    sang = math.sin(ang)   
+    new_axes3    = Vector(3)
+    new_axes3 = Cross(new_axes1, new_axes2)
 
-    e1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (- axis[2] * e1[1] + axis[1] * e1[2]) * sang
-    e1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang + (  axis[2] * e1[0] - axis[0] * e1[2]) * sang
-    e1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (- axis[1] * e1[0] + axis[0] * e1[1]) * sang   
-
-    e2[0] = axis[0] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[0] * cang + (- axis[2] * e2[1] + axis[1] * e2[2]) * sang
-    e2[1] = axis[1] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[1] * cang + (  axis[2] * e2[0] - axis[0] * e2[2]) * sang
-    e2[2] = axis[2] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[2] * cang + (- axis[1] * e2[0] + axis[0] * e2[1]) * sang
-
-    e3 = Cross(e1, e2)
-
-    return [e1, e2, e3]
+    return [new_axes1, new_axes2, new_axes3]
 
 
 def MoveAllMeshes(model_part, time):
@@ -55,10 +58,15 @@ def MoveAllMeshes(model_part, time):
             angular_velocity = model_part.GetMesh(mesh_number).Properties[0][ANGULAR_VELOCITY]
             angular_period   = model_part.GetMesh(mesh_number).Properties[0][ANGULAR_VELOCITY_PERIOD]
             initial_center   = model_part.GetMesh(mesh_number).Properties[0][ROTATION_CENTER]
+            
+            center_position = Vector(3)
+            center_position[0] = 0.0
+            center_position[1] = 0.0
+            center_position[2] = 0.0 
+            
 
             if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
-                #center_position = VectSum(initial_center, VectTimes(linear_velocity, math.sin(linear_omega * time) / linear_omega))
                 center_position = initial_center + linear_velocity * math.sin(linear_omega * time) / linear_omega
                 
             else:
@@ -69,7 +77,8 @@ def MoveAllMeshes(model_part, time):
                 angle = angular_velocity * math.sin(angular_omega * time) / angular_omega
             else:
                 angle = angular_velocity * time
-
+                
+                
             mod_angular_velocity = Norm(angular_velocity)
             relative_position = Vector(3)
             relative_position[0] = 0.0
@@ -106,7 +115,7 @@ def MoveAllMeshes(model_part, time):
                 new_axes3[0] = 0.0
                 new_axes3[1] = 0.0
                 new_axes3[2] = 1.0
-            
+                        
             if (mod_angular_velocity>0.0 or Norm(linear_velocity)>0.0):
 
                 for node in mesh_nodes:
@@ -118,12 +127,13 @@ def MoveAllMeshes(model_part, time):
                     relative_position[2] = new_axes1[2] * local_X + new_axes2[2] * local_Y + new_axes3[2] * local_Z
                     # NEW POSITION
                     [node.X, node.Y, node.Z] = center_position + relative_position
-                    velocity_due_to_rotation = Cross(relative_position, angular_velocity)
+                    velocity_due_to_rotation = Cross(angular_velocity , relative_position)
                     # NEW VELOCITY                    
                     vel = Vector(3)
                     vel[0] = linear_velocity[0] + velocity_due_to_rotation[0]
                     vel[1] = linear_velocity[1] + velocity_due_to_rotation[1]
                     vel[2] = linear_velocity[2] + velocity_due_to_rotation[2]
+                    
                     #The next line only works for Vector(3) or Arrays, not for the lists we are working with here!!
                     node.SetSolutionStepValue(VELOCITY, vel)
                     
