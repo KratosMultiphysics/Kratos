@@ -55,22 +55,22 @@ os.chdir(ApplicationsRoot + "ThermoMechanicalApplication/test_examples")
 import ThermoMechanical_benchmarks
 Text += ThermoMechanical_benchmarks.Run()
 
-# Fluid Dynamics application
-os.chdir(ApplicationsRoot + "trilinos_application//test_examples")
-import trilinos_benchmarks
-Text += trilinos_benchmarks.Run()
+# SolidMechanics application
+os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
+import solid_mechanics_run_all_benchmarks
+Text += solid_mechanics_run_all_benchmarks.Run()
 
 # DEM application
 os.chdir(ApplicationsRoot + "DEM_application/test_examples")
 import DEM_benchmarks
 Text += DEM_benchmarks.Run()
 
-# Add other directories here
+# Fluid Dynamics application
+os.chdir(ApplicationsRoot + "trilinos_application//test_examples")
+import trilinos_benchmarks
+Text += trilinos_benchmarks.Run()
 
-# SolidMechanics application
-os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
-import solid_mechanics_run_all_benchmarks
-Text += solid_mechanics_run_all_benchmarks.Run()
+# Add other directories here
 
 # print Text
 os.chdir(CurrentDir)
