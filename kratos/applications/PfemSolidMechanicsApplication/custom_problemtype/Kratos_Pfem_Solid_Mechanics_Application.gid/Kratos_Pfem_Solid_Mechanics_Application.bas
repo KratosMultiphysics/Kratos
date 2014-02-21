@@ -558,6 +558,7 @@ Begin Mesh *igroup
  End MeshElements
 
  Begin MeshConditions
+*set var icond=0
 *# Element Condition Blocks
 *if(strcmp(groupname,"RigidWall"))
 *# Line Condition Blocks
@@ -569,16 +570,6 @@ Begin Mesh *igroup
  *Tcl( getCondId *elemsnum *condelemface )
 *end elems
 *endif
-*else
-*set cond line_WallCondition2D *elems
-*if(CondNumEntities > 0)
-*loop elems *onlyincond *onlyingroup
-*set var icond=operation(icond+1)
-*format "%i"
- *icond
-*end elems
-*endif
-*endif
 *# Point Condition Blocks
 *set group *GroupName *nodes
 *set cond point_PointLoad2DCondition *nodes
@@ -589,6 +580,16 @@ Begin Mesh *igroup
 *format "%i"
  *icond
 *end nodes
+*endif
+*else
+*set cond line_WallCondition2D *elems
+*if(CondNumEntities > 0)
+*loop elems *onlyincond *onlyingroup
+*set var icond=operation(icond+1)
+*format "%i"
+ *icond
+*end elems
+*endif
 *endif
  End MeshConditions
 
