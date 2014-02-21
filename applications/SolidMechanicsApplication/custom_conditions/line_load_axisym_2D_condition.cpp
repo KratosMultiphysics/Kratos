@@ -206,4 +206,17 @@ int LineLoadAxisym2DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 //***********************************************************************************
 //***********************************************************************************
 
+
+void LineLoadAxisym2DCondition::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoad2DCondition )
+}
+
+void LineLoadAxisym2DCondition::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoad2DCondition )
+}
+
+
+
 } // Namespace Kratos.

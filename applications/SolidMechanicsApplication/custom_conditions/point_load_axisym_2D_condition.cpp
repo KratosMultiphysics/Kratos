@@ -166,4 +166,16 @@ int PointLoadAxisym2DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 //***********************************************************************************
 //***********************************************************************************
 
+
+void PointLoadAxisym2DCondition::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoad2DCondition )
+}
+
+void PointLoadAxisym2DCondition::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoad2DCondition )
+}
+
+
 } // Namespace Kratos.

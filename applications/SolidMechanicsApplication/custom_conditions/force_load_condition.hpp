@@ -199,6 +199,9 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Empty constructor needed for serialization
+    ForceLoadCondition();
+  
     /// Default constructor.
     ForceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
@@ -408,8 +411,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    ForceLoadCondition() {};
-
+    
     /**
      * Currently selected integration methods
      */
@@ -550,15 +552,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load( Serializer& rSerializer )
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
-    }
+    virtual void load(Serializer& rSerializer);
 
 
 }; // class ForceLoadCondition.
