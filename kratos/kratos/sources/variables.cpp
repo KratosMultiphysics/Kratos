@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
@@ -1158,6 +1159,8 @@ KRATOS_REGISTER_VARIABLE( ENRICHED_PRESSURES )
     KRATOS_REGISTER_VARIABLE(PERIODIC_VARIABLES);
 
 
+    Point2D<Node<3> > Point2DPrototype( Element::GeometryType::PointsArrayType( 1, Node<3>() ) );
+    Serializer::Register( "Point2D", Point2DPrototype );
 
     Point3D<Node<3> > Point3DPrototype( Element::GeometryType::PointsArrayType( 1, Node<3>() ) );
     Serializer::Register( "Point3D", Point3DPrototype );
