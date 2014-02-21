@@ -676,6 +676,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
     }
 
+    // Default constructor needed for serialization only
+        Point2D() : BaseType() {}
 
     ///@}
     ///@name Private Operators
@@ -731,7 +733,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    Point2D();
 
 
 
