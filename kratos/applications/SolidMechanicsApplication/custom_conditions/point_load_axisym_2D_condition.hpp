@@ -216,15 +216,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoad2DCondition )
-    }
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load( Serializer& rSerializer )
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoad2DCondition )
-    }
+    virtual void load(Serializer& rSerializer);
 
 
 }; // class PointLoadAxisym2DCondition.

@@ -33,6 +33,15 @@ KRATOS_CREATE_LOCAL_FLAG( ForceLoadCondition, COMPUTE_LHS_MATRIX_WITH_COMPONENTS
 
 //***********************************************************************************
 //***********************************************************************************
+ForceLoadCondition::ForceLoadCondition()
+    : Condition()
+{
+  //DO NOT CALL IT: only needed for Register and Serialization!!!
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
 ForceLoadCondition::ForceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
@@ -779,5 +788,16 @@ int ForceLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 
 //***********************************************************************************
 //***********************************************************************************
+
+void ForceLoadCondition::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+}
+
+void ForceLoadCondition::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+}
+
 
 } // Namespace Kratos.

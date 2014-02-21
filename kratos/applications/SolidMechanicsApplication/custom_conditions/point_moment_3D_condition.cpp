@@ -128,6 +128,21 @@ void PointMoment3DCondition::GetDofList(DofsVectorType& ConditionalDofList,Proce
         ConditionalDofList[index+2] = (GetGeometry()[i].pGetDof(ROTATION_Z));
     }
 }
+
+//***********************************************************************************
+//***********************************************************************************
+
+void PointMoment3DCondition::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+}
+
+void PointMoment3DCondition::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+}
+
+
 } // Namespace Kratos
 
 
