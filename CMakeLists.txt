@@ -3,7 +3,7 @@ project (KratosMultiphysics)
 
 #set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_VERSION_MAJOR 3)
-set (KratosMultiphysics_VERSION_MINOR 2)
+set (KratosMultiphysics_VERSION_MINOR 3)
 
 #get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -53,6 +53,12 @@ if(${MSVC10})
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
 endif(${MSVC10}) 
+
+if(${MSVC11})
+  message("detected compiler as MSVC10")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC11}) 
 
 #tell the linker to give an error if undefined functions are found
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
