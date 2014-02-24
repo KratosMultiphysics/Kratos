@@ -9,26 +9,27 @@ import benchmarking
 
 def Run():
     Msg = ""
-    Text = "== Solid Mechanics ==========\n"
+    Text = "===== Solid Mechanics Application =====\n"
 
     #
     # VMS2D element test
 
-    Text += "scordelis low roof test: "
+    Text += "Shell T3 Isotropic  Scordelis  test: "
     os.chdir("scordelis.gid")
     sys.path.append(os.getcwd())
 
-    print("running the scordelis low roof benchmark test...")
+    print("---start solid mechanics application tests---")
+    print("running the Scordelis Low Roof benchmark test...")
     Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
 
     if (Msg):
         Text += "OK\n"
-        print("scordelis low roof test succesful")
+        print("Scordelis Low Roof test succesful")
     else:
         Text += "FAILED\n"
         Text += Msg
         Text += "\n\n"
-        print("scordelis low roof test FAILED")
+        print("Scordelis Low Roof test FAILED")
 
     os.chdir("..")
 
@@ -37,7 +38,8 @@ def Run():
     #
     # SHELL elements tests
     
-    Text += "Shell Q4 Thick Bending RollUp test: "
+    # Bending RollUp Q4 test:
+    Text += "Shell Q4 Thick Bending  RollUp test: "
     os.chdir("Shell_Q4_Thick__BendingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell Q4 Thick Bending RollUp benchmark test...")
@@ -51,9 +53,10 @@ def Run():
         Text += "\n\n"
         print("Shell Q4 Thick Bending RollUp test FAILED")
     os.chdir("..")
-    
+
+    # Drilling RollUp Q4 test:    
     Text += "Shell Q4 Thick Drilling RollUp test: "
-    os.chdir("Shell_Q4_Thick__DrillingRollUp.gid.gid")
+    os.chdir("Shell_Q4_Thick__DrillingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell Q4 Thick Drilling RollUp benchmark test...")
     Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
@@ -67,7 +70,8 @@ def Run():
         print("Shell Q4 Thick Drilling RollUp test FAILED")
     os.chdir("..")
     
-    Text += "Shell T3 Thin Bending RollUp test: "
+    # Bending RollUp T3 test:
+    Text += "Shell T3 Thin  Bending  RollUp test: "
     os.chdir("Shell_T3_Thin__BendingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell T3 Thin Bending RollUp benchmark test...")
@@ -81,9 +85,10 @@ def Run():
         Text += "\n\n"
         print("Shell T3 Thin Bending RollUp test FAILED")
     os.chdir("..")
-    
-    Text += "Shell T3 Thin Drilling RollUp test: "
-    os.chdir("Shell_T3_Thin__DrillingRollUp.gid.gid")
+ 
+    # Drilling RollUp T3 test:  
+    Text += "Shell T3 Thin  Drilling RollUp test: "
+    os.chdir("Shell_T3_Thin__DrillingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell T3 Thin Drilling RollUp benchmark test...")
     Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
@@ -99,8 +104,8 @@ def Run():
     
     #
     #
-    
-    print("resume of all of the examples for the Solid Mechanics application :")
+    print("---end solid mechanics application tests---")
+    print("resume of all of the examples for the SolidMechanicsApplication :")
     print(Text)
     return Text
     
