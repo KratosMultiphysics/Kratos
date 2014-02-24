@@ -35,7 +35,7 @@
 	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
             <Item id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" class="application" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid structure interaction (FSI)" icon="aplicationTree.gif"/>
             <Item id="ConvectionDiffusion" pid="Convection diffusion" class="application" state="normal" dv="No" ivalues="Yes,No" values="Yes,No" help="Convection diffusion" icon="aplicationTree.gif"/>
-	    <Item id="DEM" pid="DEM" class="application" dv="No" state="normal" ivalues="Yes,No" values="Yes,No" help="DEM" icon="aplicationTree.gif"/>            
+	    <Item id="DEM" pid="DEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="DEM" icon="aplicationTree.gif"/>            
         </Container>
     </RootData>
     <RootData id="StructuralAnalysis" pid="Structural simulation" state="normal" class="application" icon="aplicationTree.gif" help="Structural simulation" open="1">
