@@ -156,7 +156,8 @@ class MaterialTest:
 
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
     self.strain += 1.0*DEM_parameters.LoadingVelocityTop*dt/DEM_parameters.SpecimenLength
- 
+    pressure_to_apply = 0.0
+
     if( DEM_parameters.TestType != "BTS"):
       
       radial_strain = self.MeasureRadialStrain(self.Procedures.XLAT)
@@ -167,7 +168,8 @@ class MaterialTest:
       self.graph_export_volumetric.flush()
   
     if( ( (DEM_parameters.TestType == "Triaxial") or (DEM_parameters.TestType == "Hydrostatic") ) and (DEM_parameters.ConfinementPressure != 0.0) ):
-          
+
+         
       if( self.renew_pressure == 10):
         
         self.ApplyLateralPressure(self.Pressure, self.Procedures.XLAT, self.Procedures.XBOT, self.Procedures.XTOP, self.Procedures.XBOTCORNER, self.Procedures.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
@@ -223,22 +225,19 @@ class MaterialTest:
           self.graph_export_bot.write(str(self.strain)+"    "+str(self.total_stress_bot)+'\n')
           self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
 
+          pressure_to_apply = self.total_stress_mean*1e6
+
           self.graph_export_mean.write(str(self.strain)+"    "+str(self.total_stress_mean)+'\n')
           
           self.graph_export_top.flush()
           self.graph_export_bot.flush()
           self.graph_export_mean.flush()
-          
-          self.Pressure = self.total_stress_mean*1e6
-
-          if(self.Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
+   
             
-            self.Pressure = DEM_parameters.ConfinementPressure * 1e6 
-            
-            if( (DEM_parameters.HorizontalFixVel == "ON") and (self.first_time_entry_2) ):
+            #if( (DEM_parameters.HorizontalFixVel == "ON") and (self.first_time_entry_2) ):
               
-                self.balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
-                self.first_time_entry_2 = 0
+                #self.balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
+                #self.first_time_entry_2 = 0
                          
     ##################################PLATE##################################
 
@@ -290,11 +289,22 @@ class MaterialTest:
           self.graph_export_fem_top.write(str(self.strain)+"    "+str(self.total_stress_fem_top)+'\n')
           self.graph_export_fem_bot.write(str(self.strain)+"    "+str(self.total_stress_fem_bot)+'\n')
           self.total_stress_fem_mean = 0.5*(self.total_stress_fem_bot + self.total_stress_fem_top)
+
+          pressure_to_apply = self.total_stress_fem_mean*1e6
+
           self.graph_export_fem_mean.write(str(self.strain)+"    "+str(self.total_stress_fem_mean)+'\n')
           
           self.graph_export_fem_top.flush()
           self.graph_export_fem_bot.flush()
           self.graph_export_fem_mean.flush()
+
+
+    self.Pressure = pressure_to_apply
+
+    if(self.Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
+    
+      self.Pressure = DEM_parameters.ConfinementPressure * 1e6 
+
     
           ##################################POISSON##################################
           
