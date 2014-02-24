@@ -677,6 +677,7 @@ public:
     Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
     ModelPart& InletModelPart; //The model part used to insert elements
     bool mFirstTime;
+    boost::numeric::ublas::vector<bool> mLayerRemoved;
     
     /// Constructor:               
     
@@ -684,6 +685,7 @@ public:
     {                
         
         PartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(),false);
+        mLayerRemoved.resize(inlet_modelpart.NumberOfMeshes(),false);
         
         int mesh_iterator_number=0;   
         
@@ -691,11 +693,13 @@ public:
                                                mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
         {
          PartialParticleToInsert[mesh_iterator_number]  = 0.0;
+         mLayerRemoved[mesh_iterator_number]  = false;
          
          mesh_iterator_number++;
         }                
         
         mFirstTime=true;
+        
     }
             
     /// Destructor.
@@ -796,11 +800,20 @@ public:
         {            
             mesh_number++;
 
-            if(r_modelpart.GetProcessInfo()[TIME] <  InletModelPart.GetProperties(mesh_number)[INLET_START_TIME]  || 
-                    r_modelpart.GetProcessInfo()[TIME] >  InletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]) continue;                        
-
-            int mesh_size=mesh_it->NumberOfNodes();
+            if(r_modelpart.GetProcessInfo()[TIME] <  InletModelPart.GetProperties(mesh_number)[INLET_START_TIME] ) continue;
             
+            int mesh_size=mesh_it->NumberOfNodes();
+            ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+            
+            if(r_modelpart.GetProcessInfo()[TIME] >  InletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]  ) {
+                if (mLayerRemoved[mesh_number]) continue;
+                for (int i = 0; i < mesh_size; i++){                   
+		     all_nodes[i]->Set(TO_ERASE);		   
+                }
+                mLayerRemoved[mesh_number] = true;
+                continue;
+            }                        
+                        
             double num_part_surface_time=  InletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES]; 
             double delta_t=  r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface=  1.0;//inlet_surface; // this should probably be projected to velocity vector
@@ -813,8 +826,7 @@ public:
             if (number_of_particles_to_insert) {
               //randomizing mesh
                srand( time(NULL)*r_modelpart.GetProcessInfo()[TIME_STEPS] );
-               ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert);
-               ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+               ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert);               
                ModelPart::NodesContainerType::ContainerType valid_nodes = mesh_it->NodesArray();
                int valid_nodes_length=0;
                
