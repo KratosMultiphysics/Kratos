@@ -149,6 +149,7 @@ public:
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;*/
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
