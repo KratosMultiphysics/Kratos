@@ -74,7 +74,7 @@
       <Item id="Displacements" kkword="DISPLACEMENT" />
       <Item id="Velocities" kkword="VELOCITY" />
       <Item id="Accelerations" kkword="ACCELERATION" />
-      <Item id="Forces" kkword="FORCE_EXTERNAL" />
+      <Item id="Forces" kkword="EXTERNAL_FORCE" />
       <Item id="Reactions" kkword="REACTION" />
       <Item id="StrainTensor" kkword="GREEN_LAGRANGE_STRAIN_TENSOR" />
       <Item id="Rotations" kkword="ROTATION" />
