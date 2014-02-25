@@ -319,7 +319,7 @@
             <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
                 <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
                 <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="Yes,No" values="Yes,No" fluidAppr="Eulerian" help="Write the GiD deformed or undeformed mesh"/>
-                <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="No" ivalues="Yes,No" values="Yes,No" fluidAppr="Eulerian" help="Write the conditions or only element to the GiD result file"/>
+                <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" UseCuts="Yes" ivalues="Yes,No" values="Yes,No" fluidAppr="Eulerian" help="Write the conditions or only element to the GiD result file"/>
 		<Item id="GiDWriteParticlesFlag" pid="Write particles" dv="No" ivalues="Yes,No" values="Yes,No" help="Write the particles or only element to the GiD result file"/>
                 <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" fluidAppr="Eulerian" help="Write one GiD result file or multiple files"/>
             </Container>
