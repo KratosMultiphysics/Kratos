@@ -81,6 +81,11 @@ class GiDOutput(object):
         self.post_mode = post_mode
         self.write_deformed_mesh = deformed_mesh
         self.write_conditions = write_conditions
+        if vol_output is False and write_conditions is False:
+            self.write_conditions = True
+            msg = "**\n** WARNING -- GiD output:Changing write_conditions from False to True because\n**            volume output is set to False (Cuts are printed as conditions).\n**"
+            print(msg)
+
         self.multi_file = multifile
 
         # Initialize GiD io
