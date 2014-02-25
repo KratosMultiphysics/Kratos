@@ -44,8 +44,8 @@ class TrilinosGiDOutput(gid_output.GiDOutput):
                                       vol_output,
                                       post_mode,
                                       multifile,
-                                     deformed_mesh,
-                write_conditions)
+                                      deformed_mesh,
+                                      write_conditions)
         self.filename = file_name
 
     def define_cuts(self, model_part, cut_list):
