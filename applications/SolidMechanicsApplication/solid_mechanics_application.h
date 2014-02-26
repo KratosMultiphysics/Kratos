@@ -42,7 +42,7 @@
 #include "custom_conditions/surface_load_3D_condition.hpp"
 
 //elements
-#include "custom_elements/beam_element.hpp"
+#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/small_displacement_element.hpp"
 #include "custom_elements/axisym_small_displacement_element.hpp"
@@ -372,7 +372,7 @@ private:
 
     //beams
 
-    const BeamElement mBeamElement3D2N;
+    const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
 
 
     //shells

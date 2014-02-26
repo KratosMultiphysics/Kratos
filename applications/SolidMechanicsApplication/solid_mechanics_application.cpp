@@ -156,7 +156,7 @@ KRATOS_CREATE_VARIABLE( double, REACTION_PRESSURE )
 
 
 KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
-    mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mSmallDisplacementBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
 
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mShellThickElement3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ), false ),
@@ -252,7 +252,7 @@ void KratosSolidMechanicsApplication::Register()
 
     //Register beams
 
-    KRATOS_REGISTER_ELEMENT( "BeamElement3D2N", mBeamElement3D2N )
+    KRATOS_REGISTER_ELEMENT( "SmallDisplacementBeamElement3D2N", mSmallDisplacementBeamElement3D2N )
 
     //Register shells
 
