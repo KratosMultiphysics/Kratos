@@ -149,7 +149,7 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
 
 post_utility = PostUtilities()
 
-gid_io.ChangeOutputName(problem_name + "_" + str(mpi.rank))
+gid_io.ChangeOutputName(DEM_parameters.problem_name + "_" + str(mpi.rank))
 
 os.chdir(post_path)
 
@@ -230,7 +230,7 @@ MPIprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 MPIprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
 #if(DEM_parameters.PoissonMeasure == "ON"):
-	#MaterialTest.PoissonMeasuure()
+  #MaterialTest.PoissonMeasuure()
   
 while (time < DEM_parameters.FinalTime):
 
