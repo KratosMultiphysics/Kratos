@@ -6,6 +6,7 @@ CheckForPreviousImport()
 # SectionType: String containing the type of the section: "Square", "IPN", "HEB", ...
 # SectionData: A list containing the data related to section: IPN -> [100], Square -> [h,b] ...
 
+#TIMOSHENKO convention: X axis(longitudinal beam axis), Y axis(section vertical axis), Z axis(section horitzontal axis)
 
 def SetProperties(SectionType, SectionData, BeamProperties):
 
@@ -21,10 +22,10 @@ def SetProperties(SectionType, SectionData, BeamProperties):
  #       print SectionProperties
         inertia = Matrix(2, 2)
         cross_area = float(SectionProperties["A(m2)"])
-        inertia[0, 0] = float(SectionProperties["Iz(m4)"])
+        inertia[0, 0] = float(SectionProperties["Iz(m4)"])  #z is the horizontal axis of the section
         inertia[0, 1] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
         inertia[1, 0] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
-        inertia[1, 1] = float(SectionProperties["Iy(m4)"])
+        inertia[1, 1] = float(SectionProperties["Iy(m4)"])  #y is the vertical axis of the section
         print(("inertia", inertia))
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, cross_area)
