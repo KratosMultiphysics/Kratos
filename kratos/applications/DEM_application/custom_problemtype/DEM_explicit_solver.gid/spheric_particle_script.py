@@ -269,7 +269,7 @@ while (time < DEM_parameters.FinalTime):
         print('Real time calculation: ' + str(timer.time() - initial_real_time))
         print('Simulation time: ' + str(time))
         print('Percentage Completed: ' + str(percentage) + ' %')
-        print("TIME STEP = " + str(step) + '\n')
+        print("Time Step: " + str(step) + '\n')
 
         sys.stdout.flush()
 
