@@ -836,9 +836,8 @@ namespace Kratos
             
             ////Cfeng: clear and swap the vector,initializaiton 
                         
-            #pragma omp parallel
             
-            #pragma omp for
+            #pragma omp parallel for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
             {
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -860,7 +859,7 @@ namespace Kratos
 
             moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
             
-            #pragma omp for
+            #pragma omp parallel for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
             {
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -894,7 +893,7 @@ namespace Kratos
             
             //Cfeng:resize the particle-rigidface contact forces for each particles 
             
-            #pragma omp for
+            #pragma omp parallel for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
             {
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -919,6 +918,7 @@ namespace Kratos
             }       
             
             ////Cfeng: Find The particle neighbours for each RigidFace, used for calculating FEM force
+            //This loop can not be parallelized easily, two threads could be writing on the same condition!!
             for (E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
             {                   
                 for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
