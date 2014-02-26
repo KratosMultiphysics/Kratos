@@ -53,7 +53,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
