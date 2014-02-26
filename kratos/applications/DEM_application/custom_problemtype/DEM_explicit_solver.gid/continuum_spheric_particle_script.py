@@ -14,8 +14,8 @@ import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 Procedures = DEM_procedures.Procedures(DEM_parameters)
 
-import DEM_material_test_script 
 
+import DEM_material_test_script 
 import mesh_motion
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
@@ -62,8 +62,11 @@ write_conditions = WriteConditionsFlag.WriteConditions
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 spheres_mp_filename = DEM_parameters.problem_name + "DEM"
 
-#
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
+#
+#
+#
+#
 #
 #
 #
@@ -132,10 +135,8 @@ print ("Initializing Problem....")
 #
 #
 #
-
 #MIQUEL
 #Procedures.SetCustomSkin(balls_model_part)
-
 
 
 solver.Initialize()
@@ -171,8 +172,6 @@ if (DEM_parameters.Multifile == "single_file"):
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
-   
-
 
 if(DEM_parameters.TestType != "None"):
  
@@ -287,8 +286,7 @@ while (time < DEM_parameters.FinalTime):
     
     if( DEM_parameters.TestType != "None"):
    
-      MaterialTest.CreateTopAndBotGraph(DEM_parameters,step)
-      
+      MaterialTest.CreateTopAndBotGraph(DEM_parameters,step) 
      
     ##########################___GiD IO____#########################################
     
