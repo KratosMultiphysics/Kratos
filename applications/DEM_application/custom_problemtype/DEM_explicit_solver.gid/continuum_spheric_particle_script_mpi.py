@@ -15,8 +15,8 @@ import DEM_procedures
 Procedures = DEM_procedures.Procedures(DEM_parameters)
 import DEM_procedures_mpi as DEM_procedures_mpi
 
-
 import DEM_material_test_script 
+import mesh_motion
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
@@ -60,7 +60,6 @@ deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-
 spheres_mp_filename = DEM_parameters.problem_name + "DEM"
 
 model_part_io_spheres = ModelPartIO(spheres_mp_filename)
@@ -137,6 +136,9 @@ solver.search_strategy = MPI_DEMSearch(balls_model_part.GetCommunicator())
 mpiutils.Repart(balls_model_part, 0, 1)
 mpiutils.CalculateModelNewIds(balls_model_part, 0)
 
+
+
+
 solver.Initialize()
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
@@ -171,7 +173,9 @@ if (DEM_parameters.Multifile == "single_file"):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
 
-MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, balls_model_part)
+if(DEM_parameters.TestType != "None"):
+ 
+ MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
 
 print ("Initialization Complete" + "\n")
 
@@ -209,19 +213,6 @@ if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
  MaterialTest.PrintChart(DEM_parameters);
  
-if(DEM_parameters.FemPlates == "ON"):
-
-  meshes_to_translate = Vector(1)
-  meshes_to_translate[0] = 1
-
-  xyz_displacements = Vector(3)
-  xyz_displacements[0]=1
-  xyz_displacements[1]=2
-  xyz_displacements[2]=3
-
-  translation_operation = TranslationOperation(RigidFace_model_part,meshes_to_translate,xyz_displacements,0)
-  translation_operation.Execute()
-
 #------------------------------------------------------------------------------------------
  
 ###########################################################################################
@@ -238,8 +229,8 @@ MPIprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 
 MPIprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
-if(DEM_parameters.PoissonMeasure == "ON"):
-    MaterialTest.PoissonMeasuure()
+#if(DEM_parameters.PoissonMeasure == "ON"):
+	#MaterialTest.PoissonMeasuure()
   
 while (time < DEM_parameters.FinalTime):
 
@@ -254,9 +245,9 @@ while (time < DEM_parameters.FinalTime):
     RigidFace_model_part.ProcessInfo[DELTA_TIME] = dt
     RigidFace_model_part.ProcessInfo[TIME_STEPS] = step
     
-    if(DEM_parameters.FemPlates == "ON"):
-      translation_operation.ExecuteInitializeSolutionStep()
-
+    #walls movement:
+    mesh_motion.MoveAllMeshes(RigidFace_model_part, time)
+    
     #########################_SOLVE_#########################################4
 
     solver.Solve()
@@ -295,8 +286,7 @@ while (time < DEM_parameters.FinalTime):
     
     if( DEM_parameters.TestType != "None"):
    
-      MaterialTest.CreateTopAndBotGraph(DEM_parameters)
-      
+      MaterialTest.CreateTopAndBotGraph(DEM_parameters,step) 
      
     ##########################___GiD IO____#########################################
     
@@ -363,9 +353,9 @@ while (time < DEM_parameters.FinalTime):
   
     step += 1
 
-    if((step%100) == 0):
-      if ( DEM_parameters.ContactMeshOption =="ON")  :
-          MaterialTest.OrientationStudy(contact_model_part)
+    #if((step%500) == 0):
+      #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
+          #MaterialTest.OrientationStudy(contact_model_part, step)
     
 
 #-----------------------FINALIZATION OPERATIONS-------------------------------------------------------------------------------------- 
@@ -391,6 +381,6 @@ MPIprint ('Calculation ends at processing time instant: ' + str(timer.clock()))
 MPIprint ('Elapsed processing time: '                     + str(elapsed_pr_time))
 MPIprint ('Elapsed real time: '                           + str(elapsed_real_time))
 
-MPIprint (my_timer)
+#MPIprint (my_timer)
 
 MPIprint ("ANALYSIS COMPLETED" )
