@@ -10,7 +10,7 @@
       usennode="Yes" />
       <Item id="SolidElement3D" kkword="SmallDisplacementElement"
       usennode="Yes" />
-      <Item id="BeamElement" kkword="BeamElement" 
+      <Item id="BeamElement" kkword="SmallDisplacementBeamElement" 
       usennode="Yes" />
       <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement"
       usennode="Yes" />

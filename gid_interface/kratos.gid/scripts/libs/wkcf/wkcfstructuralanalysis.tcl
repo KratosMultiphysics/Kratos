@@ -1607,14 +1607,15 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set findcomma [string last "," $nodal_results]
     if {$findcomma !="-1"} {
 	set nodal_results [string range $nodal_results 0 end-1]
-	append nodal_results "\]" 
-	puts $fileid "$nodal_results"
     }
+    append nodal_results "\]" 
+    puts $fileid "$nodal_results"
     # WarnWinText "nodal_results:$nodal_results"
 
     # On Gauss point results
     set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "PlasticStrain" "DeltaPlasticStrain" "BeamMoments" "BeamForces" "ShellForcesLocal" "ShellForcesGlobal" "ShellMomentsLocal" "ShellMomentsGlobal" "ShellStrainLocal" "ShellStrainGlobal" "ShellCurvatureLocal" "ShellCurvatureGlobal" "MaterialDirectionX" "MaterialDirectionY" "MaterialDirectionZ"]
     set gauss_points_results "gauss_points_results=\["
+
     foreach cgr $cgrlist {
 	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.[list ${cgr}]"
 	set cproperty "dv"
@@ -1624,12 +1625,14 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	    append gauss_points_results "\"$cgkr\","
 	}
     }
+
     set findcomma [string last "," $gauss_points_results]
+    
     if {$findcomma !="-1"} {
 	set gauss_points_results [string range $gauss_points_results 0 end-1]
-	append gauss_points_results "\]" 
-	puts $fileid "$gauss_points_results"
     }
+    append gauss_points_results "\]" 
+    puts $fileid "$gauss_points_results"
     # WarnWinText "gauss_points_results:$gauss_points_results"
 
     # GiD post mode variables
