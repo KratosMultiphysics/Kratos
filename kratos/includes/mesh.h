@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/indexed_object.h"
 #include "geometries/geometry.h"
 #include "containers/flags.h"
+#include "containers/data_value_container.h"
 
 
 namespace Kratos
@@ -95,7 +96,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
-class Mesh : public Flags
+class Mesh : public DataValueContainer, public Flags
 {
 public:
     

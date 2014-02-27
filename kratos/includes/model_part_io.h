@@ -853,7 +853,7 @@ protected:
             ReadWord(word);
             ExtractValue(word, y);
 
-            temp_table.PushBack(x,y);
+            temp_table.insert(x,y);
         }
 
         rTables.insert(table_id, temp_table);
@@ -2137,6 +2137,8 @@ protected:
 
             ReadBlockName(word);
             if(word == "MeshNodes")
+				ReadMeshDataBlock(mesh);
+            if(word == "MeshNodes")
                ReadMeshNodesBlock(rModelPart, mesh);
             else if(word == "MeshElements")
                ReadMeshElementsBlock(rModelPart, mesh);
@@ -2151,6 +2153,70 @@ protected:
         KRATOS_CATCH("")
 
     }
+
+	
+    void ReadMeshDataBlock(MeshType& rMesh)
+    {
+        KRATOS_TRY
+
+        std::string variable_name;
+
+        while(!mInput.eof())
+        {
+            ReadWord(variable_name);
+            if(CheckEndBlock("MeshData", variable_name))
+                break;
+            if(KratosComponents<Variable<double> >::Has(variable_name))
+            {
+                std::string value;
+                double temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                rMesh[KratosComponents<Variable<double> >::Get(variable_name)] = temp;
+            }
+            else if(KratosComponents<Variable<bool> >::Has(variable_name))
+            {
+                std::string value;
+                bool temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                rMesh[KratosComponents<Variable<bool> >::Get(variable_name)] = temp;
+            }
+            else if(KratosComponents<Variable<int> >::Has(variable_name))
+            {
+                std::string value;
+                int temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                rMesh[KratosComponents<Variable<int> >::Get(variable_name)] = temp;
+            }
+            else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+            {
+                Vector temp_vector; // defining a Vector because for array_1d the operator >> is not defined yet!
+                ReadVectorialValue(temp_vector);
+                rMesh[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
+            }
+            else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
+            {
+                ReadVectorialValue(rMesh[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
+            }
+            else
+            {
+                std::stringstream buffer;
+                buffer << variable_name << " is not a valid variable!!!" << std::endl;
+                buffer << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+            }
+
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
 
     void ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh)
     {
