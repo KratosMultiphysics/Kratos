@@ -457,7 +457,7 @@ void  AddMeshToPython()
     PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>::CreateInterface("ConditionsArray")
     ;
 
-    class_<MeshType, MeshType::Pointer, boost::noncopyable >("Mesh")
+    class_<MeshType, MeshType::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable >("Mesh")
     .add_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
     .def("NodesArray", &MeshType::NodesArray, return_internal_reference<>())
     .add_property("Elements", &MeshType::pElements,&MeshType::SetElements)
