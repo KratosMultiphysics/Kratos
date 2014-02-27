@@ -2100,15 +2100,13 @@ protected:
     {
          KRATOS_TRY
 
-// 	KRATOS_WATCH("begin reading CommunicatorDataBlock")
-
         std::string word;
         SizeType mesh_id;
 
         ReadWord(word);
         ExtractValue(word, mesh_id);
 
-        KRATOS_WATCH(mesh_id)
+        
 
         SizeType number_of_meshes = rModelPart.NumberOfMeshes();
 
@@ -2117,7 +2115,6 @@ protected:
 
         if(mesh_id == 0) // this would be a case of error in reading.
             KRATOS_ERROR(std::invalid_argument, "The mesh zero is the reference mesh and already created. You cannot create a mesh 0 with mesh block.", "");
-
 
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
@@ -2129,25 +2126,44 @@ protected:
         while(true)
         {
             ReadWord(word);
+            
             if(mInput.eof())
+            {
                 break;
+            }
 
             if(CheckEndBlock("Mesh", word))
-                break;
+            {
+                 break;
+            }
 
             ReadBlockName(word);
             if(word == "MeshData")
-               ReadMeshDataBlock(mesh);
-            if(word == "MeshNodes")
+            {
+               ReadMeshDataBlock(mesh);          
+            }
+            else if(word == "MeshNodes")
+            {
                ReadMeshNodesBlock(rModelPart, mesh);
+            }
+
             else if(word == "MeshElements")
+            {
                ReadMeshElementsBlock(rModelPart, mesh);
+            }
+
             else if(word == "MeshConditions")
+            {
                ReadMeshConditionsBlock(rModelPart, mesh);
-	    else if(word == "MeshProperties")
-	       ReadMeshPropertiesBlock(rModelPart, mesh);
-            else
-               SkipBlock(word);
+            }
+
+//             else if(word == "MeshProperties")
+//                 ReadMeshPropertiesBlock(rModelPart, mesh);
+      
+         else 
+             {
+                 SkipBlock(word);
+             }
         }
 
         KRATOS_CATCH("")
