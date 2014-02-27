@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #!/usr/bin/env python
-import numpy as np
+import math
 
 """
 Generate a structured tetrahedral mesh that fills a box of given size.
@@ -103,13 +103,13 @@ def node_z(box, position):
 
 def node_z_tanh(box, position, w):
     nlevels = box.nz()
-    wz = np.tanh(w * (2 * float(position) / nlevels - 1)) / np.tanh(w)
+    wz = math.tanh(w * (2 * float(position) / nlevels - 1)) / math.tanh(w)
     return 0.5 * (box.zmin() + box.zmax() + (box.zmax() - box.zmin()) * wz)
 
 
 def node_y_tanh(box, position, w):
     nlevels = box.ny()
-    wz = np.tanh(w * (2 * float(position) / nlevels - 1)) / np.tanh(w)
+    wz = math.tanh(w * (2 * float(position) / nlevels - 1)) / math.tanh(w)
     return 0.5 * (box.ymin() + box.ymax() + (box.ymax() - box.ymin()) * wz)
 
 
