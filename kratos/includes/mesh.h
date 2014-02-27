@@ -710,6 +710,7 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Nodes",mpNodes);
         rSerializer.save("Properties",mpProperties);
@@ -719,6 +720,7 @@ private:
 
     virtual void load(Serializer& rSerializer)
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Nodes",mpNodes);
         rSerializer.load("Properties",mpProperties);
