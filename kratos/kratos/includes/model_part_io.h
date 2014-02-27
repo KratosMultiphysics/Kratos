@@ -3009,7 +3009,9 @@ protected:
                 break;
 
             ReadBlockName(word);
-            if(word == "MeshNodes")
+            if(word == "MeshData")
+               DivideMeshDataBlock(OutputFiles);
+            else if(word == "MeshNodes")
                DivideMeshNodesBlock(OutputFiles, NodesAllPartitions);
             else if(word == "MeshElements")
                DivideMeshElementsBlock(OutputFiles, ElementsAllPartitions);
@@ -3023,6 +3025,20 @@ protected:
 
         KRATOS_CATCH("")
         
+    }
+
+    void DivideMeshDataBlock(OutputFilesContainerType& OutputFiles)
+    {
+        KRATOS_TRY
+        std::string block;
+
+        WriteInAllFiles(OutputFiles, "Begin MeshData");
+
+        ReadBlock(block, "ModelPartData");
+        WriteInAllFiles(OutputFiles, block);
+
+        WriteInAllFiles(OutputFiles, "End MeshData\n");
+        KRATOS_CATCH("")
     }
 
 
