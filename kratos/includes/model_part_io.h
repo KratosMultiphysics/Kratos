@@ -2136,8 +2136,8 @@ protected:
                 break;
 
             ReadBlockName(word);
-            if(word == "MeshNodes")
-				ReadMeshDataBlock(mesh);
+            if(word == "MeshData")
+               ReadMeshDataBlock(mesh);
             if(word == "MeshNodes")
                ReadMeshNodesBlock(rModelPart, mesh);
             else if(word == "MeshElements")
