@@ -3,9 +3,7 @@ import time as timer
 import os
 import sys
 import math
-# import matplotlib                                                                            ### BENCHMARK ###
-from numpy import *
-# from pylab import *                                                                          ### BENCHMARK ###
+                                                                           ### BENCHMARK ###                                                                          ### BENCHMARK ###
 
 # including kratos path                                                                        ### BENCHMARK ###
 kratos_path = '../../../..'  # BENCHMARK ###
