@@ -3050,7 +3050,7 @@ protected:
 
         WriteInAllFiles(OutputFiles, "Begin MeshData");
 
-        ReadBlock(block, "ModelPartData");
+        ReadBlock(block, "MeshData");
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End MeshData\n");
