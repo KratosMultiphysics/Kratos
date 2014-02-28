@@ -17,10 +17,14 @@ import DEM_procedures_mpi as DEM_procedures_mpi
 
 import DEM_material_test_script 
 import mesh_motion
+import MPIer
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
+
+if (mpi.rank == 0):
+  MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
 
 my_timer = Timer();
 balls_model_part = ModelPart("SpheresPart");
@@ -363,7 +367,7 @@ while (time < DEM_parameters.FinalTime):
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
 
-if (DEM_parameters.TestType!= "None"):
+if ((DEM_parameters.TestType!= "None") and (mpi.rank == 0) ):
   
   MaterialTest.FinalizeGraphs(DEM_parameters)
 
