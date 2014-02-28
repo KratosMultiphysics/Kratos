@@ -197,15 +197,15 @@ namespace Kratos
         for(ConditionWeakIteratorType ineighbour = rFemNeighbours.begin(); ineighbour != rFemNeighbours.end(); ineighbour++)
         { 
           
-          double Weight[4] = {0.0};
+          //double Weight[4] = {0.0};
           
           int ino1               = iRigidFaceNeighbour * 15;
           
           double DistPToB        = RF_Pram[ino1 + 9];
-          Weight[0]              = RF_Pram[ino1 + 10];
+          /*Weight[0]              = RF_Pram[ino1 + 10];
           Weight[1]              = RF_Pram[ino1 + 11];
           Weight[2]              = RF_Pram[ino1 + 12];
-          Weight[3]              = RF_Pram[ino1 + 13];
+          Weight[3]              = RF_Pram[ino1 + 13];*/
           int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
      
           double initial_delta = - ( DistPToB - mRadius);
