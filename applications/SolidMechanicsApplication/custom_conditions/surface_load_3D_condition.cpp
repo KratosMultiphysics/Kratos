@@ -257,46 +257,44 @@ void SurfaceLoad3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
     KRATOS_TRY
 
     if( rVariables.Pressure == 0 )
-      {
-	rLeftHandSideMatrix = ZeroMatrix( 9, 9 );
-      }
+	{
+		//rLeftHandSideMatrix = ZeroMatrix( 9, 9 ); // This assumes a triangle!!!
+		// no need to do anything. LHS is already set to zero from force_load_condition.InitializeSystemMatrices
+	}
     else
-      {
-	
-	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+	{
+		boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
+		boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
+		boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
 
-	double coeff;
-	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+		double coeff;
+		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-	MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
+		MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
+		MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
 
-	MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
+		unsigned int RowIndex = 0;
+		unsigned int ColIndex = 0;
 
-	unsigned int RowIndex = 0;
-	unsigned int ColIndex = 0;
+		for (unsigned int i = 0; i < number_of_nodes; i++)
+		{
+			RowIndex = i * 3;
+			for (unsigned int j = 0; j < number_of_nodes; j++)
+			{
+				ColIndex = j * 3;
 
-	for (unsigned int i = 0; i < number_of_nodes; i++)
-	  {
-	    RowIndex = i * 3;
-	    for (unsigned int j = 0; j < number_of_nodes; j++)
-	      {
-		ColIndex = j * 3;
+				coeff = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
+				noalias(Kij) = coeff * Cross_ge;
 
-		coeff = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
-		noalias(Kij) = coeff * Cross_ge;
+				coeff = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
 
-		coeff = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
+				noalias(Kij) -= coeff * Cross_gn;
 
-		noalias(Kij) -= coeff * Cross_gn;
-
-		//TAKE CARE: the load correction matrix should be SUBTRACTED not added
-		SubtractMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
-	      }
-	  }
-
-      }
+				//TAKE CARE: the load correction matrix should be SUBTRACTED not added
+				SubtractMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+			}
+		}
+	}
 
     KRATOS_CATCH( "" )
 }
