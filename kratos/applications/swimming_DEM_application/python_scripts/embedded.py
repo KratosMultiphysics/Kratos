@@ -215,11 +215,10 @@ class SearchEmbeddedDEMTools:
     def SearchNodeNeighboursDistances(self, model_part, dem_model_part, search_radius):
         self.search_tools.SearchNodeNeighboursDistances(model_part, dem_model_part, search_radius, DISTANCE)
 
-    def SearchElementNeighbourDistances(self, model_part, intersecting_surface_semi_thickness):
+    def CalculateElementNeighbourDistances(self, model_part, intersecting_surface_semi_thickness):
 
         for node in model_part.Nodes:
             distance = node.GetSolutionStepValue(DISTANCE) - intersecting_surface_semi_thickness
-            distance = node.GetSolutionStepValue(DISTANCE)
             node.SetSolutionStepValue(DISTANCE, 0, distance)
 
             if (distance < 0):
