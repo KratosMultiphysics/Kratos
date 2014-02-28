@@ -4,8 +4,6 @@ from KratosMultiphysics.DEMApplication import *
 # from KratosMultiphysics.MetisApplication import *
 # from KratosMultiphysics.mpi import *
 
-from numpy import *
-
 # PRESSURE CALCULATION
 
 
