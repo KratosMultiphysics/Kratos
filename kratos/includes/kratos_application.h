@@ -362,15 +362,19 @@ protected:
     ///@name Protected member Variables
 
     ///@{
-    const Condition  mCondition3D;
 
+    //general conditions must be defined
+    const Condition  mCondition;
+    const Condition  mCondition3D;
     const Condition  mCondition2D;
 
     // Periodic Condition 
     const PeriodicCondition mPeriodicCondition;
-
     const PeriodicCondition mPeriodicConditionEdge;
 
+
+    //general elements must be defined
+    const Element  mElement;
 
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
