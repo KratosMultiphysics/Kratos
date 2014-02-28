@@ -289,6 +289,7 @@ void SmallDisplacementBeamElement3D2N::InitializeSystemMatrices(MatrixType& rLef
 					   Flags& rCalculationFlags)
 
 {
+    KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -315,6 +316,8 @@ void SmallDisplacementBeamElement3D2N::InitializeSystemMatrices(MatrixType& rLef
 	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
 	  
     }
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -330,14 +333,6 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
 
 {
     KRATOS_TRY
-
-    array_1d<double, 3> x_0;
-    array_1d<double, 3> x_1;      // Vector que contiene coordenadas de los nodos.
-    array_1d<double, 3> length;   // Vector que contiene la direccion de la barra.
-
-    //        double minimo, maximo, B;
-    //        const double b        = GetProperties()[BASE];
-    //        const double h        = GetProperties()[HEIGHT];
 
     if( GetProperties().Has(CROSS_AREA) ){
         mSection.Area = GetProperties()[CROSS_AREA];
@@ -362,19 +357,9 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
         mSection.Inertia_zy = inertia(0,1);
     }
 
+    mLength = GetGeometry().Length();
 
-    x_0( 0 ) = GetGeometry()[0].X0();
-    x_0( 1 ) = GetGeometry()[0].Y0();
-    x_0( 2 ) = GetGeometry()[0].Z0();
-
-    x_1( 0 ) = GetGeometry()[1].X0();
-    x_1( 1 ) = GetGeometry()[1].Y0();
-    x_1( 2 ) = GetGeometry()[1].Z0();
-
-    noalias( length ) = x_1 - x_0;
-    mLength = std::sqrt( inner_prod( length, length ) );
-
-    if (mLength == 0.00)
+    if(mLength == 0.00)
         KRATOS_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
 
 
@@ -387,7 +372,7 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
 
 
 void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
-					    ProcessInfo& rCurrentProcessInfo )
+								 ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -446,7 +431,8 @@ void SmallDisplacementBeamElement3D2N::CalculateElementalSystem( LocalSystemComp
 
 void SmallDisplacementBeamElement3D2N::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem)
 {
-  
+    KRATOS_TRY
+
     MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
     unsigned int MatSize = rLeftHandSideMatrix.size1();
@@ -465,6 +451,7 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddLHS(LocalSystemComponents&
 
     //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -473,6 +460,7 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddLHS(LocalSystemComponents&
 
 void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Vector& VolumeForce)
 {
+    KRATOS_TRY
 
     VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
   
@@ -481,8 +469,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
     const unsigned int MatSize         = rRightHandSideVector.size();
 
     //Calculate Body Force
-    Vector LocalForceVector = ZeroVector(MatSize);
-    this->CalculateGlobalBodyForce(rRightHandSideVector, VolumeForce);
+    VectorType BodyForceVector = ZeroVector(MatSize);
+    this->CalculateGlobalBodyForce(BodyForceVector, VolumeForce);
 
     //Displacements and Rotations Vector
     Vector LocalVector = ZeroVector(MatSize);
@@ -513,9 +501,12 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
       }
 
     //Force Vector
+    noalias(rRightHandSideVector) += BodyForceVector;
     noalias(rRightHandSideVector) -= prod(GlobalMatrix, LocalVector);
 
     //std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -525,6 +516,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
 void  SmallDisplacementBeamElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector,
 					  ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -542,6 +535,8 @@ void  SmallDisplacementBeamElement3D2N::CalculateRightHandSide(VectorType& rRigh
 
     //Calculate elemental system
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+
+    KRATOS_CATCH( "" )
 }
 
 
@@ -550,6 +545,8 @@ void  SmallDisplacementBeamElement3D2N::CalculateRightHandSide(VectorType& rRigh
 
 void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -568,6 +565,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHa
     //Calculate elemental system
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -576,6 +574,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHa
 
 void SmallDisplacementBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -594,6 +593,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalSystem(MatrixType& rLeftHan
     //Calculate elemental system
     CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1100,6 +1100,7 @@ void SmallDisplacementBeamElement3D2N::MassMatrix(MatrixType& rMassMatrix, Proce
 
 void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int Direction, Vector& Load, Vector& rVolumeForce)
 {
+    KRATOS_TRY
 
     Vector Weight = mSection.Area * rVolumeForce ;
 
@@ -1226,7 +1227,7 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         Load[1]= Weight[2]*cosinus;       // Global Vertical load
     }
 
-
+    KRATOS_CATCH( "" )
 
 }
 
@@ -1239,6 +1240,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 								      const ProcessInfo& rCurrentProcessInfo )
 {
 
+   KRATOS_TRY
 
    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
    const unsigned int dimension                  = GetGeometry().WorkingSpaceDimension();
@@ -1340,6 +1342,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
         rOutput[2][2] = 0.00;
     }
 
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1369,6 +1372,7 @@ double SmallDisplacementBeamElement3D2N::CalculateInternalShear(const double& Q,
 double SmallDisplacementBeamElement3D2N::CalculateInternalAxil(const double& N, const double& AxialLoad, const double& X)
 {
     return  -N + AxialLoad * X;
+
 }
 
 
@@ -1378,6 +1382,7 @@ double SmallDisplacementBeamElement3D2N::CalculateInternalAxil(const double& N, 
 
 void SmallDisplacementBeamElement3D2N::CalculateLocalNodalStress(Vector& Stress, Vector& rVolumeForce)
 {
+    KRATOS_TRY
 
     array_1d<double, 12 > CurrentDisplacement;
     CurrentDisplacement(0)		=   GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
@@ -1416,6 +1421,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalNodalStress(Vector& Stress,
 
     return;
 
+    KRATOS_CATCH( "" )
 }
 
 
