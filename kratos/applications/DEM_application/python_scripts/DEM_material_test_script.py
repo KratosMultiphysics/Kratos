@@ -266,7 +266,9 @@ class MaterialTest:
 
             total_fem_force_bts += force_node_y
             
-          self.bts_fem_export.write(str(step)+"  "+str(total_fem_force_bts)+'\n')
+            total_stress_bts = 2.0*total_fem_force_bts/(3.14159*DEM_parameters.SpecimenLength*DEM_parameters.SpecimenDiameter*1e6)
+            
+          self.bts_fem_export.write(str(step)+"  "+str(total_stress_bts)+'\n')
           self.bts_fem_export.flush()
           
         else:
