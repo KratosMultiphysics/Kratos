@@ -52,7 +52,7 @@ class MPIerClass:
                   NodalData_VELOCITY_X.append([old_id, 0])
                   NodalData_VELOCITY_Y.append([old_id, 0])
                   NodalData_VELOCITY_Z.append([old_id, 0])
-                  NodalData_RADIUS.append([old_id, 5.00000e-010])
+                  NodalData_RADIUS.append([old_id, 5.00000e-10])
                   NodalData_GROUP_ID.append([old_id, 1])
                   NodalData_PARTICLE_CONTINUUM.append([old_id, 1])
                   NodalData_PARTICLE_DENSITY.append([old_id, 1000])
