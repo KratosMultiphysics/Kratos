@@ -59,7 +59,7 @@ class MaterialTest:
       self.Pressure = 0.0;
       self.pressure_to_apply = 0.0;
 
-      for i in xrange(0,18):
+      for i in range(0,18):
           self.sizes.append(0.0)
           self.sigma_mean_table.append(0.0)
           self.tau_mean_table.append(0.0)
@@ -108,7 +108,7 @@ class MaterialTest:
         self.graph_export_fem_bot = open(DEM_parameters.problem_name +"_graph_BOT_FEM.grf", 'w')
         self.graph_export_fem_mean = open(DEM_parameters.problem_name +"_graph_MEAN_FEM.grf", 'w')
         self.graph_export_volumetric = open(DEM_parameters.problem_name+"_graph_VOL.grf",'w')
-        self.graph_export_fem = open(DEM_parameters.problem_name +"_graph_PLATE.grf", 'w')
+
 
         #measuring height:
         #pre_utilities = PreUtilities(self.balls_model_part)
@@ -150,9 +150,9 @@ class MaterialTest:
   def CreateTopAndBotGraph(self,DEM_parameters,step):
      
     for mesh_number in range(1, self.balls_model_part.NumberOfMeshes()):
-      if(self.balls_model_part.GetMesh(mesh_number).Properties[0][TOP]):
+      if(self.balls_model_part.GetMesh(mesh_number)[TOP]):
         self.top_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
-      if(self.balls_model_part.GetMesh(mesh_number).Properties[0][BOTTOM]):
+      if(self.balls_model_part.GetMesh(mesh_number)[BOTTOM]):
         self.bot_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
 
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -243,9 +243,9 @@ class MaterialTest:
     ##################################PLATE##################################
 
     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-      if(self.RigidFace_model_part.GetMesh(mesh_number).Properties[0][TOP]):
+      if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
         self.top_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-      if(self.RigidFace_model_part.GetMesh(mesh_number).Properties[0][BOTTOM]):
+      if(self.RigidFace_model_part.GetMesh(mesh_number)[BOTTOM]):
         self.bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
 
     if (len(self.top_mesh_fem_nodes)*len(self.bot_mesh_fem_nodes)):
@@ -408,7 +408,7 @@ class MaterialTest:
       self.graph_export_bot.close()
       self.graph_export_mean.close()
       self.graph_export_volumetric.close()
-      self.graph_export_fem.close()
+      self.graph_export_fem_mean.close()
 
     
   
