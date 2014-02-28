@@ -166,7 +166,7 @@ namespace Kratos
         // 5. Finalize Solution Step
         
         BaseType::FinalizeSolutionStep();
-        KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
+        //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
         
         KRATOS_CATCH("")
         
@@ -179,12 +179,12 @@ namespace Kratos
             
           KRATOS_TRY
    
-          ModelPart& r_model_part            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-
-          int time_step = rCurrentProcessInfo[TIME_STEPS];
-          mFixSwitch        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
+          ModelPart& r_model_part           = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          int time_step                     = rCurrentProcessInfo[TIME_STEPS];
+          mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
           
+          BaseType::InitializeSolutionStep();
           this->Contact_InitializeSolutionStep();
 
           BaseType::GetForce();
@@ -193,8 +193,6 @@ namespace Kratos
           
           Clear_forces_FEM();
           Calculate_Conditions_RHS_and_Add();
-          
-          //DEM_FEM
 
           if(mDempackOption)
           {
@@ -225,7 +223,6 @@ namespace Kratos
           r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
-          //KRATOS_TIMER_START("SearchNeighbours")
 
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
           {
@@ -238,20 +235,17 @@ namespace Kratos
                   }
                   
                    BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
-
                    BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
-
                    BaseType::ComputeNewNeighboursHistoricalData();
     
-                   
+                   BaseType::SetOriginalRadius(r_model_part);  
                    BaseType::SearchRigidFaceNeighbours();
-                   BaseType::ComputeNewRigidFaceNeighboursHistoricalData(); //Cfeng,RigidFace          
-              
-                
+                   BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+                   
               }
 
           }
-          //KRATOS_TIMER_STOP("SearchNeighbours")
+
                     // 5. Synchronize
           BaseType::SynchronizeSolidMesh(r_model_part);   
           
@@ -259,13 +253,10 @@ namespace Kratos
           //CHARLIE_MPI: on es tria quines son les variables que sincronitzem? crec que si fem integració de ghosts només cal sincronitzar la força.
           
           
-          //KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
           FinalizeSolutionStepFEM();
           
           //this->DebugOperations(r_model_part);
-          
-          //KRATOS_TIMER_STOP("FinalizeSolutionStep")
 		
           KRATOS_CATCH("") 
           
@@ -277,11 +268,11 @@ namespace Kratos
     void DebugOperations(ModelPart& r_model_part)
     
     {
-     
           //DEBUG OPERATIONS
           
           //this->CheckPairWiseBreaking();
-           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+          
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
          
           int time_step = rCurrentProcessInfo[TIME_STEPS];
@@ -488,7 +479,8 @@ namespace Kratos
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-        #pragma omp parallel for
+        #pragma omp parallel 
+        #pragma omp for
         for (int k = 0; k < this->GetNumberOfThreads(); k++)
         
         {
@@ -521,7 +513,8 @@ namespace Kratos
           
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-          #pragma omp parallel for //private(index)
+          #pragma omp parallel 
+          #pragma omp for
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
 
@@ -571,7 +564,8 @@ namespace Kratos
           
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-          #pragma omp parallel for //private(index)
+          #pragma omp parallel 
+          #pragma omp for
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
 
@@ -603,7 +597,8 @@ namespace Kratos
           
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-          #pragma omp parallel for //private(index)
+          #pragma omp parallel 
+          #pragma omp for
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
 
@@ -656,7 +651,8 @@ namespace Kratos
           
           double Output = 0.0;
           
-          #pragma omp parallel for
+          #pragma omp parallel 
+          #pragma omp for
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -687,7 +683,8 @@ namespace Kratos
       
       double Output = 0.0;
       
-      #pragma omp parallel for
+      #pragma omp parallel 
+      #pragma omp for
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -718,7 +715,8 @@ namespace Kratos
       
       double Output = 0.0;
       
-      #pragma omp parallel for
+      #pragma omp parallel 
+      #pragma omp for
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -749,7 +747,8 @@ namespace Kratos
       
       double Output = 0.0;
       
-      #pragma omp parallel for
+      #pragma omp parallel 
+      #pragma omp for
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -779,7 +778,8 @@ namespace Kratos
       
       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-      #pragma omp parallel for
+      #pragma omp parallel 
+      #pragma omp for
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -817,23 +817,21 @@ namespace Kratos
       KRATOS_TRY
 
       ModelPart& r_model_part           = BaseType::GetModelPart();
-    //  ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      
+
       for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it)
       {
-        
-          Properties properties =  mesh_it->GetProperties(0);  
 
-          bool fix_x = bool(properties[IMPOSED_VELOCITY_X]);
-          bool fix_y = bool(properties[IMPOSED_VELOCITY_Y]);
-          bool fix_z = bool(properties[IMPOSED_VELOCITY_Z]);
+          bool fix_x = bool((*mesh_it)[IMPOSED_VELOCITY_X]);
+          bool fix_y = bool((*mesh_it)[IMPOSED_VELOCITY_Y]);
+          bool fix_z = bool((*mesh_it)[IMPOSED_VELOCITY_Z]);
+
           
          if( fix_x || fix_y || fix_z )
          {
-            
-          double vel_x = properties[IMPOSED_VELOCITY_X_VALUE];
-          double vel_y = properties[IMPOSED_VELOCITY_Y_VALUE];  
-          double vel_z = properties[IMPOSED_VELOCITY_Z_VALUE];  
+         
+          double vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
+          double vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];  
+          double vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];  
 
           NodesArrayType& pNodes = mesh_it->Nodes();
         
@@ -903,7 +901,9 @@ namespace Kratos
 
           double dummy = 0.0;
           
-          #pragma omp parallel for
+          #pragma omp parallel 
+          
+          #pragma omp for
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -934,7 +934,8 @@ namespace Kratos
 
             OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-            #pragma omp parallel for
+            #pragma omp parallel 
+            #pragma omp for
             for (int k = 0; k < this->GetNumberOfThreads(); k++){
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
                 typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -1029,9 +1030,7 @@ namespace Kratos
 
             for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
             {
-                //array_1d<double,3>& normal    = (i->FastGetSolutionStepValue(NORMAL));
                 array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(TOTAL_FORCES));
-                //noalias(normal)               = ZeroVector(3);    //MSIMSI 1 pk fa clear de NORMAL si no existeix enlloc??? 
                 noalias(node_rhs)             = ZeroVector(3);
             }
         }
@@ -1074,7 +1073,6 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-   
     virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
     {  
         /* */
