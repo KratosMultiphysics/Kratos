@@ -15,7 +15,7 @@ void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
-
+    
     unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
@@ -179,6 +179,7 @@ void MonolithicDEMCoupled<3>::GetSecondDerivativesVector(Vector& Values, int Ste
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = rAcceleration[2];
+        Values[LocalIndex++] = 0.0; // Pressure Dof
     }
 }
 

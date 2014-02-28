@@ -326,6 +326,7 @@ public:
         const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
         static const double arr[] = {0.5,0.5};
         std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
+
         this->AddOtherContributionsRHS(rRightHandSideVector, N, SchemeWeights, DeltaTime);
 //Z
 
@@ -900,10 +901,9 @@ public:
             }
 
             rValues.resize(1, false);
-//G
-            //rValues[0] = TauTwo * DivU;// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
-            rValues[0] = TauTwo * (DivU);// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
-//Z
+
+            rValues[0] = TauTwo * DivU;// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
+
             if(rCurrentProcessInfo[OSS_SWITCH]==1)
             {
                 double Proj = 0.0;
@@ -913,6 +913,28 @@ public:
                 }
                 rValues[0] -= TauTwo*Proj;
             }
+        }
+        else if (rVariable == NODAL_AREA && TDim == 3)
+        {
+            MatrixType J = ZeroMatrix(3,3);
+            const array_1d<double,3>& X0 = this->GetGeometry()[0].Coordinates();
+            const array_1d<double,3>& X1 = this->GetGeometry()[1].Coordinates();
+            const array_1d<double,3>& X2 = this->GetGeometry()[2].Coordinates();
+            const array_1d<double,3>& X3 = this->GetGeometry()[3].Coordinates();
+
+            J(0,0) = X1[0]-X0[0];
+            J(0,1) = X2[0]-X0[0];
+            J(0,2) = X3[0]-X0[0];
+            J(1,0) = X1[1]-X0[1];
+            J(1,1) = X2[1]-X0[1];
+            J(1,2) = X3[1]-X0[1];
+            J(2,0) = X1[2]-X0[2];
+            J(2,1) = X2[2]-X0[2];
+            J(2,2) = X3[2]-X0[2];
+
+            double DetJ = J(0,0)*( J(1,1)*J(2,2) - J(1,2)*J(2,1) ) + J(0,1)*( J(1,2)*J(2,0) - J(1,0)*J(2,2) ) + J(0,2)*( J(1,0)*J(2,1) - J(1,1)*J(2,0) );
+            rValues.resize(1, false);
+            rValues[0] = DetJ;
         }
         else // Default behaviour (returns elemental data)
         {
@@ -1102,9 +1124,9 @@ protected:
      * @param rAdvVel advection velocity
      * @param Area Elemental area
      * @param Density Density on integrartion point
-           * @param KinViscosity Kinematic viscosity (nu) on integrartion point
-           * @param rCurrentProcessInfo Process info instance
-           */
+     * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+     * @param rCurrentProcessInfo Process info instance
+     */
     virtual void CalculateTau(double& TauOne,
                               double& TauTwo,
                               const array_1d< double, 3 > & rAdvVel,
@@ -1122,13 +1144,10 @@ protected:
 
         const double Element_Size = this->ElementSize(Area);
 
-        //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        //TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
-//G
+        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+        TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
         //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 12.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 16.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-//Z
-        TauTwo = Density * (KinViscosity + Element_Size * AdvVelNorm / 6.0);
+        //TauTwo = Density * (KinViscosity + Element_Size * AdvVelNorm / 6.0);
 
 
     }
@@ -1141,9 +1160,9 @@ protected:
      * @param TauOne First stabilization parameter (momentum equation)
      * @param rAdvVel advection velocity
      * @param Area Elemental area
-    * @param Density Density on integrartion point
-           * @param KinViscosity Kinematic viscosity (nu) on integrartion point
-           */
+     * @param Density Density on integrartion point
+     * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+     */
     virtual void CalculateStaticTau(double& TauOne,
                                     const array_1d< double, 3 > & rAdvVel,
                                     const double Area,
@@ -1225,7 +1244,6 @@ protected:
 
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
         array_1d<double,3> MomProj(3,0.0);
         double DivProj = 0.0;
         this->EvaluateInPoint(MomProj,ADVPROJ,rShapeFunc);
@@ -1238,17 +1256,19 @@ protected:
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+//G
             double FluidFraction = 1.0 - this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
             array_1d<double,3> FluidFractionGradient(3,0.0);
             FluidFractionGradient[0] += rShapeDeriv(i, 0) * FluidFraction;
             FluidFractionGradient[1] += rShapeDeriv(i, 1) * FluidFraction;
             FluidFractionGradient[2] += rShapeDeriv(i, 2) * FluidFraction;
+//Z
 
             for (unsigned int d = 0; d < TDim; d++)
             {
 //G
                 //RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
-                RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + (FluidFraction * rShapeDeriv(i,d) + rShapeFunc[i] * FluidFractionGradient[d]) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+                RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + (FluidFraction * rShapeDeriv(i,d) + FluidFractionGradient[d] * rShapeFunc[i]) * DivProj); // TauOne * (a * Grad(v)) * MomProjection + TauTwo * Div(v) * MassProjection
 //Z
                 RHS[FirstRow+TDim] -= Weight * rShapeDeriv(i,d) * MomProj[d]; // TauOne * Grad(q) * MomProjection
             }
@@ -1341,7 +1361,22 @@ protected:
 
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
+//G
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+        double FluidFraction;
+        array_1d<double,3> FluidFractionGradient(3,0.0);
+        this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
+        FluidFraction = 1.0 - FluidFraction;
+        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, SOLID_FRACTION, rShapeDeriv);
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT) = FluidFractionGradient;
+        }
+
+        FluidFractionGradient *= -1;
+
+//Z
 
         // Note: Dof order is (vx,vy,[vz,]p) for each node
         for (unsigned int i = 0; i < TNumNodes; ++i)
@@ -1356,7 +1391,10 @@ protected:
                 {
                     rLHSMatrix(FirstRow + d, FirstCol + d) += K;
                     // Delta(u) * TauOne * Grad(q) in q * Div(u) block
-                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
+//G
+                    //rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
+                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * rShapeFunc[j];
+//Z
                 }
                 // Update column index
                 FirstCol += BlockSize;
@@ -1390,26 +1428,15 @@ protected:
         double K, G, PDivV, L, qF; // Temporary results
 
         array_1d<double,3> BodyForce(3,0.0);
-        this->EvaluateInPoint(BodyForce, BODY_FORCE,rShapeFunc);
+        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 //G
-        double DivPEpsilon;
-        double FluidFraction;
+        double DivPEpsilon, GEps, FluidFraction;
         array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
         FluidFraction = 1.0 - FluidFraction;
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            double fluid_fraction = 1.0 - this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
-            FluidFractionGradient[0] += rShapeDeriv(i, 0) * fluid_fraction;
-            FluidFractionGradient[1] += rShapeDeriv(i, 1) * fluid_fraction;
-            FluidFractionGradient[2] += rShapeDeriv(i, 2) * fluid_fraction;
-        }
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT) = -FluidFractionGradient;
-        }
-
+        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, SOLID_FRACTION, rShapeDeriv);
+        FluidFractionGradient *= -1;
 //Z
 
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
@@ -1420,6 +1447,7 @@ protected:
 
                 // Velocity block
                 K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
+                //K = 0.5 * Density * (rShapeFunc[i] * AGradN[j] - AGradN[i] * rShapeFunc[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
                 K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
                 K *= Weight;
 
@@ -1429,30 +1457,33 @@ protected:
                 for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                 {
                     // Velocity block
-//                        K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+                    //K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
                     // v * Grad(p) block
-                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-
-                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 //G
-                    DivPEpsilon = FluidFraction * rShapeDeriv(i, m) * rShapeFunc[j] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // eps * q * Div(v) + q * Grad(eps) * u
-
+                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                    GEps = TauOne * Density * AGradN[i] * (FluidFraction * rShapeDeriv(j, m) + FluidFractionGradient[m] * rShapeFunc[j]); // Stabilization: (a * Grad(u)) * TauOne * (eps * Grad(q) - q * Grad(eps))
+                    DivPEpsilon = (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeFunc[j]; // eps * q * Div(v) + q * Grad(eps) * u
+//Z
+                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
                     // Write v * Grad(p) component
                     rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
                     // Use symmetry to write the q * Div(u) component
-                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + DivPEpsilon);
-//Z
-                    // q-p stabilization block
-                    L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
+//G
+                    //rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (GEps + DivPEpsilon);
 
+                    // q-p stabilization block
+                    //L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
+                    L += (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeDeriv(j, m); // Stabilization: (eps * Grad(q) - q * Grad(eps)) * TauOne * Grad(p)
+//Z
                     for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
                     {
                         // Velocity block
-              //G
+//G
                         //rDampMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
-                        rDampMatrix(FirstRow + m, FirstCol + n) +=  Weight * TauTwo * (FluidFraction * rShapeDeriv(i, m) * + FluidFractionGradient[m] * rShapeFunc[i]) * (FluidFraction * rShapeDeriv(j, n) * + FluidFractionGradient[n] * rShapeFunc[j]); // Stabilization: (eps * Div(v) + Grad(eps) * v)* TauTwo * (eps * Div(u) + Grad(eps) * u)
-              //Z
+                        rDampMatrix(FirstRow + m, FirstCol + n) +=  Weight * TauTwo * rShapeDeriv(i, m) * (FluidFraction * rShapeDeriv(j, n) + FluidFractionGradient[n] * rShapeFunc[j]); // Stabilization: Div(v) * TauTwo * (eps * Div(u) + Grad(eps) * u)
+//Z
                     }
 
                 }
@@ -1473,8 +1504,11 @@ protected:
             qF = 0.0;
             for (unsigned int d = 0; d < TDim; ++d)
             {
+//G
                 rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-                qF += rShapeDeriv(i, d) * BodyForce[d];
+                //qF += rShapeDeriv(i, d) * BodyForce[d];
+                qF += (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * BodyForce[d];
+//Z
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
 
@@ -1605,8 +1639,15 @@ protected:
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
+//G
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
+        double FluidFraction;
+        array_1d<double,3> FluidFractionGradient(3,0.0);
+        this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
+        FluidFraction = 1.0 - FluidFraction;
+        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, SOLID_FRACTION, rShapeDeriv);
+        FluidFractionGradient *= -1;
+//Z
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
         {
@@ -1619,11 +1660,12 @@ protected:
             // Compute this node's contribution to the residual (evaluated at inegration point)
             for (unsigned int d = 0; d < TDim; ++d)
             {
-                rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
-                rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
-            }
 //G
-            rElementalMassRes =  this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE); // SOLID_FRACTION_RATE = - time derivative of the fluid fraction
+                rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
+                rElementalMassRes -= Weight * (FluidFraction * rShapeDeriv(i, d) * rVelocity[d] + FluidFractionGradient[d] * rVelocity[d]);
+            }
+
+            rElementalMassRes -=  Weight * this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE); // SOLID_FRACTION_RATE = - time derivative of the fluid fraction
 //Z
 
         }
@@ -1649,7 +1691,6 @@ protected:
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
         {
@@ -1688,7 +1729,6 @@ protected:
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
         {
@@ -1704,6 +1744,7 @@ protected:
             {
                 rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
                 rElementalMomRes[d] -= Weight * rShapeFunc[i] * rProjection[d];
+
             }
         }
     }
@@ -1837,7 +1878,23 @@ protected:
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
             rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
     }
+
 //G
+
+    virtual void EvaluateGradientOfScalarInPoint(array_1d< double, 3 >& rResult,
+                                                 const Variable< double >& rVariable,
+                                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+    {
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            double& scalar = this->GetGeometry()[i].FastGetSolutionStepValue(rVariable);
+
+            for (unsigned int d = 0; d < TDim; ++d){
+                rResult[d] += rShapeDeriv(i, d) * scalar;
+            }
+        }
+    }
+
     virtual void EvaluateTimeDerivativeInPoint(double& rResult,
                                                const Variable< double >& rVariable,
                                                const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1845,17 +1902,20 @@ protected:
                                                const std::vector<double>& rSchemeWeigths)
     {
         // Compute the time derivative of a nodal variable as a liner contribution of weighted value of the nodal variable in the (Gauss) Point
-        rResult = 0.0;
 
-        for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
+      if (rVariable == SOLID_FRACTION_RATE){
+          rResult = 0.0;
 
-            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-                rResult += rSchemeWeigths[iWeight] * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable, iWeight);
-            }
+          for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
 
+              for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
+                  rResult += rSchemeWeigths[iWeight] * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable, iWeight);
+              }
+
+          }
+
+          rResult /= DeltaTime;
         }
-
-        rResult /= DeltaTime;
     }
 //Z
 
