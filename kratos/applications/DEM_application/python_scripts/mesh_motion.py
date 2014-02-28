@@ -53,11 +53,11 @@ def MoveAllMeshes(model_part, time):
         for mesh_number in range(1, model_part.NumberOfMeshes()):
             mesh_nodes       = model_part.GetMesh(mesh_number).Nodes
             # print model_part.Properties[mesh_number]
-            linear_velocity  = model_part.GetMesh(mesh_number).Properties[0][VELOCITY]
-            linear_period    = model_part.GetMesh(mesh_number).Properties[0][VELOCITY_PERIOD]
-            angular_velocity = model_part.GetMesh(mesh_number).Properties[0][ANGULAR_VELOCITY]
-            angular_period   = model_part.GetMesh(mesh_number).Properties[0][ANGULAR_VELOCITY_PERIOD]
-            initial_center   = model_part.GetMesh(mesh_number).Properties[0][ROTATION_CENTER]
+            linear_velocity  = model_part.GetMesh(mesh_number)[VELOCITY]
+            linear_period    = model_part.GetMesh(mesh_number)[VELOCITY_PERIOD]
+            angular_velocity = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY]
+            angular_period   = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_PERIOD]
+            initial_center   = model_part.GetMesh(mesh_number)[ROTATION_CENTER]
             
             center_position = Vector(3)
             center_position[0] = 0.0
