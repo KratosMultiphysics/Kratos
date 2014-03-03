@@ -419,7 +419,7 @@ public:
      */
     virtual double Length() const
     {
-        return Area();
+		return std::sqrt( 2.0 * Area() );
     }
 
     /** This method calculates and returns area or surface area of
