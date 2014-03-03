@@ -186,17 +186,6 @@ initial_pr_time        = timer.clock()
 initial_real_time      = timer.time()
 
 first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; prev_time  = 0.0; control = 0.0
-
-##OEdometric
-
-if(DEM_parameters.TestType == "Edometric"):
-  
-  for node in Procedures.LAT:
-
-    node.SetSolutionStepValue(VELOCITY_X, 0.0);
-    node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-    node.Fix(VELOCITY_X);
-    node.Fix(VELOCITY_Z);
     
 ##MODEL DATA 
 
