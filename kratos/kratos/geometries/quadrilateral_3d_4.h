@@ -427,11 +427,7 @@ public:
      */
     virtual double Length() const
     {
-		// Old
-        //return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
-
-		// New - 24/01/2014 - Massimo Petracca
-		return 2.0 * std::sqrt( Area() );
+		return std::sqrt( Area() );
     }
 
     /** This method calculates and returns area or surface area of
@@ -505,10 +501,10 @@ public:
 		double C15 = C3 + p1x - p4x;
 
 		return w * (
-			std::sqrt( std::pow(C4*C11 - C7*C10, 2.0) + std::pow(C4*C12 - C8*C10, 2.0) + std::pow(C7*C12 - C8*C11, 2.0)) + 
-			std::sqrt( std::pow(C5*C11 - C6*C10, 2.0) + std::pow(C5*C12 - C9*C10, 2.0) + std::pow(C6*C12 - C9*C11, 2.0)) + 
-			std::sqrt( std::pow(C4*C14 - C7*C13, 2.0) + std::pow(C4*C15 - C8*C13, 2.0) + std::pow(C7*C15 - C8*C14, 2.0)) + 
-			std::sqrt( std::pow(C5*C14 - C6*C13, 2.0) + std::pow(C5*C15 - C9*C13, 2.0) + std::pow(C6*C15 - C9*C14, 2.0))
+			std::sqrt( std::pow(C4*C11 - C7*C10, 2) + std::pow(C4*C12 - C8*C10, 2) + std::pow(C7*C12 - C8*C11, 2)) + 
+			std::sqrt( std::pow(C5*C11 - C6*C10, 2) + std::pow(C5*C12 - C9*C10, 2) + std::pow(C6*C12 - C9*C11, 2)) + 
+			std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) + 
+			std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
 			);
     }
 
