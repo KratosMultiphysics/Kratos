@@ -83,6 +83,7 @@ class MaterialTest:
 
       os.chdir(self.graphs_path)
       self.chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", 'w')
+       
       
       if(DEM_parameters.TestType == "BTS"):
 
@@ -137,6 +138,18 @@ class MaterialTest:
           print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
         (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = self.Procedures.CylinderSkinDetermination(self.balls_model_part,self.solver,DEM_parameters) # defines the skin and areas
+  
+      ##Oedometric
+
+      if(DEM_parameters.TestType == "Oedometric"):
+
+        for node in self.Procedures.LAT:
+
+          node.SetSolutionStepValue(VELOCITY_X, 0.0);
+          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
+          node.Fix(VELOCITY_X);
+          node.Fix(VELOCITY_Z);
+      
       
       if ( ( DEM_parameters.TestType == "Triaxial") or ( DEM_parameters.TestType == "Hydrostatic") ):
 
