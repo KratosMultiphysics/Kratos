@@ -265,7 +265,7 @@ while (time < DEM_parameters.FinalTime):
 
         MPIprint('Real time calculation: ' + str(timer.time() - initial_real_time))
         MPIprint('Simulation time: ' + str(time))
-        MPIprint '%s %.5f' % ("Percentage Completed: ", percentage)
+        MPIprint("%s %.5f" % ("Percentage Completed: ", percentage))    
         MPIprint("TIME STEP = " + str(step) + '\n')
 
         sys.stdout.flush()
