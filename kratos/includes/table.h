@@ -221,12 +221,17 @@ public:
         if(size == 0)
             mData.push_back(RecordType(X,Y));
 
-        if(X <= mData[0].first)
+        else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
-
-        for(std::size_t i = 1 ; i < size ; i++)
-            if(X <= mData[i].first)
-                mData.insert(mData.begin() + i, RecordType(X,Y));
+		else if(X <= mData.back().first)
+			mData.push_back(RecordType(X,Y));
+		else
+			for(std::size_t i = 1 ; i < size ; i++)
+				if((X > mData[i-1].first) && (X <= mData[i].first))
+				{
+					mData.insert(mData.begin() + i, RecordType(X,Y));
+					break;
+				}
 
     }
 
@@ -617,14 +622,17 @@ public:
 
         if(size == 0)
             mData.push_back(RecordType(X,Y));
-
-        if(X <= mData[0].first)
+        else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
-
-        for(std::size_t i = 1 ; i < size ; i++)
-            if(X <= mData[i].first)
-                mData.insert(mData.begin() + i, RecordType(X,Y));
-
+		else if(X > mData.back().first)
+			mData.push_back(RecordType(X,Y));
+		else
+            for(std::size_t i = 1 ; i < size ; i++)
+                if((X > mData[i-1].first) && (X <= mData[i].first))
+				{
+                    mData.insert(mData.begin() + i, RecordType(X,Y));
+					break;
+				}
     }
 
     // assumes that the X is the greater than the last argument and put the row at the end.
