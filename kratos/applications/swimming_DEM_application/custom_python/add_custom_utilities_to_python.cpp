@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/custom_functions.h"
 #include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h" //S
 #include "custom_utilities/volume_averaging_tool.h"
+#include "custom_utilities/embedded_volume_tool.h"
 
 
 namespace Kratos{
@@ -116,6 +117,10 @@ using namespace boost::python;
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 3 > ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", AddDEMCouplingVariable < 3 >)
         .def("AddFluidCouplingVariable", AddFluidCouplingVariable < 3 >)
+        ;
+
+    class_<EmbeddedVolumeTool < 3 > >("EmbeddedVolumeTool", init<>())
+        .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool < 3 > ::CalculateNegativeDistanceVolume)
         ;
 
 }
