@@ -181,7 +181,7 @@ if(DEM_parameters.TestType != "None"):
  
  MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
 
-print ("Initialization Complete" + "\n")
+MPIprint ("Initialization Complete" + "\n")
 
 step                   = 0
 time                   = 0.0
@@ -265,7 +265,7 @@ while (time < DEM_parameters.FinalTime):
 
         MPIprint('Real time calculation: ' + str(timer.time() - initial_real_time))
         MPIprint('Simulation time: ' + str(time))
-        MPIprint('Percentage Completed: ' + str(percentage) + ' %')
+        MPIprint '%s %.5f' % ("Percentage Completed: ", percentage)
         MPIprint("TIME STEP = " + str(step) + '\n')
 
         sys.stdout.flush()
