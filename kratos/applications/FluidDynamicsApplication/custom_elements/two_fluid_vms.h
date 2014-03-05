@@ -314,7 +314,10 @@ public:
             volumes.resize(IntegrationPoints.size(),false);
 
             for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+	    {
                 volumes[g] = 6.0*Area * IntegrationPoints[g].Weight();
+		        signs[g] = signs[0];
+	    }
 
         }
 //         else
