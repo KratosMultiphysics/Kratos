@@ -48,7 +48,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LAST_AIR)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)   
     model_part.AddNodalSolutionStepVariable(NODAL_PAUX)   
-    model_part.AddNodalSolutionStepVariable(Y_WALL)      
+    model_part.AddNodalSolutionStepVariable(Y_WALL) 
+    #model_part.AddNodalSolutionStepVariable(DP_ALPHA1)         
     #model_part.AddNodalSolutionStepVariable(WET_VOLUME)     
     #variables needed for the distance solver
     levelset_solver.AddVariables(model_part,distance_settings)
@@ -72,7 +73,6 @@ class MonolithicSolver:
 
         self.model_part = model_part
         self.domain_size = domain_size
-
         self.alpha = -0.0
         self.move_mesh_strategy = 0
         #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched( self.alpha,self.move_mesh_strategy,self.domain_size )
