@@ -144,6 +144,8 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     variable ActiveAppList;    variable filechannel
     variable ConvectionDiffusionApplication; variable DEMApplication
     variable demfilechannel
+    variable property_number    
+    set property_number 1
 
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
