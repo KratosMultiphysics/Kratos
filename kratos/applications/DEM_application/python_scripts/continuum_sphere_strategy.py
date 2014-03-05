@@ -43,38 +43,28 @@ def AddVariables(model_part, Param):
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
     model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
-#    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
     # LOCAL AXIS
     if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-# BOUNDARY SURFACE
-#
-#    if (Param.LimitSurfaceOption > 0):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_1)
-#    if (Param.LimitSurfaceOption > 1):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_2)
-#    if (Param.LimitSurfaceOption > 2):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_3)
-#    if (Param.LimitSurfaceOption > 3):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_4)
-#    if (Param.LimitSurfaceOption > 4):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_5)
-#
-#    if (Param.LimitCylinderOption > 0):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_1)
-#    if (Param.LimitCylinderOption > 1):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_2)
-#    if (Param.LimitCylinderOption > 2):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_3)
-#    if (Param.LimitCylinderOption > 3):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_4)
-#    if (Param.LimitCylinderOption > 4):
-#        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_5)
-#
     # FLAGS
+    
+    
+    if(Var_Translator(Param.StressStrainOption)): 
+      model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
+      model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+      
+    
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
 #    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
 
@@ -133,9 +123,9 @@ class ExplicitStrategy:
 
         # Initialization of member variables
 
-
         # SIMULATION FLAGS        
   
+        self.self_strain_option             = Var_Translator(Param.StressStrainOption); 
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
         self.case_option                    = 3  
         self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
@@ -157,7 +147,6 @@ class ExplicitStrategy:
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
            self.virtual_mass_option            = 1
-           
         
         self.delta_option = Var_Translator(Param.DeltaOption)
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
@@ -171,7 +160,6 @@ class ExplicitStrategy:
         if (Param.DeltaOption == "None"):
             self.delta_option = 0
 
-                 
         elif (Param.DeltaOption == "Absolute"):
             self.delta_option = 1
             self.search_tolerance = Param.SearchTolerance
@@ -337,7 +325,8 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);
-       
+        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option);
+
         # TOLERANCES
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
 
