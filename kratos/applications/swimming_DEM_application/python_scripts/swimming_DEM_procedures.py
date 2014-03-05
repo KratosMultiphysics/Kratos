@@ -2,6 +2,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import math
 import os
 from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 
@@ -10,6 +13,157 @@ def AddNodalVariables(model_part, variable_list):
     for var in variable_list:
         model_part.AddNodalSolutionStepVariable(var)
 
+def ConstructListOfDEMNodalResultsToPrint(project_parameters):
+    project_parameters.dem_nodal_results = ["RADIUS"]
+
+    if (project_parameters.projection_module_option):
+        project_parameters.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
+        project_parameters.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
+        project_parameters.dem_nodal_results += ["REYNOLDS_NUMBER"]
+
+    if (project_parameters.buoyancy_force_type > 0):
+        project_parameters.dem_nodal_results += ["BUOYANCY"]
+
+    if (project_parameters.drag_force_type > 0):
+        project_parameters.dem_nodal_results += ["DRAG_FORCE"]
+
+    if (project_parameters.virtual_mass_force_type > 0):
+        project_parameters.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
+
+    if (project_parameters.lift_force_type > 0):
+        project_parameters.dem_nodal_results += ["LIFT_FORCE"]
+
+def ConstructListOfMixedNodalResultsToPrint(project_parameters):
+    project_parameters.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
+
+def ConstructListOfVarsToPrintToFile(project_parameters):
+    project_parameters.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
+
+def ChangeListOfFluidNodalResultsToPrint(project_parameters):
+
+    if (project_parameters.coupling_level_type > 0):
+        project_parameters.nodal_results += ["SOLID_FRACTION"]
+
+    if (project_parameters.fluid_model_type == 0):
+        project_parameters.nodal_results += ["MESH_VELOCITY1"]
+
+    if (project_parameters.fluid_model_type == 1):
+        project_parameters.nodal_results += ["SOLID_FRACTION_GRADIENT"]
+
+    if (project_parameters.body_force_on_fluid_option):
+        project_parameters.nodal_results += ["BODY_FORCE"]
+
+    if (project_parameters.coupling_level_type > 0):
+        project_parameters.nodal_results += ["DRAG_REACTION"]
+
+def ChangeInputDataForConsistency(project_parameters, dem_parameters):
+    dem_parameters.project_from_particles_option *= project_parameters.projection_module_option
+    project_parameters.project_at_every_substep_option *= project_parameters.projection_module_option
+
+    if (project_parameters.flow_in_porous_medium_option):
+        project_parameters.coupling_weighing_type = - 1 # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
+
+    project_parameters.time_steps_per_stationarity_step = max(1, int(project_parameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
+    project_parameters.stationary_problem_option *= not dem_parameters.project_from_particles_option
+
+    if (dem_parameters.project_from_particles_option):
+        project_parameters.coupling_level_type = 1
+
+    for var in project_parameters.mixed_nodal_results:
+
+        if var in project_parameters.nodal_results:
+            project_parameters.nodal_results.remove(var)
+
+def ConstructListOfFluidCouplingVariables(project_parameters):
+    fluid_vars = []
+
+    if (project_parameters.body_force_on_fluid_option):
+        fluid_vars += [BODY_FORCE]
+
+    if (project_parameters.fluid_model_type == 0):
+        fluid_vars += [MESH_VELOCITY1]
+
+    if (project_parameters.coupling_level_type == 1):
+        fluid_vars += [DRAG_REACTION]
+        fluid_vars += [SOLID_FRACTION]
+
+    return fluid_vars
+
+def ConstructListOfDEMCouplingVariables(project_parameters):
+    dem_vars = []
+
+    if (project_parameters.projection_module_option):
+        dem_vars += [FLUID_VEL_PROJECTED]
+        dem_vars += [FLUID_DENSITY_PROJECTED]
+        dem_vars += [PRESSURE_GRAD_PROJECTED]
+        dem_vars += [FLUID_VISCOSITY_PROJECTED]
+
+    if (project_parameters.coupling_level_type == 1):
+       dem_vars += [SOLID_FRACTION_PROJECTED]
+
+    if (project_parameters.lift_force_type == 1):
+       dem_vars += [FLUID_VORTICITY_PROJECTED]
+
+    if (project_parameters.virtual_mass_force_type == 1):
+       dem_vars += [FLUID_ACC_PROJECTED]
+
+    if (project_parameters.embedded_option):
+       dem_vars += [DISTANCE]
+
+    if (project_parameters.drag_force_type == 2):
+       dem_vars += [POWER_LAW_N]
+       dem_vars += [POWER_LAW_K]
+       dem_vars += [GEL_STRENGTH]
+       dem_vars += [SHEAR_RATE_PROJECTED]
+
+    return dem_vars
+
+def ConstructListOfFluidVariablesToAdd(project_parameters):
+    fluid_vars = []
+    fluid_vars += ConstructListOfFluidCouplingVariables(project_parameters)
+    fluid_vars += [PRESSURE_GRADIENT, AUX_DOUBLE_VAR]
+
+    if (project_parameters.fluid_model_type == 1):
+        fluid_vars += [SOLID_FRACTION_GRADIENT]
+        fluid_vars += [SOLID_FRACTION_RATE]
+
+    if (project_parameters.drag_force_type == 2):
+        fluid_vars += [POWER_LAW_N]
+        fluid_vars += [POWER_LAW_K]
+        fluid_vars += [GEL_STRENGTH]
+        fluid_vars += [YIELD_STRESS]
+        fluid_vars += [BINGHAM_SMOOTHER]
+
+    return fluid_vars
+
+def ConstructListOfDEMVariablesToAdd(project_parameters):
+    dem_vars = []
+    dem_vars += ConstructListOfDEMCouplingVariables(project_parameters)
+    dem_vars += [REYNOLDS_NUMBER]
+
+    if (project_parameters.buoyancy_force_type > 0):
+       dem_vars += [BUOYANCY]
+
+    if (project_parameters.drag_force_type > 0):
+       dem_vars += [DRAG_FORCE]
+
+    if (project_parameters.lift_force_type > 0):
+       dem_vars += [LIFT_FORCE]
+
+    if (project_parameters.virtual_mass_force_type > 0):
+       dem_vars += [VIRTUAL_FORCE]
+
+    return dem_vars
+
+def ConstructListOfFEMDEMVariablesToAdd(project_parameters):
+    fem_dem_vars = [VELOCITY, DISPLACEMENT]
+
+    if (project_parameters.embedded_option):
+        fem_dem_vars += [FORCE]
+        fem_dem_vars += [POSITIVE_FACE_PRESSURE]
+        fem_dem_vars += [NEGATIVE_FACE_PRESSURE]
+
+    return fem_dem_vars
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_model_part):
 
