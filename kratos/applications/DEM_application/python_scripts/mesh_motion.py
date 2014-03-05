@@ -122,11 +122,19 @@ def MoveAllMeshes(model_part, time):
                     local_X = node.X0 - initial_center[0]
                     local_Y = node.Y0 - initial_center[1]
                     local_Z = node.Z0 - initial_center[2]
+                    
                     relative_position[0] = new_axes1[0] * local_X + new_axes2[0] * local_Y + new_axes3[0] * local_Z
                     relative_position[1] = new_axes1[1] * local_X + new_axes2[1] * local_Y + new_axes3[1] * local_Z
                     relative_position[2] = new_axes1[2] * local_X + new_axes2[2] * local_Y + new_axes3[2] * local_Z
+                    
                     # NEW POSITION
                     [node.X, node.Y, node.Z] = center_position + relative_position
+                    
+                    displacement = Vector(3)
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+                    
                     velocity_due_to_rotation = Cross(angular_velocity , relative_position)
                     # NEW VELOCITY                    
                     vel = Vector(3)
@@ -135,6 +143,10 @@ def MoveAllMeshes(model_part, time):
                     vel[2] = linear_velocity[2] + velocity_due_to_rotation[2]
                     
                     #The next line only works for Vector(3) or Arrays, not for the lists we are working with here!!
+                    #update VELOCITY
                     node.SetSolutionStepValue(VELOCITY, vel)
+                    #update DISPLACEMENT
+                    node.SetSolutionStepValue(DISPLACEMENT, displacement)
+            
                     
 
