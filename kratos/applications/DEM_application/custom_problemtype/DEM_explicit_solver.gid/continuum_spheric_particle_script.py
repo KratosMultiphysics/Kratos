@@ -176,7 +176,12 @@ if (DEM_parameters.Multifile == "single_file"):
 if(DEM_parameters.TestType != "None"):
  
  MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
-
+ 
+ if(DEM_parameters.TestType != "BTS"):
+    
+    MaterialTest.DetermineReferenceInitialLength()
+ 
+ 
 print ("Initialization Complete" + "\n")
 
 step                   = 0
@@ -200,7 +205,7 @@ if (DEM_parameters.ModelDataInfo == "ON"):
 
 if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
- MaterialTest.PrintChart(DEM_parameters);
+ MaterialTest.PrintChart();
  
 #------------------------------------------------------------------------------------------
  
@@ -275,7 +280,7 @@ while (time < DEM_parameters.FinalTime):
     
     if( DEM_parameters.TestType != "None"):
    
-      MaterialTest.CreateTopAndBotGraph(DEM_parameters,step) 
+      MaterialTest.CreateTopAndBotGraph(step) 
      
     ##########################___GiD IO____#########################################
     
@@ -354,7 +359,7 @@ if (DEM_parameters.Multifile == "single_file"):
 
 if (DEM_parameters.TestType!= "None"):
   
-  MaterialTest.FinalizeGraphs(DEM_parameters)
+  MaterialTest.FinalizeGraphs()
 
 multifile.close()
 multifile_5.close()
