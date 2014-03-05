@@ -3,7 +3,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 import os
-# from numpy import *
 
 # from KratosMultiphysics.mpi import * #CARLOS
 
@@ -174,7 +173,7 @@ class Procedures:
         self.print_euler_angles = Var_Translator(DEM_parameters.PostEulerAngles)
         self.print_group_id = Var_Translator(DEM_parameters.PostGroupId)
         self.print_export_id = Var_Translator(DEM_parameters.PostExportId)
-
+        self.self_strain_option = Var_Translator(DEM_parameters.StressStrainOption)
         
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
@@ -268,7 +267,7 @@ class Procedures:
 
         h = DEM_parameters.SpecimenLength
         d = DEM_parameters.SpecimenDiameter
-        
+
         eps = 2.0
 
         surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
@@ -278,6 +277,12 @@ class Procedures:
         xtop_area = 0.0
         xbotcorner_area = 0.0
         xtopcorner_area = 0.0
+        
+        y_top_total = 0.0
+        y_bot_total = 0.0
+        
+        weight_top = 0.0
+        weight_bot = 0.0
 
         for element in model_part.Elements:
 
@@ -300,7 +305,7 @@ class Procedures:
 
                     self.SKIN.append(element)
                     self.XLAT.append(node)
-
+                    
                     xlat_area = xlat_area + cross_section
 
             if ((y <= eps * r) or (y >= (h - eps * r))):
@@ -311,10 +316,16 @@ class Procedures:
                 if (y <= eps * r):
 
                     self.BOT.append(node)
+                    y_bot_total += y*r
+                    weight_bot += r
 
                 elif (y >= (h - eps * r)):
 
                     self.TOP.append(node)
+                    
+                    y_top_total += y*r
+                    weight_top += r
+         
 
                 if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
 
@@ -339,9 +350,12 @@ class Procedures:
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
 
+        initial_height_top = y_top_total/weight_top 
+        initial_height_bot = y_bot_total/weight_bot
+
         print("End ", h, "x", d, "Cylinder Skin Determination", "\n")
 
-        return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area)
+        return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, initial_height_top, initial_height_bot)
 
     def BtsSkinDetermination(self, model_part, solver):
 
@@ -516,6 +530,18 @@ class Procedures:
         if (self.print_export_skin_sphere):
             gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
 
+        if (self.self_strain_option):
+            gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_XX, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_XY, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_XZ, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_YX, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_YY, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_YZ, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_ZX, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_ZY, export_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(DEM_STRESS_ZZ, export_model_part.Nodes, time, 0)
+            
             #if (self.print_export_particle_failure_id):
                 #gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
      
