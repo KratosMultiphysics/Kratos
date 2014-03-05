@@ -330,6 +330,44 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwor
 		}
 		}
 	    }
+	    
+	    
+	    variable property_number
+	    
+	    if {$nsx || $nsy || $nsz} {
+	    set property_number [expr $property_number + 1 ]
+	    GiD_File fprintf $filechannel "Begin Properties $property_number // GUI property identifier: $nsgroupid"
+	    GiD_File fprintf $filechannel "IMPOSED_PRESSURE 0"
+	    if {$nsx} {
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X 1"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X_VALUE $nsxval"
+	    } else {
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X 0"
+	    }
+	    if {$nsy} {
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y 1"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y_VALUE $nsyval"
+	    } else {
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y 0"
+	    }
+	    if {$nsz} {
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z 1"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z_VALUE $nszval"
+	    } else {
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z 0"
+	    } 
+	    GiD_File fprintf $filechannel "IS_SLIP 0"                     
+	    GiD_File fprintf $filechannel "End Properties"
+	    
+	    GiD_File fprintf $filechannel "Begin Mesh $property_number // GUI property identifier: $nsgroupid"
+	    GiD_File fprintf $filechannel "Begin MeshNodes"
+	    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
+		GiD_File fprintf $filechannel "%10i" $node_id
+	    }                   
+	    GiD_File fprintf $filechannel "End MeshNodes"
+	    GiD_File fprintf $filechannel "End Mesh" 
+	    
+	} 
 	}
     }
     
@@ -418,6 +456,29 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwor
 		        GiD_File fprintf $filechannel "%s" "End NodalData"
 		        GiD_File fprintf $filechannel ""
 		    }
+		    
+		    if {[string length $ixcomp] || [string length $iycomp] || [string length $izcomp]} {
+		set property_number [expr $property_number + 1 ]
+		GiD_File fprintf $filechannel "Begin Properties $property_number // GUI property identifier: $igroupid"
+		GiD_File fprintf $filechannel "IMPOSED_PRESSURE 0"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X 1"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X_VALUE $ixval"           
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y 1"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y_VALUE $iyval"           
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z 1"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z_VALUE $izval"
+		GiD_File fprintf $filechannel "IS_SLIP 0"
+		GiD_File fprintf $filechannel "End Properties"
+		                    
+		GiD_File fprintf $filechannel "Begin Mesh $property_number // GUI property identifier: $igroupid"
+		GiD_File fprintf $filechannel "Begin MeshNodes"
+		foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i" $node_id
+		}                   
+		GiD_File fprintf $filechannel "End MeshNodes"    
+		GiD_File fprintf $filechannel "End Mesh"
+		    }
+		    
 		    
 		} elseif {$ndime =="2D"} {
 		    # For each node in the inlet bc ckeck to write this node
@@ -522,6 +583,34 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwor
 		    }
 		}
 	    }
+
+
+		    if { $ix || $iy || $iz} {
+		    variable  property_number
+		set property_number [expr $property_number + 1 ]
+		GiD_File fprintf $filechannel "Begin Properties $property_number // GUI property identifier: $igroupid"
+		GiD_File fprintf $filechannel "IMPOSED_PRESSURE 0"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X $ix"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X_VALUE $ixval"           
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y $iy"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y_VALUE $iyval"           
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z $iz"
+		GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z_VALUE $izval"
+		GiD_File fprintf $filechannel "IS_SLIP 0"
+		GiD_File fprintf $filechannel "End Properties"
+		                    
+		GiD_File fprintf $filechannel "Begin Mesh $property_number // GUI property identifier: $igroupid"
+		GiD_File fprintf $filechannel "Begin MeshNodes"
+		foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i" $node_id
+		}                   
+		GiD_File fprintf $filechannel "End MeshNodes"    
+		GiD_File fprintf $filechannel "End Mesh"
+		    }
+
+
+
+
 	}
     }
 
@@ -873,6 +962,26 @@ proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
 		GiD_File fprintf $filechannel ""
 	    } 
 	}
+
+	variable  property_number
+	set property_number [expr $property_number + 1 ]
+	
+	GiD_File fprintf $filechannel "Begin Properties $property_number // GUI property identifier: $cgroupid"
+	GiD_File fprintf $filechannel "IMPOSED_PRESSURE 0"
+	GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X 0"
+	GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y 0"
+	GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z 0"
+	GiD_File fprintf $filechannel "IS_SLIP 1"
+
+	GiD_File fprintf $filechannel "End Properties"		    
+	GiD_File fprintf $filechannel "Begin Mesh $property_number // GUI property identifier: $cgroupid"
+	GiD_File fprintf $filechannel "Begin MeshNodes"
+	foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+	    GiD_File fprintf $filechannel "%10i" $node_id
+	}                   
+	GiD_File fprintf $filechannel "End MeshNodes"    
+	GiD_File fprintf $filechannel "End Mesh"
+
     }
 
     # For debug
@@ -985,6 +1094,7 @@ proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
 proc ::wkcf::WriteOutLetPressureBC {AppId ccondid kwordlist} {
     # ASBTRACT: Write outlet pressure boundary condition
     variable dprops;   variable filechannel
+    variable property_number
 
     # For debug
     if {!$::wkcf::pflag} {
@@ -1009,6 +1119,25 @@ proc ::wkcf::WriteOutLetPressureBC {AppId ccondid kwordlist} {
 	    }
 	    GiD_File fprintf $filechannel "End NodalData"
 	    GiD_File fprintf $filechannel "" 
+	    
+	    
+	    set property_number [expr $property_number + 1 ]
+	GiD_File fprintf $filechannel "Begin Properties $property_number // GUI property identifier: $cgroupid"
+	GiD_File fprintf $filechannel "IMPOSED_PRESSURE 1"
+	GiD_File fprintf $filechannel "PRESSURE $pval"
+	GiD_File fprintf $filechannel "IMPOSED_VELOCITY_X 0"
+	GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Y 0"
+	GiD_File fprintf $filechannel "IMPOSED_VELOCITY_Z 0"
+	GiD_File fprintf $filechannel "IS_SLIP 0"
+	GiD_File fprintf $filechannel "End Properties"
+		            
+	GiD_File fprintf $filechannel "Begin Mesh $property_number // GUI property identifier: $cgroupid"
+	GiD_File fprintf $filechannel "Begin MeshNodes"
+	foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+	    GiD_File fprintf $filechannel "%10i" $node_id
+	}                   
+	GiD_File fprintf $filechannel "End MeshNodes"    
+	GiD_File fprintf $filechannel "End Mesh"
 	}
     }
 
