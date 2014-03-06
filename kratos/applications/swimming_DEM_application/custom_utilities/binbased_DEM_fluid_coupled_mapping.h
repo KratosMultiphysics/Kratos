@@ -219,7 +219,7 @@ public:
             }
 
         }
-
+        
         array_1d<double, TDim + 1 > N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -727,13 +727,13 @@ private:
     //***************************************************************************************************************
     array_1d<double, 3> CalculateVorticity(const Geometry< Node < 3 > >& geom, const int index)
     {
-      Geometry< Node < 3 > >::ShapeFunctionsGradientsType DN_DX;
+      GeometryData::ShapeFunctionsGradientsType DN_DX;
 
       // calculating the gradient of the shape functions on the Gauss points (its ok, since their value is constant over the element)
       geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
 
-      array_1d<double, 3> vorticity = ZeroVector(3);
-      array_1d<double, 3> derivatives;
+      array_1d<double, 3> vorticity(3,0.0);
+      array_1d<double, 3> derivatives(3,0.0);
 
       const unsigned int n_nodes = geom.PointsNumber();
 
