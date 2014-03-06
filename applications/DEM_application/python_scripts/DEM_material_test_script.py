@@ -91,7 +91,9 @@ class MaterialTest:
         (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,self.initial_height_top,self.initial_height_bot) = self.Procedures.CylinderSkinDetermination(self.balls_model_part,self.solver,self.parameters) # defines the skin and areas
   
         self.initial_height = self.initial_height_top - self.initial_height_bot
-        
+      
+      self.length_correction_factor = 1.0
+      
       ##Oedometric
 
       if(self.parameters.TestType == "Oedometric"):
@@ -160,7 +162,6 @@ class MaterialTest:
     
     self.length_correction_factor = specimen_length/extended_length
     
-   
   def CreateTopAndBotGraph(self,step):
      
     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
