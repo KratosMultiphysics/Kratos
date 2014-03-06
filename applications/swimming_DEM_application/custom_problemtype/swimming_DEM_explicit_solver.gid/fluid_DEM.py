@@ -32,7 +32,7 @@ ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
 ProjectParameters.manually_imposed_drag_law_option = 0
 ProjectParameters.stationary_problem_option        = 0 # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
-ProjectParameters.body_force_on_fluid              = 1
+ProjectParameters.body_force_on_fluid_option       = 1
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
@@ -41,18 +41,15 @@ ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), stan
 ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
 ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
-ProjectParameters.lift_force_type                  = 0 # null lift force (0)
-ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
+ProjectParameters.lift_force_type                  = DEMParameters.consider_lift_force_option # Yes (1) (Weatherford recommendation), No (0)
+ProjectParameters.drag_modifier_type               = DEMParameters.drag_modifier_type # Hayder (2), Chien (3)  # problemtype option
 ProjectParameters.interaction_start_time           = 0.00
 ProjectParameters.max_solid_fraction               = 0.6
-ProjectParameters.gel_strength                     = 0.0   # problemtype option
-ProjectParameters.power_law_n                      = 0.0   # problemtype option
-ProjectParameters.power_law_k                      = 0.0   # problemtype option
 ProjectParameters.initial_drag_force               = 0.0   # problemtype option
 ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
 ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 1.0 # not active if similarity_transformation_type = 0
-ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.max_pressure_variation_rate_tol  = 1e-4 # for stationary problems, criterion to stop the fluid calculations
 ProjectParameters.time_steps_per_stationarity_step = 15 # number of fluid time steps between consecutive assessment of stationarity steps
 
 # variables to be printed
@@ -221,14 +218,11 @@ SolverStrategy.AddDofs(balls_model_part)
 # adding extra process info variables
 balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buoyancy_force_type)
 balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
-balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
 balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
+balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
 # balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
 balls_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
 balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
-balls_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
-balls_model_part.ProcessInfo.SetValue(POWER_LAW_N, ProjectParameters.power_law_n)
-balls_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.power_law_k)
 balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial_drag_force)
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
@@ -395,7 +389,7 @@ if (ProjectParameters.projection_module_option):
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
-if (ProjectParameters.body_force_on_fluid):
+if (ProjectParameters.body_force_on_fluid_option):
 
     for node in fluid_model_part.Nodes:
         node.SetSolutionStepValue(BODY_FORCE_X, 0, DEMParameters.GravityX)
@@ -428,8 +422,8 @@ if (ProjectParameters.inlet_option):
 
     DEM_inlet_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buoyancy_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
-    DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
     # DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
