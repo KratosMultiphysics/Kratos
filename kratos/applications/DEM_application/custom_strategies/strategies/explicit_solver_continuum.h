@@ -184,28 +184,28 @@ namespace Kratos
           int time_step                     = rCurrentProcessInfo[TIME_STEPS];
           mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
           
+          // 1. Initialize step   /////////////////////////////////            
           BaseType::InitializeSolutionStep();
           this->Contact_InitializeSolutionStep();
-
-          BaseType::GetForce();
-
-          //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes
           
+
+          // 2. Calculate forces   /////////////////////////////////            
+          BaseType::GetForce();
+          //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes          
           Clear_forces_FEM();
           Calculate_Conditions_RHS_and_Add();
-
-          if(mDempackOption)
-          {
-            this->GlobalDamping();
-          }                    
- 
+          if(mDempackOption) { this->GlobalDamping(); }       
+          
+           
+          // 3. Move particles   /////////////////////////////////  
+          BaseType::SynchronizeSolidMesh(r_model_part); // Should be... just TOTAL_FORCES and PARTICLE_MOMENT
+          
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
            
-          BaseType::SynchronizeSolidMesh(r_model_part);
           
+          // 4. Search Neighbours /////////////////////////////////                   
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
-          {
-            
+          {            
             for (int i = 0; i < this->GetNumberOfThreads(); i++)
             {
               if(rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][i]==1)
@@ -215,44 +215,32 @@ namespace Kratos
                 break;
                 
                }
-             }
-             
+             }             
           }
          
           //Synch this var.
           r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
-          // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
-
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
           {
-
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
                   if (this->GetBoundingBoxOption() == 1)
                   {
                       this->BoundingBoxUtility();                                            
-                  }
-                  
+                  }                  
                    BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
                    BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
                    BaseType::ComputeNewNeighboursHistoricalData();
     
                    BaseType::SetOriginalRadius(r_model_part);  
                    BaseType::SearchRigidFaceNeighbours();
-                   BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
-                   
+                   BaseType::ComputeNewRigidFaceNeighboursHistoricalData();                   
               }
 
-          }
-
-                    // 5. Synchronize
-          BaseType::SynchronizeSolidMesh(r_model_part);   
+          }          
           
-          //CHARLIE_MPI: pot ser el syncronize dintre del if de busqueda.
-          //CHARLIE_MPI: on es tria quines son les variables que sincronitzem? crec que si fem integració de ghosts només cal sincronitzar la força.
-          
-          
+          // 5. Finalize step   /////////////////////////////////            
           BaseType::FinalizeSolutionStep();
           FinalizeSolutionStepFEM();
           
