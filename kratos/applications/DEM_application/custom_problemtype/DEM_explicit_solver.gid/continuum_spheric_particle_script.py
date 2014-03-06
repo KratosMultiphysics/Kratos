@@ -251,11 +251,11 @@ while (time < DEM_parameters.FinalTime):
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if (incremental_time > DEM_parameters.ControlTime):
-        percentage = 100 * (float(step) / total_steps_expected)
-
-        print('Real time calculation: ' + str(timer.time() - initial_real_time))
+        percentage = 100.0 * (float(step) / total_steps_expected)
+        
+        print("%s %.2f %s" % ("Real time calculation: ", timer.time() - initial_real_time,"s"))      
         print('Simulation time: ' + str(time))
-        print("%s %.5f" % ("Percentage Completed: ", percentage))        
+        print("%s %.5f %s" % ("Percentage Completed: ", percentage,"%"))        
         print("Time Step: " + str(step) + '\n')
 
         sys.stdout.flush()
