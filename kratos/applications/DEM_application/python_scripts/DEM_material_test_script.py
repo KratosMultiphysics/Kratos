@@ -171,7 +171,7 @@ class MaterialTest:
         self.bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
 
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-    self.strain += self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
+    self.strain += 100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
     if( self.parameters.TestType != "BTS"):
       
@@ -179,7 +179,7 @@ class MaterialTest:
 
       volumetric_strain = self.strain - 2*radial_strain
         
-      self.graph_export_volumetric.write(str(volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
+      self.graph_export_volumetric.write(str(volumetric_strain)+"    "+str(self.total_stress_fem_mean)+'\n')
       self.graph_export_volumetric.flush()
   
     if( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
@@ -371,7 +371,7 @@ class MaterialTest:
       
       sigma = element.GetValue(CONTACT_SIGMA) 
     
-      OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean*1e6))+'\n')
+      OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_fem_mean*1e6))+'\n')
       counter += 1
     
     
@@ -485,7 +485,7 @@ class MaterialTest:
       self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
       self.tau_mean_table[ii] = tau_mean   
       self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
-      self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean*1e6)
+      self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_fem_mean*1e6)
       ii+=1
       
     print(self.sigma_ratio_table)
