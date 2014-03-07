@@ -243,6 +243,9 @@ public:
                     
                       Element::Pointer p_ghost_element = Element::Pointer(new Element(mpi_recv_buffer[i][j], nodelist));
 
+                      ghostMesh.AddElement(p_ghost_element);
+                      ghostMesh.AddNode(pnew_node);
+                      
                       RecvObjects[i].push_back(p_ghost_element);
                   }
               }
