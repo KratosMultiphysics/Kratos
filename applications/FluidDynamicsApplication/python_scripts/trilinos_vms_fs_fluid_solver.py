@@ -257,39 +257,58 @@ class IncompressibleFluidSolver:
         if self.divergence_clearance_steps > 0:
             if mpi.rank == 0:
                 print("Calculating divergence-free initial condition")
-            # initialize with a Stokes solution step
-            stokes_aztec_parameters = ParameterList()
-            stokes_aztec_parameters.set("AZ_solver", "AZ_gmres")
-            stokes_aztec_parameters.set("AZ_kspace", 100)
-            stokes_aztec_parameters.set("AZ_output", "AZ_none")
+            ## initialize with a Stokes solution step
+            #stokes_aztec_parameters = ParameterList()
+            #stokes_aztec_parameters.set("AZ_solver", "AZ_gmres")
+            #stokes_aztec_parameters.set("AZ_kspace", 100)
+            #stokes_aztec_parameters.set("AZ_output", "AZ_none")
 
-            stokes_preconditioner_type = "ILU"
-            stokes_preconditioner_parameters = ParameterList()
-            stokes_overlap_level = 0
-            stokes_nit_max = 1000
-            stokes_linear_tol = 1e-9
+            #stokes_preconditioner_type = "ILU"
+            #stokes_preconditioner_parameters = ParameterList()
+            #stokes_overlap_level = 0
+            #stokes_nit_max = 1000
+            #stokes_linear_tol = 1e-9
 
-            stokes_linear_solver = AztecSolver(stokes_aztec_parameters,
-                                               stokes_preconditioner_type,
-                                               stokes_preconditioner_parameters,
-                                               stokes_linear_tol,
-                                               stokes_nit_max,
-                                               stokes_overlap_level)
-            stokes_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
-            stokes_process = TrilinosStokesInitializationProcess(
-                self.Comm,
-                self.model_part,
-                stokes_linear_solver,
-                self.domain_size,
-                PATCH_INDEX)
-            # copy periodic conditions to Stokes problem
-            stokes_process.SetConditions(self.model_part.Conditions)
-            # execute Stokes process
-            stokes_process.Execute()
-            stokes_process = None
+            #stokes_linear_solver = AztecSolver(stokes_aztec_parameters,
+                                               #stokes_preconditioner_type,
+                                               #stokes_preconditioner_parameters,
+                                               #stokes_linear_tol,
+                                               #stokes_nit_max,
+                                               #stokes_overlap_level)
+            #stokes_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+            #stokes_process = TrilinosStokesInitializationProcess(
+                #self.Comm,
+                #self.model_part,
+                #stokes_linear_solver,
+                #self.domain_size,
+                #PATCH_INDEX)
+            ## copy periodic conditions to Stokes problem
+            #stokes_process.SetConditions(self.model_part.Conditions)
+            ## execute Stokes process
+            #stokes_process.Execute()
+            #stokes_process = None
 
-            for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+            #for node in self.model_part.Nodes:
+                #node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+                
+                
+               
+            dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+            self.model_part.ProcessInfo.SetValue(DELTA_TIME, 100.0 * dt)
+
+            while self.divergence_clearance_steps > 0:
+                if self.divergence_clearance_steps > 1:
+                    for node in self.model_part.Nodes:
+                        node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+                        vel = node.GetSolutionStepValue(VELOCITY, 0)
+                        node.SetSolutionStepValue(VELOCITY, 1, vel)
+                        node.SetSolutionStepValue(VELOCITY, 2, vel)
+
+                self.divergence_clearance_steps -= 1
+
+                (self.solver).Solve()
+
+            self.model_part.ProcessInfo.SetValue(DELTA_TIME, dt)
 
             self.divergence_clearance_steps = 0
             if mpi.rank == 0:
