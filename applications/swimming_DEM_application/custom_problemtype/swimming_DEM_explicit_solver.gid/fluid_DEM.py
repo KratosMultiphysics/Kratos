@@ -23,6 +23,7 @@ import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
 import embedded
+import mesh_motion
 
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
@@ -37,8 +38,7 @@ ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), 
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
-ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1) (but, if drag_force_type is 2, buoyancy is always parallel to gravity) 
-ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
+ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1) (but if drag_force_type is 2, buoyancy is always parallel to gravity) 
 ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                  = DEMParameters.consider_lift_force_option # Yes (1) (Weatherford recommendation), No (0)
@@ -424,12 +424,8 @@ if (ProjectParameters.inlet_option):
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
-    # DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
-    DEM_inlet_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
-    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_N, ProjectParameters.power_law_n)
-    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.power_law_k)
     DEM_inlet_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial_drag_force)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
     DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
@@ -481,7 +477,9 @@ while(time <= final_time):
         time_final_DEM_substepping = time
         time_dem = time - Dt + Dt_DEM
 
-    embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
+    # walls movement    
+    mesh_motion.MoveAllMeshes(fem_dem_model_part, time)
+    
     # Calculate elemental distances defining the structure embedded in the fluid mesh
     calculate_distance_process.Execute()
 
