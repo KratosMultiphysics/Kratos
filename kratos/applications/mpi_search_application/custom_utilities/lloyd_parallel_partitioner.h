@@ -49,8 +49,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_LLOYD_PARALLEL_PARTITIONER_H_INCLUDED)
 #define  KRATOS_LLOYD_PARALLEL_PARTITIONER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
@@ -218,9 +216,6 @@ public:
             
             Dot[i] = sqrt(Dot[i]);
         }
-        
-        //Calculate partitions interfaces
-//         CalculatePartitionInterface(mModelPart,Normal,Plane,Dot);
     }
     
     /**
@@ -242,7 +237,7 @@ public:
                 for(int j = 0; j < Dimension; j++)
                     SendSetCentroid[i*Dimension+j] = 0;
             }
-            
+
             for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
             {
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
@@ -258,7 +253,7 @@ public:
                     SendNumParticlesPerVirtualPartition[element_partition]++;
                 }
             }
-            
+
             MPI_Allreduce(SendSetCentroid,SetCentroid,mpi_size*Dimension,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);                     
             MPI_Allreduce(SendNumParticlesPerVirtualPartition,NumParticlesPerVirtualPartition,mpi_size,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
@@ -282,7 +277,7 @@ public:
                     }
                 }
             }
-            
+
             //Continue with the partitioning
             for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
             { 
@@ -349,8 +344,6 @@ public:
             {
                 double NodeToCutPlaneDist = 0;
 
-                //tmp[j] = 0;
-
                 NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->X() * Normal[j*Dimension+0];
                 NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->Y() * Normal[j*Dimension+1];
                 NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->Z() * Normal[j*Dimension+2];
@@ -369,65 +362,6 @@ public:
                 }
             }
         }
-        
-//         std::cout << "Level2 Marking" << std::endl;
-        
-//         //Mark elements in boundary (Level-2) (Only last iteration)
-//         std::vector<ElementsContainerType> SendMarkObjects(mpi_size);
-//         std::vector<ElementsContainerType> RecvMarkObjects(mpi_size);
-//       
-//         //Mark neighbours (Level-2)
-//         std::cout << pElements.end()-pElements.begin() << std::endl;
-//         BinsObjectDynamicMpi<Configure> particle_bin(pElements.begin(), pElements.end());
-//         
-//         int NumberOfMarkedElements = pElementsMarked.end() - pElementsMarked.begin();
-//         int MaximumNumberOfResults = 1000;
-//         
-//         std::vector<std::size_t>               NumberOfResults(NumberOfMarkedElements);
-//         std::vector<std::vector<PointerType> > Results(NumberOfMarkedElements, std::vector<PointerType>(MaximumNumberOfResults));
-//         std::vector<std::vector<double> >      ResultsDistances(NumberOfMarkedElements, std::vector<double>(MaximumNumberOfResults));
-//         std::vector<double>                    Radius(NumberOfMarkedElements);
-//         
-//         double new_extension = 1.01;
-//         for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
-//         {    
-//               Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.5) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
-//         }
-//         
-//         particle_bin.SearchObjectsMpi(pElementsMarked,NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.GetCommunicator());
-//         
-//         for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
-//         {    
-//             int p_index = particle_pointer_it-pElementsMarked.begin();
-//             
-//             for(unsigned int i = 0; i < NumberOfResults[p_index]; i++)
-//             {
-//                 Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//                 SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
-//             }
-//         }
-// 
-//         TConfigure::TransferObjects(mModelPart.GetCommunicator().GhostMesh(),SendMarkObjects,RecvMarkObjects,(*pElements.begin())->GetGeometry()(0)->pGetVariablesList());
-//         
-//         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-//         {
-//             for(int j = 0; j < mpi_size; j++)
-//             {
-//                 if(j != mpi_rank)
-//                 {
-// //                     for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
-// //                     {
-//                     for (SpatialSearch::ElementsContainerType::iterator r_it = RecvMarkObjects[j].begin(); r_it != RecvMarkObjects[j].end(); r_it++)
-//                     {
-//                         if((*particle_pointer_it)->GetGeometry()(0)->Id() == r_it->GetGeometry()(0)->Id())
-//                         {
-//                             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= r_it->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//                             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
     }
 
 
