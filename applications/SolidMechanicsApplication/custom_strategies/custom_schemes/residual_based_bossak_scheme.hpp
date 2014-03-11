@@ -872,10 +872,6 @@ protected:
                                const array_1d<double, 3 > & PreviousAcceleration)
     {
 
-        //KRATOS_WATCH( DeltaDisplacement )
-        //KRATOS_WATCH( PreviousVelocity )
-        //KRATOS_WATCH( PreviousAcceleration )
-
         noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
                                      - mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
 
