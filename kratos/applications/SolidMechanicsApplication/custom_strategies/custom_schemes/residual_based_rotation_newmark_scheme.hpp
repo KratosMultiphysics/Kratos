@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_ROTATION_BOSSAK_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_ROTATION_BOSSAK_SCHEME
+#if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_SCHEME )
+#define  KRATOS_RESIDUAL_BASED_NEWMARK_SCHEME
 
 /* System includes */
 
@@ -41,18 +41,13 @@ namespace Kratos
 /*@{ */
 /*@} */
 
+// Covariant implicit time stepping algorithm: the classical Newmark algorithm of nonlinear elastodynamics and a canonical extension of the Newmark formulas to the orthogonal group SO(3) for the rotational part.
+
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedRotationBossakScheme: public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedRotationNewmarkScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 protected:
 
-    struct GeneralAlphaMethod
-    {
-
-        double f;  //alpha Hilbert
-        double m;  //alpha Bosssak
-
-    };
 
     struct NewmarkMethod
     {
@@ -67,7 +62,6 @@ protected:
         double c3;
         double c4;
         double c5;
-        double c6;
 
         //static-dynamic parameter
         double static_dynamic;
@@ -100,7 +94,7 @@ public:
     /**@name Type Definitions */
 
     /*@{ */
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRotationBossakScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRotationNewmarkScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
@@ -121,28 +115,24 @@ public:
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-    
-    typedef typename BaseType::Pointer                     BaseTypePointer;
-  
+
+
     /*@} */
 
     /**
      * Constructor.
      * The bossak method
      */
-    ResidualBasedRotationBossakScheme(double rAlpham=0,double rDynamic=1)
+    ResidualBasedRotationNewmarkScheme(double rDynamic=1)
         :Scheme<TSparseSpace,TDenseSpace>()
     {
-        //For pure Newmark Scheme
-        mAlpha.f= 0;
-        mAlpha.m= rAlpham;
-
-        mNewmark.beta= (1.0+mAlpha.f-mAlpha.m)*(1.0+mAlpha.f-mAlpha.m)*0.25;
-        mNewmark.gamma= 0.5+mAlpha.f-mAlpha.m;
+        //For pure stable Newmark Scheme
+        mNewmark.beta=  0.25;
+        mNewmark.gamma= 0.5;
 
         mNewmark.static_dynamic= rDynamic;
 
-        std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= "<<mAlpha.m<<" beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
+        std::cout << " MECHANICAL SCHEME: The Newmark Time Integration Scheme [ beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
 
 
         //Allocate auxiliary memory
@@ -158,46 +148,26 @@ public:
 
     }
 
-
-    /** Copy Constructor.
-     */
-    ResidualBasedRotationBossakScheme(ResidualBasedRotationBossakScheme& rOther)
-      :BaseType(rOther)
-      ,mAlpha(rOther.mAlpha)
-      ,mNewmark(rOther.mNewmark)
-      ,mMatrix(rOther.mMatrix)
-      ,mVector(rOther.mVector)
-    {
-    }
-
-
     /** Destructor.
      */
-    virtual ~ResidualBasedRotationBossakScheme
+    virtual ~ResidualBasedRotationNewmarkScheme
     () {}
 
-   /*@} */
+    /**@name Operators */
+
+    /*@} */
     /**@name Operators
      */
     /*@{ */
 
-
     /**
-     * Clone 
-     */
-    virtual BaseTypePointer Clone()
-    {
-      return BaseTypePointer( new ResidualBasedRotationBossakScheme(*this) );
-    }
-
+       Performing the update of the solution.
+    */
 
 
     //***************************************************************************
-    //***************************************************************************
-
     /**
-     * Performing the update of the solution
-     * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param r_model_part
      * @param rDofSet set of all primary variables
      * @param A	LHS matrix
@@ -223,43 +193,32 @@ public:
             }
         }
 
-
 	//LINEAR VELOCITIES AND ACCELERATIONS
 
         //updating time derivatives (nodally for efficiency)
-        array_1d<double, 3 > DeltaDisplacement;
-
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
+	for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
-        {
+	{
 
-            noalias(DeltaDisplacement) = (i)->FastGetSolutionStepValue(DISPLACEMENT) - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-
+ 
             array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
             array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
             array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
             array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-            UpdateVelocity     (CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+            UpdateVelocity     (CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration);
 
-            UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+            UpdateAcceleration (CurrentAcceleration, PreviousVelocity, PreviousAcceleration);
 
-        }
-
+	}
 
 	//ANGULAR VELOCITIES AND ACCELERATIONS
 
         //updating time derivatives (nodally for efficiency)
-        array_1d<double, 3 > DeltaRotation;
-
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
         {
-
-            noalias(DeltaRotation) = (i)->FastGetSolutionStepValue(ROTATION) - (i)->FastGetSolutionStepValue(ROTATION, 1);
-
 
             array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY, 0);
             array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY, 1);
@@ -267,15 +226,16 @@ public:
             array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION, 0);
             array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1);
 
-            UpdateVelocity     (CurrentVelocity, DeltaRotation, PreviousVelocity, PreviousAcceleration);
+            UpdateVelocity     (CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration);
 
-            UpdateAcceleration (CurrentAcceleration, DeltaRotation, PreviousVelocity, PreviousAcceleration);
+            UpdateAcceleration (CurrentAcceleration, PreviousVelocity, PreviousAcceleration);
+
 
         }
 
-
         KRATOS_CATCH( "" )
     }
+
 
 
     //***************************************************************************
@@ -292,16 +252,15 @@ public:
         TSystemVectorType& b
     )
     {
-  
+
         KRATOS_TRY
-      
+
         //std::cout << " Prediction " << std::endl;
 
         //double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
 	//DISPLACEMENTS
-        array_1d<double, 3 > DeltaDisplacement;
-
+	 
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
         {
@@ -364,27 +323,24 @@ public:
             }
 
 
-
 	    //LINEAR VELOCITIES AND ACCELERATIONS
 
             //updating time derivatives ::: please note that displacements and its time derivatives
             //can not be consistently fixed separately
 
-            noalias(DeltaDisplacement) = CurrentDisplacement - PreviousDisplacement;
-
+ 
             array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
             array_1d<double, 3 > & CurrentVelocity       = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration   = (i)->FastGetSolutionStepValue(ACCELERATION);
 
-            UpdateVelocity     (CurrentVelocity, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+            PredictVelocity     (CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration);
 
-            UpdateAcceleration (CurrentAcceleration, DeltaDisplacement, PreviousVelocity, PreviousAcceleration);
+            PredictAcceleration (CurrentAcceleration, PreviousVelocity, PreviousAcceleration);
 
         }
 
 
 	//ROTATIONS
-        array_1d<double, 3 > DeltaRotation;
        
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
@@ -437,24 +393,22 @@ public:
             //updating time derivatives ::: please note that rotations and its time derivatives
             //can not be consistently fixed separately
 
-            noalias(DeltaRotation) = CurrentRotation - PreviousRotation;
-
             array_1d<double, 3 > & PreviousAcceleration  = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION, 1);
             array_1d<double, 3 > & CurrentVelocity       = (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration   = (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-            UpdateVelocity     (CurrentVelocity, DeltaRotation, PreviousVelocity, PreviousAcceleration);
+            PredictVelocity     (CurrentVelocity, PreviousVelocity, PreviousAcceleration, CurrentAcceleration);
 
-            UpdateAcceleration (CurrentAcceleration, DeltaRotation, PreviousVelocity, PreviousAcceleration);
+            PredictAcceleration (CurrentAcceleration, PreviousVelocity, PreviousAcceleration);
 
         }
 
-	 KRATOS_CATCH( "" )
+	KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
 
+    //***************************************************************************
+    //***************************************************************************
     /**
     this is the place to initialize the elements.
     This is intended to be called just once when the strategy is initialized
@@ -486,8 +440,6 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
 
     /**
     this is the place to initialize the conditions.
@@ -521,9 +473,6 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //***************************************************************************
-    //***************************************************************************
-
     /**
      * initializes time step solution
      * only for reasons if the time step solution is restarted
@@ -549,23 +498,22 @@ public:
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime == 0)
-            KRATOS_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+            KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
 
         //initializing Newmark constants
-        mNewmark.c0 = ( 1.0 / (mNewmark.beta * DeltaTime * DeltaTime) );
-        mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * DeltaTime) );
-        mNewmark.c2 = ( 1.0 / (mNewmark.beta * DeltaTime) );
-        mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
-        mNewmark.c4 = ( (mNewmark.gamma / mNewmark.beta) - 1.0  );
-        mNewmark.c5 = ( DeltaTime * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2 ) );
+        mNewmark.c0 = ( mNewmark.gamma / ( DeltaTime * mNewmark.beta ) );
+        mNewmark.c1 = ( 1.0 / ( DeltaTime * DeltaTime * mNewmark.beta ) );
 
+        mNewmark.c2 = ( DeltaTime * ( 1.0 - mNewmark.gamma ) );
+        mNewmark.c3 = ( DeltaTime * mNewmark.gamma );
+        mNewmark.c4 = ( DeltaTime / mNewmark.beta );
+        mNewmark.c5 = ( DeltaTime * DeltaTime * ( 0.5 - mNewmark.beta ) / mNewmark.beta );
 
-        //std::cout<<" Newmark Variables "<<mNewmark.c0<<" "<<mNewmark.c1<<" "<<mNewmark.c2<<" "<<mNewmark.c3<<" "<<mNewmark.c4<<" "<<mNewmark.c5<<std::endl;
+        //std::cout<<" Newmark Variables "<<mNewmark.c0<<" "<<mNewmark.c1<<" "<<mNewmark.c2<<" "<<mNewmark.c3<<" "<<mNewmark.c4<<std::endl;
 
         KRATOS_CATCH( "" )
     }
-
     //***************************************************************************
     //***************************************************************************
 
@@ -665,6 +613,14 @@ public:
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
 
+
+
+    //***************************************************************************
+    //***************************************************************************
+
+
+
+
     //***************************************************************************
     //***************************************************************************
 
@@ -709,9 +665,6 @@ public:
 
         KRATOS_CATCH( "" )
     }
-
-    //***************************************************************************
-    //***************************************************************************
 
     void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
@@ -775,7 +728,6 @@ public:
         //basic operations for the element considered
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-	
         if(mNewmark.static_dynamic !=0)
         {
 
@@ -786,7 +738,7 @@ public:
         }
 
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-	
+
         if(mNewmark.static_dynamic !=0)
         {
 
@@ -797,9 +749,9 @@ public:
 
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
 
-
         KRATOS_CATCH( "" )
     }
+
 
     //***************************************************************************
     //***************************************************************************
@@ -842,6 +794,7 @@ public:
 
         KRATOS_CATCH( "" )
     }
+
 
     //***************************************************************************
     //***************************************************************************
@@ -922,45 +875,44 @@ public:
         }
 
 
-        //check for admissible value of the AlphaBossak
-        if(mAlpha.m > 0.0 || mAlpha.m < -0.3)
-            KRATOS_ERROR( std::logic_error,"Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlpha.m )
-
-            //check for minimum value of the buffer index
-            //verify buffer size
-            if (r_model_part.GetBufferSize() < 2)
-                KRATOS_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
+        //check for minimum value of the buffer index
+        //verify buffer size
+        if (r_model_part.GetBufferSize() < 2)
+            KRATOS_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
 
 
         return 0;
         KRATOS_CATCH( "" )
     }
 
+
     /*@} */
     /**@name Operations */
     /*@{ */
+
+
     /*@} */
     /**@name Access */
     /*@{ */
+
+
     /*@} */
     /**@name Inquiry */
     /*@{ */
+
+
     /*@} */
     /**@name Friends */
     /*@{ */
 
 protected:
-    /**@name Static Member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-    
-    GeneralAlphaMethod  mAlpha;
+
+
     NewmarkMethod       mNewmark;
 
     GeneralMatrices     mMatrix;
     GeneralVectors      mVector;
+
 
     /*@} */
     /**@name Protected Operators*/
@@ -970,15 +922,45 @@ protected:
     //Updating first time Derivative
     //*********************************************************************************
 
-    inline void UpdateVelocity(array_1d<double, 3 > & CurrentVelocity,
-                               const array_1d<double, 3 > & DeltaDisplacement,
+    inline void PredictVelocity(array_1d<double, 3 > & CurrentVelocity,
                                const array_1d<double, 3 > & PreviousVelocity,
-                               const array_1d<double, 3 > & PreviousAcceleration)
+                               const array_1d<double, 3 > & PreviousAcceleration,
+			       const array_1d<double, 3 > & CurrentAcceleration)
     {
 
+      noalias(CurrentVelocity) =  (  PreviousVelocity 
+				   + mNewmark.c2 * PreviousAcceleration 
+				   + mNewmark.c3 * CurrentAcceleration ) * mNewmark.static_dynamic;
 
-        noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
+    }
+
+
+    //*********************************************************************************
+    //Updating second time Derivative
+    //*********************************************************************************
+
+    inline void PredictAcceleration(array_1d<double, 3 > & CurrentAcceleration,
+				    const array_1d<double, 3 > & PreviousVelocity,
+				    const array_1d<double, 3 > & PreviousAcceleration)
+    {
+
+        noalias(CurrentAcceleration) =  (- mNewmark.c4 * PreviousVelocity
+                                         + mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
+
+
+    }
+
+
+    //*********************************************************************************
+    //Updating first time Derivative
+    //*********************************************************************************
+
+    inline void UpdateVelocity(array_1d<double, 3 > & CurrentVelocity,
+                               const array_1d<double, 3 > & PreviousVelocity,
+                               const array_1d<double, 3 > & PreviousAcceleration,
+			       const array_1d<double, 3 > & CurrentAcceleration)
+    {
+
 
     }
 
@@ -988,13 +970,9 @@ protected:
     //*********************************************************************************
 
     inline void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
-                                   const array_1d<double, 3 > & DeltaDisplacement,
                                    const array_1d<double, 3 > & PreviousVelocity,
                                    const array_1d<double, 3 > & PreviousAcceleration)
     {
-
-        noalias(CurrentAcceleration) =  (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration) * mNewmark.static_dynamic;
 
 
     }
@@ -1017,15 +995,15 @@ protected:
         // adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
         {
-            noalias(LHS_Contribution) += M * (1-mAlpha.m) * mNewmark.c0 * mNewmark.static_dynamic;
+            noalias(LHS_Contribution) += M * mNewmark.static_dynamic;
 
-            //std::cout<<" Mass Matrix "<<M<<" coeficient "<<(1-mAlpha.m)*mNewmark.c0<<std::endl;
+            //std::cout<<" Mass Matrix "<<M<<" coeficient "<<mNewmark.c0<<std::endl;
         }
 
         //adding  damping contribution
         if (D.size1() != 0) // if M matrix declared
         {
-            noalias(LHS_Contribution) += D * (1-mAlpha.f) * mNewmark.c1 * mNewmark.static_dynamic;
+            noalias(LHS_Contribution) += D * mNewmark.static_dynamic;
 
         }
 
@@ -1052,11 +1030,11 @@ protected:
         {
             rCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m) * mNewmark.static_dynamic ;
+            (mVector.a[thread]) *= mNewmark.static_dynamic ;
 
             rCurrentElement->GetSecondDerivativesVector(mVector.ap[thread], 1);
 
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread] * mNewmark.static_dynamic;
+            noalias(mVector.a[thread]) += mVector.ap[thread] * mNewmark.static_dynamic;
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
             //KRATOS_WATCH( prod(M, macc[thread] ) )
@@ -1080,6 +1058,7 @@ protected:
     //Conditions:
     //****************************************************************************
 
+
     void AddDynamicsToRHS(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
@@ -1094,11 +1073,11 @@ protected:
         {
             rCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-            (mVector.a[thread]) *= (1.00 - mAlpha.m) * mNewmark.static_dynamic;
+            (mVector.a[thread]) *=  mNewmark.static_dynamic;
 
             rCurrentCondition->GetSecondDerivativesVector(mVector.ap[thread], 1);
 
-            noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread] * mNewmark.static_dynamic;
+            noalias(mVector.a[thread]) +=  mVector.ap[thread] * mNewmark.static_dynamic;
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
         }
@@ -1116,6 +1095,14 @@ protected:
 
     }
 
+
+
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
     /*@} */
     /**@name Protected Operations*/
     /*@{ */
@@ -1134,6 +1121,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+    //DofsVectorType mElementalDofList;
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -1149,9 +1137,9 @@ private:
     /*@} */
     /**@name Unaccessible methods */
     /*@{ */
-}; /* Class ResidualBasedRotationBossakScheme */
+}; /* Class Scheme */
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUAL_BASED_ROTATION_BOSSAK_SCHEME defined */
+#endif /* KRATOS_RESIDUAL_BASED_NEWMARK_SCHEME  defined */
 
 
