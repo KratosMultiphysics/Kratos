@@ -82,7 +82,7 @@ protected:
       double Area;                            // Area or the beam section
       double Inertia_z;                       // Moment of Inertia about the local z axis, Iz local
       double Inertia_y;                       // Moment of Inertia about the local y axis, Iy local
-      double Inertia_zy;                      // Product of Inertia about local z and local y, Izy local
+      double Polar_Inertia;                   // Polar Moment of Inertia, measures an object's ability to resist twisting, when acted upon by differences of torque along its length.
     };
 
     /**
