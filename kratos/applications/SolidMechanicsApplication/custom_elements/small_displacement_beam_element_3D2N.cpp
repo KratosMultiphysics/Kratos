@@ -347,14 +347,14 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
         Matrix& inertia = GetProperties()[LOCAL_INERTIA];
         mSection.Inertia_z = inertia(0,0);
         mSection.Inertia_y = inertia(1,1);
-        mSection.Inertia_zy = inertia(0,1);
+        mSection.Polar_Inertia = inertia(0,1);
     }
     else
     {
         Matrix& inertia = GetValue(LOCAL_INERTIA);
         mSection.Inertia_z = inertia(0,0);
         mSection.Inertia_y = inertia(1,1);
-        mSection.Inertia_zy = inertia(0,1);
+        mSection.Polar_Inertia = inertia(0,1);
     }
 
     mLength = GetGeometry().Length();
@@ -615,7 +615,7 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalStiffnessMatrix(Matrix& Loc
     double const EA  = mSection.Area       * YoungModulus;
     double const EIz = mSection.Inertia_z  * YoungModulus;
     double const EIy = mSection.Inertia_y  * YoungModulus;
-    double const JG  = mSection.Inertia_zy * ShearModulus;
+    double const JG  = mSection.Polar_Inertia * ShearModulus;
 
     LocalStiffnessMatrix(0,0)	=   (EA)/(L);
     LocalStiffnessMatrix(6,0)	=  -(EA)/(L);
