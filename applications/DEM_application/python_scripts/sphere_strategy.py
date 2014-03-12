@@ -250,8 +250,7 @@ class ExplicitStrategy:
         self.creator_destructor.SetLowNode(b_box_low)
         self.creator_destructor.SetHighNode(b_box_high)
 
-        if (self.automatic_bounding_box_option):
-            self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
+        self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor, self.automatic_bounding_box_option)
 
         # STRATEGIES
 
