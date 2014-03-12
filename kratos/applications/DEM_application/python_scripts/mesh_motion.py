@@ -69,6 +69,7 @@ def MoveAllMeshes(model_part, time):
                 linear_omega = 2 * math.pi / linear_period
                 inv_linear_omega = 1/linear_omega
                 center_position = initial_center + linear_velocity * math.sin(linear_omega * time)* inv_linear_omega
+                linear_velocity_changed = linear_velocity * math.cos(linear_omega * time)
                 
             else:
                 center_position = initial_center + time * linear_velocity
@@ -77,6 +78,8 @@ def MoveAllMeshes(model_part, time):
                 angular_omega = 2 * math.pi / angular_period
                 inv_angular_omega = 1/angular_omega
                 angle = angular_velocity * math.sin(angular_omega * time) * inv_angular_omega
+                angular_velocity_changed = angular_velocity * math.cos(angular_omega * time)
+                
             else:
                 angle = angular_velocity * time
                 
@@ -137,12 +140,12 @@ def MoveAllMeshes(model_part, time):
                     displacement[1] = node.Y - node.Y0
                     displacement[2] = node.Z - node.Z0
                     
-                    velocity_due_to_rotation = Cross(angular_velocity , relative_position)
+                    velocity_due_to_rotation = Cross(angular_velocity_changed , relative_position)
                     # NEW VELOCITY                    
                     vel = Vector(3)
-                    vel[0] = linear_velocity[0] + velocity_due_to_rotation[0]
-                    vel[1] = linear_velocity[1] + velocity_due_to_rotation[1]
-                    vel[2] = linear_velocity[2] + velocity_due_to_rotation[2]
+                    vel[0] = linear_velocity_changed[0] + velocity_due_to_rotation[0]
+                    vel[1] = linear_velocity_changed[1] + velocity_due_to_rotation[1]
+                    vel[2] = linear_velocity_changed[2] + velocity_due_to_rotation[2]
                     
                     #The next line only works for Vector(3) or Arrays, not for the lists we are working with here!!
                     #update VELOCITY
