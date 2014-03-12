@@ -222,43 +222,51 @@ public:
 }    
     //MA
 
-    void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor)
+    void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor, bool automatic)
     {
         KRATOS_TRY
-        if (r_model_part.NumberOfElements(0) == 0 )
-            KRATOS_ERROR(std::logic_error,  "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
-        //Type definitions
-        Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
-        Configure::ElementsContainerType Elements           = r_model_part.Elements();
-       
-        double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-        array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
-        mLowPoint                 = coor;
-        mHighPoint                = coor;
-        mStrictLowPoint           = coor;
-        mStrictHighPoint          = coor;
+        if (automatic){
 
-        for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
-            coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
+                if (r_model_part.NumberOfElements(0) == 0){
+                    KRATOS_ERROR(std::logic_error,  "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
+                }
 
-            for (std::size_t i = 0; i < 3; i++){
-                mStrictLowPoint[i]  = (mStrictLowPoint[i] > coor[i]) ? coor[i] : mStrictLowPoint[i];
-                mStrictHighPoint[i] = (mStrictHighPoint[i] < coor[i]) ? coor[i] : mStrictHighPoint[i];
+            //Type definitions
+            Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
+            Configure::ElementsContainerType Elements           = r_model_part.Elements();
+
+            double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
+            mLowPoint                 = coor;
+            mHighPoint                = coor;
+            mStrictLowPoint           = coor;
+            mStrictHighPoint          = coor;
+
+            for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
+                coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
+
+                for (std::size_t i = 0; i < 3; i++){
+                    mStrictLowPoint[i]  = (mStrictLowPoint[i] > coor[i]) ? coor[i] : mStrictLowPoint[i];
+                    mStrictHighPoint[i] = (mStrictHighPoint[i] < coor[i]) ? coor[i] : mStrictHighPoint[i];
+                }
+
             }
 
-        }
+            array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
+            mHighPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
+            mLowPoint                     = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
 
-        array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
-        mHighPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
-        mLowPoint                     = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
+            for (std::size_t i = 0; i < 3; i++){
+                mLowPoint[i]  -= 2 * ref_radius;
+                mHighPoint[i] += 2 * ref_radius;
+            }
 
-        for (std::size_t i = 0; i < 3; i++){
-            mLowPoint[i]  -= 2 * ref_radius;
-            mHighPoint[i] += 2 * ref_radius;
-        }
-
-        mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
-        mDiameter       = norm_2(mHighPoint - mLowPoint);
+        }        
+        
+        mStrictHighPoint = mHighPoint;
+        mStrictLowPoint  =  mLowPoint;
+        mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
+        mDiameter        = norm_2(mHighPoint - mLowPoint);
         
         KRATOS_CATCH("")
          
