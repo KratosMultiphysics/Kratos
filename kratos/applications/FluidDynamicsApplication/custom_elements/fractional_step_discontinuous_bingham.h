@@ -225,7 +225,7 @@ namespace Kratos
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
-        virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+        /*virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                 std::vector<double>& rValues,
                 const ProcessInfo& rCurrentProcessInfo)
         {
@@ -271,16 +271,16 @@ namespace Kratos
             else // Default behaviour (returns elemental data)
             {
                 rValues.resize(1, false);
-                /*
-                 The cast is done to avoid modification of the element's data. Data modification
-                 would happen if rVariable is not stored now (would initialize a pointer to &rVariable
-                 with associated value of 0.0). This is catastrophic if the variable referenced
-                 goes out of scope.
-                 */
+                
+                // The cast is done to avoid modification of the element's data. Data modification
+                // would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+                // with associated value of 0.0). This is catastrophic if the variable referenced
+                // goes out of scope.
+                 
                 const FractionalStepDiscontinuousBingham<TDim>* const_this = static_cast<const FractionalStepDiscontinuousBingham<TDim>*> (this);
                 rValues[0] = const_this->GetValue(rVariable);
             }
-        }
+        }*/
 
 
 
@@ -309,7 +309,7 @@ namespace Kratos
         virtual std::string Info() const
         {
             std::stringstream buffer;
-            buffer << "FractionalStep #" << this->Id();
+            buffer << "FractionalStepDiscontinuousBingham #" << this->Id();
             return buffer.str();
         }
 
@@ -398,8 +398,7 @@ namespace Kratos
 	      TotalViscosity += Csmag * Csmag * ElemSize * ElemSize * NormS;
 	    }
 	  
-	  return TotalViscosity;        
-	  
+	  return TotalViscosity;     	  
 	}
 	
         
@@ -520,7 +519,7 @@ namespace Kratos
 
         ///@}
 
-    }; // Class FractionalStep
+    }; // Class FractionalStepDiscontinuousBingham
 
     ///@}
 
@@ -534,28 +533,28 @@ namespace Kratos
 
 
     /// input stream function
-//    template< unsigned int TDim >
-//    inline std::istream& operator >>(std::istream& rIStream,
-//                                     FractionalStepBingham<TDim>& rThis)
-//    {
-//        return rIStream;
-//    }
-//
-//    /// output stream function
-//    template< unsigned int TDim >
-//    inline std::ostream& operator <<(std::ostream& rOStream,
-//                                     const FractionalStepBingham<TDim>& rThis)
-//    {
-//        rThis.PrintInfo(rOStream);
-//        rOStream << std::endl;
-//        rThis.PrintData(rOStream);
-//
-//        return rOStream;
-//    }
+    template< unsigned int TDim >
+    inline std::istream& operator >>(std::istream& rIStream,
+                                     FractionalStepDiscontinuousBingham<TDim>& rThis)
+    {
+        return rIStream;
+    }
+
+    /// output stream function
+    template< unsigned int TDim >
+    inline std::ostream& operator <<(std::ostream& rOStream,
+                                     const FractionalStepDiscontinuousBingham<TDim>& rThis)
+    {
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
+
+        return rOStream;
+    }
     ///@}
 
     ///@} // Fluid Dynamics Application group
 
 } // namespace Kratos.
 
-#endif // KRATOS_FRACTIONAL_STEP_H_INCLUDED  defined
+#endif // KRATOS_FRACTIONAL_STEP_DISCONTINUOUS_BINGHAM_H_INCLUDED  defined
