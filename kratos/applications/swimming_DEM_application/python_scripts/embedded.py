@@ -148,7 +148,7 @@ def ApplyEmbeddedBCsToFluid(model_part):
                         node.Free(VELOCITY_Y)
                         node.Free(VELOCITY_Z)
 
-def ApplyEmbeddedBCsToBalls(model_part):
+def ApplyEmbeddedBCsToBalls(model_part,DEMParameters):
 
     for node in model_part.Nodes:
         dist = node.GetSolutionStepValue(DISTANCE)
@@ -157,7 +157,9 @@ def ApplyEmbeddedBCsToBalls(model_part):
             if node.Is(BLOCKED):
                 node.Set(ACTIVE, True)
             else:
-                node.Set(TO_ERASE,True)
+                if (DEMParameters.RemoveBallsInEmbeddedOption):
+                    #print("--------------- One particle was erased because it entered an embedded structure -------------------")
+                    node.Set(TO_ERASE,True)
 
 def MoveEmbeddedStructure(model_part, time):
 
