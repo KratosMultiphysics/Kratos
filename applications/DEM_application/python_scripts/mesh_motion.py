@@ -67,14 +67,16 @@ def MoveAllMeshes(model_part, time):
 
             if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
-                center_position = initial_center + linear_velocity * math.sin(linear_omega * time) / linear_omega
+                inv_linear_omega = 1/linear_omega
+                center_position = initial_center + linear_velocity * math.sin(linear_omega * time)* inv_linear_omega
                 
             else:
                 center_position = initial_center + time * linear_velocity
 
             if (angular_period > 0.0):
                 angular_omega = 2 * math.pi / angular_period
-                angle = angular_velocity * math.sin(angular_omega * time) / angular_omega
+                inv_angular_omega = 1/angular_omega
+                angle = angular_velocity * math.sin(angular_omega * time) * inv_angular_omega
             else:
                 angle = angular_velocity * time
                 
