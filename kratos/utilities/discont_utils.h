@@ -376,7 +376,7 @@ public:
             //define the splitting mode for the tetrahedra
             int edge_ids[6];
             TetrahedraSplit::TetrahedraSplitMode(split_edge, edge_ids);
-            int nel; //number of elements generated
+            int nel = 0; //number of elements generated
             int n_splitted_edges; //number of splitted edges
             int nint; //number of internal nodes
             int t[56];
@@ -390,7 +390,7 @@ public:
 
 
             //now obtain the tetras and compute their center coordinates and volume
-			noalias(edge_areas) = ZeroVector(6);
+	    noalias(edge_areas) = ZeroVector(6);
             array_1d<double, 3 > center_position;
             for (int i = 0; i < nel; i++)
             {
