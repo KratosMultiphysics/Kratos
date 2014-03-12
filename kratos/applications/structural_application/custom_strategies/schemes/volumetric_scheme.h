@@ -589,11 +589,11 @@ private:
                 //KRATOS_WATCH(accelerator);
                 //KRATOS_WATCH(factor);
                 element_volumetric_K = accelerator*factor/volume*outer_prod(local_H, local_H);
-                //iel->DampMatrix(element_volumetric_K,  CurrentProcessInfo);
+                //iel->CalculateDampingMatrix(element_volumetric_K,  CurrentProcessInfo);
                 //element_volumetric_K*=accelerator;
                 //CALCULATE MASS
                 Matrix element_mass;
-                iel->MassMatrix(element_mass,CurrentProcessInfo);
+                iel->CalculateMassMatrix(element_mass,CurrentProcessInfo);
 
                 //assembling
 // 		localAssembleRHS(Hoperator, local_H, ielindex);

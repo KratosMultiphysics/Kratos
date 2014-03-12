@@ -197,7 +197,7 @@ void Face3D::CalculateLocalSystem(
 //***********************************************************************************
 //***********************************************************************************
 
-void Face3D::MassMatrix(
+void Face3D::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -211,13 +211,13 @@ void Face3D::MassMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void Face3D::DampMatrix(
-    MatrixType& rDampMatrix,
+void Face3D::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    rDampMatrix.resize(0, 0, false);
+    rDampingMatrix.resize(0, 0, false);
 
     KRATOS_CATCH("")
 }

@@ -152,7 +152,7 @@ public:
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo);
 

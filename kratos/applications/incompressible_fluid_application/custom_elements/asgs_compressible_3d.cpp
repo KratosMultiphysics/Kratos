@@ -98,18 +98,18 @@ ASGSCompressible3D::~ASGSCompressible3D()
 
 //************************************************************************************
 //************************************************************************************
-void ASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void ASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int nodes_number = 4;
     int dim = 3;
     unsigned int matsize = nodes_number*(dim+1);
 
-    if(rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+    if(rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize,matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize,matsize);
 
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
@@ -128,18 +128,18 @@ void ASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& rDampMat
     else
     {
         //viscous term
-        CalculateViscousTerm(rDampMatrix, DN_DX, Volume);
+        CalculateViscousTerm(rDampingMatrix, DN_DX, Volume);
 
         //Advective term
         double tauone;
         double tautwo;
         CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
-        CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
+        CalculateAdvectiveTerm(rDampingMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
 
 
         //calculate pressure term
-        CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Volume);
+        CalculatePressureTerm(rDampingMatrix, DN_DX, N, delta_t,Volume);
 
         //compute projections
 
@@ -148,14 +148,14 @@ void ASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& rDampMat
         double VC2;
         CalculateSoundVelocity(GetGeometry(), VC2);
         double tau_div = tautwo*VC2;
-        CalculateDivStblTerm(rDampMatrix, DN_DX, tau_div, Volume);
+        CalculateDivStblTerm(rDampingMatrix, DN_DX, tau_div, Volume);
 
-        CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
+        CalculateAdvStblAllTerms(rDampingMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Volume);
 
 
-        CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Volume);
+        CalculateGradStblAllTerms(rDampingMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Volume);
 
-        CalculateResidual(rDampMatrix, rRightHandSideVector);
+        CalculateResidual(rDampingMatrix, rRightHandSideVector);
 
         //new stabilization added
         //CalculateLCSMassContribution(rRightHandSideVector, delta_t,Volume);
@@ -169,7 +169,7 @@ void ASGSCompressible3D::CalculateLocalVelocityContribution(MatrixType& rDampMat
 //     air_auxR += rRightHandSideVector[i];
 //     //if(CalculateStiffnessMatrixFlag==true)
 //       for(unsigned int j=0; j<16; j++)
-// 	  air_auxL += rDampMatrix(i,j);
+// 	  air_auxL += rDampingMatrix(i,j);
 // }
 
 // std::cout << Id() << " " << air_auxR << " " << air_auxL << std::endl;
@@ -216,7 +216,7 @@ void ASGSCompressible3D::CalculateMassContribution(MatrixType& K,const double ti
 }
 //************************************************************************************
 //************************************************************************************
-void ASGSCompressible3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ASGSCompressible3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

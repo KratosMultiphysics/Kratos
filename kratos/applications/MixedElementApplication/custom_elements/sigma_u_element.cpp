@@ -665,7 +665,7 @@ void SigmaUElement::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo & C
 //************************************************************************************
 //************************************************************************************
 
-void SigmaUElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+void SigmaUElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo & rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -675,7 +675,7 @@ void SigmaUElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo & rCurrentPr
 //************************************************************************************
 //************************************************************************************
 
-void SigmaUElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo & rCurrentProcessInfo)
+void SigmaUElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
 {
     KRATOS_TRY
 

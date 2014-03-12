@@ -284,7 +284,7 @@ private:
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
 
-    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+    void CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo );
 
     void CalculateBodyForces(
         Vector& BodyForce,

@@ -1850,7 +1850,7 @@ namespace Kratos
 	//************************************************************************************
 	
 	//non partitioned elements using MatrixType
-	void PFEM22D::AddViscousTerm(MatrixType& rDampMatrix,
+	void PFEM22D::AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double Weight)
 	{
@@ -1868,12 +1868,12 @@ namespace Kratos
 			for (SizeType i = 0; i < NumNodes; ++i)
 			{
 				// First Row
-				rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
 				// Second Row
-				rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
 				// Update Counter
 				FirstRow += 2;
@@ -1913,12 +1913,12 @@ namespace Kratos
 		C_matrix*=Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 		
 	}
 	
 	//using MatriType (for the implicit step)
-	void PFEM22D::AddViscousTerm(MatrixType& rDampMatrix,
+	void PFEM22D::AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double viscosity_air,
                                        const double viscosity_water,
@@ -1941,12 +1941,12 @@ namespace Kratos
 			for (SizeType i = 0; i < NumNodes; ++i)
 			{
 				// First Row
-				rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
 				// Second Row
-				rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
 				// Update Counter
 				FirstRow += 2;
@@ -1995,11 +1995,11 @@ namespace Kratos
 		C_matrix*=Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 	}
 	
 	//using bounded_matrix, for the explict step:
-	void PFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
+	void PFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
                          const double Weight)
 	{
@@ -2036,7 +2036,7 @@ namespace Kratos
 		C_matrix*= -Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, (2-1)*3 , (2-1)*6  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 		
 	}
 	

@@ -147,7 +147,7 @@ void HeatContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vector
 //************************************************************************************
 //************************************************************************************
 
-void HeatContact3D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void HeatContact3D::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -155,8 +155,8 @@ void HeatContact3D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,V
 // 	int dim = 2;
 // 	unsigned int matsize = nodes_number*(dim);
 //
-// 	if(rDampMatrix.size1() != matsize)
-// 			rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+// 	if(rDampingMatrix.size1() != matsize)
+// 			rDampingMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 
 

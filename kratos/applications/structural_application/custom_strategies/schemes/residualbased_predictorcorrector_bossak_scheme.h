@@ -365,9 +365,9 @@ public:
 
         //KRATOS_WATCH(LHS_Contribution);
         //KRATOS_WATCH(RHS_Contribution);
-        (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
 
-        (rCurrentElement)->DampMatrix(mDamp[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
 
         (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
@@ -401,8 +401,8 @@ public:
 
         //basic operations for the element considered
         (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-        (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentElement)->DampMatrix(mDamp[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)
@@ -427,8 +427,8 @@ public:
 
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
         (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-        (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentCondition)->DampMatrix(mDamp[k], CurrentProcessInfo);
+        (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        (rCurrentCondition)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
         //KRATOS_WATCH("ADDED CONDITION CONTRIBUTION");
@@ -457,8 +457,8 @@ public:
 
         //basic operations for the element considered
         (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-        (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
-        (rCurrentCondition)->DampMatrix(mDamp[k], CurrentProcessInfo);
+        (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        (rCurrentCondition)->CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)

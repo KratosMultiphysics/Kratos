@@ -100,9 +100,9 @@ public:
 
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo);
     //void Calculate(array_1d<double,3>& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo);

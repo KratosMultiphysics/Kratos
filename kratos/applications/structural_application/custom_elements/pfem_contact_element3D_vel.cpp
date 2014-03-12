@@ -97,20 +97,20 @@ PfemContactElement3DVel::~PfemContactElement3DVel()
 //************************************************************************************
 //************************************************************************************
 
-void PfemContactElement3DVel::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PfemContactElement3DVel::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     /*          int nodes_number = 4;
       int dim = 3;
       unsigned int matsize = nodes_number * (dim + 1);
 
-      if (rDampMatrix.size1() != matsize)
-          rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+      if (rDampingMatrix.size1() != matsize)
+          rDampingMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
 
-      noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);*/
+      noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);*/
 
-    DampMatrix(rDampMatrix,rCurrentProcessInfo);
+    CalculateDampingMatrix(rDampingMatrix,rCurrentProcessInfo);
 
 
 

@@ -1782,7 +1782,7 @@ Vector&  LargeDisplacementBeamElement::CalculateVolumeForce( Vector& rVolumeForc
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementBeamElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void LargeDisplacementBeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY

@@ -767,12 +767,12 @@ void CompositeCondition::CalculateRightHandSide( std::vector< VectorType >& rRig
 //************************************************************************************
 
 
-void CompositeCondition:: MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   // MatrixType LocalMassMatrix;
   // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   //    {
-  //      cn->MassMatrix(LocalMassMatrix,rCurrentProcessInfo);
+  //      cn->CalculateMassMatrix(LocalMassMatrix,rCurrentProcessInfo);
   //   rMassMatrix+=LocalMassMatrix;
   // }
 }
@@ -782,13 +782,13 @@ void CompositeCondition:: MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurr
 //************************************************************************************
 
 
-void CompositeCondition:: DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void CompositeCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-  // MatrixType LocalDampMatrix;
+  // MatrixType LocalDampingMatrix;
   // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   //    {
-  //      cn->DampMatrix(LocalDampMatrix,rCurrentProcessInfo);
-  //   rDampMatrix+=LocalDampMatrix;
+  //      cn->DampingMatrix(LocalDampingMatrix,rCurrentProcessInfo);
+  //   rDampingMatrix+=LocalDampingMatrix;
   // }
 }
 

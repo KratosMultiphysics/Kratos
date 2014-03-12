@@ -468,7 +468,7 @@ void UnsaturatedSoilsElement_2phase::CalculateLocalSystem(MatrixType& rLeftHandS
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void UnsaturatedSoilsElement_2phase::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int number_of_nodes_disp = (mNodesDispMax-mNodesDispMin+1);
@@ -482,9 +482,9 @@ void UnsaturatedSoilsElement_2phase::DampMatrix(MatrixType& rDampMatrix, Process
     unsigned int MatSizeP= number_of_nodes_press;
 
 
-    if(rDampMatrix.size1() != MatSize1)
-        rDampMatrix.resize(MatSize1,MatSize1);
-    noalias(rDampMatrix) = ZeroMatrix(MatSize1,MatSize1); //resetting LHS
+    if(rDampingMatrix.size1() != MatSize1)
+        rDampingMatrix.resize(MatSize1,MatSize1);
+    noalias(rDampingMatrix) = ZeroMatrix(MatSize1,MatSize1); //resetting LHS
 
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
@@ -563,7 +563,7 @@ void UnsaturatedSoilsElement_2phase::DampMatrix(MatrixType& rDampMatrix, Process
     }
 
 
-    AssembleTimeSpaceStiffnessFromDampSubMatrices(rDampMatrix,
+    AssembleTimeSpaceStiffnessFromDampSubMatrices(rDampingMatrix,
             Help_D_UU, Help_D_UW,
             Help_D_WU, Help_D_WW);
 

@@ -147,7 +147,7 @@ void EnvironmentContact::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, V
 //************************************************************************************
 //************************************************************************************
 
-void EnvironmentContact::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void EnvironmentContact::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -155,8 +155,8 @@ void EnvironmentContact::CalculateLocalVelocityContribution(MatrixType& rDampMat
 // 	int dim = 2;
 // 	unsigned int matsize = nodes_number*(dim);
 //
-// 	if(rDampMatrix.size1() != matsize)
-// 			rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+// 	if(rDampingMatrix.size1() != matsize)
+// 			rDampingMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 
 

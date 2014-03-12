@@ -222,7 +222,7 @@ void Fluid2DSplit::CalculateMassContribution(MatrixType& K,const double time,con
 
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void Fluid2DSplit::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -342,18 +342,18 @@ void Fluid2DSplit::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProc
 }
 //************************************************************************************
 //************************************************************************************
-void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int nodes_number = 3;
     int dim = 2;
     unsigned int matsize = nodes_number*(dim+1);
 
-    if(rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+    if(rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize,matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize,matsize);
 
     double delta_t= rCurrentProcessInfo[DELTA_TIME];
 
@@ -388,24 +388,24 @@ void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,Ve
                     N[j] = N_on_agp(i,j);
 
                 //viscous term
-                CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+                CalculateViscousTerm(rDampingMatrix, DN_DX, Area);
                 //Advective term
 // 		        double tauone = 0.0;//delta_t;
 // 		        double tautwo = 0.0;//delta_t;
                 double tauone, tautwo;
                 CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
-                CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area_se);
+                CalculateAdvectiveTerm(rDampingMatrix, DN_DX,N, tauone, tautwo, delta_t, Area_se);
 // 		        //calculate pressure term
-                CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area_se);
+                CalculatePressureTerm(rDampingMatrix, DN_DX, N, delta_t,Area_se);
                 //calculate Darcy term
-                CalculateDarcyTerm_SubElem(rDampMatrix, N, Area_se);
+                CalculateDarcyTerm_SubElem(rDampingMatrix, N, Area_se);
 
                 //compute projections
 
                 //stabilization terms
-                CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area_se);
-                CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
-                CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Area_se);
+                CalculateDivStblTerm(rDampingMatrix, DN_DX, tautwo, Area_se);
+                CalculateAdvStblAllTerms(rDampingMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area_se);
+                CalculateGradStblAllTerms(rDampingMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Area_se);
 
 
             }
@@ -415,33 +415,33 @@ void Fluid2DSplit::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,Ve
     else if(GetValue(IS_DIVIDED) == -1.0)
     {
 
-        CalculateViscousTerm(rDampMatrix, DN_DX, Area);
+        CalculateViscousTerm(rDampingMatrix, DN_DX, Area);
 
         //Advective term
         //		  double tauone =0.0; //delta_t;
         //		  double tautwo =0.0;// delta_t;
         double tauone, tautwo;
         CalculateTau(N,tauone, tautwo, delta_t, Area,  rCurrentProcessInfo);
-        CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
+        CalculateAdvectiveTerm(rDampingMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
 
         //calculate pressure term
-        CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t,Area);
+        CalculatePressureTerm(rDampingMatrix, DN_DX, N, delta_t,Area);
 
         //calculate Darcy term
-        CalculateDarcyTerm(rDampMatrix, Area);
+        CalculateDarcyTerm(rDampingMatrix, Area);
 
         //compute projections
 
         //stabilization terms
-        CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-        CalculateAdvStblAllTerms(rDampMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
-        CalculateGradStblAllTerms(rDampMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Area);
+        CalculateDivStblTerm(rDampingMatrix, DN_DX, tautwo, Area);
+        CalculateAdvStblAllTerms(rDampingMatrix,rRightHandSideVector, DN_DX, N, tauone,delta_t, Area);
+        CalculateGradStblAllTerms(rDampingMatrix,rRightHandSideVector,DN_DX, N, delta_t, tauone, Area);
 
 
     }
 
 
-    CalculateResidual(rDampMatrix, rRightHandSideVector);
+    CalculateResidual(rDampingMatrix, rRightHandSideVector);
 
 
     KRATOS_CATCH("")

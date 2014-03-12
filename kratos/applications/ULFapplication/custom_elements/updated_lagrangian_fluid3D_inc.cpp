@@ -272,7 +272,7 @@ void UpdatedLagrangianFluid3Dinc::CalculateRightHandSide(VectorType& rRightHandS
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianFluid3Dinc::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianFluid3Dinc::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -304,14 +304,14 @@ void UpdatedLagrangianFluid3Dinc::MassMatrix(MatrixType& rMassMatrix, ProcessInf
     KRATOS_CATCH("")
 }
 
-void UpdatedLagrangianFluid3Dinc::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianFluid3Dinc::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    if(rDampMatrix.size1() != 12)
-        rDampMatrix.resize(12,12,false);
+    if(rDampingMatrix.size1() != 12)
+        rDampingMatrix.resize(12,12,false);
 
 
     //getting data for the given geometry
@@ -394,9 +394,9 @@ void UpdatedLagrangianFluid3Dinc::DampMatrix(MatrixType& rDampMatrix, ProcessInf
 
     //calculating viscous contributions
     ms_temp = prod( ms_constitutive_matrix , msB);
-    noalias(rDampMatrix) = prod( trans(msB) , ms_temp);
+    noalias(rDampingMatrix) = prod( trans(msB) , ms_temp);
 
-    rDampMatrix *= current_volume;
+    rDampingMatrix *= current_volume;
     KRATOS_CATCH("")
 }
 

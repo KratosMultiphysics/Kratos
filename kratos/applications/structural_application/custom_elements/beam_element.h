@@ -102,7 +102,7 @@ public:
 
     void GetValuesVector(Vector& values, int Step);
 
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRHS(Vector& rRightHandSideVector);
 

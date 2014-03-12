@@ -247,7 +247,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 	unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 	if (FractionalStepNumber==1)
@@ -289,7 +289,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
         unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 
@@ -299,11 +299,11 @@ namespace Kratos {
 		int dim = 2;
 		unsigned int matsize = nodes_number * (dim + 1);
 
-		if (rDampMatrix.size1() != matsize)
-		    rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+		if (rDampingMatrix.size1() != matsize)
+		    rDampingMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
 
-		noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
+		noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);
 		double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
 		boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
@@ -314,31 +314,31 @@ namespace Kratos {
 		GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
 		//viscous term
-		CalculateViscousTerm(rDampMatrix, DN_DX, Area, rCurrentProcessInfo);
+		CalculateViscousTerm(rDampingMatrix, DN_DX, Area, rCurrentProcessInfo);
 
 		//Advective term
 		double tauone;
 		double tautwo;
 		CalculateTau(N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
-		CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
+		CalculateAdvectiveTerm(rDampingMatrix, DN_DX,N, tauone, tautwo, delta_t, Area);
 
 		//calculate pressure term
-		CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area, rCurrentProcessInfo);
+		CalculatePressureTerm(rDampingMatrix, DN_DX, N, delta_t, Area, rCurrentProcessInfo);
 
 		//compute projections
 		//unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 		//add stabilization only in the correction step
 				
 		//stabilization terms
-		CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Area);
-		CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area, rCurrentProcessInfo);
-		CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
+		CalculateDivStblTerm(rDampingMatrix, DN_DX, tautwo, Area);
+		CalculateAdvStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Area, rCurrentProcessInfo);
+		CalculateGradStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Area);
 		//KRATOS_WATCH(rRightHandSideVector);
 	
 		
-		CalculateResidual(rDampMatrix, rRightHandSideVector);
-		//AddPressureMassTermsPrediction(rDampMatrix, rRightHandSideVector, Area, rCurrentProcessInfo );
+		CalculateResidual(rDampingMatrix, rRightHandSideVector);
+		//AddPressureMassTermsPrediction(rDampingMatrix, rRightHandSideVector, Area, rCurrentProcessInfo );
 	
 	}
         KRATOS_CATCH("")

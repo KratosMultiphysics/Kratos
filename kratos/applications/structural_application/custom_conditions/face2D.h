@@ -139,9 +139,9 @@ public:
 
     void GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo );
 
-    void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+    void CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
 
-    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+    void CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo );
 
     /**
      * This function provides the place to perform checks on the completeness of the input.

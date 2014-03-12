@@ -95,8 +95,8 @@ namespace Kratos
       void Initialize();
       void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-      void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+      void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+      void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
       void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
       void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);

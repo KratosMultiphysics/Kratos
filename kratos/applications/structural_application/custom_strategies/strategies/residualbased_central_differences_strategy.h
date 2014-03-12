@@ -758,7 +758,7 @@ public:
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
             {
                 Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
-                (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+                (it)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
                 const unsigned int& dim   = geom.WorkingSpaceDimension();
                 index = 0;
                 for (unsigned int i = 0; i <geom.size(); i++)
@@ -806,7 +806,7 @@ public:
                 Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
                 (it)->Initialize();
                 (it)->GetValue(IS_INACTIVE) = false;
-                (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+                (it)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
                 const unsigned int& dim   = geom.WorkingSpaceDimension();
                 index = 0;
                 for (unsigned int i = 0; i <geom.size(); i++)

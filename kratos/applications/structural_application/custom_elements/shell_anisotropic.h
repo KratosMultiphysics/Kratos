@@ -146,7 +146,7 @@ public:
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access

@@ -404,7 +404,7 @@ namespace Kratos
      * with regard to the current master and slave partners.
      * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
      */
-    void Contact_Link_3D_Lagrange_Tying::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+    void Contact_Link_3D_Lagrange_Tying::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
     {
         
         KRATOS_TRY

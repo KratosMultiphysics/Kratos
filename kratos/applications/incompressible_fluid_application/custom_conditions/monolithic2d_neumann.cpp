@@ -165,7 +165,7 @@ void Monolithic2DNeumann::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
 //************************************************************************************
 //************************************************************************************
 
-void Monolithic2DNeumann::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void Monolithic2DNeumann::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -173,11 +173,11 @@ void Monolithic2DNeumann::CalculateLocalVelocityContribution(MatrixType& rDampMa
     int dim = 2;
     unsigned int matsize = nodes_number*(dim);
 
-    if(rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+    if(rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize,matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize,matsize);
 
     KRATOS_CATCH("")
 }

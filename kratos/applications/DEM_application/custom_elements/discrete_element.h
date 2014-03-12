@@ -180,17 +180,17 @@ namespace Kratos
          * @param rMassMatrix: the elemental mass matrix
          * @param rCurrentProcessInfo: the current process info instance
          */
-        virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+        virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
         {
             if (rMassMatrix.size1() != 0)
                 rMassMatrix.resize(0, 0);
         }
 
         
-        virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+        virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
         {
-            if (rDampMatrix.size1() != 0)
-                rDampMatrix.resize(0, 0);
+            if (rDampingMatrix.size1() != 0)
+                rDampingMatrix.resize(0, 0);
         }
 
 

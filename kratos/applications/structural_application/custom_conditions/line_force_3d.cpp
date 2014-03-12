@@ -210,7 +210,7 @@ void LineForce3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::MassMatrix( MatrixType& rMassMatrix,
+void LineForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
                               ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -220,11 +220,11 @@ void LineForce3D::MassMatrix( MatrixType& rMassMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::DampMatrix( MatrixType& rDampMatrix,
+void LineForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
                               ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    rDampMatrix.resize( 0, 0, false );
+    rDampingMatrix.resize( 0, 0, false );
     KRATOS_CATCH( "" )
 }
 

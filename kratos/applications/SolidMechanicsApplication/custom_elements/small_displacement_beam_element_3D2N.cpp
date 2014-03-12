@@ -1055,7 +1055,7 @@ void SmallDisplacementBeamElement3D2N::CalculateGlobalBodyForce( Vector& rGlobal
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementBeamElement3D2N::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementBeamElement3D2N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY

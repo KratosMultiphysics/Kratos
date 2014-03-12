@@ -139,19 +139,19 @@ void DynamicVMS<TDim>::CalculateRightHandSide(VectorType &rRightHandSideVector, 
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampMatrix,
+void DynamicVMS<TDim>::CalculateLocalVelocityContribution(MatrixType &rDampingMatrix,
                                                           VectorType &rRightHandSideVector,
                                                           ProcessInfo &rCurrentProcessInfo)
 {
     if (rCurrentProcessInfo[OSS_SWITCH]==1.0)
-        this->CalculateOSSVelocityContribution(rDampMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        this->CalculateOSSVelocityContribution(rDampingMatrix,rRightHandSideVector,rCurrentProcessInfo);
     else
-        this->CalculateASGSVelocityContribution(rDampMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        this->CalculateASGSVelocityContribution(rDampingMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::MassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -789,17 +789,17 @@ void DynamicVMS<TDim>::LinearUpdateSubscale(const ProcessInfo &rCurrentProcessIn
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampingMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int BlockSize = TDim + 1;
     const unsigned int LocalSize = NumNodes * BlockSize;
 
-    if(rDampMatrix.size1() != LocalSize)
-        rDampMatrix.resize(LocalSize,LocalSize,false);
+    if(rDampingMatrix.size1() != LocalSize)
+        rDampingMatrix.resize(LocalSize,LocalSize,false);
 
-    noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rDampingMatrix) = ZeroMatrix(LocalSize,LocalSize);
 
     if(rRightHandSideVector.size() != LocalSize)
         rRightHandSideVector.resize(LocalSize,false);
@@ -867,12 +867,12 @@ void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampMatrix
                 double Cij = GaussWeight * Ni_mod * Convection[j];
 
                 for (unsigned int d = 0; d < TDim; d++)
-                    rDampMatrix(RowIndex+d,ColIndex+d) += Cij;
+                    rDampingMatrix(RowIndex+d,ColIndex+d) += Cij;
 
                 // Pressure subscale term div(v) tau_2 div(u)
                 for (unsigned int m = 0; m < TDim; m++)
                     for (unsigned int n = 0; n < TDim; n++)
-                        rDampMatrix(RowIndex+m,ColIndex+n) += GaussWeight * mDN_DX(i,m) * Tau_2 * mDN_DX(j,n);
+                        rDampingMatrix(RowIndex+m,ColIndex+n) += GaussWeight * mDN_DX(i,m) * Tau_2 * mDN_DX(j,n);
 
 
                 // Pressure term and velocity divergence
@@ -883,15 +883,15 @@ void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampMatrix
                     // a * grad(v) Tau_t grad(p) and grad(q) Tau_t a * grad(u)
                     double StabGij = GaussWeight * Convection[i] * Tau_t * mDN_DX(j,d);
 
-                    rDampMatrix(RowIndex+d,ColIndex+TDim) += StabGij - Gij;
-                    rDampMatrix(ColIndex+TDim,RowIndex+d) += Gij + StabGij;
+                    rDampingMatrix(RowIndex+d,ColIndex+TDim) += StabGij - Gij;
+                    rDampingMatrix(ColIndex+TDim,RowIndex+d) += Gij + StabGij;
                 }
 
                 // Pressure Laplacian grad(q) Tau_t grad(p)
                 double Lij =  mDN_DX(i,0) * mDN_DX(j,0);
                 for (unsigned int d = 1; d < TDim; d++)
                     Lij += mDN_DX(i,d) * mDN_DX(j,d);
-                rDampMatrix(RowIndex+TDim,ColIndex+TDim) += GaussWeight * Tau_t * Lij;
+                rDampingMatrix(RowIndex+TDim,ColIndex+TDim) += GaussWeight * Tau_t * Lij;
 
                 // Update iteration indices
                 ColIndex += BlockSize;
@@ -920,27 +920,27 @@ void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampMatrix
     }
 
     // Add viscous contribution
-    noalias(rDampMatrix) += ViscCoeff * ViscousTerm;
+    noalias(rDampingMatrix) += ViscCoeff * ViscousTerm;
 
     // Write local contributions in residual form
     Vector U = ZeroVector(LocalSize);
     this->GetFirstDerivativesVector(U);
-    noalias(rRightHandSideVector) -= prod(rDampMatrix,U);
+    noalias(rRightHandSideVector) -= prod(rDampingMatrix,U);
 }
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampingMatrix, VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
     const unsigned int BlockSize = TDim + 1;
     const unsigned int LocalSize = NumNodes * BlockSize;
 
-    if(rDampMatrix.size1() != LocalSize)
-        rDampMatrix.resize(LocalSize,LocalSize,false);
+    if(rDampingMatrix.size1() != LocalSize)
+        rDampingMatrix.resize(LocalSize,LocalSize,false);
 
-    noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
+    noalias(rDampingMatrix) = ZeroMatrix(LocalSize,LocalSize);
 
     if(rRightHandSideVector.size() != LocalSize)
         rRightHandSideVector.resize(LocalSize,false);
@@ -1014,12 +1014,12 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix,
                 double Cij = GaussWeight * Ni_mod * Convection[j];
 
                 for (unsigned int d = 0; d < TDim; d++)
-                    rDampMatrix(RowIndex+d,ColIndex+d) += Cij;
+                    rDampingMatrix(RowIndex+d,ColIndex+d) += Cij;
 
                 // Pressure subscale term div(v) tau_2 div(u)
                 for (unsigned int m = 0; m < TDim; m++)
                     for (unsigned int n = 0; n < TDim; n++)
-                        rDampMatrix(RowIndex+m,ColIndex+n) += GaussWeight * mDN_DX(i,m) * Tau_2 * mDN_DX(j,n);
+                        rDampingMatrix(RowIndex+m,ColIndex+n) += GaussWeight * mDN_DX(i,m) * Tau_2 * mDN_DX(j,n);
 
 
                 // Pressure term and velocity divergence
@@ -1030,8 +1030,8 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix,
                     // a * grad(v) Tau_t grad(p) and grad(q) Tau_t a * grad(u)
                     double StabGij = GaussWeight * Convection[i] * Tau_t * mDN_DX(j,d);
 
-                    rDampMatrix(RowIndex+d,ColIndex+TDim) += StabGij - Gij;
-                    rDampMatrix(ColIndex+TDim,RowIndex+d) += Gij + StabGij;
+                    rDampingMatrix(RowIndex+d,ColIndex+TDim) += StabGij - Gij;
+                    rDampingMatrix(ColIndex+TDim,RowIndex+d) += Gij + StabGij;
                 }
 
 
@@ -1039,7 +1039,7 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix,
                 double Lij =  mDN_DX(i,0) * mDN_DX(j,0);
                 for (unsigned int d = 1; d < TDim; d++)
                     Lij += mDN_DX(i,d) * mDN_DX(j,d);
-                rDampMatrix(RowIndex+TDim,ColIndex+TDim) += GaussWeight * Tau_t * Lij;
+                rDampingMatrix(RowIndex+TDim,ColIndex+TDim) += GaussWeight * Tau_t * Lij;
 
                 // Update iteration indices
                 ColIndex += BlockSize;
@@ -1070,12 +1070,12 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix,
     }
 
     // Add viscous contribution
-    noalias(rDampMatrix) += ViscCoeff * ViscousTerm;
+    noalias(rDampingMatrix) += ViscCoeff * ViscousTerm;
 
     // Write local contributions in residual form
     Vector U = ZeroVector(LocalSize);
     this->GetFirstDerivativesVector(U);
-    noalias(rRightHandSideVector) -= prod(rDampMatrix,U);
+    noalias(rRightHandSideVector) -= prod(rDampingMatrix,U);
 }
 
 template< unsigned int TDim >
@@ -1309,7 +1309,7 @@ void DynamicVMS<TDim>::MassResidual(double &rResult)
 }
 
 template<>
-void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight, const ShapeDerivativesType& rDN_DX)
+void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampingMatrix, const double Weight, const ShapeDerivativesType& rDN_DX)
 {
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     const unsigned int BlockSize = 3; // TDim + 1
@@ -1324,12 +1324,12 @@ void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight,
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
             // First Row
-            rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) );
-            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
+            rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) );
+            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
 
             // Second Row
-            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
-            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,0) * rDN_DX(j,0) );
+            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
+            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,0) * rDN_DX(j,0) );
 
             // Update Counter
             FirstRow += BlockSize;
@@ -1340,7 +1340,7 @@ void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight,
 }
 
 template<>
-void DynamicVMS<3>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight, const ShapeDerivativesType& rDN_DX)
+void DynamicVMS<3>::AddViscousTerm(MatrixType &rDampingMatrix, const double Weight, const ShapeDerivativesType& rDN_DX)
 {
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     const unsigned int BlockSize = 4; // TDim + 1
@@ -1358,19 +1358,19 @@ void DynamicVMS<3>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight,
             const double Diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
 
             // First Row
-            rDampMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rDN_DX(i,0) * rDN_DX(j,0) + Diag );
-            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
-            rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
+            rDampingMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rDN_DX(i,0) * rDN_DX(j,0) + Diag );
+            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
+            rDampingMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
 
             // Second Row
-            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
-            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rDN_DX(i,1) * rDN_DX(j,1) + Diag );
-            rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
+            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
+            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rDN_DX(i,1) * rDN_DX(j,1) + Diag );
+            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
 
             // Third Row
-            rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
-            rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
-            rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rDN_DX(i,2) * rDN_DX(j,2) + Diag );
+            rDampingMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
+            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
+            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rDN_DX(i,2) * rDN_DX(j,2) + Diag );
 
             // Update Counter
             FirstRow += BlockSize;

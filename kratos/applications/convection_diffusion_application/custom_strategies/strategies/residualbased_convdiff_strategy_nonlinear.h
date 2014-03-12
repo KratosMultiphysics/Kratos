@@ -207,7 +207,7 @@ public:
       
       if(stationary==1){
 	iter = 0;
-        ratio;
+        //ratio;
         is_converged = false;
         dT_norm = 0.0;
         T_norm = 0.0;
@@ -264,7 +264,7 @@ public:
         }
 	
 	iter = 0;
-        ratio;
+        //ratio;
         is_converged = false;
         dT_norm = 0.0;
         T_norm = 0.0;

@@ -440,7 +440,7 @@ namespace Kratos {
             (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
             //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-            (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
             (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -470,7 +470,7 @@ namespace Kratos {
 
             //basic operations for the element considered
             (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-            (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
 
             (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
@@ -500,8 +500,8 @@ namespace Kratos {
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
-            //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
@@ -532,8 +532,8 @@ namespace Kratos {
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(mMass[k],rCurrentProcessInfo);
-            //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(mMass[k],rCurrentProcessInfo);
+            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
 
@@ -657,7 +657,7 @@ namespace Kratos {
                 (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
                 //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-                (*itElem)->MassMatrix(mMass[0], CurrentProcessInfo);
+                (*itElem)->CalculateMassMatrix(mMass[0], CurrentProcessInfo);
                 (*itElem)->CalculateLocalVelocityContribution(mDamp[0], RHS_Contribution, CurrentProcessInfo);
 
                 (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);

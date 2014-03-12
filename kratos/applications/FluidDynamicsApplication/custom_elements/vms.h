@@ -388,7 +388,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
 //        rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
@@ -443,11 +443,11 @@ public:
      * Provides local contributions to the system associated to the velocity and
      * pressure terms (convection, diffusion, pressure gradient/velocity divergence
      * and stabilization).
-     * @param rDampMatrix Will be filled with the velocity-proportional "damping" matrix
+     * @param rDampingMatrix Will be filled with the velocity-proportional "damping" matrix
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
@@ -455,10 +455,10 @@ public:
 
         // Resize and set to zero the matrix
         // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
-        if (rDampMatrix.size1() != LocalSize)
-            rDampMatrix.resize(LocalSize, LocalSize, false);
+        if (rDampingMatrix.size1() != LocalSize)
+            rDampingMatrix.resize(LocalSize, LocalSize, false);
 
-        noalias(rDampMatrix) = ZeroMatrix(LocalSize, LocalSize);
+        noalias(rDampingMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
         // Get this element's geometric properties
         double Area;
@@ -485,16 +485,16 @@ public:
         /*            if(this->GetValue(TRACK_SUBSCALES)==1)
                     {
                         const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-                        this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area,DeltaTime);
+                        this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area,DeltaTime);
                     }
                     else
                     {*/
-        this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+        this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
 
-//        this->ModulatedGradientDiffusion(rDampMatrix,DN_DX,Density*Area);
+//        this->ModulatedGradientDiffusion(rDampingMatrix,DN_DX,Density*Area);
 //             }
 
-        // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
+        // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);
         int LocalIndex = 0;
 
@@ -510,7 +510,7 @@ public:
             ++LocalIndex;
         }
 
-        noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
+        noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
     }
 
     virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
@@ -1342,7 +1342,7 @@ protected:
     }
 
     /// Add a the contribution from a single integration point to the velocity contribution
-    void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
+    void AddIntegrationPointVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rDampRHS,
             const double Density,
             const double Viscosity,
@@ -1392,9 +1392,9 @@ protected:
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 
                     // Write v * Grad(p) component
-                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
                     // Use symmetry to write the q * Div(u) component
-                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
 
                     // q-p stabilization block
                     L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
@@ -1402,17 +1402,17 @@ protected:
                     for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
                     {
                         // Velocity block
-                        rDampMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                        rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
                     }
 
                 }
 
                 // Write remaining terms to velocity block
                 for (unsigned int d = 0; d < TDim; ++d)
-                    rDampMatrix(FirstRow + d, FirstCol + d) += K;
+                    rDampingMatrix(FirstRow + d, FirstCol + d) += K;
 
                 // Write q-p stabilization block
-                rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
+                rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 
 
                 // Update reference column index for next iteration
@@ -1433,12 +1433,12 @@ protected:
             FirstCol = 0;
         }
 
-//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-        this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Density*Weight);
+//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
+        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Density*Weight);
     }
 
     /// Add a the contribution from a single integration point to the velocity contribution
-//         void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
+//         void AddIntegrationPointVelocityContribution(MatrixType& rDampingMatrix,
 //                                                      VectorType& rDampRHS,
 //                                                      const double Density,
 //                                                      const double Viscosity,
@@ -1493,9 +1493,9 @@ protected:
 //                         PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 //
 //                         // Write v * Grad(p) component
-//                         rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+//                         rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
 //                         // Use symmetry to write the q * rho * Div(u) component
-//                         rDampMatrix(FirstCol + TDim, FirstRow + m) += Coef * (G + PDivV);
+//                         rDampingMatrix(FirstCol + TDim, FirstRow + m) += Coef * (G + PDivV);
 //
 //                         // q-p stabilization block
 //                         L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
@@ -1503,7 +1503,7 @@ protected:
 //                         for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
 //                         {
 //                             // Velocity block
-//                             rDampMatrix(FirstRow + m, FirstCol + n) += Coef * (TauTwo + TauCoef) * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo *( 1+TauOne/Dt) * Div(u)
+//                             rDampingMatrix(FirstRow + m, FirstCol + n) += Coef * (TauTwo + TauCoef) * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo *( 1+TauOne/Dt) * Div(u)
 //                             rDampRHS[FirstRow + m] -= Coef * TauCoef * rShapeDeriv(i, m) * rShapeDeriv(j, n) * OldVelocity[n]; // Stabilization: Div(v) * TauTwo*TauOne/Dt * Div(u_old)
 //                         }
 //
@@ -1512,10 +1512,10 @@ protected:
 //                     // Write remaining terms to velocity block
 //                     K *= Coef; // Weight by nodal area and density
 //                     for (unsigned int d = 0; d < TDim; ++d)
-//                         rDampMatrix(FirstRow + d, FirstCol + d) += K;
+//                         rDampingMatrix(FirstRow + d, FirstCol + d) += K;
 //
 //                     // Write q-p stabilization block
-//                     rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
+//                     rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 //
 //                     // Operate on RHS
 //                     L = 0; // We reuse one of the temporary variables for the pressure RHS
@@ -1536,8 +1536,8 @@ protected:
 //                 FirstCol += BlockSize;
 //             }
 //
-// //            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-//             this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+// //            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
+//             this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
 //         }
 
     /// Assemble the contribution from an integration point to the element's residual.
@@ -1885,11 +1885,11 @@ protected:
     /// Adds the contribution of the viscous term to the momentum equation.
     /**
      * The viscous term is written in stress-divergence (Cauchy) form.
-     * @param rDampMatrix Elemental Damping matrix
+     * @param rDampingMatrix Elemental Damping matrix
      * @param rShapeDeriv Elemental shape function derivatives
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void AddViscousTerm(MatrixType& rDampMatrix,
+    virtual void AddViscousTerm(MatrixType& rDampingMatrix,
                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                                 const double Weight);
 
@@ -1900,11 +1900,11 @@ protected:
      * rate of strain given by VMS::CalculateC. It is currently unused (as VMS::AddViscousTerm
      * is a more efficient implementation of the Cauchy equation) but it is left here so derived
      * classes can use it to implement other constitutive equations.
-     * @param rDampMatrix Elemental Damping matrix
+     * @param rDampingMatrix Elemental Damping matrix
      * @param rShapeDeriv Elemental shape function derivatives
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    void AddBTransCB(MatrixType& rDampMatrix,
+    void AddBTransCB(MatrixType& rDampingMatrix,
                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
                      const double Weight)
     {
@@ -1937,7 +1937,7 @@ protected:
                     const double Bki=B(k,i);
                     for (unsigned int j = 0; j < TDim*TNumNodes; ++j) // iterate over u components (ux,uy[,uz])
                     {
-                        rDampMatrix(aux[i],aux[j]) += Bki*Ckl*B(l,j);
+                        rDampingMatrix(aux[i],aux[j]) += Bki*Ckl*B(l,j);
                     }
 
                 }
@@ -1946,7 +1946,7 @@ protected:
         }
     }
 
-    void ModulatedGradientDiffusion(MatrixType& rDampMatrix,
+    void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
             const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rDN_DX,
             const double Weight)
     {
@@ -2026,7 +2026,7 @@ protected:
                         double Aux = rDN_DX(i,d) * Delta[0] * G(d,0)*rDN_DX(j,0);
                         for (unsigned int k = 1; k < TDim; k++)
                             Aux += rDN_DX(i,d) *Delta[k] * G(d,k)*rDN_DX(j,k);
-                        rDampMatrix(RowIndex+d,ColIndex+d) += Weight * 2.0*ksgs *  Aux;
+                        rDampingMatrix(RowIndex+d,ColIndex+d) += Weight * 2.0*ksgs *  Aux;
                     }
 
                     ColIndex += TDim;

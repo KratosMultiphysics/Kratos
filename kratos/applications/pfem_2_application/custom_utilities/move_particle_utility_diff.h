@@ -4137,7 +4137,7 @@ namespace Kratos
         }
      
      //splitted elements   
-     void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (TDim-1)*6, (TDim-1)*6 >& rDampMatrix,
+     void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (TDim-1)*6, (TDim-1)*6 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, (TDim+1), TDim >& rShapeDeriv,
                          const double viscosity_air,
                          const double viscosity_water,
@@ -4191,12 +4191,12 @@ namespace Kratos
 		C_matrix*= -Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, (TDim-1)*3 , (TDim-1)*6  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 		
 	}
 	
 	//non splitted elements
-	void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (TDim-1)*6, (TDim-1)*6 >& rDampMatrix,
+	void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (TDim-1)*6, (TDim-1)*6 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, (TDim+1), TDim >& rShapeDeriv,
                          const double Weight)
 	{
@@ -4241,7 +4241,7 @@ namespace Kratos
 		C_matrix*= -Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, (TDim-1)*3 , (TDim-1)*6  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 		
 	}
         

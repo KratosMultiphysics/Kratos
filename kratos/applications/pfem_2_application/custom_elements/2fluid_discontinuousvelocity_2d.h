@@ -119,11 +119,11 @@ namespace Kratos
         void GetPressureDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
                                 
-        void AddViscousTerm(MatrixType& rDampMatrix,
+        void AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double Weight);                   
                                        
-		void AddViscousTerm(MatrixType& rDampMatrix,
+		void AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double viscosity_air,
                                        const double viscosity_water,
@@ -132,11 +132,11 @@ namespace Kratos
                                        Matrix Ngauss,
                                        const double Area);
                                        
-       void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
+       void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
                          const double Weight);
                          
-       void AddViscousTerm(MatrixType& rDampMatrix,
+       void AddViscousTerm(MatrixType& rDampingMatrix,
 						 boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
                          std::vector< Matrix >& gauss_gradients_discontinuous, 
                          array_1d<double,3>&  viscosities, 

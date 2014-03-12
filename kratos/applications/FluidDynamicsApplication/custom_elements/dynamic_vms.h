@@ -253,15 +253,15 @@ public:
      * Provides local contributions to the system associated to the velocity and
      * pressure terms (convection, diffusion, pressure gradient/velocity divergence
      * and stabilization).
-     * @param rDampMatrix Will be filled with the velocity-proportional "damping" matrix
+     * @param rDampingMatrix Will be filled with the velocity-proportional "damping" matrix
      * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo);
 
-    virtual void MassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
+    virtual void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
 
 
     /// Provides the global indices for each one of this element's local rows
@@ -397,11 +397,11 @@ protected:
 
     virtual void LinearUpdateSubscale(const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateASGSVelocityContribution(MatrixType& rDampMatrix,
+    virtual void CalculateASGSVelocityContribution(MatrixType& rDampingMatrix,
                                                    VectorType& rRightHandSideVector,
                                                    const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateOSSVelocityContribution(MatrixType& rDampMatrix,
+    virtual void CalculateOSSVelocityContribution(MatrixType& rDampingMatrix,
                                                   VectorType& rRightHandSideVector,
                                                   const ProcessInfo& rCurrentProcessInfo);
 
@@ -510,7 +510,7 @@ protected:
 
     virtual void MassResidual(double& rResult);
 
-    virtual void AddViscousTerm(MatrixType& rDampMatrix,
+    virtual void AddViscousTerm(MatrixType& rDampingMatrix,
                                 const double Weight,
                                 const ShapeDerivativesType& rDN_DX);
 

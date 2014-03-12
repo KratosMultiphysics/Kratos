@@ -274,7 +274,7 @@ void LinearElasticTruss::GetDofList(DofsVectorType& ElementalDofList, ProcessInf
 * @param rCurrentProcessInfo process info
 *
 */
-void LinearElasticTruss::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void LinearElasticTruss::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -322,16 +322,16 @@ void LinearElasticTruss::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurre
 
 /**
 * Get the damping matrix of the element.
-* @param rDampMatrix damping matrix
+* @param rDampingMatrix damping matrix
 * @param rCurrentProcessInfo process info
 * TODO: assign the damping matrix
 */
-void LinearElasticTruss::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void LinearElasticTruss::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int MatSize = number_of_nodes * dimension;
-    rDampMatrix.resize(MatSize,MatSize);
-    noalias(rDampMatrix)= ZeroMatrix(MatSize,MatSize);
+    rDampingMatrix.resize(MatSize,MatSize);
+    noalias(rDampingMatrix)= ZeroMatrix(MatSize,MatSize);
     KRATOS_CATCH("")
 }
 

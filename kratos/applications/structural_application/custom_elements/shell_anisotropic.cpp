@@ -1888,7 +1888,7 @@ void ShellAnisotropic::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInf
 
 //************************************************************************************
 //************************************************************************************
-void ShellAnisotropic::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellAnisotropic::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

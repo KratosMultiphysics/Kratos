@@ -622,7 +622,7 @@ private:
         rElement.CalculateRightHandSide(rResidual,rCurrentProcessInfo);
 
         // Dynamic Terms
-        rElement.MassMatrix(rMassMatrix,rCurrentProcessInfo);
+        rElement.CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
         rElement.GetSecondDerivativesVector(rAuxVector,0);
 
         noalias(rResidual) -= prod(rMassMatrix,rAuxVector);

@@ -1824,7 +1824,7 @@ namespace Kratos
 	//************************************************************************************
 	
 	//with bounded matrix, constant coefficient
-	void PFEM23D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 >& rDampMatrix,
+	void PFEM23D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
                          const double Weight)
 	{
@@ -1867,12 +1867,12 @@ namespace Kratos
 		C_matrix*= -Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 6 , 12  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 		
 	}
 	
 	//with matrixtype, constant coefficient
-	void PFEM23D::AddViscousTerm(MatrixType& rDampMatrix,
+	void PFEM23D::AddViscousTerm(MatrixType& rDampingMatrix,
                          const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
                          const double Weight)
 	{
@@ -1915,7 +1915,7 @@ namespace Kratos
 		C_matrix*= -Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 6 , 12  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
+		rDampingMatrix = prod(B_matrix, temp_matrix );
 		
 	}
 	

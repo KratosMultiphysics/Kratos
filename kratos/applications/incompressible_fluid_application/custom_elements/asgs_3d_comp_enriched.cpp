@@ -254,7 +254,7 @@ void ASGS3D_COMP_ENR::CalculateMassContribution(MatrixType& K, const array_1d<do
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D_COMP_ENR::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ASGS3D_COMP_ENR::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -397,18 +397,18 @@ void ASGS3D_COMP_ENR::ChangeLumpedToConsistPressMassMatrix(VectorType& rRightHan
 //************************************************************************************
 
 
-void ASGS3D_COMP_ENR::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ASGS3D_COMP_ENR::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int nodes_number = 4;
     int dim = 3;
     unsigned int matsize = nodes_number * (dim + 1);
 
-    if (rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+    if (rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
@@ -473,17 +473,17 @@ void ASGS3D_COMP_ENR::CalculateLocalVelocityContribution(MatrixType& rDampMatrix
         //double sound_vel=EvaluateSoundVelAtGaussPoint(Distances[igauss], density, pressure, density_n, pressure_n);
         //KRATOS_WATCH(sound_vel)
         //viscous term
-        CalculateViscousTerm(rDampMatrix, DN_DX, partition_volume, viscosity, density);
+        CalculateViscousTerm(rDampingMatrix, DN_DX, partition_volume, viscosity, density);
         //Advective term
-        CalculateAdvectiveTerm(rDampMatrix, DN_DX, N_at_igauss, partition_volume, density);
+        CalculateAdvectiveTerm(rDampingMatrix, DN_DX, N_at_igauss, partition_volume, density);
         //calculate pressure term
-        CalculatePressureTerm(rDampMatrix, DN_DX, N_at_igauss, partition_volume, density, sound_vel);
+        CalculatePressureTerm(rDampingMatrix, DN_DX, N_at_igauss, partition_volume, density, sound_vel);
 
         //stabilization terms PAVEL: REMOVED all the terms multiplied by tautwo
         ////
-	CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume, density);
-        CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N_at_igauss, tauone, partition_volume, density);
-        CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N_at_igauss, tauone, partition_volume, density);
+	CalculateDivStblTerm(rDampingMatrix, DN_DX, tautwo, Volume, density);
+        CalculateAdvStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX, N_at_igauss, tauone, partition_volume, density);
+        CalculateGradStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX, N_at_igauss, tauone, partition_volume, density);
 
 
 	ChangeLumpedToConsistPressMassMatrix(rRightHandSideVector, sound_vel, partition_volume, delta_t, density);
@@ -494,10 +494,10 @@ void ASGS3D_COMP_ENR::CalculateLocalVelocityContribution(MatrixType& rDampMatrix
     //and add the term corresponding to the modification of the RHS due to enrichment
     //KRATOS_WATCH("Computing enrichment terms")
 
-    CalculateEnrichmentTerms(rDampMatrix, rRightHandSideVector, delta_t);
+    CalculateEnrichmentTerms(rDampingMatrix, rRightHandSideVector, delta_t);
     //KRATOS_WATCH("Finished computing enrichment terms")
 
-    CalculateResidual(rDampMatrix, rRightHandSideVector);
+    CalculateResidual(rDampingMatrix, rRightHandSideVector);
 
     KRATOS_CATCH("")
 }
@@ -1514,7 +1514,7 @@ KRATOS_TRY
 KRATOS_CATCH("")
 }
 
-void ASGS3D_COMP_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rRightHandSideVector, const double delta_t)
+void ASGS3D_COMP_ENR::CalculateEnrichmentTerms(MatrixType& DampingMatrix, VectorType& rRightHandSideVector, const double delta_t)
 {
 
     KRATOS_TRY
@@ -1609,29 +1609,29 @@ void ASGS3D_COMP_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorTyp
                 int column=j*4;
                 int column_small=j*3;
 
-                DampMatrix(row,column)-=Gstar_Dstar(row_small,column_small);
-                DampMatrix(row,column+1)-=Gstar_Dstar(row_small,column_small+1);
-                DampMatrix(row,column+2)-=Gstar_Dstar(row_small,column_small+2);
+                DampingMatrix(row,column)-=Gstar_Dstar(row_small,column_small);
+                DampingMatrix(row,column+1)-=Gstar_Dstar(row_small,column_small+1);
+                DampingMatrix(row,column+2)-=Gstar_Dstar(row_small,column_small+2);
                 /////////////////////////////////////////////////////////////////
-                DampMatrix(row,column+3)-=Gstar_Lap_star(row_small, j);	//this term was checked and seems to be OK
+                DampingMatrix(row,column+3)-=Gstar_Lap_star(row_small, j);	//this term was checked and seems to be OK
 
-                DampMatrix(row+1,column)-=Gstar_Dstar(row_small+1,column_small);
-                DampMatrix(row+1,column+1)-=Gstar_Dstar(row_small+1,column_small+1);
-                DampMatrix(row+1,column+2)-=Gstar_Dstar(row_small+1,column_small+2);
+                DampingMatrix(row+1,column)-=Gstar_Dstar(row_small+1,column_small);
+                DampingMatrix(row+1,column+1)-=Gstar_Dstar(row_small+1,column_small+1);
+                DampingMatrix(row+1,column+2)-=Gstar_Dstar(row_small+1,column_small+2);
                 /////////////////////////////////////////////////////////////////
-                DampMatrix(row+1,column+3)-=Gstar_Lap_star(row_small+1, j);//this term was checked and seems to be OK
+                DampingMatrix(row+1,column+3)-=Gstar_Lap_star(row_small+1, j);//this term was checked and seems to be OK
 
-                DampMatrix(row+2,column)-=Gstar_Dstar(row_small+2,column_small);
-                DampMatrix(row+2,column+1)-=Gstar_Dstar(row_small+2,column_small+1);
-                DampMatrix(row+2,column+2)-=Gstar_Dstar(row_small+2,column_small+2);
+                DampingMatrix(row+2,column)-=Gstar_Dstar(row_small+2,column_small);
+                DampingMatrix(row+2,column+1)-=Gstar_Dstar(row_small+2,column_small+1);
+                DampingMatrix(row+2,column+2)-=Gstar_Dstar(row_small+2,column_small+2);
                 /////////////////////////////////////////////////////////////////
-                DampMatrix(row+2,column+3)-=Gstar_Lap_star(row_small+2, j);//this term was checked and seems to be OK
+                DampingMatrix(row+2,column+3)-=Gstar_Lap_star(row_small+2, j);//this term was checked and seems to be OK
 
-                DampMatrix(row+3,column)-=Lap_starT_Dstar(i, column_small);//this term was ALSO checked and ALSO seems to be OK
-                DampMatrix(row+3,column+1)-=Lap_starT_Dstar(i, column_small+1);//this term was ALSO checked and ALSO seems to be OK
-                DampMatrix(row+3,column+2)-=Lap_starT_Dstar(i, column_small+2);//this term was ALSO checked and ALSO seems to be OK
+                DampingMatrix(row+3,column)-=Lap_starT_Dstar(i, column_small);//this term was ALSO checked and ALSO seems to be OK
+                DampingMatrix(row+3,column+1)-=Lap_starT_Dstar(i, column_small+1);//this term was ALSO checked and ALSO seems to be OK
+                DampingMatrix(row+3,column+2)-=Lap_starT_Dstar(i, column_small+2);//this term was ALSO checked and ALSO seems to be OK
                 ////////////////////////////////////////////////////////////////
-                DampMatrix(row+3,column+3)-=Lap_starT_Lap_star(i, j);//this term was checked and ALSO seems to be OK
+                DampingMatrix(row+3,column+3)-=Lap_starT_Lap_star(i, j);//this term was checked and ALSO seems to be OK
             }
 
 

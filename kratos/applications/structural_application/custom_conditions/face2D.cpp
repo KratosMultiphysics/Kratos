@@ -344,7 +344,7 @@ void Face2D::GetDofList( DofsVectorType& ConditionalDofList, ProcessInfo& Curren
 
 //************************************************************************************
 //************************************************************************************
-void  Face2D::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void  Face2D::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -356,12 +356,12 @@ void  Face2D::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessI
 
 //************************************************************************************
 //************************************************************************************
-void  Face2D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void  Face2D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    if ( rDampMatrix.size1() != 0 )
-        rDampMatrix.resize( 0, 0, false );
+    if ( rDampingMatrix.size1() != 0 )
+        rDampingMatrix.resize( 0, 0, false );
 
     KRATOS_CATCH( "" )
 }

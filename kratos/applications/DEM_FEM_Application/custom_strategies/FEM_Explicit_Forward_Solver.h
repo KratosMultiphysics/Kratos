@@ -572,7 +572,7 @@ void CalculateVirtualMass()
                 Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
                 (it)->Initialize();
                 (it)->GetValue(IS_INACTIVE) = false;
-                (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+                (it)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
                 const unsigned int& dim   = geom.WorkingSpaceDimension();
                 index = 0;
                 for (unsigned int i = 0; i <geom.size(); i++)

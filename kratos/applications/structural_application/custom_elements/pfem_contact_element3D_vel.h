@@ -111,7 +111,7 @@ public:
         DofsVectorType& ElementalDofList,
         ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 // 	void Calculate( const Variable<double>& rVariable,
 // 			      double& Output,

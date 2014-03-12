@@ -601,7 +601,7 @@ public:
         //basic operations for the element considered
         (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
 
         (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
@@ -629,8 +629,8 @@ public:
 
         //basic operations for the element considered
         (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-        (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
-        //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+        (rCurrentCondition)->CalculateMassMatrix(mMass[k], CurrentProcessInfo);
+        //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
         (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
         (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 

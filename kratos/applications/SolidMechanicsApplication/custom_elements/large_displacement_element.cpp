@@ -1584,7 +1584,7 @@ Vector& LargeDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, co
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1622,7 +1622,7 @@ void LargeDisplacementElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -1631,10 +1631,10 @@ void LargeDisplacementElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo&
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension;
 
-    if ( rDampMatrix.size1() != MatSize )
-        rDampMatrix.resize( MatSize, MatSize, false );
+    if ( rDampingMatrix.size1() != MatSize )
+        rDampingMatrix.resize( MatSize, MatSize, false );
 
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize, MatSize );
+    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
     KRATOS_CATCH( "" )
 }

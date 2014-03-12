@@ -481,7 +481,7 @@ namespace Kratos
         mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
     }
 
-    void ShellThinElement3D3N::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if((rMassMatrix.size1() != OPT_NUM_DOFS) || (rMassMatrix.size2() != OPT_NUM_DOFS))
             rMassMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
@@ -513,12 +513,12 @@ namespace Kratos
         }
     }
 
-    void ShellThinElement3D3N::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+    void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
-        if((rDampMatrix.size1() != OPT_NUM_DOFS) || (rDampMatrix.size2() != OPT_NUM_DOFS))
-            rDampMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
+        if((rDampingMatrix.size1() != OPT_NUM_DOFS) || (rDampingMatrix.size2() != OPT_NUM_DOFS))
+            rDampingMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
 
-        noalias( rDampMatrix ) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
+        noalias( rDampingMatrix ) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
     }
 
     void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,

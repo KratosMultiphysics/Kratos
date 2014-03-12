@@ -184,7 +184,7 @@ void ASGS3D::CalculateMassContribution(MatrixType& K, const double time, const d
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ASGS3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -222,18 +222,18 @@ void ASGS3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void ASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int nodes_number = 4;
     int dim = 3;
     unsigned int matsize = nodes_number * (dim + 1);
 
-    if (rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+    if (rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
@@ -248,27 +248,27 @@ void ASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorT
 
 
     //viscous term
-    CalculateViscousTerm(rDampMatrix, DN_DX, Volume);
+    CalculateViscousTerm(rDampingMatrix, DN_DX, Volume);
 
     //Advective term
     double tauone;
     double tautwo;
     CalculateTau(N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
-    CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
+    CalculateAdvectiveTerm(rDampingMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
 
     //calculate pressure term
-    CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Volume);
+    CalculatePressureTerm(rDampingMatrix, DN_DX, N, delta_t, Volume);
 
     //compute projections
 
     //stabilization terms
-    CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
-    CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Volume);
-    CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, delta_t, tauone, Volume);
+    CalculateDivStblTerm(rDampingMatrix, DN_DX, tautwo, Volume);
+    CalculateAdvStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Volume);
+    CalculateGradStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX, N, delta_t, tauone, Volume);
     //KRATOS_WATCH(rRightHandSideVector);
 
-    CalculateResidual(rDampMatrix, rRightHandSideVector);
+    CalculateResidual(rDampingMatrix, rRightHandSideVector);
 
     KRATOS_CATCH("")
 }
