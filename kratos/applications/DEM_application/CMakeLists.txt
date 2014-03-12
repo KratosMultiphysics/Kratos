@@ -28,6 +28,10 @@ target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosDEMApplication DESTINATION libs )
 
+# changing the .dll suffix to .pyd 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .pyd)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
