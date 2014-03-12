@@ -360,7 +360,7 @@ public:
 
             int edge_ids[6];
             TetrahedraSplit::TetrahedraSplitMode(split_edge, edge_ids);
-            int nel; //number of elements generated
+            int nel = 0; //number of elements generated
             int n_splitted_edges; //number of splitted edges
             int nint; //number of internal nodes
             int t[56];
