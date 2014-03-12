@@ -102,6 +102,7 @@ balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
 fluid_variables_to_add = []
 fluid_variables_to_add += fluid_vars_for_coupling
 fluid_variables_to_add += [PRESSURE_GRADIENT,
+                           SOLID_FRACTION_GRADIENT,
                            AUX_DOUBLE_VAR,
                            YIELD_STRESS,
                            BINGHAM_SMOOTHER,
