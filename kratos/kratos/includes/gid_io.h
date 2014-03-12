@@ -702,6 +702,10 @@ public:
                                     tempMatrix(2,2), tempMatrix(0,1), tempMatrix(1,2),
                                     tempMatrix(0,2) );
             }
+            else if (tempMatrix.size1() ==2 && tempMatrix.size2() ==2)
+            {
+                GiD_fWrite2DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(1,1), tempMatrix(0,1));
+            }
 
             else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==3)
             {
