@@ -33,7 +33,7 @@ ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
 ProjectParameters.manually_imposed_drag_law_option = 0
 ProjectParameters.stationary_problem_option        = 0 # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
-ProjectParameters.body_force_on_fluid_option       = 1
+ProjectParameters.body_force_on_fluid_option       = 0
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
@@ -74,6 +74,8 @@ for var in ProjectParameters.mixed_nodal_results:
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
 
+if (ProjectParameters.body_force_on_fluid_option==0):
+    ProjectParameters.nodal_results.remove("PRESSURE")
 # choosing the variables to be passed as a parameter to the constructor of the
 # ProjectionModule class constructor that are to be filled with the other phase's
 # information through the coupling process
@@ -485,7 +487,7 @@ while(time <= final_time):
 
     if(step >= 3):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
         embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
-        embedded.ApplyEmbeddedBCsToBalls(balls_model_part)
+        embedded.ApplyEmbeddedBCsToBalls(balls_model_part,DEMParameters)
 
     # solving the fluid part
 
@@ -616,19 +618,10 @@ while(time <= final_time):
 
         swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
         out = 0
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-# gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-
-        out = 0
-
+        
     out = out + Dt
 
-# gid_io.finalize_results()  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 swimming_DEM_gid_io.finalize_results()
 
 print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
