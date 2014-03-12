@@ -94,8 +94,9 @@ balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
                            FLUID_VORTICITY_PROJECTED,
                            POWER_LAW_N,
                            POWER_LAW_K,
+                           YIELD_STRESS,
                            GEL_STRENGTH,
-                           DISTANCE]
+                           DISTANCE] # <- REQUIRED BY EMBEDDED
 
 # extra nodal variables to be added to the model parts (memory will be allocated for them)
 fluid_variables_to_add = []
@@ -114,8 +115,7 @@ balls_variables_to_add += balls_vars_for_coupling
 balls_variables_to_add += [DRAG_FORCE,
                            LIFT_FORCE,
                            BUOYANCY,
-                           REYNOLDS_NUMBER,
-                           GEL_STRENGTH]
+                           REYNOLDS_NUMBER]
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT,
