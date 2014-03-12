@@ -711,7 +711,7 @@ void ForceLoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftH
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ForceLoadCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -723,11 +723,11 @@ void ForceLoadCondition::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurr
 //***********************************************************************************
 //***********************************************************************************
 
-void ForceLoadCondition::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void ForceLoadCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    rDampMatrix.resize(0, 0, false);
+    rDampingMatrix.resize(0, 0, false);
 
     KRATOS_CATCH( "" )
 }

@@ -126,7 +126,7 @@ public:
     void CalculateRightHandSide( VectorType& rRightHandSideVector,
                                  ProcessInfo& rCurrentProcessInfo);
 
-    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector( EquationIdVectorType& rResult,
                            ProcessInfo& rCurrentProcessInfo);

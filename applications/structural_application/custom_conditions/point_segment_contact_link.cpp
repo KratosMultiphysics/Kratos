@@ -420,7 +420,7 @@ namespace Kratos
     
    }
    
-   void PointSegmentContactLink::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+   void PointSegmentContactLink::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
    {
      Condition::GeometryType& geom = this->GetGeometry();
      const unsigned int dimension  = geom.WorkingSpaceDimension();

@@ -143,8 +143,8 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-//      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+//      void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -198,7 +198,7 @@ protected:
     virtual void CalculateAdvMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
     virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
     //Pavel
-    virtual void CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rRightHandSideVector, const double dt);
+    virtual void CalculateEnrichmentTerms(MatrixType& DampingMatrix, VectorType& rRightHandSideVector, const double dt);
     virtual void CalculateEnrichmentOperators(boost::numeric::ublas::bounded_matrix<double, 1, 12 > & Dstar, boost::numeric::ublas::bounded_matrix<double, 12, 1 > & Gstar,  boost::numeric::ublas::bounded_matrix<double, 1, 4 > & Lap_star, boost::numeric::ublas::bounded_matrix<double, 1, 4 > & N_Nstar, double & f_star, double & Lap, double & Mstar, const double delta_t );
     virtual void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
     virtual void FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
@@ -264,7 +264,7 @@ protected:
     //Pavel: below is changed for several gauss points
     virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& tautwo, const double time,const double partition_volume, const double density, const double viscosity);
 	virtual void CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double tautwo, const double Volume, const double density);
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 	virtual void ChangeLumpedToConsistPressMassMatrix(VectorType& rRightHandSideVector, const double sound_vel, const double Volume, const double delta_t, const double density);
 private:
     ///@}

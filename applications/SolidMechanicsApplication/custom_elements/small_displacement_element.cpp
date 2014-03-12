@@ -1567,7 +1567,7 @@ Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, co
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1605,7 +1605,7 @@ void SmallDisplacementElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -1614,10 +1614,10 @@ void SmallDisplacementElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo&
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension;
 
-    if ( rDampMatrix.size1() != MatSize )
-        rDampMatrix.resize( MatSize, MatSize, false );
+    if ( rDampingMatrix.size1() != MatSize )
+        rDampingMatrix.resize( MatSize, MatSize, false );
 
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize, MatSize );
+    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
     KRATOS_CATCH( "" )
 }

@@ -280,7 +280,7 @@ void CrisfieldTrussElement::GetDofList(DofsVectorType& ElementalDofList, Process
 * @param rCurrentProcessInfo process info
 * TODO: assign the mass matrix
 */
-void CrisfieldTrussElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int MatSize = number_of_nodes * dimension;
@@ -291,16 +291,16 @@ void CrisfieldTrussElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCu
 
 /**
 * Get the damping matrix of the element.
-* @param rDampMatrix damping matrix
+* @param rDampingMatrix damping matrix
 * @param rCurrentProcessInfo process info
 * TODO: assign the damping matrix
 */
-void CrisfieldTrussElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int MatSize = number_of_nodes * dimension;
-    rDampMatrix.resize(MatSize,MatSize);
-    noalias(rDampMatrix)= ZeroMatrix(MatSize,MatSize);
+    rDampingMatrix.resize(MatSize,MatSize);
+    noalias(rDampingMatrix)= ZeroMatrix(MatSize,MatSize);
     KRATOS_CATCH("")
 }
 

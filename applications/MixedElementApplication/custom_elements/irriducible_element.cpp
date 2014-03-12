@@ -440,7 +440,7 @@ void IrriducibleElement::GetDofList(DofsVectorType& ElementalDofList, ProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void IrriducibleElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+void IrriducibleElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo & rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -450,7 +450,7 @@ void IrriducibleElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo & rCurr
 //************************************************************************************
 //************************************************************************************
 
-void IrriducibleElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo & rCurrentProcessInfo)
+void IrriducibleElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
 {
     KRATOS_TRY
 

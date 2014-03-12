@@ -200,7 +200,7 @@ void UlfFrac2D::CalculateRightHandSide(VectorType& rRightHandSideVector, Process
 
 //************************************************************************************
 //************************************************************************************
-void UlfFrac2D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void UlfFrac2D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -233,7 +233,7 @@ void UlfFrac2D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void UlfFrac2D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void UlfFrac2D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     boost::numeric::ublas::bounded_matrix<double,3,6> msB;// = ZeroMatrix(3,6);
@@ -244,8 +244,8 @@ void UlfFrac2D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcess
     unsigned int NumberOfNodes = GetGeometry().size();
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    if(rDampMatrix.size1() != 6)
-        rDampMatrix.resize(6,6,false);
+    if(rDampingMatrix.size1() != 6)
+        rDampingMatrix.resize(6,6,false);
 
 
     //getting data for the given geometry
@@ -288,9 +288,9 @@ void UlfFrac2D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcess
 
     //calculating viscous contributions
     noalias(ms_temp) = prod( ms_constitutive_matrix , msB);
-    noalias(rDampMatrix) = prod( trans(msB) , ms_temp);
+    noalias(rDampingMatrix) = prod( trans(msB) , ms_temp);
 
-    rDampMatrix *= Area;
+    rDampingMatrix *= Area;
     KRATOS_CATCH("")
 }
 

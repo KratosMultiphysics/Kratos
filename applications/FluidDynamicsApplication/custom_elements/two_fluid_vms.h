@@ -218,7 +218,7 @@ public:
      * @param rMassMatrix Will be filled with the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_ERROR(std::logic_error,"MassMatrix function shall not be called when using this type of element","");
     }
@@ -1152,7 +1152,7 @@ protected:
     
     
         /// Add a the contribution from a single integration point to the velocity contribution
-    void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
+    void AddIntegrationPointVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rDampRHS,
             const double Density,
             const double Viscosity,
@@ -1203,9 +1203,9 @@ protected:
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 
                     // Write v * Grad(p) component
-                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
                     // Use symmetry to write the q * Div(u) component
-                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
                     
                     rDampRHS[FirstCol + TDim] -=  Weight * PDivV*OldVel[m];
 
@@ -1215,17 +1215,17 @@ protected:
                     for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
                     {
                         // Velocity block
-                        rDampMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                        rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
                     }
 
                 }
 
                 // Write remaining terms to velocity block
                 for (unsigned int d = 0; d < TDim; ++d)
-                    rDampMatrix(FirstRow + d, FirstCol + d) += K;
+                    rDampingMatrix(FirstRow + d, FirstCol + d) += K;
 
                 // Write q-p stabilization block
-                rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
+                rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 
 
                 // Update reference column index for next iteration
@@ -1246,8 +1246,8 @@ protected:
             FirstCol = 0;
         }
 
-//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-        this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Density*Weight);
+//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
+        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Density*Weight);
     }
     ///@}
     ///@name Protected  Access

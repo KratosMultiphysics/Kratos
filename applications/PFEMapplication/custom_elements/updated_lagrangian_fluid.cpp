@@ -640,7 +640,7 @@ void UpdatedLagrangianFluid::GetDofList(DofsVectorType& ElementalDofList,Process
 
 //************************************************************************************
 //************************************************************************************
-void UpdatedLagrangianFluid::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianFluid::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -685,10 +685,10 @@ void UpdatedLagrangianFluid::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rC
 
 //************************************************************************************
 //************************************************************************************
-void UpdatedLagrangianFluid::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianFluid::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    rDampMatrix.resize(0,0);
+    rDampingMatrix.resize(0,0);
     KRATOS_CATCH("")
 }
 

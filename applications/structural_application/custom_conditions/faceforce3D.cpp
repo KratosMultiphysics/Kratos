@@ -173,7 +173,7 @@ void FaceForce3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void FaceForce3D::MassMatrix( MatrixType& rMassMatrix,
+void FaceForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
                               ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -183,11 +183,11 @@ void FaceForce3D::MassMatrix( MatrixType& rMassMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void FaceForce3D::DampMatrix( MatrixType& rDampMatrix,
+void FaceForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
                               ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    rDampMatrix.resize( 0, 0, false );
+    rDampingMatrix.resize( 0, 0, false );
     KRATOS_CATCH( "" )
 }
 

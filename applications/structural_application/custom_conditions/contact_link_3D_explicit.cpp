@@ -531,7 +531,7 @@ Vector ContactLink3DExplicit::GetRelativVelocity()
     return result;
 }
 
-void ContactLink3DExplicit::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ContactLink3DExplicit::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     Condition::GeometryType& geom = this->GetGeometry();
     const unsigned int dimension  = geom.WorkingSpaceDimension();

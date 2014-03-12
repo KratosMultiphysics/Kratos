@@ -360,7 +360,7 @@ public:
 
         // Get matrix contributions
         rCurrentElement->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rCurrentElement->MassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentElement->CalculateMassMatrix(Mass,rCurrentProcessInfo);
         rCurrentElement->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
@@ -389,7 +389,7 @@ public:
 
         // Get matrix contributions
         rCurrentElement->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rCurrentElement->MassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentElement->CalculateMassMatrix(Mass,rCurrentProcessInfo);
         rCurrentElement->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
@@ -417,7 +417,7 @@ public:
 
         // Get matrix contributions
         rCurrentCondition->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,rCurrentProcessInfo);
-        rCurrentCondition->MassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentCondition->CalculateMassMatrix(Mass,rCurrentProcessInfo);
         rCurrentCondition->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients
@@ -446,7 +446,7 @@ public:
 
         // Get matrix contributions
         rCurrentCondition->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-        rCurrentCondition->MassMatrix(Mass,rCurrentProcessInfo);
+        rCurrentCondition->CalculateMassMatrix(Mass,rCurrentProcessInfo);
         rCurrentCondition->CalculateLocalVelocityContribution(Damp,RHS_Contribution,rCurrentProcessInfo);
 
         // Add the dynamic contributions to the local system using BDF2 coefficients

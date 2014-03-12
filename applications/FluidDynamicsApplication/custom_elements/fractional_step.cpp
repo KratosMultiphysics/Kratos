@@ -982,7 +982,7 @@ void FractionalStep<TDim>::AddMomentumSystemTerms(Matrix& rLHSMatrix,
 }
 
 template<>
-void FractionalStep<2>::AddViscousTerm(MatrixType& rDampMatrix,
+void FractionalStep<2>::AddViscousTerm(MatrixType& rDampingMatrix,
                                        const ShapeFunctionDerivativesType& rShapeDeriv,
                                        const double Weight)
 {
@@ -998,12 +998,12 @@ void FractionalStep<2>::AddViscousTerm(MatrixType& rDampMatrix,
         for (SizeType i = 0; i < NumNodes; ++i)
         {
             // First Row
-            rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+            rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
             // Second Row
-            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
             // Update Counter
             FirstRow += 2;
@@ -1014,7 +1014,7 @@ void FractionalStep<2>::AddViscousTerm(MatrixType& rDampMatrix,
 }
 
 template <>
-void FractionalStep<3>::AddViscousTerm(MatrixType& rDampMatrix,
+void FractionalStep<3>::AddViscousTerm(MatrixType& rDampingMatrix,
                                        const ShapeFunctionDerivativesType& rShapeDeriv,
                                        const double Weight)
 {
@@ -1033,19 +1033,19 @@ void FractionalStep<3>::AddViscousTerm(MatrixType& rDampMatrix,
             const double Diag =  rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,2) * rShapeDeriv(j,2);
 
             // First Row
-            rDampMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rShapeDeriv(i,0) * rShapeDeriv(j,0) + Diag );
-            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
-            rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
+            rDampingMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rShapeDeriv(i,0) * rShapeDeriv(j,0) + Diag );
+            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+            rDampingMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
 
             // Second Row
-            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rShapeDeriv(i,1) * rShapeDeriv(j,1) + Diag );
-            rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
+            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rShapeDeriv(i,1) * rShapeDeriv(j,1) + Diag );
+            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
 
             // Third Row
-            rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
-            rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
-            rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rShapeDeriv(i,2) * rShapeDeriv(j,2) + Diag );
+            rDampingMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
+            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
+            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rShapeDeriv(i,2) * rShapeDeriv(j,2) + Diag );
 
             // Update Counter
             FirstRow += 3;
@@ -1204,7 +1204,7 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
 }
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampMatrix,
+void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
                                                       const ShapeFunctionDerivativesType& rDN_DX,
                                                       const double Weight)
 {
@@ -1285,7 +1285,7 @@ void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampMatrix,
                     double Aux = rDN_DX(i,d) * Delta[0] * G(d,0)*rDN_DX(j,0);
                     for (unsigned int k = 1; k < TDim; k++)
                         Aux += rDN_DX(i,d) *Delta[k] * G(d,k)*rDN_DX(j,k);
-                    rDampMatrix(RowIndex+d,ColIndex+d) += Weight * 2.0*ksgs *  Aux;
+                    rDampingMatrix(RowIndex+d,ColIndex+d) += Weight * 2.0*ksgs *  Aux;
                 }
 
                 ColIndex += TDim;

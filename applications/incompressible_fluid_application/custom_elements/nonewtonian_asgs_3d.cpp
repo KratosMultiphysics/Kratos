@@ -185,7 +185,7 @@ void NoNewtonianASGS3D::CalculateMassContribution(MatrixType& K, const double ti
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void NoNewtonianASGS3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -223,20 +223,20 @@ void NoNewtonianASGS3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurren
 //************************************************************************************
 //************************************************************************************
 
-void NoNewtonianASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void NoNewtonianASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     int nodes_number = 4;
     int dim = 3;
     unsigned int matsize = nodes_number * (dim + 1);
 
-    if (rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+    if (rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
 
     boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize, matsize);
 
     double delta_t = rCurrentProcessInfo[DELTA_TIME];
     unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
@@ -252,36 +252,36 @@ void NoNewtonianASGS3D::CalculateLocalVelocityContribution(MatrixType& rDampMatr
     double tautwo;
     CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Volume, rCurrentProcessInfo);
 
-    CalculateAdvectiveTerm(rDampMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
+    CalculateAdvectiveTerm(rDampingMatrix, DN_DX,N, tauone, tautwo, delta_t, Volume);
     /*Calculate Pressure term + divergence term of pressure equation*/
-    CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Volume);
+    CalculatePressureTerm(rDampingMatrix, DN_DX, N, delta_t, Volume);
 
     //compute projections
     /*Stablization*/
     //stabilization terms
-    CalculateDivStblTerm(rDampMatrix, DN_DX, tautwo, Volume);
-    CalculateAdvStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Volume);
-    CalculateGradStblAllTerms(rDampMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Volume);
+    CalculateDivStblTerm(rDampingMatrix, DN_DX, tautwo, Volume);
+    CalculateAdvStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX, N, tauone, delta_t, Volume);
+    CalculateGradStblAllTerms(rDampingMatrix, rRightHandSideVector, DN_DX,N, delta_t, tauone, Volume);
     //KRATOS_WATCH(rRightHandSideVector);
     /*         RHS           */
     /*Internal Forces*/
-    CalculateResidual(DN_DX,rDampMatrix, rRightHandSideVector, m_coef, Volume);
+    CalculateResidual(DN_DX,rDampingMatrix, rRightHandSideVector, m_coef, Volume);
     /*         LHS           */
     /*Viscous term*/
-    CalculateViscousTerm(rDampMatrix, DN_DX,  it_num, m_coef, Volume);
+    CalculateViscousTerm(rDampingMatrix, DN_DX,  it_num, m_coef, Volume);
 // KRATOS_WATCH("LINE 267")
 #ifdef K0 //Fixed tangent method 
     KRATOS_WATCH("Fixed tangent method ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     mlhs0.resize(matsize,matsize);
 // 	unsigned int it_num= rCurrentProcessInfo[NL_ITERATION_NUMBER];
 // KRATOS_WATCH(it_num);
-// KRATOS_WATCH(rDampMatrix);
+// KRATOS_WATCH(rDampingMatrix);
 
     if(it_num == 1)
-        noalias(mlhs0) = rDampMatrix;
+        noalias(mlhs0) = rDampingMatrix;
     else
-        rDampMatrix = mlhs0;
-// KRATOS_WATCH(rDampMatrix);
+        rDampingMatrix = mlhs0;
+// KRATOS_WATCH(rDampingMatrix);
 // KRATOS_WATCH(mlhs0);
 #endif
 

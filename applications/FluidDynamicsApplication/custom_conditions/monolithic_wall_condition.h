@@ -234,7 +234,7 @@ public:
 
     /// Return a matrix of the correct size, filled with zeros (for compatibility with time schemes).
     /** The actual local contributions are computed in the Damping functions
-      @see DampMatrix
+      @see DampingMatrix
       */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo)
@@ -266,37 +266,37 @@ public:
 
 
 
-    virtual void DampMatrix(MatrixType& rDampMatrix,
+    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix,
                             ProcessInfo& rCurrentProcessInfo)
     {
         VectorType RHS;
-        this->CalculateLocalVelocityContribution(rDampMatrix,RHS,rCurrentProcessInfo);
+        this->CalculateLocalVelocityContribution(rDampingMatrix,RHS,rCurrentProcessInfo);
     }
 
 
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
-      @param rDampMatrix Left-hand side matrix
+      @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo)
     {
         // Initialize local contributions
         const SizeType LocalSize = (TDim + 1) * TNumNodes;
 
-        if (rDampMatrix.size1() != LocalSize)
-            rDampMatrix.resize(LocalSize,LocalSize);
+        if (rDampingMatrix.size1() != LocalSize)
+            rDampingMatrix.resize(LocalSize,LocalSize);
         if (rRightHandSideVector.size() != LocalSize)
             rRightHandSideVector.resize(LocalSize);
 
-        noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
+        noalias(rDampingMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-	this->ApplyWallLaw(rDampMatrix,rRightHandSideVector,rCurrentProcessInfo);
+	this->ApplyWallLaw(rDampingMatrix,rRightHandSideVector,rCurrentProcessInfo);
     }
 
 

@@ -583,7 +583,7 @@ void LinearElement::GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& C
 
 //************************************************************************************
 //************************************************************************************
-void LinearElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LinearElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -621,7 +621,7 @@ void LinearElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentPr
 
 //************************************************************************************
 //************************************************************************************
-void LinearElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void LinearElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -630,10 +630,10 @@ void LinearElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dim;
 
-    if ( rDampMatrix.size1() != MatSize )
-        rDampMatrix.resize( MatSize, MatSize, false );
+    if ( rDampingMatrix.size1() != MatSize )
+        rDampingMatrix.resize( MatSize, MatSize, false );
 
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize, MatSize );
+    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
     KRATOS_CATCH( "" )
 }

@@ -395,7 +395,7 @@ void RigidBody3D::GetSecondDerivativesVector(Vector& values, int Step)
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rMassMatrix.size1() != 6)
@@ -415,14 +415,14 @@ void RigidBody3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProce
 
 //************************************************************************************
 //************************************************************************************
-void RigidBody3D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBody3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if(rDampMatrix.size1() != 6)
-        rDampMatrix.resize(6,6,false);
+    if(rDampingMatrix.size1() != 6)
+        rDampingMatrix.resize(6,6,false);
 
-    noalias(rDampMatrix) = ZeroMatrix(6,6);
+    noalias(rDampingMatrix) = ZeroMatrix(6,6);
 
     const array_1d<double,3> omega = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     boost::numeric::ublas::bounded_matrix<double,3,3> cross_matrix;
@@ -442,7 +442,7 @@ void RigidBody3D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProce
 
     for(unsigned int i=0; i<3; i++)
         for(unsigned int j=0; j<3; j++)
-            rDampMatrix(3+i,3+j) = aux(i,j);
+            rDampingMatrix(3+i,3+j) = aux(i,j);
 
 
 

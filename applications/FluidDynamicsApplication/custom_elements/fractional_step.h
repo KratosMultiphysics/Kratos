@@ -484,7 +484,7 @@ namespace Kratos
                                     const ShapeFunctionDerivativesType& rDN_DX,
                                     const double Weight);
 
-        void AddViscousTerm(MatrixType& rDampMatrix,
+        void AddViscousTerm(MatrixType& rDampingMatrix,
                             const ShapeFunctionDerivativesType& rShapeDeriv,
                             const double Weight);
 
@@ -530,7 +530,7 @@ namespace Kratos
                                             const double Weight);
 
 
-        void ModulatedGradientDiffusion(MatrixType& rDampMatrix,
+        void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
                                         const ShapeFunctionDerivativesType& rDN_DX,
                                         const double Weight);
 

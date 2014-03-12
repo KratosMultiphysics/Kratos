@@ -119,11 +119,11 @@ namespace Kratos
         void GetPressureDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
                                 
-        void AddViscousTerm(MatrixType& rDampMatrix,
+        void AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
                                        const double Weight); 
                                        
-        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 >& rDampMatrix,
+        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
                          const double Weight);             
 

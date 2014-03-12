@@ -141,7 +141,7 @@ void CouplingFace2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo
 //***********************************************************************************
 //***********************************************************************************
 
-void CouplingFace2D::MassMatrix(
+void CouplingFace2D::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo)
 

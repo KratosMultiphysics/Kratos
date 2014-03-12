@@ -1115,7 +1115,7 @@ private:
             {
                 //calculate elemental contribution
 				pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                (*it)->MassMatrix( M_Contribution, CurrentProcessInfo );
+                (*it)->CalculateMassMatrix( M_Contribution, CurrentProcessInfo );
                 //(*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
 
                 #pragma omp critical
@@ -1154,7 +1154,7 @@ private:
             {
                 //calculate elemental contribution
 				pScheme->Condition_CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                (*it)->MassMatrix( M_Contribution, CurrentProcessInfo );
+                (*it)->CalculateMassMatrix( M_Contribution, CurrentProcessInfo );
                 //(*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
 
                 #pragma omp critical

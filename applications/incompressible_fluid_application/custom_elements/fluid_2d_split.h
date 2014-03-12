@@ -184,9 +184,9 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-//      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+//      void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
     ///Calculate all the lhs contributions  multiplied by velocity: i.e. the convective, pressure, viscous, darcy contributions
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -271,7 +271,7 @@ protected:
 
 // 	virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
     ///Calcualte the mass contributions
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
     ///@}
 
     ///@name Protected Operators

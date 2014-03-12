@@ -508,7 +508,7 @@ void Ebst::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
 //***********************************************************************************
 //***********************************************************************************
 
-void Ebst::MassMatrix(
+void Ebst::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -545,8 +545,8 @@ void Ebst::MassMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void Ebst::DampMatrix(
-    MatrixType& rDampMatrix,
+void Ebst::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
     ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -557,12 +557,12 @@ void Ebst::DampMatrix(
     // LUMPED MASS MATRIX
     unsigned int number_of_nodes = 3 + NumberOfActiveNeighbours(neigb);
     unsigned int MatSize = number_of_nodes * 3;
-    if (rDampMatrix.size1() != MatSize)
-        rDampMatrix.resize(MatSize, MatSize, false);
+    if (rDampingMatrix.size1() != MatSize)
+        rDampingMatrix.resize(MatSize, MatSize, false);
 
-    noalias(rDampMatrix) = ZeroMatrix(MatSize, MatSize);
-//         if (rDampMatrix.size1() != 0)
-//             rDampMatrix.resize(0, 0, false);
+    noalias(rDampingMatrix) = ZeroMatrix(MatSize, MatSize);
+//         if (rDampingMatrix.size1() != 0)
+//             rDampingMatrix.resize(0, 0, false);
 
     KRATOS_CATCH("")
 }

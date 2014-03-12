@@ -1682,7 +1682,7 @@ void ContactLink3D::CalculateAll( MatrixType& rLeftHandSideMatrix,
  * with regard to the current master and slave partners.
  * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
  */
-void ContactLink3D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void ContactLink3D::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -1704,9 +1704,9 @@ void ContactLink3D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
     //resizing as needed the LHS
     int MatSize = ( MasterNN + SlaveNN ) * dim;
 
-    rDampMatrix.resize( MatSize, MatSize, false );
+    rDampingMatrix.resize( MatSize, MatSize, false );
 
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
 
     //calculating shape function values for current slave element
     Vector SlaveShapeFunctionValues( GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() );
@@ -1934,7 +1934,7 @@ void ContactLink3D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
                               - tangentialStresses_trial( 1 ) / pow( normTangentialStresses_trial, 2 ) * normTangentialStresses_trial_DV );
                     }
 
-                    rDampMatrix( prim*dim + i, sec*dim + j )
+                    rDampingMatrix( prim*dim + i, sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;
@@ -2020,7 +2020,7 @@ void ContactLink3D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
                               - tangentialStresses_trial( 1 ) / pow( normTangentialStresses_trial, 2 ) * normTangentialStresses_trial_DV );
                     }
 
-                    rDampMatrix( prim*dim + i, MasterNN*dim + sec*dim + j )
+                    rDampingMatrix( prim*dim + i, MasterNN*dim + sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;
@@ -2104,7 +2104,7 @@ void ContactLink3D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
                               - tangentialStresses_trial( 1 ) / pow( normTangentialStresses_trial, 2 ) * normTangentialStresses_trial_DV );
                     }
 
-                    rDampMatrix( MasterNN*dim + prim*dim + i, sec*dim + j )
+                    rDampingMatrix( MasterNN*dim + prim*dim + i, sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;
@@ -2187,7 +2187,7 @@ void ContactLink3D::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
                               - tangentialStresses_trial( 1 ) / pow( normTangentialStresses_trial, 2 ) * normTangentialStresses_trial_DV );
                     }
 
-                    rDampMatrix( MasterNN*dim + prim*dim + i, MasterNN*dim + sec*dim + j )
+                    rDampingMatrix( MasterNN*dim + prim*dim + i, MasterNN*dim + sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;

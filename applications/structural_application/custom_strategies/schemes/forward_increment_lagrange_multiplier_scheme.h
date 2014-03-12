@@ -238,7 +238,7 @@ public:
 
 
 
-        rCond->MassMatrix(Mass, CurrentProcessInfo);
+        rCond->CalculateMassMatrix(Mass, CurrentProcessInfo);
         double auxmass = 0.00;
         for(unsigned int i = 0; i<Mass.size1(); i++)
         {

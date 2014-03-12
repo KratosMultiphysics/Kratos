@@ -820,7 +820,7 @@ void ContactLink3D_Kinematic_Linear::CalculateAll( MatrixType& rLeftHandSideMatr
  * with regard to the current master and slave partners.
  * All Conditions are assumed to be defined in 3D space and havin 3 DOFs per node
  */
-void ContactLink3D_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void ContactLink3D_Kinematic_Linear::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -842,9 +842,9 @@ void ContactLink3D_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, Proces
     //resizing as needed the LHS
     int MatSize = ( MasterNN + SlaveNN ) * dim;
 
-    rDampMatrix.resize( MatSize, MatSize, false );
+    rDampingMatrix.resize( MatSize, MatSize, false );
 
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+    noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
 
     //calculating shape function values for current slave element
     Vector SlaveShapeFunctionValues( GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() );
@@ -1050,7 +1050,7 @@ void ContactLink3D_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, Proces
                               * 2 * ( mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 0 ) * tangentialStresses_trial[0] + mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 1 ) * tangentialStresses_trial[1] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 0 ) * tangentialStresses_trial[0] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 1 ) * tangentialStresses_trial[1] ) ) * MasterShapeFunctionValues[sec];
                     }
 
-                    rDampMatrix( prim*dim + i, sec*dim + j )
+                    rDampingMatrix( prim*dim + i, sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;
@@ -1118,7 +1118,7 @@ void ContactLink3D_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, Proces
                                * 2 * ( mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 0 ) * tangentialStresses_trial[0] + mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 1 ) * tangentialStresses_trial[1] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 0 ) * tangentialStresses_trial[0] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 1 ) * tangentialStresses_trial[1] ) ) * MasterShapeFunctionValues[sec];
                     }
 
-                    rDampMatrix( prim*dim + i, MasterNN*dim + sec*dim + j )
+                    rDampingMatrix( prim*dim + i, MasterNN*dim + sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;
@@ -1183,7 +1183,7 @@ void ContactLink3D_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, Proces
                               * 2 * ( mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 0 ) * tangentialStresses_trial[0] + mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 1 ) * tangentialStresses_trial[1] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 0 ) * tangentialStresses_trial[0] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 1 ) * tangentialStresses_trial[1] ) ) * MasterShapeFunctionValues[sec];
                     }
 
-                    rDampMatrix( MasterNN*dim + prim*dim + i, sec*dim + j )
+                    rDampingMatrix( MasterNN*dim + prim*dim + i, sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;
@@ -1246,7 +1246,7 @@ void ContactLink3D_Kinematic_Linear::DampMatrix( MatrixType& rDampMatrix, Proces
                                * 2 * ( mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 0 ) * tangentialStresses_trial[0] + mTMaster( 0, j ) / norm_T( 0 ) * m( 0, 1 ) * tangentialStresses_trial[1] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 0 ) * tangentialStresses_trial[0] + mTMaster( 1, j ) / norm_T( 1 ) * m( 1, 1 ) * tangentialStresses_trial[1] ) ) * MasterShapeFunctionValues[sec];
                     }
 
-                    rDampMatrix( MasterNN*dim + prim*dim + i, MasterNN*dim + sec*dim + j )
+                    rDampingMatrix( MasterNN*dim + prim*dim + i, MasterNN*dim + sec*dim + j )
 
                     += ( tangentialStresses_DV[0] * Xi[0] + tangentialStresses_DV[1] * Xi[1] )
                        * SlaveIntegrationWeight * dASlave;

@@ -127,12 +127,12 @@ namespace Kratos {
                 std::vector<Matrix>& Output,
                 const ProcessInfo& rCurrentProcessInfo);*/
 
-        virtual void MassMatrix(
+        virtual void CalculateMassMatrix(
                 MatrixType& rMassMatrix,
                 ProcessInfo& rCurrentProcessInfo);
 
-        virtual void DampMatrix(
-                MatrixType& rDampMatrix,
+        virtual void CalculateDampingMatrix(
+                MatrixType& rDampingMatrix,
                 ProcessInfo& rCurrentProcessInfo);
         
         virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);

@@ -183,9 +183,9 @@ public:
     virtual void GetFirstDerivativesVector(Vector& values, int Step = 0);
     virtual void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-//      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+//      void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
     ///Calculate all the lhs contribution multiplied by velocity: i.e. the convective, pressure, viscous, darcy contributions
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -265,7 +265,7 @@ protected:
     ///Add the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
     virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area,const double thawone,const double thawtwo);
     ///Calcualte the mass contributions
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 //         virtual void CalculateInternalForces(VectorType& rRightHandSideVector, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double,3>& N, const double area);
     ///Calculate the shape function derivatives matrix
     virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX);

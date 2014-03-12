@@ -120,12 +120,12 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo );
 
-    void MassMatrix(
+    void CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo );
 
-    void DampMatrix(
-        MatrixType& rDampMatrix,
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo );
 
 //    void GetValuesVector(

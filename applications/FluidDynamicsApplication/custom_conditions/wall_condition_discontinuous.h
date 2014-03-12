@@ -213,7 +213,7 @@ public:
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
-      @param rDampMatrix Left-hand side matrix
+      @param rDampingMatrix Left-hand side matrix
       @param rRightHandSideVector Right-hand side vector
       @param rCurrentProcessInfo ProcessInfo instance (unused)
       */

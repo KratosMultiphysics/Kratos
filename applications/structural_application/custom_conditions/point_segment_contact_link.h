@@ -164,7 +164,7 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void  MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void  CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void Calculate( const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
 

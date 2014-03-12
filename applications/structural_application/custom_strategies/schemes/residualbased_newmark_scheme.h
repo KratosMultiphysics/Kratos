@@ -685,7 +685,7 @@ public:
     {
         KRATOS_TRY
 
-        Matrix DampMatrix;
+        Matrix DampingMatrix;
 
         Matrix MassMatrix;
 
@@ -694,17 +694,17 @@ public:
         (rCurrentElement)->
         CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement)->DampMatrix(DampMatrix,CurrentProcessInfo);
+        (rCurrentElement)->CalculateDampingMatrix(DampingMatrix,CurrentProcessInfo);
 
 			if(!(CurrentProcessInfo[QUASI_STATIC_ANALYSIS]))
 			{
-				(rCurrentElement)->MassMatrix(MassMatrix, CurrentProcessInfo);
+				(rCurrentElement)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
 
 				AddDynamicsToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 			}
 
         AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution,
-                             DampMatrix, MassMatrix,CurrentProcessInfo);
+                             DampingMatrix, MassMatrix,CurrentProcessInfo);
 
         (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 
@@ -740,16 +740,16 @@ public:
 
         KRATOS_TRY
 
-        Matrix DampMatrix;
+        Matrix DampingMatrix;
 
         Matrix MassMatrix;
 
         (rCurrentCondition)-> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition)->DampMatrix(DampMatrix,CurrentProcessInfo);
+        (rCurrentCondition)->CalculateDampingMatrix(DampingMatrix,CurrentProcessInfo);
 
         AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,
-                                       DampMatrix, MassMatrix,CurrentProcessInfo);
+                                       DampingMatrix, MassMatrix,CurrentProcessInfo);
 
         (rCurrentCondition)->EquationIdVector(EquationId,CurrentProcessInfo);
 
@@ -818,7 +818,7 @@ protected:
     void AssembleTimeSpaceLHS(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampMatrix,
+        LocalSystemMatrixType& DampingMatrix,
         LocalSystemMatrixType& MassMatrix,
         ProcessInfo& CurrentProcessInfo)
     {
@@ -827,12 +827,12 @@ protected:
             for( unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
                 LHS_Contribution(prim,sec)= (1-mAlpha)*LHS_Contribution(prim,sec);
 
-        if(DampMatrix.size1() == LHS_Contribution.size1()
-                || DampMatrix.size2() == LHS_Contribution.size2())
+        if(DampingMatrix.size1() == LHS_Contribution.size1()
+                || DampingMatrix.size2() == LHS_Contribution.size2())
         {
             for( unsigned int prim=0; prim< LHS_Contribution.size1(); prim++)
                 for( unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
-                    LHS_Contribution(prim,sec) += DampMatrix(prim,sec)*(1-mAlpha)
+                    LHS_Contribution(prim,sec) += DampingMatrix(prim,sec)*(1-mAlpha)
                                                   *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME]);
         }
 
@@ -852,7 +852,7 @@ protected:
     void AssembleTimeSpaceLHS_Condition(
         Condition::Pointer rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemMatrixType& DampMatrix,
+        LocalSystemMatrixType& DampingMatrix,
         LocalSystemMatrixType& MassMatrix,
         ProcessInfo& CurrentProcessInfo)
     {
@@ -861,12 +861,12 @@ protected:
             for(unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
                 LHS_Contribution(prim,sec)= (1-mAlpha)*LHS_Contribution(prim,sec);
 
-        if(DampMatrix.size1() == LHS_Contribution.size1()
-                || DampMatrix.size2() == LHS_Contribution.size2())
+        if(DampingMatrix.size1() == LHS_Contribution.size1()
+                || DampingMatrix.size2() == LHS_Contribution.size2())
         {
             for(unsigned int prim=0; prim< LHS_Contribution.size1(); prim++)
                 for(unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
-                    LHS_Contribution(prim,sec) += DampMatrix(prim,sec)*(1-mAlpha)
+                    LHS_Contribution(prim,sec) += DampingMatrix(prim,sec)*(1-mAlpha)
                                                   *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME]);
         }
             if(MassMatrix.size1() == LHS_Contribution.size1()

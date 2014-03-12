@@ -602,7 +602,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 
 	//************************************************************************************
 	//************************************************************************************
-	void PfemContactElement3D::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+	void PfemContactElement3D::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 			//lumped
@@ -621,7 +621,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 
 	//************************************************************************************
 	//************************************************************************************
-	void PfemContactElement3D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+	void PfemContactElement3D::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		unsigned int number_of_nodes = GetGeometry().size();
@@ -634,10 +634,10 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 		//resizing as needed the LHS
 		unsigned int MatSize=number_of_nodes*dim;
 
-		if(rDampMatrix.size1() != MatSize)
-			rDampMatrix.resize(MatSize,MatSize,false);
+		if(rDampingMatrix.size1() != MatSize)
+			rDampingMatrix.resize(MatSize,MatSize,false);
 
-		noalias(rDampMatrix)= ZeroMatrix(MatSize,MatSize);
+		noalias(rDampingMatrix)= ZeroMatrix(MatSize,MatSize);
       
 
 
@@ -657,7 +657,7 @@ std::cout << Id() << " " << auxR << " " << auxL << std::endl;*/
 // 		  for (int nd = 0; nd < nodes_number; nd++) {
 // 			  int row = nd * dof ;
 // 			    for (int jj = 0; jj < dof; jj++)
-// 			  rDampMatrix(row + jj, row + jj) += 100.0*density * lump_mass_fac;
+// 			  rDampingMatrix(row + jj, row + jj) += 100.0*density * lump_mass_fac;
 // 			  }
 // 
 // 

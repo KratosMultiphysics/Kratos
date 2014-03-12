@@ -556,9 +556,9 @@ public:
         if(mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentElement) -> MassMatrix(mMatrix.M[thread],CurrentProcessInfo);
+            (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread],CurrentProcessInfo);
 
-            (rCurrentElement) -> DampMatrix(mMatrix.D[thread],CurrentProcessInfo);
+            (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
 
         }
 
@@ -598,9 +598,9 @@ public:
         if(mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentElement) -> MassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+            (rCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentElement) -> DampMatrix(mMatrix.D[thread],CurrentProcessInfo);
+            (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
         }
 
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
@@ -641,9 +641,9 @@ public:
         if(mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentCondition) -> MassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+            (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentCondition) -> DampMatrix(mMatrix.D[thread],CurrentProcessInfo);
+            (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],CurrentProcessInfo);
 
         }
 
@@ -685,9 +685,9 @@ public:
         if(mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentCondition) -> MassMatrix(mMatrix.M[thread], CurrentProcessInfo);
+            (rCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], CurrentProcessInfo);
 
-            (rCurrentCondition) -> DampMatrix(mMatrix.D[thread], CurrentProcessInfo);
+            (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], CurrentProcessInfo);
 
         }
 

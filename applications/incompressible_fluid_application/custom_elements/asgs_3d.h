@@ -143,8 +143,8 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-//      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+//      void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -249,7 +249,7 @@ protected:
     virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& thawtwo, const double time,const double area,const ProcessInfo& rCurrentProcessInfo);
 
     virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& msDN_DX, const double volume,const double thawone,const double thawtwo);
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 private:
     ///@}
 

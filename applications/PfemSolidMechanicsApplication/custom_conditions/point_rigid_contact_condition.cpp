@@ -668,7 +668,7 @@ void PointRigidContactCondition::CalculateLocalSystem( std::vector< MatrixType >
 //***********************************************************************************
 //***********************************************************************************
 
-void PointRigidContactCondition::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void PointRigidContactCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -680,11 +680,11 @@ void PointRigidContactCondition::MassMatrix( MatrixType& rMassMatrix, ProcessInf
 //***********************************************************************************
 //***********************************************************************************
 
-void PointRigidContactCondition::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void PointRigidContactCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    rDampMatrix.resize(0, 0, false);
+    rDampingMatrix.resize(0, 0, false);
 
     KRATOS_CATCH( "" )
 }

@@ -155,7 +155,7 @@ void NoSlipCondition2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
 //************************************************************************************
 //************************************************************************************
 
-void NoSlipCondition2D::CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void NoSlipCondition2D::CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -163,11 +163,11 @@ void NoSlipCondition2D::CalculateLocalVelocityContribution(MatrixType& rDampMatr
     int dim = 2;
     unsigned int matsize = nodes_number*(dim);
 
-    if(rDampMatrix.size1() != matsize)
-        rDampMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
+    if(rDampingMatrix.size1() != matsize)
+        rDampingMatrix.resize(matsize,matsize,false); //false says not to preserve existing storage!!
 
 
-    noalias(rDampMatrix) = ZeroMatrix(matsize,matsize);
+    noalias(rDampingMatrix) = ZeroMatrix(matsize,matsize);
 
 
     //calculate normal to element:
@@ -195,14 +195,14 @@ void NoSlipCondition2D::CalculateLocalVelocityContribution(MatrixType& rDampMatr
     double K = 10.0*(mod_vel/area + v/(area*area));
 
 
-// noalias(rDampMatrix) += (K*area)*outer_prod(normal,normal);
+// noalias(rDampingMatrix) += (K*area)*outer_prod(normal,normal);
 
     for(unsigned int i=0; i<2 ; i++)
     {
         for(unsigned int s=0; s<2 ; s++)
 
         {
-            rDampMatrix(i,s) += K*normal[i]*normal[s]*area;
+            rDampingMatrix(i,s) += K*normal[i]*normal[s]*area;
         }
 
     }
@@ -212,7 +212,7 @@ void NoSlipCondition2D::CalculateLocalVelocityContribution(MatrixType& rDampMatr
     {
         for(unsigned int q=0; q<2 ; q++)
         {
-            rRightHandSideVector[i] +=  rDampMatrix(i,q)*mesh_vel[q];
+            rRightHandSideVector[i] +=  rDampingMatrix(i,q)*mesh_vel[q];
         }
     }
 

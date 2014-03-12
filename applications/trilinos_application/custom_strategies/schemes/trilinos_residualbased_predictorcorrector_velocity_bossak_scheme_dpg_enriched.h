@@ -262,7 +262,7 @@ public:
         (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
 //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
-        (rCurrentElement)->MassMatrix(BaseType::mMass[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateMassMatrix(BaseType::mMass[k], CurrentProcessInfo);
         (rCurrentElement)->CalculateLocalVelocityContribution(BaseType::mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
         (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
@@ -356,7 +356,7 @@ public:
 
         //basic operations for the element considered
         (rCurrentElement)->CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
-        (rCurrentElement)->MassMatrix(BaseType::mMass[k], CurrentProcessInfo);
+        (rCurrentElement)->CalculateMassMatrix(BaseType::mMass[k], CurrentProcessInfo);
 
         (rCurrentElement)->CalculateLocalVelocityContribution(BaseType::mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
@@ -410,8 +410,8 @@ public:
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(this->mMass[k], CurrentProcessInfo);
-            //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(this->mMass[k], CurrentProcessInfo);
+            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalVelocityContribution(this->mDamp[k], RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
@@ -442,8 +442,8 @@ public:
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(this->mMass[k],rCurrentProcessInfo);
-            //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateMassMatrix(this->mMass[k],rCurrentProcessInfo);
+            //(rCurrentCondition)->CalculateDampingMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalVelocityContribution(this->mDamp[k], RHS_Contribution,rCurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
 

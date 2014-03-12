@@ -2568,7 +2568,7 @@ namespace Kratos
 	//************************************************************************************
 	
 	//non partitioned elements using MatrixType
-	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampMatrix,
+	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double Weight)
 	{
@@ -2586,12 +2586,12 @@ namespace Kratos
 			for (SizeType i = 0; i < NumNodes; ++i)
 			{
 				// First Row
-				rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
 				// Second Row
-				rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
 				// Update Counter
 				FirstRow += 2;
@@ -2631,12 +2631,12 @@ namespace Kratos
 		C_matrix*=Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix += prod(B_matrix, temp_matrix );
+		rDampingMatrix += prod(B_matrix, temp_matrix );
 		
 	}
 	
 	//using MatriType (for the implicit step)
-	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampMatrix,
+	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampingMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double viscosity_air,
                                        const double viscosity_water,
@@ -2659,12 +2659,12 @@ namespace Kratos
 			for (SizeType i = 0; i < NumNodes; ++i)
 			{
 				// First Row
-				rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
 				// Second Row
-				rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+				rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+				rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
 				// Update Counter
 				FirstRow += 2;
@@ -2713,11 +2713,11 @@ namespace Kratos
 		C_matrix*=Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix += prod(B_matrix, temp_matrix );
+		rDampingMatrix += prod(B_matrix, temp_matrix );
 	}
 	
 	//using bounded_matrix, for the explict step:
-	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
+	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampingMatrix,
                          boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
                          const double Weight)
 	{
@@ -2754,11 +2754,11 @@ namespace Kratos
 		C_matrix*= -Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, (2-1)*3 , (2-1)*6  > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix += prod(B_matrix, temp_matrix );
+		rDampingMatrix += prod(B_matrix, temp_matrix );
 		
 	}
 		//************************************************************************************
-	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampMatrix, 
+	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampingMatrix, 
 						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
                           std::vector< Matrix >& gauss_gradients_discontinuous, 
 						  array_1d<double,3>&  viscosities,
@@ -2780,7 +2780,7 @@ namespace Kratos
 		}
 		
 		
-		boost::numeric::ublas::bounded_matrix<double, 6, 6 > LocalAxisDampMatrix= ZeroMatrix(6,6);
+		boost::numeric::ublas::bounded_matrix<double, 6, 6 > LocalAxisDampingMatrix= ZeroMatrix(6,6);
 		boost::numeric::ublas::bounded_matrix<double, (2-1)*6,(2-1)*3 > B_matrix = ZeroMatrix(6,(2-1)*3);
 		//standard shape functions:
 		for (unsigned int i=0; i!=(2+1); i++) //i node
@@ -2796,7 +2796,7 @@ namespace Kratos
 
 
 		//now the enriched part:
-		//we have to construct (ndivisions) rTempDampMatrix and asseble add them to rDampMatrix
+		//we have to construct (ndivisions) rTempDampingMatrix and asseble add them to rDampingMatrix
 		for (unsigned int division=0; division!=ndivisions; division++)
 		{
 			for (unsigned int i=0; i!=(2+1); i++) //i node
@@ -2809,7 +2809,7 @@ namespace Kratos
 
 			
 			boost::numeric::ublas::bounded_matrix<double, (2-1)*3 , 8  > temp_matrix = prod(C_matrix,trans(B_matrix));
-			LocalAxisDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
+			LocalAxisDampingMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
 		}
 		
 		//now we rotate the matrix:
@@ -2823,7 +2823,7 @@ namespace Kratos
 				for (unsigned int k=0; k!=(2); k++) //i node
 				{
 					for (unsigned int l=0; l!=(2); l++) //j neighbour
-						LocalAxisKij(k,l)=LocalAxisDampMatrix(i*2+k,j*2+l);
+						LocalAxisKij(k,l)=LocalAxisDampingMatrix(i*2+k,j*2+l);
 				}
 				boost::numeric::ublas::bounded_matrix<double, 2 , 2  > temp_matrix = prod(LocalAxisKij,trans(rRotationMatrix));
 				boost::numeric::ublas::bounded_matrix<double, 2 , 2  > Kij = prod(rRotationMatrix,temp_matrix);
@@ -2831,7 +2831,7 @@ namespace Kratos
 				for (unsigned int k=0; k!=(2); k++) //i node
 				{
 					for (unsigned int l=0; l!=(2); l++) //j neighbour
-						rDampMatrix(i*2+k,j*2+l)=Kij(k,l);
+						rDampingMatrix(i*2+k,j*2+l)=Kij(k,l);
 				}
 			}
 		}
@@ -2840,7 +2840,7 @@ namespace Kratos
 	
 	/*
 	//************************************************************************************
-	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampMatrix, 
+	void PFEM2DiscontinuousVelocity2D::AddViscousTerm(MatrixType& rDampingMatrix, 
 						  boost::numeric::ublas::bounded_matrix<double, 2, 8 >& rEnrichmentColumns,
 						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
                           std::vector< Matrix >& gauss_gradients_discontinuous, 
@@ -2849,7 +2849,7 @@ namespace Kratos
 						  const unsigned int ndivisions)
 	{
 		
-		boost::numeric::ublas::bounded_matrix<double, 8, 8 > rExtendedDampMatrix= ZeroMatrix(8,8);
+		boost::numeric::ublas::bounded_matrix<double, 8, 8 > rExtendedDampingMatrix= ZeroMatrix(8,8);
 
 		boost::numeric::ublas::bounded_matrix<double, (2-1)*6,(2-1)*3 > B_matrix = ZeroMatrix(8,(2-1)*3);
 		//standard shape functions:
@@ -2881,7 +2881,7 @@ namespace Kratos
 		}
 		
 		//now the enriched part:
-		//we have to construct (ndivisions) rTempDampMatrix and asseble add them to rDampMatrix
+		//we have to construct (ndivisions) rTempDampingMatrix and asseble add them to rDampingMatrix
 		for (unsigned int division=0; division!=ndivisions; division++)
 		{
 
@@ -2901,7 +2901,7 @@ namespace Kratos
 			//C_matrix*= viscosities(division)*volumes(division);
 			
 			boost::numeric::ublas::bounded_matrix<double, (2-1)*3 , 8  > temp_matrix = prod(C_matrix,trans(B_matrix));
-			//rExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
+			//rExtendedDampingMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
 		}
 		
 	}

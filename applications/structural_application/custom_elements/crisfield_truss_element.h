@@ -198,15 +198,15 @@ public:
     * @param rCurrentProcessInfo process info
     * TODO: assign the mass matrix
     */
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
     /**
     * Get the damping matrix of the element.
-    * @param rDampMatrix damping matrix
+    * @param rDampingMatrix damping matrix
     * @param rCurrentProcessInfo process info
     * TODO: assign the damping matrix
     */
-    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 
     /**
     * Get the displacement vector of the element

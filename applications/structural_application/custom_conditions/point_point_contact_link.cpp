@@ -379,7 +379,7 @@ double PointPointContactLink::CalculateGap()
     return 0.00;
 }
 
-void PointPointContactLink::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void PointPointContactLink::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     Condition::GeometryType& geom = this->GetGeometry();
     const unsigned int dimension  = geom.WorkingSpaceDimension();

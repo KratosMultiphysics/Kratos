@@ -771,7 +771,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 //************************************************************************************
 //************************************************************************************
 
-void BeamElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BeamElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY

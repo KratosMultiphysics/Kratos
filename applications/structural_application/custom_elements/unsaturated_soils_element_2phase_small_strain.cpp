@@ -522,7 +522,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateLocalSystem( MatrixTyp
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -535,10 +535,10 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::DampMatrix( MatrixType& rDampMa
     unsigned int MatSizeU = number_of_nodes_disp * dim;
     unsigned int MatSizeP = number_of_nodes_press;
 
-    if ( rDampMatrix.size1() != MatSize1 )
-        rDampMatrix.resize( MatSize1, MatSize1 );
+    if ( rDampingMatrix.size1() != MatSize1 )
+        rDampingMatrix.resize( MatSize1, MatSize1 );
 
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize1, MatSize1 ); //resetting LHS
+    noalias( rDampingMatrix ) = ZeroMatrix( MatSize1, MatSize1 ); //resetting LHS
 
     const Matrix& Ncontainer_Pressure = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
 
@@ -611,7 +611,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::DampMatrix( MatrixType& rDampMa
     }
 
 
-    AssembleTimeSpaceStiffnessFromDampSubMatrices( rDampMatrix, Help_D_UU, Help_D_UW, Help_D_WU, Help_D_WW );
+    AssembleTimeSpaceStiffnessFromDampSubMatrices( rDampingMatrix, Help_D_UU, Help_D_UW, Help_D_WU, Help_D_WW );
 
     KRATOS_CATCH( "" )
 }

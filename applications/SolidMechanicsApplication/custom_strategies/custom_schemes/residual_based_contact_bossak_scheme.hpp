@@ -170,9 +170,9 @@ public:
 	    if(this->mNewmark.static_dynamic !=0)
 	      {
 
-		(rCurrentCondition) -> MassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
+		(rCurrentCondition) -> CalculateMassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
 
-		(rCurrentCondition) -> DampMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
+		(rCurrentCondition) -> CalculateDampingMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
 
 	      }
 
@@ -250,9 +250,9 @@ public:
 	    if(this->mNewmark.static_dynamic !=0)
 	      {
 
-		(rCurrentCondition) -> MassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
+		(rCurrentCondition) -> CalculateMassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
 
-		(rCurrentCondition) -> DampMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
+		(rCurrentCondition) -> CalculateDampingMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
 
 	      }
 

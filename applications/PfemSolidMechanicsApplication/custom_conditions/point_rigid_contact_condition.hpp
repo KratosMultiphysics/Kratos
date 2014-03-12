@@ -343,18 +343,18 @@ public:
       * @param rMassMatrix: the condition mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void MassMatrix(
+    void CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo );
 
     /**
       * this is called during the assembling process in order
       * to calculate the condition damping matrix
-      * @param rDampMatrix: the condition damping matrix
+      * @param rDampingMatrix: the condition damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void DampMatrix(
-        MatrixType& rDampMatrix,
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo );
 
 

@@ -826,7 +826,7 @@ public:
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
             {
                 Element::GeometryType& geom = it->GetGeometry();
-                (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+                (it)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
                 unsigned int dim   = geom.WorkingSpaceDimension();
                 unsigned int index = 0;
                 for (unsigned int i = 0; i <geom.size(); i++)

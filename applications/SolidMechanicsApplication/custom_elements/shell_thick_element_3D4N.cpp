@@ -715,7 +715,7 @@ namespace Kratos
         mEASStorage.FinalizeSolutionStep(CurrentProcessInfo);
     }
 
-    void ShellThickElement3D4N::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if((rMassMatrix.size1() != 24) || (rMassMatrix.size2() != 24))
             rMassMatrix.resize(24, 24, false);
@@ -747,12 +747,12 @@ namespace Kratos
         }
     }
 
-    void ShellThickElement3D4N::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+    void ShellThickElement3D4N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
-        if((rDampMatrix.size1() != 24) || (rDampMatrix.size2() != 24))
-            rDampMatrix.resize(24, 24, false);
+        if((rDampingMatrix.size1() != 24) || (rDampingMatrix.size2() != 24))
+            rDampingMatrix.resize(24, 24, false);
 
-        noalias( rDampMatrix ) = ZeroMatrix(24, 24);
+        noalias( rDampingMatrix ) = ZeroMatrix(24, 24);
     }
 
     void ShellThickElement3D4N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,

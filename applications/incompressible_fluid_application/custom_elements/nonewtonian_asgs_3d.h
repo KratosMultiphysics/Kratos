@@ -183,9 +183,9 @@ public:
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-//      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+//      void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
     ///Calculate all the lhs contributions multiplied by velocity: i.e. the convective, pressure, viscous, darcy contributions
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -264,7 +264,7 @@ protected:
     ///Add the projection in case OSS stabilization thechnique is chosen (OSS_SWITCH should be set = 1.0);
     virtual void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double volume,const double thawone,const double thawtwo);
     ///Calcualte the mass contributions
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
     ///Calculate the shape function derivatives matrix
     virtual void CalculateB(	 boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX);
     ///Calculate the symmetric gradient of velocity

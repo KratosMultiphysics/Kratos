@@ -955,7 +955,7 @@ void HypoelasticElement::ResizeAndInitializeAuxiliaries()
 
 //************************************************************************************
 //************************************************************************************
-void HypoelasticElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+void HypoelasticElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -964,10 +964,10 @@ void HypoelasticElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurre
     //resizing as needed the LHS
     unsigned int MatSize=number_of_nodes*dim;
 
-    if(rDampMatrix.size1() != MatSize)
-        rDampMatrix.resize(MatSize,MatSize,false);
+    if(rDampingMatrix.size1() != MatSize)
+        rDampingMatrix.resize(MatSize,MatSize,false);
 
-    noalias(rDampMatrix)= ZeroMatrix(MatSize,MatSize);
+    noalias(rDampingMatrix)= ZeroMatrix(MatSize,MatSize);
 
 
     const GeometryType::IntegrationPointsArrayType& intg_points = GetGeometry().IntegrationPoints();
@@ -1006,16 +1006,16 @@ void HypoelasticElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurre
         CalculateB(msB,msDN_DX);
         //KRATOS_WATCH(msB);
         double weightdv = intg_points[intpn].Weight()*mDetJ[intpn];
-        noalias(rDampMatrix) += prod(trans(msB),(weightdv)*Matrix(prod(msD,msB)));
-        //KRATOS_WATCH(rDampMatrix);
+        noalias(rDampingMatrix) += prod(trans(msB),(weightdv)*Matrix(prod(msD,msB)));
+        //KRATOS_WATCH(rDampingMatrix);
     }
-    //KRATOS_WATCH(rDampMatrix);
+    //KRATOS_WATCH(rDampingMatrix);
     KRATOS_CATCH("")
 }
 
 //*************************************************************************************
 //*************************************************************************************
-void HypoelasticElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void HypoelasticElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();

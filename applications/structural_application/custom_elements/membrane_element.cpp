@@ -408,7 +408,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MembraneElement::MassMatrix(
+    void MembraneElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo )
 
@@ -448,8 +448,8 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MembraneElement::DampMatrix(
-        MatrixType& rDampMatrix,
+    void MembraneElement::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo )
 
     {
@@ -459,10 +459,10 @@ namespace Kratos
         unsigned int number_of_nodes = GetGeometry().size();
         unsigned int MatSize = number_of_nodes * 3;
 
-        if ( rDampMatrix.size1() != MatSize )
-            rDampMatrix.resize( MatSize, MatSize );
+        if ( rDampingMatrix.size1() != MatSize )
+            rDampingMatrix.resize( MatSize, MatSize );
 
-        rDampMatrix = ZeroMatrix( MatSize, MatSize );
+        rDampingMatrix = ZeroMatrix( MatSize, MatSize );
 
         double TotalMass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
 
@@ -477,7 +477,7 @@ namespace Kratos
             for ( unsigned int j = 0; j < 3; j++ )
             {
                 unsigned int index = i * 3 + j;
-                rDampMatrix( index, index ) = temp;
+                rDampingMatrix( index, index ) = temp;
             }
         }
 

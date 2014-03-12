@@ -135,7 +135,7 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 //        void GetFirstDerivativesVector(Vector& values, int Step = 0);
 //        void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
