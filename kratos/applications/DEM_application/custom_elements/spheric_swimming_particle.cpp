@@ -70,7 +70,7 @@ namespace Kratos
           additionally_applied_force[0] = buoyancy[0] + drag_force[0] + virtual_mass_force[0] + lift_force[0] + mRealMass * gravity[0];
           additionally_applied_force[1] = buoyancy[1] + drag_force[1] + virtual_mass_force[1] + lift_force[1] + mRealMass * gravity[1];
           additionally_applied_force[2] = buoyancy[2] + drag_force[2] + virtual_mass_force[2] + lift_force[2] + mRealMass * gravity[2];
-
+          
           KRATOS_CATCH( "" )
       }
 
@@ -261,29 +261,19 @@ namespace Kratos
               const double& particle_density             = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
               const double kinematic_viscosity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
               const double sphericity                    = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
-              //const array_1d<double, 3>& buoyancy       = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);//S
               const array_1d<double, 3>& gravity          = rCurrentProcessInfo[GRAVITY];
               const int manually_imposed_drag_law_option = rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
               const int drag_modifier_type               = rCurrentProcessInfo[DRAG_MODIFIER_TYPE];
-              //const double gel_strength                  = rCurrentProcessInfo[GEL_STRENGTH];
               const double gel_strength                  = GetGeometry()(0)->FastGetSolutionStepValue(GEL_STRENGTH);
-              //const double power_law_n                   = rCurrentProcessInfo[POWER_LAW_N];
               const double power_law_n                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
-              //const double power_law_K                   = rCurrentProcessInfo[POWER_LAW_K];
               const double power_law_K                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
               const double yield_stress                  = GetGeometry()(0)->FastGetSolutionStepValue(YIELD_STRESS);
-              //const int non_newtonian_option             = rCurrentProcessInfo[NON_NEWTONIAN_OPTION];              
               int non_newtonian_option = 1;
 
               if (fabs(power_law_n - 1.0) < 0.00001  ||  fabs(yield_stress) < 0.00001) {
                   non_newtonian_option = 0;
               }
-              
-              
-              const double initial_drag_force            = rCurrentProcessInfo[INIT_DRAG_FORCE];
-              const double drag_law_slope                = rCurrentProcessInfo[DRAG_LAW_SLOPE];
-              const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOLERANCE];
-
+                                          
               const double area                          = M_PI * mRadius * mRadius;
               const array_1d<double, 3> weight            = mRealMass * gravity;
               const array_1d<double, 3> buoyancy          = fluid_density / particle_density * weight; // hydrostatic case!! (only for Weatherford)
@@ -306,16 +296,16 @@ namespace Kratos
               }
 
               else {
-                  shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, fluid_density, particle_density, sphericity, drag_modifier_type);
+                  shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, rCurrentProcessInfo[POWER_LAW_TOLERANCE], fluid_density, particle_density, sphericity, drag_modifier_type);
 
                   if (!manually_imposed_drag_law_option){
                       F0 = 4.0 * gel_strength * area; //initial value
                       beta = (MathUtils<double>::Norm3(weight) - MathUtils<double>::Norm3(buoyancy) - F0) / shahs_term_vel; //S
                   }
 
-                  else {
-                      F0 = initial_drag_force; //initial value
-                      beta = drag_law_slope; //slope
+                  else {                      
+                      F0 = rCurrentProcessInfo[INIT_DRAG_FORCE];; //initial value
+                      beta = rCurrentProcessInfo[DRAG_LAW_SLOPE];; //slope
                   }
 
                   if (norm_of_slip_vel >= regularization_v){
@@ -496,21 +486,22 @@ namespace Kratos
                                                                    const double vorticity_norm,
                                                                    ProcessInfo& rCurrentProcessInfo)
      {
-
-       const double yield_stress   = 0.0; // we are considering a Bingham type fluid
-       const double power_law_K    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
-       const double power_law_n    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
-       const double shear_rate_p   = norm_of_slip_vel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
-       double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
-       equivalent_viscosity       /= fluid_density; // 'kinematic' equivalent viscosity
-       double reynolds;
-       ComputeReynoldsNumber(norm_of_slip_vel, equivalent_viscosity, reynolds);
-
-       const double alpha_p        = mRadius * norm_of_shear_rate / norm_of_slip_vel;
-       const double coeff          = std::max(0.09, 5.82 * sqrt(alpha_p / reynolds));
-       const double lift_coeff     = 0.5 * M_PI * mRadius * coeff * fluid_density * norm_of_slip_vel * norm_of_slip_vel / vorticity_norm;
-
-       return(lift_coeff);
+       
+       if (vorticity_norm > 0.000000000001){
+             const double yield_stress   = GetGeometry()(0)->FastGetSolutionStepValue(YIELD_STRESS);
+             const double power_law_K    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
+             const double power_law_n    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
+             const double shear_rate_p   = norm_of_slip_vel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
+             double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
+             equivalent_viscosity       /= fluid_density; // 'kinematic' equivalent viscosity
+             const double coeff          = std::max(0.09 * norm_of_slip_vel, 5.82 * sqrt(0.5 * shear_rate_p * equivalent_viscosity / fluid_density));
+             const double lift_coeff     = 0.5 * M_PI * mRadius * coeff * fluid_density * norm_of_slip_vel / vorticity_norm;
+             return lift_coeff;
+        }
+        else {
+             return 0.0;
+        }
+       
      }
 
    //**************************************************************************************************************************************************
