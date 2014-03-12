@@ -38,7 +38,7 @@ namespace Kratos
      * Flags related to the Features of the Contitutive Law
      */
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,             10 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,     11 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,      11 );
 
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,      12 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           13 );

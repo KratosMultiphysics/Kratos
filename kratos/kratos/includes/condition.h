@@ -511,63 +511,108 @@ public:
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions 
-     * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces and 
-     * CalculateLocalVelocityContribution methods are: OPTIONAL
+     * if they need to add dynamic element contributions 
+     * CalculateInertialContributionLHS, CalculateDampingContributionLHS, 
+     * CalculateInertialContributionRHS, CalculateDampingContributionRHS methods are: OPTIONAL
+     */    
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition mass matrix
+     * @param rInertialMatrix: the condition mass matrix with time integration parameters
+     * @param rCurrentProcessInfo: the current process info instance
      */
-    
+    virtual void CalculateInertialContributionLHS(MatrixType& rInertialMatrix, ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rInertialMatrix.size1() != 0)
+            rInertialMatrix.resize(0, 0);
+    }
+
+     /**
+     * this is called during the assembling process in order
+     * to calculate the condition damping matrix
+     * @param rDampingMatrix: the condition damping matrix with time integration parameters
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateDampingContributionLHS(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rDampingMatrix.size1() != 0)
+            rDampingMatrix.resize(0, 0);
+    }
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition inertial vector
+     * @param rInertialVector: the condition inertial contribution vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateInertialContributionRHS(VectorType& rInertialVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rInertialVector.size() != 0)
+	  rInertialVector.resize(0);
+    }
+
+     /**
+     * this is called during the assembling process in order
+     * to calculate the condition damping vector
+     * @param rDampingVector: the condition damping contribution vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateDampingContributionRHS(VectorType& rDampingVector, ProcessInfo& rCurrentProcessInfo)
+    {
+          if (rDampingVector.size() != 0)
+            rDampingVector.resize(0);
+    }
+
+
+
+    /**
+     * CONDITIONS inherited from this class must implement this methods
+     * if they need to add dynamic element contributions 
+     * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
+     */    
+
     /**
      * this is called during the assembling process in order
      * to calculate the condition mass matrix
      * @param rMassMatrix: the condition mass matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
             rMassMatrix.resize(0, 0);
     }
 
-    /**
-     * adds the mass matrix scaled by a given factor to the LHS
-     * @param rLeftHandSideMatrix: the condition LHS matrix
-     * @param coeff: the given factor
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix, double coeff, ProcessInfo& rCurrentProcessInfo)
-    {
-    }
 
     /**
      * this is called during the assembling process in order
      * to calculate the condition damping matrix
-     * @param rDampMatrix: the condition damping matrix
+     * @param rDampingMatrix: the condition damping matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
-        if (rDampMatrix.size1() != 0)
-            rDampMatrix.resize(0, 0);
+        if (rDampingMatrix.size1() != 0)
+            rDampingMatrix.resize(0, 0);
     }
 
     /**
-     * adds the inertia forces to the RHS --> performs residua = static_residua - coeff*M*acc
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, ProcessInfo& rCurrentProcessInfo)
-    {
-    }
+     * CONDITIONS inherited from this class must implement this method
+     * if they need to add dynamic condition contributions 
+     * CalculateLocalVelocityContribution method is: OPTIONAL
+     */  
 
-    /**
+    /** WILDCARD METHOD FOR FLUIDS: consistency breaks
      * Calculate Damp matrix and add velocity contribution to RHS
-     * @param rDampMatrix: the velocity-proportional "damping" matrix
+     * @param rDampingMatrix: the velocity-proportional "damping" matrix
      * @param rRightHandSideVector: the condition right hand side matrix
      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
-        if (rDampMatrix.size1() != 0)
-            rDampMatrix.resize(0, 0);
+        if (rDampingMatrix.size1() != 0)
+            rDampingMatrix.resize(0, 0);
     }
 
     /**
@@ -776,52 +821,54 @@ public:
 
     //METHODS TO BE CLEANED: RUBBISH start
 
-    /* virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo) */
-    /* { */
-    /* }  */
+    /**
+     * CONDITIONS inherited from this class must implement this methods
+     * if they need to add dynamic condition contributions 
+     * MassMatrix, AddMassMatrix, DampingMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
+     */  
 
-    /* /\** */
-    /*  * this is called during the assembling process in order */
-    /*  * to calculate the condition left hand side vector only */
-    /*  * @param rLeftHandSideVector: the condition left hand side vector */
-    /*  * @param rCurrentProcessInfo: the current process info instance */
-    /*  *\/ */
-    /* virtual void CalculateLeftHandSide(VectorType& rLeftHandSideVector, ProcessInfo& rCurrentProcessInfo) */
-    /* { */
-    /*     if (rLeftHandSideVector.size() != 0) */
-    /*         rLeftHandSideVector.resize(0); */
-    /* } */
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition mass matrix
+     * @param rMassMatrix: the condition mass matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rMassMatrix.size1() != 0)
+            rMassMatrix.resize(0, 0);
+    }
 
-    /* /\** */
-    /*  * this is called during the assembling process in order */
-    /*  * to calculate the condition right hand side matrix only */
-    /*  * @param rRightHandSideMatrix: the condition right hand side matrix */
-    /*  * @param rCurrentProcessInfo: the current process info instance */
-    /*  *\/ */
-    /* virtual void CalculateRightHandSide(MatrixType& rRightHandSideMatrix, ProcessInfo& rCurrentProcessInfo) */
-    /* { */
-    /*     if (rRightHandSideMatrix.size1() != 0) */
-    /*         rRightHandSideMatrix.resize(0, 0); */
-    /* } */
+    /**
+     * adds the mass matrix scaled by a given factor to the LHS
+     * @param rLeftHandSideMatrix: the condition LHS matrix
+     * @param coeff: the given factor
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix, double coeff, ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition damping matrix
+     * @param rDampMatrix: the condition damping matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rDampMatrix.size1() != 0)
+            rDampMatrix.resize(0, 0);
+    }
 
-    /* /\** */
-    /*  * this is called during the assembling process in order */
-    /*  * to calculate all condition contributions to the global system */
-    /*  * matrix and the right hand sides for a matrix-formed RHS */
-    /*  * @param rLeftHandSideMatrix: the condition left hand side matrix */
-    /*  * @param rDampMatrix: the condition damping matrix */
-    /*  * @param rRightHandSideVector1: the condition right hand side (1) */
-    /*  * @param rRightHandSideVector2: the condition right hand side (1) */
-    /*  * @param rCurrentProcessInfo: the current process info instance */
-    /*  *\/ */
-    /* virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, */
-    /*                                   MatrixType& rDampMatrix, */
-    /*                                   VectorType& rRightHandSideVector1, */
-    /*                                   VectorType& rRightHandSideVector2, */
-    /*                                   ProcessInfo& rCurrentProcessInfo) */
-    /* { */
-    /* } */
+    /**
+     * adds the inertia forces to the RHS --> performs residua = static_residua - coeff*M*acc
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
 
     //METHODS TO BE CLEANED: RUBBISH end
 
