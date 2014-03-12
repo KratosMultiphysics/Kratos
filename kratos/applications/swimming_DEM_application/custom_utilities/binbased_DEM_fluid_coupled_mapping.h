@@ -1145,12 +1145,14 @@ private:
         //getting the data of the solution step
         const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
         const double particle_volume = 1.33333333333333333333 * M_PI * mParticlesPerDepthDistance * radius * radius * radius;
-
+        
+        
         for (unsigned int inode = 0; inode < NN.size(); inode++){
-            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += NN[inode] * particle_volume;
-            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[0] += DN_DX(inode, 0) * particle_volume;
-            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[1] += DN_DX(inode, 1) * particle_volume;
-            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[2] += DN_DX(inode, 2) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION) += NN[inode] * particle_volume;
+            array_1d<double, 3>& solid_fraction_gradient = geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT);
+            solid_fraction_gradient[0] += DN_DX(inode, 0) * particle_volume;
+            solid_fraction_gradient[1] += DN_DX(inode, 1) * particle_volume;
+            solid_fraction_gradient[2] += DN_DX(inode, 2) * particle_volume;
         }
 
     }
