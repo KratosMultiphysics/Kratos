@@ -746,8 +746,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       {
 
         double LocalElasticContactForce[3]  = {0.0}; 
-        double GlobalElasticContactForce[3] = {0.0};
-        double GlobalContactForceOld[3] = {0.0};			            
+        double GlobalElasticContactForce[3] = {0.0};        
 
         array_1d<double, 3 > other_to_me_vel;
         noalias(other_to_me_vel) = ZeroVector(3);
