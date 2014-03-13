@@ -73,6 +73,7 @@ def MoveAllMeshes(model_part, time):
                 
             else:
                 center_position = initial_center + time * linear_velocity
+                linear_velocity_changed = linear_velocity
 
             if (angular_period > 0.0):
                 angular_omega = 2 * math.pi / angular_period
@@ -82,6 +83,7 @@ def MoveAllMeshes(model_part, time):
                 
             else:
                 angle = angular_velocity * time
+                angular_velocity_changed = angular_velocity
                 
                 
             mod_angular_velocity = Norm(angular_velocity)
