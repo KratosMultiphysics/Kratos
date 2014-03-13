@@ -59,8 +59,8 @@ namespace Kratos
           const double& fluid_density                = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
           array_1d<double, 3>& buoyancy              = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
           array_1d<double, 3>& drag_force            = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
-          array_1d<double, 3> virtual_mass_force;//    = GetGeometry()(0)->FastGetSolutionStepValue(VIRTUAL_FORCE);
-          array_1d<double, 3> lift_force;//            = GetGeometry()(0)->FastGetSolutionStepValue(LIFT_FORCE);
+          array_1d<double, 3>  virtual_mass_force;//    = GetGeometry()(0)->GetSolutionStepValue(VIRTUAL_FORCE);
+          array_1d<double, 3>& lift_force            = GetGeometry()(0)->GetSolutionStepValue(LIFT_FORCE);
 
           ComputeBuoyancy(buoyancy, fluid_density, gravity, rCurrentProcessInfo);
           ComputeDragForce(drag_force, fluid_density, rCurrentProcessInfo);
