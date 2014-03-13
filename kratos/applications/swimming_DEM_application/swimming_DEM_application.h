@@ -27,9 +27,6 @@
 namespace Kratos
 {
   KRATOS_DEFINE_VARIABLE(double, AUX_DOUBLE_VAR)
-    //KRATOS_DEFINE_VARIABLE(double, POWER_LAW_N)
-    //KRATOS_DEFINE_VARIABLE(double, POWER_LAW_K)
-    //KRATOS_DEFINE_VARIABLE(double, GEL_STRENGTH)
 
 class KratosSwimmingDEMApplication : public KratosApplication
 {

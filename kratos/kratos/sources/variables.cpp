@@ -151,6 +151,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( int, REFINEMENT_LEVEL )
 
   //for DEM application:
+  KRATOS_CREATE_VARIABLE(double, GEL_STRENGTH)
+  KRATOS_CREATE_VARIABLE(double, POWER_LAW_N)
+  KRATOS_CREATE_VARIABLE(double, POWER_LAW_K)
   KRATOS_CREATE_VARIABLE( int, PARTICLE_MATERIAL )
 
   //doubles
@@ -1167,7 +1170,10 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( PERIODIC_VARIABLES )
 
       //--------------- DEM Application -------------------//
-
+      
+      KRATOS_REGISTER_VARIABLE(GEL_STRENGTH)
+      KRATOS_REGISTER_VARIABLE(POWER_LAW_N)
+      KRATOS_REGISTER_VARIABLE(POWER_LAW_K)
 
       //--------------- Vulcan Application -------------------//
 

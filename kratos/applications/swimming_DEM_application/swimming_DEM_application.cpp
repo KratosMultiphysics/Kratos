@@ -27,9 +27,6 @@ namespace Kratos
 {
         
   KRATOS_CREATE_VARIABLE(double, AUX_DOUBLE_VAR)
-  //KRATOS_CREATE_VARIABLE(double, POWER_LAW_N)
-  //KRATOS_CREATE_VARIABLE(double, POWER_LAW_K)
-  //KRATOS_CREATE_VARIABLE(double, GEL_STRENGTH)
   
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -44,11 +41,8 @@ void KratosSwimmingDEMApplication::Register()
                 
 
   KRATOS_REGISTER_VARIABLE(AUX_DOUBLE_VAR)
-    //KRATOS_REGISTER_VARIABLE(POWER_LAW_N)
-    //KRATOS_REGISTER_VARIABLE(POWER_LAW_K)        
-    //KRATOS_REGISTER_VARIABLE(GEL_STRENGTH)
 
-      /* Define In Global variables.cpp */
+  /* Define In Global variables.cpp */
 
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupled2D", mMonolithicDEMCoupled2D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupled3D", mMonolithicDEMCoupled3D)
