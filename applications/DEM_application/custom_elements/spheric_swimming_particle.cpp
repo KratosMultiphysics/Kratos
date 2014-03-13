@@ -200,7 +200,7 @@ namespace Kratos
               return;
           }
 
-          noalias(lift_force) = lift_coeff * vort_cross_slip_vel; // the direction is given by the vorticity x slip_vel (Jackson, 2000), which is normalized here
+          noalias(lift_force) = - lift_coeff * vort_cross_slip_vel; // the direction is given by the vorticity x (- slip_vel) (Jackson, 2000), which is normalized here
       }
 
     //**************************************************************************************************************************************************
