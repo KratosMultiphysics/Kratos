@@ -155,9 +155,9 @@ void RigidEdge3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 				
 				ino = 3 * i_nei;
 				
-				ContactForce[0] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 0];
-				ContactForce[1] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 1];
-				ContactForce[2] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 2];
+				ContactForce[0] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)[ino + 0];
+				ContactForce[1] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)[ino + 1];
+				ContactForce[2] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE)[ino + 2];
 				
 				for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
 				{
