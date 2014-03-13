@@ -15,7 +15,7 @@ import DEM_procedures
 Procedures = DEM_procedures.Procedures(DEM_parameters)
 import DEM_procedures_mpi as DEM_procedures_mpi
 
-import DEM_material_test_script 
+import DEM_material_test_script_mpi 
 import mesh_motion
 import MPIer
 
@@ -34,6 +34,7 @@ mixed_model_part       = ModelPart("Mixed_Part");
 
 RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+RigidFace_model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
 RigidFace_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
 RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
 RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
@@ -75,7 +76,7 @@ model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 MPICommSetup = SetMPICommunicatorProcess(balls_model_part)
 MPICommSetup.Execute()
 
-def MPIprint(message):
+def KRATOSprint(message):
     if (mpi.rank == 0):
         print(message)    
 
@@ -130,7 +131,7 @@ multifile_50.write('Multiple\n')
 
 os.chdir(main_path)
 
-MPIprint ("Initializing Problem....")
+KRATOSprint ("Initializing Problem....")
 
 # MPI initialization
 mpiutils = MpiUtilities();
@@ -179,8 +180,8 @@ if (DEM_parameters.Multifile == "single_file"):
 
 if(DEM_parameters.TestType != "None"):
  
- MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
-
+ MaterialTest = DEM_material_test_script_mpi.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
+ 
 MPIprint ("Initialization Complete" + "\n")
 
 step                   = 0
@@ -190,17 +191,6 @@ initial_pr_time        = timer.clock()
 initial_real_time      = timer.time()
 
 first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; prev_time  = 0.0; control = 0.0
-
-##OEdometric
-
-if(DEM_parameters.TestType == "Edometric"):
-  
-  for node in Procedures.LAT:
-
-    node.SetSolutionStepValue(VELOCITY_X, 0.0);
-    node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-    node.Fix(VELOCITY_X);
-    node.Fix(VELOCITY_Z);
     
 ##MODEL DATA 
 
@@ -208,14 +198,17 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
       (coordination_number) = Procedures.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-      MPIprint ("Coordination Number: " + str(coordination_number) + "\n")
+      KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
       os.chdir(main_path)
     else:
-      MPIprint("Activate Contact Mesh for ModelData information")
+      KRATOSprint("Activate Contact Mesh for ModelData information")
 
 if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
- MaterialTest.PrintChart(DEM_parameters);
+ if(mpi.rank == 0):
+    MaterialTest.PrintChart();
+    
+ MaterialTest.PrepareDataForGraph()
  
 #------------------------------------------------------------------------------------------
  
@@ -229,12 +222,12 @@ dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications 
 
 total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
-MPIprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
+KRATOSprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 
-MPIprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
+KRATOSprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
 #if(DEM_parameters.PoissonMeasure == "ON"):
-  #MaterialTest.PoissonMeasuure()
+	#MaterialTest.PoissonMeasure()
   
 while (time < DEM_parameters.FinalTime):
 
@@ -263,11 +256,10 @@ while (time < DEM_parameters.FinalTime):
     if (incremental_time > DEM_parameters.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
-        MPIprint('Real time calculation: ' + str(timer.time() - initial_real_time))
-        MPIprint('Simulation time: ' + str(time))
-        MPIprint("%s %.5f" % ("Percentage Completed: ", percentage))    
-        MPIprint("TIME STEP = " + str(step) + '\n')
-
+        KRATOSprint('Real time calculation: ' + str(timer.time() - initial_real_time))
+        KRATOSprint('Simulation time: ' + str(time))
+        KRATOSprint("%s %.5f %s" % ("Percentage Completed: ", percentage,"%"))      
+        KRATOSprint("Time Step: " + str(step) + '\n')
         sys.stdout.flush()
 
         prev_time = (timer.time() - initial_real_time)
@@ -276,22 +268,25 @@ while (time < DEM_parameters.FinalTime):
         first_print = False
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
-        MPIprint('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        MPIprint('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
-        MPIprint('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        MPIprint('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
+        KRATOSprint('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
+        KRATOSprint('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+        KRATOSprint('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+        KRATOSprint('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
 
         if (estimated_sim_duration / 86400 > 2.0):
 
-          MPIprint('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
+          KRATOSprint('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
     #########################CONCRETE_TEST_STUFF#########################################
     
     if( DEM_parameters.TestType != "None"):
-   
-      MaterialTest.CreateTopAndBotGraph(DEM_parameters,step) 
-     
+      
+      MaterialTest.MeasureForcesAndPressure()
+      
+      if(mpi.rank == 0):
+        MaterialTest.PrintGraph(step)
+
     ##########################___GiD IO____#########################################
     
     os.chdir(list_path)    
@@ -380,11 +375,11 @@ os.chdir(main_path)
 elapsed_pr_time     = timer.clock() - initial_pr_time
 elapsed_real_time   = timer.time() - initial_real_time
 
-MPIprint ('Calculation ends at instant: '                 + str(timer.time()))
-MPIprint ('Calculation ends at processing time instant: ' + str(timer.clock()))
-MPIprint ('Elapsed processing time: '                     + str(elapsed_pr_time))
-MPIprint ('Elapsed real time: '                           + str(elapsed_real_time))
+KRATOSprint ('Calculation ends at instant: '                 + str(timer.time()))
+KRATOSprint ('Calculation ends at processing time instant: ' + str(timer.clock()))
+KRATOSprint ('Elapsed processing time: '                     + str(elapsed_pr_time))
+KRATOSprint ('Elapsed real time: '                           + str(elapsed_real_time))
 
-#MPIprint (my_timer)
+#KRATOSprint (my_timer)
 
-MPIprint ("ANALYSIS COMPLETED" )
+KRATOSprint ("ANALYSIS COMPLETED" )
