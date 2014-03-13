@@ -78,62 +78,9 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void CylinderContinuumParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-      {
-          KRATOS_TRY
-
-          array_1d<double, 3> contact_force;
-          array_1d<double, 3> contact_moment;
-          array_1d<double, 3> additionally_applied_force;
-          array_1d<double, 3> additionally_applied_moment;
-          array_1d<double, 3> initial_rotation_moment;     
-          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
-
-          contact_force.clear();
-          contact_moment.clear();
-          additionally_applied_force.clear();
-          additionally_applied_moment.clear();
-          initial_rotation_moment.clear();
-          elastic_force.clear();
-          
-          if( *mpActivateSearch==1 || *mpTimeStep == 0)
-          {
-
-            ComputeNewNeighboursHistoricalData();
-          }
-
-          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
-
-          if (mLimitSurfaceOption > 0){
-
-              for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
-                  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
-              }
-          }
-          
-          if (mLimitCylinderOption > 0){
-
-              for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
-                  ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
-              }
-          }
-          
-          ComputeAdditionalForces(contact_force, contact_moment, additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
-
-          rRightHandSideVector[0] = contact_force[0]  + additionally_applied_force[0];
-          rRightHandSideVector[1] = contact_force[1]  + additionally_applied_force[1];
-          rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
-          //rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
-          rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
-          rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[0];
-          rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
-          //rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
-
-          KRATOS_CATCH( "" )
-      }
+           
       
-      
-       void SphericContinuumParticle::ContactAreaWeighting2D() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+       void CylinderContinuumParticle::ContactAreaWeighting2D() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
         double alpha = 1.0;
@@ -144,7 +91,7 @@ namespace Kratos
         ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
         int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
         
-        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);  //NOTE: Here we use "mcont_ini_neigh_area" just becouse in the general 3D particle this is the name used.
+        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);  //NOTE: Here we use "mcont_ini_neigh_area" just becouse in the general 3D particle this is the name used.ContactAreaWeighting2D
         
         //computing the total equivalent area
         
@@ -208,6 +155,48 @@ namespace Kratos
         }//if 3 neighbours or more.
    
       } //Contact Area Weighting
+      
+      
+      void CylinderContinuumParticle::StressTensorOperations(double mStressTensor[3][3],    
+                                                            double GlobalElasticContactForce[3],
+                                                            array_1d<double,3> &other_to_me_vect,
+                                                            const double &distance,
+                                                            const double &radius_sum,
+                                                            const double &calculation_area,
+                                                            ParticleWeakIteratorType neighbour_iterator, 
+                                                            ProcessInfo& rCurrentProcessInfo, 
+                                                            double &rRepresentative_Volume)
+      {
+
+        double gap                  = distance - radius_sum;
+      
+        array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
+      
+        double Dummy_Dummy = 0.0;
+        GeometryFunctions::normalize(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+
+        array_1d<double,3> x_centroid      = (mRadius + 0.5*gap) * normal_vector_on_contact;
+      
+        array_1d<double,3> surface_baricenter = x_centroid;
+        
+        double result_product = GeometryFunctions::DotProduct(surface_baricenter,normal_vector_on_contact); 
+        
+        //Aproximation with error: surface_baricenter should be the baricenter of each surface, which can no be calculated because the surfaces are imaginary.
+      
+        rRepresentative_Volume = rRepresentative_Volume + 0.5 * (result_product * calculation_area);
+        
+        for (int i=0; i<3; i++)
+        {
+            for (int j=0; j<3; j++)
+            {   
+                mStressTensor[i][j] += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
+            
+              
+            }
+        }
+
+          
+      } //StressTensorOperations
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
