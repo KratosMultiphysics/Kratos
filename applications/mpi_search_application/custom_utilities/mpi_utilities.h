@@ -187,13 +187,15 @@ namespace Kratos
       /**
        * MigrateElements for an specific meshgroup.
        **/
-      void MigrateMeshElements(ModelPart& rModelPart, ElementsContainerType::ContainerType& pElements, std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType> RecvObjects, const int groupId)
+      void MigrateMeshElements(ModelPart& rModelPart, Kratos::Serializer& particleSerializer, std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType> RecvObjects, const int groupId)
       {
           int mpi_rank;
           int mpi_size;
           
           MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
           MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+          
+          ElementsContainerType::ContainerType& pElements = rModelPart.GetMesh(groupId).ElementsArray();
         
           //Fill the send buffer with elements to be transfered
           for (ElementsContainerType::ContainerType::iterator i_element = pElements.begin(); i_element != pElements.end(); ++i_element)
@@ -237,9 +239,17 @@ namespace Kratos
               SendObjects[i].reserve(rModelPart.GetCommunicator().LocalMesh().NumberOfElements());
           }
           
-          ElementsContainerType::ContainerType& pElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
+          Kratos::Serializer particleSerializer;
           
-          MigrateMeshElements(rModelPart,pElements,SendObjects,RecvObjects,0);
+          // Main Mesh
+          MigrateMeshElements(rModelPart,particleSerializer,SendObjects,RecvObjects,0);
+          
+          // Rest of the meshes
+          for(int i = 1; i < rModelPart.NumberOfMeshes(); i++)
+          {
+              MigrateMeshElements(rModelPart,particleSerializer,SendObjects,RecvObjects,i);
+          }
+          
           PrepareNewPartition(rModelPart);
           
           KRATOS_CATCH("")
