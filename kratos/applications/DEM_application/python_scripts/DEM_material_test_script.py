@@ -23,7 +23,16 @@ class MaterialTest:
       
       self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = [];
       
-      self.sup_layer_fm = list(); self.inf_layer_fm = list(); self.others = list()
+      self.SKIN = list()
+      self.LAT = list()
+      self.BOT = list()
+      self.TOP = list()
+      self.XLAT = list()  # only lat, not the corner ones
+      self.XTOP = list()  # only top, not corner ones...
+      self.XBOT = list()
+      self.XTOPCORNER = list()
+      self.XBOTCORNER = list()
+      
       
       self.bond_00_05 = list(); self.bond_05_10 = list(); self.bond_10_15 = list(); self.bond_15_20 = list(); self.bond_20_25 = list(); self.bond_25_30 = list(); self.bond_30_35 = list()
       self.bond_35_40 = list(); self.bond_40_45 = list(); self.bond_45_50 = list(); self.bond_50_55 = list(); self.bond_55_60 = list(); self.bond_60_65 = list(); self.bond_65_70 = list()
@@ -32,8 +41,6 @@ class MaterialTest:
       self.sizes = [];
       
       self.sigma_mean_table = []; self.tau_mean_table = []; self.sigma_rel_std_dev_table = []; self.tau_rel_std_dev_table = []; self.sigma_ratio_table = [];
-      
-      self.graph_counter = 0; self.graph_counter_fem = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0;
 
       for i in range(0,18):
           self.sizes.append(0.0)
@@ -41,13 +48,17 @@ class MaterialTest:
           self.tau_mean_table.append(0.0)
           self.sigma_rel_std_dev_table.append(0.0)
           self.tau_rel_std_dev_table.append(0.0)
-          self.sigma_ratio_table.append(0.0)
-  
+          self.sigma_ratio_table.append(0.0)      
+
+      self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0;
+      
+      self.length_correction_factor = 1.0
+
       self.graph_frequency        = int(self.parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
       
       self.strain = 0.0; self.total_stress = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
       self.strain_fem = 0.0; self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0; self.total_stress_fem = 0.0; 
-      self.total_stress_fem_bot = 0.0; self.total_stress_fem_mean = 0.0;
+      self.total_stress_fem_bot = 0.0
       
       self.new_strain = 0.0
       
@@ -63,42 +74,62 @@ class MaterialTest:
            
       if(self.parameters.TestType == "BTS"):
 
-          self.bts_export = open(self.parameters.problem_name + "_bts" + ".grf", 'w');
-          self.bts_fem_export = open(self.parameters.problem_name + "_bts_FEM" + ".grf", 'w');
-          self.bts_stress_export = open(self.parameters.problem_name + "_stress_bts" + ".grf", 'w');
-          self.Procedures.BtsSkinDetermination(self.balls_model_part, self.solver)
+        self.bts_export = open(self.parameters.problem_name + "_bts" + ".grf", 'w');
+        self.BtsSkinDetermination()
 
       else:
-        
-        for node in self.balls_model_part.Nodes:
-          if (node.GetSolutionStepValue(GROUP_ID) == 1):  # reserved for specimen particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-              self.sup_layer_fm.append(node)
-          elif (node.GetSolutionStepValue(GROUP_ID) == 2):  # reserved for specimen particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-              self.inf_layer_fm.append(node)
-          else:
-              self.others.append(node)
 
         self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
+        self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
+        self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
         self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
 
-        height = self.parameters.SpecimenLength #ini_height    
-      
-        print ('Initial Height of the Model: ' + str(height)+'\n')
+        print ('Initial Height of the Model: ' + str(self.height)+'\n')
         
         if(self.parameters.PredefinedSkinOption == "ON" ):
           print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
-        (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,self.initial_height_top,self.initial_height_bot) = self.Procedures.CylinderSkinDetermination(self.balls_model_part,self.solver,self.parameters) # defines the skin and areas
-  
-        self.initial_height = self.initial_height_top - self.initial_height_bot
+        (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
+
+  		#xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
+        #xbot_area_gath        = mpi.allgather(mpi.world, xbot_area) 
+        #xlat_area_gath        = mpi.allgather(mpi.world, xlat_area) 
+        #xtopcorner_area_gath  = mpi.allgather(mpi.world, xtopcorner_area) 
+        #xbotcorner_area_gath  = mpi.allgather(mpi.world, xbotcorner_area) 
+        
+        #xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
+        #xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
+        #xlat_area = reduce(lambda x, y: x + y, xlat_area_gath)
+        #xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
+        #xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
       
-      self.length_correction_factor = 1.0
+        #weight_top_gath = mpi.gather(mpi.world, weight_top, 0)
+        #weight_bot_gath = mpi.gather(mpi.world, weight_bot, 0)
+        #y_top_total_gath = mpi.gather(mpi.world, y_top_total, 0)
+        #y_bot_total_gath = mpi.gather(mpi.world, y_bot_total, 0)
+
+         #if(mpi.rank == 0):
+ 
+          #weight_top = reduce(lambda x, y: x + y, weight_top_gath)
+          #weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
+          #y_top_total = reduce(lambda x, y: x + y, y_top_total_gath)
+          #y_bot_total = reduce(lambda x, y: x + y, y_bot_total_gath)
+      
+        initial_height_top = y_top_total/weight_top 
+        initial_height_bot = y_bot_total/weight_bot
+    
+        inner_initial_height = initial_height_top - initial_height_bot
+
+        specimen_length = self.parameters.SpecimenLength
+        extended_length = specimen_length + (specimen_length - inner_initial_height)
+          
+        self.length_correction_factor = specimen_length/extended_length
       
       ##Oedometric
 
       if(self.parameters.TestType == "Oedometric"):
 
-        for node in self.Procedures.LAT:
+        for node in self.LAT:
 
           node.SetSolutionStepValue(VELOCITY_X, 0.0);
           node.SetSolutionStepValue(VELOCITY_Z, 0.0);
@@ -118,164 +149,272 @@ class MaterialTest:
       
       if(self.parameters.TestType != "BTS"):
         
-        for node in self.Procedures.TOP:
+        for node in self.TOP:
           
           node.SetSolutionStepValue(VELOCITY_X, 0.0);
           node.SetSolutionStepValue(VELOCITY_Z, 0.0);
           node.Fix(VELOCITY_X);
           node.Fix(VELOCITY_Z);
           
-        for node in self.Procedures.BOT:
+        for node in self.BOT:
           
           node.SetSolutionStepValue(VELOCITY_X, 0.0);
           node.SetSolutionStepValue(VELOCITY_Z, 0.0);
           node.Fix(VELOCITY_X);
           node.Fix(VELOCITY_Z);
-    
-  def DetermineReferenceInitialLength(self):
-    
-    y_top_total = 0.0
-    weight_top = 0.0
-    y_bot_total = 0.0
-    weight_bot = 0.0
-    
-    for node in self.Procedures.TOP:
       
-      r = node.GetSolutionStepValue(RADIUS)
-      y = node.Y
-      
-      y_top_total += y*r
-      weight_top += r
-    
-    for node in self.Procedures.BOT:
-      
-      r = node.GetSolutionStepValue(RADIUS)
-      y = node.Y
-      
-      y_bot_total += y*r
-      weight_bot += r
-    
-    specimen_length = self.parameters.SpecimenLength
-    inner_initial_length = y_top_total/weight_top - y_bot_total/weight_bot
-    
-    extended_length = specimen_length + (specimen_length - inner_initial_length)
-    
-    self.length_correction_factor = specimen_length/extended_length
-    
-  def CreateTopAndBotGraph(self,step):
+  #-------------------------------------------------------------------------------------#
+
+  def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
+
+        # SKIN DETERMINATION
+        total_cross_section = 0.0
+
+        # Cylinder dimensions
+
+        h = self.parameters.SpecimenLength
+        d = self.parameters.SpecimenDiameter
+
+        eps = 2.0
+
+        surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
+
+        xlat_area = 0.0
+        xbot_area = 0.0
+        xtop_area = 0.0
+        xbotcorner_area = 0.0
+        xtopcorner_area = 0.0
+        
+        y_top_total = 0.0
+        y_bot_total = 0.0
+        
+        weight_top = 0.0
+        weight_bot = 0.0
+
+        for element in self.balls_model_part.Elements:
+
+            element.SetValue(SKIN_SPHERE, 0)
+
+            node = element.GetNode(0)
+            r = node.GetSolutionStepValue(RADIUS)
+            x = node.X
+            y = node.Y
+            z = node.Z
+            
+            cross_section = 3.141592 * r * r
+
+            if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+
+                element.SetValue(SKIN_SPHERE, 1)
+                self.LAT.append(node)
+
+                if ((y > eps * r) and (y < (h - eps * r))):
+
+                    self.SKIN.append(element)
+                    self.XLAT.append(node)
+                    
+                    xlat_area = xlat_area + cross_section
+
+            if ((y <= eps * r) or (y >= (h - eps * r))):
+
+                element.SetValue(SKIN_SPHERE, 1)
+                self.SKIN.append(element)
+
+                if (y <= eps * r):
+
+                    self.BOT.append(node)
+                    y_bot_total += y*r
+                    weight_bot += r
+
+                elif (y >= (h - eps * r)):
+
+                    self.TOP.append(node)
+                    
+                    y_top_total += y*r
+                    weight_top += r
+         
+
+                if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+
+                    if (y > h / 2):
+
+                        self.XTOPCORNER.append(node)
+                        xtopcorner_area = xtopcorner_area + cross_section
+
+                    else:
+
+                        self.XBOTCORNER.append(node)
+                        xbotcorner_area = xbotcorner_area + cross_section
+                else:
+
+                    if (y <= eps * r):
+
+                        self.XBOT.append(node)
+                        xbot_area = xbot_area + cross_section
+
+                    elif (y >= (h - eps * r)):
+
+                        self.XTOP.append(node)
+                        xtop_area = xtop_area + cross_section
+
+
+        print("End ", h, "x", d, "Cylinder Skin Determination", "\n")
+
+        return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
+  
+  #-------------------------------------------------------------------------------------#
+
+  def BtsSkinDetermination(self):
+
+      # SKIN DETERMINATION
+
+      # Cylinder dimensions
+
+      h = 0.086
+      d = 0.15
+      eps = 2.0
+
+      for element in self.balls_model_part.Elements:
+
+          element.SetValue(SKIN_SPHERE, 0)
+
+          node = element.GetNode(0)
+          r = node.GetSolutionStepValue(RADIUS)
+          x = node.X
+          y = node.Y
+          z = node.Z
+
+          if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
+
+              element.SetValue(SKIN_SPHERE, 1)
+
+          if ((z <= eps * r) or (z >= (h - eps * r))):
+
+              element.SetValue(SKIN_SPHERE, 1)
+
+      print("End 30x15 Bts Skin Determination", "\n")
      
+  #-------------------------------------------------------------------------------------#
+  
+  def PrepareDataForGraph(self):
+    
+    prepare_check = [0,0,0,0]
+    self.total_check = 0
+    
     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-      if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
-        self.top_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-      if(self.RigidFace_model_part.GetMesh(mesh_number)[BOTTOM]):
-        self.bot_mesh_fem_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-
-    dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-    self.strain += 100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
-
-    if( self.parameters.TestType != "BTS"):
       
-      radial_strain = self.MeasureRadialStrain(self.Procedures.XLAT)
-
-      volumetric_strain = self.strain - 2*radial_strain
+      if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
         
-      self.graph_export_volumetric.write(str(volumetric_strain)+"    "+str(self.total_stress_fem_mean)+'\n')
-      self.graph_export_volumetric.flush()
-  
-    if( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
-  
-      if( self.renew_pressure == 10):
+        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+        prepare_check[0] = 1
         
-        self.ApplyLateralPressure(self.Pressure, self.Procedures.XLAT, self.Procedures.XBOT, self.Procedures.XTOP, self.Procedures.XBOTCORNER, self.Procedures.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
-                
-        self.renew_pressure = 0
-
-      self.renew_pressure += 1
+      if(self.RigidFace_model_part.GetMesh(mesh_number)[BOTTOM]):
+        
+        self.bot_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+        prepare_check[1] = 1
+      
+    for mesh_number in range(1, self.balls_model_part.NumberOfMeshes()):
+      
+      if(self.balls_model_part.GetMesh(mesh_number)[TOP]):
+        
+        self.top_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
+        prepare_check[2] = -1
+        
+      if(self.balls_model_part.GetMesh(mesh_number)[BOTTOM]):
+        
+        self.bot_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
+        prepare_check[3] = -1
+        
+    for it in range(len(prepare_check)):
+      
+      self.total_check += prepare_check[it]
+      
+    if(math.fabs(self.total_check)!=2):
+      
+      print(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+   
+  #-------------------------------------------------------------------------------------#
+  
+  def MeasureForcesAndPressure(self):
     
-    if (len(self.top_mesh_fem_nodes)*len(self.bot_mesh_fem_nodes)):
+    dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-      total_fem_force_top = 0.0
-      total_fem_force_bot = 0.0
-      total_fem_force_bts = 0.0
+    self.strain -= 100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
-      if(1):#self.graph_counter_fem == self.graph_frequency):
+    if( self.parameters.TestType =="BTS"):
+
+      total_force_bts = 0.0
+      
+      for node in self.top_mesh_nodes:
+
+        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1] 
+        total_force_bts += force_node_y
         
-        self.graph_counter_fem = 0
+      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
+
+    else:
+
+      radial_strain = self.MeasureRadialStrain()
+      self.volumetric_strain = self.strain - 2*radial_strain
+
+      total_force_top = 0.0
+      total_force_bot = 0.0
+      
+      for node in self.top_mesh_nodes:
+
+        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+        total_force_top += force_node_y
         
-        if( self.parameters.TestType =="BTS"):
+      self.total_stress_top = total_force_top/(self.parameters.MeasuringSurface*1000000)
 
-          for node in self.top_mesh_fem_nodes:
+      for node in self.bot_mesh_nodes:
 
-            force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]    #MSIMSI 5: ELASTIC_FORCES in SPHERES; TOTAL_FORCES in PLATES
+        force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
-            total_fem_force_bts += force_node_y
-            
-            total_stress_bts = 2.0*total_fem_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
-            
-          self.bts_fem_export.write(str(step)+"  "+str(total_stress_bts)+'\n')
-          self.bts_fem_export.flush()
+        total_force_bot += force_node_y
+
+      self.total_stress_bot = total_force_bot/(self.parameters.MeasuringSurface*1000000)
+
+      self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
+
+      
+      if( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
+      
+          self.Pressure = min(self.total_stress_mean*1e6, self.parameters.ConfinementPressure * 1e6)
           
-        else:
-
-          for node in self.top_mesh_fem_nodes:
-
-            force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-
-            total_fem_force_top += force_node_y
+          self.ApplyLateralPressure(self.Pressure, self.Procedures.XLAT, self.Procedures.XBOT, self.Procedures.XTOP, self.Procedures.XBOTCORNER, self.Procedures.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
             
-          self.total_stress_fem_top = total_fem_force_top/(self.parameters.MeasuringSurface*1000000)
-
-          for node in self.bot_mesh_fem_nodes:
-
-            force_node_y = -node.GetSolutionStepValue(TOTAL_FORCES)[1]
-
-            total_fem_force_bot += force_node_y
-
-          self.total_stress_fem_bot = total_fem_force_bot/(self.parameters.MeasuringSurface*1000000)
-
-          self.total_stress_fem_mean = 0.5*(self.total_stress_fem_bot + self.total_stress_fem_top)
-
-          self.pressure_to_apply = self.total_stress_fem_mean*1e6
-
-          self.graph_export.write(str(self.strain)+"    "+str(self.total_stress_fem_mean)+'\n')
-          self.graph_export.flush()
-
-    self.Pressure = self.pressure_to_apply
-
-    if(self.Pressure > self.parameters.ConfinementPressure * 1e6 ):
     
-      self.Pressure = self.parameters.ConfinementPressure * 1e6 
-
-    
-          ##################################POISSON##################################
-          
-          #if(self.parameters.PoissonMeasure == "ON"):
-                      
-            #xleft_weight  = 0.0         
-            #xright_weight  = 0.0
-
-            #left_counter = 0.0
-            #right_counter = 0.0
-
-            #for node in left_nodes:
-              
-              #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              #left_counter = +node.GetSolutionStepValue(RADIUS)
-              
-            #for node in right_nodes:
-              
-              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              #right_counter = +node.GetSolutionStepValue(RADIUS)
-            
-            #width_now = xright_weight/right_counter - xleft_weight/left_counter
-
-            #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
-            
-            #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
-
-    self.graph_counter += 1
-    self.graph_counter_fem += 1
+  #-------------------------------------------------------------------------------------#
   
+  def PrintGraph(self,step):
+    
+    if(self.graph_counter == self.graph_frequency):
+      
+      self.graph_counter = 0
+      
+      if(self.parameters.TestType == "BTS"):
+        
+        self.bts_export.write(str(step)+"  "+str(self.total_stress_bts)+'\n')
+        self.bts_export.flush()
+      
+      else:
+      
+        self.graph_export.write(str(self.strain)+"    "+str(self.total_stress_mean)+'\n')
+        self.graph_export_1.write(str(self.strain)+"    "+str(self.total_stress_top)+'\n')
+        self.graph_export_2.write(str(self.strain)+"    "+str(self.total_stress_bot)+'\n')
+        self.graph_export.flush()
+        self.graph_export_1.flush()
+        self.graph_export_2.flush()
+        
+        self.graph_export_volumetric.write(str(self.volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
+        self.graph_export_volumetric.flush()
+        
+    self.graph_counter += 1 
+    
+   #-------------------------------------------------------------------------------------#  
+   
   def PrintChart(self):
     
     loading_velocity = self.parameters.LoadingVelocityTop
@@ -298,7 +437,6 @@ class MaterialTest:
     self.chart.write( "    YRC1   = " + (str(self.parameters.YRC1))+"           " +'\n')
     self.chart.write( "    YRC2   = " + (str(self.parameters.YRC2))+"           " +'\n')
     self.chart.write( "    YRC3   = " + (str(self.parameters.YRC3))+"           " +'\n')
-    self.chart.write( "    NG     = " + (str(7.0/6.0*2.0*(1.0+self.parameters.w_poiss)))+"           " +'\n')
     self.chart.write( "    FSS    = " + (str(self.parameters.TangentialStrength))+" Mpa       " +'\n')
     self.chart.write( "    YEP    = " + (str(self.parameters.PlasticYoungModulus/1e9))+" GPa"+"     " +'\n')
     self.chart.write( "    YIELD  = " + (str(self.parameters.PlasticYieldStress))+" Mpa       " +'\n')
@@ -316,29 +454,30 @@ class MaterialTest:
       print(line)
     a_chart.close()
 
+  #-------------------------------------------------------------------------------------#  
   
   def FinalizeGraphs(self):
   
     os.chdir(self.graphs_path)
 
-    #fer una copia i cambiar de nom.  
-      
+    #Create a copy and renaming
+    
     for filename in os.listdir("."):
       
       if filename.startswith(self.parameters.problem_name + "_graph.grf"):
         shutil.copy(filename, filename+"COPY")
         os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + ".grf")
-      #if filename.startswith(self.parameters.problem_name + "_graph_BOT.grf"):
-        #shutil.copy(filename, filename+"COPY")
-        #os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + "_BOT.csv")
-      #if filename.startswith(self.parameters.problem_name + "_graph_MEAN.grf"):
-        #shutil.copy(filename, filename+"COPY")
-        #os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + "_MEAN.csv")
-      #if filename.startswith(self.parameters.problem_name + "_graph_PLATE.grf"):
-        #shutil.copy(filename, filename+"COPY")
-        #os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + "_PLATE.csv")
+      
+      if filename.startswith(self.parameters.problem_name + "_bts.grf"):
+        shutil.copy(filename, filename+"COPY")
+        os.rename(filename+"COPY", self.parameters.problem_name + "_bts_" + str(self.initial_time) + ".grf")
+      
+      if filename.startswith(self.parameters.problem_name + "_graph_VOL.grf"):
+        shutil.copy(filename, filename+"COPY")
+        os.rename(filename+"COPY", self.parameters.problem_name + "_graph_VOL" + str(self.initial_time) + ".grf")
 
     if(self.parameters.TestType == "BTS"):
+      
       self.bts_export.close()
       self.bts_stress_export.close()
     
@@ -347,6 +486,7 @@ class MaterialTest:
       self.graph_export.close()
       self.graph_export_volumetric.close()
    
+  #-------------------------------------------------------------------------------------#  
   
   def OrientationStudy(self,contact_model_part,step):
     
@@ -368,12 +508,10 @@ class MaterialTest:
       
       element.SetValue(CONTACT_ORIENTATION,alpha_deg)
       
-      
       sigma = element.GetValue(CONTACT_SIGMA) 
     
-      OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_fem_mean*1e6))+'\n')
+      OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean*1e6))+'\n')
       counter += 1
-    
     
       if(alpha_deg >= 0.0 and alpha_deg < 5.0):
         self.bond_00_05.append(element)
@@ -485,43 +623,14 @@ class MaterialTest:
       self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
       self.tau_mean_table[ii] = tau_mean   
       self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
-      self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_fem_mean*1e6)
+      self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean*1e6)
       ii+=1
       
     print(self.sigma_ratio_table)
     OrientationChart.close()
     
-  def PoissonMeasure(self):
+  #-------------------------------------------------------------------------------------#  
     
-    print("Not Working now")
-    #left_nodes = list()
-    #right_nodes = list()
-
-    #xleft_weight  = 0.0         
-    #xright_weight  = 0.0
-
-    #left_counter = 0.0
-    #right_counter = 0.0
-
-    #if(self.parameters.PoissonMeasure == "ON"):
-            
-          #for node in balls_model_part.Nodes:
-            
-            #if (node.GetSolutionStepValue(GROUP_ID)==4):
-              
-              #left_nodes.append(node)
-              #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              #left_counter = +node.GetSolutionStepValue(RADIUS)
-              
-            #elif(node.GetSolutionStepValue(GROUP_ID)==8):
-              
-              #right_nodes.append(node)
-              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              #right_counter = +node.GetSolutionStepValue(RADIUS)
-              
-          #width_ini = xright_weight/right_counter - xleft_weight/left_counter
-          
-
   def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
       for node in XLAT:
@@ -602,13 +711,15 @@ class MaterialTest:
 
           node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-  def MeasureRadialStrain(self,XLAT):
+  #-------------------------------------------------------------------------------------#  
+  
+  def MeasureRadialStrain(self):
       
     mean_radial_strain = 0.0
     radial_strain = 0.0
     weight = 0.0
     
-    for node in XLAT:
+    for node in self.XLAT:
       
       r = node.GetSolutionStepValue(RADIUS)
       x = node.X
@@ -632,10 +743,68 @@ class MaterialTest:
       radial_strain = mean_radial_strain/weight
     
     return radial_strain
+    
+    #-------------------------------------------------------------------------------------#  
 
+  def PoissonMeasure(self):
+    
+    print("Not Working now")
+    #left_nodes = list()
+    #right_nodes = list()
+
+    #xleft_weight  = 0.0         
+    #xright_weight  = 0.0
+
+    #left_counter = 0.0
+    #right_counter = 0.0
+
+    #if(self.parameters.PoissonMeasure == "ON"):
+            
+          #for node in balls_model_part.Nodes:
+            
+            #if (node.GetSolutionStepValue(GROUP_ID)==4):
+              
+              #left_nodes.append(node)
+              #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #left_counter = +node.GetSolutionStepValue(RADIUS)
+              
+            #elif(node.GetSolutionStepValue(GROUP_ID)==8):
+              
+              #right_nodes.append(node)
+              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #right_counter = +node.GetSolutionStepValue(RADIUS)
+              
+          #width_ini = xright_weight/right_counter - xleft_weight/left_counter
+          
+          
+   ##################################POISSON##################################
+    
+    #if(self.parameters.PoissonMeasure == "ON"):
+                
+      #xleft_weight  = 0.0         
+      #xright_weight  = 0.0
+
+      #left_counter = 0.0
+      #right_counter = 0.0
+
+      #for node in left_nodes:
         
-    
-    
+        #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+        #left_counter = +node.GetSolutionStepValue(RADIUS)
+        
+      #for node in right_nodes:
+        
+        #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+        #right_counter = +node.GetSolutionStepValue(RADIUS)
+      
+      #width_now = xright_weight/right_counter - xleft_weight/left_counter
+
+      #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+      
+      #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
+        
+  
+  #-------------------------------------------------------------------------------------#  
     
    
  
