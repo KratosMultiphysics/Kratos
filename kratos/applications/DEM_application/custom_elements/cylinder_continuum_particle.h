@@ -85,9 +85,8 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-      void Initialize();
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-            
+      
+   
 //       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 //       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
 //       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
@@ -130,6 +129,18 @@ namespace Kratos
     protected:
 
       CylinderContinuumParticle();
+      
+      void Initialize();
+      virtual void ContactAreaWeighting2D();
+      void StressTensorOperations(double mStressTensor[3][3],    
+                                                            double GlobalElasticContactForce[3],
+                                                            array_1d<double,3> &other_to_me_vect,
+                                                            const double &distance,
+                                                            const double &radius_sum,
+                                                            const double &calculation_area,
+                                                            ParticleWeakIteratorType neighbour_iterator, 
+                                                            ProcessInfo& rCurrentProcessInfo, 
+                                                            double &rRepresentative_Volume);
 
       //ParticleWeakVectorType mrNeighbours;
 
