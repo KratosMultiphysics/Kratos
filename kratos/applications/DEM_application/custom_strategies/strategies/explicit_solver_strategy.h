@@ -835,8 +835,7 @@ namespace Kratos
             OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
             
             ////Cfeng: clear and swap the vector,initializaiton 
-                        
-            
+
             #pragma omp parallel for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
             {
@@ -852,7 +851,10 @@ namespace Kratos
                     E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_PRAM).swap(tempV);
                     
                     Vector tempV1;
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE).swap(tempV1);
+                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).swap(tempV1);
+                    
+                    Vector tempV2;
+                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).swap(tempV2);
                 }
             }
            
@@ -902,7 +904,10 @@ namespace Kratos
                 for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = it_begin; E_pointer_it != it_end; ++E_pointer_it)
                 {               
                     std::size_t totalno = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).size() * 3;
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE).resize(totalno);
+                    
+                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).resize(totalno);
+                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).resize(totalno);
+                    
                 }
             }
             
