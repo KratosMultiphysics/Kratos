@@ -180,9 +180,6 @@ namespace Kratos
   // *************** Continuum only END *************
 
   // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, GEL_STRENGTH)
-  KRATOS_CREATE_VARIABLE(double, POWER_LAW_N)
-  KRATOS_CREATE_VARIABLE(double, POWER_LAW_K)
   KRATOS_CREATE_VARIABLE(double, INIT_DRAG_FORCE)
   KRATOS_CREATE_VARIABLE(double, DRAG_LAW_SLOPE)
   // *************** Swimming only END ***************
@@ -394,10 +391,7 @@ namespace Kratos
   mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
   {}
     
-    
-    
-	
-	
+
   void KratosDEMApplication::Register()
   {
 
@@ -563,9 +557,6 @@ namespace Kratos
     // *************** Continuum only END *************
 
     // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(GEL_STRENGTH)
-    KRATOS_REGISTER_VARIABLE(POWER_LAW_N)
-    KRATOS_REGISTER_VARIABLE(POWER_LAW_K)
     KRATOS_REGISTER_VARIABLE(INIT_DRAG_FORCE)
     KRATOS_REGISTER_VARIABLE(DRAG_LAW_SLOPE)
     // *************** Swimming only END ***************

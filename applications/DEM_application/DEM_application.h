@@ -200,9 +200,6 @@ namespace Kratos
   // *************** Continuum only END *************
 
   // *************** Swimming only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(double, GEL_STRENGTH)
-  KRATOS_DEFINE_VARIABLE(double, POWER_LAW_N)
-  KRATOS_DEFINE_VARIABLE(double, POWER_LAW_K)
   KRATOS_DEFINE_VARIABLE(double, INIT_DRAG_FORCE)
   KRATOS_DEFINE_VARIABLE(double, DRAG_LAW_SLOPE)
   // *************** Swimming only END ***************

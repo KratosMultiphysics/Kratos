@@ -129,6 +129,10 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( int, REFINEMENT_LEVEL )
 
     //for DEM application:
+    KRATOS_DEFINE_VARIABLE(double, GEL_STRENGTH)
+    KRATOS_DEFINE_VARIABLE(double, POWER_LAW_N)
+    KRATOS_DEFINE_VARIABLE(double, POWER_LAW_K)
+    
     KRATOS_DEFINE_VARIABLE( int, PARTICLE_MATERIAL )
 
     //doubles
