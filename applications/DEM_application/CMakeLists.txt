@@ -28,6 +28,10 @@ target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosDEMApplication DESTINATION libs )
 
+if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
+    add_definitions(-DDEBUG_MACRO)
+endif(${ACTIVATE_DEBUG_MACRO} MATCHES ON)
+
 # changing the .dll suffix to .pyd 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosDEMApplication PROPERTIES SUFFIX .pyd)
