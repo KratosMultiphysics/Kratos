@@ -13,14 +13,18 @@ from KratosMultiphysics.DEMApplication import *
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 Procedures = DEM_procedures.Procedures(DEM_parameters)
-
+#
 
 import DEM_material_test_script 
 import mesh_motion
+#
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
+
+#
+#
 
 my_timer = Timer();
 balls_model_part = ModelPart("SpheresPart");
@@ -30,6 +34,7 @@ mixed_model_part       = ModelPart("Mixed_Part");
 
 RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+RigidFace_model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
 RigidFace_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
 RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
 RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
@@ -71,9 +76,9 @@ model_part_io_spheres = ModelPartIO(spheres_mp_filename)
 #
 #
 #
-#
-#
-#
+def KRATOSprint(message):
+        #
+        print(message)    
 
 model_part_io_spheres.ReadModelPart(balls_model_part)
 
@@ -126,7 +131,7 @@ multifile_50.write('Multiple\n')
 
 os.chdir(main_path)
 
-print ("Initializing Problem....")
+KRATOSprint ("Initializing Problem....")
 #
 #
 #
@@ -177,12 +182,7 @@ if(DEM_parameters.TestType != "None"):
  
  MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
  
- if(DEM_parameters.TestType != "BTS"):
-    
-    MaterialTest.DetermineReferenceInitialLength()
- 
- 
-print ("Initialization Complete" + "\n")
+KRATOSprint ("Initialization Complete" + "\n")
 
 step                   = 0
 time                   = 0.0
@@ -198,14 +198,15 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
       (coordination_number) = Procedures.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-      print ("Coordination Number: " + str(coordination_number) + "\n")
+      KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
       os.chdir(main_path)
     else:
-      print("Activate Contact Mesh for ModelData information")
+      KRATOSprint("Activate Contact Mesh for ModelData information")
 
 if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
  MaterialTest.PrintChart();
+ MaterialTest.PrepareDataForGraph()
  
 #------------------------------------------------------------------------------------------
  
@@ -219,12 +220,12 @@ dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications 
 
 total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
-print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
+KRATOSprint ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
-print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
+KRATOSprint ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
 #if(DEM_parameters.PoissonMeasure == "ON"):
-	#MaterialTest.PoissonMeasuure()
+	#MaterialTest.PoissonMeasure()
   
 while (time < DEM_parameters.FinalTime):
 
@@ -251,6 +252,7 @@ while (time < DEM_parameters.FinalTime):
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if (incremental_time > DEM_parameters.ControlTime):
+
         percentage = 100.0 * (float(step) / total_steps_expected)
         
         print("%s %.2f %s" % ("Real time calculation: ", timer.time() - initial_real_time,"s"))      
@@ -266,22 +268,23 @@ while (time < DEM_parameters.FinalTime):
         first_print = False
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
-        print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
-        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
+        KRATOSprint('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
+        KRATOSprint('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+        KRATOSprint('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+        KRATOSprint('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
 
         if (estimated_sim_duration / 86400 > 2.0):
 
-          print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
+          KRATOSprint('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
     #########################CONCRETE_TEST_STUFF#########################################
     
     if( DEM_parameters.TestType != "None"):
-   
-      MaterialTest.CreateTopAndBotGraph(step) 
-     
+      
+      MaterialTest.MeasureForcesAndPressure()
+      MaterialTest.PrintGraph(step)
+
     ##########################___GiD IO____#########################################
     
     os.chdir(list_path)    
@@ -370,11 +373,11 @@ os.chdir(main_path)
 elapsed_pr_time     = timer.clock() - initial_pr_time
 elapsed_real_time   = timer.time() - initial_real_time
 
-print ('Calculation ends at instant: '                 + str(timer.time()))
-print ('Calculation ends at processing time instant: ' + str(timer.clock()))
-print ('Elapsed processing time: '                     + str(elapsed_pr_time))
-print ('Elapsed real time: '                           + str(elapsed_real_time))
+KRATOSprint ('Calculation ends at instant: '                 + str(timer.time()))
+KRATOSprint ('Calculation ends at processing time instant: ' + str(timer.clock()))
+KRATOSprint ('Elapsed processing time: '                     + str(elapsed_pr_time))
+KRATOSprint ('Elapsed real time: '                           + str(elapsed_real_time))
 
 #print (my_timer)
 
-print ("ANALYSIS COMPLETED")
+KRATOSprint ("ANALYSIS COMPLETED")
