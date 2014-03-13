@@ -86,28 +86,28 @@ namespace Kratos
     {
     	int i,j;
 
-	for (i=0; i<3; i++)
-	{
-            LocalVector[i] = 0.0;
-            for (j=0; j<3; j++)
-            {
-                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+      for (i=0; i<3; i++)
+      {
+                LocalVector[i] = 0.0;
+                for (j=0; j<3; j++)
+                {
+                    LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+                }
             }
         }
-    }
 
-    static inline void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3])
-    {
-    	int i,j;
+        static inline void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3])
+        {
+          int i,j;
 
-	for (i=0; i<3; i++)
-	{
-            GlobalVector[i] = 0.0;
-            for (j=0; j<3; j++)
-            {
-		GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
-            }
-	}
+      for (i=0; i<3; i++)
+      {
+                GlobalVector[i] = 0.0;
+                for (j=0; j<3; j++)
+                {
+        GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+                }
+      }
     }
 
     static inline double DotProduct(double Vector1[3], double Vector2[3])
@@ -123,15 +123,15 @@ namespace Kratos
     static inline void CrossProduct(double u[3], double v[3], double ReturnVector[3])
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
-	ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
-	ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+      ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+      ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
     static inline void CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector)
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
-	ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
-	ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+      ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+      ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
    //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F.Chun was for a more generalized case) 
@@ -180,8 +180,8 @@ namespace Kratos
         
         //CrossProduct(NormalDirection,Vector0,Vector1);
         LocalCoordSystem[1][0] = NormalDirection[1]*LocalCoordSystem[0][2] - NormalDirection[2]*LocalCoordSystem[0][1];
-	LocalCoordSystem[1][1] = LocalCoordSystem[0][0]*NormalDirection[2] - NormalDirection[0]*LocalCoordSystem[0][2];
-	LocalCoordSystem[1][2] = NormalDirection[0]*LocalCoordSystem[0][1] - NormalDirection[1]*LocalCoordSystem[0][0];
+        LocalCoordSystem[1][1] = LocalCoordSystem[0][0]*NormalDirection[2] - NormalDirection[0]*LocalCoordSystem[0][2];
+        LocalCoordSystem[1][2] = NormalDirection[0]*LocalCoordSystem[0][1] - NormalDirection[1]*LocalCoordSystem[0][0];
 
         //normalize(Vector1);
         
@@ -200,21 +200,19 @@ namespace Kratos
          return sqrt(dx * dx + dy * dy + dz * dz);
      }
 
-
-
      static inline void  TriAngleArea(double Coord1[3],double Coord2[3],double Coord3[3],double &area)
     {
-	int k;
-	double Vector1[3],Vector2[3],Vector0[3];
-	for(k = 0;k < 3; k++)
-	{
-            Vector1[k] = Coord3[k] - Coord1[k];
-	    Vector2[k] = Coord2[k] - Coord1[k];
-	}
+      int k;
+      double Vector1[3],Vector2[3],Vector0[3];
+      for(k = 0;k < 3; k++)
+      {
+                Vector1[k] = Coord3[k] - Coord1[k];
+          Vector2[k] = Coord2[k] - Coord1[k];
+      }
 
-	CrossProduct(Vector1, Vector2, Vector0);
-	area= sqrt(Vector0[0] * Vector0[0] + Vector0[1] * Vector0[1] + Vector0[2] * Vector0[2]) / 2.0;
-     }
+      CrossProduct(Vector1, Vector2, Vector0);
+      area= sqrt(Vector0[0] * Vector0[0] + Vector0[1] * Vector0[1] + Vector0[2] * Vector0[2]) / 2.0;
+    }
 
      //TriAngle Wight, coord1,coord2,coord3,testcoord,weight
      static inline void TriAngleWeight(double Coord1[3], double Coord2[3], double Coord3[3], double JudgeCoord[3], double Weight[3])
@@ -454,6 +452,34 @@ namespace Kratos
 
     }*/
 	
+    
+    static inline void QuickDistanceForAKnownNeighbour(double Coord[4][3], double Particle_Coord[3], double rad,  double &DistPToB) //M.Santasusana
+    {
+     
+          double Vector1[3] = {0.0};
+          double Vector2[3] = {0.0};
+          
+          double Normal [3] = {0.0};
+          
+          Vector1[0] =  Coord[1][0] - Coord[0][0];
+          Vector1[1] =  Coord[1][1] - Coord[0][1];
+          Vector1[2] =  Coord[1][2] - Coord[0][2];
+
+          Vector2[0] = Coord[2][0] - Coord[1][0];
+          Vector2[1] = Coord[2][1] - Coord[1][1];
+          Vector2[2] = Coord[2][2] - Coord[1][2];
+
+          CrossProduct(Vector1, Vector2, Normal);
+          
+          normalize(Normal);
+
+          DistPToB = DistancePointToPlane(Coord[0], Normal, Particle_Coord);
+
+
+     } 
+    
+    
+    
 	static inline bool JudgeIfThisPointIsContactWithParticle(double PointCoord[3], double Particle_Coord[3], double rad, double LocalCoordSystem[3][3], double &DistPToB)
 	{
 		bool If_Conact = false;
