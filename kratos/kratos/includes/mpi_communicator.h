@@ -68,6 +68,19 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "utilities/openmp_utils.h"
 
+#define CUSTOMTIMER 1
+
+/* Timer defines */
+#include "utilities/timer.h"
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
+
+
 namespace Kratos
 {
 
@@ -382,15 +395,20 @@ public:
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-      
+        
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+             if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+                NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
+                NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
+            }
+            
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
             {
                 NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
                 NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
                 
-//                 std::cout << i_color << " -- " << r_local_nodes.size() << " " << r_ghost_nodes.size() << std::endl;
-
                 // Calculating send and received buffer size
                 // NOTE: This part works ONLY when all nodes have the same variables list size!
                 unsigned int nodal_data_size = 0;
@@ -526,7 +544,32 @@ public:
 
         return true;
     }
-
+    
+    virtual bool SynchronizeVariable(Variable<int> const& ThisVariable)
+    {
+        SynchronizeVariable<int,int>(ThisVariable);
+    }
+    
+    virtual bool SynchronizeVariable(Variable<double> const& ThisVariable)
+    {
+        SynchronizeVariable<double,double>(ThisVariable);
+    }
+    
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    {
+        SynchronizeVariable<array_1d<double, 3 >,double >(ThisVariable);
+    }
+    
+    virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
+    {
+        SynchronizeVariable<Vector,double>(ThisVariable);
+    }
+    
+    virtual bool SynchronizeVariable(Variable<Matrix> const& ThisVariable)
+    {
+        SynchronizeVariable<Matrix,double>(ThisVariable);
+    }
+    
     // This function is for test and will be changed. Pooyan.
     virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
     {
@@ -648,7 +691,8 @@ public:
      **/
     virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects)
     {
-        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects);
+        Kratos::Serializer particleSerializer;
+        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
     
@@ -659,7 +703,8 @@ public:
     **/
     virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects)
     {
-        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects);
+        Kratos::Serializer particleSerializer;
+        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
     
@@ -670,7 +715,41 @@ public:
     **/
     virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects)
     {
-        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects);
+        Kratos::Serializer particleSerializer;
+        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
+        return true;
+    }
+    
+    /**
+     * Transfer objects from a given process to a destination process
+     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+     **/
+    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+    {
+        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
+        return true;
+    }
+    
+    /**
+    * Transfer objects from a given process to a destination process
+    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    **/
+    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+    {
+        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
+        return true;
+    }
+    
+    /**
+    * Transfer objects from a given process to a destination process
+    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    **/
+    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+    {
+        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
     }
     
@@ -1106,6 +1185,8 @@ private:
 
         return true;
     }
+    
+    
 
     template< class TDataType, class TSendType >
     bool AssembleThisNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
@@ -1327,17 +1408,10 @@ private:
     }
     
     template<class TObjectType>
-    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects)
+    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& particleSerializer)
     { 
         int mpi_rank;
         int mpi_size;
-        
-        static double total_time = 0;
-        static double read_time = 0;
-        static double write_time = 0;
-
-        double t0;
-        double t1;
         
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
@@ -1357,23 +1431,18 @@ private:
         {
             if(mpi_rank != i)
             {
-                Kratos::Serializer particleSerializer;
+                //Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
                 
-                t0 = OpenMPUtils::GetCurrentTime();
                 particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("Object",SendObjects[i].GetContainer());
-                t1 = OpenMPUtils::GetCurrentTime();
-                
-                total_time += (t1-t0);
-                write_time += (t1-t0);
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 buffer[i] = std::string(serializer_buffer->str());
                 msgSendSize[i] = buffer[i].size()+1;
             }
         }
-  
+
         MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
         
         int NumberOfCommunicationEvents = 0;
@@ -1404,6 +1473,7 @@ private:
             if(i != mpi_rank && msgSendSize[i])
             {
                 mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
+                
                 memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
                 MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
             }
@@ -1427,20 +1497,14 @@ private:
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
                 
-                t0 = OpenMPUtils::GetCurrentTime();
                 particleSerializer.load("VariableList",mpVariables_list);
                 particleSerializer.load("Object",RecvObjects[i].GetContainer());
-                t1 = OpenMPUtils::GetCurrentTime();
-                
-                total_time += (t1-t0);
-                read_time  += (t1-t0);
             }
 
             MPI_Barrier(MPI_COMM_WORLD);
         }
        
         // Free buffers
-        t0 = OpenMPUtils::GetCurrentTime();
         for(int i = 0; i < mpi_size; i++)
         {
             if(msgRecvSize[i])
@@ -1449,8 +1513,6 @@ private:
             if(msgSendSize[i])
                 free(mpi_send_buffer[i]);
         }
-        t1 = OpenMPUtils::GetCurrentTime();
-        write_time += (t1-t0);
         
         return true;
     }
