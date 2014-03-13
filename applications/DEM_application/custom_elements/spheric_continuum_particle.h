@@ -97,6 +97,9 @@ namespace Kratos
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
     
       void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+      
+      void ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
+ 
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
@@ -111,8 +114,10 @@ namespace Kratos
                                               double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, ProcessInfo& rCurrentProcessInfo);
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          ProcessInfo& rCurrentProcessInfo,
+                                          double& rRepresentative_Volume);
       
+            
       virtual void StressTensorOperations(double mStressTensor[3][3],
                                           double GlobalElasticContactForce[3],
                                           array_1d<double,3> &other_to_me_vect,
@@ -120,7 +125,8 @@ namespace Kratos
                                           const double &radius_sum,
                                           const double &corrected_area,
                                           ParticleWeakIteratorType neighbour_iterator,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          ProcessInfo& rCurrentProcessInfo,
+                                          double &rRepresentative_Volume);
       
       virtual void AddPoissonContribution(double LocalCoordSystem[3][3],
                                           double GlobalContactForce[3],
@@ -214,7 +220,7 @@ namespace Kratos
         
         virtual void CustomInitialize();
 	
-	virtual double GetInitialDelta(int index);
+        virtual double GetInitialDelta(int index);
       
         void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
         virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
@@ -264,6 +270,7 @@ namespace Kratos
         bool mContinuumSimulationOption;
         bool mContactMeshOption;
         int mTriaxialOption;
+        int mStressStrainOption;
 
         double mFinalPressureTime;
         double mFinalSimulationTime;
