@@ -156,7 +156,7 @@ void RigidFace3D::CalculateRightHandSide(
 				
 				ino = 3 * i_nei;
 				
-                Vector& neighbour_rigid_faces_contact_force = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
+        Vector& neighbour_rigid_faces_contact_force = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
 				ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
 				ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
 				ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
@@ -182,122 +182,123 @@ void RigidFace3D::CalculateRightHandSide(
 
 void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 {
-  if (rVariable == RIGID_FACE_COMPUTE_MOVEMENT)
-  {
-	const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int               MatSize = number_of_nodes * 3;
+    if (rVariable == RIGID_FACE_COMPUTE_MOVEMENT)
+    {
+      const unsigned int number_of_nodes = GetGeometry().size();
+      unsigned int               MatSize = number_of_nodes * 3;
 
-	if (Output.size() != MatSize)
-	{
-		Output.resize(MatSize, false);
-	}
-	Output = ZeroVector(MatSize); 
-	  
-	double delta_t     = rCurrentProcessInfo[DELTA_TIME];
-	double CyclePerSec = rCurrentProcessInfo[RIGID_FACE_ROTA_SPEED];
-	double NormalV     = rCurrentProcessInfo[RIGID_FACE_AXIAL_SPEED];
+      if (Output.size() != MatSize)
+      {
+        Output.resize(MatSize, false);
+      }
+      Output = ZeroVector(MatSize); 
+        
+      double delta_t     = rCurrentProcessInfo[DELTA_TIME];
+      double CyclePerSec = rCurrentProcessInfo[RIGID_FACE_ROTA_SPEED];
+      double NormalV     = rCurrentProcessInfo[RIGID_FACE_AXIAL_SPEED];
 
-	double GXvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][0];
-	double GYvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][1];
-	double GZvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][2];
+      double GXvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][0];
+      double GYvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][1];
+      double GZvel       = rCurrentProcessInfo[RIGID_FACE_ROTA_GLOBAL_VELOCITY][2];
 
-	double Xnormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][0];
-	double Ynormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][1];
-	double Znormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][2];
+      double Xnormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][0];
+      double Ynormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][1];
+      double Znormal     = rCurrentProcessInfo[RIGID_FACE_ROTA_AXIAL_DIR][2];
 
-	double  Xorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][0];   
-	double  Yorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][1];
-	double  Zorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][2]; 
-	
-	///movement of the original point
-	int time_step           = rCurrentProcessInfo[TIME_STEPS];			
-	double begin_time       = rCurrentProcessInfo[RIGID_FACE_BEGIN_TIME];
-	double real_rota_time   = delta_t * time_step - begin_time;
-			
-	
-	double n[3] = {Xnormal, Ynormal, Znormal};
-	GeometryFunctions::normalize(n);
+      double  Xorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][0];   
+      double  Yorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][1];
+      double  Zorigin    = rCurrentProcessInfo[RIGID_FACE_ROTA_ORIGIN_COORD][2]; 
+      
+      ///movement of the original point
+      int time_step           = rCurrentProcessInfo[TIME_STEPS];			
+      double begin_time       = rCurrentProcessInfo[RIGID_FACE_BEGIN_TIME];
+      double real_rota_time   = delta_t * time_step - begin_time;
+          
+      
+      double n[3] = {Xnormal, Ynormal, Znormal};
+      GeometryFunctions::normalize(n);
 
-	double omiga = CyclePerSec * 2.0 * M_PI;
-	
-	double vel = NormalV;
+      double omiga = CyclePerSec * 2.0 * M_PI;
+      
+      double vel = NormalV;
 
-	double g_v[3] = {GXvel, GYvel, GZvel};
+      double g_v[3] = {GXvel, GYvel, GZvel};
 
-	Xorigin += (g_v[0] + n[0] * vel) * real_rota_time; 
-	Yorigin += (g_v[1] + n[1] * vel) * real_rota_time; 
-	Zorigin += (g_v[2] + n[2] * vel) * real_rota_time; 
+      Xorigin += (g_v[0] + n[0] * vel) * real_rota_time; 
+      Yorigin += (g_v[1] + n[1] * vel) * real_rota_time; 
+      Zorigin += (g_v[2] + n[2] * vel) * real_rota_time; 
 
-	
-	double origin[3] = {Xorigin, Yorigin, Zorigin};
+      
+      double origin[3] = {Xorigin, Yorigin, Zorigin};
 
-	double coord[3], vector1[3], vector2[3];
-	double dist, dist1;
+      double coord[3], vector1[3], vector2[3];
+      double dist, dist1;
 
-	double a[3][3];
-	double local_vel[3],global_vel[3];
-	
-	for(unsigned int j = 0; j < number_of_nodes; j++)
-	{
-		array_1d<double, 3> Nodecoord;
-		Nodecoord = this->GetGeometry()(j)->Coordinates();
-		
-		coord[0] = Nodecoord[0];
-		coord[1] = Nodecoord[1];
-		coord[2] = Nodecoord[2];
+      double a[3][3];
+      double local_vel[3],global_vel[3];
+      
+        for(unsigned int j = 0; j < number_of_nodes; j++)
+        {
+          array_1d<double, 3> Nodecoord;
+          Nodecoord = this->GetGeometry()(j)->Coordinates();
+          
+          coord[0] = Nodecoord[0];
+          coord[1] = Nodecoord[1];
+          coord[2] = Nodecoord[2];
 
-		vector1[0] = coord[0] - origin[0];
-		vector1[1] = coord[1] - origin[1];
-		vector1[2] = coord[2] - origin[2];
+          vector1[0] = coord[0] - origin[0];
+          vector1[1] = coord[1] - origin[1];
+          vector1[2] = coord[2] - origin[2];
 
 
-		dist  = fabs(GeometryFunctions::DotProduct(vector1,n));
-		dist1 = GeometryFunctions::DistanceOfTwoPoint(coord,origin);
+          dist  = fabs(GeometryFunctions::DotProduct(vector1,n));
+          dist1 = GeometryFunctions::DistanceOfTwoPoint(coord,origin);
 
-		dist = sqrt( dist1 * dist1 - dist * dist);
+          dist = sqrt( dist1 * dist1 - dist * dist);
 
-		if(dist < 1.0e-6)
-		{
-			global_vel[0] = n[0] * vel;
-			global_vel[1] = n[1] * vel;
-			global_vel[2] = n[2] * vel;
-		}
-		else
-		{
-			local_vel[0] = 0.0;
-			local_vel[1] = dist * omiga;
-			local_vel[2] = vel;
+          if(dist < 1.0e-6)
+          {
+            global_vel[0] = n[0] * vel;
+            global_vel[1] = n[1] * vel;
+            global_vel[2] = n[2] * vel;
+          }
+          else
+          {
+            local_vel[0] = 0.0;
+            local_vel[1] = dist * omiga;
+            local_vel[2] = vel;
 
-			GeometryFunctions::normalize(vector1);
-			
-			GeometryFunctions::CrossProduct(n,vector1,vector2);
-			
-			GeometryFunctions::normalize(vector2);  
-			
-			GeometryFunctions::CrossProduct(vector2,n,vector1);
-			
-			GeometryFunctions::normalize(vector1);
+            GeometryFunctions::normalize(vector1);
+            
+            GeometryFunctions::CrossProduct(n,vector1,vector2);
+            
+            GeometryFunctions::normalize(vector2);  
+            
+            GeometryFunctions::CrossProduct(vector2,n,vector1);
+            
+            GeometryFunctions::normalize(vector1);
 
-			a[0][0] = vector1[0];
-			a[0][1] = vector1[1];
-			a[0][2] = vector1[2];
+            a[0][0] = vector1[0];
+            a[0][1] = vector1[1];
+            a[0][2] = vector1[2];
 
-			a[1][0] = vector2[0];
-			a[1][1] = vector2[1];
-			a[1][2] = vector2[2];
+            a[1][0] = vector2[0];
+            a[1][1] = vector2[1];
+            a[1][2] = vector2[2];
 
-			a[2][0] = n[0];
-			a[2][1] = n[1];
-			a[2][2] = n[2];
+            a[2][0] = n[0];
+            a[2][1] = n[1];
+            a[2][2] = n[2];
 
-			GeometryFunctions::VectorLocal2Global(a,local_vel,global_vel);	
-		}
-		
-		Output[3 * j + 0] = (global_vel[0] + g_v[0]);
-		Output[3 * j + 1] = (global_vel[1] + g_v[1]);
-		Output[3 * j + 2] = (global_vel[2] + g_v[2]);			
-	}
-  }
+            GeometryFunctions::VectorLocal2Global(a,local_vel,global_vel);	
+          }
+          
+          Output[3 * j + 0] = (global_vel[0] + g_v[0]);
+          Output[3 * j + 1] = (global_vel[1] + g_v[1]);
+          Output[3 * j + 2] = (global_vel[2] + g_v[2]);			
+        }
+    }
+    
 }
 
 void RigidFace3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
