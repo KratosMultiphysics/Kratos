@@ -226,7 +226,19 @@ namespace Kratos
                                 array_1d<double, 3> &rContactForce,
                                 array_1d<double, 3> &rElasticForce,
                                 const double &i_neighbour_count);
-
+      
+      virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
+                                double LocalContactForce[3],
+                                double LocalElasticContactForce[3],
+                                double GlobalContactForce[3],
+                                double GlobalElasticContactForce[3],
+                                double ViscoDampingLocalContactForce[3],
+                                double ViscoDampingGlobalContactForce[3],
+                                array_1d<double, 3> &rContactForce,
+                                array_1d<double, 3> &rElasticForce,
+                                const double &iRigidFaceNeighbour);
+      
+   
       virtual void CalculateViscoDamping(double LocalRelVel[3],
                                                   double ViscoDampingLocalContactForce[3],
                                                   double indentation,
