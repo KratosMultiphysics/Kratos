@@ -10,6 +10,7 @@
 #define  KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY
 
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
+#include "DEM_definitions.h"
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
@@ -139,7 +140,7 @@ namespace Kratos
         
         BaseType::ComputeNewNeighboursHistoricalData();                    
         
-         if(fem_model_part.Nodes().size()>0)
+        if(fem_model_part.Nodes().size()>0)
         {
         
           BaseType::SearchRigidFaceNeighbours();
@@ -186,7 +187,7 @@ namespace Kratos
           
           // 1. Initialize step   /////////////////////////////////            
           BaseType::InitializeSolutionStep();
-          this->Contact_InitializeSolutionStep();
+          this->ContactInitializeSolutionStep();
           
 
           // 2. Calculate forces   /////////////////////////////////            
@@ -198,7 +199,7 @@ namespace Kratos
           
            
           // 3. Move particles   /////////////////////////////////  
-          BaseType::SynchronizeSolidMesh(r_model_part); // Should be... just TOTAL_FORCES and PARTICLE_MOMENT
+          BaseType::SynchronizeSolidMesh(r_model_part); // Should be... just TOTAL_FORCES (and ELASTIC_FORCES) and PARTICLE_MOMENT
           
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
            
@@ -239,7 +240,7 @@ namespace Kratos
               }
 
           }          
-          
+
           // 5. Finalize step   /////////////////////////////////            
           BaseType::FinalizeSolutionStep();
           FinalizeSolutionStepFEM();
@@ -490,7 +491,7 @@ namespace Kratos
         
     }
         
-    void Contact_InitializeSolutionStep()
+    void ContactInitializeSolutionStep()
     {
        
       ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
@@ -604,8 +605,7 @@ namespace Kratos
           }// loop threads OpenMP
 
       } //Contact_InitializeSolutionStep
-      
-    
+         
    
      void virtual PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
      {
@@ -613,6 +613,7 @@ namespace Kratos
 
         ModelPart& r_model_part = BaseType::GetModelPart();
         
+        /*        
         if (mFixSwitch)
         {
             
@@ -620,6 +621,7 @@ namespace Kratos
             rCurrentProcessInfo[FIX_VELOCITIES_FLAG] = 0;
           
         } // mFixSwitch
+        */
         
         BaseType::GetScheme()->Calculate(r_model_part);
         
@@ -754,50 +756,50 @@ namespace Kratos
 
     } //SetInitialDemContacts
  
-    void FixHorizontalVelocities()
-    {
-      
-      KRATOS_TRY
-
-      std::cout<<"Confinement Finished, fixing Horizontal Velocities"<<"\n"<<std::endl;
-      
-      ModelPart& r_model_part           = BaseType::GetModelPart();
-      ElementsArrayType& pElements      = GetElements(r_model_part);
-      
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
-      #pragma omp parallel 
-      #pragma omp for
-      for (int k = 0; k < this->GetNumberOfThreads(); k++){
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-          {
-             
-            if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) || ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) ) //top and bot
-          
-            {
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
-                unsigned int pos_x = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
-                (it)->GetGeometry()(0)->GetDof(VELOCITY_X, pos_x).FixDof();
-                
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
-                unsigned int pos_z = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
-                (it)->GetGeometry()(0)->GetDof(VELOCITY_Z, pos_z).FixDof();
- 
-                
-            }
-
-            
-          } //loop over particles
-
-      }// loop threads OpenMP
-      
-
-      KRATOS_CATCH("")
-
-    }
+//     void FixHorizontalVelocities()
+//     {
+//       
+//       KRATOS_TRY
+// 
+//       std::cout<<"Confinement Finished, fixing Horizontal Velocities"<<"\n"<<std::endl;
+//       
+//       ModelPart& r_model_part           = BaseType::GetModelPart();
+//       ElementsArrayType& pElements      = GetElements(r_model_part);
+//       
+//       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+// 
+//       #pragma omp parallel 
+//       #pragma omp for
+//       for (int k = 0; k < this->GetNumberOfThreads(); k++){
+//           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+//           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+// 
+//           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+//           {
+//              
+//             if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) || ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) ) //top and bot
+//           
+//             {
+//                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+//                 unsigned int pos_x = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+//                 (it)->GetGeometry()(0)->GetDof(VELOCITY_X, pos_x).FixDof();
+//                 
+//                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
+//                 unsigned int pos_z = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+//                 (it)->GetGeometry()(0)->GetDof(VELOCITY_Z, pos_z).FixDof();
+//  
+//                 
+//             }
+// 
+//             
+//           } //loop over particles
+// 
+//       }// loop threads OpenMP
+//       
+// 
+//       KRATOS_CATCH("")
+// 
+//     }
     
      void ApplyPrescribedBoundaryConditions()
     {
@@ -980,17 +982,23 @@ namespace Kratos
               const unsigned int& dim = geom.WorkingSpaceDimension();
               for (unsigned int i = 0; i <geom.size(); i++)
               {
-                  index = i*dim;
-                  array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(TOTAL_FORCES);
+                  index = i*dim;//*2;
+                  array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);//TOTAL_FORCES
+                 // array_1d<double,3>& node_elastic_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);
+                  
                   for(unsigned int kk=0; kk<dim; kk++)
                   {
                       geom(i)->SetLock();
+
                       node_rhs[kk] = node_rhs[kk] + rhs_cond[index+kk];
+                      //node_elastic_rhs[kk] = node_elastic_rhs[kk] + rhs_cond[index+kk+3];
                       geom(i)->UnSetLock();
                   }
+                  
               }                   
               
           }
+          
       }
 
       KRATOS_CATCH("")
@@ -1018,7 +1026,8 @@ namespace Kratos
 
             for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
             {
-                array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(TOTAL_FORCES));
+                array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(ELASTIC_FORCES));
+                //array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(TOTAL_FORCES));
                 noalias(node_rhs)             = ZeroVector(3);
             }
         }
