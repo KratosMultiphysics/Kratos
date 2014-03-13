@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: virginia $
-//   Date:                $Date: 2009-01-23 14:39:59 $
+//   Last modified by:    $Author: M.Santasusana $
+//   Date:                $Date: 2014-03-01 14:39:59 $
 //   Revision:            $Revision: 1.27 $
 //
 //
@@ -620,11 +620,12 @@ namespace Kratos
             mFemOldNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
             mFemOldNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
 			
-	    ///Global stored contact force between rigid face and particle, used by fem elements
-            Vector& neighbour_rigid_faces_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
-	    neighbour_rigid_faces_contact_force[3 * iRigidFaceNeighbour + 0] = GlobalContactForce[0];
-	    neighbour_rigid_faces_contact_force[3 * iRigidFaceNeighbour + 1] = GlobalContactForce[1];
-	    neighbour_rigid_faces_contact_force[3 * iRigidFaceNeighbour + 2] = GlobalContactForce[2];
+            ///Global stored contact force between rigid face and particle, used by fem elements
+            
+            Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
+            neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 0] = GlobalContactForce[0];
+            neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 1] = GlobalContactForce[1];
+            neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 2] = GlobalContactForce[2];
 			
 
             rContactForce[0] += GlobalContactForce[0];
