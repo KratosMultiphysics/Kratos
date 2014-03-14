@@ -395,13 +395,6 @@ public:
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-        
-        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
-             if ((destination = neighbours_indices[i_color]) >= 0)
-            {
-                NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
-                NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
-            }
             
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
@@ -548,26 +541,31 @@ public:
     virtual bool SynchronizeVariable(Variable<int> const& ThisVariable)
     {
         SynchronizeVariable<int,int>(ThisVariable);
+        return true;
     }
     
     virtual bool SynchronizeVariable(Variable<double> const& ThisVariable)
     {
         SynchronizeVariable<double,double>(ThisVariable);
+        return true;
     }
     
     virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
     {
         SynchronizeVariable<array_1d<double, 3 >,double >(ThisVariable);
+        return true;
     }
     
     virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
     {
         SynchronizeVariable<Vector,double>(ThisVariable);
+        return true;
     }
     
     virtual bool SynchronizeVariable(Variable<Matrix> const& ThisVariable)
     {
         SynchronizeVariable<Matrix,double>(ThisVariable);
+        return true;
     }
     
     // This function is for test and will be changed. Pooyan.

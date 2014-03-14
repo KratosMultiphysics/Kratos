@@ -245,7 +245,7 @@ namespace Kratos
           MigrateMeshElements(rModelPart,particleSerializer,SendObjects,RecvObjects,0);
           
           // Rest of the meshes
-          for(int i = 1; i < rModelPart.NumberOfMeshes(); i++)
+          for(unsigned int i = 1; i < rModelPart.NumberOfMeshes(); i++)
           {
               MigrateMeshElements(rModelPart,particleSerializer,SendObjects,RecvObjects,i);
           }

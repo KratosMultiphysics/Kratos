@@ -324,15 +324,12 @@ public:
 
         std::vector<bool> SendPoint(NumberOfObjects*mpi_size);
 
-        int msgSendSizeRad[mpi_size];
-
         PointType Low, High;
         SearchStructureType Box;
 
         for(int i = 0; i < mpi_size; i++)
         {                   
             NumberOfSendPoints[i] = 0;
-            msgSendSizeRad[i] = 0;
         }
         
         IteratorType it_begin = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin();
