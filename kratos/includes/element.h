@@ -500,62 +500,6 @@ public:
     }
 
 
-    /**
-     * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions 
-     * CalculateInertialContributionLHS, CalculateDampingContributionLHS, 
-     * CalculateInertialContributionRHS, CalculateDampingContributionRHS methods are: OPTIONAL
-     */    
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental mass matrix
-     * @param rInertialMatrix: the elemental mass matrix with time integration parameters
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateInertialContributionLHS(MatrixType& rInertialMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rInertialMatrix.size1() != 0)
-            rInertialMatrix.resize(0, 0);
-    }
-
-     /**
-     * this is called during the assembling process in order
-     * to calculate the elemental damping matrix
-     * @param rDampingMatrix: the elemental damping matrix with time integration parameters
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateDampingContributionLHS(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rDampingMatrix.size1() != 0)
-            rDampingMatrix.resize(0, 0);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental inertial vector
-     * @param rInertialVector: the elemental inertial contribution vector 
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateInertialContributionRHS(VectorType& rInertialVector, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rInertialVector.size() != 0)
-	  rInertialVector.resize(0);
-    }
-
-     /**
-     * this is called during the assembling process in order
-     * to calculate the elemental damping vector
-     * @param rDampingVector: the elemental damping contribution vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateDampingContributionRHS(VectorType& rDampingVector, ProcessInfo& rCurrentProcessInfo)
-    {
-          if (rDampingVector.size() != 0)
-            rDampingVector.resize(0);
-    }
-
-
 
     /**
      * ELEMENTS inherited from this class must implement this methods
