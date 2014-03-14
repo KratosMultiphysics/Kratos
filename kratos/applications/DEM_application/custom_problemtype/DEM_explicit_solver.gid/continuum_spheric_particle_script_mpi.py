@@ -182,7 +182,7 @@ if(DEM_parameters.TestType != "None"):
  
  MaterialTest = DEM_material_test_script_mpi.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
  
-MPIprint ("Initialization Complete" + "\n")
+KRATOSprint ("Initialization Complete" + "\n")
 
 step                   = 0
 time                   = 0.0
@@ -207,7 +207,6 @@ if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
  if(mpi.rank == 0):
     MaterialTest.PrintChart();
-    
  MaterialTest.PrepareDataForGraph()
  
 #------------------------------------------------------------------------------------------
@@ -227,7 +226,7 @@ KRATOSprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 KRATOSprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
 #if(DEM_parameters.PoissonMeasure == "ON"):
-	#MaterialTest.PoissonMeasure()
+  #MaterialTest.PoissonMeasure()
   
 while (time < DEM_parameters.FinalTime):
 
@@ -254,6 +253,7 @@ while (time < DEM_parameters.FinalTime):
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if (incremental_time > DEM_parameters.ControlTime):
+        
         percentage = 100 * (float(step) / total_steps_expected)
 
         KRATOSprint('Real time calculation: ' + str(timer.time() - initial_real_time))
