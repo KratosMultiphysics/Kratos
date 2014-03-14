@@ -205,6 +205,7 @@ if (DEM_parameters.ModelDataInfo == "ON"):
 
 if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
   
+ #if(mpi.rank == 0):
  MaterialTest.PrintChart();
  MaterialTest.PrepareDataForGraph()
  
