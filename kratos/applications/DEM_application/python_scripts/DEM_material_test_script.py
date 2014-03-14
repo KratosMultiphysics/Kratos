@@ -56,9 +56,9 @@ class MaterialTest:
 
       self.graph_frequency        = int(self.parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
       
-      self.strain = 0.0; self.total_stress = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
-      self.strain_fem = 0.0; self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0; self.total_stress_fem = 0.0; 
-      self.total_stress_fem_bot = 0.0
+      self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
+      self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
+
       
       self.new_strain = 0.0
       
@@ -270,8 +270,8 @@ class MaterialTest:
 
       # Cylinder dimensions
 
-      h = 0.086
-      d = 0.15
+      h = self.parameters.SpecimenLength
+      d = self.parameters.SpecimenDiameter
       eps = 2.0
 
       for element in self.balls_model_part.Elements:
@@ -339,7 +339,7 @@ class MaterialTest:
     
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-    self.strain -= 100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
+    self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
     if( self.parameters.TestType =="BTS"):
 
@@ -351,7 +351,7 @@ class MaterialTest:
         total_force_bts += force_node_y
         
       self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
-
+      self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
     else:
 
       radial_strain = self.MeasureRadialStrain()
@@ -396,7 +396,7 @@ class MaterialTest:
       
       if(self.parameters.TestType == "BTS"):
         
-        self.bts_export.write(str(step)+"  "+str(self.total_stress_bts)+'\n')
+        self.bts_export.write(str(self.strain_bts)+"  "+str(self.total_stress_bts)+'\n')
         self.bts_export.flush()
       
       else:
