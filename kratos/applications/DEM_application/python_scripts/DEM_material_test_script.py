@@ -383,7 +383,7 @@ class MaterialTest:
       
           self.Pressure = min(self.total_stress_mean*1e6, self.parameters.ConfinementPressure * 1e6)
           
-          self.ApplyLateralPressure(self.Pressure, self.Procedures.XLAT, self.Procedures.XBOT, self.Procedures.XTOP, self.Procedures.XBOTCORNER, self.Procedures.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
+          self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
             
     
   #-------------------------------------------------------------------------------------#
