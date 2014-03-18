@@ -44,7 +44,6 @@
 #include "custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_contact_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/component_wise_bossak_scheme.hpp"
-#include "custom_strategies/custom_schemes/residual_based_rotation_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 
 //linear solvers
@@ -88,7 +87,6 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
     typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
     typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
-    typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
 
 
@@ -168,16 +166,6 @@ void  AddCustomStrategiesToPython()
                 "ComponentWiseBossakScheme", init< double , double >() )
 
             .def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
-
-
-    // Residual Based Rotational Bossak Scheme Type
-    class_< ResidualBasedRotationBossakSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedRotationBossakScheme", init< double , double >() )
-
-            .def("Initialize", &ResidualBasedRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
 
