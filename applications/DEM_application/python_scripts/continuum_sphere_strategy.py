@@ -64,8 +64,8 @@ def AddVariables(model_part, Param):
       model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
       model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
       
-    
-    model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
+    if(Var_Translator(Param.PostGroupId)):
+        model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
 #    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
 
     # OPTIMIZATION
