@@ -304,13 +304,6 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 void RigidFace3D::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
 {
   
-  const unsigned int number_of_nodes = GetGeometry().size();
-  
-  for(unsigned int j = 0; j < number_of_nodes; j++)
-  {
-    
-      this->GetGeometry()[j].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetValue(GROUP_ID));  
-  }
   
 }
 
