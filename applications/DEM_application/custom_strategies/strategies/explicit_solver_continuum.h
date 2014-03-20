@@ -756,51 +756,7 @@ namespace Kratos
 
     } //SetInitialDemContacts
  
-//     void FixHorizontalVelocities()
-//     {
-//       
-//       KRATOS_TRY
-// 
-//       std::cout<<"Confinement Finished, fixing Horizontal Velocities"<<"\n"<<std::endl;
-//       
-//       ModelPart& r_model_part           = BaseType::GetModelPart();
-//       ElementsArrayType& pElements      = GetElements(r_model_part);
-//       
-//       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-// 
-//       #pragma omp parallel 
-//       #pragma omp for
-//       for (int k = 0; k < this->GetNumberOfThreads(); k++){
-//           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-//           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-// 
-//           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-//           {
-//              
-//             if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) || ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) ) //top and bot
-//           
-//             {
-//                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
-//                 unsigned int pos_x = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
-//                 (it)->GetGeometry()(0)->GetDof(VELOCITY_X, pos_x).FixDof();
-//                 
-//                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
-//                 unsigned int pos_z = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
-//                 (it)->GetGeometry()(0)->GetDof(VELOCITY_Z, pos_z).FixDof();
-//  
-//                 
-//             }
-// 
-//             
-//           } //loop over particles
-// 
-//       }// loop threads OpenMP
-//       
-// 
-//       KRATOS_CATCH("")
-// 
-//     }
-    
+
      void ApplyPrescribedBoundaryConditions()
     {
       
