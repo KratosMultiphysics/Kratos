@@ -175,6 +175,7 @@ namespace Kratos
 
     private:
 
+        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& lift_force);
         double ComputeConstantDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         double ComputeWeatherfordDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         void CalculateNewtonianDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
@@ -183,7 +184,8 @@ namespace Kratos
         double ComputeGanserDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeGanserParameters(const int isometric_shape, const double sphericity, const double dn, double& k_1, double& k_2);
         double ComputeSaffmanLiftCoefficient(const double& norm_of_slip_vel, const double fluid_density, const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& rCurrentProcessInfo);
-      ///@name Static Member Variables
+        void CustomInitialize();
+        ///@name Static Member Variables
       ///@{
 
 
@@ -191,10 +193,14 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
+      bool mHasDragForceNodalVar;
+      bool mHasVirtualMassForceNodalVar;
+      bool mHasLiftForceNodalVar;
       int mBuoyancyForceType;
       int mDragForceType;
       int mVirtualMassForceType;
       int mLiftForceType;
+      int mFluidModelType;
 
       ///@}
       ///@name Private Operators
