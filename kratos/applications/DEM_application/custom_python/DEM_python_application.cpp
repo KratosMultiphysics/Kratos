@@ -164,6 +164,7 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
 
     // *************** Swimming only BEGIN *************
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(POWER_LAW_TOLERANCE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(FLUID_MODEL_TYPE)
     // *************** Swimming only END ***************
 
     // TIME RELATED
@@ -322,6 +323,7 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     // *************** Swimming only BEGIN *************
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(LIFT_FORCE)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VIRTUAL_MASS_FORCE)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(HYDRODYNAMIC_FORCE)
     // *************** Swimming only END ***************
 
     // ENERGY
