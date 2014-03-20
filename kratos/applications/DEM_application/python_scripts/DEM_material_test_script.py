@@ -83,6 +83,9 @@ class MaterialTest:
         self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
         self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
         self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
+        self.graph_export_radial1 = open(self.parameters.problem_name+"_graph_1.grf",'w')
+        self.graph_export_radial2 = open(self.parameters.problem_name+"_graph_2.grf",'w')
+        self.graph_export_radial3 = open(self.parameters.problem_name+"_graph_3.grf",'w')
 
         print ('Initial Height of the Model: ' + str(self.height)+'\n')
         
@@ -256,9 +259,15 @@ class MaterialTest:
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
-
-
-        print("End ", h, "x", d, "Cylinder Skin Determination", "\n")
+        #checks:
+            
+        if(len(self.XLAT)==0):
+            
+            print("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES", "\n")
+        
+        else:
+          
+            print("End ", h, "x", d, "Cylinder Skin Determination", "\n")
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
   
@@ -354,8 +363,8 @@ class MaterialTest:
       self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
     else:
 
-      radial_strain = self.MeasureRadialStrain()
-      self.volumetric_strain = self.strain - 2*radial_strain
+      radial_strain = -100*self.MeasureRadialStrain()
+      self.volumetric_strain = self.strain + 2.0*radial_strain
 
       total_force_top = 0.0
       total_force_bot = 0.0
@@ -409,7 +418,13 @@ class MaterialTest:
         self.graph_export_2.flush()
         
         self.graph_export_volumetric.write(str(self.volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
+        self.graph_export_radial1.write(str(self.total_stress_mean)+"    "+str(self.radial_strain)+'\n')
+        self.graph_export_radial2.write(str(self.total_stress_mean)+"    "+str(self.strain)+'\n')
+        self.graph_export_radial3.write(str(self.total_stress_mean)+"    "+str(self.volumetric_strain)+'\n')
         self.graph_export_volumetric.flush()
+        self.graph_export_radial1.flush()
+        self.graph_export_radial2.flush()
+        self.graph_export_radial3.flush()
         
     self.graph_counter += 1 
     
@@ -729,19 +744,12 @@ class MaterialTest:
       z0 = node.Z0
       
       dist_initial = math.sqrt(x0 * x0 + z0 * z0)
-      dist_now = math.sqrt(x * x + z * z)
+      dist_now = math.sqrt(x * x + z * z)    
+      node_radial_strain = (dist_now - dist_initial) / dist_initial      
+      mean_radial_strain += node_radial_strain
       
-      node_radial_strain = (dist_now - dist_initial) / dist_initial
-      
-      mean_radial_strain += node_radial_strain*r*r
-      weight += r*r
-    
-    if(weight == 0.0):
-      print ("Error in MeasureRadialStrain. Lateral skin particles not well defined")
-    else:
-      
-      radial_strain = mean_radial_strain/weight
-    
+      weight += 1.0
+    radial_strain = mean_radial_strain/weight
     return radial_strain
     
     #-------------------------------------------------------------------------------------#  
