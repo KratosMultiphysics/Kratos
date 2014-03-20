@@ -100,6 +100,8 @@ using namespace boost::python;
         ("CustomFunctionsCalculator", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
         .def("AssessStationarity", &CustomFunctionsCalculator::AssessStationarity)
+        .def("CalculateDomainVolume", &CustomFunctionsCalculator::CalculateDomainVolume)
+        .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator::CalculateGlobalFluidVolume)
         ; 
     
     class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double, int, int>())
