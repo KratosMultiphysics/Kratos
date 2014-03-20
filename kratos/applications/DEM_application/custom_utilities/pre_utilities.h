@@ -53,8 +53,9 @@ class PreUtilities
 
       void MeasureTopHeight(ModelPart& rModelPart, double& subtotal, double& weight )
       {
-          ElementsArrayType& pElements        = rModelPart.Elements();      
-           
+        /*
+        ElementsArrayType& pElements        = rModelPart.Elements();
+
         for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
         {
                  
@@ -81,40 +82,42 @@ class PreUtilities
             }
             
          }
+        */
          
       }
           
      void MeasureBotHeight(ModelPart& rModelPart, double& subtotal, double& weight )
       {
-          ElementsArrayType& pElements        = rModelPart.Elements();      
-           
-        for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
-        {
-                 
-            if( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 )
+          /*
+            ElementsArrayType& pElements        = rModelPart.Elements();
+
+            for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
             {
-              
-              ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);            
-              
-              for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin();  
-              ineighbour != mrNeighbours.end(); ineighbour++)
-              {
-                
-                if( ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) != 2 )
+
+                if( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 )
                 {
-                
-                    subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                    weight += it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                    
-                    break;
+
+                  ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);
+
+                  for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin();
+                  ineighbour != mrNeighbours.end(); ineighbour++)
+                  {
+
+                    if( ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) != 2 )
+                    {
+
+                        subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                        weight += it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+
+                        break;
+                    }
+
+                  }
+
                 }
-                  
-              }
-              
-            }
-            
-         }
-         
+
+             }
+         */
       }
       
 

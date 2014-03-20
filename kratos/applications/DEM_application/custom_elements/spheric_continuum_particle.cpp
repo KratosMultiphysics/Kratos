@@ -1058,13 +1058,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(*mSkinSphere);  
             
           }
-          
-          if (rCurrentProcessInfo[PRINT_GROUP_ID] == 1)
-          {
-
-              this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID));
-          }
-      
          
           if( mContactMeshOption ==1 && rCurrentProcessInfo[STRESS_STRAIN_OPTION] )
           {
@@ -1912,14 +1905,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       /*
       if(rCurrentProcessInfo[STRESS_STRAIN_OPTION] == 1) // if stress_strain_options ON 
         {
-          
-            if ( ( rRepresentative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
-            {
-                this->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) = 15;
-                KRATOS_WATCH(this->Id())
-                KRATOS_WATCH("Negative volume")
-                KRATOS_WATCH(*mpTimeStep)
-            }
               
             else
             {

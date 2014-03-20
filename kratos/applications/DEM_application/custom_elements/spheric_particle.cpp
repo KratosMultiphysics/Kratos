@@ -1964,12 +1964,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo){
+      void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+      {
         
-          if (rCurrentProcessInfo[PRINT_GROUP_ID] == 1){
-              this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID));
-          }
-    
+
       }
 
       //**************************************************************************************************************************************************
