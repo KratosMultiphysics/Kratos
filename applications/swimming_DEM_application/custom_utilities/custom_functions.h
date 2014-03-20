@@ -11,12 +11,15 @@
 #define KRATOS_CUSTOM_FUNCTIONS
 
 // /* External includes */
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 // System includes
 
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 
 //Database includes
 #include "custom_utilities/discrete_particle_configure.h"
@@ -29,8 +32,6 @@
 #include "../../DEM_application/custom_elements/spheric_particle.h"
 #include "../swimming_DEM_application.h"
 #include "../../../kratos/utilities/geometry_utilities.h"
-
-//const double prox_tol = 0.00000000001;
 
 namespace Kratos
 {
@@ -76,7 +77,8 @@ class CustomFunctionsCalculator
         typedef Configure::ContainerType                    ParticlePointerVector;
         typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
-
+        typedef ModelPart::ElementsContainerType::iterator  ElementIterator;
+        typedef ModelPart::NodesContainerType::iterator     NodeIterator;
 
     KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
@@ -93,7 +95,7 @@ class CustomFunctionsCalculator
 
     void CalculatePressureGradient(ModelPart& r_model_part) {
 
-            for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
+            for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
                 inode->FastGetSolutionStepValue(AUX_DOUBLE_VAR) = 0.0;
                 noalias(inode->FastGetSolutionStepValue(PRESSURE_GRADIENT)) = ZeroVector(3);
             }
@@ -130,7 +132,7 @@ class CustomFunctionsCalculator
 
             }
 
-            for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
+            for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
                 inode->FastGetSolutionStepValue(PRESSURE_GRADIENT) /= inode->FastGetSolutionStepValue(AUX_DOUBLE_VAR);
             }
         }
@@ -148,13 +150,13 @@ class CustomFunctionsCalculator
 
       else {
           double max_pressure_change_rate = 0.0; // measure of stationarity
-          double mean_celerity = 0.0;            // to adimensionalize the time step
+          double mean_celerity = 0.0;            // used to adimensionalize the time step
 
           // filling up mPressures and calculating the mean velocities and the maximum nodal pressure change
 
           unsigned int i = 0;
 
-          for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
+          for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
               array_1d<double, 3> velocity = inode->FastGetSolutionStepValue(VELOCITY);
               mean_celerity += sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2]);
 
@@ -189,13 +191,14 @@ class CustomFunctionsCalculator
                   if (max_pressure_change_rate <= tol){ // go with the absolute value
                       return(true);
                     }
+
                 }
 
               max_pressure_change_rate /= time_adim_coeff * delta_t * pressure_adim_coeff ;
             }
 
           else {
-              KRATOS_ERROR(std::runtime_error,"Trying to calculate pressure variations between to coincident time steps! (null time variation since last recorded time)","");
+              KRATOS_ERROR(std::runtime_error,"Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
             }
           
           std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
@@ -220,6 +223,60 @@ class CustomFunctionsCalculator
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
+    double CalculateDomainVolume(ModelPart& r_fluid_model_part)
+    {
+      OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+      double added_volume = 0.0;
+
+      #pragma omp parallel for reduction(+ : added_volume)
+      for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+
+          for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
+              added_volume += CalculateElementalVolume(it->GetGeometry());
+            }
+        }
+
+      return added_volume;
+    }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
+    // this functions assumes linear elements are used
+
+    double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
+    {
+      OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+
+      double added_fluid_volume = 0.0;
+
+      #pragma omp parallel for reduction(+ : added_fluid_volume)
+      for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+
+          for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
+              Geometry< Node<3> >& geom = it->GetGeometry();
+              double element_volume;
+              double element_fluid_volume;
+
+              if (geom[0].SolutionStepsDataHas(SOLID_FRACTION)){
+                  element_fluid_volume = CalculateScalarIntegralOfLinearInterpolation(geom, SOLID_FRACTION, element_volume);
+                  element_fluid_volume = element_volume - element_fluid_volume;
+                }
+
+              else {
+                  element_fluid_volume = CalculateElementalVolume(geom);
+                }
+
+              added_fluid_volume += element_fluid_volume;
+            }
+
+        }
+
+      return added_fluid_volume;
+    }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
 
   private:
 
@@ -228,26 +285,6 @@ class CustomFunctionsCalculator
     double mLastPressureVariation;
     double mTotalVolume;
     std::vector<double> mPressures;
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void PerformFirstStepComputations(ModelPart& r_model_part)
-    {
-      CalculateDomainVolume(r_model_part, mTotalVolume);
-      mPressures.resize(r_model_part.Nodes().size());
-      mLastMeasurementTime = r_model_part.GetProcessInfo()[TIME];
-
-      unsigned int i = 0;
-
-      for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
-          mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
-          ++i;
-      }
-
-      mPressuresFilled = true;
-      CalculateVariationWithingVector(mPressures, mLastPressureVariation);
-    }
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -277,41 +314,113 @@ class CustomFunctionsCalculator
 
     }
 
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
-    void CalculateDomainVolume(ModelPart& r_model_part, double& volume)
+    double CalculateElementalVolume(const Geometry<Node < 3 > >& geom)
     {
+        double x0 = geom[0].X();
+        double y0 = geom[0].Y();
+        double z0 = geom[0].Z();
+        double x1 = geom[1].X();
+        double y1 = geom[1].Y();
+        double z1 = geom[1].Z();
+        double x2 = geom[2].X();
+        double y2 = geom[2].Y();
+        double z2 = geom[2].Z();
+        double x3 = geom[3].X();
+        double y3 = geom[3].Y();
+        double z3 = geom[3].Z();
 
-      volume = 0.0;
-      const int n_elem = r_model_part.Elements().size();
+        double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-      for (int i = 0; i < n_elem; ++i){
-          ModelPart::ElementsContainerType::iterator ielem = r_model_part.ElementsBegin() + i;
-          Geometry< Node<3> >& geom = ielem->GetGeometry();
-          double x0 = geom[0].X();
-          double y0 = geom[0].Y();
-          double z0 = geom[0].Z();
+        if (vol == 0.0){
+            KRATOS_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+          }
 
-          double x1 = geom[1].X();
-          double y1 = geom[1].Y();
-          double z1 = geom[1].Z();
-
-          double x2 = geom[2].X();
-          double y2 = geom[2].Y();
-          double z2 = geom[2].Z();
-
-          double x3 = geom[3].X();
-          double y3 = geom[3].Y();
-          double z3 = geom[3].Z();
-
-          volume += fabs(CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3));
-        }
-
+        return vol;
     }
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
+
+    double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<double>& r_var, double& vol)
+    {
+        array_1d<double, 4> N;
+        double x0 = geom[0].X();
+        double y0 = geom[0].Y();
+        double z0 = geom[0].Z();
+        double x1 = geom[1].X();
+        double y1 = geom[1].Y();
+        double z1 = geom[1].Z();
+        double x2 = geom[2].X();
+        double y2 = geom[2].Y();
+        double z2 = geom[2].Z();
+        double x3 = geom[3].X();
+        double y3 = geom[3].Y();
+        double z3 = geom[3].Z();
+
+        double xc = 0.25 * (x0 + x1 + x2 + x3);
+        double yc = 0.25 * (y0 + y1 + y2 + y3);
+        double zc = 0.25 * (z0 + z1 + z2 + z3);
+
+        vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+
+        double inv_vol = 0.0;
+
+        if (vol == 0.0){
+            KRATOS_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
+          }
+
+        else {
+            inv_vol = 1.0 / vol;
+          }
+
+        N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
+        N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
+        N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
+        N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
+
+        double value_at_gauss_point = 0.0;
+
+        for (unsigned int i = 0; i != 4; ++i){
+              value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var, 0);
+          }
+
+        return (vol * value_at_gauss_point);
+    }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
+
+    void PerformFirstStepComputations(ModelPart& r_model_part)
+    {
+        mTotalVolume = CalculateDomainVolume(r_model_part);
+        mPressures.resize(r_model_part.Nodes().size());
+        mLastMeasurementTime = r_model_part.GetProcessInfo()[TIME];
+
+        unsigned int i = 0;
+
+        for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
+            mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
+            ++i;
+          }
+
+        mPressuresFilled = true;
+        CalculateVariationWithingVector(mPressures, mLastPressureVariation);
+    }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
+
+    ///@}
+    ///@name Member r_variables
+    ///@{
+    vector<unsigned int> mElementsPartition;
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     inline void CalculateVariationWithingVector(const std::vector<double>& vector, double& variation)
     {
@@ -319,12 +428,26 @@ class CustomFunctionsCalculator
       double max = vector[0];
 
       for (unsigned int i = 0; i != vector.size(); ++i){
-
           min = std::min(min, mPressures[i]);
           max = std::max(max, mPressures[i]);
         }
 
       variation = max - min;
+    }
+
+    vector<unsigned int>& GetElementPartition()
+    {
+      return (mElementsPartition);
+    }
+
+    ElementIterator GetElementPartitionBegin(ModelPart& r_model_part, unsigned int k)
+    {
+      return (r_model_part.GetCommunicator().LocalMesh().Elements().ptr_begin() + mElementsPartition[k]);
+    }
+
+    ElementIterator GetElementPartitionEnd(ModelPart& r_model_part, unsigned int k)
+    {
+      return (r_model_part.GetCommunicator().LocalMesh().Elements().ptr_begin() + mElementsPartition[k + 1]);
     }
 
     //**************************************************************************************************************************************************
