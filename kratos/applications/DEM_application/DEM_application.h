@@ -133,6 +133,7 @@ namespace Kratos
 
   // *************** Swimming only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, POWER_LAW_TOLERANCE)
+  KRATOS_DEFINE_VARIABLE(int, FLUID_MODEL_TYPE)
   // *************** Swimming only END ***************
 
   // TIME RELATED
@@ -298,6 +299,7 @@ namespace Kratos
   // *************** Swimming only BEGIN *************
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LIFT_FORCE)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VIRTUAL_MASS_FORCE)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(HYDRODYNAMIC_FORCE)
   // *************** Swimming only END ***************
 
   // ENERGY
