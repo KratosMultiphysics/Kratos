@@ -54,8 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -97,7 +95,7 @@ public:
     ///@{
 
     /// Counted pointer of DiagonalPreconditioner
-    typedef boost::shared_ptr<DiagonalPreconditioner> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(DiagonalPreconditioner);
 
     typedef  Preconditioner<TSparseSpaceType, TDenseSpaceType> BaseType;
 

@@ -58,8 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -131,8 +129,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< ResidualBasedPredictorCorrectorRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedPredictorCorrectorRelaxationScheme);
+   KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedPredictorCorrectorRelaxationScheme);
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 

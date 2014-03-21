@@ -20,7 +20,7 @@ Gran Capita' s/n, 08034 Barcelona, Spain
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
 "Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
+without limitation  the rights to  use, copy,sha modify,  merge, publish,
 distribute,  sublicense and/or  sell copies  of the  Software,  and to
 permit persons to whom the Software  is furnished to do so, subject to
 the following condition:
@@ -82,7 +82,7 @@ public:
     /**
      * Counted pointer of UPCHMCM
      */
-    typedef boost::shared_ptr<Casm> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(Casm);
     /**
      * Life Cycle
      */
@@ -97,9 +97,9 @@ public:
      * Clone function
      * will be called on initialization of the constitutive law
      */
-    virtual boost::shared_ptr<BaseType> Clone() const
+    virtual BaseType::Pointer Clone() const
     {
-        boost::shared_ptr<BaseType> p_clone ( new Casm() );
+        BaseType::Pointer p_clone ( new Casm() );
         return p_clone;
     }
 

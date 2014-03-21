@@ -96,9 +96,9 @@ public:
      * Clone function
      * @return a pointer to a new instance of this constitutive law
      */
-    virtual boost::shared_ptr<BaseType> Clone() const
+    virtual BaseType::Pointer Clone() const
     {
-        boost::shared_ptr<BaseType> p_clone( new DruckerPrager() );
+        BaseType::Pointer p_clone( new DruckerPrager() );
         return p_clone;
     }
 

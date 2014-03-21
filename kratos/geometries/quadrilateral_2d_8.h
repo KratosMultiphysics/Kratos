@@ -353,7 +353,7 @@ public:
         return typename BaseType::Pointer( new Quadrilateral2D8( ThisPoints ) );
     }
 
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+    virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -363,7 +363,7 @@ public:
             NewPoints.push_back( this->Points()[i] );
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > > p_clone( new Quadrilateral2D8< Point<3> >( NewPoints ) );
+       Geometry< Point<3> >::Pointer p_clone( new Quadrilateral2D8< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();
 

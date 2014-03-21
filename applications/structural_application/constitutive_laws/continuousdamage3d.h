@@ -81,7 +81,7 @@ public:
     /**
      * Counted pointer of ContinuousDamage3D
      */
-    typedef boost::shared_ptr<ContinuousDamage3D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(ContinuousDamage3D);
 
     /**
      * Life Cycle
@@ -91,9 +91,9 @@ public:
      */
     ContinuousDamage3D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+    virtual ConstitutiveLaw<Node<3> >::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new ContinuousDamage3D());
+        ConstitutiveLaw<Node<3> >::Pointer p_clone(new ContinuousDamage3D());
         return p_clone;
     }
 

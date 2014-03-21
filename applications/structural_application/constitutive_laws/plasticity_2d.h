@@ -85,7 +85,7 @@ public:
     /**
      * Counted pointer of Plasticity2D
      */
-    typedef boost::shared_ptr<Plasticity2D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(Plasticity2D);
 
     typedef FluencyCriteria::Pointer FluencyCriteriaPointer;
 
@@ -100,9 +100,9 @@ public:
      */
     Plasticity2D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new Plasticity2D(
+         ConstitutiveLaw::Pointer p_clone(new Plasticity2D(
                     mpFluencyCriteria->Clone(),
                     mpProperties));
         return p_clone;

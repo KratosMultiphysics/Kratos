@@ -65,9 +65,9 @@ public:
     Cohesion_Softening();
     ~Cohesion_Softening();
     KRATOS_CLASS_POINTER_DEFINITION(Cohesion_Softening);
-    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    virtual SofteningHardeningCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Cohesion_Softening());
+        SofteningHardeningCriteria::Pointer p_clone(new Cohesion_Softening());
         return p_clone;
     }
 

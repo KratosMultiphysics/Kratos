@@ -71,9 +71,9 @@ public:
     virtual ~SofteningHardeningCriteria() {}
 
 
-    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    virtual SofteningHardeningCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new SofteningHardeningCriteria());
+        SofteningHardeningCriteria::Pointer p_clone(new SofteningHardeningCriteria());
         return p_clone;
     }
 

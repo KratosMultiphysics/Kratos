@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of HooksLaw
      */
-    typedef boost::shared_ptr<HooksLaw> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(HooksLaw);
 
 
     /**
@@ -119,7 +119,7 @@ public:
     void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
                    const ProcessInfo& rCurrentProcessInfo );
 
-    boost::shared_ptr<ConstitutiveLaw> Clone() const;
+     ConstitutiveLaw::Pointer Clone() const;
 
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,

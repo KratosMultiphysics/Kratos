@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of MohrCoulombPlaneStrain
      */
-    typedef boost::shared_ptr<MohrCoulombPlaneStrain> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombPlaneStrain);
 
     /**
      * Life Cycle
@@ -93,9 +93,9 @@ public:
      */
     MohrCoulombPlaneStrain();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new MohrCoulombPlaneStrain());
+         ConstitutiveLaw::Pointer p_clone(new MohrCoulombPlaneStrain());
         return p_clone;
     }
 

@@ -74,9 +74,9 @@ class Standard_Morh_Coulomb_Yield_Function: public  FluencyCriteria
 public:
 
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<FluencyCriteria> p_clone(
+        FluencyCriteria::Pointer p_clone(
             new Standard_Morh_Coulomb_Yield_Function(
                 mpSofteningBehavior_Cohesion->Clone(),
                 mState));

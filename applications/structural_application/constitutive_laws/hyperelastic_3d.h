@@ -93,7 +93,7 @@ public:
     /**
      * Counted pointer of Hyperelastic3D
      */
-    typedef boost::shared_ptr<Hyperelastic3D> Pointer; //
+    KRATOS_CLASS_POINTER_DEFINITION(Hyperelastic3D); //
 
     /**
      * Life Cycle
@@ -104,9 +104,9 @@ public:
     Hyperelastic3D();
 
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new Hyperelastic3D());
+         ConstitutiveLaw::Pointer p_clone(new Hyperelastic3D());
         return p_clone;
     }
 

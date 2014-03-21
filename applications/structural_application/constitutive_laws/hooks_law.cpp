@@ -88,9 +88,9 @@ HooksLaw::~HooksLaw()
 {
 }
 
-boost::shared_ptr<ConstitutiveLaw> HooksLaw::Clone() const
+ ConstitutiveLaw::Pointer HooksLaw::Clone() const
 {
-    boost::shared_ptr<ConstitutiveLaw> p_clone(new HooksLaw());
+     ConstitutiveLaw::Pointer p_clone(new HooksLaw());
     return p_clone;
 }
 

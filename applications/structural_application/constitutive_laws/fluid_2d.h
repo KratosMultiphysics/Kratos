@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of Hypoelastic2D
      */
-    typedef boost::shared_ptr<Fluid2D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(Fluid2D);
 
     /**
      * Life Cycle
@@ -93,9 +93,9 @@ public:
      */
     Fluid2D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new Fluid2D());
+         ConstitutiveLaw::Pointer p_clone(new Fluid2D());
         return p_clone;
     }
 

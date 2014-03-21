@@ -84,7 +84,7 @@ public:
     /**
      * Counted pointer of IsotropicRankineDamage2D
      */
-    typedef boost::shared_ptr<IsotropicRankineDamage2D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(IsotropicRankineDamage2D);
 
     /**
      * Life Cycle
@@ -94,10 +94,10 @@ public:
      */
     IsotropicRankineDamage2D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
 //            KRATOS_WATCH("here");
-        boost::shared_ptr<ConstitutiveLaw > p_clone(new IsotropicRankineDamage2D());
+        ConstitutiveLaw::Pointer p_clone(new IsotropicRankineDamage2D());
         return p_clone;
     }
 

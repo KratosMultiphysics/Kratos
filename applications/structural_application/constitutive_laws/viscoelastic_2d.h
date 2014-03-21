@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -96,7 +95,7 @@ public:
     /**
      * Counted pointer of Hyperelastic3D
      */
-    typedef boost::shared_ptr<Viscoelastic2D> Pointer; //
+    KRATOS_CLASS_POINTER_DEFINITION(Viscoelastic2D); //
 
     /**
      * Life Cycle
@@ -108,11 +107,11 @@ public:
 
 
 
-    virtual boost::shared_ptr<ConstitutiveLaw > Clone() const
+    virtual ConstitutiveLaw::Pointer Clone() const
 
     {
 
-        boost::shared_ptr<ConstitutiveLaw > p_clone(new Viscoelastic2D());
+        ConstitutiveLaw::Pointer p_clone(new Viscoelastic2D());
 
         return p_clone;
     }

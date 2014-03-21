@@ -48,9 +48,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
-
 
 // Project includes
 #include "includes/define.h"
@@ -93,7 +90,7 @@ public:
     ///@{
 
     /// Counted pointer of ILUPreconditioner
-    typedef boost::shared_ptr<ILUPreconditioner> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(ILUPreconditioner);
 
 
     typedef Preconditioner<TSparseSpaceType, TDenseSpaceType> BaseType;

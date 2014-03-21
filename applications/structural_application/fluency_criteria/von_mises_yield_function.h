@@ -81,10 +81,9 @@ public:
     //Von_Mises_Yield_Function(const myState& State, myPotencialPlastic PotencialPlastic);
     Von_Mises_Yield_Function(const myState& State, const SoftHardPointerType& Soft);
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
-        //boost::shared_ptr<FluencyCriteria> p_clone(new Von_Mises_Yield_Function(mState,mPotencialPlastic));
-        boost::shared_ptr<FluencyCriteria> p_clone(new Von_Mises_Yield_Function(
+        FluencyCriteria::Pointer p_clone(new Von_Mises_Yield_Function(
                     mState,
                     mpSigmaBehavior->Clone()));
         return p_clone;

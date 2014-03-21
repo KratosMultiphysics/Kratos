@@ -85,7 +85,7 @@ namespace Kratos
             /**
              * Counted pointer of Isotropic3D
              */
-            typedef boost::shared_ptr<Isotropic3D> Pointer;
+            KRATOS_CLASS_POINTER_DEFINITION(Isotropic3D);
 
             /**
              * Life Cycle
@@ -95,9 +95,9 @@ namespace Kratos
              */
             Isotropic3D();
 
-            virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+            virtual  ConstitutiveLaw::Pointer Clone() const
             {
-                boost::shared_ptr<ConstitutiveLaw> p_clone( new Isotropic3D() );
+                 ConstitutiveLaw::Pointer p_clone( new Isotropic3D() );
                 return p_clone;
             }
 

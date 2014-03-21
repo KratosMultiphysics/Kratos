@@ -60,7 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -102,7 +101,6 @@ public:
     ///@{
 
     /// Counted pointer of IsotropicPlaneStressWrinkling
-    //typedef boost::shared_ptr<IsotropicPlaneStressWrinkling> Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( IsotropicPlaneStressWrinkling );
 
     ///@}
@@ -120,9 +118,9 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    boost::shared_ptr<ConstitutiveLaw> Clone() const
+     ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new IsotropicPlaneStressWrinkling());
+         ConstitutiveLaw::Pointer p_clone(new IsotropicPlaneStressWrinkling());
         return p_clone;
     }
 

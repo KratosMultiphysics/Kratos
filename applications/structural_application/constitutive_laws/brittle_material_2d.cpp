@@ -728,7 +728,7 @@ void BrittleMaterial2D::ResetMaterial(const Properties& props,
     //const ConstitutiveLaw::Pointer rLaw = ConstitutiveLaw::Pointer(new PlaneStrain());
     //props.SetValue(CONSTITUTIVE_LAW, rLaw);
     //const ConstitutiveLaw::Pointer rLaw = ConstitutiveLaw::Pointer(new PlaneStrain());
-    //boost::shared_ptr<ConstitutiveLaw> p_clone(new PlaneStrain());
+    // ConstitutiveLaw::Pointer p_clone(new PlaneStrain());
     //props[CONSTITUTIVE_LAW] = rLaw;
     //this = rLaw->Clone();
     //this = props[CONSTITUTIVE_LAW]->PlaneStrain::Clone();

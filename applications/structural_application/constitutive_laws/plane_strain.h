@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of PlaneStrain
      */
-    typedef boost::shared_ptr<PlaneStrain> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(PlaneStrain);
 
     /**
      * Life Cycle
@@ -93,9 +93,9 @@ public:
      */
     PlaneStrain();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new PlaneStrain());
+         ConstitutiveLaw::Pointer p_clone(new PlaneStrain());
         return p_clone;
     }
 

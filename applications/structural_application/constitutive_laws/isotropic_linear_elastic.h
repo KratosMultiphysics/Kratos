@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of IsotropicLinearElastic
      */
-    typedef boost::shared_ptr<IsotropicLinearElastic> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(IsotropicLinearElastic);
 
     /**
      * Life Cycle
@@ -101,9 +101,9 @@ public:
     /**
      * Clone function
      */
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new IsotropicLinearElastic());
+         ConstitutiveLaw::Pointer p_clone(new IsotropicLinearElastic());
         return p_clone;
     }
 

@@ -88,9 +88,9 @@ GroutingMortar::~GroutingMortar()
 {
 }
 
-boost::shared_ptr<ConstitutiveLaw<Node<3> > > GroutingMortar::Clone() const
+ConstitutiveLaw<Node<3> >::Pointer GroutingMortar::Clone() const
 {
-    boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new GroutingMortar());
+    ConstitutiveLaw<Node<3> >::Pointer p_clone(new GroutingMortar());
     return p_clone;
 }
 

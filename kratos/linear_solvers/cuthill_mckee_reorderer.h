@@ -16,8 +16,6 @@
 #include <vector>
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -63,7 +61,7 @@ public:
     ///@{
 
     /// Counted pointer of CuthillMcKeeReorderer
-    typedef boost::shared_ptr<CuthillMcKeeReorderer> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(CuthillMcKeeReorderer);
 
     typedef Reorderer<TSparseSpaceType, TDenseSpaceType> BaseType;
 

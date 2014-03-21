@@ -55,7 +55,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -81,7 +80,7 @@ public:
     /**
      * Counted pointer of VonMisesKinemVer3D
      */
-    typedef boost::shared_ptr<VonMisesKinemVer3D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(VonMisesKinemVer3D);
 
     /**
      * Life Cycle
@@ -91,9 +90,9 @@ public:
      */
     VonMisesKinemVer3D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const
+    virtual ConstitutiveLaw<Node<3> >::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new VonMisesKinemVer3D());
+        ConstitutiveLaw<Node<3> >::Pointer p_clone(new VonMisesKinemVer3D());
         return p_clone;
     }
 

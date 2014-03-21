@@ -72,6 +72,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef boost::shared_ptr<a > SharedPointer; \
 typedef boost::weak_ptr<a > WeakPointer
 
+#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
+typedef typename boost::shared_ptr<a > SharedPointer; \
+typedef typename boost::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //

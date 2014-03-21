@@ -81,7 +81,7 @@ public:
     /**
      * Counted pointer of IsotropicElasticLargeStrain
      */
-    typedef boost::shared_ptr<IsotropicElasticLargeStrain> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(IsotropicElasticLargeStrain);
 
 
     /**
@@ -105,7 +105,7 @@ public:
      */
     virtual ~IsotropicElasticLargeStrain();
 
-    boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const;
+    ConstitutiveLaw<Node<3> >::Pointer Clone() const;
 
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,
