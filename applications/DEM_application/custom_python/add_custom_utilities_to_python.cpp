@@ -111,9 +111,7 @@ void  AddCustomUtilitiesToPython(){
     
       class_<ParticleCreatorDestructor, boost::noncopyable >
         ("ParticleCreatorDestructor", init<>())
-        .def("InitializeForANewModelPart", &ParticleCreatorDestructor::InitializeForANewModelPart)
-        .def("NodeCreator", &ParticleCreatorDestructor::NodeCreator)
-        .def("ElementCreator", &ParticleCreatorDestructor::ElementCreator)
+        .def("InitializeForANewModelPart", &ParticleCreatorDestructor::InitializeForANewModelPart)               
         .def("PrintingTest", &ParticleCreatorDestructor::PrintingTest)
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
