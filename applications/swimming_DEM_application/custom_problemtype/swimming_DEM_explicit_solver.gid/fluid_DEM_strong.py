@@ -43,9 +43,8 @@ import DEM_procedures
 import swimming_DEM_procedures
 import embedded
 
-ProjectParameters.dem = DEM_explicit_solver_var
-
 # PROJECT PARAMETERS (to be put in problem type)
+ProjectParameters.dem                                  = DEM_explicit_solver_var
 ProjectParameters.projection_module_option             = 1
 ProjectParameters.print_particles_results_option       = 0
 ProjectParameters.add_each_hydro_force_option          = 0 # add each of the hydrodynamic forces (drag, lift and virtual mass)
