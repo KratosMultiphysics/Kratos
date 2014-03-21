@@ -113,7 +113,8 @@ fluid_variables_to_add += [PRESSURE_GRADIENT,
 
 balls_variables_to_add = []
 balls_variables_to_add += balls_vars_for_coupling
-balls_variables_to_add += [DRAG_FORCE,
+balls_variables_to_add += [SPHERICITY,
+                           DRAG_FORCE,
                            LIFT_FORCE,
                            BUOYANCY,
                            REYNOLDS_NUMBER]
@@ -189,21 +190,21 @@ if(first_node_yield_stress == 0.0):
 balls_model_part = ModelPart("SolidPart")
 fem_dem_model_part = ModelPart("RigidFace_Part");
 
-print('Adding nodal variables to the balls_model_part')  # (memory allocation)
+import sphere_strategy as SolverStrategy
+SolverStrategy.AddVariables(balls_model_part, DEMParameters)
+
+print('Adding nodal variables to the balls_model_part, necessary for the DEM-Fluid interaction...')  # (memory allocation)
 sys.stdout.flush()
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, balls_variables_to_add)
 
-print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
+print('Adding nodal variables to the dem_fem_wall_model_part...')  # (memory allocation)
 sys.stdout.flush()
 
 swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_to_add)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
-
-import sphere_strategy as SolverStrategy
-SolverStrategy.AddVariables(balls_model_part, DEMParameters)
 
 # reading the balls model part
 model_part_io_solid = ModelPartIO(DEMParameters.problem_name + "DEM")
@@ -495,7 +496,7 @@ while(time <= final_time):
     if (step >= 3 and not stationarity):
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )")
         sys.stdout.flush()
-        fluid_solver.Solve()
+        fluid_solver.Solve()               
 
     # assessing stationarity
 
@@ -613,9 +614,10 @@ while(time <= final_time):
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
-            post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
+            post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part) # order can be important here!! --> adding the fluid after the fem_dem ...
+            post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part) #  ...overwrites the results on the repeated nodes !!! This is useful for IS_SLIP conditions
             post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-            post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
+            
 
         swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
         out = 0
