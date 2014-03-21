@@ -753,7 +753,7 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& Rot
 
     }
 
-    //Transformation matrix T = [e1_local, e2_local, e3_local] for each 
+    //Transformation matrix T = [e1_local, e2_local, e3_local] for each column
 
 
     //Building the rotation matrix
