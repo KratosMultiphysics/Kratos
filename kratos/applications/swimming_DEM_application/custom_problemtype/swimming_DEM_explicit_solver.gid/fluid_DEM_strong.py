@@ -43,7 +43,7 @@ import DEM_procedures
 import swimming_DEM_procedures
 import embedded
 
-# PROJECT PARAMETERS (to be put in problem type)
+# listing project parameters (to be put in problem type)
 ProjectParameters.dem                                  = DEM_explicit_solver_var
 ProjectParameters.projection_module_option             = 1
 ProjectParameters.print_particles_results_option       = 0
@@ -479,11 +479,11 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
     current_time = current_time_plus_increment
     yield current_time
 
-########################################################################################################
-#
-#                      B e g g i n n i n g     o f    T i m e    L o o p  . . .
-#
-########################################################################################################
+######################################################################################################################################
+
+#                      I N I T I A L I Z I N G    T I M E    L O O P     ...
+
+######################################################################################################################################
 
 time_dem     = 0.0
 Dt_DEM       = ProjectParameters.dem.MaxTimeStep
@@ -627,15 +627,8 @@ while (time <= final_time):
         post_utils.Writeresults(time)
         out = 0
 
-# gid_io.write_results(  #     MOD.
-# time,               #     MOD.
-# fluid_model_part,    #     MOD.
-# ProjectParameters.nodal_results,    #     MOD.
-# ProjectParameters.gauss_points_results)    #     MOD.
-
     out = out + Dt
 
-# gid_io.finalize_results()  #     MOD.
 swimming_DEM_gid_io.finalize_results()
 
 print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
