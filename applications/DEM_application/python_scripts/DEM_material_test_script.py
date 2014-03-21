@@ -82,10 +82,9 @@ class MaterialTest:
         self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
         self.graph_export_1 = open(self.parameters.problem_name +"_graph_top.grf", 'w')
         self.graph_export_2 = open(self.parameters.problem_name +"_graph_bot.grf", 'w')
-        self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
-        self.graph_export_radial1 = open(self.parameters.problem_name+"_graph_1.grf",'w')
-        self.graph_export_radial2 = open(self.parameters.problem_name+"_graph_2.grf",'w')
-        self.graph_export_radial3 = open(self.parameters.problem_name+"_graph_3.grf",'w')
+        
+        if( self.parameters.TestType =="Hydrostatic"):  
+          self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
 
         print ('Initial Height of the Model: ' + str(self.height)+'\n')
         
@@ -363,8 +362,10 @@ class MaterialTest:
       self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
     else:
 
-      radial_strain = -100*self.MeasureRadialStrain()
-      self.volumetric_strain = self.strain + 2.0*radial_strain
+      if( self.parameters.TestType =="Hydrostatic"):
+        
+        radial_strain = -100*self.MeasureRadialStrain()
+        self.volumetric_strain = self.strain + 2.0*radial_strain
 
       total_force_top = 0.0
       total_force_bot = 0.0
@@ -392,6 +393,10 @@ class MaterialTest:
       
           self.Pressure = min(self.total_stress_mean*1e6, self.parameters.ConfinementPressure * 1e6)
           
+          if( self.parameters.TestType == "Hydrostatic"):
+              
+              self.Pressure = self.total_stress_mean*1e6
+          
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
             
     
@@ -417,15 +422,10 @@ class MaterialTest:
         self.graph_export_1.flush()
         self.graph_export_2.flush()
         
-        self.graph_export_volumetric.write(str(self.volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
-        self.graph_export_radial1.write(str(self.total_stress_mean)+"    "+str(self.radial_strain)+'\n')
-        self.graph_export_radial2.write(str(self.total_stress_mean)+"    "+str(self.strain)+'\n')
-        self.graph_export_radial3.write(str(self.total_stress_mean)+"    "+str(self.volumetric_strain)+'\n')
-        self.graph_export_volumetric.flush()
-        self.graph_export_radial1.flush()
-        self.graph_export_radial2.flush()
-        self.graph_export_radial3.flush()
-        
+        if( self.parameters.TestType =="Hydrostatic"):        
+          self.graph_export_volumetric.write(str(self.volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
+          self.graph_export_volumetric.flush()
+
     self.graph_counter += 1 
     
    #-------------------------------------------------------------------------------------#  
@@ -499,7 +499,9 @@ class MaterialTest:
     else:
     
       self.graph_export.close()
-      self.graph_export_volumetric.close()
+      
+      if( self.parameters.TestType =="Hydrostatic"):  
+        self.graph_export_volumetric.close()
    
   #-------------------------------------------------------------------------------------#  
   
