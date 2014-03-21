@@ -1,6 +1,6 @@
 # This script contains an algorithm that models fluid-particle interaction.
-# It combines two parts: a fluid FEM model and a discrete DEM model
-# It has been conceived by adding the DEM parts and the interaction on top of an original fluid-only script (see kratos/applications/FluidDynamicswApplication)
+# It combines two parts: a FEM model for the fluid and a DEM model for the particles.
+# It has been conceived by adding the DEM part and the interaction on top of an original fluid-only script (see kratos/applications/FluidDynamicswApplication)
 # Some parts of the original fluid script have been kept practically untouched and are clearly marked.
 # Whenever a minor modification has been made on one of these parts, the corresponding line is marked with a comment: # MOD.
 #_____________________________________________________________________________________________________________________________________
@@ -364,8 +364,12 @@ if (ProjectParameters.body_force_on_fluid_option):
 swimming_DEM_procedures.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
 
 # creating a Post Utils object that executes several post-related tasks
-post_utils = DEM_procedures.PostUtils(ProjectParameters.dem, balls_model_part)
-post_utilities = post_utils.post_utilities
+post_utils = swimming_DEM_procedures.PostUtils(swimming_DEM_gid_io,
+                                               ProjectParameters,
+                                               fluid_model_part,
+                                               balls_model_part,
+                                               fem_dem_model_part,
+                                               mixed_model_part)
 
 # creating an IOTools object to perform other printing tasks
 io_tools = swimming_DEM_procedures.IOTools(ProjectParameters)
@@ -381,12 +385,15 @@ if (ProjectParameters.projection_module_option):
     projection_module.UpdateDatabase(h_min)
 
 # creating a custom functions calculator for the implementation of additional custom functions
-interaction_calculator = CustomFunctionsCalculator()
+custom_functions_tool = CustomFunctionsCalculator()
 
 # creating a CreatorDestructor object, encharged of any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
 max_fluid_node_Id = swimming_DEM_procedures.FindMaxNodeIdInFLuid(fluid_model_part)
 creator_destructor.SetMaxNodeId(max_fluid_node_Id)
+
+# creating a physical calculations module to analyse the DEM model_part
+dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
@@ -483,7 +490,7 @@ stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
 dem_solver.Initialize()
 
-while(time <= final_time):
+while (time <= final_time):
 
     time = time + Dt
     step += 1
@@ -522,7 +529,7 @@ while(time <= final_time):
             print("Assessing Stationarity...")
             sys.stdout.flush()
             stat_steps = 0
-            stationarity = interaction_calculator.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol)  # in the first time step the 'old' pressure vector is created and filled
+            stationarity = custom_functions_tool.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol)  # in the first time step the 'old' pressure vector is created and filled
 
             if (stationarity):
                 print("**************************************************************************************************")
@@ -544,20 +551,13 @@ while(time <= final_time):
         if (ProjectParameters.projection_module_option):
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
-        if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
-            mixed_model_part.Elements.clear()
-            mixed_model_part.Nodes.clear()
-            post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-            post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
-            post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
-
-        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+        post_utils.Writeresults(time)
         out = 0
 
     # solving the DEM part
 
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
-        interaction_calculator.CalculatePressureGradient(fluid_model_part)
+        custom_functions_tool.CalculatePressureGradient(fluid_model_part)
 
     print("Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)")
     sys.stdout.flush()
@@ -622,18 +622,7 @@ while(time <= final_time):
         if (ProjectParameters.projection_module_option):
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
-        print("")
-        print("*******************  PRINTING RESULTS FOR GID  ***************************")
-        sys.stdout.flush()
-
-        if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
-            mixed_model_part.Elements.clear()
-            mixed_model_part.Nodes.clear()
-            post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-            post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
-            post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
-
-        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+        post_utils.Writeresults(time)
         out = 0
 
 # gid_io.write_results(  #     MOD.
