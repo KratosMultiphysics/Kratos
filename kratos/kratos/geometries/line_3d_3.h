@@ -298,7 +298,7 @@ public:
       return typename BaseType::Pointer( new Line3D3( ThisPoints ) );
     }
 
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+    virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
         //making a copy of the nodes TO POINTS (not Nodes!!!)
@@ -307,7 +307,7 @@ public:
             NewPoints.push_back( BaseType::Points()[i] );
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > > p_clone( new Line3D3< Point<3> >( NewPoints ) );
+       Geometry< Point<3> >::Pointer p_clone( new Line3D3< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();
 

@@ -50,7 +50,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 
 
@@ -65,9 +64,9 @@ public:
     Dilatancy_Softening();
     ~Dilatancy_Softening();
     KRATOS_CLASS_POINTER_DEFINITION(Dilatancy_Softening);
-    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    virtual SofteningHardeningCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Dilatancy_Softening());
+        SofteningHardeningCriteria::Pointer p_clone(new Dilatancy_Softening());
         return p_clone;
     }
 

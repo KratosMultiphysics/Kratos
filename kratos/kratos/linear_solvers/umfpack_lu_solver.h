@@ -44,8 +44,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -68,7 +66,7 @@ class UMFpackLUsolver
 public:
 
     /// Counted pointer of UMFpackLUsolver
-    typedef boost::shared_ptr<UMFpackLUsolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(UMFpackLUsolver);
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

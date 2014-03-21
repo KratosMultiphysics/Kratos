@@ -70,9 +70,9 @@ public:
 
     Von_Misses_Yield_Function(myState State, myPotencialPlastic PotencialPlastic);
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<FluencyCriteria> p_clone(new Von_Misses_Yield_Function(mState,mPotencialPlastic));
+        FluencyCriteria::Pointer p_clone(new Von_Misses_Yield_Function(mState,mPotencialPlastic));
         return p_clone;
     }
 

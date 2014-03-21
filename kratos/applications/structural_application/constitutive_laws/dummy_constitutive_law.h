@@ -85,7 +85,7 @@ public:
     /**
      * Counted pointer of DummyConstitutiveLaw
      */
-    typedef boost::shared_ptr<DummyConstitutiveLaw> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(DummyConstitutiveLaw);
 
     /**
      * Life Cycle
@@ -95,9 +95,9 @@ public:
      */
     DummyConstitutiveLaw();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new DummyConstitutiveLaw() );
+         ConstitutiveLaw::Pointer p_clone( new DummyConstitutiveLaw() );
         return p_clone;
     }
 

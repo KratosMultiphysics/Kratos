@@ -67,9 +67,9 @@ public:
     Friction_Softening();
     ~Friction_Softening();
     KRATOS_CLASS_POINTER_DEFINITION(Friction_Softening);
-    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    virtual SofteningHardeningCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Friction_Softening());
+        SofteningHardeningCriteria::Pointer p_clone(new Friction_Softening());
         return p_clone;
     }
 

@@ -117,7 +117,7 @@ public:
     typedef Geometry<TPointType> GeometryType;
 
     /// Pointer definition of Geometry
-    KRATOS_CLASS_POINTER_DEFINITION( Geometry );
+    KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME( Geometry<TPointType> );
 
     /** Base type for geometry.
     */
@@ -426,7 +426,7 @@ public:
         //NewPoints[i] = typename Point<3>::Pointer(new Point<3>(*mPoints[i]));
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > > p_clone( new Geometry< Point<3> >( NewPoints ) );
+       Geometry< Point<3> >::Pointer p_clone( new Geometry< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();
 

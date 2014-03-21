@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of GroutingMortar
      */
-    typedef boost::shared_ptr<GroutingMortar> Pointer;
+    tKRATOS_CLASS_POINTER_DEFINITION(GroutingMortar);
 
 
     /**
@@ -107,7 +107,7 @@ public:
      */
     virtual ~GroutingMortar();
 
-    boost::shared_ptr<ConstitutiveLaw<Node<3> > > Clone() const;
+    ConstitutiveLaw<Node<3> >::Pointer Clone() const;
 
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,

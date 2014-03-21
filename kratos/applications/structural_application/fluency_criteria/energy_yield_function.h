@@ -71,9 +71,9 @@ public:
     typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
 
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<FluencyCriteria> p_clone(new Energy_Yield_Function(mState));
+        FluencyCriteria::Pointer p_clone(new Energy_Yield_Function(mState));
         return p_clone;
     }
 

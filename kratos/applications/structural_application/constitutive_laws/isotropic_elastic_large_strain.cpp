@@ -86,9 +86,9 @@ IsotropicElasticLargeStrain::~IsotropicElasticLargeStrain()
 {
 }
 
-boost::shared_ptr<ConstitutiveLaw<Node<3> > > IsotropicElasticLargeStrain::Clone() const
+ConstitutiveLaw<Node<3> >::Pointer IsotropicElasticLargeStrain::Clone() const
 {
-    boost::shared_ptr<ConstitutiveLaw<Node<3> > > p_clone(new IsotropicElasticLargeStrain());
+    ConstitutiveLaw<Node<3> >::Pointer p_clone(new IsotropicElasticLargeStrain());
     return p_clone;
 }
 

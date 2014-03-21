@@ -56,9 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
-
 
 /* Project includes */
 #include "structural_application.h"
@@ -92,7 +89,6 @@ public:
     typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ResidualBasedArcLenghtStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedArcLengthStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;

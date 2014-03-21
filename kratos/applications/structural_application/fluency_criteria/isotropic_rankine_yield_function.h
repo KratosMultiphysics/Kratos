@@ -67,9 +67,9 @@ class Isotropic_Rankine_Yield_Function: public virtual FluencyCriteria
 
 public:
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<FluencyCriteria> p_clone(new Isotropic_Rankine_Yield_Function(
+        FluencyCriteria::Pointer p_clone(new Isotropic_Rankine_Yield_Function(
                     mpSofteningBehaviorFt->Clone(),
                     mState));
         return p_clone;

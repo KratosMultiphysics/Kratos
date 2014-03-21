@@ -88,7 +88,7 @@ public:
     /**
      * Counted pointer of Isotropic_Damage_3D
      */
-    typedef boost::shared_ptr<Isotropic_Damage_3D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(Isotropic_Damage_3D);
 
     typedef FluencyCriteria::Pointer FluencyCriteriaPointer;
 
@@ -106,9 +106,9 @@ public:
     Isotropic_Damage_3D();
     Isotropic_Damage_3D( FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property );
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new Isotropic_Damage_3D( mpFluencyCriteria->Clone(), mpSofteningBehavior, mpProperties ) );
+         ConstitutiveLaw::Pointer p_clone( new Isotropic_Damage_3D( mpFluencyCriteria->Clone(), mpSofteningBehavior, mpProperties ) );
         return p_clone;
     }
 

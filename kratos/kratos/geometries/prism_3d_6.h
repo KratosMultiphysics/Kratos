@@ -337,7 +337,7 @@ public:
         return typename BaseType::Pointer( new Prism3D6( ThisPoints ) );
     }
 
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+    virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
         //making a copy of the nodes TO POINTS (not Nodes!!!)
@@ -346,7 +346,7 @@ public:
             NewPoints.push_back( this->Points()[i] );
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > >
+       Geometry< Point<3> >::Pointer
         p_clone( new Prism3D6< Point<3> >( NewPoints ) );
 
         p_clone->ClonePoints();

@@ -123,7 +123,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    typedef boost::shared_ptr< ResidualBasedMultiPhaseCriteria< TSparseSpace, TDenseSpace > > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedMultiPhaseCriteria< TSparseSpace, TDenseSpace > );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 

@@ -89,9 +89,9 @@ DruckerPragerLaw::~DruckerPragerLaw()
 {
 }
 
-boost::shared_ptr<ConstitutiveLaw> DruckerPragerLaw::Clone() const
+ ConstitutiveLaw::Pointer DruckerPragerLaw::Clone() const
 {
-    boost::shared_ptr<ConstitutiveLaw> p_clone(new DruckerPragerLaw());
+     ConstitutiveLaw::Pointer p_clone(new DruckerPragerLaw());
     return p_clone;
 }
 

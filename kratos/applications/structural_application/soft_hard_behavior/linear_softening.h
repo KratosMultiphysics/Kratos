@@ -72,9 +72,9 @@ public:
     Linear_Softening();
     ~Linear_Softening();
     KRATOS_CLASS_POINTER_DEFINITION(Linear_Softening);
-    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    virtual SofteningHardeningCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Linear_Softening());
+        SofteningHardeningCriteria::Pointer p_clone(new Linear_Softening());
         return p_clone;
     }
 

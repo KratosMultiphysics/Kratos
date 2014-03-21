@@ -299,7 +299,7 @@ public:
         return typename BaseType::Pointer(new Line2D(ThisPoints));
     }
 
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
+    virtual Geometry< Point<3> >::Pointer Clone() const
     {
         Geometry< Point<3> >::PointsArrayType NewPoints;
 
@@ -308,7 +308,7 @@ public:
             NewPoints.push_back(BaseType::Points()[i]);
 
         //creating a geometry with the new points
-        boost::shared_ptr< Geometry< Point<3> > > p_clone(new Line2D< Point<3> >(NewPoints));
+       Geometry< Point<3> >::Pointer p_clone(new Line2D< Point<3> >(NewPoints));
         p_clone->ClonePoints();
 
         return p_clone;

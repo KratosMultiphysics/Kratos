@@ -83,7 +83,7 @@ public:
     /**
      * Counted pointer of Orthotropic3D
      */
-    typedef boost::shared_ptr<Orthotropic3D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(Orthotropic3D);
 
     /**
      * Life Cycle
@@ -98,9 +98,9 @@ public:
      */
     Orthotropic3D(const Orthotropic3D& rOther);
 
-    virtual boost::shared_ptr<ConstitutiveLaw > Clone() const
+    virtual ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new Orthotropic3D());
+         ConstitutiveLaw::Pointer p_clone(new Orthotropic3D());
         return p_clone;
     }
 

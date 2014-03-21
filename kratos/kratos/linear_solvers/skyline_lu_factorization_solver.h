@@ -44,8 +44,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -590,7 +588,7 @@ class SkylineLUFactorizationSolver
 public:
 
     /// Counted pointer of SkylineLUFactorizationSolver
-    typedef boost::shared_ptr<SkylineLUFactorizationSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

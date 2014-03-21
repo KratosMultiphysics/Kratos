@@ -50,8 +50,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -75,7 +73,7 @@ class TFQMRSolver : public IterativeSolver<TSparseSpaceType,
 public:
 
     /// Counted pointer of TFQMRSolver
-    typedef boost::shared_ptr<TFQMRSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(TFQMRSolver);
 
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType > BaseType;

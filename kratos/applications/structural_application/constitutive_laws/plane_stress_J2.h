@@ -77,7 +77,7 @@ public:
     /**
      * Counted pointer of PlaneStressJ2
      */
-    typedef boost::shared_ptr<PlaneStressJ2> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(PlaneStressJ2);
 
     /**
      * Life Cycle
@@ -87,9 +87,9 @@ public:
      */
     PlaneStressJ2();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone(new PlaneStressJ2());
+         ConstitutiveLaw::Pointer p_clone(new PlaneStressJ2());
         return p_clone;
     }
 

@@ -94,10 +94,10 @@ public:
         const myPotencialPlastic& PotencialPlastic);
     */
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
         /*
-        boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(
+        FluencyCriteria::Pointer p_clone(new Modified_Morh_Coulomb_Yield_Function(
         Rankine::mpSofteningBehaviorFt->Clone(),
         MorhCoulomb::mpSofteningBehavior_Cohesion->Clone(),
         MorhCoulomb::mpSofteningBehavior_Friction->Clone(),
@@ -123,7 +123,7 @@ public:
                                        mState));
 
 
-        boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(
+        FluencyCriteria::Pointer p_clone(new Modified_Morh_Coulomb_Yield_Function(
                     mState,
                     m_clone,
                     r_clone

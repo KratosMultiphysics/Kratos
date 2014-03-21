@@ -107,9 +107,9 @@ public:
     /// Destructor.
     ~Exponential_Softening();
 
-    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    virtual SofteningHardeningCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Exponential_Softening());
+        SofteningHardeningCriteria::Pointer p_clone(new Exponential_Softening());
         return p_clone;
     }
 

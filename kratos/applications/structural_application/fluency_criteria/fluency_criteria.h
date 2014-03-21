@@ -53,8 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 #include "structural_application.h"
 #include "custom_utilities/tensor_utils.h"
@@ -93,9 +91,9 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( FluencyCriteria );
 
-    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    virtual FluencyCriteria::Pointer Clone() const
     {
-        boost::shared_ptr<FluencyCriteria> p_clone(new FluencyCriteria ());
+        FluencyCriteria::Pointer p_clone(new FluencyCriteria ());
         return p_clone;
     }
 

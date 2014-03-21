@@ -84,7 +84,7 @@ public:
     /**
      * Counted pointer of DruckerPragerLaw
      */
-    typedef boost::shared_ptr<DruckerPragerLaw> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(DruckerPragerLaw);
 
 
     /**
@@ -108,7 +108,7 @@ public:
      */
     virtual ~DruckerPragerLaw();
 
-    boost::shared_ptr<ConstitutiveLaw> Clone() const;
+     ConstitutiveLaw::Pointer Clone() const;
 
     void InitializeMaterial( const Properties& props,
                              const GeometryType& geom,

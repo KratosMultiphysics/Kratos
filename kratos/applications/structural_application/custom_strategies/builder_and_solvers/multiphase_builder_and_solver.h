@@ -142,7 +142,6 @@ class MultiPhaseBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< MultiPhaseBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( MultiPhaseBuilderAndSolver );
 
 

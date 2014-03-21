@@ -56,7 +56,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -111,7 +110,7 @@ class ResidualBasedNewmarkScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 public:
     /**@name Type Definitions */
-    typedef boost::shared_ptr< ResidualBasedNewmarkScheme<TSparseSpace,TDenseSpace> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewmarkScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 

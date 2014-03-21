@@ -85,7 +85,7 @@ public:
     /**
      * Counted pointer of TutorialDamageModel
      */
-    typedef boost::shared_ptr<TutorialDamageModel> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(TutorialDamageModel);
 
     /**
      * Life Cycle
@@ -95,9 +95,9 @@ public:
      */
     TutorialDamageModel();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw> p_clone( new TutorialDamageModel() );
+         ConstitutiveLaw::Pointer p_clone( new TutorialDamageModel() );
         return p_clone;
     }
 

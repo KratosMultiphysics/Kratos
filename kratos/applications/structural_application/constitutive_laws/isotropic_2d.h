@@ -84,7 +84,7 @@ public:
     /**
      * Counted pointer of Isotropic2D
      */
-    typedef boost::shared_ptr<Isotropic2D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(Isotropic2D);
 
     /**
      * Life Cycle
@@ -94,9 +94,9 @@ public:
      */
     Isotropic2D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw > p_clone(new Isotropic2D());
+        ConstitutiveLaw::Pointer p_clone(new Isotropic2D());
         return p_clone;
     }
 

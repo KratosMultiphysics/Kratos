@@ -95,7 +95,7 @@ public:
     /**
      * Counted pointer of PlasticDamage3D
      */
-    typedef boost::shared_ptr<BrittleMaterial2D> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(BrittleMaterial2D);
 
     typedef FluencyCriteria::Pointer FluencyCriteriaPointer;
 
@@ -116,9 +116,9 @@ public:
      */
     BrittleMaterial2D();
 
-    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    virtual  ConstitutiveLaw::Pointer Clone() const
     {
-        boost::shared_ptr<ConstitutiveLaw>
+         ConstitutiveLaw::Pointer
         p_clone(new BrittleMaterial2D(
                     mpFluencyCriteria->Clone(),
                     mpProperties));

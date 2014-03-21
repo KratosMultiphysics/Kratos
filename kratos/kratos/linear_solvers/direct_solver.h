@@ -54,8 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -84,8 +82,6 @@ class DirectSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReo
 public:
 
     /// Counted pointer of DirectSolver
-
-//           typedef boost::shared_ptr<DirectSolver> Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
