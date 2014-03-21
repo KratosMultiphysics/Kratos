@@ -387,13 +387,10 @@ if (ProjectParameters.projection_module_option):
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = CustomFunctionsCalculator()
 
-# creating a CreatorDestructor object, encharged of any adding or removing of elements during the simulation
+# creating a CreatorDestructor object, responsible for any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
 max_fluid_node_Id = swimming_DEM_procedures.FindMaxNodeIdInFLuid(fluid_model_part)
 creator_destructor.SetMaxNodeId(max_fluid_node_Id)
-
-# creating a physical calculations module to analyse the DEM model_part
-dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
@@ -422,17 +419,6 @@ if (ProjectParameters.inlet_option):
     # constructiong the inlet and intializing it
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
-
-
-def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
-    current_time += delta_time
-
-    while current_time < current_time_plus_increment:
-        yield current_time
-        current_time += delta_time
-
-    current_time = current_time_plus_increment
-    yield current_time
 
 # creating problem directories
 directories = ['results']
@@ -482,6 +468,22 @@ if (ProjectParameters.flow_in_porous_DEM_medium_option):
 
 if (ProjectParameters.make_results_directories_option):
     os.chdir(dir_path_dictionary['results'])
+
+def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
+    current_time += delta_time
+
+    while current_time < current_time_plus_increment:
+        yield current_time
+        current_time += delta_time
+
+    current_time = current_time_plus_increment
+    yield current_time
+
+########################################################################################################
+#
+#                      B e g g i n n i n g     o f    T i m e    L o o p  . . .
+#
+########################################################################################################
 
 time_dem     = 0.0
 Dt_DEM       = ProjectParameters.dem.MaxTimeStep
@@ -630,8 +632,6 @@ while (time <= final_time):
 # fluid_model_part,    #     MOD.
 # ProjectParameters.nodal_results,    #     MOD.
 # ProjectParameters.gauss_points_results)    #     MOD.
-
-        out = 0
 
     out = out + Dt
 
