@@ -1,4 +1,15 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+# This script contains an algorithm that models fluid-particle interaction.
+# It combines two parts: a fluid FEM model and a discrete DEM model
+# It has been conceived by adding the DEM parts and the interaction on top of an original fluid-only script (see kratos/applications/FluidDynamicswApplication)
+# Some parts of the original fluid script have been kept practically untouched and are clearly marked.
+# Whenever a minor modification has been made on one of these parts, the corresponding line is marked with a comment: # MOD.
+#_____________________________________________________________________________________________________________________________________
+#    ___  ____ ____ _ _  _    ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |__] |___ | __ | |\ |    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |__] |___ |__] | | \|    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
+
+from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # import the configuration data as read from the GiD
 import ProjectParameters
 import define_output
@@ -14,7 +25,12 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 
-# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#_____________________________________________________________________________________________________________________________________
+#    ____ _  _ ___     ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |___ |\ | |  \    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |___ | \| |__/    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
+
 import math
 import os
 current_script_path = os.path.dirname(os.path.abspath(__file__))
@@ -91,9 +107,11 @@ swimming_DEM_procedures.ModifyProjectParameters(ProjectParameters)
 #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
 swimming_DEM_procedures.ConstructListsOfVariables(ProjectParameters)
 
-# constructing a DEM_procedures object
-dem_procedures = DEM_procedures.Procedures(ProjectParameters.dem)
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+#_____________________________________________________________________________________________________________________________________
+#    ___  ____ ____ _ _  _    ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |__] |___ | __ | |\ |    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |__] |___ |__] | | \|    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
 
 # defining variables to be used
 # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
@@ -101,10 +119,10 @@ dem_procedures = DEM_procedures.Procedures(ProjectParameters.dem)
 
 variables_dictionary = {"PRESSURE"   : PRESSURE,
                         "VELOCITY"   : VELOCITY,
-                        "MU"         : MU,         #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "BUOYANCY"   : BUOYANCY,   #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "DRAG_FORCE" : DRAG_FORCE,  #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "LIFT_FORCE" : LIFT_FORCE} #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "MU"         : MU,         #    MOD.
+                        "BUOYANCY"   : BUOYANCY,   #    MOD.
+                        "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
+                        "LIFT_FORCE" : LIFT_FORCE} #    MOD.
 #                        "REACTION": REACTION,
 #                        "DISTANCE": DISTANCE, }
 
@@ -124,12 +142,12 @@ solver_module = import_solver(SolverSettings)
 
 #
 # importing variables
-print('Adding nodal variables to the fluid_model_part')  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+print('Adding nodal variables to the fluid_model_part')  #     MOD.
 sys.stdout.flush()
 
 # caution with breaking up this block (memory allocation)! {
 solver_module.AddVariables(fluid_model_part, SolverSettings)
-swimming_DEM_procedures.AddNodalVariables(fluid_model_part, ProjectParameters.fluid_vars)  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+swimming_DEM_procedures.AddNodalVariables(fluid_model_part, ProjectParameters.fluid_vars)  #     MOD.
 # }
 
 # introducing input file name
@@ -139,7 +157,11 @@ input_file_name = ProjectParameters.problem_name
 model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
-# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#_____________________________________________________________________________________________________________________________________
+#    ____ _  _ ___     ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |___ |\ | |  \    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |___ | \| |__/    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
 
 # defining model parts for the balls part and for the DEM-FEM interaction elements
 
@@ -180,7 +202,12 @@ DEMSolverStrategy.AddDofs(balls_model_part)
 # adding extra process info variables
 swimming_DEM_procedures.AddingDEMProcessInfoVariables(ProjectParameters, balls_model_part)
 
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+#_____________________________________________________________________________________________________________________________________
+#    ___  ____ ____ _ _  _    ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |__] |___ | __ | |\ |    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |__] |___ |__] | | \|    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
+
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
@@ -246,9 +273,14 @@ if not ProjectParameters.VolumeOutput:
     cut_list = define_output.DefineCutPlanes()
     gid_io.define_cuts(fluid_model_part, cut_list)
 
-# gid_io.initialize_results(fluid_model_part) # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# gid_io.initialize_results(fluid_model_part) # MOD.
 
-# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#_____________________________________________________________________________________________________________________________________
+#    ____ _  _ ___     ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |___ |\ | |  \    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |___ | \| |__/    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
+
 import swimming_DEM_gid_output
 swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
                                                                    ProjectParameters.VolumeOutput,
@@ -258,7 +290,12 @@ swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_na
                                                                    ProjectParameters.GiDWriteConditionsFlag)
 
 swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, fem_dem_model_part, mixed_model_part)
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+#_____________________________________________________________________________________________________________________________________
+#    ___  ____ ____ _ _  _    ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |__] |___ | __ | |\ |    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |__] |___ |__] | | \|    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
 
 # define the drag computation list
 drag_list = define_output.DefineDragList()
@@ -309,7 +346,11 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
     variables_dictionary,
     domain_size)
 
-# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#_____________________________________________________________________________________________________________________________________
+#    ____ _  _ ___     ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |___ |\ | |  \    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |___ | \| |__/    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
 
 # setting fluid's body force to the same as DEM's
 if (ProjectParameters.body_force_on_fluid_option):
@@ -392,7 +433,12 @@ directories = ['results']
 
 if (ProjectParameters.make_results_directories_option):
     dir_path_dictionary = io_tools.CreateProblemDirectories(current_script_path, directories)
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+#_____________________________________________________________________________________________________________________________________
+#    ___  ____ ____ _ _  _    ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |__] |___ | __ | |\ |    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |__] |___ |__] | | \|    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
 
 # renumerating IDs if required
 
@@ -409,7 +455,12 @@ time = ProjectParameters.Start_time
 out = Dt
 step = 0
 
-# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#_____________________________________________________________________________________________________________________________________
+#    ____ _  _ ___     ____ _    _  _ _ ___     ___  _    ____ ____ _  _
+#    |___ |\ | |  \    |___ |    |  | | |  \    |__] |    |  | |    |_/
+#    |___ | \| |__/    |    |___ |__| | |__/    |__] |___ |__| |___ | \_
+#_____________________________________________________________________________________________________________________________________
+
 if (ProjectParameters.flow_in_porous_medium_option):
     solid_frac_util = swimming_DEM_procedures.SolidFractionFieldUtility(fluid_model_part, ProjectParameters.max_solid_fraction)
 
@@ -432,7 +483,6 @@ DEM_step     = 0      # necessary to get a good random insertion of particles
 stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
 dem_solver.Initialize()
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
 
@@ -586,19 +636,18 @@ while(time <= final_time):
 
         swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
         out = 0
-# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-# gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-# ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# gid_io.write_results(  #     MOD.
+# time,               #     MOD.
+# fluid_model_part,    #     MOD.
+# ProjectParameters.nodal_results,    #     MOD.
+# ProjectParameters.gauss_points_results)    #     MOD.
 
         out = 0
 
     out = out + Dt
 
-# gid_io.finalize_results()  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# gid_io.finalize_results()  #     MOD.
 swimming_DEM_gid_io.finalize_results()
 
 print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
