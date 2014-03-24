@@ -480,7 +480,6 @@ namespace Kratos
               double rolling_friction_coeff            = mRollingFriction * mRadius;
               const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
-              //equiv_rolling_friction_coeff         = 2 * rolling_friction_coeff * other_rolling_friction_coeff / (rolling_friction_coeff + other_rolling_friction_coeff);
               double equiv_rolling_friction_coeff  = std::min(rolling_friction_coeff,other_rolling_friction_coeff);
 
               if (equiv_rolling_friction_coeff != 0.0){
@@ -592,8 +591,8 @@ namespace Kratos
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
               double indentation                      = radius_sum - distance;
-	      double kn;
-	      double kt;
+	          double kn;
+	          double kt;
               double equiv_visco_damp_coeff_normal;
               double equiv_visco_damp_coeff_tangential;
               double equiv_tg_of_fri_ang;
@@ -763,8 +762,25 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         
         double ini_delta = GetInitialDelta(iRigidFaceNeighbour);
 
-        double kn_el = 1.0*young * area / (2.0 * radius - ini_delta);
+        double kn_el;
 
+
+        switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+        
+            case 0:
+                kn_el    = 1.0 * young * area / (2.0 * radius - ini_delta);
+            break;
+            
+            case 1:
+                kn_el    = (4/3) * (young / 2 * (1 - poisson * poisson)) * sqrt(radius - ini_delta);
+            break;
+            
+            default:
+                kn_el    = 1.0 * young * area / (2.0 * radius - ini_delta);
+            break;
+            
+        }//switch
+        
         double ks_el = kn_el / (2.0 * (1.0 + poisson));
         double aux_norm_to_tang = sqrt(ks_el / kn_el);
         double DistPToB = 0.0;
