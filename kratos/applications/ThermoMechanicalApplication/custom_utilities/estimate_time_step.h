@@ -278,7 +278,7 @@ namespace Kratos
 			 double modulus = ThisModelPart.GetProcessInfo()[K0];
 
 			 it->FastGetSolutionStepValue(SOLIDIF_TIME) = solid_time;
-			 it->FastGetSolutionStepValue(SOLIDIF_MODULUS) = modulus*sqrt(solid_time);
+			 it->FastGetSolutionStepValue(SOLIDIF_MODULUS) = 100.0*modulus*sqrt(solid_time); // 100.0 is to convert m to cm.
 		 }
 		 
 	       }
@@ -381,7 +381,6 @@ namespace Kratos
 	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];		  
 	    
 	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];	
-
 	    double tot_vol = 0.0;
             double tot_area = 0.0;	    
 	    int node_size = ThisModelPart.Nodes().size();	    
@@ -399,8 +398,7 @@ namespace Kratos
 	    
 	    
 	    solidification_time = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
-	    solidification_time *= pow(tot_vol/tot_area , 0.8);
-	    
+	    solidification_time *= pow(tot_vol/tot_area , 0.8);	    
 	    return solidification_time;
 	    
 	    KRATOS_CATCH("")	
