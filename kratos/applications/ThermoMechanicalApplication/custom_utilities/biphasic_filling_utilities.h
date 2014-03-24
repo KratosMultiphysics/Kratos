@@ -74,7 +74,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "custom_conditions/environment_contact.h"
 //#include "includes/variables.h"
 #include "../incompressible_fluid_application/custom_utilities/parallel_extrapolation_utilities.h"
-
+#include "includes/kratos_flags.h"
 
 
 namespace Kratos
@@ -305,12 +305,12 @@ public:
     }
     //**********************************************************************************************
     //**********************************************************************************************
-    void DistanceFarRegionCorrection(ModelPart& ThisModelPart, const double CFL)
+    void DistanceFarRegionCorrection(ModelPart& ThisModelPart, const double max_dist)
     {
         KRATOS_TRY;
         int node_size = ThisModelPart.Nodes().size();
-        double max_cutted_elem_size = 0.0;
-        max_cutted_elem_size = ComputeCharactristicCuttedLength(ThisModelPart);
+       // double max_cutted_elem_size = 0.0;
+        //max_cutted_elem_size = ComputeCharactristicCuttedLength(ThisModelPart);
 
         #pragma omp parallel for firstprivate(node_size)
         for (int ii = 0; ii < node_size; ii++)
@@ -319,7 +319,8 @@ public:
             double& current_dist = it->FastGetSolutionStepValue(DISTANCE);
             const double old_dist = it->FastGetSolutionStepValue(DISTANCE,1);
 
-            if( fabs(old_dist) >= CFL*max_cutted_elem_size && current_dist*old_dist <= 0.0)
+           // if( fabs(old_dist) >= CFL*max_cutted_elem_size && current_dist*old_dist <= 0.0)
+            if( fabs(old_dist) >= max_dist && current_dist*old_dist <= 0.0)
                 current_dist = old_dist;
         }
         KRATOS_CATCH("")
@@ -576,6 +577,56 @@ public:
 	  KRATOS_CATCH("")
 	}
 	//**********************************************************************************************
+	//**********************************************************************************************
+	void MacroPorosityToShrinkageComputation(ModelPart& ThisModelPart, ModelPart::NodesContainerType& visited_nodes, const unsigned int division_number)
+	{
+	  KRATOS_TRY;
+
+	  double max_porosity = -1000.0;
+      ModelPart::NodesContainerType& r_nodes = ThisModelPart.Nodes();
+ 	  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+	  {
+		i_node->Set(NOT_VISITED);
+		const double mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+		if(max_porosity < mcp)
+			max_porosity = mcp;
+	  }
+
+	  double min_porosity = 0.01*max_porosity;
+	  double step_length = (max_porosity - min_porosity)/double(division_number);
+
+	  double floor_mp =  min_porosity + step_length;
+
+	  for(unsigned int cnt = 2; cnt <= division_number; cnt++)
+	  {
+		  double cnt_val = min_porosity + cnt * step_length;
+
+ 		  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+		   {
+             const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+			 if( nd_mcp > floor_mp && i_node->IsNot(VISITED) )
+			 {
+				if( nd_mcp <= cnt_val)
+				{
+					i_node->Set(VISITED);
+					i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = cnt_val;
+					visited_nodes.push_back(*(i_node.base()));
+				}
+			 }
+		   }
+	  }
+
+	/*for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+	{
+        const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+		if(i_node->IsNot(VISITED) && nd_mcp <= floor_mp)
+			i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = std::numeric_limits<double>::infinity();
+	}*/
+
+
+	  KRATOS_CATCH("")
+	}
+	//**********************************************************************************************
 	//**********************************************************************************************	
 private:
 	void AssignDecelerateFactor(ModelPart& ThisModelPart)
@@ -584,6 +635,14 @@ private:
 
       double solidus_temp = ThisModelPart.GetTable(3).Data().front().first;
       double liquidus_temp = ThisModelPart.GetTable(3).Data().back().first;
+
+	  double temp_t = liquidus_temp;
+	  if ( solidus_temp > liquidus_temp)
+	  {
+		  liquidus_temp = solidus_temp;
+		  solidus_temp = temp_t;
+	  }
+
 
 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
 
