@@ -305,7 +305,7 @@ class MonolithicSolver:
 
      #
     def ConvectDistance(self):
-        self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
+        #self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.level_set_model_part.ProcessInfo).SetValue(
             CONVECTION_DIFFUSION_SETTINGS, distance_settings)
         (self.level_set_model_part.ProcessInfo).SetValue(
@@ -314,7 +314,7 @@ class MonolithicSolver:
         BiphasicFillingUtilities(
         ).DistanceFarRegionCorrection(
             self.model_part,
-            self.CFL)
+            self.max_distance)
      #
       #
 
@@ -348,6 +348,7 @@ class MonolithicSolver:
                 self.model_part, net_volume, self.max_edge_size)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
+        BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,1000.0)        
         Timer.Stop("ApplyFluidProperties")
         # Recompute normals if necessary
 # if(self.ReformDofSetAtEachStep == True):
