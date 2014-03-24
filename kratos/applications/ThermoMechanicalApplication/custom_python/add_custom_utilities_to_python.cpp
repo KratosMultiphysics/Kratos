@@ -127,7 +127,8 @@ void  AddCustomUtilitiesToPython()
     .def("ApplyVelocityLimitation", &BiphasicFillingUtilities::ApplyVelocityLimitation) 
 	.def("LastStepExtrapolations", &BiphasicFillingUtilities::LastStepExtrapolations)  
 	.def("SolidificationDuringFilling", &BiphasicFillingUtilities::SolidificationDuringFilling)  
-	.def("ViscosityBasedSolidification", &BiphasicFillingUtilities::ViscosityBasedSolidification)  
+	.def("ViscosityBasedSolidification", &BiphasicFillingUtilities::ViscosityBasedSolidification)
+	.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation) 
     ; 
 
 
