@@ -26,11 +26,18 @@ def ConstructPreconditioner(configuration):
             preconditioner_parameters = ParameterList()
             preconditioner_parameters.set("fact: drop tolerance", 1e-9)
             preconditioner_parameters.set("fact: level-of-fill", 1)
+        #elif(preconditioner_type == "ICC"):
+            #preconditioner_type = "ICC"
+            #preconditioner_parameters = ParameterList()
+            #preconditioner_parameters.set("fact: drop tolerance", 1e-9)
+            #preconditioner_parameters.set("fact: level-of-fill", 1)
         elif(preconditioner_type == "AmesosPreconditioner"):
             preconditioner_type = "Amesos"
             preconditioner_parameters.set("amesos: solver type", "Amesos_Klu")
 
-    return [preconditioner_type, preconditioner_parameters]
+        return [preconditioner_type, preconditioner_parameters]
+    else:
+        raise Exception("wrong type of preconditioner")
 
 
 #
@@ -106,8 +113,10 @@ def ConstructSolver(configuration):
             aztec_parameters.set("AZ_output", "AZ_none");
         else:
             aztec_parameters.set("AZ_output", verbosity);
-
+            
         linear_solver = AztecSolver(aztec_parameters, preconditioner_type, preconditioner_parameters, tol, max_it, overlap_level);
+        
+        
     #
     elif(solver_type == "Deflated Conjugate gradient"):
         raise Exception("not implemented within trilinos")
@@ -155,7 +164,7 @@ def ConstructSolver(configuration):
             MLList.set("max levels", max_levels);
             MLList.set("increasing or decreasing", "increasing");
             MLList.set("aggregation: type", "MIS");
-            MLList.set("coarse: type", "Amesos-Superludist");
+            #MLList.set("coarse: type", "Amesos-Superludist");
             MLList.set("smoother: type", "Chebyshev");
             MLList.set("smoother: sweeps", 3);
             MLList.set("smoother: pre or post", "both");
@@ -173,12 +182,12 @@ def ConstructSolver(configuration):
             default_settings = EpetraDefaultSetter()
             default_settings.SetDefaults(MLList, "NSSA");
 
-            MLList.set("ML output", 1);
-            MLList.set("coarse: max size", 10000)
+            #MLList.set("ML output", 1);
+            #MLList.set("coarse: max size", 10000)
             MLList.set("ML output", verbosity);
             MLList.set("max levels", max_levels);
             MLList.set("aggregation: type", "Uncoupled")
-            MLList.set("coarse: type", "Amesos-Superludist")
+            #MLList.set("coarse: type", "Amesos-Superludist")
 
             aztec_parameters = ParameterList()
             aztec_parameters.set("AZ_solver", "AZ_gmres");
@@ -204,4 +213,5 @@ def ConstructSolver(configuration):
     if(scaling == False):
         return linear_solver
     else:
-        return ScalingSolver(linear_solver, True)
+        linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+        return linear_solver
