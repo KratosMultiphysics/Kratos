@@ -114,8 +114,8 @@ void EnvironmentContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     }
 
-    rRightHandSideVector = ZeroVector(Msize);
-    
+    noalias(rRightHandSideVector) = ZeroVector(Msize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(Msize, Msize);
     //calculate area
     double area = GetGeometry().Area();
 
