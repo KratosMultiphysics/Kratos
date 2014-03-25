@@ -51,11 +51,13 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
   //mChildConditions = rOther.mChildConditions;
 
   //deep copy
-  mChildConditions.clear();
+  ConditionsContainerType ChildConditionsTemporal;
   for (ConditionConstantIterator cn = rOther.mChildConditions.begin() ; cn != rOther.mChildConditions.end(); ++cn)
     {
-      mChildConditions.push_back(*(cn.base()));
+      ChildConditionsTemporal.push_back(*(cn.base()));
     }
+
+  mChildConditions.swap(ChildConditionsTemporal);
 
   this->Set(BOUNDARY);
 
@@ -72,11 +74,13 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
   //mChildConditions = rOther.mChildConditions;
 
   //deep copy
-  mChildConditions.clear();
+  ConditionsContainerType ChildConditionsTemporal;
   for (ConditionConstantIterator cn = rOther.mChildConditions.begin() ; cn != rOther.mChildConditions.end(); ++cn)
     {
-      mChildConditions.push_back(*(cn.base()));
+      ChildConditionsTemporal.push_back(*(cn.base()));
     }
+
+  mChildConditions.swap(ChildConditionsTemporal);
 
   this->Set(BOUNDARY);
 
