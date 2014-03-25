@@ -282,7 +282,7 @@ public:
         return mpBuilderAndSolver;
     };
 
-    void SetInitializePerformedFlag(bool InitializePerformedFlag)
+    void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
     {
       mInitializeWasPerformed = InitializePerformedFlag;
     }
