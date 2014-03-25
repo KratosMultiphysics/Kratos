@@ -107,11 +107,11 @@ Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType co
 
   for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
     {
-         // Condition::Pointer pNewChildCondition;
-	 // pNewChildCondition = cn->Clone(cn->Id(), rThisNodes);
-         // NewCompositeCondition.AddChild( pNewChildCondition );
+         Condition::Pointer pNewChildCondition;
+	 pNewChildCondition = cn->Clone(this->Id(), rThisNodes);
+         NewCompositeCondition.AddChild( pNewChildCondition );
          // std::cout<<" Add Child "<<std::endl;
-         NewCompositeCondition.AddChild(*(cn.base()));
+	 //NewCompositeCondition.AddChild(*(cn.base())); //problems in split, previous geometry is preserved, clone is needed.
     }
   
   return Condition::Pointer( new CompositeCondition(NewCompositeCondition) );
@@ -426,9 +426,30 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 	SetValueToChildren(MASTER_ELEMENTS);
 	SetValueToChildren(MASTER_NODES);
 
-	//cn->SetId(this->Id());
-	cn->pGetGeometry() = this->pGetGeometry();
+	bool set_geometry = false;
+	for( unsigned int i=0; i<this->GetGeometry().size(); i++ )
+	  {
+ 	    if( cn->GetGeometry()[i].Id() != this->GetGeometry()[i].Id() )
+	      set_geometry = true;
+	  }
 
+	if( set_geometry ){
+	  
+	  std::cout<<" Set Geometry ( Something is wrong with children conditions ) "<<std::endl;
+	  
+	  // std::cout<<" Master "<<this->Id()<<" Geometry ["<<this->GetGeometry()[0].Id()<<", "<<this->GetGeometry()[1].Id()<<"] "<<std::endl;
+
+	  // std::cout<<" Pre Child "<<cn->Id()<<" Geometry ["<<cn->GetGeometry()[0].Id()<<", "<<cn->GetGeometry()[1].Id()<<"] "<<std::endl;
+
+	  // GeometryType::PointsArrayType GeometryPoints = this->GetGeometry().Points();
+
+	  // (cn->GetGeometry().Points()).swap(GeometryPoints);
+
+	  // std::cout<<" Post Child "<<cn->Id()<<" Geometry ["<<cn->GetGeometry()[0].Id()<<", "<<cn->GetGeometry()[1].Id()<<"] "<<std::endl;
+ 
+	}
+
+	
 	cn->InitializeSolutionStep(rCurrentProcessInfo);
 
       }
