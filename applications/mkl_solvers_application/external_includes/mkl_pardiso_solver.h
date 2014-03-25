@@ -94,7 +94,7 @@ public:
     /**
      * Counted pointer of SuperLUSolver
      */
-    typedef boost::shared_ptr<MKLPardisoSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( MKLPardisoSolver );
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

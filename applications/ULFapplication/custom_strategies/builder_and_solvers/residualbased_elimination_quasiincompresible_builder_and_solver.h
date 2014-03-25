@@ -95,9 +95,7 @@ class ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver );
-
 
     typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> BaseType;
 

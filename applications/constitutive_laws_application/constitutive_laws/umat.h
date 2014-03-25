@@ -25,7 +25,7 @@ public:
     // Type Definitions
     typedef ConstitutiveLaw BaseType;
     typedef array_1d<double, 81> MaterialTensorType;
-    typedef boost::shared_ptr<Umat> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( Umat );
     typedef array_1d<double, 3 > PlaneArrayType;
     typedef array_1d<double, 6 > SpaceArrayType;
 
@@ -35,9 +35,9 @@ public:
     virtual ~Umat();
 
     //clone
-    virtual boost::shared_ptr<BaseType> Clone() const
+    virtual BaseType::Pointer Clone() const
     {
-        boost::shared_ptr<BaseType> p_clone ( new Umat() );
+        BaseType::Pointer p_clone ( new Umat() );
         return p_clone;
     }
 

@@ -135,7 +135,6 @@ class ParallelResidualBasedEliminationBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ParallelResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(ParallelResidualBasedEliminationBuilderAndSolver);
 
 

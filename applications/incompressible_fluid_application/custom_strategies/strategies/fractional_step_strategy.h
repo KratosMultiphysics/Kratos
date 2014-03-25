@@ -81,7 +81,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    typedef boost::shared_ptr< FractionalStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( FractionalStepStrategy );
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 

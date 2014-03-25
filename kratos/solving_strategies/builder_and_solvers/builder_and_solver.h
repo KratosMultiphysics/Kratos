@@ -239,7 +239,6 @@ public:
 
     //pointer definition
 
-    //typedef boost::shared_ptr< BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(BuilderAndSolver);
 
 

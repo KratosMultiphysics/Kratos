@@ -87,7 +87,6 @@ class ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationDiscreteLaplacianBuilderAndSolver );
 
 

@@ -119,7 +119,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;

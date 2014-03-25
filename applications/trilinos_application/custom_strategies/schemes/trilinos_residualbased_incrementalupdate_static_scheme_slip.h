@@ -98,7 +98,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    //typedef boost::shared_ptr< TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip);
 
     typedef TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;

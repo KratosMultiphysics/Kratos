@@ -87,7 +87,7 @@ public:
     /**
      * Counted pointer of SuperLUSolver
      */
-    typedef boost::shared_ptr<MKLGMRESSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( MKLGMRESSolver );
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

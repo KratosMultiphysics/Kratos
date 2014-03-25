@@ -157,7 +157,6 @@ class TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedEliminationBuilderAndSolverComponentwiseSplit );
 
 

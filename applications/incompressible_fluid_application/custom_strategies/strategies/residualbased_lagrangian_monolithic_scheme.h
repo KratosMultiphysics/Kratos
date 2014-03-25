@@ -126,7 +126,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< ResidualBasedLagrangianMonolithicScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedLagrangianMonolithicScheme);
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;

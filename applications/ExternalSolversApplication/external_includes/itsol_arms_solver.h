@@ -95,7 +95,7 @@ public:
     /**
      * Counted pointer of ITSOL_ARMS_Solver
      */
-    typedef boost::shared_ptr<ITSOL_ARMS_Solver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  ITSOL_ARMS_Solver );
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

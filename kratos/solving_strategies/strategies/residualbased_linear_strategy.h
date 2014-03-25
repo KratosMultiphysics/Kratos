@@ -127,7 +127,6 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedLinearStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;

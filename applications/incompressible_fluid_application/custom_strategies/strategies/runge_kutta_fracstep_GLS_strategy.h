@@ -96,7 +96,7 @@ public:
     /** Counted pointer of ClassName */
     typedef std::vector<unsigned int> IndicesVectorType;
 
-    typedef boost::shared_ptr< RungeKuttaFracStepStrategy<TDim, TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  RungeKuttaFracStepStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 

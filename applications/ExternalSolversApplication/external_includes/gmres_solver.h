@@ -98,7 +98,7 @@ public:
     ///@{
 
     /// Counted pointer of GMRESSolver
-    typedef boost::shared_ptr<GMRESSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  GMRESSolver );
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 

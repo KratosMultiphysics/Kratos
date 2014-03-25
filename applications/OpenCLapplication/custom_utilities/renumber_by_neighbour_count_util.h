@@ -219,14 +219,14 @@ private:
     //
     //        };
 
-    //        class compare_by_neighb_count : public std::binary_function< boost::shared_ptr<Node<3> >, boost::shared_ptr<Node<3> >, std::less<typename TGetKeyType::result_type>::result_type >
+    //        class compare_by_neighb_count : public std::binary_function< Node<3>::Pointer, Node<3>::Pointer, std::less<typename TGetKeyType::result_type>::result_type >
     //        {
     //     public:
-    //       bool operator()(boost::shared_ptr<Node<3> > a, boost::shared_ptr<Node<3> > b) const
+    //       bool operator()(Node<3>::Pointer a, Node<3>::Pointer b) const
     //       {return ((*a).Id() < (*b).Id());}
     //     };
 
-    static bool cmp(boost::shared_ptr<Node < 3 > > a, boost::shared_ptr<Node < 3 > > b)
+    static bool cmp(Node < 3 >::Pointer a, Node < 3 >::Pointer b)
     {
         return a->GetValue(NEIGHBOUR_NODES).size() < b->GetValue(NEIGHBOUR_NODES).size() ;
     }

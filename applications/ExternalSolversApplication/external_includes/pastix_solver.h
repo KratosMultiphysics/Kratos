@@ -38,7 +38,7 @@ public:
 	/**
 	 * Counted pointer of PastixSolver
 	 */
-	typedef boost::shared_ptr<PastixSolver> Pointer;
+	KRATOS_CLASS_POINTER_DEFINITION( PastixSolver );
 
 	typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

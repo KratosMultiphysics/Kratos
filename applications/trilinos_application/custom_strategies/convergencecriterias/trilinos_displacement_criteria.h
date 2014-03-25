@@ -120,7 +120,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< TrilinosDisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosDisplacementCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;

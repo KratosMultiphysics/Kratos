@@ -47,8 +47,7 @@ public:
 	/**
 	 * Counted pointer of AMGCLSolver
 	 */
-	typedef boost::shared_ptr<AMGCLSolver> Pointer;
-
+	KRATOS_CLASS_POINTER_DEFINITION( AMGCLSolver );
 	typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
 	typedef typename TSparseSpaceType::MatrixType SparseMatrixType;

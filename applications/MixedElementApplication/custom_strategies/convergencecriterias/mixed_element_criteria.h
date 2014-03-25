@@ -123,7 +123,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    typedef boost::shared_ptr< MixedElementConvergenceCriteria< TSparseSpace, TDenseSpace > > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  MixedElementConvergenceCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 

@@ -92,7 +92,7 @@ public:
     ///@{
 
     /// Counted pointer of GPUBICGSTABSolver
-    typedef boost::shared_ptr<GPUBICGSTABSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  GPUBICGSTABSolver );
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 

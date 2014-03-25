@@ -138,9 +138,7 @@ class ResidualBasedEliminationBuilderAndSolverDeactivation
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationBuilderAndSolverDeactivation<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationBuilderAndSolverDeactivation );
-
 
     typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver> BaseType;
 
