@@ -149,7 +149,8 @@ public:
                              
               Element::GeometryType& geom = it->GetGeometry();
               
-              if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+              //if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+              if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) )
               {
                 
                 particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
@@ -194,8 +195,10 @@ public:
                              
               Element::GeometryType& geom = it->GetGeometry();
               
-              if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false && 
-                  geom(1)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+//              if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false && 
+//                  geom(1)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+              if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) &&
+                  geom(1)->IsNot(DEMFlags::FIXED_VEL_X) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Z) )
               {
                 
    

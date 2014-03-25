@@ -94,7 +94,8 @@ namespace Kratos
 
              //velocidad = c1->GetVelocidad() + 0.5 * dt * (c1->GetAceleracion() + accel);
 	     //desplazamiento = dt * c1->GetVelocidad() + 0.5 * dt * dt * (c1->GetAceleracion() + accel);
-	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false )
+	     //if( i->pGetDof(VELOCITY_X)->IsFixed() == false )
+             if( i->IsNot(DEMFlags::FIXED_VEL_X))
              {
 
                  delta_displ[0] = delta_t * vel[0] + 0.25 * delta_t * delta_t * (prev_accel[0] + new_accel[0]);
@@ -122,7 +123,8 @@ namespace Kratos
 
              }
 	     
-	     if( i->pGetDof(VELOCITY_Y)->IsFixed() == false )
+	     //if( i->pGetDof(VELOCITY_Y)->IsFixed() == false )
+             if( i->IsNot(DEMFlags::FIXED_VEL_Y))
              {
 
                  delta_displ[1] = delta_t * vel[1] + 0.25 * delta_t * delta_t * (prev_accel[1] + new_accel[1]);
@@ -146,7 +148,8 @@ namespace Kratos
                  
              }
 	     
-             if( i->pGetDof(VELOCITY_Z)->IsFixed() == false )
+             //if( i->pGetDof(VELOCITY_Z)->IsFixed() == false )
+             if( i->IsNot(DEMFlags::FIXED_VEL_Z))
 	     {
                  
 	         displ[2]  += delta_t * vel[2] + 0.25 * delta_t * delta_t * (prev_accel[2] + new_accel[2]);

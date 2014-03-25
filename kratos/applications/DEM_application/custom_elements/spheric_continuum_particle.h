@@ -247,7 +247,7 @@ namespace Kratos
         virtual void ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo);
         
         //member variables DEM_CONTINUUM
-
+        int mContinuumGroup;
         //DEMPACK
         int mDempack;
         double mDempack_damping;

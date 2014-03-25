@@ -28,16 +28,16 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       CylinderContinuumParticle::CylinderContinuumParticle()
-      : SphericContinuumParticle(){mInitializedVariablesFlag = 0;}
+      : SphericContinuumParticle(){/*mInitializedVariablesFlag = 0;*/}
 
       CylinderContinuumParticle::CylinderContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : SphericContinuumParticle(NewId, pGeometry){mInitializedVariablesFlag = 0;}
+      : SphericContinuumParticle(NewId, pGeometry){/*mInitializedVariablesFlag = 0;*/}
 
       CylinderContinuumParticle::CylinderContinuumParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : SphericContinuumParticle(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0;}
+      : SphericContinuumParticle(NewId, pGeometry, pProperties){/*mInitializedVariablesFlag = 0;*/}
 
       CylinderContinuumParticle::CylinderContinuumParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : SphericContinuumParticle(NewId, ThisNodes){mInitializedVariablesFlag = 0;}
+      : SphericContinuumParticle(NewId, ThisNodes){/*mInitializedVariablesFlag = 0;*/}
 
       Element::Pointer CylinderContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -61,14 +61,18 @@ namespace Kratos
           double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
           //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-          double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          //double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
           double mass               = M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
-          moment_of_inertia         = 0.5 * mass * mRadius * mRadius;
-          mRealMass                 = mass;          
+          //mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
-          mMomentOfInertia          = moment_of_inertia;
+
+          //if (mRotationOption){
+          if (this->Is(DEMFlags::HAS_ROTATION) ){
+            double moment_of_inertia = 0.5 * mass * mRadius * mRadius;   
+            GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+          }                                                                        
 
           CustomInitialize();
 

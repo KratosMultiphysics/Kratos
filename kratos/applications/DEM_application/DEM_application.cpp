@@ -373,6 +373,21 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int,    ANGULAR_VELOCITY_Z_DOF_POS)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OLD_COORDINATES)
  
+  //FLAGS
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROTATION, 0);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROTATION_SPRING, 1);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROLLING_FRICTION, 2);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_INITIALIZED_VARIABLES, 3);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_CRITICAL_TIME, 4);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_VEL_X, 5);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_VEL_Y, 6);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_VEL_Z, 7);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_X, 8);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_Y, 9);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_Z, 10);
+
+ 
+  
 
   /************************************************************************************************************************************************************/
   /************************************************************************************************************************************************************/

@@ -87,27 +87,7 @@ public:
 
     }
     
-    void NodeCreator(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz)
-    {
-              
-      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
-      array_1d<double, 3 > null_vector(3,0.0);                                 
-      /*pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;*/
-      pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
-      /*pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;*/
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
-      pnew_node->FastGetSolutionStepValue(RADIUS) = 0.05;
-      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = 1000;
-      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 10000;
-      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = 0.5;
-      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
-          
-    }
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool initial=false)
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool has_sphericity, bool initial)
     {
 
         
@@ -139,23 +119,20 @@ public:
       pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = ln_rest_coeff;
       pnew_node->FastGetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
       pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
+      if(has_sphericity){
       pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)          = params[PARTICLE_SPHERICITY];
-      //pnew_node->FastGetSolutionStepValue(VELOCITY_X)                   = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
-      /*pnew_node->FastGetSolutionStepValue(VELOCITY_Y)                   = params[VELOCITY][1];
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Z)                   = params[VELOCITY][2];*/
+      }
       pnew_node->FastGetSolutionStepValue(VELOCITY)                     = params[VELOCITY];
       array_1d<double, 3 > null_vector(3,0.0);                              
-      /*pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;*/
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
       
       ///DOFS
-      pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
-      pnew_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
-      pnew_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
-      pnew_node->AddDof(VELOCITY_X,REACTION_X);
+      //pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
+      //pnew_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
+      //pnew_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
+      
+      /*pnew_node->AddDof(VELOCITY_X,REACTION_X);
       pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
       pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
       pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
@@ -167,27 +144,16 @@ public:
       pnew_node->pGetDof(VELOCITY_Z)->FixDof();           
       pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
       pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();*/
             
-    }
+      pnew_node->Set(DEMFlags::FIXED_VEL_X,true);
+      pnew_node->Set(DEMFlags::FIXED_VEL_Y,true);
+      pnew_node->Set(DEMFlags::FIXED_VEL_Z,true);
+      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X,true);
+      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
 
-
-    void ElementCreator(ModelPart& r_modelpart, int r_Elem_Id, int r_Id, double r_x, double r_y, double r_z)
-    {
-
-      Node < 3 > ::Pointer pnew_node;
-      
-      NodeCreator(r_modelpart, pnew_node, r_Id, r_x, r_y, r_z);
-      
-      Geometry< Node < 3 > >::PointsArrayType nodelist;
-      
-      nodelist.push_back(pnew_node);
-
-      Element::Pointer p_particle = Element::Pointer(new /*SphericSwimmingParticle*/SphericParticle(r_Elem_Id, nodelist)); 
-      
-      r_modelpart.Elements().push_back(p_particle); 
-           
-    }
+    }   
 
     void PrintingTest() {}
 
@@ -195,11 +161,11 @@ public:
     //MA
     //template <class DEMElementType>
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, 
-                                              Properties & r_params, const Element& r_reference_element, bool initial=false) {          
+                                              Properties & r_params, const Element& r_reference_element, bool has_sphericity, bool initial) {          
         
       Node < 3 > ::Pointer pnew_node;
             
-      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, r_params, initial); 
+      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, r_params, has_sphericity, initial); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
@@ -216,7 +182,22 @@ public:
       }
       
       p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
-      p_particle->Initialize();
+      //p_particle->Initialize();
+      
+      //boost::shared_ptr<Kratos::SphericParticle> spheric_p_particle = boost::dynamic_pointer_cast<Kratos::SphericParticle> (p_particle);                              
+      Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());
+      
+      double radius                              = r_params[RADIUS];
+      double density                             = r_params[PARTICLE_DENSITY];          
+      double mass                                = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
+      
+      spheric_p_particle->SetRadius                            (radius);
+      spheric_p_particle->SetSqrtOfRealMass                    (sqrt(mass)); 
+      /*spheric_p_particle->SetYoungFromProperties               (r_params[YOUNG_MODULUS]);      
+      spheric_p_particle->SetRollingFrictionFromProperties     (r_params[ROLLING_FRICTION]);
+      spheric_p_particle->SetPoissonFromProperties             (r_params[POISSON_RATIO]);
+      spheric_p_particle->SetTgOfFrictionAngleFromProperties   (r_params[PARTICLE_FRICTION]);
+      spheric_p_particle->SetLnOfRestitCoeffFromProperties     (r_params[LN_OF_RESTITUTION_COEFF]);      */ 
       
       r_modelpart.Elements().push_back(p_particle);          
 }    
@@ -687,6 +668,7 @@ public:
     ModelPart& InletModelPart; //The model part used to insert elements
     bool mFirstTime;
     boost::numeric::ublas::vector<bool> mLayerRemoved;
+    bool mBallsModelPartHasSphericity;
     
     /// Constructor:               
     
@@ -708,6 +690,7 @@ public:
         }                
         
         mFirstTime=true;
+        mBallsModelPartHasSphericity=false;
         
     }
             
@@ -721,29 +704,32 @@ public:
 	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
 	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
 	}
+        
+        VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
+        if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;
+        
+        const std::string ElementNameString = std::string("SphericParticle3D"); 
+        const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+        
         int mesh_number=0;
         for (ModelPart::MeshesContainerType::iterator mesh_it = InletModelPart.GetMeshes().begin()+1;
                                                mesh_it != InletModelPart.GetMeshes().end();    ++mesh_it)
-        {
-            
+        {            
             mesh_number++;
             int mesh_size=mesh_it->NumberOfNodes();
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
             
-            //I create a parallel set of properties (temporarily) to assign the same conditions but 0,0,0 velocity
+            //I create a parallel set of properties (temporarily) to assign the same conditions but 0,0,0 velocity 
+            //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
             Properties mesh_properties_null_vel = InletModelPart.GetProperties(mesh_number);
             mesh_properties_null_vel[VELOCITY][0]=0.0;
             mesh_properties_null_vel[VELOCITY][1]=0.0;
-            mesh_properties_null_vel[VELOCITY][2]=0.0;
-            
-            const std::string ElementNameString = std::string("SphericParticle3D");
-               
-            const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+            mesh_properties_null_vel[VELOCITY][2]=0.0;                                                                           
             
             for (int i = 0; i < mesh_size; i++){                
-                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], mesh_properties_null_vel, r_reference_element, true); 
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], mesh_properties_null_vel, r_reference_element, mBallsModelPartHasSphericity, true); 
 		max_Id++;
-            }
+            }      
             
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
@@ -774,12 +760,18 @@ public:
           
           if(!still_touching){ 
 	    if(node_it->IsNot(BLOCKED)){//The ball must be free'd
-	      node_it->pGetDof(VELOCITY_X)->FreeDof();              
+	      /*node_it->pGetDof(VELOCITY_X)->FreeDof();              
 	      node_it->pGetDof(VELOCITY_Y)->FreeDof();
 	      node_it->pGetDof(VELOCITY_Z)->FreeDof();      
 	      node_it->pGetDof(ANGULAR_VELOCITY_X)->FreeDof();	      
 	      node_it->pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
-	      node_it->pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+	      node_it->pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();*/
+              node_it->Set(DEMFlags::FIXED_VEL_X,false);
+              node_it->Set(DEMFlags::FIXED_VEL_Y,false);
+              node_it->Set(DEMFlags::FIXED_VEL_Z,false);
+              node_it->Set(DEMFlags::FIXED_ANG_VEL_X,false);
+              node_it->Set(DEMFlags::FIXED_ANG_VEL_Y,false);
+              node_it->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 	      elem_it->Set(NEW_ENTITY,0);
               node_it->Set(NEW_ENTITY,0);
 	    }
@@ -866,7 +858,7 @@ public:
                const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.GetProperties(mesh_number), r_reference_element, false);
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.GetProperties(mesh_number), r_reference_element, mBallsModelPartHasSphericity, false);
                    inserting_nodes[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                    max_Id++;
                }                                                                   

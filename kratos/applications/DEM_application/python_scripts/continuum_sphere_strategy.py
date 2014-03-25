@@ -43,7 +43,7 @@ def AddVariables(model_part, Param):
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
     model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
-    model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
+    #model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
     # LOCAL AXIS
     if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
@@ -66,25 +66,24 @@ def AddVariables(model_part, Param):
       
     if(Var_Translator(Param.PostGroupId)):
         model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
-#    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
 
     # OPTIMIZATION
-    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
+#    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
 
     # ONLY VISUALIZATION
 
     if (Var_Translator(Param.PostExportId)):
         model_part.AddNodalSolutionStepVariable(EXPORT_ID)
     #if (Var_Translator(Param.PredefinedSkinOption) | (Param.TestType != "None") ):
-    if (Var_Translator(Param.PostExportSkinSphere) ):
-        model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
-        model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
+    #if (Var_Translator(Param.PostExportSkinSphere) ):
+    #    model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
+    #    model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
     if (Var_Translator(Param.PostGroupId)):
         model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 

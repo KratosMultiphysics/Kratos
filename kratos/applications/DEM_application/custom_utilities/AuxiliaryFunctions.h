@@ -12,6 +12,54 @@
 #include <cmath>
 
 
+class PropertiesProxy {
+            
+  public:
+      
+      int     GetId()                                                          { return mId;                                 }
+      void    SetId(int id)                                                    { mId = id;                                   }
+       
+      double  GetYoung()                                                       { return *mYoung;                             }
+      double* pGetYoung()                                                      { return  mYoung;                             }
+      void    SetYoungFromProperties(double* young)                            { mYoung = young;                             }  
+      
+      double  GetPoisson()                                                     { return *mPoisson;                           }
+      double* pGetPoisson()                                                    { return  mPoisson;                           }
+      void    SetPoissonFromProperties(double* poisson)                        { mPoisson = poisson;                         }                    
+            
+      double  GetRollingFriction()                                             { return *mRollingFriction;                   }      
+      double* pGetRollingFriction()                                            { return  mRollingFriction;                   }  
+      void    SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = rolling_friction;        }      
+      
+      double  GetTgOfFrictionAngle()                                           { return *mTgOfFrictionAngle;                 } 
+      double* pGetTgOfFrictionAngle()                                          { return  mTgOfFrictionAngle;                 } 
+      void    SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { mTgOfFrictionAngle = tg_of_friction_angle;  }
+      
+      double  GetLnOfRestitCoeff()                                             { return *mLnOfRestitCoeff;                   } 
+      double* pGetLnOfRestitCoeff()                                            { return  mLnOfRestitCoeff;                   } 
+      void    SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = ln_of_restit_coeff;      }  
+      
+      PropertiesProxy operator=(PropertiesProxy props){
+          
+          mYoung             = props.pGetYoung();
+          mPoisson           = props.pGetPoisson();
+          mRollingFriction   = props.pGetRollingFriction();
+          mTgOfFrictionAngle = props.pGetTgOfFrictionAngle();
+          mLnOfRestitCoeff   = props.pGetLnOfRestitCoeff();
+                  
+          return *this;
+      };
+           
+  private:
+      int     mId;
+      double *mYoung;
+      double *mPoisson;
+      double *mRollingFriction;
+      double *mTgOfFrictionAngle;
+      double *mLnOfRestitCoeff;
+      
+};
+  
 namespace Kratos
 {
     namespace AuxiliaryFunctions

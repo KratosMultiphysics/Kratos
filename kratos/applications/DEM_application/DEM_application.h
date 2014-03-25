@@ -22,6 +22,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
+#include "includes/kratos_flags.h"
+#include "containers/flags.h"
 
 
 #include "includes/variables.h"
@@ -395,6 +397,23 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int,    ANGULAR_VELOCITY_Z_DOF_POS)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(OLD_COORDINATES)
 
+class DEMFlags
+  {
+  public:
+    KRATOS_DEFINE_LOCAL_FLAG(HAS_ROTATION);
+    KRATOS_DEFINE_LOCAL_FLAG(HAS_ROTATION_SPRING);
+    KRATOS_DEFINE_LOCAL_FLAG(HAS_ROLLING_FRICTION);
+    KRATOS_DEFINE_LOCAL_FLAG(HAS_INITIALIZED_VARIABLES);
+    KRATOS_DEFINE_LOCAL_FLAG(HAS_CRITICAL_TIME);  
+    KRATOS_DEFINE_LOCAL_FLAG(FIXED_VEL_X); 
+    KRATOS_DEFINE_LOCAL_FLAG(FIXED_VEL_Y); 
+    KRATOS_DEFINE_LOCAL_FLAG(FIXED_VEL_Z); 
+    KRATOS_DEFINE_LOCAL_FLAG(FIXED_ANG_VEL_X); 
+    KRATOS_DEFINE_LOCAL_FLAG(FIXED_ANG_VEL_Y); 
+    KRATOS_DEFINE_LOCAL_FLAG(FIXED_ANG_VEL_Z); 
+    
+  };  
+
 class KratosDEMApplication : public KratosApplication
 {
 public:
@@ -581,7 +600,6 @@ private:
 }; // Class KratosDEMApplication
 
 ///@}
-
 
 ///@name Type Definitions
 ///@{
