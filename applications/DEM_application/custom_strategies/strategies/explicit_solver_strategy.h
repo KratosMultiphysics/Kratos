@@ -82,7 +82,7 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  bool compare_ids(const boost::weak_ptr<Element>& i, const boost::weak_ptr<Element>& j) {
+  /*bool compare_ids(const Element::WeakPointer& i, const Element::WeakPointer& j) {
     
      if( (i.lock())->Id() <  (j.lock())->Id()) return true;
      if( (i.lock())->Id() >  (j.lock())->Id()) return false;
@@ -91,7 +91,7 @@ namespace Kratos
      return false;               
      
          
-  }  
+  }  */
     
   /// Short class definition.
   /** Detail class definition.
@@ -129,6 +129,9 @@ namespace Kratos
       typedef SpatialSearch::ResultConditionsContainerType              ResultConditionsContainerType;
       typedef SpatialSearch::VectorResultConditionsContainerType        VectorResultConditionsContainerType;
  
+      typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
+      typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+ 
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -157,8 +160,8 @@ namespace Kratos
 
           mElementsAreInitialized        = false;
           mInitializeWasPerformed        = false;
-          mDeltaOption                   = delta_option,
-          mSearchTolerance               = search_tolerance,
+          mDeltaOption                   = delta_option;
+          mSearchTolerance               = search_tolerance;
           mCoordinationNumber            = coordination_number;
           mpParticleCreatorDestructor    = p_creator_destructor;
           mpScheme                       = pScheme;
@@ -168,9 +171,8 @@ namespace Kratos
           mSafetyFactor                  = safety_factor;
           mNumberOfElementsOldRadiusList = 0;
           
-      //Cfengs
-      mpDem_model_part             = &r_model_part;
-      mpFem_model_part             = &fem_model_part;
+          mpDem_model_part               = &r_model_part;
+          mpFem_model_part               = &fem_model_part;
           
       }
 
@@ -179,8 +181,74 @@ namespace Kratos
       {
           Timer::SetOuputFile("TimesPartialRelease");
           Timer::PrintTimingInformation();
+      }            
+      
+      
+      void CreatePropertiesProxies(){
+          KRATOS_TRY
+                  
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+          
+          int number_of_properties = r_model_part.NumberOfProperties();
+          mFastProperties.resize(number_of_properties);
+          
+          PropertiesProxy aux_props;
+          int i = 0;
+          
+          
+          for (PropertiesIterator props_it = r_model_part.GetMesh(0).PropertiesBegin(); 
+                                  props_it!= r_model_part.GetMesh(0).PropertiesEnd();   props_it++ )
+          {
+              aux_props.SetId( props_it->GetId() );
+
+              double* aux_pointer = &( props_it->GetValue(YOUNG_MODULUS) );
+              aux_props.SetYoungFromProperties( aux_pointer );
+              
+              aux_pointer = &( props_it->GetValue(POISSON_RATIO) );
+              aux_props.SetPoissonFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
+              aux_props.SetRollingFrictionFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
+              aux_props.SetTgOfFrictionAngleFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
+              aux_props.SetLnOfRestitCoeffFromProperties(aux_pointer);
+              
+              //ROLLING FRICTION???                            
+              mFastProperties[i] = aux_props;
+              i++;
+              
       }
 
+          #pragma omp parallel for
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it){
+                
+                Kratos::SphericParticle& spheric_particle_pointer = dynamic_cast<Kratos::SphericParticle&>(*particle_pointer_it);
+                                                  
+                int general_properties_id = spheric_particle_pointer.GetProperties().Id();  
+                for (unsigned int i = 0; i < mFastProperties.size(); i++){
+                    int fast_properties_id = mFastProperties[i].GetId(); 
+                    if( fast_properties_id == general_properties_id ){                  
+                        spheric_particle_pointer.SetFastProperties( &(mFastProperties[i]) );
+                        break;
+                    }
+                }                    
+            }                                
+         }                  
+         return;          
+         KRATOS_CATCH("")
+      }
+      
+      
       virtual void Initialize()
       {
           KRATOS_TRY
@@ -188,6 +256,8 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
 
+          //CreatePropertiesProxies();
+          
           int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
           this->GetResults().resize(number_of_elements);
@@ -237,6 +307,7 @@ namespace Kratos
           
            // 5. Finalize Solution Step.
           FinalizeSolutionStep();
+          KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
                     
 
       KRATOS_CATCH("")
@@ -666,7 +737,8 @@ namespace Kratos
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
                 WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
                 for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
-                    neighbour_elements.push_back(*neighbour_it);         
+                    neighbour_elements.push_back( *neighbour_it );    
+                    //mNeighbourElements.push_back( *neighbour_it.get() );
                 }
 
                 this->GetResults()[ResultCounter].clear();
@@ -785,7 +857,9 @@ namespace Kratos
 
             moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
             
-            #pragma omp parallel for
+            #pragma omp parallel
+            {
+            #pragma omp for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
             {
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -815,11 +889,11 @@ namespace Kratos
             /////************Cfeng: Below for DEM FEM coupling********************
             //*****************************************************************************
             
-            SpatialSearch::ElementsContainerType::iterator E_pointer_it;
+            //SpatialSearch::ElementsContainerType::iterator E_pointer_it;
             
             //Cfeng:resize the particle-rigidface contact forces for each particles 
             
-            #pragma omp parallel for
+            #pragma omp for
             for (int k = 0; k < this->GetNumberOfThreads(); k++)
             {
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -834,6 +908,7 @@ namespace Kratos
                     
                 }
             }
+            } //end of the parallel region
             
             typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             
@@ -848,7 +923,7 @@ namespace Kratos
             
             ////Cfeng: Find The particle neighbours for each RigidFace, used for calculating FEM force
             //This loop can not be parallelized easily, two threads could be writing on the same condition!!
-            for (E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
+            for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
             {                   
                 for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
                      ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)
@@ -887,7 +962,8 @@ namespace Kratos
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
-                if (!(it->GetGeometry()(0)->pGetDof(VELOCITY_X)->IsFixed())){
+                //if (!(it->GetGeometry()(0)->pGetDof(VELOCITY_X)->IsFixed())){
+                if (it->GetGeometry()(0)->IsNot(DEMFlags::FIXED_VEL_X) ) {
                     reduction_distances[this->GetElementPartition()[k] + elem_counter] = initial_max_indentation;
                 }
 
@@ -985,6 +1061,9 @@ namespace Kratos
     VectorResultConditionsContainerType&         GetRigidFaceResults(){return(mRigidFaceResults);}
     VectorDistanceType&                          GetRigidFaceResultsDistances(){return(mRigidFaceResultsDistances);}
     vector<unsigned int>&                        GetConditionPartition(){return (mConditionPartition);}
+    
+    std::vector<PropertiesProxy>                 mFastProperties;
+            
     
     protected:
 

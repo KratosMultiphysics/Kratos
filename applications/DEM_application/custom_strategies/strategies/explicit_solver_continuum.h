@@ -167,7 +167,7 @@ namespace Kratos
         // 5. Finalize Solution Step
         
         BaseType::FinalizeSolutionStep();
-        //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
+        KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
         
         KRATOS_CATCH("")
         
@@ -468,8 +468,8 @@ namespace Kratos
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-        #pragma omp parallel 
-        #pragma omp for
+        #pragma omp parallel for
+        
         for (int k = 0; k < this->GetNumberOfThreads(); k++)
         
         {
@@ -502,8 +502,7 @@ namespace Kratos
           
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-          #pragma omp parallel 
-          #pragma omp for
+          #pragma omp parallel for
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
 
@@ -553,8 +552,7 @@ namespace Kratos
           
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-          #pragma omp parallel 
-          #pragma omp for
+          #pragma omp parallel for         
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
 
@@ -586,8 +584,7 @@ namespace Kratos
           
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-          #pragma omp parallel 
-          #pragma omp for
+          #pragma omp parallel for          
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
 
@@ -641,8 +638,8 @@ namespace Kratos
           
           double Output = 0.0;
           
-          #pragma omp parallel 
-          #pragma omp for
+          #pragma omp parallel for
+          
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -673,8 +670,8 @@ namespace Kratos
       
       double Output = 0.0;
       
-      #pragma omp parallel 
-      #pragma omp for
+      #pragma omp parallel for
+      
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -705,8 +702,8 @@ namespace Kratos
       
       double Output = 0.0;
       
-      #pragma omp parallel 
-      #pragma omp for
+      #pragma omp parallel for
+      
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -737,8 +734,8 @@ namespace Kratos
       
       double Output = 0.0;
       
-      #pragma omp parallel 
-      #pragma omp for
+      #pragma omp parallel for
+
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -784,8 +781,7 @@ namespace Kratos
           vector<unsigned int> node_partition;
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
 
-          #pragma omp parallel 
-          #pragma omp for
+          #pragma omp parallel for
           
           for(int k=0; k<this->GetNumberOfThreads(); k++)
           {
@@ -800,23 +796,29 @@ namespace Kratos
                 if(fix_x)
                 {
                   velocity[0] = vel_x;
-                  unsigned int pos_x = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);  
-                  i->GetDof(VELOCITY_X, pos_x).FixDof();  
+                  //unsigned int pos_x = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);  
+                  //i->GetDof(VELOCITY_X, pos_x).FixDof(); 
+                  //i->GetDof(VELOCITY_X).FixDof(); 
+                  i->Set(DEMFlags::FIXED_VEL_X,true);
                 }
                 
                 if(fix_y)
                 {
                   velocity[1] = vel_y;
-                  unsigned int pos_y = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);  
-                  i->GetDof(VELOCITY_Y, pos_y).FixDof();  
+                  //unsigned int pos_y = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);  
+                  //i->GetDof(VELOCITY_Y, pos_y).FixDof(); 
+                  //i->GetDof(VELOCITY_Y).FixDof(); 
+                  i->Set(DEMFlags::FIXED_VEL_Y,true);
 
                 }
                 
                 if(fix_z)
                 {
                   velocity[2] = vel_z;
-                  unsigned int pos_z = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);  
-                  i->GetDof(VELOCITY_Z, pos_z).FixDof();  
+                  //unsigned int pos_z = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);  
+                  //i->GetDof(VELOCITY_Z, pos_z).FixDof(); 
+                  //i->GetDof(VELOCITY_Z).FixDof();
+                  i->Set(DEMFlags::FIXED_VEL_Z,true);
                 
                 }
      
@@ -847,9 +849,8 @@ namespace Kratos
 
           double dummy = 0.0;
           
-          #pragma omp parallel 
+          #pragma omp parallel for
           
-          #pragma omp for
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -880,8 +881,8 @@ namespace Kratos
 
             OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-            #pragma omp parallel 
-            #pragma omp for
+            #pragma omp parallel for
+
             for (int k = 0; k < this->GetNumberOfThreads(); k++){
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
                 typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -920,9 +921,7 @@ namespace Kratos
       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
       unsigned int index;
       
-      #pragma omp parallel 
-      
-      #pragma omp for private (index, rhs_cond)
+      #pragma omp parallel for private (index, rhs_cond)     
       
       for(int k=0; k<this->GetNumberOfThreads(); k++)
       {
@@ -972,8 +971,7 @@ namespace Kratos
         vector<unsigned int> node_partition;
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
 
-        #pragma omp parallel 
-        #pragma omp for
+        #pragma omp parallel for
         
         for(int k=0; k<this->GetNumberOfThreads(); k++)
         {
@@ -1006,9 +1004,8 @@ namespace Kratos
       vector<unsigned int> condition_partition;
       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
             
-      #pragma omp parallel 
+      #pragma omp parallel for private (rhs_cond)
       
-      #pragma omp for private (rhs_cond)
       
       for(int k=0; k<this->GetNumberOfThreads(); k++)
       {

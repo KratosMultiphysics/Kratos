@@ -177,13 +177,15 @@ namespace Kratos
 		  double mass  = mYoung * M_PI * mRadius; 
                   GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
 		  
-		  if(mRotationOption)
+		  //if(mRotationOption)
+                  if (this->Is(DEMFlags::HAS_ROTATION) )
 		  {
+                      moment_of_inertia = 0.4 * mass * mRadius * mRadius; 
 			  mass = mass * 2.5;
 		  }
-		  moment_of_inertia = 0.4 * mass * mRadius * mRadius;  
 		  
-		  mMomentOfInertia = moment_of_inertia;
+		  
+		  //mMomentOfInertia = moment_of_inertia;
 		}
 
     }
@@ -218,17 +220,20 @@ namespace Kratos
           const array_1d<double, 3>& vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
           const array_1d<double, 3>& delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
           const array_1d<double, 3>& ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double RotaAcc[3]                      = {0.0};
           double InitialRotaMoment[3]            = {0.0};
 
-          if (mRotationOption){
+
+          //if (mRotationOption){
+          if (this->Is(DEMFlags::HAS_ROTATION) ) {
               RotaAcc[0]                         = ang_vel[0] * dt_i;
               RotaAcc[1]                         = ang_vel[1] * dt_i;
               RotaAcc[2]                         = ang_vel[2] * dt_i;
 
-              InitialRotaMoment[0]               = RotaAcc[0] * mMomentOfInertia;
-              InitialRotaMoment[1]               = RotaAcc[1] * mMomentOfInertia;
-              InitialRotaMoment[2]               = RotaAcc[2] * mMomentOfInertia;
+              InitialRotaMoment[0]               = RotaAcc[0] * moment_of_inertia;
+              InitialRotaMoment[1]               = RotaAcc[1] * moment_of_inertia;
+              InitialRotaMoment[2]               = RotaAcc[2] * moment_of_inertia;
           }
 		  
 
@@ -292,7 +297,8 @@ namespace Kratos
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir,*/ LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
-              if (mRotationOption)
+              //if (mRotationOption)
+              if (this->Is(DEMFlags::HAS_ROTATION) )
 			  {
                   DisplacementDueToRotation(DeltDisp, /*NormalDir,*/ LocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
 			  }
@@ -414,9 +420,9 @@ namespace Kratos
 */
 
 
-              if (mRotationOption)
-			  {
-					
+              //if (mRotationOption)
+              if (this->Is(DEMFlags::HAS_ROTATION) )    
+	      {					
 				double MA[3] = {0.0};
 				GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalElasticContactForce, MA);
 				rContactMoment[0] -= MA[0] * mRadius;
@@ -513,7 +519,8 @@ namespace Kratos
             DeltDisp[2] = DeltVel[2] * mTimeStep;
 
 
-            if (mRotationOption)
+            //if (mRotationOption)
+            if (this->Is(DEMFlags::HAS_ROTATION) )                
             {
                 double velA[3]   = {0.0};
                 double dRotaDisp[3] = {0.0};
@@ -635,7 +642,8 @@ namespace Kratos
 			
 			/////////////////////////////////////////////////////////////////////////////
 
-            if ( mRotationOption)
+            //if ( mRotationOption)
+            if (this->Is(DEMFlags::HAS_ROTATION) )
             {
                 double MA[3] = {0.0};
                 GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
@@ -695,7 +703,8 @@ void DEM_FEM_Particle::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 				  rRightHandSideVector[i] += local_damp_ratio * fabs(rRightHandSideVector[i]);				  
 			  }
 			  
-			  if (mRotationOption)
+			  //if (mRotationOption)
+                          if (this->Is(DEMFlags::HAS_ROTATION) )    
 			  {
 				  if(rota_vel[i] > 0.0)
 				  {

@@ -27,16 +27,16 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       CylinderParticle::CylinderParticle()
-      : SphericParticle(){mInitializedVariablesFlag = 0;}
+      : SphericParticle(){/*mInitializedVariablesFlag = 0;*/}
 
       CylinderParticle::CylinderParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : SphericParticle(NewId, pGeometry){mInitializedVariablesFlag = 0;}
+      : SphericParticle(NewId, pGeometry){/*mInitializedVariablesFlag = 0;*/}
 
       CylinderParticle::CylinderParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : SphericParticle(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0;}
+      : SphericParticle(NewId, pGeometry, pProperties){/*mInitializedVariablesFlag = 0;*/}
 
       CylinderParticle::CylinderParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : SphericParticle(NewId, ThisNodes){mInitializedVariablesFlag = 0;}
+      : SphericParticle(NewId, ThisNodes){/*mInitializedVariablesFlag = 0;*/}
 
       Element::Pointer CylinderParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -65,9 +65,14 @@ namespace Kratos
           double mass               = M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
           moment_of_inertia         = 0.5 * mass * mRadius * mRadius;
-          mRealMass                 = mass;          
+          //mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
-          mMomentOfInertia          = moment_of_inertia;
+
+          //if (mRotationOption){
+          if (this->Is(DEMFlags::HAS_ROTATION) ){
+            double moment_of_inertia = 0.5 * mass * mRadius * mRadius;   
+            GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+          }                                                                        
 
           CustomInitialize();
 
@@ -99,19 +104,19 @@ namespace Kratos
 
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
-          if (mLimitSurfaceOption > 0){
+          /*if (mLimitSurfaceOption > 0){
 
               for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
                   ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
               }
-          }
+          }*/
           
-          if (mLimitCylinderOption > 0){
+          /*if (mLimitCylinderOption > 0){
 
               for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
                   ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
               }
-          }
+          }*/
           
           ComputeAdditionalForces(contact_force, contact_moment, additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
 

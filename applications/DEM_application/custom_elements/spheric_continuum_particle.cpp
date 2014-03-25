@@ -380,16 +380,18 @@ namespace Kratos
         const array_1d<double, 3>& delta_displ  = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         const array_1d<double, 3>& ang_vel      = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
         double& rRepresentative_Volume          = this->GetGeometry()(0)->FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
+        const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
         double RotaAcc[3]                       = {0.0};
 
-        if (mRotationOption){
+        //if (mRotationOption){
+        if (this->Is(DEMFlags::HAS_ROTATION) ){    
             RotaAcc[0]                         = ang_vel[0] * dt_i;
             RotaAcc[1]                         = ang_vel[1] * dt_i;
             RotaAcc[2]                         = ang_vel[2] * dt_i;
 
-            rInitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;       
-            rInitialRotaMoment[1] = RotaAcc[1] * mMomentOfInertia;
-            rInitialRotaMoment[2] = RotaAcc[2] * mMomentOfInertia;
+            rInitialRotaMoment[0] = RotaAcc[0] * moment_of_inertia;       
+            rInitialRotaMoment[1] = RotaAcc[1] * moment_of_inertia;
+            rInitialRotaMoment[2] = RotaAcc[2] * moment_of_inertia;
 
         }        
 
@@ -487,7 +489,8 @@ namespace Kratos
 
             }
         
-            if (mCriticalTimeOption){
+            //if (mCriticalTimeOption){
+            if ( this->Is(DEMFlags::HAS_CRITICAL_TIME) ){
                 double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
 
                 if ((kn_el < historic) || (kt_el < historic)){
@@ -591,7 +594,8 @@ namespace Kratos
  
                 }
                    
-                if(*mpActivateSearch == 0)
+                //if(*mpActivateSearch == 0)
+                if(rCurrentProcessInfo[ACTIVATE_SEARCH] == 0)
                 {
                     if(mNeighbourFailureId[i_neighbour_count]!=0)
                     {
@@ -643,7 +647,7 @@ namespace Kratos
                 if(mDempack)
                 {
                   
-                  equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+                  equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mSqrtOfRealMass * mSqrtOfRealMass + other_sqrt_of_mass * other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
                 
                 }
@@ -683,7 +687,8 @@ namespace Kratos
      
             //AddPoissonContribution(LocalCoordSystem, GlobalContactForce, GlobalElasticContactForce, ViscoDampingGlobalContactForce, rContactForce, damp_forces); //MSIMSI 10
 
-            if(mRotationOption){
+            //if(mRotationOption){
+            if (this->Is(DEMFlags::HAS_ROTATION) ){
               ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,rInitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
             }
 
@@ -955,12 +960,7 @@ namespace Kratos
                                 if(this->Id() < neighbour_iterator->Id())
                                 {
                                   
-                                  lock_p_weak->GetValue(LOW_POISSON_FORCE) = Normal_Contact_Contribution; //crec que ja té la direcció cap a on ha danar el veí.
-                                    
-                                    if(*mpTimeStep==500)
-                                    {
-                                    KRATOS_WATCH(lock_p_weak->GetValue(LOW_POISSON_FORCE))             
-                                    }
+                                  lock_p_weak->GetValue(LOW_POISSON_FORCE) = Normal_Contact_Contribution; //crec que ja té la direcció cap a on ha danar el veí.                                                                      
                                   
                                     
                                 }
@@ -968,11 +968,7 @@ namespace Kratos
                                 {
                                   
                                   lock_p_weak->GetValue(HIGH_POISSON_FORCE) = Normal_Contact_Contribution;
-                                    if(*mpTimeStep==500)
-                                    {
-                                    KRATOS_WATCH(lock_p_weak->GetValue(HIGH_POISSON_FORCE))   
                                     
-                                    }            
                                 }
                                                 
                                 found = true;
@@ -985,13 +981,6 @@ namespace Kratos
                                             
                     }//for every ini_neighbour      
                 
-                
-                if(found == false)
-                {
-                  
-                  KRATOS_WATCH("ERROR!!!!!!!!!!!!!   THIS IS ONLY VALID FOR KNOWN INITIAL NEIGHBOURS, NO NEW ONES")KRATOS_WATCH(*mpTimeStep)
-                  
-                }
                 
                 //NOTE: this area is provisionally obtained diferent from each side of the contact. bars are not yet ready for mpi.
                 
@@ -1472,20 +1461,23 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
              array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
              array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
              
-             unsigned int pos;
+             //unsigned int pos;
 
-             pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
-             if ( this->GetGeometry()(0)->GetDof(VELOCITY_X,pos).IsFixed() == false ){ 
+             //pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+             //if ( this->GetGeometry()(0)->GetDof(VELOCITY_X,pos).IsFixed() == false ){ 
+             if ( this->GetGeometry()(0)->IsNot(DEMFlags::FIXED_VEL_X)){    
                    total_force[0] = total_force[0] - mDempack_global_damping*fabs(total_force[0])*GeometryFunctions::sign(velocity[0]);                                
              }
              
-             pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-             if ( this->GetGeometry()(0)->GetDof(VELOCITY_Y,pos).IsFixed() == false ){  
+             //pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+             //if ( this->GetGeometry()(0)->GetDof(VELOCITY_Y,pos).IsFixed() == false ){  
+             if ( this->GetGeometry()(0)->IsNot(DEMFlags::FIXED_VEL_Y)){   
                    total_force[1] = total_force[1] - mDempack_global_damping*fabs(total_force[1])*GeometryFunctions::sign(velocity[1]);                                
              }
              
-             pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
-             if ( this->GetGeometry()(0)->GetDof(VELOCITY_Z,pos).IsFixed() == false ){  
+             //pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+             //if ( this->GetGeometry()(0)->GetDof(VELOCITY_Z,pos).IsFixed() == false ){  
+             if ( this->GetGeometry()(0)->IsNot(DEMFlags::FIXED_VEL_Z)){   
                    total_force[2] = total_force[2] - mDempack_global_damping*fabs(total_force[2])*GeometryFunctions::sign(velocity[2]);                                
              }
                          
@@ -1565,6 +1557,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         {
 
             double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+            double mass  = mSqrtOfRealMass * mSqrtOfRealMass;        
 
             if (coeff>1.0)
             {
@@ -1581,12 +1574,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
                 if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                 {
-                    mRealMass = mRealMass/(1-coeff);
+                    mass /= 1-coeff;
                 }
 
-                double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
+                //double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
+                double K = mYoung * M_PI * mRadius;
 
-                Output = 0.34 * sqrt( mRealMass / K);
+                Output = 0.34 * sqrt( mass / K);
 
                 if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
                 {
@@ -1672,17 +1666,18 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
    
           
                 
-          if( mRotationOption != 0 && mRotationSpringOption != 0 )
+          //if( mRotationOption != 0 && mRotationSpringOption != 0 )
+          /*if( this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROTATION_SPRING)  )             
           {
               //ComputeParticleRotationSpring(); MSI: #C2
-          }
+          }*/
           
           //CharacteristicParticleFailureId(rCurrentProcessInfo);
           
-          //noalias(additionally_applied_force) += mRealMass * gravity;  //MSIMSI 1: Test that this works
-          additionally_applied_force[0] += mRealMass * gravity[0];
-          additionally_applied_force[1] += mRealMass * gravity[1];
-          additionally_applied_force[2] += mRealMass * gravity[2];
+          double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+          additionally_applied_force[0] += mass * gravity[0];
+          additionally_applied_force[1] += mass * gravity[1];
+          additionally_applied_force[2] += mass * gravity[2];
       }
  
       void SphericContinuumParticle::CustomInitialize()
@@ -1861,7 +1856,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
             lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
             lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
-            //if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (*mpTimeStep ) )  //MSIMSI 0
+
             if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (rCurrentProcessInfo[TIME_STEPS] == 0) )
              { lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }                                  
                   
@@ -1904,8 +1899,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
       /*
       if(rCurrentProcessInfo[STRESS_STRAIN_OPTION] == 1) // if stress_strain_options ON 
+        {          
+            if ( ( rRepresentative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
         {
-              
+                this->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) = 15;
+                KRATOS_WATCH(this->Id())
+                KRATOS_WATCH("Negative volume")
+            }              
             else
             {
                 for (int i=0; i<3; i++)
@@ -2095,7 +2095,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           double u_ela2 = u_ela1 + (Ncstr2_el-Ncstr1_el)/(kn_b);
           double u_ela3 = u_ela2 + (Ncstr3_el-Ncstr2_el)/(kn_c);
 
-          //if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//maximum historical intentation OR first step  MSIMSI 0
           if ( ( indentation > u_max ) || (rCurrentProcessInfo[TIME_STEPS] <= 1) )//maximum historical intentation OR first step  MSIMSI 0
             
           {
@@ -2253,7 +2252,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
          
          {
          
-            if (!mInitializedVariablesFlag)
+            //if (!mInitializedVariablesFlag)
+            if (this->IsNot(DEMFlags::HAS_INITIALIZED_VARIABLES) )
             {
 
             mDempack = rCurrentProcessInfo[DEMPACK_OPTION]; 
@@ -2268,7 +2268,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
             }
             
-            mpActivateSearch = &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
+            //mpActivateSearch = &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
             mGamma1 = rCurrentProcessInfo[DONZE_G1];
             mGamma2 = rCurrentProcessInfo[DONZE_G2];
@@ -2306,7 +2306,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mTensionLimit                  = rCurrentProcessInfo[CONTACT_SIGMA_MIN]*1e6; //N/m2
             mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;                             
       
-            mInitializedVariablesFlag = 1;
+            //mInitializedVariablesFlag = 1;
+            this->Set(DEMFlags::HAS_INITIALIZED_VARIABLES);
             
             
             //nonlinear parameters:

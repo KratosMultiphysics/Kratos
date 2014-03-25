@@ -62,6 +62,7 @@ namespace Kratos
           array_1d<double, 3> drag_force;
           array_1d<double, 3> lift_force;
           array_1d<double, 3> virtual_mass_force;
+          double mass                                = mSqrtOfRealMass * mSqrtOfRealMass;
 
           ComputeBuoyancy(buoyancy, fluid_density, gravity, rCurrentProcessInfo);
           ComputeDragForce(drag_force, fluid_density, rCurrentProcessInfo);
@@ -74,9 +75,9 @@ namespace Kratos
 
           UpdateNodalValues(additionally_applied_force, buoyancy, drag_force, virtual_mass_force, lift_force);
 
-          additionally_applied_force[0] += buoyancy[0] + mRealMass * gravity[0];
-          additionally_applied_force[1] += buoyancy[1] + mRealMass * gravity[1];
-          additionally_applied_force[2] += buoyancy[2] + mRealMass * gravity[2];
+          additionally_applied_force[0] += buoyancy[0] + mass * gravity[0];
+          additionally_applied_force[1] += buoyancy[1] + mass * gravity[1];
+          additionally_applied_force[2] += buoyancy[2] + mass * gravity[2];
 
           KRATOS_CATCH( "" )
       }
@@ -343,8 +344,9 @@ namespace Kratos
               const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOLERANCE];
 
               const double area                          = M_PI * mRadius * mRadius;
-              const array_1d<double, 3> weight           = mRealMass * gravity;
+              const array_1d<double, 3> weight           = mSqrtOfRealMass * mSqrtOfRealMass * gravity;
               const array_1d<double, 3> buoyancy         = fluid_density / particle_density * weight; // hydrostatic case!! (only for Weatherford)
+
               double shahs_term_vel                      = 0.0;
               double beta                                = 0.0;
               double F0                                  = 0.0;

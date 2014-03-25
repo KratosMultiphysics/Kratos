@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "discrete_element.h"
+#include "../custom_utilities/AuxiliaryFunctions.h"
 
 
 
@@ -104,8 +105,26 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
 
-      int mContinuumGroup;
+      double GetRadius();
+      void SetRadius(double radius);
+      double GetSqrtOfRealMass();
+      void SetSqrtOfRealMass(double sqrt_of_real_mass);
 
+      double GetYoung();
+      void SetYoungFromProperties(double& young);      
+      double GetRollingFriction();
+      void SetRollingFrictionFromProperties(double& rolling_friction);
+      double GetPoisson();
+      void SetPoissonFromProperties(double& poisson);
+      //double GetFrictionAngle();
+      //void SetFrictionAngleFromProperties(double& friction_angle);
+      double GetTgOfFrictionAngle();
+      void SetTgOfFrictionAngleFromProperties(double& tg_of_friction_angle);
+      double GetLnOfRestitCoeff();
+      void SetLnOfRestitCoeffFromProperties(double& ln_of_restit_coeff);
+      
+      PropertiesProxy* GetFastProperties();
+      void SetFastProperties(PropertiesProxy* pProps);
 
       ///@}
       ///@name Access
@@ -250,31 +269,28 @@ namespace Kratos
       virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
       const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
-      int mInitializedVariablesFlag;
+      //int mInitializedVariablesFlag;
       int mDimension;
-      bool mDeltaOption;
       int mDampType;
       int mElasticityType;
-      int mRotationOption;
-      int mRollingFrictionOption;
-      int mGlobalVariablesOption;
-      int mCriticalTimeOption;   
-      int mLimitSurfaceOption;
-      int mLimitCylinderOption;
-      int mRotationSpringOption;
+      //int mRotationOption;
+      //int mRollingFrictionOption;
+      //int mCriticalTimeOption;   
+      //int mLimitSurfaceOption;
+      //int mLimitCylinderOption;
+      //int mRotationSpringOption;
       double mRadius;
-      double mRealMass;
       double mSqrtOfRealMass;
-      double mMomentOfInertia;
+
       double mRollingFriction;
       double mYoung;
       double mPoisson;
-      double mFrictionAngle;
       double mTgOfFrictionAngle;
       double mLnOfRestitCoeff;
-      double mGlobalKn;
-      double mGlobalKt;
-      double mGlobalAuxNormToTang;
+      
+      //std::vector<SphericParticle*> mNeighbourElements;
+
+      //PropertiesProxy *mFastProperties;
       
       //vector<int> mOldNeighbourIds;//candidate to std::vector
       //vector< array_1d<double, 3> > mOldNeighbourContactForces;//candidate to std::vector
@@ -285,8 +301,8 @@ namespace Kratos
       std::vector<array_1d<double, 3> > mTempNeighboursContactForces;
       
       //pointers:
-      const int *mpTimeStep; 
-      const int *mpActivateSearch;
+      //const int *mpTimeStep; 
+      //const int *mpActivateSearch;
 	  
       //Cfeng,RigidFace
       std::vector<int> mFemOldNeighbourIds;

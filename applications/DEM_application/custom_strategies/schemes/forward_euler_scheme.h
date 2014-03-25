@@ -122,7 +122,7 @@ namespace Kratos
                   
                   double aux = delta_t / mass;     
                   
-                  i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
+                  //i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
 
                   if (if_virtual_mass_option)
                   {
@@ -130,8 +130,9 @@ namespace Kratos
                       if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
                   }
                   
-                  unsigned int pos = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
-                  if( i->GetDof(VELOCITY_X, pos).IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  //unsigned int pos = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+                  //if( i->GetDof(VELOCITY_X, pos).IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  if( i->IsNot(DEMFlags::FIXED_VEL_X))
                   {    
                       vel[0] += aux * force[0];
 
@@ -153,9 +154,9 @@ namespace Kratos
                       coor[0] = initial_coor[0] + displ[0];
                  
                   }
-                  pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-                  if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
-     
+                  //pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                  //if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
+                  if( i->IsNot(DEMFlags::FIXED_VEL_Y))
                   {    
                       vel[1] += aux * force[1];
 
@@ -178,8 +179,9 @@ namespace Kratos
                  
                   }
                   
-                    pos = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
-                    if( i->GetDof(VELOCITY_Z, pos).IsFixed() == false ) 
+                    //pos = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+                    //if( i->GetDof(VELOCITY_Z, pos).IsFixed() == false ) 
+                    if( i->IsNot(DEMFlags::FIXED_VEL_Z))
                   {    
                       vel[2] += aux * force[2];
 
@@ -232,10 +234,11 @@ namespace Kratos
                   mass                                  *= mass;
                   double aux = delta_t / mass;     
 
-                  i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  s
+                  //i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  s
                   
-                  unsigned int pos = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
-                  if( i->GetDof(VELOCITY_X, pos).IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  //unsigned int pos = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+                  //if( i->GetDof(VELOCITY_X, pos).IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  if( i->IsNot(DEMFlags::FIXED_VEL_X))
                   {    
                       vel[0] += aux * force[0];
 
@@ -257,8 +260,9 @@ namespace Kratos
                       coor[0] = initial_coor[0] + displ[0];
                  
                   }
-                  pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-                  if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
+                  //pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                  //if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
+                  if( i->IsNot(DEMFlags::FIXED_VEL_Y))
                   {    
                       vel[1] += aux * force[1];
 
@@ -281,8 +285,9 @@ namespace Kratos
                  
                   }
                   
-                    pos = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
-                    if( i->GetDof(VELOCITY_Z, pos).IsFixed() == false ) 
+                    //pos = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+                    //if( i->GetDof(VELOCITY_Z, pos).IsFixed() == false ) 
+                    if( i->IsNot(DEMFlags::FIXED_VEL_Z))    
                   {    
                       vel[2] += aux * force[2];
 
@@ -354,12 +359,16 @@ namespace Kratos
                 
                 bool If_Fix_Rotation[3] = {false, false, false};
 
-                unsigned int pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_X_DOF_POS);                  
-                If_Fix_Rotation[0] = i->GetDof(ANGULAR_VELOCITY_X, pos).IsFixed();
-                pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS);
-                If_Fix_Rotation[1] = i->GetDof(ANGULAR_VELOCITY_Y, pos).IsFixed();
-                pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS);
-                If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();                             
+                //unsigned int pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_X_DOF_POS);                  
+                //If_Fix_Rotation[0] = i->GetDof(ANGULAR_VELOCITY_X, pos).IsFixed();
+                //pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS);
+                //If_Fix_Rotation[1] = i->GetDof(ANGULAR_VELOCITY_Y, pos).IsFixed();
+                //pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS);
+                //If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed(); 
+                
+                If_Fix_Rotation[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
+                If_Fix_Rotation[1] = i->Is(DEMFlags::FIXED_ANG_VEL_Y);
+                If_Fix_Rotation[2] = i->Is(DEMFlags::FIXED_ANG_VEL_Z);
                 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {

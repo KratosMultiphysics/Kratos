@@ -53,10 +53,10 @@ def AddVariables(model_part, Param):
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-    model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
+#    model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
 #    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
-    model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)  # MA: this is added temporarily until inlet becomes a process
+#    model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
+#    model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)  # MA: this is added temporarily until inlet becomes a process
 
     # LOCAL AXIS
     if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
@@ -87,17 +87,19 @@ def AddVariables(model_part, Param):
 #       model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_5)
 
     # OPTIMIZATION
-    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
-    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
+#    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
+#    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
 
     # FLAGS
+
     if(Var_Translator(Param.PostGroupId)):
         model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
+
 #    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
 
     # ONLY VISUALIZATION
@@ -115,9 +117,9 @@ def AddVariables(model_part, Param):
 def AddDofs(model_part):
 
     for node in model_part.Nodes:
-        node.AddDof(DISPLACEMENT_X, REACTION_X)
-        node.AddDof(DISPLACEMENT_Y, REACTION_Y)
-        node.AddDof(DISPLACEMENT_Z, REACTION_Z)
+        #node.AddDof(DISPLACEMENT_X, REACTION_X)
+        #node.AddDof(DISPLACEMENT_Y, REACTION_Y)
+        #node.AddDof(DISPLACEMENT_Z, REACTION_Z)
         node.AddDof(VELOCITY_X, REACTION_X)
         node.AddDof(VELOCITY_Y, REACTION_Y)
         node.AddDof(VELOCITY_Z, REACTION_Z)
