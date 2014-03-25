@@ -162,8 +162,7 @@ class StructuralSolver:
         # check if is a restart file is loaded
         if(load_restart):
             # set solver as initialized if is a run which is restarted
-            self.mechanical_solver.SetInitializePerformedFlag()
-
+            self.mechanical_solver.SetInitializePerformedFlag(True)
     #
     def Clear(self):
         (self.solver).Clear()
