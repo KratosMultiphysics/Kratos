@@ -129,7 +129,6 @@ public:
     typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( AdaptiveResidualBasedNewtonRaphsonStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;

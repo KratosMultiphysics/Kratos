@@ -124,7 +124,7 @@ public:
     ///@{
 
     /// Counted pointer of ViennaCLSolver
-    typedef boost::shared_ptr<ViennaCLSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( ViennaCLSolver );
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 

@@ -87,7 +87,6 @@ class ResidualBasedEliminationDiscreteLaplacianBuilderAndSolverFlexibleFSI
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationDiscreteLaplacianBuilderAndSolverFlexibleFSI<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationDiscreteLaplacianBuilderAndSolverFlexibleFSI );
 
 

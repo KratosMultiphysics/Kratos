@@ -119,7 +119,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< IncrementalDisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( IncrementalDisplacementCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;

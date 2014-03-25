@@ -156,7 +156,7 @@ public:
     /**
      * Counted pointer of SuperLUIterativeSolver
      */
-    typedef boost::shared_ptr<SuperLUIterativeSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  SuperLUIterativeSolver );
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

@@ -97,10 +97,8 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< TrilinosConvectionDiffusionStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosConvectionDiffusionStrategy);
-    //typedef boost::shared_ptr< TrilinosConvectionDiffusionStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-
+ 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;

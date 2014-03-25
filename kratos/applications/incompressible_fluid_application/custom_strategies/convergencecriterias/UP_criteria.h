@@ -119,7 +119,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< UPCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( UPCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;

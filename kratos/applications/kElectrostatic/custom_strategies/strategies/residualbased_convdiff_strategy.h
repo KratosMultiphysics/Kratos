@@ -91,9 +91,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ResidualBasedConvectionDiffusionStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedConvectionDiffusionStrategy );
-    //typedef boost::shared_ptr< ResidualBasedConvectionDiffusionStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 

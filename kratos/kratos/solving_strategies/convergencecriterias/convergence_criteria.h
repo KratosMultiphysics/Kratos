@@ -131,7 +131,6 @@ public:
     /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
 
     /** Counted pointer of ConvergenceCriteria */
-    //typedef boost::shared_ptr< ConvergenceCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(ConvergenceCriteria);
     /*@} */
     /**@name Life Cycle

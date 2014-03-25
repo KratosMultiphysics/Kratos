@@ -155,7 +155,6 @@ class ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationBuilderAndSolverStandard_biggerlocalM );
 
 

@@ -92,7 +92,6 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< LaplacianComponentwiseMeshMovingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( LaplacianComponentwiseMeshMovingStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;

@@ -26,7 +26,7 @@ class GaussPointItem: public Point<3>
 public:
 
     typedef boost::numeric::ublas::bounded_matrix<double,3,3> MatrixVar;
-    typedef boost::shared_ptr< GaussPointItem > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
 
     GaussPointItem(): // This Constructor is used by the tree
         Point<3>(),

@@ -233,7 +233,6 @@ public:
 
     //pointer definition
 
-    //typedef boost::shared_ptr< Scheme< TSparseSpace,TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
 

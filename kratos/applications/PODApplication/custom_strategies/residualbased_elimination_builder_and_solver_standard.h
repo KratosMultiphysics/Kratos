@@ -137,7 +137,6 @@ public:
 
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationBuilderAndSolverStandard<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationBuilderAndSolverStandard );
 
 

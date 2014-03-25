@@ -158,7 +158,6 @@ class TrilinosBuilderAndSolverML
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< TrilinosBuilderAndSolverML<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosBuilderAndSolverML );
 
 

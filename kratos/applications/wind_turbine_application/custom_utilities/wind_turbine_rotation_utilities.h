@@ -27,7 +27,6 @@ extern "C" {
 #include "utilities/geometry_utilities.h"
 //#include "geometries/tetrahedra_3d_4.h"
 //#include "geometries/triangle_2d_3.h"
-//#include <boost/shared_ptr.hpp>
 #include "wind_turbine_application.h"
 
 namespace Kratos

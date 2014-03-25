@@ -51,7 +51,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <set>
-/* #include <omp.h> */
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
@@ -157,7 +156,6 @@ class TrilinosResidualBasedEliminationBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedEliminationBuilderAndSolver );
 
 

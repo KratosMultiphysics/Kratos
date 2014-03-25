@@ -141,7 +141,6 @@ class ResidualBasedBlockBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
 
 

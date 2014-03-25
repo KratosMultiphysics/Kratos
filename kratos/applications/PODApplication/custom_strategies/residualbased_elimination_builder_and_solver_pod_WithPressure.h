@@ -155,7 +155,6 @@ class ResidualBasedEliminationBuilderAndSolverPOD_WithPressure
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ResidualBasedEliminationBuilderAndSolverPOD_WithPressure<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedEliminationBuilderAndSolverPOD_WithPressure );
 
 

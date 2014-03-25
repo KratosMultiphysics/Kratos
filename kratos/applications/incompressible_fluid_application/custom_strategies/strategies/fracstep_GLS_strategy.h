@@ -112,7 +112,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    typedef boost::shared_ptr< FracStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(  FracStepStrategy );
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 

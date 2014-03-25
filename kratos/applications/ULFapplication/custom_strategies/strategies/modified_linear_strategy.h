@@ -91,8 +91,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    typedef boost::shared_ptr< LapModifiedLinearStrategy<TDim, TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    //KRATOS_CLASS_POINTER_DEFINITION( LapModifiedLinearStrategy );
+    KRATOS_CLASS_POINTER_DEFINITION( LapModifiedLinearStrategy );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 

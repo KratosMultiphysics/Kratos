@@ -162,7 +162,6 @@ class TrilinosMultiphaseBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< TrilinosMultiphaseBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosMultiphaseBuilderAndSolver );
 
 

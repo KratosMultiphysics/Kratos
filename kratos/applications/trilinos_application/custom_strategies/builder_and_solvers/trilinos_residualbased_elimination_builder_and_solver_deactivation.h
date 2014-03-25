@@ -156,7 +156,6 @@ class TrilinosResidualBasedEliminationBuilderAndSolverDeactivation
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< TrilinosResidualBasedEliminationBuilderAndSolverDeactivation<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedEliminationBuilderAndSolverDeactivation );
 
 
