@@ -151,17 +151,21 @@ namespace Kratos
       {
 
           if (rCurrentMaxIndentation > rTolerance){
-              ParticleWeakVectorType& rNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-              double& radius                      = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); // cannot use the member variable mRadius because it may not be initialized
+              //ParticleWeakVectorType& rNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+              //double& radius                      = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); // cannot use the member variable mRadius because it may not be initialized
               rCurrentMaxIndentation              = 0.0;
 
-              for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+              //for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+              for (unsigned int j = 0; j < mNeighbourElements.size(); j++) {
+                  SphericParticle* i = mNeighbourElements[j];
+                  
                   array_1d<double, 3> other_to_me_vect  = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
-                  double &other_radius                  = i->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  //double &other_radius                  = i->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  double other_radius                  = i->GetRadius();
                   double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                                other_to_me_vect[1] * other_to_me_vect[1] +
                                                                other_to_me_vect[2] * other_to_me_vect[2]);
-                  double radius_sum                     = radius + other_radius;
+                  double radius_sum                     = mRadius + other_radius;
                   double indentation                    = radius_sum - distance;
 
                   rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
@@ -191,15 +195,18 @@ namespace Kratos
 
       void SphericParticle::CalculateElasticEnergyOfContacts(double& rElasticEnergy) // Calculates the elastic energy stored in the sum of all the contacts shared by the particle and all its neighbours
       {
-          ParticleWeakVectorType& rNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
+          //ParticleWeakVectorType& rNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
           double added_potential_energy_of_contacts   = 0.0;
           size_t i_neighbour_count                    = 0;
 
           ComputeNewNeighboursHistoricalData();
 
-          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
-              neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
-              const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+          //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+          for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+              SphericParticle* neighbour_iterator = mNeighbourElements[i];
+              
+              //const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              const double &other_radius              = neighbour_iterator->GetRadius();
               double radius_sum                       = mRadius + other_radius;
               double radius_sum_i                     = 1 / radius_sum;
               double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
@@ -288,8 +295,10 @@ namespace Kratos
      void SphericParticle::ComputeNewNeighboursHistoricalData()
      {
       
-       ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
-       unsigned int new_size                = rNeighbours.size();
+       //ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
+       //unsigned int new_size                = rNeighbours.size();
+       unsigned int new_size                = mNeighbourElements.size();
+       
        unsigned int neighbour_counter       = 0;
        //vector<int> temp_neighbours_ids(new_size);
        std::vector<int>& temp_neighbours_ids = mTempNeighboursIds;
@@ -302,7 +311,9 @@ namespace Kratos
        vector_of_zeros[1]                   = 0.0;
        vector_of_zeros[2]                   = 0.0;
 
-       for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+       //for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+       for (unsigned int j = 0; j < mNeighbourElements.size(); j++) {
+           SphericParticle* i = mNeighbourElements[j];
 
            temp_neighbours_ids[neighbour_counter] = static_cast<int>(i->Id());
            temp_neighbours_contact_forces[neighbour_counter] = vector_of_zeros;
@@ -568,7 +579,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);          
+          //ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);          
           // KINEMATICS
 
           double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -603,7 +614,8 @@ namespace Kratos
               
               // BASIC CALCULATIONS              
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-              const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              //const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              const double &other_radius              = neighbour_iterator->GetRadius();
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
               double indentation                      = radius_sum - distance;
@@ -2043,7 +2055,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                                                                       //ParticleWeakIteratorType neighbour_iterator)
                                                                       SphericParticle* neighbour_iterator)
       {
-        const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+        //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+        double other_sqrt_of_mass               = neighbour_iterator->GetSqrtOfRealMass();
         const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
         const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
         //const double &mLnOfRestitCoeff          = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);

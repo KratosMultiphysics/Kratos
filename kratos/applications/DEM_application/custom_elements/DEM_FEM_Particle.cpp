@@ -110,25 +110,28 @@ namespace Kratos
     }
 
     void DEM_FEM_Particle::SetInitialBallNeighbor()
-	{
+    {
 		
-        ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
-        unsigned int new_size                = rNeighbours.size();
+        //ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
+        //unsigned int new_size                = rNeighbours.size();
+        unsigned int new_size                 = mNeighbourElements.size();
 	   
-	    maInitialBallNeighborID.resize(new_size);
-		maInitialBallNeighborFailureType.resize(new_size);
+	maInitialBallNeighborID.resize(new_size);
+	maInitialBallNeighborFailureType.resize(new_size);
 		
-	   unsigned int neighbour_counter = 0;
+        unsigned int neighbour_counter = 0;
        
-       for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
-
-           maInitialBallNeighborID[neighbour_counter] = static_cast<int>(i->Id());
+       //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+        for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            
+           SphericParticle* neighbour_iterator = mNeighbourElements[i];   
+           
+           maInitialBallNeighborID[neighbour_counter] = static_cast<int>(neighbour_iterator->Id());
            maInitialBallNeighborFailureType[neighbour_counter] = 0;
-
-		   neighbour_counter++;
+           
+           neighbour_counter++;
         }
-		
-	}
+    }
 	
 	
 	
@@ -210,7 +213,7 @@ namespace Kratos
 		  
           KRATOS_TRY
 
-          ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
+          //ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
 
           // KINEMATICS
 

@@ -78,11 +78,12 @@ namespace Kratos
 
             // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
-            ParticleWeakVectorType& mrNeighbours                  = this->GetValue(NEIGHBOUR_ELEMENTS);            
-            ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+            //ParticleWeakVectorType& mrNeighbours                  = this->GetValue(NEIGHBOUR_ELEMENTS);            
+            //ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
             vector<int>& r_continuum_ini_neighbours_ids          = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS);
             
-            r_continuum_ini_neighbours.clear();
+            //r_continuum_ini_neighbours.clear();
+            mContinuumIniNeighbourElements.clear(); ///////////////////////
             r_continuum_ini_neighbours_ids.clear();
                         
             size_t ini_size = 0;
@@ -93,7 +94,8 @@ namespace Kratos
 
             size_t cont_ini_mapping_index= 0;
             
-            unsigned int neighbours_size = mrNeighbours.size();
+            //unsigned int neighbours_size = mrNeighbours.size();
+            unsigned int neighbours_size = mNeighbourElements.size(); //////////////////////
             mIniNeighbourIds.resize(neighbours_size);
             mIniNeighbourToIniContinuum.resize(neighbours_size);
             mIniNeighbourDelta.resize(neighbours_size);
@@ -102,22 +104,28 @@ namespace Kratos
             
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
-        for (ParticleWeakIteratorType_ptr ineighbour = mrNeighbours.ptr_begin(); //loop over the temp neighbours and store into a initial_neighbours vector.
-                ineighbour != mrNeighbours.ptr_end(); ineighbour++) {
+        //for (ParticleWeakIteratorType_ptr neighbour_iterator = mrNeighbours.ptr_begin(); neighbour_iterator != mrNeighbours.ptr_end(); neighbour_iterator++) {
+        for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            SphericParticle* neighbour_iterator = mNeighbourElements[i];    
 
-
-            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
+            //array_1d<double, 3 > other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*neighbour_iterator).lock())->GetGeometry()(0)->Coordinates();
+            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+            
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                     other_to_me_vect[1] * other_to_me_vect[1] +
                     other_to_me_vect[2] * other_to_me_vect[2]);
 
-            double radius_sum = mRadius + ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            //double radius_sum = mRadius + ((*neighbour_iterator).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            //double radius_sum = mRadius + neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            double radius_sum = mRadius + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
 
-            int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(COHESIVE_GROUP);
+            //int r_other_continuum_group = ((*neighbour_iterator).lock())->GetGeometry()(0)->FastGetSolutionStepValue(COHESIVE_GROUP);
+            int r_other_continuum_group = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(COHESIVE_GROUP);
 
             ini_size++;
-            mIniNeighbourIds[ini_size - 1] = ((*ineighbour).lock())->Id();
+            //mIniNeighbourIds[ini_size - 1] = ((*neighbour_iterator).lock())->Id();
+            mIniNeighbourIds[ini_size - 1] = neighbour_iterator->Id();
             mIniNeighbourFailureId[ini_size - 1] = 1;
             mMapping_New_Ini[ini_size - 1] = ini_size - 1;
             mIniNeighbourToIniContinuum[ini_size - 1] = -1; //-1 is initial but not continuum.             
@@ -136,7 +144,9 @@ namespace Kratos
                 continuum_ini_size++;
                 cont_ini_mapping_index++;
 
-                r_continuum_ini_neighbours.push_back(*ineighbour);
+                //r_continuum_ini_neighbours.push_back(*neighbour_iterator);
+                //r_continuum_ini_neighbours.push_back(neighbour_iterator);
+                mContinuumIniNeighbourElements.push_back(neighbour_iterator);
 
                 r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
 
@@ -150,7 +160,8 @@ namespace Kratos
                 mHistory[continuum_ini_size - 1][2] = 0.0; //acumulated_damage
                 mHistory[continuum_ini_size - 1][3] = 1.0; //degradation factor for G reducing in Dempack;
 
-                r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+                //r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*neighbour_iterator).lock())->Id();
+                r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = neighbour_iterator->Id();
 
                 if (mContactMeshOption) {
 
@@ -289,8 +300,9 @@ namespace Kratos
           
           double total_equiv_area = 0.0;
 
-          ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-          int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
+          //ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+          //int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
+          int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
           
           mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
           
@@ -298,10 +310,14 @@ namespace Kratos
           
           size_t index = 0;
           
-          for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
+          /*for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
               ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-          {   
-              double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+          {*/
+          for(unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++ ){
+              SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
+              
+              //double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              double other_radius     = ini_cont_neighbour_iterator->GetRadius();
               double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
               total_equiv_area       += equiv_area;
@@ -312,45 +328,41 @@ namespace Kratos
               
           } //for every neighbour
        
-            if (cont_ini_neighbours_size >= 4) //more than 3 neigbours. 
-            {
+          if (cont_ini_neighbours_size >= 4) //more than 3 neigbours. 
+          {
                 if(!*mSkinSphere)
                 {
                 
                   AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha); 
                   
-                  size_t not_skin_index = 0;
-              
-                  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-                      ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-                      
-                      {      
-                          mcont_ini_neigh_area[not_skin_index] = alpha*mcont_ini_neigh_area[not_skin_index];
-                          not_skin_index++;  
-                          
-                      } //for every neighbour
+                  size_t not_skin_index = 0;              
+                  //for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin(); ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++) {
+                  for( unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++ ){
 
-                }
+                      mcont_ini_neigh_area[not_skin_index] = alpha*mcont_ini_neigh_area[not_skin_index];
+                      not_skin_index++;  
+                          
+                  } //for every neighbour
+
+                } //if(!*mSkinSphere)
                 
                 else //skin sphere 
                 {
                   
                   size_t skin_index = 0;
               
-                  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-                      ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-                      
-                      {  
+                  //for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin(); ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++) {  
+                  for( unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++ ){
                   
                       alpha  = 1.00*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
                       mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
                   
                       skin_index++;
-                      }
+                  } //for every neighbour
                     
                 }//skin particles.
               
-            }//if more than 3 neighbours
+          }//if more than 3 neighbours
    
       } //Contact Area Weighting           
                               
@@ -369,7 +381,7 @@ namespace Kratos
                  
         KRATOS_TRY
 
-        ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);        
+        //ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);        
         
         double dt = rCurrentProcessInfo[DELTA_TIME];
         double dt_i = 1 / dt; 
@@ -395,17 +407,18 @@ namespace Kratos
 
         }        
 
-        size_t i_neighbour_count = 0;
-        int i=0;
+        size_t i_neighbour_count = 0;       
         
-        //r(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin(); neighbour_iterator != mrNeighbours.end(); neighbour_iterator++,i++) {
+        //r(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin(); neighbour_iterator != mrNeighbours.end(); neighbour_iterator++) {
         for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             SphericParticle* neighbour_iterator = mNeighbourElements[i];
-            if(mNeighbourElements[i]->Id() != neighbour_iterator->Id() ) KRATOS_ERROR(std::logic_error,"ALAAAAAAAAAA",this->Id());
+            //if(mNeighbourElements[i]->Id() != neighbour_iterator->Id() ) KRATOS_ERROR(std::logic_error,"ALAAAAAAAAAA",this->Id());
         
             array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-            const double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-            const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);           
+            //const double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            const double &other_radius                  = neighbour_iterator->GetRadius();
+            //const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);           
+            const double &other_sqrt_of_mass            = neighbour_iterator->GetSqrtOfRealMass();    
  
             double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                           other_to_me_vect[1] * other_to_me_vect[1] +
@@ -1076,15 +1089,16 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
    
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() 
   {
-    ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
-    ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);        
+    //ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
+    //ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);        
     
-    TempNeighbours.swap(neighbour_elements); 
+    //TempNeighbours.swap(neighbour_elements); 
     mTempNeighbourElements.swap(mNeighbourElements);//////////////////////////////////
     
-    unsigned int temp_size = TempNeighbours.size();
+    //unsigned int temp_size = TempNeighbours.size();
+    unsigned int temp_size = mTempNeighbourElements.size();
     
-    neighbour_elements.clear(); 
+    //neighbour_elements.clear(); 
     mNeighbourElements.clear();//////////////////////////////////////
           
     unsigned int neighbour_counter       = 0;
@@ -1109,8 +1123,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     vector_of_zeros[1]                   = 0.0;
     vector_of_zeros[2]                   = 0.0;
     
-    for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
-    {
+    //for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++) {
+    for (unsigned int j = 0; j < mTempNeighbourElements.size(); j++) {
+      SphericParticle* i = mTempNeighbourElements[j];
 
       double                ini_delta           = 0.0;
       int                   failure_id          = 1;
@@ -1145,7 +1160,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         }
         
         //Judge if its neighbour            
-        double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        //double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        double other_radius                 = i->GetRadius();
         double radius_sum                   = mRadius + other_radius;
         array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
         double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
@@ -1154,11 +1170,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
         {
         
-            neighbour_elements.push_back(*(i.base()));  
+            //neighbour_elements.push_back(*(i.base()));  
                         
-            Element* p_neighbour_element = boost::shared_ptr<Kratos::Element>(*(i.base())).get(); ///////////////////////////////
-            SphericParticle* p_spheric_neighbour_particle = static_cast<SphericParticle*>( p_neighbour_element );  ///////////////////////////////
-            mNeighbourElements.push_back(p_spheric_neighbour_particle);  ///////////////////////////////*/
+            //Element* p_neighbour_element = boost::shared_ptr<Kratos::Element>(*(i.base())).get(); ///////////////////////////////
+            //SphericParticle* p_spheric_neighbour_particle = static_cast<SphericParticle*>( p_neighbour_element );  ///////////////////////////////
+            mNeighbourElements.push_back(i);  ///////////////////////////////*/
             
             temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
             temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
@@ -1173,7 +1189,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
       }//for ParticleWeakIteratorType i
       
-      int final_size = neighbour_elements.size();
+      //int final_size = neighbour_elements.size();
+      int final_size = mNeighbourElements.size();
       temp_neighbours_ids.resize(final_size);
       temp_neighbours_delta.resize(final_size);
       temp_neighbours_failure_id.resize(final_size);
