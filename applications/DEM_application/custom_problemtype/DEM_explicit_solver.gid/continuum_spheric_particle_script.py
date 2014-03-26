@@ -12,7 +12,7 @@ from KratosMultiphysics.DEMApplication import *
 
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
-Procedures = DEM_procedures.Procedures(DEM_parameters)
+
 #
 
 import DEM_material_test_script 
@@ -178,6 +178,8 @@ if (DEM_parameters.Multifile == "single_file"):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
 
+Procedures = DEM_procedures.Procedures(DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part)
+
 if(DEM_parameters.TestType != "None"):
  
  MaterialTest = DEM_material_test_script.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
@@ -208,6 +210,8 @@ if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
  #if(mpi.rank == 0):
  MaterialTest.PrintChart()
  MaterialTest.PrepareDataForGraph()
+ Procedures.PrintChart()
+ #Procedures.PrepareDataForGraph()
  
 #------------------------------------------------------------------------------------------
  
@@ -285,6 +289,13 @@ while (time < DEM_parameters.FinalTime):
       
       MaterialTest.MeasureForcesAndPressure()
       MaterialTest.PrintGraph(step)
+
+    #########################GENERAL_STUFF#########################################
+
+    if( DEM_parameters.TestType == "None"):
+
+      Procedures.MeasureForces()
+      Procedures.PrintGraph(time)
 
     ##########################___GiD IO____#########################################
     
@@ -382,3 +393,26 @@ KRATOSprint ('Elapsed real time: '                           + str(elapsed_real_
 #print (my_timer)
 
 KRATOSprint ("ANALYSIS COMPLETED")
+
+if (DEM_parameters.TestType == "None"):
+
+  Procedures.FinalizeGraphs()
+
+multifile.close()
+multifile_5.close()
+multifile_10.close()
+multifile_50.close()
+os.chdir(main_path)
+
+elapsed_pr_time     = timer.clock() - initial_pr_time
+elapsed_real_time   = timer.time() - initial_real_time
+
+KRATOSprint ('Calculation ends at instant: '                 + str(timer.time()))
+KRATOSprint ('Calculation ends at processing time instant: ' + str(timer.clock()))
+KRATOSprint ('Elapsed processing time: '                     + str(elapsed_pr_time))
+KRATOSprint ('Elapsed real time: '                           + str(elapsed_real_time))
+
+#print (my_timer)
+
+KRATOSprint ("ANALYSIS COMPLETED")
+
