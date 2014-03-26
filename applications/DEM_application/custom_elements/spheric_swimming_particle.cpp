@@ -58,11 +58,14 @@ namespace Kratos
 
           const array_1d<double, 3>& gravity = rCurrentProcessInfo[GRAVITY];
           const double& fluid_density        = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-          array_1d<double, 3> buoyancy;
+		  const double mass                  = mSqrtOfRealMass * mSqrtOfRealMass;          
+	      array_1d<double, 3> buoyancy;
           array_1d<double, 3> drag_force;
           array_1d<double, 3> lift_force;
           array_1d<double, 3> virtual_mass_force;
-          double mass                                = mSqrtOfRealMass * mSqrtOfRealMass;
+
+          // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
+          // so that the role of f_n1 therein is played by additionally_applied_force here
 
           ComputeBuoyancy(buoyancy, fluid_density, gravity, rCurrentProcessInfo);
           ComputeDragForce(drag_force, fluid_density, rCurrentProcessInfo);
@@ -167,7 +170,7 @@ namespace Kratos
               // calculating the 'dimensional' drag coefficient, i.e., the factor by which the slip velocity must be multiplied to yield the drag force
 
               if (mDragForceType == 1){
-                  drag_coeff = ComputeConstantDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
+                  drag_coeff = ComputeStokesDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
               }
 
               else if (mDragForceType == 2){ // formulations of Haider (1989) and Chien (1994)
@@ -177,6 +180,11 @@ namespace Kratos
               else if (mDragForceType == 3){ // formulation of Ganser (1993)
                   drag_coeff = ComputeGanserDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
               }
+
+              else if (mDragForceType == 4){ // formulation of Ishii and Zuber (1979)
+                  drag_coeff = ComputeIshiiDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
+              }
+
 
               else {
                   std::cout << "The integer value designating the drag coefficient calculation model" << std::endl;
@@ -308,9 +316,13 @@ namespace Kratos
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-      double SphericSwimmingParticle::ComputeConstantDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
+      double SphericSwimmingParticle::ComputeStokesDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
       {
-            double  drag_coeff = 0.235 * M_PI * fluid_density * mRadius * mRadius * norm_of_slip_vel;
+            const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+            const double solid_fraction      = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
+
+            double  drag_coeff  = 6 * M_PI * kinematic_viscosity * fluid_density * solid_fraction * mRadius;
+
             return drag_coeff;
       }
 
@@ -528,6 +540,24 @@ namespace Kratos
          return drag_coeff;
 
          KRATOS_CATCH("")
+     }
+   //**************************************************************************************************************************************************
+   //**************************************************************************************************************************************************
+
+     double SphericSwimmingParticle::ComputeIshiiDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
+     {
+         const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+         double coeff = 0.45;
+         double reynolds;
+         ComputeReynoldsNumber(norm_of_slip_vel, kinematic_viscosity, reynolds);
+
+         if (reynolds <= 1000){
+             coeff = (24 + 2.4 * pow(reynolds, 0.75)) / reynolds;
+           }
+
+         double drag_coeff = 0.5 * coeff * M_PI * mRadius * mRadius;
+
+         return drag_coeff;
      }
 
    //**************************************************************************************************************************************************
