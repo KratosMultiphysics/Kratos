@@ -242,9 +242,10 @@ namespace Kratos
 		  
           size_t i_neighbour_count = 0;
 
-          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++)
-		 {
-              
+          //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++) {		 
+          
+          for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+              SphericParticle* neighbour_iterator = mNeighbourElements[i];   
               // BASIC CALCULATIONS              
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +

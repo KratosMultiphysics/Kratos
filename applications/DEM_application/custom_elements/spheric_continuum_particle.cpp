@@ -396,15 +396,16 @@ namespace Kratos
         }        
 
         size_t i_neighbour_count = 0;
-
+        int i=0;
         
-        for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
-            neighbour_iterator != mrNeighbours.end(); neighbour_iterator++)
-        {
-
+        //r(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin(); neighbour_iterator != mrNeighbours.end(); neighbour_iterator++,i++) {
+        for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            SphericParticle* neighbour_iterator = mNeighbourElements[i];
+            if(mNeighbourElements[i]->Id() != neighbour_iterator->Id() ) KRATOS_ERROR(std::logic_error,"ALAAAAAAAAAA",this->Id());
+        
             array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
             const double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-            const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+            const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);           
  
             double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                           other_to_me_vect[1] * other_to_me_vect[1] +
@@ -1076,13 +1077,15 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() 
   {
     ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
-    ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);        
     
     TempNeighbours.swap(neighbour_elements); 
+    mTempNeighbourElements.swap(mNeighbourElements);//////////////////////////////////
     
     unsigned int temp_size = TempNeighbours.size();
     
     neighbour_elements.clear(); 
+    mNeighbourElements.clear();//////////////////////////////////////
           
     unsigned int neighbour_counter       = 0;
         
@@ -1151,7 +1154,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
         {
         
-            neighbour_elements.push_back(*(i.base()));                
+            neighbour_elements.push_back(*(i.base()));  
+                        
+            Element* p_neighbour_element = boost::shared_ptr<Kratos::Element>(*(i.base())).get(); ///////////////////////////////
+            SphericParticle* p_spheric_neighbour_particle = static_cast<SphericParticle*>( p_neighbour_element );  ///////////////////////////////
+            mNeighbourElements.push_back(p_spheric_neighbour_particle);  ///////////////////////////////*/
             
             temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
             temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
@@ -1941,7 +1948,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                                                             const double &distance,
                                                             const double &radius_sum,
                                                             const double &calculation_area,
-                                                            ParticleWeakIteratorType neighbour_iterator, 
+                                                            //ParticleWeakIteratorType neighbour_iterator, 
+                                                            SphericParticle* neighbour_iterator, 
                                                             ProcessInfo& rCurrentProcessInfo, 
                                                             double &rRepresentative_Volume)
       {
