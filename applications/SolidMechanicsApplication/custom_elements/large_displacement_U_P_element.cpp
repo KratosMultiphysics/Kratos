@@ -212,7 +212,7 @@ void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
@@ -240,7 +240,7 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       element_size    = number_of_nodes * dimension;
+    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
@@ -895,6 +895,7 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
 {
     KRATOS_TRY
 
+    //0.-Initialize the DampingMatrix:
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
@@ -905,6 +906,43 @@ void LargeDisplacementUPElement::CalculateDampingMatrix( MatrixType& rDampingMat
         rDampingMatrix.resize( MatSize, MatSize, false );
 
     noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
+
+    //1.-Calculate StiffnessMatrix:
+
+    MatrixType StiffnessMatrix  = Matrix();
+
+    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+
+    //2.-Calculate MassMatrix:
+
+    MatrixType MassMatrix  = Matrix();
+
+    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+    
+    
+    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0;
+    if( GetProperties().Has(RAYLEIGH_ALPHA) ){
+      alpha = GetProperties()[RAYLEIGH_ALPHA];
+    }
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) ){
+      alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+    }
+
+    double beta  = 0;
+    if( GetProperties().Has(RAYLEIGH_BETA) ){
+      beta = GetProperties()[RAYLEIGH_BETA];
+    }
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) ){
+      beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+    }
+
+    //4.-Compose the Damping Matrix:
+   
+    //Rayleigh Damping Matrix: alpha*M + beta*K
+    rDampingMatrix  = alpha * MassMatrix;
+    rDampingMatrix += beta  * StiffnessMatrix;
+
 
     KRATOS_CATCH( "" )
 }
