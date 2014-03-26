@@ -595,7 +595,7 @@ namespace Kratos
               i_node != temp_Nodes.end(); ++i_node)
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-              {     
+              {                 
                   mModelPart.Nodes().push_back((*i_node));
               }
           }
@@ -616,24 +616,24 @@ namespace Kratos
               }
           }
           
-          // MeshGroups
-          for( unsigned int meshId = 1; meshId < mModelPart.NumberOfMeshes(); meshId++)
-          {
-              NodesContainerType::ContainerType& NodesMesh  = mModelPart.GetMesh(meshId).NodesArray();
-              NodesContainerType::ContainerType  temp_NodesMesh;
-              
-              temp_NodesMesh.reserve(NodesMesh.size());
-              temp_NodesMesh.swap(NodesMesh);
-            
-              for (NodesContainerType::ContainerType::iterator i_node = temp_NodesMesh.begin();
-                  i_node != temp_NodesMesh.end(); ++i_node)
-              {
-                  if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-                  {                 
-                      mModelPart.GetMesh(meshId).Nodes().push_back((*i_node));
-                  }
-              }
-          }
+//           // MeshGroups
+//           for( unsigned int meshId = 1; meshId < mModelPart.NumberOfMeshes(); meshId++)
+//           {
+//               NodesContainerType::ContainerType& NodesMesh  = mModelPart.GetMesh(meshId).NodesArray();
+//               NodesContainerType::ContainerType  temp_NodesMesh;
+//               
+//               temp_NodesMesh.reserve(NodesMesh.size());
+//               temp_NodesMesh.swap(NodesMesh);
+//             
+//               for (NodesContainerType::ContainerType::iterator i_node = temp_NodesMesh.begin();
+//                   i_node != temp_NodesMesh.end(); ++i_node)
+//               {
+//                   if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
+//                   {                 
+//                       mModelPart.GetMesh(meshId).Nodes().push_back((*i_node));
+//                   }
+//               }
+//           }
           
           // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
           mModelPart.Elements().Unique();
@@ -735,8 +735,6 @@ namespace Kratos
               std::cout << "Adding " << RecvObjects[i].size() << " from process " << i << std::endl;
               for( int j = 0; j < RecvObjects[i].size(); j++)
               {
-//                   std::cout << "\t" << RecvObjects[i][j] << std::endl;
-
                   mModelPart.GetMesh(groupId).Nodes().push_back(mModelPart.pGetNode(RecvObjects[i][j]));
               }
           }
