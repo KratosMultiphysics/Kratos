@@ -178,7 +178,8 @@ if (DEM_parameters.Multifile == "single_file"):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
 
-Procedures = DEM_procedures.Procedures(DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part)
+Procedures = DEM_procedures.Procedures(DEM_parameters)
+DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part)
 
 if(DEM_parameters.TestType != "None"):
  
@@ -210,7 +211,10 @@ if(DEM_parameters.Dempack and (DEM_parameters.TestType != "None")):
  #if(mpi.rank == 0):
  MaterialTest.PrintChart()
  MaterialTest.PrepareDataForGraph()
- Procedures.PrintChart()
+
+ #if(DEM_parameters.Dempack and (DEM_parameters.TestType == "None")):
+
+ #Procedures.PrintChart()
  #Procedures.PrepareDataForGraph()
  
 #------------------------------------------------------------------------------------------
@@ -294,8 +298,8 @@ while (time < DEM_parameters.FinalTime):
 
     if( DEM_parameters.TestType == "None"):
 
-      Procedures.MeasureForces()
-      Procedures.PrintGraph(time)
+      DEMFEMProcedures.MeasureForces()
+      DEMFEMProcedures.PrintGraph(time)
 
     ##########################___GiD IO____#########################################
     
