@@ -179,7 +179,7 @@ namespace Kratos
           NodesContainerType::ContainerType& pNodes = rModelPart.GetCommunicator().LocalMesh().NodesArray();
           
           MigrateMeshNodes(rModelPart,pNodes,SendObjects,RecvObjects,0);
-          PrepareNewPartition(rModelPart);
+          FinalizeNewPartition(rModelPart);
           
           KRATOS_CATCH("")
       }
@@ -187,7 +187,7 @@ namespace Kratos
       /**
        * MigrateElements for an specific meshgroup.
        **/
-      void MigrateMeshElements(ModelPart& rModelPart, Kratos::Serializer& particleSerializer, std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType> RecvObjects, const int groupId)
+      void MigrateMeshElements(ModelPart& rModelPart, std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType> RecvObjects, const int groupId)
       {
           int mpi_rank;
           int mpi_size;
@@ -216,6 +216,120 @@ namespace Kratos
           RecvObjects.clear();
       }
       
+      void MigrateMeshElementsId(ModelPart& rModelPart, std::vector<std::vector<int> >& SendObjectsId, std::vector<std::vector<int> >& RecvObjectsId, const int groupId)
+      {
+          int mpi_rank;
+          int mpi_size;
+          
+          MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+          
+          NodesContainerType::ContainerType& pNodes = rModelPart.GetMesh(groupId).NodesArray();
+        
+          // Fill the send buffer with elements to be transfered
+          for (NodesContainerType::ContainerType::iterator i_node = pNodes.begin(); i_node != pNodes.end(); ++i_node)
+          {
+              int PartitionIndex = (*i_node)->GetSolutionStepValue(PARTITION_INDEX);
+              
+              if(PartitionIndex != mpi_rank)
+              {
+                  SendObjectsId[PartitionIndex].push_back((*i_node)->Id());
+              }
+          }
+
+          std::stringstream * serializer_buffer;
+          std::vector<std::string> buffer(mpi_size);
+          
+          int msgSendSize[mpi_size];
+          int msgRecvSize[mpi_size];
+        
+          for(int i = 0; i < mpi_size; i++)
+          {
+              msgSendSize[i] = 0;
+              msgRecvSize[i] = 0;
+          }
+        
+          for(int i = 0; i < mpi_size; i++)
+          {
+              if(mpi_rank != i)
+              {
+                  Kratos::Serializer particleSerializer;
+                  particleSerializer.save("nodes",SendObjectsId[i]);
+                  
+                  serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                  buffer[i] = std::string(serializer_buffer->str());
+                  msgSendSize[i] = buffer[i].size()+1;
+              }
+          }
+  
+          MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+    
+          int NumberOfCommunicationEvents = 0;
+          int NumberOfCommunicationEventsIndex = 0;
+          
+          char * message[mpi_size];
+          char * mpi_send_buffer[mpi_size];
+          
+          for(int j = 0; j < mpi_size; j++)
+          {
+              if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
+              if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
+          }
+          
+          MPI_Request reqs[NumberOfCommunicationEvents];
+          MPI_Status stats[NumberOfCommunicationEvents];
+
+          //Set up all receive and send events
+          for(int i = 0; i < mpi_size; i++)
+          {
+              if((i != mpi_rank) && msgRecvSize[i])
+              {
+                  message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
+
+                  MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+              }
+
+              if((i != mpi_rank) && msgSendSize[i])
+              {
+                  mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
+                  memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
+
+                  MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+              }
+          }
+          
+          //wait untill all communications finish
+          MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+
+          MPI_Barrier(MPI_COMM_WORLD);
+          
+          for(int i = 0; i < mpi_size; i++)
+          { 
+              if (i != mpi_rank && msgRecvSize[i])
+              {
+                  Kratos::Serializer particleSerializer;
+                  std::stringstream * serializer_buffer;
+                  serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                  serializer_buffer->write(message[i], msgRecvSize[i]);
+                  particleSerializer.load("nodes",RecvObjectsId[i]);
+              }
+
+              MPI_Barrier(MPI_COMM_WORLD);
+          }
+          
+          for(int i = 0; i < mpi_size; i++)
+          std::cout << "From process " << i << " sent/recieved: " << SendObjectsId[i].size() << " - " << RecvObjectsId[i].size() << std::endl;
+          
+          BuildNewMeshPartitions(rModelPart,RecvObjectsId,groupId); 
+             
+          // Clear the buffers
+          for(int i = 0; i < mpi_size; i++)
+          {
+              SendObjectsId[i].clear();
+              RecvObjectsId[i].clear();
+          }
+      }
+      
       /**
       * Transfer all elemens and nodes in a given ModelPart to the partition indicated by the PARTITION_INDEX variable of
       * every element in that ModelPart
@@ -234,23 +348,24 @@ namespace Kratos
           std::vector<ElementsContainerType> SendObjects(mpi_size);
           std::vector<ElementsContainerType> RecvObjects(mpi_size);
           
+          std::vector<std::vector<int> >  SendObjectsId(mpi_size, std::vector<int>(0));
+          std::vector<std::vector<int> >  RecvObjectsId(mpi_size, std::vector<int>(0));
+          
           for(int i = 0; i < mpi_size; i++)
           {
               SendObjects[i].reserve(rModelPart.GetCommunicator().LocalMesh().NumberOfElements());
+              SendObjectsId[i].reserve(rModelPart.GetCommunicator().LocalMesh().NumberOfElements());
           }
           
-          Kratos::Serializer particleSerializer;
-          
           // Main Mesh
-          MigrateMeshElements(rModelPart,particleSerializer,SendObjects,RecvObjects,0);
+          MigrateMeshElements(rModelPart,SendObjects,RecvObjects,0);
+          FinalizeNewPartition(rModelPart);
           
           // Rest of the meshes
           for(unsigned int i = 1; i < rModelPart.NumberOfMeshes(); i++)
           {
-              MigrateMeshElements(rModelPart,particleSerializer,SendObjects,RecvObjects,i);
+              MigrateMeshElementsId(rModelPart,SendObjectsId,RecvObjectsId,i);
           }
-          
-          PrepareNewPartition(rModelPart);
           
           KRATOS_CATCH("")
       }
@@ -356,7 +471,7 @@ namespace Kratos
        * This function must not be called before calculating new partition id
        * @param rModelPart: Input ModelPart
        */
-      bool PrepareNewPartition(ModelPart& mModelPart)
+      bool FinalizeNewPartition(ModelPart& mModelPart)
       {
           int mpi_rank;
           int mpi_size;
@@ -480,8 +595,8 @@ namespace Kratos
               i_node != temp_Nodes.end(); ++i_node)
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-              {                 
-                  mModelPart.GetCommunicator().LocalMesh().Nodes().push_back((*i_node));
+              {     
+                  mModelPart.Nodes().push_back((*i_node));
               }
           }
           
@@ -497,7 +612,7 @@ namespace Kratos
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
               {                 
-                  mModelPart.Nodes().push_back((*i_node));
+                  mModelPart.GetCommunicator().LocalMesh().Nodes().push_back((*i_node));
               }
           }
           
@@ -513,11 +628,31 @@ namespace Kratos
               for (NodesContainerType::ContainerType::iterator i_node = temp_NodesMesh.begin();
                   i_node != temp_NodesMesh.end(); ++i_node)
               {
-                  if((*i_node)->GetValue(PARTITION_INDEX) == mpi_rank)
+                  if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
                   {                 
                       mModelPart.GetMesh(meshId).Nodes().push_back((*i_node));
                   }
               }
+          }
+          
+          // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
+          mModelPart.Elements().Unique();
+          mModelPart.Nodes().Unique();
+          
+          // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
+          mModelPart.GetCommunicator().LocalMesh().Elements().Unique();
+          mModelPart.GetCommunicator().LocalMesh().Nodes().Unique();
+          
+          for (unsigned int i = 0; i < mModelPart.GetCommunicator().LocalMeshes().size(); i++)
+          {
+              mModelPart.GetCommunicator().LocalMesh(i).Elements().Unique();
+              mModelPart.GetCommunicator().LocalMesh(i).Nodes().Unique();
+          }
+              
+          for (unsigned int i = 0; i < mModelPart.GetCommunicator().GhostMeshes().size(); i++)
+          {
+              mModelPart.GetCommunicator().GhostMesh(i).Elements().Unique();
+              mModelPart.GetCommunicator().GhostMesh(i).Nodes().Unique();
           }
           
           return false;
@@ -575,25 +710,38 @@ namespace Kratos
               }
           }
           
-          // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
-          mModelPart.Elements().Unique();
-          mModelPart.Nodes().Unique();
+          return true;
+      }
+      
+            /**
+       * Fill a paritition with a given set of elements
+       * @param rModelPart: Input ModelPart
+       * @param RecvObjects: Additional elements to be added in this paritition
+       **/
+      bool BuildNewMeshPartitions(ModelPart& mModelPart, std::vector<std::vector<int> > &RecvObjects, const int groupId)
+      { 
+          int mpi_rank;
+          int mpi_size;
           
-          // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
-          mModelPart.GetCommunicator().LocalMesh().Elements().Unique();
-          mModelPart.GetCommunicator().LocalMesh().Nodes().Unique();
+          MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           
-          for (unsigned int i = 0; i < mModelPart.GetCommunicator().LocalMeshes().size(); i++)
-          {
-              mModelPart.GetCommunicator().LocalMesh(i).Elements().Unique();
-              mModelPart.GetCommunicator().LocalMesh(i).Nodes().Unique();
+          std::cout << "Be Nodesize: " << mModelPart.GetMesh(groupId).Nodes().size() << std::endl;
+          std::cout << "Lo Nodesize: " << mModelPart.GetCommunicator().LocalMesh().Nodes().size() << std::endl;
+          
+          // Add new elements and nodes
+          for(int i = 0; i < mpi_size; i++)
+          {   
+              std::cout << "Adding " << RecvObjects[i].size() << " from process " << i << std::endl;
+              for( int j = 0; j < RecvObjects[i].size(); j++)
+              {
+//                   std::cout << "\t" << RecvObjects[i][j] << std::endl;
+
+                  mModelPart.GetMesh(groupId).Nodes().push_back(mModelPart.pGetNode(RecvObjects[i][j]));
+              }
           }
-              
-          for (unsigned int i = 0; i < mModelPart.GetCommunicator().GhostMeshes().size(); i++)
-          {
-              mModelPart.GetCommunicator().GhostMesh(i).Elements().Unique();
-              mModelPart.GetCommunicator().GhostMesh(i).Nodes().Unique();
-          }
+          
+          std::cout << "Af Nodesize: " << mModelPart.GetMesh(groupId).Nodes().size() << std::endl;
           
           return true;
       }

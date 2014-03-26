@@ -1406,7 +1406,7 @@ private:
     }
     
     template<class TObjectType>
-    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& particleSerializer)
+    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, Kratos::Serializer& externParticleSerializer)
     { 
         int mpi_rank;
         int mpi_size;
@@ -1429,9 +1429,9 @@ private:
         {
             if(mpi_rank != i)
             {
-                //Kratos::Serializer particleSerializer;
+                Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
-                
+
                 particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("Object",SendObjects[i].GetContainer());
                 
