@@ -433,9 +433,9 @@ public:
 				      ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0);
+	  rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0);
+	  rRightHandSideVector.resize(0, false);
     }
     
     /**
@@ -465,7 +465,7 @@ public:
 				       ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-            rLeftHandSideMatrix.resize(0, 0);
+	  rLeftHandSideMatrix.resize(0, 0, false);
     }
 
     /**
@@ -491,7 +491,7 @@ public:
 					ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-            rRightHandSideVector.resize(0);
+	  rRightHandSideVector.resize(0, false);
     }
      
     /**
@@ -505,16 +505,125 @@ public:
 					const std::vector< Variable< VectorType > >& rRHSVariables,
 					ProcessInfo& rCurrentProcessInfo)
     {
-        if (rRightHandSideVectors.size() != 0)
-            rRightHandSideVectors.resize(0);
     }
-
 
 
 
     /**
      * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions 
+     * if they need to add dynamic condition contributions 
+     * note: first derivatives means the velocities if the displacements are the dof of the analysis
+     * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+     * CalculateFirstDerivativesContributions, 
+     * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
+     */    
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the first derivatives contributions for the LHS and RHS 
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rRightHandSideVector: the condition right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+							VectorType& rRightHandSideVector,
+							ProcessInfo& rCurrentProcessInfo)
+    {
+       if (rLeftHandSideMatrix.size1() != 0)
+	  rLeftHandSideMatrix.resize(0, 0, false);
+        if (rRightHandSideVector.size() != 0)
+	  rRightHandSideVector.resize(0, false);
+    }
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix for the first derivatives constributions
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					      ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rLeftHandSideMatrix.size1() != 0)
+	  rLeftHandSideMatrix.resize(0, 0, false);
+    }
+
+ 
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition right hand side vector for the first derivatives constributions
+     * @param rRightHandSideVector: the condition right hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+					      ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rRightHandSideVector.size() != 0)
+	  rRightHandSideVector.resize(0, false);
+    }
+
+
+
+    /**
+     * CONDITIONS inherited from this class must implement this methods
+     * if they need to add dynamic condition contributions 
+     * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+     * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+     * CalculateSecondDerivativesContributions, 
+     * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+     */    
+
+
+   /**
+     * this is called during the assembling process in order
+     * to calculate the first derivative contributions for the LHS and RHS 
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rRightHandSideVector: the condition right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo)
+    {
+       if (rLeftHandSideMatrix.size1() != 0)
+	  rLeftHandSideMatrix.resize(0, 0, false);
+        if (rRightHandSideVector.size() != 0)
+	  rRightHandSideVector.resize(0, false);
+    }
+
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix for the second derivatives constributions
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					       ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rLeftHandSideMatrix.size1() != 0)
+	  rLeftHandSideMatrix.resize(0, 0, false);
+    }
+
+ 
+    /**
+     * this is called during the assembling process in order
+     * to calculate the condition right hand side vector for the second derivatives constributions
+     * @param rRightHandSideVector: the condition right hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+					       ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rRightHandSideVector.size() != 0)
+	  rRightHandSideVector.resize(0, false);
+    }
+
+
+    /**
+     * CONDITIONS inherited from this class must implement this methods
+     * if they need to add dynamic condition contributions 
      * CalculateMassMatrix and CalculateDampingMatrix methods are: OPTIONAL
      */    
 
@@ -527,7 +636,7 @@ public:
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-            rMassMatrix.resize(0, 0);
+	  rMassMatrix.resize(0, 0, false);
     }
 
 
@@ -540,26 +649,9 @@ public:
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-            rDampingMatrix.resize(0, 0);
+	  rDampingMatrix.resize(0, 0, false);
     }
 
-    /**
-     * CONDITIONS inherited from this class must implement this method
-     * if they need to add dynamic condition contributions 
-     * CalculateLocalVelocityContribution method is: OPTIONAL
-     */  
-
-    /** WILDCARD METHOD FOR FLUIDS: consistency breaks
-     * Calculate Damp matrix and add velocity contribution to RHS
-     * @param rDampingMatrix: the velocity-proportional "damping" matrix
-     * @param rRightHandSideVector: the condition right hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rDampingMatrix.size1() != 0)
-            rDampingMatrix.resize(0, 0);
-    }
 
     /**
      * CONDITIONS inherited from this class must implement this methods
@@ -765,7 +857,9 @@ public:
         KRATOS_CATCH("");
     }
 
-    //METHODS TO BE CLEANED: RUBBISH start
+    //METHODS TO BE CLEANED: DEPRECATED start
+
+    //NOTE: They will be deleted in April 26, 2014
 
     /**
      * CONDITIONS inherited from this class must implement this methods
@@ -782,7 +876,7 @@ public:
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-            rMassMatrix.resize(0, 0);
+	  rMassMatrix.resize(0, 0, false);
     }
 
     /**
@@ -804,7 +898,7 @@ public:
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
-            rDampMatrix.resize(0, 0);
+	  rDampMatrix.resize(0, 0, false);
     }
 
     /**
@@ -816,7 +910,19 @@ public:
     }
 
 
-    //METHODS TO BE CLEANED: RUBBISH end
+    /**
+     * Calculate Damp matrix and add velocity contribution to RHS
+     * @param rDampingMatrix: the velocity-proportional "damping" matrix
+     * @param rRightHandSideVector: the condition right hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rDampingMatrix.size1() != 0)
+	  rDampingMatrix.resize(0, 0, false);
+    }
+
+    //METHODS TO BE CLEANED: DEPRECATED end
 
     ///@}
     ///@name Access
