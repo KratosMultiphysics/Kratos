@@ -463,10 +463,14 @@ namespace Kratos
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();
 
             // Getting neighbour properties
-            double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+            /*double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
             double &other_poisson             = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
             double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-            double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+            double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);*/
+            double other_young               = neighbour_iterator->GetYoung();
+            double other_poisson             = neighbour_iterator->GetPoisson();
+            double other_ln_of_restit_coeff  = neighbour_iterator->GetLnOfRestitCoeff();
+            double other_tg_of_fri_angle     = neighbour_iterator->GetTgOfFrictionAngle();
 
             equiv_young                       = 2 * mYoung * other_young / (mYoung + other_young);
             equiv_poisson                     = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);

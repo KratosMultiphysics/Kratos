@@ -106,17 +106,18 @@ public:
 
       }
 
-      double rest_coeff = params[RESTITUTION_COEFF];
+      /*double rest_coeff = params[RESTITUTION_COEFF];
       double ln_rest_coeff;
       if (rest_coeff > 0.0) ln_rest_coeff = log(rest_coeff);
-      else ln_rest_coeff = 1.0;
+      else ln_rest_coeff = 1.0;*/
 
       pnew_node->FastGetSolutionStepValue(RADIUS)                       = params[RADIUS];
       pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY)             = params[PARTICLE_DENSITY];
       pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS)                = params[YOUNG_MODULUS];
       pnew_node->FastGetSolutionStepValue(POISSON_RATIO)                = params[POISSON_RATIO];
       pnew_node->FastGetSolutionStepValue(PARTICLE_FRICTION)            = params[PARTICLE_FRICTION];
-      pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = ln_rest_coeff;
+      //pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = ln_rest_coeff;
+      pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = params[RESTITUTION_COEFF];
       pnew_node->FastGetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
       pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
       if(has_sphericity){
@@ -193,6 +194,8 @@ public:
       
       spheric_p_particle->SetRadius                            (radius);
       spheric_p_particle->SetSqrtOfRealMass                    (sqrt(mass)); 
+      double* aux_pointer = &( r_params.GetValue(YOUNG_MODULUS) );
+      spheric_p_particle->SetYoungFromProperties(aux_pointer);
       /*spheric_p_particle->SetYoungFromProperties               (r_params[YOUNG_MODULUS]);      
       spheric_p_particle->SetRollingFrictionFromProperties     (r_params[ROLLING_FRICTION]);
       spheric_p_particle->SetPoissonFromProperties             (r_params[POISSON_RATIO]);
