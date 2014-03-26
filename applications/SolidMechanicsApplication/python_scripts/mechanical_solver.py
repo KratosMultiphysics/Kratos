@@ -198,6 +198,10 @@ class StructuralSolver:
             self.damp_factor_f = 0.00;
             self.damp_factor_m = -0.01;
             self.dynamic_factor = 1;
+            
+            self.model_part.ProcessInfo[RAYLEIGH_ALPHA] = 0.0
+            self.model_part.ProcessInfo[RAYLEIGH_BETA ] = 0.0
+
             if(self.component_wise):
                 self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
             else:
