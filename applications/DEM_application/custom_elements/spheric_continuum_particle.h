@@ -201,7 +201,7 @@ namespace Kratos
       ///@}      
       ///@name Friends
       ///@{
-      
+      std::vector<SphericParticle*> mContinuumIniNeighbourElements;
             
       ///@}
       

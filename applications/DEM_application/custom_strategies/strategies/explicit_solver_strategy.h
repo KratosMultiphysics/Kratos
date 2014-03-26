@@ -232,13 +232,13 @@ namespace Kratos
 
             for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it){
                 
-                Kratos::SphericParticle& spheric_particle_pointer = dynamic_cast<Kratos::SphericParticle&>(*particle_pointer_it);
+                Kratos::SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*particle_pointer_it);
                                                   
-                int general_properties_id = spheric_particle_pointer.GetProperties().Id();  
+                int general_properties_id = spheric_particle.GetProperties().Id();  
                 for (unsigned int i = 0; i < mFastProperties.size(); i++){
                     int fast_properties_id = mFastProperties[i].GetId(); 
                     if( fast_properties_id == general_properties_id ){                  
-                        spheric_particle_pointer.SetFastProperties( &(mFastProperties[i]) );
+                        spheric_particle.SetFastProperties( &(mFastProperties[i]) );
                         break;
                     }
                 }                    
@@ -585,7 +585,9 @@ namespace Kratos
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
-                mNeighbourCounter[OpenMPUtils::ThisThread()] += (it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+                //mNeighbourCounter[OpenMPUtils::ThisThread()] += (it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+                SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                mNeighbourCounter[OpenMPUtils::ThisThread()] += spheric_particle.mNeighbourElements.size();
                 
             }
 
@@ -692,9 +694,11 @@ namespace Kratos
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-
+            
+            SphericParticle* spheric_central_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
             if (particle_pointer_it->Id() == id){
-                std::cout << msg << " " << particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size() << std::endl; break;
+              //  std::cout << msg << " " << particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size() << std::endl; break;                
+                std::cout << msg << " " << spheric_central_particle->mNeighbourElements.size() << std::endl; break;                
             }
         }
 
@@ -714,8 +718,8 @@ namespace Kratos
         
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); particle_pointer_it++){
 
-            WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
-            neighbour_elements.clear();
+            //WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
+            //neighbour_elements.clear();
                 
             SphericParticle* spheric_central_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
             spheric_central_particle->mNeighbourElements.clear();            
@@ -741,13 +745,13 @@ namespace Kratos
             size_t ResultCounter = this->GetElementPartition()[k];                       
 
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
-                WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
+                //WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
                 //neighbour_elements.clear();                
                 SphericParticle* spheric_central_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
                 //spheric_central_particle->mNeighbourElements.clear();
                 
                 for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
-                    neighbour_elements.push_back( *neighbour_it );   
+                    //neighbour_elements.push_back( *neighbour_it );   
                     Element* p_neighbour_element = (*neighbour_it).get();
                     SphericParticle* p_spheric_neighbour_particle = static_cast<SphericParticle*>( p_neighbour_element );
                     spheric_central_particle->mNeighbourElements.push_back( p_spheric_neighbour_particle );
