@@ -131,7 +131,7 @@ class PostUtils:
 
 class Procedures:
 
-    def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
+    def __init__(self, DEM_parameters):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         # Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
@@ -141,21 +141,7 @@ class Procedures:
         self.rotation_OPTION = Var_Translator(DEM_parameters.RotationOption)
         self.bounding_box_OPTION = Var_Translator(DEM_parameters.BoundingBoxOption)
         self.contact_mesh_OPTION = Var_Translator(DEM_parameters.ContactMeshOption)
-
-
-        self.graphs_path = graphs_path
-        self.balls_model_part = balls_model_part
-        self.RigidFace_model_part = RigidFace_model_part
         #self.solver = solver
-
-        self.top_mesh_nodes = []
-
-        self.graph_counter = 0;
-        self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
-        print("freq",self.graph_frequency)
-        os.chdir(self.graphs_path)
-        self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
-        (total_force_top) = self.MeasureForces()
 
         # SIMULATION SETTINGS
 
@@ -191,42 +177,6 @@ class Procedures:
                 self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
         else:
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
-
-
-    def MeasureForces(self):
-
-       if(self.RigidFace_model_part.GetMesh(1)[FORCE_INTEGRATION_GROUP]):
-
-        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(1).Nodes
-
-        #print("dt",self.dt)
-        self.total_force_top = 0.0
-
-        for node in self.top_mesh_nodes:
-
-          force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-
-          self.total_force_top += force_node_y
-          #print("force",total_force_top)
-
-    #-------------------------------------------------------------------------------------#
-
-    def PrintGraph(self, time):
-
-      if(self.graph_counter == self.graph_frequency):
-         self.graph_counter = 0
-         self.graph_forces.write(str(time)+"    "+str(self.total_force_top)+'\n')
-         self.graph_forces.flush()
-
-      self.graph_counter += 1
-
-     #-------------------------------------------------------------------------------------#
-
-
-    def FinalizeGraphs(self):
-
-      os.chdir(self.graphs_path)
-      self.graph_forces.close()
 
 
     def ModelData(self, balls_model_part, contact_model_part, solver):
@@ -523,4 +473,100 @@ class Procedures:
           
 
  
+class DEMFEMProcedures:
+
+    def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
+
+        # GLOBAL VARIABLES OF THE SCRIPT
+
+        # Initialization of member variables
+        # SIMULATION FLAGS
+        self.rotation_OPTION = Var_Translator(DEM_parameters.RotationOption)
+        self.bounding_box_OPTION = Var_Translator(DEM_parameters.BoundingBoxOption)
+        self.contact_mesh_OPTION = Var_Translator(DEM_parameters.ContactMeshOption)
+
+
+        self.graphs_path = graphs_path
+        self.balls_model_part = balls_model_part
+        self.RigidFace_model_part = RigidFace_model_part
+        #self.solver = solver
+
+        self.top_mesh_nodes = []
+
+        self.graph_counter = 0;
+        self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        os.chdir(self.graphs_path)
+        self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        (total_force_top) = self.MeasureForces()
+
+        # SIMULATION SETTINGS
+
+        self.bounding_box_enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
+        # MODEL
+        self.domain_size = DEM_parameters.Dimension
+
+        # PRINTING VARIABLES
+
+        self.print_radius = Var_Translator(DEM_parameters.PostRadius)
+        self.print_velocity = Var_Translator(DEM_parameters.PostVelocity)
+        self.print_angular_velocity = Var_Translator(DEM_parameters.PostAngularVelocity)
+        self.print_displacement = Var_Translator(DEM_parameters.PostDisplacement)
+        self.print_total_forces = Var_Translator(DEM_parameters.PostTotalForces)
+        self.print_damp_forces = Var_Translator(DEM_parameters.PostDampForces)
+        self.print_applied_forces = Var_Translator(DEM_parameters.PostAppliedForces)
+        self.print_particle_moment = Var_Translator(DEM_parameters.PostParticleMoment)
+        self.print_euler_angles = Var_Translator(DEM_parameters.PostEulerAngles)
+        self.print_group_id = Var_Translator(DEM_parameters.PostGroupId)
+        self.print_export_id = Var_Translator(DEM_parameters.PostExportId)
+        self.self_strain_option = Var_Translator(DEM_parameters.StressStrainOption)
+
+        if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
+            self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
+            self.predefined_skin_option = Var_Translator(DEM_parameters.PredefinedSkinOption)
+            if (self.contact_mesh_OPTION):
+                self.print_local_contact_force = Var_Translator(DEM_parameters.PostLocalContactForce)
+                self.print_failure_criterion_state = Var_Translator(DEM_parameters.PostFailureCriterionState)
+                #self.print_unidimensional_damage = Var_Translator(DEM_parameters.PostUnidimensionalDamage)
+                self.print_contact_failure = Var_Translator(DEM_parameters.PostContactFailureId)
+                self.print_contact_tau = Var_Translator(DEM_parameters.PostContactTau)
+                self.print_contact_sigma = Var_Translator(DEM_parameters.PostContactSigma)
+                self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
+        else:
+            self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
+
+
+    def MeasureForces(self):
+
+       if(self.RigidFace_model_part.GetMesh(1)[FORCE_INTEGRATION_GROUP]):
+
+        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(1).Nodes
+
+        #print("dt",self.dt)
+        self.total_force_top = 0.0
+
+        for node in self.top_mesh_nodes:
+
+          force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+          self.total_force_top += force_node_y
+          #print("force",total_force_top)
+
+    #-------------------------------------------------------------------------------------#
+
+    def PrintGraph(self, time):
+
+      if(self.graph_counter == self.graph_frequency):
+         self.graph_counter = 0
+         self.graph_forces.write(str(time)+"    "+str(self.total_force_top)+'\n')
+         self.graph_forces.flush()
+
+      self.graph_counter += 1
+
+     #-------------------------------------------------------------------------------------#
+
+
+    def FinalizeGraphs(self):
+
+      os.chdir(self.graphs_path)
+      self.graph_forces.close()
 
