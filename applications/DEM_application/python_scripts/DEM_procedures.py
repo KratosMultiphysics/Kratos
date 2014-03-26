@@ -131,7 +131,7 @@ class PostUtils:
 
 class Procedures:
 
-    def __init__(self, DEM_parameters):
+    def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         # Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
@@ -141,6 +141,21 @@ class Procedures:
         self.rotation_OPTION = Var_Translator(DEM_parameters.RotationOption)
         self.bounding_box_OPTION = Var_Translator(DEM_parameters.BoundingBoxOption)
         self.contact_mesh_OPTION = Var_Translator(DEM_parameters.ContactMeshOption)
+
+
+        self.graphs_path = graphs_path
+        self.balls_model_part = balls_model_part
+        self.RigidFace_model_part = RigidFace_model_part
+        #self.solver = solver
+
+        self.top_mesh_nodes = []
+
+        self.graph_counter = 0;
+        self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        print("freq",self.graph_frequency)
+        os.chdir(self.graphs_path)
+        self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        (total_force_top) = self.MeasureForces()
 
         # SIMULATION SETTINGS
 
@@ -176,6 +191,43 @@ class Procedures:
                 self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
         else:
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
+
+
+    def MeasureForces(self):
+
+       if(self.RigidFace_model_part.GetMesh(1)[FORCE_INTEGRATION_GROUP]):
+
+        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(1).Nodes
+
+        #print("dt",self.dt)
+        self.total_force_top = 0.0
+
+        for node in self.top_mesh_nodes:
+
+          force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+          self.total_force_top += force_node_y
+          #print("force",total_force_top)
+
+    #-------------------------------------------------------------------------------------#
+
+    def PrintGraph(self, time):
+
+      if(self.graph_counter == self.graph_frequency):
+         self.graph_counter = 0
+         self.graph_forces.write(str(time)+"    "+str(self.total_force_top)+'\n')
+         self.graph_forces.flush()
+
+      self.graph_counter += 1
+
+     #-------------------------------------------------------------------------------------#
+
+
+    def FinalizeGraphs(self):
+
+      os.chdir(self.graphs_path)
+      self.graph_forces.close()
+
 
     def ModelData(self, balls_model_part, contact_model_part, solver):
     # Previous Calculations.
