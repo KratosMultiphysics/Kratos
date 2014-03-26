@@ -388,7 +388,8 @@ namespace Kratos
                                                       array_1d<double, 3>& other_to_me_vect,
                                                       const array_1d<double, 3>& vel,
                                                       const array_1d<double, 3>& delta_displ,
-                                                      ParticleWeakIteratorType neighbour_iterator,
+                                                      //ParticleWeakIteratorType neighbour_iterator,
+                                                      SphericParticle* neighbour_iterator,
                                                       double& distance)
       {
 
@@ -439,7 +440,8 @@ namespace Kratos
                                                       const double& other_radius,
                                                       const double& dt,
                                                       const array_1d<double, 3>& ang_vel,
-                                                      ParticleWeakIteratorType neighbour_iterator)
+                                                      //ParticleWeakIteratorType neighbour_iterator)
+                                                      SphericParticle* neighbour_iterator)
       {
           array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
           double velA[3]                        = {0.0};
@@ -467,7 +469,8 @@ namespace Kratos
                                            double LocalCoordSystem[3][3],
                                            const double& other_radius,
                                            array_1d<double, 3>& rContactMoment,
-                                           ParticleWeakIteratorType neighbour_iterator)
+                                           //ParticleWeakIteratorType neighbour_iterator)
+                                           SphericParticle* neighbour_iterator)
       {
           double MA[3]         = {0.0};
           //double RotaMoment[3] = {0.0};
@@ -590,9 +593,11 @@ namespace Kratos
           }
 
           //LOOP OVER NEIGHBOURS BEGINS:
-          size_t i_neighbour_count = 0;
-
-          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+          size_t i_neighbour_count = 0;          
+          
+          //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+          for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+              SphericParticle* neighbour_iterator = mNeighbourElements[i];
 
               if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
               
@@ -2035,7 +2040,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                                                                       double& equiv_visco_damp_coeff_normal,
                                                                       double& equiv_visco_damp_coeff_tangential,
                                                                       double& equiv_tg_of_fri_ang,
-                                                                      ParticleWeakIteratorType neighbour_iterator)
+                                                                      //ParticleWeakIteratorType neighbour_iterator)
+                                                                      SphericParticle* neighbour_iterator)
       {
         const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
         const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);

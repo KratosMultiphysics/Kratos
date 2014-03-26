@@ -155,6 +155,9 @@ namespace Kratos
       virtual void PrintData(std::ostream& rOStream) const {}
 
 
+      
+      std::vector<SphericParticle*> mNeighbourElements;
+      std::vector<SphericParticle*> mTempNeighbourElements;
       ///@}
       ///@name Friends
       ///@{
@@ -193,7 +196,8 @@ namespace Kratos
                                                              double& equiv_visco_damp_coeff_normal,
                                                              double& equiv_visco_damp_coeff_tangential,
                                                              double& equiv_tg_of_fri_ang,
-                                                             ParticleWeakIteratorType neighbour_iterator);
+                                                             //ParticleWeakIteratorType neighbour_iterator);
+                                                             SphericParticle* neighbour_iterator);
 
       virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                                 double RelVel[3],
@@ -204,7 +208,8 @@ namespace Kratos
                                 array_1d<double, 3> &other_to_me_vect,
                                 const array_1d<double, 3> &vel,
                                 const array_1d<double, 3> &delta_displ,
-                                ParticleWeakIteratorType neighbour_iterator,
+                                //ParticleWeakIteratorType neighbour_iterator,
+                                SphericParticle* neighbour_iterator,
                                 double& distance);
       
       virtual void NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation);
@@ -217,7 +222,8 @@ namespace Kratos
                                 const double &other_radius,
                                 const double &dt,
                                 const array_1d<double, 3> &angl_vel,
-                                ParticleWeakIteratorType neighbour_iterator);
+                                //ParticleWeakIteratorType neighbour_iterator);
+                                SphericParticle* neighbour_iterator);
 
       virtual void ComputeMoments(double LocalElasticContactForce[3],
                                   double GlobalElasticContactForces[3],
@@ -226,7 +232,8 @@ namespace Kratos
                                   double LocalCoordSystem[3][3],
                                   const double &other_radius,
                                   array_1d<double, 3>& rContactMoment,
-                                  ParticleWeakIteratorType neighbour_iterator);
+                                  //ParticleWeakIteratorType neighbour_iterator);
+                                  SphericParticle* neighbour_iterator);
 
       virtual void CustomInitialize();
       
@@ -286,9 +293,7 @@ namespace Kratos
       double mYoung;
       double mPoisson;
       double mTgOfFrictionAngle;
-      double mLnOfRestitCoeff;
-      
-      //std::vector<SphericParticle*> mNeighbourElements;
+      double mLnOfRestitCoeff;            
 
       //PropertiesProxy *mFastProperties;
       

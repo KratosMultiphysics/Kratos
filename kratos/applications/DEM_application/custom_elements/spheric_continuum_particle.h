@@ -124,7 +124,8 @@ namespace Kratos
                                           const double &distance,
                                           const double &radius_sum,
                                           const double &corrected_area,
-                                          ParticleWeakIteratorType neighbour_iterator,
+                                          //ParticleWeakIteratorType neighbour_iterator,
+                                          SphericParticle* neighbour_iterator,
                                           ProcessInfo& rCurrentProcessInfo,
                                           double &rRepresentative_Volume);
       
