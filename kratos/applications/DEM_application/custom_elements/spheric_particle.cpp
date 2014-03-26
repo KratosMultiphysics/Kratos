@@ -219,8 +219,10 @@ namespace Kratos
 
 
               // Getting neighbour properties
-              const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-              const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+              //const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+              //const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+              const double other_young           = neighbour_iterator->GetYoung();
+              const double other_poisson         = neighbour_iterator->GetPoisson();
 
               equiv_young                         = 2 * mYoung * other_young / (mYoung + other_young);
               equiv_poisson                       = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
@@ -590,7 +592,6 @@ namespace Kratos
           const array_1d<double, 3>& ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
           const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double RotaAcc[3]                      = {0.0};
-          //double InitialRotaMoment[3]            = {0.0};
 
           //if (mRotationOption){
           if (this->Is(DEMFlags::HAS_ROTATION) ){
@@ -601,11 +602,23 @@ namespace Kratos
               rInitialRotaMoment[0]               = RotaAcc[0] * moment_of_inertia;
               rInitialRotaMoment[1]               = RotaAcc[1] * moment_of_inertia;
               rInitialRotaMoment[2]               = RotaAcc[2] * moment_of_inertia;
-          }
-
-          //LOOP OVER NEIGHBOURS BEGINS:
-          size_t i_neighbour_count = 0;          
+          }                    
           
+          double kn;
+	  double kt;
+          double equiv_visco_damp_coeff_normal;
+          double equiv_visco_damp_coeff_tangential;
+          double equiv_tg_of_fri_ang;
+          
+          size_t i_neighbour_count = 0;       
+          double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+          double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
+          double DeltDisp[3]                       = {0.0};
+          double LocalDeltDisp[3]                  = {0.0};
+          double RelVel[3]                         = {0.0};
+          double LocalRelVel[3]                    = {0.0};
+          
+          //LOOP OVER NEIGHBOURS BEGINS:
           //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
           for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
               SphericParticle* neighbour_iterator = mNeighbourElements[i];
@@ -619,28 +632,26 @@ namespace Kratos
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
               double indentation                      = radius_sum - distance;
-	          double kn;
-	          double kt;
-              double equiv_visco_damp_coeff_normal;
-              double equiv_visco_damp_coeff_tangential;
-              double equiv_tg_of_fri_ang;
+	          
 
               CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, neighbour_iterator);
-              
-              double DeltDisp[3]                       = {0.0};
-              double LocalDeltDisp[3]                  = {0.0};
-              double RelVel[3]                         = {0.0};
-              double LocalRelVel[3]                    = {0.0};
-              //double NormalDir[3]                      = {0.0};
-              //double OldNormalDir[3]                   = {0.0};
-              double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
-              double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
+                            
+              DeltDisp[0]      = 0.0; DeltDisp[1]      = 0.0; DeltDisp[2]      = 0.0;
+              LocalDeltDisp[0] = 0.0; LocalDeltDisp[1] = 0.0; LocalDeltDisp[2] = 0.0;
+              RelVel[0]        = 0.0; RelVel[1]        = 0.0; RelVel[2]        = 0.0;
+              LocalRelVel[0]   = 0.0; LocalRelVel[1]   = 0.0; LocalRelVel[2]   = 0.0;                                         
+              LocalCoordSystem[0][0]   = 0.0; LocalCoordSystem[0][1]   = 0.0; LocalCoordSystem[0][2]   = 0.0;
+              LocalCoordSystem[1][0]   = 0.0; LocalCoordSystem[1][1]   = 0.0; LocalCoordSystem[1][2]   = 0.0;
+              LocalCoordSystem[2][0]   = 0.0; LocalCoordSystem[2][1]   = 0.0; LocalCoordSystem[2][2]   = 0.0;
+              OldLocalCoordSystem[0][0]= 0.0; OldLocalCoordSystem[0][1]= 0.0; OldLocalCoordSystem[0][2]= 0.0;
+              OldLocalCoordSystem[1][0]= 0.0; OldLocalCoordSystem[1][1]= 0.0; OldLocalCoordSystem[1][2]= 0.0;
+              OldLocalCoordSystem[2][0]= 0.0; OldLocalCoordSystem[2][1]= 0.0; OldLocalCoordSystem[2][2]= 0.0;
 
-              EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir,*/ LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
+              EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
               //if (mRotationOption){
               if (this->Is(DEMFlags::HAS_ROTATION) ){    
-                  DisplacementDueToRotation(DeltDisp, /*OldNormalDir,*/ OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                  DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
               }
 
               double LocalContactForce[3]              = {0.0};
@@ -1011,8 +1022,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           //if (mRollingFrictionOption)
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
           {  // Rolling friction type
-            double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-            double rolling_friction_coeff       = rolling_friction * mRadius;
+            //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+              
+            
+            double rolling_friction_coeff       = mRollingFriction * mRadius;
 
             if (rolling_friction_coeff != 0.0)
             {
@@ -1909,8 +1922,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                          //if (mRollingFrictionOption){  // Rolling friction 
                          if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
-                             double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-                             double rolling_friction_coeff       = rolling_friction * mRadius;
+                             //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                             double rolling_friction_coeff       = mRollingFriction * mRadius;
 
                              if (rolling_friction_coeff != 0.0){
 								 double MaxRotaMoment[3]      = {0.0};
@@ -2057,8 +2070,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       {
         //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
         double other_sqrt_of_mass               = neighbour_iterator->GetSqrtOfRealMass();
-        const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-        const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+        //const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+        //const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+        const double other_ln_of_restit_coeff     = neighbour_iterator->GetLnOfRestitCoeff();
+        const double other_tg_of_fri_angle        = neighbour_iterator->GetTgOfFrictionAngle();
         //const double &mLnOfRestitCoeff          = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
         double radius_sum_i                     = 1 / radius_sum;
@@ -2075,8 +2090,11 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         double equiv_poisson;
         double corrected_area               = equiv_area;
 
-        const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-        const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+        //const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+        //const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+        const double other_young       = neighbour_iterator->GetYoung();
+        const double other_poisson     = neighbour_iterator->GetPoisson();
+        
         double effective_radius         = 0.5 * equiv_radius;
 
         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
@@ -2487,12 +2505,19 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;                                                                      }
       double SphericParticle::GetSqrtOfRealMass()                                              { return mSqrtOfRealMass;                                                                }
       void   SphericParticle::SetSqrtOfRealMass(double sqrt_of_real_mass)                      { mSqrtOfRealMass = sqrt_of_real_mass;                                                   }
+      
+      double SphericParticle::GetYoung()                                                       { return mYoung;                                                                         }
+      double SphericParticle::GetRollingFriction()                                             { return mRollingFriction;                                                               }
+      double SphericParticle::GetPoisson()                                                     { return mPoisson;                                                                       }
+      double SphericParticle::GetTgOfFrictionAngle()                                           { return mTgOfFrictionAngle;                                                             }
+      double SphericParticle::GetLnOfRestitCoeff()                                             { return mLnOfRestitCoeff;                                                               }
 
+      void   SphericParticle::SetYoungFromProperties(double* young)                            { mYoung = *young;                                                                       }
       /*double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                                }
       double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                      }
       double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                                              }
       double SphericParticle::GetTgOfFrictionAngle()                                           { return GetFastProperties()->GetTgOfFrictionAngle() ;                                   }
-      double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                      }
+      double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                      }*/
       
       //WHAT NOT TO DO: properties must not be set from elements!!!!!
       //void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                                   }
@@ -2501,7 +2526,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       //void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { GetFastProperties()->SetTgOfFrictionAngleFromProperties( tg_of_friction_angle);        }
       //void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);            }  
 
-      PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                                }
+      /*PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                                }
       void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                              }*/
 
 }  // namespace Kratos.

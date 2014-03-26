@@ -290,8 +290,10 @@ namespace Kratos
               double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
 			  
 			  
-	      const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-	      const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+	      //const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+	      //const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+              const double other_young       = neighbour_iterator->GetYoung();
+	      const double other_poisson     = neighbour_iterator->GetPoisson();
 	      double equiv_young              = (mYoung + other_young) * 0.5;
 	      double equiv_poisson            = (mPoisson + other_poisson) * 0.5;
 	      double equiv_shearM             = equiv_young / (2.0 * (1.0 + equiv_poisson));
