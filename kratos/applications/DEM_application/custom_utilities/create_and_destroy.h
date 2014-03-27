@@ -133,7 +133,7 @@ public:
       //pnew_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
       //pnew_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
       
-      /*pnew_node->AddDof(VELOCITY_X,REACTION_X);
+      pnew_node->AddDof(VELOCITY_X,REACTION_X);
       pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
       pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
       pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
@@ -145,7 +145,7 @@ public:
       pnew_node->pGetDof(VELOCITY_Z)->FixDof();           
       pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
       pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();*/
+      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
             
       pnew_node->Set(DEMFlags::FIXED_VEL_X,true);
       pnew_node->Set(DEMFlags::FIXED_VEL_Y,true);
@@ -183,7 +183,7 @@ public:
       }
       
       p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
-      //p_particle->Initialize();
+      p_particle->Initialize();
       
       //boost::shared_ptr<Kratos::SphericParticle> spheric_p_particle = boost::dynamic_pointer_cast<Kratos::SphericParticle> (p_particle);                              
       Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());
@@ -192,15 +192,13 @@ public:
       double density                             = r_params[PARTICLE_DENSITY];          
       double mass                                = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
       
-      spheric_p_particle->SetRadius                            (radius);
-      spheric_p_particle->SetSqrtOfRealMass                    (sqrt(mass)); 
-      double* aux_pointer = &( r_params.GetValue(YOUNG_MODULUS) );
-      spheric_p_particle->SetYoungFromProperties(aux_pointer);
-      /*spheric_p_particle->SetYoungFromProperties               (r_params[YOUNG_MODULUS]);      
-      spheric_p_particle->SetRollingFrictionFromProperties     (r_params[ROLLING_FRICTION]);
-      spheric_p_particle->SetPoissonFromProperties             (r_params[POISSON_RATIO]);
-      spheric_p_particle->SetTgOfFrictionAngleFromProperties   (r_params[PARTICLE_FRICTION]);
-      spheric_p_particle->SetLnOfRestitCoeffFromProperties     (r_params[LN_OF_RESTITUTION_COEFF]);      */ 
+      spheric_p_particle->SetRadius                         (radius);
+      spheric_p_particle->SetSqrtOfRealMass                 (sqrt(mass)); 
+      spheric_p_particle->SetYoungFromProperties            ( &( r_params.GetValue(YOUNG_MODULUS) ) );
+      spheric_p_particle->SetPoissonFromProperties          ( &( r_params.GetValue(POISSON_RATIO) ) );
+      spheric_p_particle->SetRollingFrictionFromProperties  ( &( r_params.GetValue(ROLLING_FRICTION) ) );
+      spheric_p_particle->SetTgOfFrictionAngleFromProperties( &( r_params.GetValue(PARTICLE_FRICTION) ) );
+      spheric_p_particle->SetLnOfRestitCoeffFromProperties  ( &( r_params.GetValue(LN_OF_RESTITUTION_COEFF) ) );       
       
       r_modelpart.Elements().push_back(p_particle);          
 }    
@@ -811,7 +809,7 @@ public:
             
             int mesh_size=mesh_it->NumberOfNodes();
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
-            
+                        
             if(r_modelpart.GetProcessInfo()[TIME] >  InletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]  ) {
                 if (mLayerRemoved[mesh_number]) continue;
                 for (int i = 0; i < mesh_size; i++){                   
