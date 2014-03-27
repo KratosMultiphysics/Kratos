@@ -6,7 +6,7 @@
 
 #_____________________________________________________________________________________________________________________________________
 #
-#                               F L U I D    B L O C K    B E G G I N S
+#                               F L U I D    B L O C K    B E G I N S
 #_____________________________________________________________________________________________________________________________________
 
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
@@ -76,7 +76,7 @@ ProjectParameters.coupling_level_type                  = 1 # one way coupling (0
 ProjectParameters.coupling_scheme_type                 = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type               = 2 # {fluid_to_DEM, DEM_to_fluid, solid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
 ProjectParameters.buoyancy_force_type                  = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
-ProjectParameters.drag_force_type                      = 1 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
+ProjectParameters.drag_force_type                      = 1 # null drag (0), S (1), Weatherford (2), Ganser (3), Ishii (4)
 ProjectParameters.virtual_mass_force_type              = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                      = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type                   = 3 # Hayder (2), Chien (3) # problemtype option
@@ -107,7 +107,7 @@ swimming_DEM_procedures.ConstructListsOfVariables(ProjectParameters)
 
 #_____________________________________________________________________________________________________________________________________
 #
-#                               F L U I D    B L O C K    B E G G I N S
+#                               F L U I D    B L O C K    B E G I N S
 #_____________________________________________________________________________________________________________________________________
 
 # defining variables to be used
@@ -200,7 +200,7 @@ swimming_DEM_procedures.AddingDEMProcessInfoVariables(ProjectParameters, balls_m
 
 #_____________________________________________________________________________________________________________________________________
 #
-#                               F L U I D    B L O C K    B E G G I N S
+#                               F L U I D    B L O C K    B E G I N S
 #_____________________________________________________________________________________________________________________________________
 
 
@@ -287,7 +287,7 @@ swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, fem_dem_mo
 
 #_____________________________________________________________________________________________________________________________________
 #
-#                               F L U I D    B L O C K    B E G G I N S
+#                               F L U I D    B L O C K    B E G I N S
 #_____________________________________________________________________________________________________________________________________
 
 # define the drag computation list
@@ -421,7 +421,7 @@ if (ProjectParameters.make_results_directories_option):
 
 #_____________________________________________________________________________________________________________________________________
 #
-#                               F L U I D    B L O C K    B E G G I N S
+#                               F L U I D    B L O C K    B E G I N S
 #_____________________________________________________________________________________________________________________________________
 
 # renumerating IDs if required
