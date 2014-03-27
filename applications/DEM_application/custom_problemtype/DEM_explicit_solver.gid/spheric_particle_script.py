@@ -24,7 +24,7 @@ import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 proc = DEM_procedures.Procedures(DEM_parameters)
 
-import mesh_motion
+#import mesh_motion
 
 # BENCHMARK ###
 
@@ -239,6 +239,8 @@ print(('Main loop starts at instant: ' + str(initial_pr_time) + '\n'))
 
 print(('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n'))
 sys.stdout.flush()
+
+mesh_motion = DEMFEMUtilities()
 
 while (time < DEM_parameters.FinalTime):
 

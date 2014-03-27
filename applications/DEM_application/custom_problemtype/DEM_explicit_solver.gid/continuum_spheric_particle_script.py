@@ -16,7 +16,7 @@ import DEM_procedures
 #
 
 import DEM_material_test_script 
-import mesh_motion
+#import mesh_motion
 #
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
@@ -233,6 +233,7 @@ KRATOSprint ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
 KRATOSprint ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
+mesh_motion = DEMFEMUtilities()
 #if(DEM_parameters.PoissonMeasure == "ON"):
 	#MaterialTest.PoissonMeasure()
   
