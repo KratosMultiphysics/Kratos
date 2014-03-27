@@ -209,7 +209,7 @@ namespace Kratos
           
           //double Weight[4] = {0.0};
           
-          int ino1               = iRigidFaceNeighbour * 15;
+          int ino1               = iRigidFaceNeighbour * 16;
           
           double DistPToB        = RF_Pram[ino1 + 9];
 
@@ -501,8 +501,8 @@ namespace Kratos
                   calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
                 }
               
-                kn_el              = equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
-                kt_el              = kn_el/(2.0 + equiv_poisson + equiv_poisson);
+                kn_el              = 0.9237*equiv_young * calculation_area;// * radius_sum_i; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
+                kt_el              = 0.0*kn_el/(2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
             }
@@ -1400,7 +1400,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       for (ConditionWeakIteratorType i = rFemTempNeighbours.begin(); i != rFemTempNeighbours.end(); i++)
       {
         
-          int ino1               = iTempFemNeighbour * 15; 
+          int ino1               = iTempFemNeighbour * 16;
           double DistPToB        = RF_Pram[ino1 + 9];
           int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
           double                ini_delta           = 0.0;
