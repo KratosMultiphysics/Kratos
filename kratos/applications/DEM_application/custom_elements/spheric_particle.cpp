@@ -506,7 +506,8 @@ namespace Kratos
           //if (mRollingFrictionOption){  // rolling friction 
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){    
               double rolling_friction_coeff            = mRollingFriction * mRadius;
-              const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+              //const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+              const double other_rolling_friction = neighbour_iterator->GetRollingFriction();
               double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
               double equiv_rolling_friction_coeff  = std::min(rolling_friction_coeff,other_rolling_friction_coeff);
 
@@ -1415,8 +1416,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                      //if (mRollingFrictionOption){  // Rolling friction type
                      if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
-                         double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-                         double rolling_friction_coeff       = rolling_friction * mRadius;
+                         //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                         
+                         double rolling_friction_coeff       = mRollingFriction * mRadius;
 
                          if (rolling_friction_coeff != 0.0){
 							 double MaxRotaMoment[3]      = {0.0};
@@ -2513,6 +2515,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       double SphericParticle::GetLnOfRestitCoeff()                                             { return mLnOfRestitCoeff;                                                               }
 
       void   SphericParticle::SetYoungFromProperties(double* young)                            { mYoung = *young;                                                                       }
+      void   SphericParticle::SetPoissonFromProperties(double* poisson)                        { mPoisson = *poisson;                                                                   }
+      void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = *rolling_friction;                                                  }
+      void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { mTgOfFrictionAngle = *tg_of_friction_angle;                                            }
+      void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = *ln_of_restit_coeff;                                                }
       /*double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                                }
       double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                      }
       double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                                              }
