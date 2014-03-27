@@ -767,7 +767,6 @@ namespace Kratos
           bool fix_x = bool((*mesh_it)[IMPOSED_VELOCITY_X]);
           bool fix_y = bool((*mesh_it)[IMPOSED_VELOCITY_Y]);
           bool fix_z = bool((*mesh_it)[IMPOSED_VELOCITY_Z]);
-
           
          if( fix_x || fix_y || fix_z )
          {
