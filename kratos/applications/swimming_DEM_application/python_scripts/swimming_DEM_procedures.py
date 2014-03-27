@@ -14,60 +14,60 @@ def AddNodalVariables(model_part, variable_list):
     for var in variable_list:
         model_part.AddNodalSolutionStepVariable(var)
 
-def AddingDEMProcessInfoVariables(project_parameters, dem_model_part):
-    dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, project_parameters.buoyancy_force_type)
-    dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, project_parameters.drag_force_type)
-    dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, project_parameters.virtual_mass_force_type)
-    dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, project_parameters.lift_force_type)
-    dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, project_parameters.fluid_model_type)
-    dem_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, project_parameters.manually_imposed_drag_law_option)
-    dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, project_parameters.drag_modifier_type)
-    dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, project_parameters.initial_drag_force)
-    dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, project_parameters.drag_law_slope)
-    dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, project_parameters.power_law_tol)
+def AddingDEMProcessInfoVariables(pp, dem_model_part):
+    dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.buoyancy_force_type)
+    dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.drag_force_type)
+    dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
+    dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.lift_force_type)
+    dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
+    dem_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, pp.manually_imposed_drag_law_option)
+    dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, pp.drag_modifier_type)
+    dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, pp.initial_drag_force)
+    dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, pp.drag_law_slope)
+    dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.power_law_tol)
 
-def ConstructListsOfResultsToPrint(project_parameters):
-    project_parameters.dem_nodal_results = []
+def ConstructListsOfResultsToPrint(pp):
+    pp.dem_nodal_results = []
 
-    if (project_parameters.dem.PostRadius):
-        project_parameters.dem_nodal_results += ["RADIUS"]
+    if (pp.dem.PostRadius):
+        pp.dem_nodal_results += ["RADIUS"]
 
-    if (project_parameters.dem.PostAngularVelocity):
-        project_parameters.dem_nodal_results += ["ANGULAR_VELOCITY"]
+    if (pp.dem.PostAngularVelocity):
+        pp.dem_nodal_results += ["ANGULAR_VELOCITY"]
 
-    if (project_parameters.projection_module_option):
+    if (pp.projection_module_option):
 
-        if (project_parameters.print_REYNOLDS_NUMBER_option):
-            project_parameters.dem_nodal_results += ["REYNOLDS_NUMBER"]
+        if (pp.print_REYNOLDS_NUMBER_option):
+            pp.dem_nodal_results += ["REYNOLDS_NUMBER"]
 
-        if (project_parameters.print_PRESSURE_GRAD_PROJECTED_option):
-            project_parameters.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
+        if (pp.print_PRESSURE_GRAD_PROJECTED_option):
+            pp.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
 
-        if (project_parameters.print_FLUID_VEL_PROJECTED_option):
-            project_parameters.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
+        if (pp.print_FLUID_VEL_PROJECTED_option):
+            pp.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
 
-    if (project_parameters.print_BUOYANCY_option > 0):
-        project_parameters.dem_nodal_results += ["BUOYANCY"]
+    if (pp.print_BUOYANCY_option > 0):
+        pp.dem_nodal_results += ["BUOYANCY"]
 
-    if (project_parameters.add_each_hydro_force_option):
+    if (pp.add_each_hydro_force_option):
 
-        if (project_parameters.drag_force_type > 0 and project_parameters.print_DRAG_FORCE_option):
-            project_parameters.dem_nodal_results += ["DRAG_FORCE"]
+        if (pp.drag_force_type > 0 and pp.print_DRAG_FORCE_option):
+            pp.dem_nodal_results += ["DRAG_FORCE"]
 
-        if (project_parameters.virtual_mass_force_type > 0 and project_parameters.print_VIRTUAL_MASS_FORCE_option):
-            project_parameters.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
+        if (pp.virtual_mass_force_type > 0 and pp.print_VIRTUAL_MASS_FORCE_option):
+            pp.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
 
-        if (project_parameters.lift_force_type > 0 and project_parameters.print_LIFT_FORCE_option):
-            project_parameters.dem_nodal_results += ["LIFT_FORCE"]
+        if (pp.lift_force_type > 0 and pp.print_LIFT_FORCE_option):
+            pp.dem_nodal_results += ["LIFT_FORCE"]
 
-    project_parameters.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
+    pp.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
 
-    project_parameters.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
+    pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
 
-def ModifyProjectParameters(project_parameters):
+def ModifyProjectParameters(pp):
     # defining and adding imposed porosity fields
-    project_parameters.solid_fraction_fields = []
+    pp.solid_fraction_fields = []
     field1 = SolidFractionFieldUtility.LinearField(0.0,
                                                   [0.0, 0.0, - 1.0],
                                                   [-1.0, -1.0, 0.15],
@@ -78,149 +78,149 @@ def ModifyProjectParameters(project_parameters):
                                                   [-1.0, -1.0, 0.3],
                                                   [1.0, 1.0, 0.45])
 
-    project_parameters.solid_fraction_fields.append(field1)
-    project_parameters.solid_fraction_fields.append(field2)
+    pp.solid_fraction_fields.append(field1)
+    pp.solid_fraction_fields.append(field2)
 
     # changes on PROJECT PARAMETERS for the sake of consistency
-    ChangeListOfFluidNodalResultsToPrint(project_parameters)
+    ChangeListOfFluidNodalResultsToPrint(pp)
 
     # applying changes to input data to avoid inconsistencies
-    ChangeInputDataForConsistency(project_parameters)
+    ChangeInputDataForConsistency(pp)
 
-def ChangeListOfFluidNodalResultsToPrint(project_parameters):
+def ChangeListOfFluidNodalResultsToPrint(pp):
 
-    if (project_parameters.coupling_level_type > 0 and project_parameters.print_SOLID_FRACTION_option):
-        project_parameters.nodal_results += ["SOLID_FRACTION"]
+    if (pp.coupling_level_type > 0 and pp.print_SOLID_FRACTION_option):
+        pp.nodal_results += ["SOLID_FRACTION"]
 
-    if (project_parameters.fluid_model_type == 0 and project_parameters.print_MESH_VELOCITY1_option):
-        project_parameters.nodal_results += ["MESH_VELOCITY1"]
+    if (pp.fluid_model_type == 0 and pp.print_MESH_VELOCITY1_option):
+        pp.nodal_results += ["MESH_VELOCITY1"]
 
-    if (project_parameters.fluid_model_type == 1 and project_parameters.print_SOLID_FRACTION_GRADIENT_option):
-        project_parameters.nodal_results += ["SOLID_FRACTION_GRADIENT"]
+    if (pp.fluid_model_type == 1 and pp.print_SOLID_FRACTION_GRADIENT_option):
+        pp.nodal_results += ["SOLID_FRACTION_GRADIENT"]
 
-    if (project_parameters.body_force_on_fluid_option and project_parameters.print_BODY_FORCE_option):
-        project_parameters.nodal_results += ["BODY_FORCE"]
+    if (pp.body_force_on_fluid_option and pp.print_BODY_FORCE_option):
+        pp.nodal_results += ["BODY_FORCE"]
 
-    if (project_parameters.coupling_level_type > 0 and project_parameters.print_HYDRODYNAMIC_REACTION_option):
-        project_parameters.nodal_results += ["HYDRODYNAMIC_REACTION"]
+    if (pp.coupling_level_type > 0 and pp.print_HYDRODYNAMIC_REACTION_option):
+        pp.nodal_results += ["HYDRODYNAMIC_REACTION"]
 
-def ChangeInputDataForConsistency(project_parameters):
-    project_parameters.dem.project_from_particles_option *= project_parameters.projection_module_option
-    project_parameters.project_at_every_substep_option *= project_parameters.projection_module_option
+def ChangeInputDataForConsistency(pp):
+    pp.dem.project_from_particles_option *= pp.projection_module_option
+    pp.project_at_every_substep_option *= pp.projection_module_option
 
-    if (project_parameters.flow_in_porous_medium_option):
-        project_parameters.coupling_weighing_type = - 1 # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
+    if (pp.flow_in_porous_medium_option):
+        pp.coupling_weighing_type = - 1 # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
 
-    project_parameters.time_steps_per_stationarity_step = max(1, int(project_parameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
-    project_parameters.stationary_problem_option *= not project_parameters.dem.project_from_particles_option
+    pp.time_steps_per_stationarity_step = max(1, int(pp.time_steps_per_stationarity_step)) # it should never be smaller than 1!
+    pp.stationary_problem_option *= not pp.dem.project_from_particles_option
 
-    if (project_parameters.dem.project_from_particles_option or project_parameters.fluid_model_type == 0):
-        project_parameters.coupling_level_type = 1
+    if (pp.dem.project_from_particles_option or pp.fluid_model_type == 0):
+        pp.coupling_level_type = 1
 
-    if (project_parameters.coupling_level_type == 1):
-        project_parameters.virtual_mass_force_type = 0
+    if (pp.coupling_level_type == 1):
+        pp.virtual_mass_force_type = 0
 
-    for var in project_parameters.mixed_nodal_results:
+    for var in pp.mixed_nodal_results:
 
-        if var in project_parameters.nodal_results:
-            project_parameters.nodal_results.remove(var)
+        if var in pp.nodal_results:
+            pp.nodal_results.remove(var)
 
-def ConstructListsOfVariables(project_parameters):
-    # choosing the variables to be passed as a parameter to the constructor of the
-    # ProjectionModule class constructor that are to be filled with the other phase's
-    # information through the coupling process
-
-    project_parameters.coupling_fluid_vars = []
-    project_parameters.coupling_fluid_vars += [ACCELERATION]
-
-    if (project_parameters.body_force_on_fluid_option):
-        project_parameters.coupling_fluid_vars += [BODY_FORCE]
-
-    if (project_parameters.fluid_model_type == 0):
-        project_parameters.coupling_fluid_vars += [MESH_VELOCITY1]
-
-    if (project_parameters.fluid_model_type == 0 or project_parameters.coupling_level_type == 1):
-        project_parameters.coupling_fluid_vars += [SOLID_FRACTION]
-
-    if (project_parameters.fluid_model_type == 1):
-        project_parameters.coupling_fluid_vars += [SOLID_FRACTION_GRADIENT]
-        project_parameters.coupling_fluid_vars += [SOLID_FRACTION_RATE]
-
-    if (project_parameters.coupling_level_type == 1):
-        project_parameters.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
-
-    project_parameters.coupling_dem_vars = []
-
-    if (project_parameters.projection_module_option):
-        project_parameters.coupling_dem_vars += [FLUID_VEL_PROJECTED]
-        project_parameters.coupling_dem_vars += [FLUID_DENSITY_PROJECTED]
-        project_parameters.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
-        project_parameters.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
-        project_parameters.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
-
-    if (project_parameters.coupling_level_type == 1 or project_parameters.fluid_model_type == 0):
-       project_parameters.coupling_dem_vars += [SOLID_FRACTION_PROJECTED]
-
-    if (project_parameters.lift_force_type == 1):
-       project_parameters.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
-       project_parameters.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
-
-    if (project_parameters.virtual_mass_force_type == 1):
-       project_parameters.coupling_dem_vars += [FLUID_ACC_PROJECTED]
-
-    if (project_parameters.embedded_option):
-       project_parameters.coupling_dem_vars += [DISTANCE]
-
-    if (project_parameters.drag_force_type == 2):
-       project_parameters.coupling_dem_vars += [POWER_LAW_N]
-       project_parameters.coupling_dem_vars += [POWER_LAW_K]
-       project_parameters.coupling_dem_vars += [GEL_STRENGTH]
-       project_parameters.coupling_dem_vars += [YIELD_STRESS]
-
-    # listing extra nodal variables to be added to the model parts (memory will be allocated for them)
-    # note that additional variables may be added as well by the fluid and/or DEM strategies
+def ConstructListsOfVariables(pp):
+    # COUPLING VARIABLES
 
     # fluid coupling variables
-    project_parameters.fluid_vars = []
-    project_parameters.fluid_vars += project_parameters.coupling_fluid_vars
-    project_parameters.fluid_vars += [PRESSURE_GRADIENT, AUX_DOUBLE_VAR]
+    pp.coupling_fluid_vars = []
+    pp.coupling_fluid_vars += [ACCELERATION]
 
-    if (project_parameters.drag_force_type == 2):
-        project_parameters.fluid_vars += [POWER_LAW_N]
-        project_parameters.fluid_vars += [POWER_LAW_K]
-        project_parameters.fluid_vars += [GEL_STRENGTH]
-        project_parameters.fluid_vars += [YIELD_STRESS]
-        project_parameters.fluid_vars += [BINGHAM_SMOOTHER]
+    if (pp.body_force_on_fluid_option):
+        pp.coupling_fluid_vars += [BODY_FORCE]
+
+    if (pp.fluid_model_type == 0):
+        pp.coupling_fluid_vars += [MESH_VELOCITY1]
+
+    if (pp.fluid_model_type == 0 or pp.coupling_level_type == 1 or pp.drag_force_type == 4):
+        pp.coupling_fluid_vars += [SOLID_FRACTION]
+
+    if (pp.fluid_model_type == 1):
+        pp.coupling_fluid_vars += [SOLID_FRACTION_GRADIENT]
+        pp.coupling_fluid_vars += [SOLID_FRACTION_RATE]
+
+    if (pp.coupling_level_type == 1):
+        pp.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
 
     # dem coupling variables
-    project_parameters.dem_vars = []
-    project_parameters.dem_vars += project_parameters.coupling_dem_vars
+    pp.coupling_dem_vars = []
 
-    if (project_parameters.print_REYNOLDS_NUMBER_option):
-       project_parameters.dem_vars += [REYNOLDS_NUMBER]
+    if (pp.projection_module_option):
+        pp.coupling_dem_vars += [FLUID_VEL_PROJECTED]
+        pp.coupling_dem_vars += [FLUID_DENSITY_PROJECTED]
+        pp.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
+        pp.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
+        pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
 
-    if (project_parameters.buoyancy_force_type > 0):
-       project_parameters.dem_vars += [BUOYANCY]
+    if (pp.coupling_level_type == 1 or pp.fluid_model_type == 0):
+       pp.coupling_dem_vars += [SOLID_FRACTION_PROJECTED]
 
-    if (project_parameters.drag_force_type > 0 and  project_parameters.add_each_hydro_force_option):
-       project_parameters.dem_vars += [DRAG_FORCE]
+    if (pp.lift_force_type == 1):
+       pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
+       pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
 
-    if (project_parameters.lift_force_type > 0 and  project_parameters.add_each_hydro_force_option):
-       project_parameters.dem_vars += [LIFT_FORCE]
+    if (pp.virtual_mass_force_type == 1):
+       pp.coupling_dem_vars += [FLUID_ACC_PROJECTED]
 
-    if (project_parameters.virtual_mass_force_type > 0 and  project_parameters.add_each_hydro_force_option):
-       project_parameters.dem_vars += [VIRTUAL_FORCE]
+    if (pp.embedded_option):
+       pp.coupling_dem_vars += [DISTANCE]
+
+    if (pp.drag_force_type == 2):
+       pp.coupling_dem_vars += [POWER_LAW_N]
+       pp.coupling_dem_vars += [POWER_LAW_K]
+       pp.coupling_dem_vars += [GEL_STRENGTH]
+       pp.coupling_dem_vars += [YIELD_STRESS]
+
+    # VARIABLES TO ADD
+    # listing nodal variables to be added to the model parts (memory will be allocated for them)
+
+    # fluid coupling variables
+    pp.fluid_vars = []
+    pp.fluid_vars += pp.coupling_fluid_vars
+    pp.fluid_vars += [PRESSURE_GRADIENT, AUX_DOUBLE_VAR]
+
+    if (pp.drag_force_type == 2):
+        pp.fluid_vars += [POWER_LAW_N]
+        pp.fluid_vars += [POWER_LAW_K]
+        pp.fluid_vars += [GEL_STRENGTH]
+        pp.fluid_vars += [YIELD_STRESS]
+        pp.fluid_vars += [BINGHAM_SMOOTHER]
+
+    # dem coupling variables
+    pp.dem_vars = []
+    pp.dem_vars += pp.coupling_dem_vars
+
+    if (pp.print_REYNOLDS_NUMBER_option):
+       pp.dem_vars += [REYNOLDS_NUMBER]
+
+    if (pp.buoyancy_force_type > 0):
+       pp.dem_vars += [BUOYANCY]
+
+    if (pp.drag_force_type > 0 and  pp.add_each_hydro_force_option):
+       pp.dem_vars += [DRAG_FORCE]
+
+    if (pp.lift_force_type > 0 and  pp.add_each_hydro_force_option):
+       pp.dem_vars += [LIFT_FORCE]
+
+    if (pp.virtual_mass_force_type > 0 and  pp.add_each_hydro_force_option):
+       pp.dem_vars += [VIRTUAL_FORCE]
 
     # fem-dem coupling variables
-    project_parameters.fem_dem_vars = [VELOCITY, DISPLACEMENT]
+    pp.fem_dem_vars = [VELOCITY, DISPLACEMENT]
 
-    if (project_parameters.embedded_option):
-        project_parameters.fem_dem_vars += [FORCE]
-        project_parameters.fem_dem_vars += [POSITIVE_FACE_PRESSURE]
-        project_parameters.fem_dem_vars += [NEGATIVE_FACE_PRESSURE]
+    if (pp.embedded_option):
+        pp.fem_dem_vars += [FORCE]
+        pp.fem_dem_vars += [POSITIVE_FACE_PRESSURE]
+        pp.fem_dem_vars += [NEGATIVE_FACE_PRESSURE]
 
     # inlet coupling variables
-    project_parameters.inlet_vars = project_parameters.dem_vars
+    pp.inlet_vars = pp.dem_vars
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_model_part):
 
@@ -378,16 +378,6 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
         print(('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported'))
 
 
-def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
-    current_time += delta_time
-
-    while current_time < current_time_plus_increment - delta_time:
-        yield current_time
-        current_time += delta_time
-
-    current_time = current_time_plus_increment
-    yield current_time
-
 def FindMaxNodeIdInFLuid(fluid_model_part):
 
     max = 0
@@ -500,15 +490,15 @@ class PorosityUtils:
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, project_parameters):
+    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, pp):
 
         self.fluid_model_part = fluid_model_part
         self.particles_model_part = balls_model_part
         self.FEM_DEM_model_part = FEM_DEM_model_part
         self.dimension = dimension
-        self.max_solid_fraction = project_parameters.max_solid_fraction
-        self.coupling_type = project_parameters.coupling_weighing_type
-        self.n_particles_in_depth = project_parameters.n_particles_in_depth
+        self.max_solid_fraction = pp.max_solid_fraction
+        self.coupling_type = pp.coupling_weighing_type
+        self.n_particles_in_depth = pp.n_particles_in_depth
 
         if (self.dimension == 3):
             self.projector = BinBasedDEMFluidCoupledMapping3D(self.max_solid_fraction, self.coupling_type)
@@ -520,10 +510,10 @@ class ProjectionModule:
 
         # telling the projector which variables we are interested in modifying
 
-        for var in project_parameters.coupling_dem_vars:
+        for var in pp.coupling_dem_vars:
             self.projector.AddDEMCouplingVariable(var)
 
-        for var in project_parameters.coupling_fluid_vars:
+        for var in pp.coupling_fluid_vars:
             self.projector.AddFluidCouplingVariable(var)
 
         # calculating the fluid nodal areas that are needed for the coupling
@@ -553,3 +543,57 @@ class ProjectionModule:
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
+
+class PostUtils:
+
+    def __init__(self,
+                 gid_io,
+                 project_parameters,
+                 fluid_model_part,
+                 balls_model_part,
+                 fem_dem_model_part,
+                 mixed_model_part):
+
+        self.gid_io             = gid_io
+        self.fluid_model_part   = fluid_model_part
+        self.balls_model_part   = balls_model_part
+        self.fem_dem_model_part = fem_dem_model_part
+        self.mixed_model_part   = mixed_model_part
+        self.pp                 = project_parameters
+        self.post_utilities     = PostUtilities()
+
+    def Writeresults(self, time):
+
+        print("")
+        print("*******************  PRINTING RESULTS FOR GID  ***************************")
+        sys.stdout.flush()
+
+        if (self.pp.GiDMultiFileFlag == "Multiples"):
+            self.mixed_model_part.Elements.clear()
+            self.mixed_model_part.Nodes.clear()
+            # here order is important!
+            self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.balls_model_part)
+            self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fem_dem_model_part)
+            self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fluid_model_part)
+
+        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.fem_dem_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
+
+    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
+
+        if (self.pp.dem.VelocityTrapOption):
+            average_velocity = Array3()
+            low_point = Array3()
+            low_point[0] = self.pp.dem.VelocityTrapMinX
+            low_point[1] = self.pp.dem.VelocityTrapMinY
+            low_point[2] = self.pp.dem.VelocityTrapMinZ
+            high_point = Array3()
+            high_point[0] = self.pp.dem.VelocityTrapMaxX
+            high_point[1] = self.pp.dem.VelocityTrapMaxY
+            high_point[2] = self.pp.dem.VelocityTrapMaxZ
+
+            average_velocity = self.post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
+            f = open(file_name, 'a')
+            tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2]) + "\n"
+            f.write(tmp)
+            f.flush()
+            f.close()
