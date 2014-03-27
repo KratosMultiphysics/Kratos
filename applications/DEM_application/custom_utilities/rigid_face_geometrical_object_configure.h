@@ -150,7 +150,13 @@ public:
          //Cfeng: rObj_1 is particle,  and rObj_2 is block
 
          bool If_PB_Contact = false;
-		 
+
+         int ContactType = -1;
+         //-1: No contact;
+         // 0: Plane;
+         // 1: Edge;
+         // 2: Point.
+
 	     double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
 		 double Weight[4]              = {0.0, 0.0, 0.0, 0.0};
 		 double DistPToB               = 0.0;
@@ -194,6 +200,7 @@ public:
 			
 			if(If_PB_Contact == true)
 			{
+                ContactType = 1;
 				Weight[0] = tempWeight[0];
 				Weight[1] = tempWeight[1];			
 			}
@@ -208,6 +215,7 @@ public:
 					If_PB_Contact = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
 					if(If_PB_Contact == true)
 					{
+                        ContactType = 2;
 						Weight[inode1] = 1.0;						
 						break;
 					}
@@ -249,7 +257,12 @@ public:
 	        /////Particle-Face contact
 		    If_PB_Contact = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal,Coord,  Centroid, Particle_Coord, rad,
 													                           LocalCoordSystem, Weight,  DistPToB);
-	/*
+
+            if(If_PB_Contact == true)
+            {
+            ContactType = 0;
+            }
+
             ///Particle-edge contact
 			if(If_PB_Contact == false)
 			{
@@ -276,6 +289,7 @@ public:
 					
 					if(If_PB_Contact == true)
 					{
+                        ContactType = 1;
 						int inode3 = (inode1 + 2) % FaceNodeTotal;
 						Weight[inode1] = tempWeight[0];
 						Weight[inode2] = tempWeight[1];
@@ -308,6 +322,7 @@ public:
 					If_PB_Contact = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
 					if(If_PB_Contact == true)
 					{
+                        ContactType = 2.0;
 						Weight[inode1] = 1.0;						
 						break;
 					}
@@ -315,19 +330,19 @@ public:
 			}
 			/////////////////////////////////////
 			
-			*/
+
          }
 		 
 		 ////Store the neighbour value, real contact rigidFace
 		 if(If_PB_Contact == true)
 		 {
-			// In geometrical level to search the neighbour, need pointer convert
-			Vector & RF_Pram= (boost::dynamic_pointer_cast<Element>(rObj_1))->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+             // In geometrical level to search the neighbour, need pointer convert
+             Vector & RF_Pram= (boost::dynamic_pointer_cast<Element>(rObj_1))->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
 			  
 			 //Vector & RF_Pram= rObj_1->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
 			 std::size_t ino = RF_Pram.size();
 
-			 std::size_t TotalSize = ino / 15;
+             std::size_t TotalSize = ino / 16;
 			 
 			 std::size_t isize = 0;
 			 
@@ -341,7 +356,7 @@ public:
 			 
 			 if(isize == TotalSize)
 			 {
-				 RF_Pram.resize(ino + 15);
+                 RF_Pram.resize(ino + 16);
 				 RF_Pram[ino + 0]  = LocalCoordSystem[0][0];
 				 RF_Pram[ino + 1]  = LocalCoordSystem[0][1];
 				 RF_Pram[ino + 2]  = LocalCoordSystem[0][2];
@@ -356,7 +371,9 @@ public:
 				 RF_Pram[ino + 11] = Weight[1];
 				 RF_Pram[ino + 12] = Weight[2];
 				 RF_Pram[ino + 13] = Weight[3];	
-				 RF_Pram[ino + 14] = rObj_2->Id();	
+                 RF_Pram[ino + 14] = rObj_2->Id();
+                 RF_Pram[ino + 15] = ContactType;
+
 			 }
 			
 		 }
