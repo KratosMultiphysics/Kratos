@@ -147,7 +147,7 @@ void RigidFace3D::CalculateRightHandSide(
 				double weight[4] = {0.0};
 				double ContactForce[3] = {0.0};
 				
-				unsigned int ino = 15 * i_nei;
+                unsigned int ino = 16 * i_nei;
 				Vector& neighbour_rigid_faces_pram = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
 				weight[0] = neighbour_rigid_faces_pram[ino + 10];
 				weight[1] = neighbour_rigid_faces_pram[ino + 11];
