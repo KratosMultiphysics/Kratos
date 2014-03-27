@@ -62,10 +62,9 @@ namespace Kratos
             double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
-            Vector[2] = Vector[2] * inv_distance;
-            
-
-      }
+            Vector[2] = Vector[2] * inv_distance;       
+    }
+     
     static inline void normalize( array_1d<double,3>& Vector)
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
@@ -74,41 +73,39 @@ namespace Kratos
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
             Vector[2] = Vector[2] * inv_distance;
-
-      }
+    }     
       
-      static inline void module( array_1d<double,3> Vector, double& distance)
+    static inline void module( array_1d<double,3> Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
-      }
+    }
+    
+    static inline double module( array_1d<double,3> Vector)
+    {
+            double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            return distance;
+    }
 
     static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3])
     {
-    	int i,j;
-
-      for (i=0; i<3; i++)
-      {
-                LocalVector[i] = 0.0;
-                for (j=0; j<3; j++)
-                {
-                    LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
-                }
+        for (int i=0; i<3; i++) {
+            LocalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
             }
         }
-
-        static inline void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3])
-        {
-          int i,j;
-
-      for (i=0; i<3; i++)
-      {
-                GlobalVector[i] = 0.0;
-                for (j=0; j<3; j++)
-                {
-        GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
-                }
-      }
     }
+        
+    static inline void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3])
+    {
+        for (int i=0; i<3; i++) {
+            GlobalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+            }
+        }                
+    }
+    
 
     static inline double DotProduct(double Vector1[3], double Vector2[3])
     {
@@ -122,9 +119,9 @@ namespace Kratos
 
     static inline void CrossProduct(double u[3], double v[3], double ReturnVector[3])
     {
-    	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
-      ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
-      ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+        ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
+        ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+        ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
     static inline void CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector)

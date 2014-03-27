@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/post_utilities.h"
 #include "custom_utilities/search_utilities.h"
 #include "custom_utilities/omp_dem_search.h"
+#include "custom_utilities/dem_fem_utilities.h"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -170,6 +171,10 @@ void  AddCustomUtilitiesToPython(){
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
         .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
         .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)     
+        ;
+     class_<DEMFEMUtilities, boost::noncopyable >
+        ("DEMFEMUtilities", init<>())
+        .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         ;
 
   
