@@ -717,7 +717,7 @@ namespace Kratos
 
 
 void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rObj_2, std::size_t ino, 
-                             double LocalCoordSystem[3][3], double & DistPToB, array_1d<double, 3 > &other_to_me_vel)
+                             double LocalCoordSystem[3][3], double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType)
 {
 	 KRATOS_TRY
 	 
@@ -727,7 +727,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 	 Vector & RF_Pram= this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
 	 
 	
-	 int ino1 = ino * 15;
+     int ino1 = ino * 16;
 	
 	 LocalCoordSystem[0][0] = RF_Pram[ino1 + 0];
 	 LocalCoordSystem[0][1] = RF_Pram[ino1 + 1];
@@ -744,6 +744,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 	 Weight[2]              = RF_Pram[ino1 + 12];
 	 Weight[3]              = RF_Pram[ino1 + 13];
 	 int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
+     ContactType            = RF_Pram[ino1 + 15];
 	 
 	 if(iNeighborID == static_cast<int>(rObj_2->Id()) )
 	 {
@@ -827,11 +828,17 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         double aux_norm_to_tang = sqrt(ks_el / kn_el);
         double DistPToB = 0.0;
 
-        ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);						
+        int ContactType = -1;
 
-        //renew_distance for steps in between searches. 
+        ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
+
+        //MSI: Renew Distance for steps in between searches.
+        // The flag ContactType takes value 0 for a plane contact, 1 for line and 2 for point. The optimized function is created for Plane contact, not for other cases yet.
         
-           double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
+
+        if(ContactType == 0)
+        {
+         double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
 
           // Triangle
           
@@ -854,8 +861,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             Coord[3][2] = ineighbour->GetGeometry()(3)->Coordinates()[2];
           }
             
-        GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
-        
+            GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
+
+        }
         
         double indentation = -(DistPToB - mRadius) - ini_delta;
 
