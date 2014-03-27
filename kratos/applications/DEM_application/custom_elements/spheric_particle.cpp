@@ -1022,7 +1022,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           RotaMoment[1] = rContactMoment[1];
           RotaMoment[2] = rContactMoment[2];
 
-          GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+          GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalElasticContactForce, MA);
 
           RotaMoment[0] -= MA[0] * mRadius;
           RotaMoment[1] -= MA[1] * mRadius;
@@ -1061,9 +1061,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
               CoordSystemMoment2[2] *= det_coor_sys_moment_i_2;
 
               GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
-              MR[0] *= fabs(LocalContactForce[2]);
-              MR[1] *= fabs(LocalContactForce[2]);
-              MR[2] *= fabs(LocalContactForce[2]);
+              MR[0] *= fabs(LocalElasticContactForce[2]);
+              MR[1] *= fabs(LocalElasticContactForce[2]);
+              MR[2] *= fabs(LocalElasticContactForce[2]);
 
               double det_MR = sqrt(MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2]);
               double MR_now = det_MR * rolling_friction_coeff;
