@@ -508,8 +508,9 @@ namespace Kratos
 			
 			double DistPToB = 0.0;
 
-
-			ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);			
+      int  ContactType;
+      
+			ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);			
 			
 
             double DeltDisp[3] = {0.0};
