@@ -171,7 +171,7 @@ namespace Kratos
       ///Cfeng,RigidFace
       virtual void ComputeNewRigidFaceNeighboursHistoricalData();
       virtual void ComputeBallToRigidFaceContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
-      virtual void ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel);
+      virtual void ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
       //////
       
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
