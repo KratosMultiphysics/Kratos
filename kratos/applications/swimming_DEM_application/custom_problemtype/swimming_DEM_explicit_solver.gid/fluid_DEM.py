@@ -23,7 +23,7 @@ import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
 import embedded
-import mesh_motion
+#import mesh_motion
 
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
@@ -462,6 +462,7 @@ stat_steps = 0
 Dt_DEM = DEMParameters.MaxTimeStep
 stationarity = False
 dem_solver.Initialize()
+mesh_motion = DEMFEMUtilities()
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
