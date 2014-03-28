@@ -280,12 +280,6 @@ namespace Kratos
       int mDimension;
       int mDampType;
       int mElasticityType;
-      //int mRotationOption;
-      //int mRollingFrictionOption;
-      //int mCriticalTimeOption;   
-      //int mLimitSurfaceOption;
-      //int mLimitCylinderOption;
-      //int mRotationSpringOption;
       double mRadius;
       double mSqrtOfRealMass;
 
@@ -406,11 +400,27 @@ namespace Kratos
       virtual void save(Serializer& rSerializer) const
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
+          rSerializer.save("mRadius",mRadius);
+          rSerializer.save("mSqrtOfRealMass",mSqrtOfRealMass);
+
+          rSerializer.save("mRollingFriction",mRollingFriction);
+          rSerializer.save("mYoung",mYoung);
+          rSerializer.save("mPoisson",mPoisson);
+          rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
+          rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);  
       }
 
       virtual void load(Serializer& rSerializer)
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
+          rSerializer.load("mRadius",mRadius);
+          rSerializer.load("mSqrtOfRealMass",mSqrtOfRealMass);
+
+          rSerializer.load("mRollingFriction",mRollingFriction);
+          rSerializer.load("mYoung",mYoung);
+          rSerializer.load("mPoisson",mPoisson);
+          rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
+          rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);  
       }
 
       /*
