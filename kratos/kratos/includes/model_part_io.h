@@ -124,11 +124,12 @@ public:
     ///@{
 
     /// Constructor with  filenames.
-    ModelPartIO(std::string const& Filename)
+    ModelPartIO(std::string const& Filename, const bool IgnoreNonAddedNodalVariables = false)
         : mNumberOfLines(1)
         , mInputBaseName(Filename), mOutputBaseName(Filename)
         , mInputFilename(Filename + ".mdpa"), mOutputFilename(Filename + "_out.mdpa")
         , mInput(mInputFilename.c_str()),  mOutput(mOutputFilename.c_str())
+        , mIgnoreNonAddedNodalVariables(IgnoreNonAddedNodalVariables)
     {
         if(!mInput)
             KRATOS_ERROR(std::invalid_argument, "Error opening input file : ", mInputFilename.c_str());
@@ -140,11 +141,12 @@ public:
     }
 
     /// Constructor with input and output filenames.
-    ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
+    ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename, const bool IgnoreNonAddedNodalVariables = false)
         : mNumberOfLines(1)
         , mInputBaseName(InputFilename), mOutputBaseName(OutputFilename)
         , mInputFilename(InputFilename + ".mdpa"), mOutputFilename(OutputFilename + ".mdpa")
         , mInput(mInputFilename.c_str()), mOutput(mOutputFilename.c_str())
+        , mIgnoreNonAddedNodalVariables(IgnoreNonAddedNodalVariables)
     {
         if(!mInput)
             KRATOS_ERROR(std::invalid_argument, "Error opening input file : ", mInputFilename.c_str());
@@ -364,9 +366,14 @@ public:
         mOutput << "End Conditions" << std::endl;
     }
 
-    virtual void ReadInitialValues(NodesContainerType& rThisNodes, ElementsContainerType& rThisElements, ConditionsContainerType& rThisConditions)
+    virtual void ReadInitialValues(ModelPart& rThisModelPart)
     {
         KRATOS_TRY
+        
+        ElementsContainerType& rThisElements = rThisModelPart.Elements();
+        ConditionsContainerType& rThisConditions = rThisModelPart.Conditions();
+        
+        
         ResetInput();
         std::string word;
         while(true)
@@ -376,7 +383,7 @@ public:
                 break;
             ReadBlockName(word);
             if(word == "NodalData")
-                ReadNodalDataBlock(rThisNodes);
+                ReadNodalDataBlock(rThisModelPart);
             else if(word == "ElementalData")
                 ReadElementalDataBlock(rThisElements);
             else if(word == "ConditionalData")
@@ -429,7 +436,7 @@ public:
             else if(word == "Conditions")
                 ReadConditionsBlock(rThisModelPart);
             else if(word == "NodalData")
-                ReadNodalDataBlock(rThisModelPart.Nodes());
+                ReadNodalDataBlock(rThisModelPart);
             else if(word == "ElementalData")
                 ReadElementalDataBlock(rThisModelPart.Elements());
             else if(word == "ConditionalData")
@@ -685,6 +692,7 @@ protected:
     std::string mOutputFilename;
     std::ifstream mInput;
     std::ofstream mOutput;
+    bool mIgnoreNonAddedNodalVariables;
 
 
     ///@}
@@ -1281,15 +1289,20 @@ protected:
     }
 
 
-    void ReadNodalDataBlock(NodesContainerType& rThisNodes)
+    void ReadNodalDataBlock(ModelPart& rThisModelPart)
     {
         KRATOS_TRY
 
+        NodesContainerType& rThisNodes = rThisModelPart.Nodes();
+        
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
         std::string variable_name;
 
         ReadWord(variable_name);
+        
+        VariablesList r_modelpart_nodal_variables_list = rThisModelPart.GetNodalSolutionStepVariablesList();
+        
 
         if(KratosComponents<Flags >::Has(variable_name))
         {
@@ -1297,19 +1310,39 @@ protected:
         }
         else if(KratosComponents<Variable<int> >::Has(variable_name))
         {
-            ReadNodalScalarVariableData(rThisNodes, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+            bool has_been_added = r_modelpart_nodal_variables_list.Has(KratosComponents<Variable<int> >::Get(variable_name)) ;
+            if( !has_been_added && mIgnoreNonAddedNodalVariables ) {
+                std::cout<<std::endl<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;                SkipBlock("NodalData");
+                SkipBlock("NodalData");
+            }
+            else {
+                ReadNodalScalarVariableData(rThisNodes, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+            }
         }
         else if(KratosComponents<Variable<double> >::Has(variable_name))
-        {
-            ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
+        {                    
+            bool has_been_added = r_modelpart_nodal_variables_list.Has(KratosComponents<Variable<double> >::Get(variable_name)) ;
+            if( !has_been_added && mIgnoreNonAddedNodalVariables ) {
+                std::cout<<std::endl<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;                SkipBlock("NodalData");
+                SkipBlock("NodalData");
+            }
+            else {
+                ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));                
+            }
         }
         else if(KratosComponents<array_1d_component_type>::Has(variable_name))
         {
             ReadNodalDofVariableData(rThisNodes, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
         }
         else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
-        {
-            ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+        {         
+            bool has_been_added = r_modelpart_nodal_variables_list.Has(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)) ;
+            if( !has_been_added && mIgnoreNonAddedNodalVariables ) {
+                std::cout<<std::endl<<"WARNING: Skipping NodalData block. Variable "<<variable_name<<" has not been added to ModelPart '"<<rThisModelPart.Name()<<"'"<<std::endl<<std::endl;                SkipBlock("NodalData");
+            }
+            else {
+                ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<array_1d<double, 3> > const& >(KratosComponents<Variable<array_1d<double, 3> > >::Get(variable_name)), Vector(3));
+            }
         }
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
