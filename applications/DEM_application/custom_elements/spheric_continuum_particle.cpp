@@ -501,8 +501,8 @@ namespace Kratos
                   calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
                 }
               
-                kn_el              = 0.9237*equiv_young * calculation_area;// * radius_sum_i; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
-                kt_el              = 0.0*kn_el/(2.0 + equiv_poisson + equiv_poisson);
+                kn_el              = equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
+                kt_el              = kn_el/(2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
             }
