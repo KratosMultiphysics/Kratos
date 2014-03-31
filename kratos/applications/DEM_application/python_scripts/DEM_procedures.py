@@ -461,7 +461,7 @@ class Procedures:
         y = element.GetNode(0).Y
         #z = element.GetNode(0).Z
       
-        if(x>3.1):
+        if(x>21.1):
           element.SetValue(SKIN_SPHERE,1)
         if(x<1.25):
           element.SetValue(SKIN_SPHERE,1)
@@ -497,7 +497,7 @@ class DEMFEMProcedures:
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
         os.chdir(self.graphs_path)
         self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
-        (total_force_top) = self.MeasureForces()
+        self.total_force_top = 0.0
 
         # SIMULATION SETTINGS
 
