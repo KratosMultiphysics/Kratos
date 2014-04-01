@@ -349,20 +349,19 @@ End NodalData
 
 *endif
 *endif
-*Set cond surface_FACE_LOAD *nodes
-*Add cond line_FACE_LOAD *nodes
+*Set cond line_LINE_LOAD *nodes
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
 *set var Xset=0
 *loop nodes *OnlyInCond
-*if(cond(FACE_LOAD_X,int)==1)
+*if(cond(LINE_LOAD_X,int)==1)
 *set var Xset=1
 *endif
 *end nodes
 *if(Xset == 1)
-Begin NodalData FACE_LOAD_X
+Begin NodalData LINE_LOAD_X
 *loop nodes *OnlyInCond
-*if(cond(FACE_LOAD_X,int)==1)
+*if(cond(LINE_LOAD_X,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_X) *cond(X_Value)
 *endif
@@ -374,14 +373,14 @@ End NodalData
 *# Check if some node has its Y value set
 *set var Yset=0
 *loop nodes *OnlyInCond
-*if(cond(FACE_LOAD_Y,int)==1)
+*if(cond(LINE_LOAD_Y,int)==1)
 *set var Yset=1
 *endif
 *end nodes
 *if(Yset == 1)
-Begin NodalData FACE_LOAD_Y
+Begin NodalData LINE_LOAD_Y
 *loop nodes *OnlyInCond
-*if(cond(FACE_LOAD_Y,int)==1)
+*if(cond(LINE_LOAD_Y,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_Y) *cond(Y_Value)
 *endif
@@ -393,14 +392,14 @@ End NodalData
 *# Check if some node has its Z value set
 *set var Zset=0
 *loop nodes *OnlyInCond
-*if(cond(FACE_LOAD_Z,int)==1)
+*if(cond(LINE_LOAD_Z,int)==1)
 *set var Zset=1
 *endif
 *end nodes
 *if(Zset == 1)
-Begin NodalData FACE_LOAD_Z
+Begin NodalData LINE_LOAD_Z
 *loop nodes *OnlyInCond
-*if(cond(FACE_LOAD_Z,int)==1)
+*if(cond(LINE_LOAD_Z,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_Z) *cond(Z_Value)
 *endif
@@ -409,19 +408,19 @@ End NodalData
 
 *endif
 *endif
-*Set cond point_FORCE *nodes
+*Set cond surface_SURFACE_LOAD *nodes
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
 *set var Xset=0
 *loop nodes *OnlyInCond
-*if(cond(FORCE_X,int)==1)
+*if(cond(SURFACE_LOAD_X,int)==1)
 *set var Xset=1
 *endif
 *end nodes
 *if(Xset == 1)
-Begin NodalData FORCE_X
+Begin NodalData SURFACE_LOAD_X
 *loop nodes *OnlyInCond
-*if(cond(FORCE_X,int)==1)
+*if(cond(SURFACE_LOAD_X,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_X) *cond(X_Value)
 *endif
@@ -433,14 +432,14 @@ End NodalData
 *# Check if some node has its Y value set
 *set var Yset=0
 *loop nodes *OnlyInCond
-*if(cond(FORCE_Y,int)==1)
+*if(cond(SURFACE_LOAD_Y,int)==1)
 *set var Yset=1
 *endif
 *end nodes
 *if(Yset == 1)
-Begin NodalData FORCE_Y
+Begin NodalData SURFACE_LOAD_Y
 *loop nodes *OnlyInCond
-*if(cond(FORCE_Y,int)==1)
+*if(cond(SURFACE_LOAD_Y,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_Y) *cond(Y_Value)
 *endif
@@ -452,14 +451,73 @@ End NodalData
 *# Check if some node has its Z value set
 *set var Zset=0
 *loop nodes *OnlyInCond
-*if(cond(FORCE_Z,int)==1)
+*if(cond(SURFACE_LOAD_Z,int)==1)
 *set var Zset=1
 *endif
 *end nodes
 *if(Zset == 1)
-Begin NodalData FORCE_Z
+Begin NodalData SURFACE_LOAD_Z
 *loop nodes *OnlyInCond
-*if(cond(FORCE_Z,int)==1)
+*if(cond(SURFACE_LOAD_Z,int)==1)
+*format "%i%i%10.5e"
+*NodesNum *cond(Fix_Z) *cond(Z_Value)
+*endif
+*end nodes
+End NodalData
+
+*endif
+*endif
+*Set cond point_POINT_LOAD *nodes
+*if(CondNumEntities > 0)
+*# Check if some node has its X value set
+*set var Xset=0
+*loop nodes *OnlyInCond
+*if(cond(POINT_LOAD_X,int)==1)
+*set var Xset=1
+*endif
+*end nodes
+*if(Xset == 1)
+Begin NodalData POINT_LOAD_X
+*loop nodes *OnlyInCond
+*if(cond(POINT_LOAD_X,int)==1)
+*format "%i%i%10.5e"
+*NodesNum *cond(Fix_X) *cond(X_Value)
+*endif
+*end nodes
+End NodalData
+
+*endif
+*#
+*# Check if some node has its Y value set
+*set var Yset=0
+*loop nodes *OnlyInCond
+*if(cond(POINT_LOAD_Y,int)==1)
+*set var Yset=1
+*endif
+*end nodes
+*if(Yset == 1)
+Begin NodalData POINT_LOAD_Y
+*loop nodes *OnlyInCond
+*if(cond(POINT_LOAD_Y,int)==1)
+*format "%i%i%10.5e"
+*NodesNum *cond(Fix_Y) *cond(Y_Value)
+*endif
+*end nodes
+End NodalData
+
+*endif
+*#
+*# Check if some node has its Z value set
+*set var Zset=0
+*loop nodes *OnlyInCond
+*if(cond(POINT_LOAD_Z,int)==1)
+*set var Zset=1
+*endif
+*end nodes
+*if(Zset == 1)
+Begin NodalData POINT_LOAD_Z
+*loop nodes *OnlyInCond
+*if(cond(POINT_LOAD_Z,int)==1)
 *format "%i%i%10.5e"
 *NodesNum *cond(Fix_Z) *cond(Z_Value)
 *endif
