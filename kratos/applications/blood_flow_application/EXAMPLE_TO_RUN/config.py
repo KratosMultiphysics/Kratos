@@ -1,8 +1,10 @@
 #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 # PARAMETER_CONFIG
-relative_path_3D = "/home/biomedical/Desktop/IamWorkingOn_April/Example_TORUN/3D/"
-relative_path_1D = "/home/biomedical/Desktop/IamWorkingOn_April/Example_TORUN/1D/"
+#relative_path_3D = "/home/biomedical/Desktop/IamWorkingOn_April/Example_TORUN/3D/"
+relative_path_3D = "/home/esoudah/kratos/applications/blood_flow_application/EXAMPLE_TO_RUN/3D/"
+#relative_path_1D = "/home/biomedical/Desktop/IamWorkingOn_April/Example_TORUN/1D/"
+relative_path_1D = "/home/esoudah/kratos/applications/blood_flow_application/EXAMPLE_TO_RUN/1D/"
 name = "volume_mesh_tube"
 artery_type = [3]
 deactivate_list = [40, 41]
