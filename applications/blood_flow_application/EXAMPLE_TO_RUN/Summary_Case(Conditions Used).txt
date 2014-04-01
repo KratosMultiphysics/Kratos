@@ -1,0 +1,31 @@
+This case was running, day: 
+15:15:47
+01/04/14
+ToRun.PY:VERSION 31_March_2014
+Name_model_3D: /home/esoudah/kratos/applications/blood_flow_application/EXAMPLE_TO_RUN/3D/volume_mesh_tube
+Name_model_1D: /home/esoudah/kratos/applications/blood_flow_application/EXAMPLE_TO_RUN/1D/Left_RCA_Dominant
+Name_model_1D_centerline: /home/esoudah/kratos/applications/blood_flow_application/EXAMPLE_TO_RUN/1D/centerline
+Fit Radius: False
+Initial Flow: 1e-07
+Initial Pressure: 7500.0
+Coupled 3D-1D Problem is running
+Catheter Simulation is running 
+Catheter_Radius: 0.00015
+Coupled Simulation Algorithm sets with: 
+Pressure Iteration: 20
+Velocity Iteration: 5
+Condition Variable to modify the TERMINAL_RESISTANCE: True
+Resistence_factor: 1
+Using Coseno Pressure profile as input:
+Pressure_Factor: 1
+Diastolic pressure: 7500.0
+Systolic Pressure: 12500.0
+Cardiac_cycle Time: 0.1 second/s
+Number of cardiac_cycle: 2
+Coupling 1D-3D in the 2 cycle
+Total Time: 0.2 second/s
+Using Adaptative Time Step: 9.86727574626e-06 (aprox) Seconds
+Fix Pressure 3D
+Running Computation
+... ... ... ... ... ... ... ... ... ... 
+Cardiac_cycle: ------------------------> 1
