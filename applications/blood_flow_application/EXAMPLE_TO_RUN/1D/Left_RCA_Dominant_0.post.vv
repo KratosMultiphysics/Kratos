@@ -1,0 +1,595 @@
+BeginZE /home/biomedical/Desktop/IamWorkingOn_April/Example_TORUN/1D/Left_RCA_Dominant_0.post.vv
+   x -0.0879442170262336731 0.17502322793006897
+   y 0.175124108791351318 0.0218768864870071411
+   z 14.6360292434692383 15.0957708358764648
+   e 0.0766236111521720886
+   v 0.129517743610236574 0.16365041383922399 0.15896420558793134
+   r 0.964973614915020095
+   m 0.895897865295410156 -0.264401257038116455 0.35701403021812439 0 0.349183797836303711 0.915911078453063965 -0.197933301329612732 0 -0.274659305810928345 0.301991522312164307 0.912887394428253174 0 0 0 0 1
+   c 0.0435395017266273499 0.0985004976391792297 -14.8659000396728516
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderFast
+   OGLShadow(ShadowBias) 0
+   OGLShadow(AmbientShadows) 0
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/biomedical/Desktop/IamWorkingOn_April/Example_TORUN/1D/Left_RCA_Dominant_0.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+BeginInfo
+eJzdV9tu6jgUfecrLM3LjNSiBHoTb70wFRqgFaQV82Q5iRM8dewcOylwjvrvs+3cQzofME8kawVnX9ZedryA342vx66LvA+4+L24+WO0ZCI/olfv8vHh0nVuLx0XTceTsXN5fXsZU0EVC9Cv3+5uL9/8XGQ52q5ekZdTtJafyJ2giTubXs9cB715j2jiuNMvdLy7wTdXI0/GHLnj2xl6Xu7QJ9M54YiFyDlOpheIZBlN0gweGHl7qihiGgmJ5CdVnJzsXwIpMnrMxqPRS0rFM5+NEELv8/XTy2aGfj0oRgR6JTn/MvgG8PlmbpgV1QTtXPereH6zXbysAXbH18hSN5D5xJJPi+3r8v5vtFj/+bJZ3XvFgz7LNFI0RHcXKFaUCnPhc8gZfglP9wQ5FyikabZHk6sLpDMqAsYNC5eKSkhkbNdfLlYLbwtLmpsVOSIP8skh2S37SWdQrqu7iplzmlABL16IkAVUz9DUcZwz9p2q7JyePvVXvr6puMfcp3CRfvPu+0/COPE5hQ6FEHpCE6lOSNuHHLR6OGVUl2uxJE/QQaoPJmIk8sSnCskI0TK4Gbp2HPTXyKY+33nztam8Tf95ie9fX5dznJLgg4Y4ZUfKdQND16HVmChFTlj6/9Ags+TmAds646wIvgYVOWA/jyKqdIVFisQmDpwqGSuSnOF6T0KqKnhPeIQjLklWRFPhLCEx5FfdJjnPmCZJymkH6gUkg4DnmkmBf+RUnSrYrlwG2ssrlczESiBSmrXSKHCdKnhFhRWRlwvoNgqRYk5EnJOYYhcU0eLkoXuHSeIzKESFlilgXyqzesAhyz4XyCRVVJvMzigQFk7I2V+o+MQkDIdgWM1ngg5SSmrtEzXEhTKb9vGEKSVhSLGiKSVnOQnoRCoPpmgRzg6yzysoJJStaWqmiNCp1CalTLFjhZfKHGxhyfX0VqJdtR2YMB2AF1jEW2AYORFi+iMnmZGNpkYKZcuBHlItwAPVnPa5ojRYisCuBpOIiR+r6houSX1tgwgkl6oLDcbV0FEugm8oLmMWYJl20YSJhBy7mM59qHpRToMGnKX4U/I8oXjPRIODBhmHVrddoiGF+UtWCrSA0lPbMAxWuIgvcxFq4HS9uHUS6D2MT+VjFRXJGNaC4agBM6ulEnzOsiG8UYhh4jSv5NEbdcPumc5q6RjAOksRkk2yfrK0zSKLcr/pcY2lFiCnsMOG/Tp8Y0iWGjCkAuenGJQgo0jT+mkwhQDeAYOmElLHoin0IyTq1NVUpRSwNRrknKgeXdiTEZVuYaoJv8qnZosS4IMitdCMnLrJDt9On3oApiF0v7a/DtN4WR9ueVmfqvyqjXMZYp8R3cfLYR18e7c/g9bVJvTm+aHGWAINrvciA/WnZ/GwKgSXyJD2RWdIRcxxBizLTmaF/ocBL9bPm+8MYjXf3lupYiZMJA1WjkcIExTXKMgLTiDtLd7CXRu10CnwA9Vu9fq98hfwsBoaOh0AzFm8z8Dyj5geUynK3RGI/jYMELwDDsQQWsShBaXhFPh5YwA/3x7OQBe7Bn+Zb+HfBMpmpsmGsH1eFEPS2o8aLDMntgpq9uo+tcX2BG8mL2FpuVdb/Lu9v0N256JDgZxLbHd+QrNocwJp3baPINu39YDhfQG1m9mj/na+ebcHegPZXTSmtn+BmUlzKrGE1bb9ugBpRbKPQfbFcW5X6MXuDuAVpbYaAqwRKlRUsSjVrtIip0S3xbgrcop8cLuIxQ2Slot+db5PzLfHVe/b43G5mK+9/2VyL9A1+KqCz4fqEj6w0Gq+fjPQvwJgHk8=
+EndInfo
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 33
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos Mesh"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndMesh: 0
+  Set: 0
+  State: On
+    Name: "Kratos_Line3D2_Mesh_16"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 0
+  Set: 1
+  State: On
+    Name: "Kratos_Line3D2_Mesh_17"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 1
+  Set: 2
+  State: On
+    Name: "Kratos_Line3D2_Mesh_18"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 2
+  Set: 3
+  State: On
+    Name: "Kratos_Line3D2_Mesh_19"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 3
+  Set: 4
+  State: On
+    Name: "Kratos_Line3D2_Mesh_20"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 4
+  Set: 5
+  State: On
+    Name: "Kratos_Line3D2_Mesh_21"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 5
+  Set: 6
+  State: On
+    Name: "Kratos_Line3D2_Mesh_22"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 6
+  Set: 7
+  State: On
+    Name: "Kratos_Line3D2_Mesh_23"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 7
+  Set: 8
+  State: On
+    Name: "Kratos_Line3D2_Mesh_24"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 8
+  Set: 9
+  State: On
+    Name: "Kratos_Line3D2_Mesh_25"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 9
+  Set: 10
+  State: On
+    Name: "Kratos_Line3D2_Mesh_26"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 10
+  Set: 11
+  State: On
+    Name: "Kratos_Line3D2_Mesh_27"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 11
+  Set: 12
+  State: On
+    Name: "Kratos_Line3D2_Mesh_28"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 12
+  Set: 13
+  State: On
+    Name: "Kratos_Line3D2_Mesh_29"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 13
+  Set: 14
+  State: On
+    Name: "Kratos_Line3D2_Mesh_30"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 14
+  Set: 15
+  State: On
+    Name: "Kratos_Line3D2_Mesh_31"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 15
+  Set: 16
+  State: On
+    Name: "Kratos_Line3D2_Mesh_32"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 16
+  Set: 17
+  State: On
+    Name: "Kratos_Line3D2_Mesh_33"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 17
+  Set: 18
+  State: On
+    Name: "Kratos_Line3D2_Mesh_34"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 18
+  Set: 19
+  State: On
+    Name: "Kratos_Line3D2_Mesh_35"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 19
+  Set: 20
+  State: On
+    Name: "Kratos_Line3D2_Mesh_36"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 20
+  Set: 21
+  State: On
+    Name: "Kratos_Line3D2_Mesh_37"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 21
+  Set: 22
+  State: On
+    Name: "Kratos_Line3D2_Mesh_38"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 22
+  Set: 23
+  State: On
+    Name: "Kratos_Line3D2_Mesh_39"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 23
+  Set: 24
+  State: On
+    Name: "Kratos_Line3D2_Mesh_40"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 24
+  Set: 25
+  State: On
+    Name: "Kratos_Line3D2_Mesh_41"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 25
+  Set: 26
+  State: On
+    Name: "Kratos_Line3D2_Mesh_42"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 26
+  Set: 27
+  State: On
+    Name: "Kratos_Line3D2_Mesh_43"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 27
+  Set: 28
+  State: On
+    Name: "Kratos_Line3D2_Mesh_44"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 28
+  Set: 29
+  State: On
+    Name: "Kratos_Line3D2_Mesh_45"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 29
+  Set: 30
+  State: On
+    Name: "Kratos_Line3D2_Mesh_46"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 30
+  Set: 31
+  State: On
+    Name: "Kratos_Line3D2_Mesh_47"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 31
+  Set: 32
+  State: On
+    Name: "Kratos_Line3D2_Mesh_48"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 786445
+    Property Edge Width: 1
+    Property Vector Filter Factor: 10
+    Property Stream Arrow: 0
+  EndSet: 32
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 5} {Contour Fill} Kratos 0.0010067523689940572 FLOW FLOW 0.0 4 0
+EndPostState
+

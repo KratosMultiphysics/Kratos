@@ -1,0 +1,68 @@
+BeginZE Y:/SOLOBIOMEDICAL/Proyectos/PIEMEDICAL/kratos_install_dir-mar/Example/IamWorkingOn/3D/volume_mesh_0.post.vv
+   x -0.014415228739380836 -0.0051798061467707157
+   y 0.028991993516683578 0.02351040206849575
+   z -0.044979475438594818 -0.022733636200428009
+   e 0.0037076396401971579
+   v -0.77525828559863219 0.39244201231196829 -0.24352649456631278
+   r -0.43088131083564662
+   m 0.57336825132369995 -0.81834989786148071 0.039400007575750351 0 -0.39862582087516785 -0.32066112756729126 -0.85922867059707642 0 0.71578371524810791 0.47694855928421021 -0.51007229089736938 0 0 0 0 1
+   c -0.0098017212003469467 0.026167124509811401 0.033856555819511414
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE Y:/SOLOBIOMEDICAL/Proyectos/PIEMEDICAL/kratos_install_dir-mar/Example/IamWorkingOn/3D/volume_mesh_0.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+BeginInfo
+eJzNU11v2jAUfc+vuI9FSlGgtEN5g5GiaHxUkH7sCZnkQq06dmQ7JbTqf9+1A9qkTdM0adJekpv7ca7POXGWi2H3utvrQfZCwUX70QmCTO0F9LqfYmDmBQvYKQ0M9ihR8xw0ygI16jAY+eodb1BQS8ksFGhyzSvLlYQL6EW9ThwAwPQ0ystKYInSMtcRtqO37Sg1h653ouqtwHG926GO4YjGZ9eWVqo26xOr6XgUwmdVVspwvw8lo8ECLh64sawTwkSzA1gFj1wW6hDCskI5nYGpq0ppG4KDuTdc7qE/ICRBLLfcmhiGxLEI6bXXiNIFW1EjMFlABExUzyz8PhvBKM/rshae0wkhahGiM0L0O4SrPkywss9+1vcMHV+ZczGmjGukJXXDBWf6CFsvQpuOoHZmCHYkuaPmctd0PIB6PSeb6LLZdaASTKIJpsoS8D+3DHJVHX+w6c+dIC3+2ombwa+s6N20GPQ+gVD0f7gReB2E1/shWUyWqxje5zzXyqidJSE0yeO5fHgtqSVZJa5pOknPDn2006t1ulwQ226vG3lP0vXdbPQV0sXtcjUfZb767jmRHDAMWzVc4MWgt1cCopB+Ccf/qh+CaYm7qvE3EKTq+o2zdJ5ma4J0H3PWQIaNrTXCmr8hnSPqD86VpP2BDKSy4DmSJ/1oMPyp+oDansrXN646emVcuDsNr7yg1SWWihQ3fkEE8/HRojnB8LIu4aD0i7NQ1uUWNagd4Ak8hmty50vgj548ZcnCyeWPP51tKLHZ7jU7xxUTSPek2NiWk8s/pouNObBq88ylJZzp7Cn2xq2TFakfB0t6kuB0snNI2sM8Wdy71Dc/SK20
+
+EndInfo
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos_Tetrahedra3D4_Mesh_0"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 1048604
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 12} {Contour Fill} Kratos 1.000129222869873 PRESSURE PRESSURE 0.0 4 0
+EndPostState
+
