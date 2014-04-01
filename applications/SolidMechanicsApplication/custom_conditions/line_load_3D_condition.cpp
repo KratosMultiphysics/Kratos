@@ -169,8 +169,8 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
     //FORCE CONDITION:
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FACE_LOAD ) ) //temporary, will be checked once at the beginning only
-	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FACE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( LINE_LOAD ) ) //temporary, will be checked once at the beginning only
+	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( LINE_LOAD );
       }
 
     return rVectorForce;

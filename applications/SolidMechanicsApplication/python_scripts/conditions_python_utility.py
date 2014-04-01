@@ -71,13 +71,22 @@ class ConditionsUtility:
     def SetIncrementalLoad(self, incr_steps, time_step):
         if(self.incr_load):
             for node in self.model_part.Nodes:
-                # line and surface load conditions
-                force = node.GetSolutionStepValue(FACE_LOAD);
+
+                # line load conditions
+                force = node.GetSolutionStepValue(LINE_LOAD);
                 for dim in range(0,len(force)):
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(FACE_LOAD, force);
+                node.SetSolutionStepValue(LINE_LOAD, force);
 
+                # surface load conditions
+                force = node.GetSolutionStepValue(SURFACE_LOAD);
+                for dim in range(0,len(force)):
+                    force[dim] = force[dim] / (time_step * (incr_steps))
+                force = force * time_step * (incr_steps + 1)
+                node.SetSolutionStepValue(SURFACE_LOAD, force);
+
+                # line or surface pressure conditions
                 pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE);
                 pressure = pressure / (time_step * (incr_steps))
                 pressure = pressure * time_step * (incr_steps + 1)
@@ -89,11 +98,11 @@ class ConditionsUtility:
                 node.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE, pressure);
 
                 # point load conditions
-                force = node.GetSolutionStepValue(FORCE);
+                force = node.GetSolutionStepValue(POINT_LOAD);
                 for dim in range(0,len(force)):
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(FORCE, force);
+                node.SetSolutionStepValue(POINT_LOAD, force);
                 
                 # point moment conditions
                 moment = node.GetSolutionStepValue(MOMENT);

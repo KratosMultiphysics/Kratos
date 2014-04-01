@@ -7,8 +7,8 @@ import ProjectParameters
 
 def ChangeCondition(model_part, lamda):
     for node in model_part.Nodes:
-        new_load = node.GetSolutionStepValue(FORCE) * lamda
-        node.SetSolutionStepValue(FORCE, 0, new_load)
+        new_load = node.GetSolutionStepValue(POINT_LOAD) * lamda
+        node.SetSolutionStepValue(POINT_LOAD, 0, new_load)
 
 
 def PrintResults(model_part):
@@ -46,7 +46,7 @@ if(ProjectParameters.LinearSolver == "ParallelMKLPardisoSolver" or ProjectParame
 # defining variables to be used
 
 varibles_dictionary = {"DISPLACEMENT": DISPLACEMENT,
-                       "FORCE": FORCE,
+                       "POINT_LOAD": POINT_LOAD,
                        "REACTION": REACTION,
                        "GREEN_LAGRANGE_STRAIN_TENSOR": GREEN_LAGRANGE_STRAIN_TENSOR,
                        "ROTATION": ROTATION,
@@ -55,7 +55,7 @@ varibles_dictionary = {"DISPLACEMENT": DISPLACEMENT,
 
 # defining a model part
 model_part = ModelPart("StructurePart")
-model_part.AddNodalSolutionStepVariable(FORCE)
+model_part.AddNodalSolutionStepVariable(POINT_LOAD)
 if(ProjectParameters.Rotational_Dofs == "True"):
     model_part.AddNodalSolutionStepVariable(ROTATION)
     model_part.AddNodalSolutionStepVariable(MOMENTUM)
