@@ -186,6 +186,11 @@ protected:
 		      Vector& b );
 
 
+    void AddMatrix(MatrixType& Destination,
+		   boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+		   int InitialRow,
+		   int InitialCol );
+
     void SubtractMatrix(MatrixType& Destination,
 			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
 			int InitialRow,

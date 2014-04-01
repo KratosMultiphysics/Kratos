@@ -222,8 +222,8 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
     //FORCE CONDITION:
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FACE_LOAD ) ) //temporary, will be checked once at the beginning only
-	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FACE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( SURFACE_LOAD ) ) //temporary, will be checked once at the beginning only
+	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( SURFACE_LOAD );
       }
 
 
@@ -270,8 +270,8 @@ void SurfaceLoad3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
 		double coeff;
 		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-		MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
-		MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
+		this->MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
+		this->MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
 
 		unsigned int RowIndex = 0;
 		unsigned int ColIndex = 0;
@@ -290,8 +290,7 @@ void SurfaceLoad3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
 
 				noalias(Kij) -= coeff * Cross_gn;
 
-				//TAKE CARE: the load correction matrix should be SUBTRACTED not added
-				SubtractMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+				this->AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 			}
 		}
 	}
@@ -307,13 +306,13 @@ void SurfaceLoad3DCondition::MakeCrossMatrix(boost::numeric::ublas::bounded_matr
 					 Vector& U)
 {
     M(0, 0) = 0.00;
-    M(0, 1) = -U[2];
-    M(0, 2) = U[1];
-    M(1, 0) = U[2];
+    M(0, 1) = U[2];
+    M(0, 2) = -U[1];
+    M(1, 0) = -U[2];
     M(1, 1) = 0.00;
-    M(1, 2) = -U[0];
-    M(2, 0) = -U[1];
-    M(2, 1) = U[0];
+    M(1, 2) = U[0];
+    M(2, 0) = U[1];
+    M(2, 1) = -U[0];
     M(2, 2) = 0.00;
 }
 
@@ -333,7 +332,7 @@ void SurfaceLoad3DCondition::CrossProduct(Vector & cross,
 //***********************************************************************************
 
 void SurfaceLoad3DCondition::ExpandReducedMatrix(Matrix& Destination,
-					     Matrix& ReducedMatrix)
+						 Matrix& ReducedMatrix)
 {
     KRATOS_TRY
 
@@ -351,6 +350,24 @@ void SurfaceLoad3DCondition::ExpandReducedMatrix(Matrix& Destination,
                 Destination(rowindex + ii, colindex + ii) += ReducedMatrix(i, j);
         }
     }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+void SurfaceLoad3DCondition::AddMatrix(MatrixType& Destination,
+				       boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
+				       int InitialRow,
+				       int InitialCol)
+{
+    KRATOS_TRY
+
+    for (unsigned int i = 0; i < 3; i++)
+        for (unsigned int j = 0; j < 3; j++)
+            Destination(InitialRow + i, InitialCol + j) += InputMatrix(i, j);
 
     KRATOS_CATCH( "" )
 }

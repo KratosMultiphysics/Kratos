@@ -22,8 +22,9 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(FORCE)
-    model_part.AddNodalSolutionStepVariable(FACE_LOAD)
+    model_part.AddNodalSolutionStepVariable(POINT_LOAD)
+    model_part.AddNodalSolutionStepVariable(LINE_LOAD)
+    model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(MOMENT)
 

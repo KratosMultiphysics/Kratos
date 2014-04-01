@@ -149,8 +149,8 @@ Vector& LineLoad2DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
     //FORCE CONDITION:
     for (unsigned int i = 0; i < number_of_nodes; i++)
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FACE_LOAD ) ) //temporary, will be checked once at the beginning only
-	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FACE_LOAD );
+	if( GetGeometry()[i].SolutionStepsDataHas( LINE_LOAD ) ) //temporary, will be checked once at the beginning only
+	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( LINE_LOAD );
       }
 
     //KRATOS_WATCH( rVectorForce )
@@ -197,7 +197,7 @@ void LineLoad2DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 	//Compute the K sub matrix
 	SkewSymmMatrix( 0, 0 ) =  0.0;
 	SkewSymmMatrix( 0, 1 ) = -1.0;
-	SkewSymmMatrix( 1, 0 ) = -1.0;
+	SkewSymmMatrix( 1, 0 ) = +1.0;
 	SkewSymmMatrix( 1, 1 ) =  0.0;
 
 	double DiscretePressure=0;
@@ -213,10 +213,9 @@ void LineLoad2DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 		ColIndex = j * 2;
 		
 		DiscretePressure = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De( j, 0 ) * rIntegrationWeight;
-		Kij = - DiscretePressure * SkewSymmMatrix;
+		Kij = DiscretePressure * SkewSymmMatrix;
 		
-		//TAKE CARE: the load correction matrix should be SUBSTRACTED not added
-		MathUtils<double>::SubtractMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+		MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	      }
 	  }
       }

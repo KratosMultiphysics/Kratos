@@ -1327,7 +1327,7 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
     }
 
     //only force in x and y axis (global?)
-    if(rVariable==FORCE)
+    if(rVariable==EXTERNAL_FORCE)
     {
         rOutput[0][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], mLength * 0.25);
         rOutput[0][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.25);

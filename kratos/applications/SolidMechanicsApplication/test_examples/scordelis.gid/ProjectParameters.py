@@ -18,7 +18,7 @@ FindElementalNeighbours = "False"
 Rotational_Dofs = "True"
 
 nodal_results = ["DISPLACEMENT", "REACTION"]
-gauss_points_results = ["GREEN_LAGRANGE_STRAIN_TENSOR", "ROTATION", "PK2_STRESS_TENSOR", "MOMENT", "FORCE"]
+gauss_points_results = ["GREEN_LAGRANGE_STRAIN_TENSOR", "ROTATION", "PK2_STRESS_TENSOR", "MOMENT"]
 GiDPostMode = "Binary"
 GiDWriteMeshFlag = True
 GiDWriteConditionsFlag = True
