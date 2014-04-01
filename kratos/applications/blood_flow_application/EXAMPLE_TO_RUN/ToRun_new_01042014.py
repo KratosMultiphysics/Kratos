@@ -840,8 +840,6 @@ if(only1Dtest == False):
 					f3d.write("gid_io_3d.FinalizeResults()\n")
 					# f.write("Number_of_nodes\n")
 					# f.write(xxxx)
-					print("SSSSSSSSSSSSSSSSSSSSSS")
-					raw_input()
 					f3d.write("Nodal_data_table (Index-NodeId-Pressure-Velocity_X-Velocity_Y-Velocity_Z) \n")
 					indextowrite = 1
 					for node in model_part3D.Nodes:
