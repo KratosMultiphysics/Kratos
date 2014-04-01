@@ -302,6 +302,9 @@ class TransferTools:
             outlet_nodes_1d = self.outlets_1d[i]
             # print outlet_nodes_1d[0].Id
             pressinlet3D = outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
+            if (pressinlet3D > 35000):
+	      print ("Err_in CouplingTools: Not Converged. Please check the model")
+	      raw_input()
             # pressinlet3D = 0
             # print "NODO 1D-3D: outlet_nodes_1d[0].Id::::::outlet 1D coupled with the 3D outlet>>>> ",outlet_nodes_1d[0].Id
             # print "pressinlet3D ",pressinlet3D
@@ -319,17 +322,17 @@ class TransferTools:
             # press = dyastolic_pressure + beta * \
                 #(math.sqrt(A) - math.sqrt(A0)) / \
                 # A0  # math.sqrt(A/A0)*beta - beta
-            print("prress calculated", press)
-            print("press solver", pressinlet3D)
+            print("Press calculated", press)
+            print("Press solver", pressinlet3D)
             # for i in range(0, len(self.outlets_3d)):
             outlet_nodes_3d = self.outlets_3d[i]
             area3d = self.outlet_areas_3d[i]
             for node in outlet_nodes_3d:
                 node.SetSolutionStepValue(PRESSURE, 0, press)
                 # print " ", press, "en el nodo", node.Id
-            print ("area3d",area3d ,"area1d",outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA))
+            print ("Area3d",area3d ,"area1d",outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA))
             print ("Estoy fijando la presion en el outlet del 3D que proviene del nodo " , outlet_nodes_1d[i].Id, " del 1D. La presion que estoy fijando es")
-            print ("pression",press, "del nodo", outlet_nodes_1d[0].Id)
+            print ("Pression",press, "del nodo", outlet_nodes_1d[0].Id)
 	    ToWriteIn_Summary= "Instant pressure in the outlet node:  "  +  str(press) + " Pa " + "\n"       
 	    summary_file_pressure.write(ToWriteIn_Summary)
 
@@ -432,7 +435,7 @@ class TransferTools:
 	  node.SetSolutionStepValue(VISCOSITY, 0, blood_viscosity)
 	  node.SetSolutionStepValue(DENSITY, 0, blood_density)
 	  node.SetSolutionStepValue(PRESSURE, 0, initial_pressure)
-	# set inlet
+# set inlet
       for cond in self.model_part_3d.Conditions:
 	  if(cond.Properties.Id == 100):  # inlet
 	      for node in cond.GetNodes():
@@ -537,6 +540,7 @@ class TransferTools:
         # for fitter in self.fitters_inlet_nodes:
             # fitter.AddPout(node[0].GetSolutionStepValue(PRESSURE))
     # raw_input()
+    
     def FitValues_1d(self, total_time):
         for i in range(0, len(self.inlets_1d)):
             node = self.inlets_1d[i]
