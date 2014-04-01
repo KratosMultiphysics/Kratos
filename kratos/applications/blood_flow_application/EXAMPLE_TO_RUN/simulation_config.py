@@ -7,7 +7,7 @@ blood_viscosity = 0.0035 / 1060.0
 #
 # Config_Save Results
 ascii_results = False
-save_results = 0.0   # save_results = 0.0 (save all results)
+save_results = 0.0001   # save_results = 0.0 (save all results)
 #
 # Config_Initial_conditions
 inlet_pressure_type = "coseno"  # coseno, parabolic,table
