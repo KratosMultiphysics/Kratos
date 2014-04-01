@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
-# File: 27/10/2013
 CheckForPreviousImport()
 import math
 
@@ -197,7 +196,9 @@ def ComputePressure(model_part1D, dyastolic_pressure):
         A = node.GetSolutionStepValue(NODAL_AREA)
         A0 = node.GetValue(NODAL_AREA)
         # print A0
-        # press=outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
+        # press=outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)        
         press = dyastolic_pressure + beta * (math.sqrt(A) - math.sqrt(A0)) / A0
+        print (press)
         # press = initial_pressure+beta*(math.sqrt(A/A0)) - beta
         node.SetSolutionStepValue(PRESSURE, 0, press)
+        raw_input()

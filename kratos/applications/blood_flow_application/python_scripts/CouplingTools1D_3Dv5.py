@@ -19,221 +19,224 @@ class TransferTools:
         self.model_part_3d = model_part_3d
 
     def Initialize(self):
-        self.inlets_1d = []
-        self.outlets_1d = []
-        self.inlets_3d = []
-        self.outlets_3d = []
-        self.inlet_areas_3d = []
-        self.outlet_areas_3d = []
-        self.inlet_velocity_directions = []
-        self.flow_1d = 0.0
-        self.flow_1d_pressure = 0.0
-        self.flow_3d_in = 0.0
-        self.flow_3d_in_pressure = 0.0
-        self.flow_3d_out = 0.0
-        self.flow_1d_out = 0.0
-        self.flow_1d_in2 = 0.0
-        self.Aprime = []
-        self.Bprime = []
-        # compute normals and 3d areas
-        print("CoupledTool:v5_21012014")
-        # raw_input()
-        NormalCalculationUtils().SwapNormals(self.model_part_3d)
-        BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part_3d, 3)
+      self.inlets_1d = []
+      self.outlets_1d = []
+      self.inlets_3d = []
+      self.outlets_3d = []
+      self.inlet_areas_3d = []
+      self.outlet_areas_3d = []
+      self.inlet_velocity_directions = []
+      self.flow_1d = 0.0
+      self.flow_1d_pressure = 0.0
+      self.flow_3d_in = 0.0
+      self.flow_3d_in_pressure = 0.0
+      self.flow_3d_out = 0.0
+      self.flow_1d_out = 0.0
+      self.flow_1d_in2 = 0.0
+      self.Aprime = []
+      self.Bprime = []
+      # compute normals and 3d areas
+      print("CoupledTool:v5_21012014")
+      # raw_input()
+      NormalCalculationUtils().SwapNormals(self.model_part_3d)
+      BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part_3d, 3)
 
-        # detect 1d inlets
-        print(".....................................")
-        Reference_Radius = 0.0
-        for i in range(100, 101):
-            nfound = 0
-            aux = []
-            for node in self.model_part_1d.Nodes:
-                if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
-                    aux.append(node)
-                    # node.Fix(NODAL_AREA)
-                    # node.Fix(FLOW)
-                    # print "1D_inlet has been assigned", node
-                    # print self.model_part_1d[node].GetValue(RADIUS)
-                    # inlet_nodes_1d[0].GetSolutionStepValue(FLOW)
-                    # raw_input()
-                    Node_reference = node
-            if(len(aux) != 0):
-                self.inlets_1d.append(aux)
-            else:
-                break
+      # detect 1d inlets
+      print(".....................................")
+      Reference_Radius = 0.0
+      for i in range(100, 101):
+	  nfound = 0
+	  aux = []
+	  for node in self.model_part_1d.Nodes:
+	      if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
+		  aux.append(node)
+		  # node.Fix(NODAL_AREA)
+		  # node.Fix(FLOW)
+		  # print "1D_inlet has been assigned", node
+		  # print self.model_part_1d[node].GetValue(RADIUS)
+		  # inlet_nodes_1d[0].GetSolutionStepValue(FLOW)
+		  # raw_input()
+		  Node_reference = node
+	  if(len(aux) != 0):
+	      self.inlets_1d.append(aux)
+	  else:
+	      break
 
-        if(len(self.inlets_1d) == 0):
-            # print "number of 1d is zero"
-            sys.exit("number of 1d_inlets are zero!! Please check your config.py file!")
+      if(len(self.inlets_1d) == 0):
+	  # print "number of 1d is zero"
+	  sys.exit("number of 1d_inlets are zero!! Please check your config.py file!")
 
-        # detect 3d inlets
-        normN = 0.0
-        tmp = [] 
-        for i in range(100, 101):
-            nfound = 0
-            aux = []
-            directions = []
-            for node in self.model_part_3d.Nodes:
-                if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
-                    aux.append(node)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-                    tmp = node.GetSolutionStepValue(NORMAL)
-                    normN = math.sqrt(tmp[0] ** 2 + tmp[1] ** 2 + tmp[2] ** 2)
-                    #print (str(tmp))
-                    #print (str(normN))
-                    #tmp = tmp/normN
-                    tmp[0] = tmp[0]/normN
-                    tmp[1] = tmp[1]/normN
-                    tmp[2] = tmp[2]/normN                    
-                    directions.append(tmp)
-                    # print "3D_inlet has inlet_nodes_3d = self.inlets_3d[i]been assigned", node
-            if(len(aux) != 0):
-                self.inlets_3d.append(aux)
-                self.inlet_velocity_directions.append(directions)
-            else:
-                break
-            # raw_input()
+      # detect 3d inlets
+      normN = 0.0
+      tmp = [] 
+      for i in range(100, 101):
+	  nfound = 0
+	  aux = []
+	  directions = []	  
+	  for node in self.model_part_3d.Nodes:
+	    tmp = 0.0
+	    if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
+		aux.append(node)
+		node.Fix(VELOCITY_X)
+		node.Fix(VELOCITY_Y)
+		node.Fix(VELOCITY_Z)
+		tmp = node.GetSolutionStepValue(NORMAL)
+		normN = math.sqrt(tmp[0] ** 2 + tmp[1] ** 2 + tmp[2] ** 2)
+		#print (str(tmp))
+		#print (str(normN))
+		#tmp = tmp/normN
+		tmp[0] = tmp[0]/normN
+		tmp[1] = tmp[1]/normN
+		tmp[2] = tmp[2]/normN                    
+		directions.append(tmp)
+		# print "3D_inlet has inlet_nodes_3d = self.inlets_3d[i]been assigned", node
+	  if(len(aux) != 0):
+	      self.inlets_3d.append(aux)
+	      self.inlet_velocity_directions.append(directions)
+	  else:
+	      break
+	  # raw_input()
 
-        if(len(self.inlets_3d) == 0):
-            sys.exit("number of 3d_inlets are zero!! Please check your config.py file!")
-            # print "number of 3d is zero"
-            # err
+      if(len(self.inlets_3d) == 0):
+	  sys.exit("number of 3d_inlets are zero!! Please check your config.py file!")
+	  # print "number of 3d is zero"
+	  # err
 
-        if(len(self.inlets_1d) != len(self.inlets_3d)):
-            sys.exit("number of 1d and 3d inlets is different!! Please check your config.py file!")
-            # print "number of 1d and 3d inlets is different"
-            # err
+      if(len(self.inlets_1d) != len(self.inlets_3d)):
+	  sys.exit("number of 1d and 3d inlets is different!! Please check your config.py file!")
+	  # print "number of 1d and 3d inlets is different"
+	  # err
 
         # detect 1d outlets
         # TENGO DUDAS??
-        for i in range(1001, 1199):
-            # print i
-            nfound = 0
-            aux = []
-            for node in self.model_part_1d.Nodes:
-                if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
-                    aux.append(node)
-                    # print "1D_outlet has been assigned(H)", node
-                    # node.Fix(FLOW)
-            if(len(aux) != 0):
-                self.outlets_1d.append(aux)
-                # raw_input()
-            else:
-                break
+      for i in range(1001, 1199):
+	  # print i
+	  nfound = 0
+	  aux = []
+	  for node in self.model_part_1d.Nodes:
+	      if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
+		  aux.append(node)
+		  # print "1D_outlet has been assigned(H)", node
+		  # node.Fix(FLOW)
+	  if(len(aux) != 0):
+	      self.outlets_1d.append(aux)
+	      # raw_input()
+	  else:
+	      break
 
-        if(len(self.outlets_1d) == 0):
-            # print "number of 1d is zero"
-            sys.exit("number of 1d_outlets are zero!! Please check your config.py file!")
+      if(len(self.outlets_1d) == 0):
+	  # print "number of 1d is zero"
+	  sys.exit("number of 1d_outlets are zero!! Please check your config.py file!")
 
-        # detect 3d outlets
-        for i in range(1001, 1199):
-            # print i
-            nfound = 0
-            aux = []
-            for node in self.model_part_3d.Nodes:
-                if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
-                    aux.append(node)
-                    node.Fix(PRESSURE)
-                    # print "3D_outlet has been assigned(H)", node.Id
-            if(len(aux) != 0):
-                self.outlets_3d.append(aux)
-            else:
-                break
+      # detect 3d outlets
+      for i in range(1001, 1199):
+	  # print i
+	  nfound = 0
+	  aux = []
+	  for node in self.model_part_3d.Nodes:
+	      if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
+		  aux.append(node)
+		  node.Fix(PRESSURE)
+		  # print "3D_outlet has been assigned(H)", node.Id
+	  if(len(aux) != 0):
+	      self.outlets_3d.append(aux)
+	  else:
+	      break
 
-        if(len(self.outlets_3d) == 0):
-            # print "number of 1d is zero"
-            sys.exit("number of 3d_outlets are zero!! Please check your config.py file!")
+      if(len(self.outlets_3d) == 0):
+	  # print "number of 1d is zero"
+	  sys.exit("number of 3d_outlets are zero!! Please check your config.py file!")
 
-        Total_area_inlet = 0.0
-        for i in range(0, len(self.inlets_3d)):
-            inlet_nodes_3d = self.inlets_3d[i]
-            area3d = 0.0
-            for node in inlet_nodes_3d:
-                n = node.GetSolutionStepValue(NORMAL)
-                a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2)
-                area3d += a
-            self.inlet_areas_3d.append(area3d)
-            # print area3d
-            Total_area_inlet = Total_area_inlet + area3d
-            print("area3d_inlet", Total_area_inlet)
-        Total_area_inlet = Total_area_inlet / len(self.inlets_3d)
+      Total_area_inlet = 0.0
+      for i in range(0, len(self.inlets_3d)):
+	  inlet_nodes_3d = self.inlets_3d[i]
+	  area3d = 0.0
+	  for node in inlet_nodes_3d:
+	      n = node.GetSolutionStepValue(NORMAL)
+	      a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2)
+	      area3d += a
+	  self.inlet_areas_3d.append(area3d)
+	  # print area3d
+	  Total_area_inlet = Total_area_inlet + area3d
+	  print("area3d_inlet", Total_area_inlet)
+      Total_area_inlet = Total_area_inlet / len(self.inlets_3d)
 
-        Total_area_outlet = 0.0
-        for i in range(0, len(self.outlets_3d)):
-            inlet_nodes_3d = self.outlets_3d[i]
-            area3d = 0.0
-            for node in inlet_nodes_3d:
-                n = node.GetSolutionStepValue(NORMAL)
-                a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2)
-                area3d += a
-            self.outlet_areas_3d.append(area3d)
-            Total_area_outlet = Total_area_outlet + area3d
-            # print area3d
-            print("area3d_outlet", Total_area_outlet)
-        Total_area_outlet = Total_area_outlet / len(self.inlets_3d)
+      Total_area_outlet = 0.0
+      for i in range(0, len(self.outlets_3d)):
+	  inlet_nodes_3d = self.outlets_3d[i]
+	  area3d = 0.0
+	  for node in inlet_nodes_3d:
+	      n = node.GetSolutionStepValue(NORMAL)
+	      a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2)
+	      area3d += a
+	  self.outlet_areas_3d.append(area3d)
+	  Total_area_outlet = Total_area_outlet + area3d
+	  # print area3d
+	  print("area3d_outlet", Total_area_outlet)
+      Total_area_outlet = Total_area_outlet / len(self.inlets_3d)
 
-        for prop in self.model_part_1d.Properties:
-            A_prime = 0.0
-            B_prime = 0.0
-            if (prop.Id == config.deactivate_list[0]):
-                Reference_Radius = prop.GetValue(RADIUS)
-                Reference_viscosity = 0.0035
-                Reference_density = 1000
-                Area_Stenosis = 0.5 * Total_area_outlet
-                A_prime = (8 * Reference_viscosity) / (3.1416 * math.pow(Reference_Radius, 4))
-                B_prime = (Reference_density) * ((Total_area_outlet / Area_Stenosis) - 1) * ((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
-                self.Aprime.append(A_prime)
-                self.Bprime.append(B_prime)
-                # print "A_prime",A_prime
-                # print "B_prime",B_prime
-                break
+      for prop in self.model_part_1d.Properties:
+	  A_prime = 0.0
+	  B_prime = 0.0
+	  if (prop.Id == config.deactivate_list[0]):
+	      Reference_Radius = prop.GetValue(RADIUS)
+	      Reference_viscosity = simulation_config.blood_static_viscosity
+	      Reference_density = simulation_config.blood_density
+	      Area_Stenosis = 0.5 * Total_area_outlet
+	      A_prime = (8 * Reference_viscosity) / (3.1416 * math.pow(Reference_Radius, 4))
+	      B_prime = (Reference_density) * ((Total_area_outlet / Area_Stenosis) - 1) * ((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
+	      self.Aprime.append(A_prime)
+	      self.Bprime.append(B_prime)
+	      # print "A_prime",A_prime
+	      # print "B_prime",B_prime
+	      break
 
-        if (simulation_config.FitRadius):
-            meanArea = Total_area_inlet
-            meanRadius = math.sqrt(meanArea / math.pi)
-            RadiusFactor = meanRadius / Reference_Radius
-            print("1D Inlet Reference_Radius", Reference_Radius)
-            print("3D Inlet Reference Radius", meanRadius)
-            print("Radius Factor 3D/1D", RadiusFactor)
-            print("Setting 1D New Radius - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
-        else:
-            RadiusFactor = 1
+      if (simulation_config.FitRadius):
+	  meanArea = Total_area_inlet
+	  meanRadius = math.sqrt(meanArea / math.pi)
+	  RadiusFactor = meanRadius / Reference_Radius
+	  print("1D Inlet Reference_Radius", Reference_Radius)
+	  print("3D Inlet Reference Radius", meanRadius)
+	  print("Radius Factor 3D/1D", RadiusFactor)
+	  print("Setting 1D New Radius - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ")
+      else:
+	  RadiusFactor = 1
 
-        for prop in self.model_part_1d.Properties:
-            R = prop.GetValue(RADIUS)
-            R_fit = R * RadiusFactor
-            prop.SetValue(RADIUS, R_fit)
-            # print "R_FIT", R_fit
-        # print "----------------------------------------------"
-        # raw_input()
+      for prop in self.model_part_1d.Properties:
+	  R = prop.GetValue(RADIUS)
+	  R_fit = R * RadiusFactor
+	  prop.SetValue(RADIUS, R_fit)
+	  #print ("R", R)
+	  #print ("R_FIT", R_fit)
+	  #print ("RadiusFactor", RadiusFactor)
+      # print "----------------------------------------------"
+      #raw_input()
 
-        import FitAB
-        self.fitters_1d = []
-        self.fitters_3d = []
-        self.fitters_inlet_nodes = []
-        self.fitters_outlet_nodes = []
+      import FitAB
+      self.fitters_1d = []
+      self.fitters_3d = []
+      self.fitters_inlet_nodes = []
+      self.fitters_outlet_nodes = []
 
-        for i in range(0, len(self.outlets_1d)):
-            self.fitters_1d.append(FitAB.Fitter(self.outlets_1d[i][0].Id))
-            self.fitters_3d.append(FitAB.Fitter(self.outlets_1d[i][0].Id))
+      for i in range(0, len(self.outlets_1d)):
+	  self.fitters_1d.append(FitAB.Fitter(self.outlets_1d[i][0].Id))
+	  self.fitters_3d.append(FitAB.Fitter(self.outlets_1d[i][0].Id))
 
-        self.fixed_flow_nodes = []
-        for node in self.model_part_1d.Nodes:
-            if(node.IsFixed(FLOW) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
-                self.fixed_flow_nodes.append(node)
-        for i in range(0, len(self.fixed_flow_nodes)):
-            self.fitters_inlet_nodes.append(FitAB.Fitter(self.fixed_flow_nodes[i].Id))
-            print(self.fixed_flow_nodes[i].Id)
+      self.fixed_flow_nodes = []
+      for node in self.model_part_1d.Nodes:
+	  if(node.IsFixed(FLOW) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
+	      self.fixed_flow_nodes.append(node)
+      for i in range(0, len(self.fixed_flow_nodes)):
+	  self.fitters_inlet_nodes.append(FitAB.Fitter(self.fixed_flow_nodes[i].Id))
+	  print(self.fixed_flow_nodes[i].Id)
 
-        self.fixed_outlet_nodes = []
-        for node in self.model_part_1d.Nodes:
-            if(node.IsFixed(PRESSURE)):
-                self.fixed_outlet_nodes.append(node)
-        for i in range(0, len(self.fixed_outlet_nodes)):
-            self.fitters_outlet_nodes.append(FitAB.Fitter(self.fixed_outlet_nodes[i].Id))
-            print(self.fixed_outlet_nodes[i].Id)
+      self.fixed_outlet_nodes = []
+      for node in self.model_part_1d.Nodes:
+	  if(node.IsFixed(PRESSURE)):
+	      self.fixed_outlet_nodes.append(node)
+      for i in range(0, len(self.fixed_outlet_nodes)):
+	  self.fitters_outlet_nodes.append(FitAB.Fitter(self.fixed_outlet_nodes[i].Id))
+	  print(self.fixed_outlet_nodes[i].Id)
 
     def Velocity_Initial_Contitions(self):
         print("Initialize Velocity 3D contidion")
@@ -264,10 +267,11 @@ class TransferTools:
                         k = k + 1
             # raw_input()
 
-    def Transfer1D_to_3D(self, dyastolic_pressure):
+    def Transfer1D_to_3D(self, dyastolic_pressure,summary_file_pressure):
+      # Write Conditions Used
         # ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
         # import config_full
-        # print "Dyastolic_Pressure", dyastolic_pressure
+        print ("Dyastolic_Pressure", dyastolic_pressure)
         print("Transfer1D_to_3D")
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
@@ -323,10 +327,13 @@ class TransferTools:
             for node in outlet_nodes_3d:
                 node.SetSolutionStepValue(PRESSURE, 0, press)
                 # print " ", press, "en el nodo", node.Id
-            # print "area3d",area3d ,"area1d",outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
-            # print "Estoy fijando la presion en el outlet del 3D que proviene del nodo " , outlet_nodes_1d[i].Id, " del 1D. La presion que estoy fijando es"
-            # print "pression",press, "del nodo", outlet_nodes_1d[0].Id
+            print ("area3d",area3d ,"area1d",outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA))
+            print ("Estoy fijando la presion en el outlet del 3D que proviene del nodo " , outlet_nodes_1d[i].Id, " del 1D. La presion que estoy fijando es")
+            print ("pression",press, "del nodo", outlet_nodes_1d[0].Id)
+	    ToWriteIn_Summary= "Instant pressure in the outlet node:  "  +  str(press) + " Pa " + "\n"       
+	    summary_file_pressure.write(ToWriteIn_Summary)
 
+	
     def Transfer3D_to_1D(self, dyastolic_pressure):
         inlet_flow = (self.inlets_1d[0])[0].GetSolutionStepValue(FLOW)
         self.outlets_1d[0][0].SetSolutionStepValue(FLOW, 0, inlet_flow)
@@ -416,84 +423,108 @@ class TransferTools:
     def Setting3d(self, initial_pressure, blood_density, blood_viscosity):
         # print self
             # print len(self.model_part_3d.Conditions)
-        for node in self.model_part_3d.Nodes:
-            node.Free(VELOCITY_X)
-            node.Free(VELOCITY_Y)
-            node.Free(VELOCITY_Z)
-            node.Free(PRESSURE)
-            node.SetSolutionStepValue(VISCOSITY, 0, blood_viscosity)
-            node.SetSolutionStepValue(DENSITY, 0, blood_density)
-            node.SetSolutionStepValue(PRESSURE, 0, initial_pressure)
-        # set inlet
-        for cond in self.model_part_3d.Conditions:
-            if(cond.Properties.Id == 100):  # inlet
-                for node in cond.GetNodes():
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-                    node.SetSolutionStepValue(FLAG_VARIABLE, 0, 100.0)
-            # if(cond.Properties.Id > 1000): ##outlet
+      a=0
+      for node in self.model_part_3d.Nodes:
+	  node.Free(VELOCITY_X)
+	  node.Free(VELOCITY_Y)
+	  node.Free(VELOCITY_Z)
+	  node.Free(PRESSURE)
+	  node.SetSolutionStepValue(VISCOSITY, 0, blood_viscosity)
+	  node.SetSolutionStepValue(DENSITY, 0, blood_density)
+	  node.SetSolutionStepValue(PRESSURE, 0, initial_pressure)
+	# set inlet
+      for cond in self.model_part_3d.Conditions:
+	  if(cond.Properties.Id == 100):  # inlet
+	      for node in cond.GetNodes():
+		  node.Fix(VELOCITY_X)
+		  node.Fix(VELOCITY_Y)
+		  node.Fix(VELOCITY_Z)
+		  node.SetSolutionStepValue(FLAG_VARIABLE, 0, 100.0)
+		  #print ("1")
+		  #print (cond.Properties.Id)
+		  #a=a+1
+	  # if(cond.Properties.Id > 1000): ##outlet
 
-                # for node in cond.GetNodes():
+	      # for node in cond.GetNodes():
 
-                    # node.Fix(PRESSURE)
+		  # node.Fix(PRESSURE)
 
-                    # node.SetSolutionStepValue(FLAG_VARIABLE,0,cond.Properties.Id)
+		  # node.SetSolutionStepValue(FLAG_VARIABLE,0,cond.Properties.Id)
 
-            # if(cond.Properties.Id > 1001): ##outlet
+	  # if(cond.Properties.Id > 1001): ##outlet
 
-                # for node in cond.GetNodes():
+	      # for node in cond.GetNodes():
 
-                    # node.Fix(PRESSURE)
+		  # node.Fix(PRESSURE)
 
-                    # node.SetSolutionStepValue(FLAG_VARIABLE,0,1002.0)
+		  # node.SetSolutionStepValue(FLAG_VARIABLE,0,1002.0)
 
-        # set sides (overwrites the inlet)
-        for cond in self.model_part_3d.Conditions:
-            if(cond.Properties.Id == 1):  # sides --> note that this is done in an outer separated loop!!
-                for node in cond.GetNodes():
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-                    node.SetSolutionStepValue(FLAG_VARIABLE, 0, 0.0)
+	# set sides (overwrites the inlet)
+      #print(a)
+      #a=0
+      #raw_input()
+      
+      for cond in self.model_part_3d.Conditions:
+	  if(cond.Properties.Id == 1):  # sides --> note that this is done in an outer separated loop!!
+	      for node in cond.GetNodes():
+		  node.Fix(VELOCITY_X)
+		  node.Fix(VELOCITY_Y)
+		  node.Fix(VELOCITY_Z)
+		  node.SetSolutionStepValue(FLAG_VARIABLE, 0, 0.0)
+		  #print ("2")
+		  #print (cond)
+		  #print (cond.Properties.Id)
+		  #a=a+1
 
-        # set output (overwrites the others)
+	# set output (overwrites the others)
+      #print(a)
+      #a=0
+      #raw_input()
+      for cond in self.model_part_3d.Conditions:
+	  if(cond.Properties.Id > 1000):  # outlet
+	      for node in cond.GetNodes():
+		  # if(not node.IsFixed(VELOCITY_X)):
+		  node.Fix(PRESSURE)
+		  node.SetSolutionStepValue(FLAG_VARIABLE, 0, cond.Properties.Id)
+		  #print ("3")
+		  #print (cond)
+		  #print (cond.Properties.Id)
+		  #a=a+1
+      # for cond in self.model_part_3d.Conditions:
+	    # if(cond.GetValue(IS_STRUCTURE) == 1):
+		# for node in cond.GetNodes():
+		    # node.Fix(VELOCITY_X)
+		    # node.Fix(VELOCITY_Y)
+		    # node.Fix(VELOCITY_Z)
+		    # node.SetSolutionStepValue(VELOCITY_X,0,0.0)
+	# this is only in this example...it should be set up by the problemtype
+	# for node in self.model_part_3d.Nodes:
+	    # node.SetSolutionStepValue(VISCOSITY,0,0.0035/1060.0)
+	    # node.SetSolutionStepValue(DENSITY,0,1060.0)
+	    # if(node.IsFixed(VELOCITY_X) == True and
+	    # node.GetSolutionStepValue(VELOCITY_X) > 0.0001):
+		# node.SetSolutionStepValue(FLAG_VARIABLE,0,100.0)
+	    # if(node.IsFixed(PRESSURE) == True):
+		# node.SetSolutionStepValue(FLAG_VARIABLE,0,101.0)
+	    # node.SetSolutionStepValue(VELOCITY_X,0,0.0)
+	    # copy Y_WALL
+      #print(a)
+      #a=0
+      #raw_input()
+      if (simulation_config.Use_Catheter):
+	    for node in self.model_part_3d.Nodes:
+		y = node.GetSolutionStepValue(Y_WALL, 0)
+		node.SetValue(Y_WALL, y)
 
-        for cond in self.model_part_3d.Conditions:
-            if(cond.Properties.Id > 1000):  # outlet
-                for node in cond.GetNodes():
-                    # if(not node.IsFixed(VELOCITY_X)):
-                    node.Fix(PRESSURE)
-                    node.SetSolutionStepValue(FLAG_VARIABLE, 0, cond.Properties.Id)
+      counter = 0.0
+      for node in self.model_part_3d.Nodes:
+	  if(node.IsFixed(PRESSURE)):
+	      counter += 1.0
+	      #print ("4")
+	      #print (node)
 
-     # for cond in self.model_part_3d.Conditions:
-            # if(cond.GetValue(IS_STRUCTURE) == 1):
-                # for node in cond.GetNodes():
-                    # node.Fix(VELOCITY_X)
-                    # node.Fix(VELOCITY_Y)
-                    # node.Fix(VELOCITY_Z)
-                    # node.SetSolutionStepValue(VELOCITY_X,0,0.0)
-        # this is only in this example...it should be set up by the problemtype
-        # for node in self.model_part_3d.Nodes:
-            # node.SetSolutionStepValue(VISCOSITY,0,0.0035/1060.0)
-            # node.SetSolutionStepValue(DENSITY,0,1060.0)
-            # if(node.IsFixed(VELOCITY_X) == True and
-            # node.GetSolutionStepValue(VELOCITY_X) > 0.0001):
-                # node.SetSolutionStepValue(FLAG_VARIABLE,0,100.0)
-            # if(node.IsFixed(PRESSURE) == True):
-                # node.SetSolutionStepValue(FLAG_VARIABLE,0,101.0)
-            # node.SetSolutionStepValue(VELOCITY_X,0,0.0)
-            # copy Y_WALL
-        for node in self.model_part_3d.Nodes:
-            y = node.GetSolutionStepValue(Y_WALL, 0)
-            node.SetValue(Y_WALL, y)
-
-        counter = 0.0
-
-        for node in self.model_part_3d.Nodes:
-            if(node.IsFixed(PRESSURE)):
-                counter += 1.0
-
+      #print (counter)
+      #raw_input()      
         # print "n pressure nodes ",counter
     # def FitValues_Inlet(self):
       # for i in range(0,len(self.fixed_flow_nodes)):
