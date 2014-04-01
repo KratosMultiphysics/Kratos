@@ -973,6 +973,43 @@ proc ::wkcf::WriteLinePressureLoadAxisym {AppId cloadtid} {
 	}
     }
     
+
+    # Write faceforce values for all nodes inside a group identifier 
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+
+	# Get the load properties
+	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
+	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
+	# Assign values
+	foreach item $GProps {
+	    foreach {cvar cval} $item {
+		set $cvar $cval
+	    }
+	} 
+
+
+	if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)} {
+	    
+	    foreach Component {LineDFx LineDFy LineDFz} {
+	      # Get the current face load component keyword                       
+	      set kwid "$Component"
+	      set ckword [::xmlutils::getKKWord $kwxpath $kwid]              
+	      if {[set $Component] !="0.0"} {
+		# Set the real pressure value
+		# set PressureValue [expr double($PressureValue)/$ngroupnodes]
+		# Write the pressure values
+		# Pressure properties
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $ckword // GUI pressure load group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %6i %20.10f" $node_id 0 [set $Component]
+		}
+		GiD_File fprintf $filechannel "%s" "End NodalData"
+		GiD_File fprintf $filechannel ""
+	      }
+	    }
+	}
+    }
+    
     # For debug
     if {!$::wkcf::pflag} {
 	set endtime [clock seconds]
@@ -1120,7 +1157,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 	# WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
 	if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)} {
 	    
-	    foreach Component {BUDFx BUDFy BUDFz} {
+	    foreach Component {SurfaceDFx SurfaceDFy SurfaceDFz} {
 	      # Get the current face load component keyword                       
 	      set kwid "$Component"
 	      set ckword [::xmlutils::getKKWord $kwxpath $kwid]              

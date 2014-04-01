@@ -739,9 +739,9 @@
         </Template>
      	<Template id="LineLoad" icon="groupsTree.gif" help="Line Load">
             <Container id="MainProperties" pid="BeamDistributedLoad" state="hidden" help="Line load values">
-                <Item id="BUDFx" pid="Fx" dv="0.0" functionDissable="0" help="Line Load global Fx value"/>
-                <Item id="BUDFy" pid="Fy" dv="0.0" functionDissable="0" help="Line Load global Fy value"/>
-                <Item id="BUDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Line Load global Fz value"/>
+                <Item id="LineDFx" pid="Fx" dv="0.0" functionDissable="0" help="Line Load global Fx value"/>
+                <Item id="LineDFy" pid="Fy" dv="0.0" functionDissable="0" help="Line Load global Fy value"/>
+                <Item id="LineDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Line Load global Fz value"/>
             </Container>
         </Template>
 	<Template id="LinePressure" icon="groupsTree.gif" help="Define the positive or negative line pressure">
@@ -766,9 +766,9 @@
         </Template>
         <Template id="FaceLoad" icon="groupsTree.gif" help="Face Force">
             <Container id="MainProperties" pid="Face" state="hidden" help="Values">
-                <Item id="BUDFx" pid="Fx" dv="0.0" functionDissable="0" help="Fx Vector"/>
-                <Item id="BUDFy" pid="Fy" dv="0.0" functionDissable="0" help="Fy Vector"/>
-                <Item id="BUDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Fz Vector"/>                
+                <Item id="SurfaceDFx" pid="Fx" dv="0.0" functionDissable="0" help="Fx Vector"/>
+                <Item id="SurfaceDFy" pid="Fy" dv="0.0" functionDissable="0" help="Fy Vector"/>
+                <Item id="SurfaceDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Fz Vector"/>                
             </Container>
         </Template>
         <Template id="InitialVelocity" icon="groupsTree.gif" help="Initial velocity">
