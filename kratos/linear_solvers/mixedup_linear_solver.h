@@ -856,12 +856,13 @@ private:
             VectorType CurrentRow(K.size2());
 
             for (unsigned int i = 0; i < rL.size1(); i++) CurrentRow[i] = 0.0;
-            boost::shared_ptr< IndexVector > pNext ( new IndexVector (rL.size1()) );
-            IndexVector& Next = *pNext; // Keeps track of which columns were filled
+            
+            IndexVector Next = IndexVector(rL.size1());
+//IndexVector& Next = *pNext; // Keeps track of which columns were filled
             for (unsigned int m=0; m < rL.size1(); m++) Next[m] = -1;
             std::size_t NumTerms = 0; // Full positions in a row
-            boost::shared_ptr< std::vector<unsigned int> > pUsedCols ( new std::vector<unsigned int>);
-            std::vector<unsigned int>& UsedCols = *pUsedCols;
+            std::vector<unsigned int> UsedCols = std::vector<unsigned int>();
+//             std::vector<unsigned int>& UsedCols = *pUsedCols;
             UsedCols.reserve (rL.size1());
             for ( int RowIndex = Partition[k] ;
                     RowIndex != Partition[k+1] ; RowIndex++ )

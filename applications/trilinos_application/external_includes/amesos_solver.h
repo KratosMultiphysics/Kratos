@@ -70,7 +70,7 @@ public:
     /**
      * Counted pointer of AmesosSolver
      */
-    typedef boost::shared_ptr<AmesosSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(AmesosSolver);
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

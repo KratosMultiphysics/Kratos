@@ -1835,16 +1835,16 @@ private:
             if ( OpenMPUtils::ThisThread() == k )
             {
 
-                boost::shared_ptr< IndexVector > pNext( new IndexVector( BaseType::mEquationSystemSize ) );
-                IndexVector& Next = *pNext; // Keeps track of which columns were filled
+                IndexVector Next = IndexVector( BaseType::mEquationSystemSize ) ;
+                //IndexVector& Next = *pNext; // Keeps track of which columns were filled
 
                 for ( unsigned int m = 0; m < BaseType::mEquationSystemSize; m++ ) Next[m] = -1;
 
                 std::size_t NumTerms = 0; // Full positions in a row
 
-                boost::shared_ptr< std::vector<unsigned int> > pUsedCols( new std::vector<unsigned int> );
+                std::vector<unsigned int> UsedCols = std::vector<unsigned int>();
 
-                std::vector<unsigned int>& UsedCols = *pUsedCols;
+                //std::vector<unsigned int>& UsedCols = *pUsedCols;
 
                 UsedCols.reserve( BaseType::mEquationSystemSize );
 
