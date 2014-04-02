@@ -185,11 +185,12 @@ void  AddIOToPython()
 
     class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
         "ModelPartIO",init<std::string const&>())
+        .def(init<std::string const&, bool const>())
     ;
-    
+    /*
     class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
         "ModelPartIOWithSkipReadFlag",init<std::string const&, bool const>())
-    ;
+    ;*/
 
     class_<GidIO<>, GidIO<>::Pointer, bases<DatafileIO>, boost::noncopyable>(
         "GidIO",init<std::string const&, GiD_PostMode,
