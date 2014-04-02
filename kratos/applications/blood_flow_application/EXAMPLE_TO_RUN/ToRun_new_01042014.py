@@ -466,8 +466,9 @@ if (Coupled_Simulation == True):
 		krylov_type = "GMRES"
 	import linear_solver_factory
 	solver3D = solver.IncompressibleFluidSolver(model_part3D, 3)
-	solver3D.max_vel_its = 5
-	solver3D.max_press_its = 20
+	solver3D.max_vel_its = 2
+	#5,20
+	solver3D.max_press_its = 5
 	solver3D.predictor_corrector = True
 	solver3D.vel_toll = 1e-3
 	solver3D.press_toll = 1e-3
@@ -833,7 +834,7 @@ if(only1Dtest == False):
 			if (Coupled_Simulation == False):
 				control_sub_step = 0
 
-			if((plot3d) and (cycle_to_couple == True) and (control_sub_step==0)):
+			if((plot3d) and (cycle_to_couple == True)):
 				if(ascii):
 					f3d.write("Time_step \n")
 					f3d.write(str(total_time))
