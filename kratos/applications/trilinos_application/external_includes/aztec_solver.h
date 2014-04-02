@@ -76,7 +76,7 @@ public:
     /**
      * Counted pointer of AztecSolver
      */
-    typedef boost::shared_ptr<AztecSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( AztecSolver );
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 

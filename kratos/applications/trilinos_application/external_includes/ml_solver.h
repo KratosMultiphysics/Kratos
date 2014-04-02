@@ -73,7 +73,7 @@ public:
     /**
      * Counted pointer of MultiLevelSolver
      */
-    typedef boost::shared_ptr<MultiLevelSolver> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(MultiLevelSolver);
 
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
