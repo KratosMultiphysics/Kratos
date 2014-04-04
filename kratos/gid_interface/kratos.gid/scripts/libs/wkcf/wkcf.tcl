@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     7.2- 04/04/14-G. Socorro, modify the proc WriteConditions to check that some hided  group exists (–AKGSkinMesh2D and -AKGSkinMesh3D)
 #     7.1- 20/12/13-G. Socorro, update to use DEM and convection-diffusion applications
 #     7.0- 19/09/13-G. Socorro, modify the proc WriteConditions to write condition for Quadrilateral surface element
 #                               write convection-diffusion conditions
@@ -136,7 +137,11 @@ namespace eval ::wkcf:: {
     variable demfilechannel
 
     # Structural analysis condition counter
-    variable sa_icondid 
+    variable sa_icondid
+    
+     # Debug/Release variable [0 => Debug, 1 => Release] Timers
+    variable pflag
+    set pflag 1
 }
 
 proc ::wkcf::WriteCalculationFiles {filename} {
@@ -147,6 +152,11 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     variable property_number    
     set property_number 1
 
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+    
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
     
@@ -245,7 +255,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     
     # Select python scripts
     ::wkcf::SelectPythonScript
-    
+   
     # Write constitutive laws properties
     if {$StructuralAnalysis=="Yes"} {
 	::wkcf::WriteConstitutiveLawsProperties
@@ -268,6 +278,12 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
     
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr {$endtime-$inittime}]
+        WarnWinText "Total time: [::KUtils::Duration $ttime]"
+    }
     
     return 1
 }
@@ -1034,24 +1050,26 @@ proc ::wkcf::WriteConditions {AppId} {
 	    set cgroupid "-AKGSkinMesh2D"
             set GiDElemType "Linear"
 
-            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                # Write all conditions for 2D case
-                GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
-		set condid 0
-                
-                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-                    incr condid 1 
-                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
-                    # nodes = [list nodei nodej]
-                    GiD_File fprintf $filechannel "%10d %4d %10d %10d" $condid $fixval [lindex $nodes 0] [lindex $nodes 1]
-                    # Update the link between the condition id. and the BC element id
-                    dict set ctbclink $elem_id $condid
-                }
-                
-                GiD_File fprintf $filechannel "%s" "End Conditions"
-                GiD_File fprintf $filechannel ""
-            }
-
+	    if {[GiD_Groups exists $cgroupid]} {
+    
+	      if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+		  # Write all conditions for 2D case
+		  GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
+		  set condid 0
+		  
+		  foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+		      incr condid 1 
+		      set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+		      # nodes = [list nodei nodej]
+		      GiD_File fprintf $filechannel "%10d %4d %10d %10d" $condid $fixval [lindex $nodes 0] [lindex $nodes 1]
+		      # Update the link between the condition id. and the BC element id
+		      dict set ctbclink $elem_id $condid
+		  }
+		  
+		  GiD_File fprintf $filechannel "%s" "End Conditions"
+		  GiD_File fprintf $filechannel ""
+	      }
+	    }
         } elseif {$ndime =="3D"} {
 
 	    # 3D
@@ -1059,50 +1077,53 @@ proc ::wkcf::WriteConditions {AppId} {
             set GiDElemType "Triangle"
 	    set usetriangle 0
 
-            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                # Write all conditions for 3D case
-                GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
-                set condid 0
-                
-                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-                    incr condid 1 
-                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
-                    set ni [lindex $nodes 0]
-                    set nj [lindex $nodes 1]
-                    set nk [lindex $nodes 2]
-                    # msg "$ni $nj $nk $condid"
-                    GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d" $condid $fixval $ni $nj $nk
-                    # Update the link between the condition id. and the BC element id
-                    dict set ctbclink $elem_id $condid
-                }
-                GiD_File fprintf $filechannel "%s" "End Conditions"
-                GiD_File fprintf $filechannel ""
-		set usetriangle 1
-            }
-
-	    set GiDElemType "Quadrilateral"
-
-            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                # Write all conditions for 3D case
-                GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
-		if {!$usetriangle} {
+    	    if {[GiD_Groups exists $cgroupid]} {
+ 
+		if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+		    # Write all conditions for 3D case
+		    GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
 		    set condid 0
+		    
+		    foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+			incr condid 1 
+			set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+			set ni [lindex $nodes 0]
+			set nj [lindex $nodes 1]
+			set nk [lindex $nodes 2]
+			# msg "$ni $nj $nk $condid"
+			GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d" $condid $fixval $ni $nj $nk
+			# Update the link between the condition id. and the BC element id
+			dict set ctbclink $elem_id $condid
+		    }
+		    GiD_File fprintf $filechannel "%s" "End Conditions"
+		    GiD_File fprintf $filechannel ""
+		    set usetriangle 1
 		}
-                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-                    incr condid 1 
-                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
-                    set ni [lindex $nodes 0]
-                    set nj [lindex $nodes 1]
-                    set nk [lindex $nodes 2]
-		    set nl [lindex $nodes 3]
-                    # msg "$ni $nj $nk $nl $condid"
-                    GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d %10d" $condid $fixval $ni $nj $nk $nl
-                    # Update the link between the condition id. and the BC element id
-                    dict set ctbclink $elem_id $condid
-                }
-                GiD_File fprintf $filechannel "%s" "End Conditions"
-                GiD_File fprintf $filechannel ""
-            }
+    
+		set GiDElemType "Quadrilateral"
+    
+		if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+		    # Write all conditions for 3D case
+		    GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
+		    if {!$usetriangle} {
+			set condid 0
+		    }
+		    foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+			incr condid 1 
+			set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+			set ni [lindex $nodes 0]
+			set nj [lindex $nodes 1]
+			set nk [lindex $nodes 2]
+			set nl [lindex $nodes 3]
+			# msg "$ni $nj $nk $nl $condid"
+			GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d %10d" $condid $fixval $ni $nj $nk $nl
+			# Update the link between the condition id. and the BC element id
+			dict set ctbclink $elem_id $condid
+		    }
+		    GiD_File fprintf $filechannel "%s" "End Conditions"
+		    GiD_File fprintf $filechannel ""
+		}
+	    }
         }
 
         # For debug
