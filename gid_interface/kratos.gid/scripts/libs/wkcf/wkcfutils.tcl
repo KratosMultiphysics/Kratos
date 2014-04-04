@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #        
+#     4.1- 04/04/14-G. Socorro, set pflag variable to 1
 #     4.0- 10/10/13-G. Socorro, create a new proc GetMaterialPropertiesFromAttributes to get some material properties using
 #                                the container CLawProperties in the kratos_key_words.xml file
 #                               - Modify the proc GetMaterialProperties to write the the properties of the material model "HyperElastic-Plastic" 
@@ -144,10 +145,6 @@ proc ::wkcf::Preprocess {} {
     
     # WarnWinText "ActiveAppList:$ActiveAppList"
     
-    # Debug/Release variable [0 => Debug, 1 => Release] Timers
-    variable pflag
-    set pflag 1
-
     # Get the element properties
     ::wkcf::GetElementProperties
   
