@@ -349,6 +349,66 @@ End NodalData
 
 *endif
 *endif
+*Set cond volume_VOLUME_ACCELERATION *nodes
+*Add cond surface_VOLUME_ACCELERATION *nodes
+*if(CondNumEntities > 0)
+*# Check if some node has its X value set
+*set var Xset=0
+*loop nodes *OnlyInCond
+*if(cond(VOLUME_ACCELERATION_X,int)==1)
+*set var Xset=1
+*endif
+*end nodes
+*if(Xset == 1)
+Begin NodalData VOLUME_ACCELERATION_X
+*loop nodes *OnlyInCond
+*if(cond(VOLUME_ACCELERATION_X,int)==1)
+*format "%i%i%10.5e"
+*NodesNum *cond(Fix_X) *cond(X_Value)
+*endif
+*end nodes
+End NodalData
+
+*endif
+*#
+*# Check if some node has its Y value set
+*set var Yset=0
+*loop nodes *OnlyInCond
+*if(cond(VOLUME_ACCELERATION_Y,int)==1)
+*set var Yset=1
+*endif
+*end nodes
+*if(Yset == 1)
+Begin NodalData VOLUME_ACCELERATION_Y
+*loop nodes *OnlyInCond
+*if(cond(VOLUME_ACCELERATION_Y,int)==1)
+*format "%i%i%10.5e"
+*NodesNum *cond(Fix_Y) *cond(Y_Value)
+*endif
+*end nodes
+End NodalData
+
+*endif
+*#
+*# Check if some node has its Z value set
+*set var Zset=0
+*loop nodes *OnlyInCond
+*if(cond(VOLUME_ACCELERATION_Z,int)==1)
+*set var Zset=1
+*endif
+*end nodes
+*if(Zset == 1)
+Begin NodalData VOLUME_ACCELERATION_Z
+*loop nodes *OnlyInCond
+*if(cond(VOLUME_ACCELERATION_Z,int)==1)
+*format "%i%i%10.5e"
+*NodesNum *cond(Fix_Z) *cond(Z_Value)
+*endif
+*end nodes
+End NodalData
+
+*endif
+*endif
 *Set cond line_LINE_LOAD *nodes
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
