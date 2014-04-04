@@ -572,7 +572,7 @@ public:
 
    /**
      * this is called during the assembling process in order
-     * to calculate the first derivative contributions for the LHS and RHS 
+     * to calculate the second derivative contributions for the LHS and RHS 
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
