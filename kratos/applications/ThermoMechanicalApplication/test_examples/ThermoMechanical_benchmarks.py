@@ -19,11 +19,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("running the benchmark for the Activation_test ...")
-    Msg = benchmarking.RunBenchmark("run_benchmark.py", "Activation_reference_solution.txt")
+    successful,Msg = benchmarking.RunBenchmark("run_benchmark.py", "Activation_reference_solution.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Activation_test  example succesful")
+        print("Activation_test  example successful")
     else:
         Text += "FAILED\n"
         Text += Msg

@@ -35,7 +35,7 @@ def FindNode(node_list, X, Y, Z):
 
 
 def BenchmarkCheck(time, node1):  # BENCHMARK ##########
-    benchmarking.Output(time, "Time")  # BENCHMARK ##########
+    benchmarking.Output(time, "Time",1e-7)  # BENCHMARK ##########
     benchmarking.Output(node1.GetSolutionStepValue(DISPLACEMENT_Y), "Node Displacement", 0.01)  # BENCHMARK ##########
     benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node Velocity", 0.01)  # BENCHMARK ##########
 

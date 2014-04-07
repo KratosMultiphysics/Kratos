@@ -45,7 +45,7 @@ def BenchmarkCheck(time, model_part):
                 x_min_vel = node.X
                 y_min_vel = node.Y
 
-    benchmarking.Output(time, "Time")
+    benchmarking.Output(time, "Time",1e-7)
     benchmarking.Output(min_press, "minimum pressure", 0.00001)
     benchmarking.Output(max_press, "maximum pressure", 0.00001)
     benchmarking.Output(id_min_vel, "Id of the node with minimum velocity norm", 0.0)

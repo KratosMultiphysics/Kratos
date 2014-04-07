@@ -18,11 +18,11 @@ def Run():
 # sys.path.append(os.getcwd())
 #
 # print "running the pfem dam2d benchmark test..."
-# Msg = benchmarking.RunBenchmark("dam2d.py","dam2d_ref.txt")
+# successful,Msg = benchmarking.RunBenchmark("dam2d.py","dam2d_ref.txt")
 #
 # if (Msg == True):
 # Text += "OK\n"
-# print "pfem dam2d test example succesful"
+# print "pfem dam2d test example successful"
 # else:
 # Text += "FAILED\n"
 # Text += Msg
@@ -39,11 +39,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("running the dam2dNonNewt benchmark test...")
-    Msg = benchmarking.RunBenchmark("dam2dNonNewt.py", "dam2dNonNewt_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("dam2dNonNewt.py", "dam2dNonNewt_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("dam2dNonNewt example succesful")
+        print("dam2dNonNewt example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -59,11 +59,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("running the CoupledNonNewtSlope benchmark test...")
-    Msg = benchmarking.RunBenchmark("CoupledNonNewtSlope.py", "CoupledNonNewtSlope_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("CoupledNonNewtSlope.py", "CoupledNonNewtSlope_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("CoupledNonNewtSlope example succesful")
+        print("CoupledNonNewtSlope example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -79,11 +79,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("running the Couette2dNonNewt benchmark test...")
-    Msg = benchmarking.RunBenchmark("Couette2dNonNewt.py", "Couette2dNonNewt_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("Couette2dNonNewt.py", "Couette2dNonNewt_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Couette2dNonNewt example succesful")
+        print("Couette2dNonNewt example successful")
     else:
         Text += "FAILED\n"
         Text += Msg

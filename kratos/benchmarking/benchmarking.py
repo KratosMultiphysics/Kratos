@@ -21,6 +21,7 @@ import time
 import string
 import types
 import smtplib
+import math
 
 Header = "KRATOS_BENCHMARK"
 
@@ -43,82 +44,264 @@ def TypeToString(Var):
 
 
 def TypedCompare(lr, lt):
-    # Check if it has been an empty line
+    
+    EmptyMsg = ""
+    matching = True
+    non_matching = False
+
+     # Check if it has been an empty line
     if (len(lr) == 1 and len(lt) == 1):
-        return True
+        return matching,EmptyMsg
+
+    # Check if it has been an empty line
+    if (len(lr) != len(lt)):
+        Msg = "lenght of lines does not match!!\n" 
+        Msg += "Reference:" + str(lr) + "\n"
+        Msg += "Test:     " + str(lt)
+        print(Msg)
+        return non_matching,Msg
+
+
+    
+    ref_header = lr[0]
+    ref_type = lr[1]
+    ref_label = lr[2]
+    ref_data = lr[3]
+    ref_absolute_tol = lr[4]
+    ref_relative_tol = lr[5]
+
+    test_header = lt[0]
+    test_type = lt[1]
+    test_label = lt[2]
+    test_data = lt[3]
+    
+    try:
+        test_absolute_tol = lt[4]
+    except:
+        test_absolute_tol = "None"  
+
+    try:
+        test_relative_tol = lt[5]
+    except:
+        test_relative_tol = "None"
+    
+    
+    if (ref_type == "Integer"):
+        ref_data = int(ref_data)
+        test_data = int(test_data)
+    else:
+        ref_data = float(ref_data)
+        test_data = float(test_data)
+    
+
 
     # Invalid header in reference data?
-    if (lr[0] != Header.strip()):
+    if (ref_header != Header.strip()):
         Msg = "Invalid header found for the reference data!\n"
         Msg += "Reference: " + str(lr)
-        return Msg
+        print(Msg)
+        return non_matching,Msg
 
     # Invalid header in test data?
-    if (lt[0] != Header.strip()):
+    if (test_header != Header.strip()):
         Msg = "Invalid header found for the test data!\n"
         Msg += "Test:     " + str(lt)
-        return Msg
+        print(Msg)
+        return non_matching,Msg
 
     # Incompatible type?
-    if (lr[1] != lt[1]):
+    if (ref_type != test_type):
         Msg = "Incompatible types in benchmark data!\n"
         Msg += "Reference:" + str(lr) + "\n"
         Msg += "Test:     " + str(lt)
-        return Msg
+        print(Msg)
+        return non_matching,Msg
 
     # Differenet labels?
-    if (lr[2] != lt[2]):
+    if (ref_label != test_label):
         Msg = "Different labels!\n"
         Msg += "Reference:" + str(lr) + "\n"
         Msg += "Test:     " + str(lt)
-        return Msg
+        print(Msg)
+        return non_matching,Msg
 
     # Differenet tolerances?
-    if (lr[4] != lt[4] or lr[5] != lt[5]):
-        Msg = "Different tolerances!\n"
+    #if (ref_absolute_tol != test_absolute_tol or ref_relative_tol != test_relative_tol):
+        #Msg = "Different tolerances!\n"
+        #Msg += "Reference:" + str(lr) + "\n"
+        #Msg += "Test:     " + str(lt)
+        #return non_matching,Msg
+    
+    exact_types =  ["String","Boolean","Unknown","Integer"]
+    if ref_type in exact_types: #do exact check
+        if(ref_data == test_data):
+            return matching,""
+        else:
+            Msg = "Difference found in reference and test data:\n"
+            Msg += "Reference:" + str(lr) + "\n"
+            Msg += "Test:     " + str(lt)
+            print(Msg)
+            return non_matching,Msg
+    else:  #here we need to verify for the tolerance
+        
+            
+        #this shall be the "good way" but it looks like it is too strict!        
+        #if(ref_absolute_tol != "None"): ##here we check for identity following comparison guidelines
+            ##absolute_tol = float(ref_absolute_tol)
+            #epsilon = 1e-6
+            #float_MIN_NORMAL = 1e-12 #shouldt define it here, but can not find the equivalent of "limits.h"
+            #diff = abs(ref_data - test_data)
+            #if (ref_data == test_data): # shortcut, handles infinities
+                #return True,""
+            #elif(ref_data == 0 or test_data == 0 or diff < float_MIN_NORMAL):
+                ## ref_data or test_data is zero or both are extremely close to it
+                ## relative error is less meaningful here
+                #if(diff < (epsilon * float_MIN_NORMAL)):
+                    #return True,""
+            #else:
+                #if(diff / (abs(ref_data) + abs(test_data) ) < epsilon):
+                    #return True,""
+        #else:
+            ##first of all consider a abosulte tolerance anyway.
+            #if(ref_data == 0.0):
+                #absolute_tol = 1e-12
+            #else:
+                #absolute_tol = 1e-12*abs(ref_data)
+                
+            #if( abs(ref_data - test_data) <= absolute_tol):
+                #return matching,""
+            
+            #if( ref_data != 0.0 and ref_relative_tol != "None"):
+                #if(  abs(ref_data - test_data)/abs(ref_data) <= abs(float(ref_relative_tol)) ):
+                    #return matching,""
+
+        #first of all consider a abosulte tolerance anyway.
+        if(ref_data == 0.0):
+            absolute_tol = 1e-12
+        else:
+            absolute_tol = 1e-12*abs(ref_data)
+        
+        if(ref_absolute_tol != "None"):
+            absolute_tol = float(ref_absolute_tol)
+            #print("absolute_tol = ",absolute_tol)
+            
+            
+        if( abs(ref_data - test_data) <= absolute_tol):
+            return matching,""
+        
+        if( ref_data != 0.0 and ref_relative_tol != "None"):
+            if(  abs(ref_data - test_data)/abs(ref_data) <= abs(float(ref_relative_tol)) ):
+                return matching,""
+
+
+        Msg = "Difference found in reference and test data:\n"
+        Msg += " abs(ref_data - test_data) "+str(abs(ref_data - test_data))+"\n"
+        Msg += " absolute_tol "+str(absolute_tol)+"\n"
+        Msg += " abs(ref_data - test_data) "+str(abs(ref_data - test_data))+"\n"
+        Msg += " abs(ref_data ) "+str(abs(ref_data ))+"\n"
+        Msg += " abs(ref_data - test_data)/abs(ref_data ) "+str(abs(ref_data - test_data)/abs(ref_data )) +"\n"
+        Msg += " relative_tol "+str(ref_relative_tol)+"\n"      
         Msg += "Reference:" + str(lr) + "\n"
         Msg += "Test:     " + str(lt)
-        return Msg
+        print(Msg)
+        return non_matching,Msg        
 
-    # Compare based on the type
+    raise Exception("shall never arrive here!!")
+        
+        #ref_data = lr[3]
+        #test_data = lt[3]
+        #ref_absolute_tol = lr[4]
+        #test_absolute_tol = lt[4]
+        #ref_relative_tol = lr[5]
+        #test_relative_tol = lt[5]
+        
+    
+    
+    
+    
+    ## Check if it has been an empty line
+    #if (len(lr) == 1 and len(lt) == 1):
+        #return matching,EmptyMsg
 
-    # if comparing strings, booleans or other types, or no tolerance is
-    # specified, do a exact check
-    if (lr[1] == "String" or lr[1] == "Boolean" or lr[1] == "Unknown" or (lr[4] == "None" and lr[5] == "None")):
-        if (lr[3] != lt[3]):
-            Msg = "Difference found in reference and test data:\n"
-            Msg += "Reference:" + str(lr) + "\n"
-            Msg += "Test:     " + str(lt)
-            return Msg
+    ## Invalid header in reference data?
+    #if (lr[0] != Header.strip()):
+        #Msg = "Invalid header found for the reference data!\n"
+        #Msg += "Reference: " + str(lr)
+        #return non_matching,Msg
 
-    else:
-        if (lr[1] == "Integer"):
-            m = int(lr[3])
-            n = int(lt[3])
-        else:
-            m = float(lr[3])
-            n = float(lt[3])
+    ## Invalid header in test data?
+    #if (lt[0] != Header.strip()):
+        #Msg = "Invalid header found for the test data!\n"
+        #Msg += "Test:     " + str(lt)
+        #return non_matching,Msg
 
-        if (lr[4] == "None"):
-            abserr = True
-        else:
-            abserr = abs(n - m) <= float(lr[4])
+    ## Incompatible type?
+    #if (lr[1] != lt[1]):
+        #Msg = "Incompatible types in benchmark data!\n"
+        #Msg += "Reference:" + str(lr) + "\n"
+        #Msg += "Test:     " + str(lt)
+        #return non_matching,Msg
 
-        if (lr[5] == "None"):
-            relerr = True
-        else:
-            if(n != 0.0):
-                relerr = (abs(n - m) / n) <= float(lr[5])
-            else:
-                relerr = True
+    ## Differenet labels?
+    #if (lr[2] != lt[2]):
+        #Msg = "Different labels!\n"
+        #Msg += "Reference:" + str(lr) + "\n"
+        #Msg += "Test:     " + str(lt)
+        #return non_matching,Msg
 
-        if (not (abserr and relerr)):
-            Msg = "Difference found in reference and test data:\n"
-            Msg += "Reference:" + str(lr) + "\n"
-            Msg += "Test:     " + str(lt)
-            return Msg
+    ## Differenet tolerances?
+    #if (lr[4] != lt[4] or lr[5] != lt[5]):
+        #Msg = "Different tolerances!\n"
+        #Msg += "Reference:" + str(lr) + "\n"
+        #Msg += "Test:     " + str(lt)
+        #return non_matching,Msg
 
-    return True
+    ## Compare based on the type
+    
+    
+    
+    ##CHAPUZA! not the way to do it!!
+    #if(lr[4] == "None"):
+        #lr[4] = 1e-12
+        #print("lr[4] =",lr[4])
+
+    ## if comparing strings, booleans or other types, or no tolerance is
+    ## specified, do a exact check
+    #if (lr[1] == "String" or lr[1] == "Boolean" or lr[1] == "Unknown" or (lr[4] == "None" and lr[5] == "None")):
+        #if (lr[3] != lt[3]):
+            #Msg = "Difference found in reference and test data:\n"
+            #Msg += "Reference:" + str(lr) + "\n"
+            #Msg += "Test:     " + str(lt)
+            #return non_matching,Msg
+
+    #else:
+        #if (lr[1] == "Integer"):
+            #m = int(lr[3])
+            #n = int(lt[3])
+        #else:
+            #m = float(lr[3])
+            #n = float(lt[3])
+
+        #if (lr[4] == "None"):
+            #abserr = True
+        #else:
+            #abserr = abs(n - m) <= float(lr[4])
+
+        #if (lr[5] == "None"):
+            #relerr = True
+        #else:
+            #if(n != 0.0):
+                #relerr = (abs(n - m) / n) <= float(lr[5])
+            #else:
+                #relerr = True
+
+        #if (not (abserr and relerr)):
+            #Msg = "Difference found in reference and test data:\n"
+            #Msg += "Reference:" + str(lr) + "\n"
+            #Msg += "Test:     " + str(lt)
+            #return non_matching,Msg
+
+    #return matching,EmptyMsg
 
 
 def InBenchmarkingMode():
@@ -131,15 +314,22 @@ def InBuildReferenceMode():
 
 def Output(Var, Label="", AbsErr=None, RelErr=None):
     if (InBenchmarkingMode()):
-        print(Header, "|", TypeToString(Var), "|", Label, "|", Var, "|", AbsErr, "|", RelErr)
+        #print(Header, "|", TypeToString(Var), "|", Label, "|", Var, "|", AbsErr, "|", RelErr)
 
-
+        if(type(Var) == float):
+            varout = "{0:.12E}".format(Var)
+        else:
+            varout = str(Var)
+        sys.stdout.flush()
+        print(Header, "|", TypeToString(Var), "|", Label, "|", varout, "|", AbsErr, "|", RelErr)
+        sys.stdout.flush()
+        
 def BuildReferenceData(ExamplePath, ReferenceBenchmarkFile):
     if sys.version_info >= (3, 0):
         os.system(
             "python3 " +
             ExamplePath +
-            " --benchmarking --build-reference | grep \"" +
+            " -u --benchmarking --build-reference | grep \"" +
             Header +
             "\" > " +
             ReferenceBenchmarkFile)
@@ -158,7 +348,7 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
         os.system(
             "python3 " +
             ExamplePath +
-            " --benchmarking | grep \"" +
+            " -u --benchmarking | grep \"" +
             Header +
             "\" > BenchTemp.txt")
     else:
@@ -181,22 +371,26 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
     t = list(map(str.strip, t))
     r = list(map(str.strip, r))
 
+    successful = True
     if (len(t) != len(r)):
         Msg = "Different amount of benchmark data!"
-        return Msg
+        successful = False
+        return successful,Msg
 
     n = len(t)
 
     for i in range(n):
-        Msg = TypedCompare(
+        matching,Msg = TypedCompare(
             list(map(str.strip,
                      r[i].split("|"))),
             list(map(str.strip,
                      t[i].split("|"))))
-        if (Msg != True):
-            return Msg
+        if (matching != True):
+            successful = False
+            return successful,Msg
 
-    return True
+    Msg = ""
+    return successful,Msg
 
 
 def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
@@ -229,20 +423,22 @@ def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 
     if (len(t) != len(r)):
         Msg = "Different amount of benchmark data!"
-        return Msg
+        print(Msg)
+        return False,Msg
 
     n = len(t)
 
     for i in range(n):
-        Msg = TypedCompare(
+        matching,Msg = TypedCompare(
             list(map(str.strip,
                      r[i].split("|"))),
             list(map(str.strip,
                      t[i].split("|"))))
-        if (Msg != True):
-            return Msg
-
-    return True
+        if (matching != True):
+            successful = False
+            return False,Msg
+    
+    return True,""
 
 
 def StartTiming():

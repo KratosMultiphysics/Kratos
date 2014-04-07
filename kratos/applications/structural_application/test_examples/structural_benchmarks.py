@@ -18,11 +18,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Patch_Test_Total_Lagrangian_3D_8N...")
-    Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_3D_8N_benchmarking.py", "Patch_Test_Total_Lagrangian_3D_8N.txt")
+    successful,Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_3D_8N_benchmarking.py", "Patch_Test_Total_Lagrangian_3D_8N.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Patch_Test_Total_Lagrangian_3D_8N_benchmarking example succesful")
+        print("Patch_Test_Total_Lagrangian_3D_8N_benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -37,11 +37,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Patch_Test_Total_Lagrangian_4N...")
-    Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_4N_benchmarking.py", "Patch_Test_Total_Lagrangian_4N.txt")
+    successful,Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_4N_benchmarking.py", "Patch_Test_Total_Lagrangian_4N.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Patch_Test_Total_Lagrangian_4N_benchmarking example succesful")
+        print("Patch_Test_Total_Lagrangian_4N_benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -56,11 +56,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever2ddynamic")
-    Msg = benchmarking.RunBenchmark("cantilever2ddynamic_benchmarking.py", "cantilever2ddynamic.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever2ddynamic_benchmarking.py", "cantilever2ddynamic.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever2dynamic succesful")
+        print("cantilever2dynamic successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -76,11 +76,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever2dstatic using MKLPardisoSolver")
-    Msg = benchmarking.RunBenchmark("cantilever2dstatic_Mkl_benchmarking.py", "cantilever2dstatic_superlu.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever2dstatic_Mkl_benchmarking.py", "cantilever2dstatic_superlu.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever2dstatic using MKLPardisoSolver succesful")
+        print("cantilever2dstatic using MKLPardisoSolver successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -96,11 +96,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever2dstatic witdh SuperLUSolver")
-    Msg = benchmarking.RunBenchmark("cantilever2dstatic_superlu_benchmarking.py", "cantilever2dstatic_superlu.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever2dstatic_superlu_benchmarking.py", "cantilever2dstatic_superlu.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever2dstatic witdh SuperLUSolver example succesful")
+        print("cantilever2dstatic witdh SuperLUSolver example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -115,11 +115,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever2dstatic with classical solver")
-    Msg = benchmarking.RunBenchmark("cantilever2dstatic_benchmarking.py", "cantilever2dstatic_superlu.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever2dstatic_benchmarking.py", "cantilever2dstatic_superlu.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever2dstatic with classical solver example succesful")
+        print("cantilever2dstatic with classical solver example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -134,11 +134,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever2dstatic_parallel using ParallelSkylineLUFactorizationSolver")
-    Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_benchmarking.py", "cantilever2dstatic_superlu.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_benchmarking.py", "cantilever2dstatic_superlu.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever2dstatic_parallel using ParallelSkylineLUFactorizationSolver  example succesful")
+        print("cantilever2dstatic_parallel using ParallelSkylineLUFactorizationSolver  example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -153,11 +153,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever2dstatic using ParallelMKLPardisoSolver")
-    Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_pardiso_benchmarking.py", "cantilever2dstatic_superlu.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_pardiso_benchmarking.py", "cantilever2dstatic_superlu.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever2dstatic using ParallelMKLPardisoSolver  example succesful")
+        print("cantilever2dstatic using ParallelMKLPardisoSolver  example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -173,11 +173,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever3dstatic")
-    Msg = benchmarking.RunBenchmark("cantilever3dstatic_superlu_benchmarking.py", "cantilever3dstatic.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever3dstatic_superlu_benchmarking.py", "cantilever3dstatic.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever3dstatic example succesful")
+        print("cantilever3dstatic example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -192,11 +192,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running cantilever3dynamic")
-    Msg = benchmarking.RunBenchmark("cantilever3ddynamic_benchmarking.py", "cantilever3ddynamic.txt")
+    successful,Msg = benchmarking.RunBenchmark("cantilever3ddynamic_benchmarking.py", "cantilever3ddynamic.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cantilever3ddynamic example succesful")
+        print("cantilever3ddynamic example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -212,9 +212,9 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running balken contact benchmark...")
-    Msg = benchmarking.RunBenchmark("balken_benchmarking.py", "balken_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("balken_benchmarking.py", "balken_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("balken contact benchmark example successful")
     else:
@@ -231,9 +231,9 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running arc length desplacement  benchmark...")
-    Msg = benchmarking.RunBenchmark("arc_length_des_benchmarking.py", "arc_length_des_benchmarking.txt")
+    successful,Msg = benchmarking.RunBenchmark("arc_length_des_benchmarking.py", "arc_length_des_benchmarking.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("arc_length_des benchmark example successful")
     else:
@@ -250,9 +250,9 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running arc length  benchmark...")
-    Msg = benchmarking.RunBenchmark("arc_length_benchmarking.py", "arc_length_benchmarking.txt")
+    successful,Msg = benchmarking.RunBenchmark("arc_length_benchmarking.py", "arc_length_benchmarking.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("arc_length benchmark example successful")
     else:
@@ -269,9 +269,9 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Pendulo Kratos Length benchmark...")
-    Msg = benchmarking.RunBenchmark("Pendulo_Kratos_benchmarking.py", "Pendulo_Kratos_benchmarking.txt")
+    successful,Msg = benchmarking.RunBenchmark("Pendulo_Kratos_benchmarking.py", "Pendulo_Kratos_benchmarking.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("Pendulo Kratos benchmark example successful")
     else:
@@ -289,9 +289,9 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("PlasticitJ2 with EBST TENSION benchmarks...")
-    Msg = benchmarking.RunBenchmark("tension.py", "tension_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("tension.py", "tension_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("PlasticitJ2 with EBST TENSION benchmarks successful")
     else:
@@ -301,9 +301,9 @@ def Run():
         print("PlasticitJ2 with EBST TENSION benchmarks FAILED")
 
     print("PlasticitJ2 with EBST TORSION benchmarks...")
-    Msg = benchmarking.RunBenchmark("torsion.py", "torsion_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("torsion.py", "torsion_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("PlasticitJ2 with EBST TORSION benchmarks successful")
     else:
@@ -313,9 +313,9 @@ def Run():
         print("PlasticitJ2 with EBST TORSION benchmarks FAILED")
 
     print("PlasticitJ2 with EBST VERTICAL benchmarks...")
-    Msg = benchmarking.RunBenchmark("vertical.py", "vertical_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("vertical.py", "vertical_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("PlasticitJ2 with EBST VERTICAL benchmarks successful")
     else:
@@ -325,9 +325,9 @@ def Run():
         print("PlasticitJ2 with EBST VERTICAL benchmarks FAILED")
 
     print("PlasticitJ2 with EBST FORCE benchmarks...")
-    Msg = benchmarking.RunBenchmark("force.py", "force_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("force.py", "force_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
         print("PlasticitJ2 with EBST FORCE benchmarks successful")
     else:

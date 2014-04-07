@@ -10,13 +10,13 @@ Text = " "
 # StillWater_Elembased_halfPorous
 
 print("Running StillWater_Elembased_halfPorous...")
-Msg = benchmarking.RunBenchmark(
+successful,Msg = benchmarking.RunBenchmark(
     "StillWater_Elembased_halfPorous_script.py",
     "StillWater_Elembased_halfPorous_ref.txt")
 
-if (Msg):
+if(successful==True):
         Text += "OK\n"
-        print("StillWater_Elembased_halfPorous example succesful")
+        print("StillWater_Elembased_halfPorous example successful")
 else:
         Text += "FAILED\n"
         Text += Msg

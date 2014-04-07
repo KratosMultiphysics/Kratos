@@ -215,7 +215,7 @@ class ULF_FSISolver:
 
         print("solving the fluid problem")
         inverted_elements = (self.solver).Solve(self.domain_size, self.UlfUtils, self.FSI)
-        print("succesful solution of the fluid ")
+        print("successful solution of the fluid ")
 
         reduction_factor = 0.5
         max_reduction_steps = 5

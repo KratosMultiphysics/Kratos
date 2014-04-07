@@ -8,9 +8,9 @@ Text = " "
 
 #
 print("verifying  Couette2dNonNewt.py...")
-Msg = benchmarking.RunBenchmark("Couette2dNonNewt.py", "Couette2dNonNewt_ref.txt")
+successful,Msg = benchmarking.RunBenchmark("Couette2dNonNewt.py", "Couette2dNonNewt_ref.txt")
 
-if (Msg):
+if(successful==True):
     Text += "OK\n"
     print("Couette2dNonNewt example SUCCESFUL")
 else:

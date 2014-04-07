@@ -8,11 +8,11 @@ Text = " "
 
 #
 print("verifying  connectivity_preserve_modeler benchmark...")
-Msg = benchmarking.RunBenchmark("do_test.py", "connectivity_preserve_benchmarking_ref.txt")
+successful,Msg = benchmarking.RunBenchmark("do_test.py", "connectivity_preserve_benchmarking_ref.txt")
 
-if (Msg):
+if(successful==True):
     Text += "OK\n"
-    print("connectivity_preserve_modeler benchmark succesful")
+    print("connectivity_preserve_modeler benchmark successful")
 else:
     Text += "FAILED\n"
     Text += Msg

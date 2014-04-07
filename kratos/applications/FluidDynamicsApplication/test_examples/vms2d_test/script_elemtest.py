@@ -20,7 +20,7 @@ def FindNode(node_list, x, y, z):
 
 
 def BenchmarkCheck(time, node1, node2):
-    benchmarking.Output(time, "Time")
+    benchmarking.Output(time, "Time",1e-7)
     benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Test node 1 pressure", None, 0.01)
     benchmarking.Output(node2.GetSolutionStepValue(VELOCITY_X), "Test node 2 velocity x", None, 0.01)
 

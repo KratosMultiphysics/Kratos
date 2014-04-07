@@ -20,11 +20,11 @@ def Run():
 
     print("---start solid mechanics application tests---")
     print("running the Scordelis Low Roof benchmark test...")
-    Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
+    successful,Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Scordelis Low Roof test succesful")
+        print("Scordelis Low Roof test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -43,10 +43,10 @@ def Run():
     os.chdir("Shell_Q4_Thick__BendingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell Q4 Thick Bending RollUp benchmark test...")
-    Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
-    if (Msg):
+    successful,Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
+    if(successful==True):
         Text += "OK\n"
-        print("Shell Q4 Thick Bending RollUp test succesful")
+        print("Shell Q4 Thick Bending RollUp test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -59,10 +59,10 @@ def Run():
     os.chdir("Shell_Q4_Thick__DrillingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell Q4 Thick Drilling RollUp benchmark test...")
-    Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
-    if (Msg):
+    successful,Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
+    if(successful==True):
         Text += "OK\n"
-        print("Shell Q4 Thick Drilling RollUp test succesful")
+        print("Shell Q4 Thick Drilling RollUp test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -75,10 +75,10 @@ def Run():
     os.chdir("Shell_T3_Thin__BendingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell T3 Thin Bending RollUp benchmark test...")
-    Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
-    if (Msg):
+    successful,Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
+    if(successful==True):
         Text += "OK\n"
-        print("Shell T3 Thin Bending RollUp test succesful")
+        print("Shell T3 Thin Bending RollUp test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -91,10 +91,10 @@ def Run():
     os.chdir("Shell_T3_Thin__DrillingRollUp.gid")
     sys.path.append(os.getcwd())
     print("running the Shell T3 Thin Drilling RollUp benchmark test...")
-    Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
-    if (Msg):
+    successful,Msg = benchmarking.RunBenchmark("run_test.py", "benchmark_results.txt")
+    if(successful==True):
         Text += "OK\n"
-        print("Shell T3 Thin Drilling RollUp test succesful")
+        print("Shell T3 Thin Drilling RollUp test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
