@@ -418,9 +418,9 @@ namespace Kratos
 
           //array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES);
           //array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES);
-          array_1d<double,3> old_coord_target       = this->GetGeometry()(0)->Coordinates() - delta_displ;
-          array_1d<double, 3 > & other_delta_displ  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          array_1d<double,3> old_coord_neigh        = neighbour_iterator->GetGeometry()(0)->Coordinates() - other_delta_displ;
+          const array_1d<double,3> old_coord_target       = this->GetGeometry()(0)->Coordinates() - delta_displ;
+          const array_1d<double, 3 > & other_delta_displ  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double,3> old_coord_neigh        = neighbour_iterator->GetGeometry()(0)->Coordinates() - other_delta_displ;
           
           array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;                    
 
@@ -429,12 +429,12 @@ namespace Kratos
           //OldNormalDir[2] = Old_other_to_me_vect[2];
           
           //GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
-          double old_distance = sqrt(Old_other_to_me_vect[0]*Old_other_to_me_vect[0] + Old_other_to_me_vect[1]*Old_other_to_me_vect[1] + Old_other_to_me_vect[2]*Old_other_to_me_vect[2]);
+          const double old_distance = sqrt(Old_other_to_me_vect[0]*Old_other_to_me_vect[0] + Old_other_to_me_vect[1]*Old_other_to_me_vect[1] + Old_other_to_me_vect[2]*Old_other_to_me_vect[2]);
           
           GeometryFunctions::ComputeContactLocalCoordSystem(Old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coord System
 
           // VELOCITIES AND DISPLACEMENTS
-          array_1d<double, 3 > other_vel          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3 >& other_vel          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
           
 
           RelVel[0] = (vel[0] - other_vel[0]);

@@ -428,6 +428,7 @@ public:
     
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
     {
+        ///ONLY FOR CONTINUUM!!!
 
       KRATOS_TRY
                                                            
@@ -438,12 +439,21 @@ public:
           
           if( (*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) )   {
               
-              WeakPointerVector<Element>& node_to_neigh_element_pointer = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER);
+              /*WeakPointerVector<Element>& node_to_neigh_element_pointer = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER);
               unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
               for(unsigned int i = 0; i < number_of_contact_elements; i++)
               {
                   Element::WeakPointer wp_to_contact_element = node_to_neigh_element_pointer(i);
                   (  wp_to_contact_element.lock() )->Set(TO_ERASE);
+              }*/
+              Element* p_element = particle_pointer_it->get();
+              SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>( p_element );    
+              std::vector<Particle_Contact_Element*>& node_to_neigh_element_pointer = p_continuum_spheric_particle->mBondElements;
+              unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
+              for(unsigned int i = 0; i < number_of_contact_elements; i++)
+              {
+                  Particle_Contact_Element* p_to_contact_element = node_to_neigh_element_pointer[i];
+                  p_to_contact_element->Set(TO_ERASE);
               }
                             
           }       

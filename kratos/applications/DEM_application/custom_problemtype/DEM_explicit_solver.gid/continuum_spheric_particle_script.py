@@ -356,6 +356,7 @@ while (time < DEM_parameters.FinalTime):
         Procedures.PrintingBallsVariables(gid_io, balls_model_part, time)
         
         if (DEM_parameters.ContactMeshOption == "ON"):
+            solver.PrepareContactElementsForPrinting()
             Procedures.PrintingContactElementsVariables(gid_io, contact_model_part, time)
         
         os.chdir(main_path)     

@@ -114,12 +114,33 @@ void Particle_Contact_Element::Initialize()
     this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
     this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
     this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
+    mFailureCriterionState = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+    mLocalContactForce[0] = 0.0;
+    mLocalContactForce[1] = 0.0;
+    mLocalContactForce[2] = 0.0;
 
    
     KRATOS_CATCH( "" )
+}
+
+void Particle_Contact_Element::PrepareForPrinting()
+{
+    KRATOS_TRY
+            
+    this->GetValue(LOCAL_CONTACT_FORCE)[0] = mLocalContactForce[0];
+    this->GetValue(LOCAL_CONTACT_FORCE)[1] = mLocalContactForce[1];
+    this->GetValue(LOCAL_CONTACT_FORCE)[2] = mLocalContactForce[2];
+    this->GetValue(CONTACT_SIGMA)          = mContactSigma;
+    this->GetValue(CONTACT_TAU)            = mContactTau;
+    this->GetValue(CONTACT_FAILURE)        = mContactFailure;
+    this->GetValue(FAILURE_CRITERION_STATE)= mFailureCriterionState;
+    this->GetValue(UNIDIMENSIONAL_DAMAGE)  = mUnidimendionalDamage; 
+    
+    KRATOS_CATCH( "" )
+    
 }
 
 
@@ -132,7 +153,7 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
        
         
         rOutput.resize(1);
-        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
+        const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); 
         rOutput[0][0] = const_this->GetValue(rVariable)[0];
         rOutput[0][1] = const_this->GetValue(rVariable)[1];
         rOutput[0][2] = const_this->GetValue(rVariable)[2];
@@ -152,7 +173,7 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
     {
         
         Output.resize(1);
-        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
+        const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); 
         
  
               
@@ -199,15 +220,29 @@ void Particle_Contact_Element::CalculateRightHandSide( VectorType& rRightHandSid
 void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
      
-    this->GetValue(CONTACT_TAU) = 0.0;  
+    /*this->GetValue(CONTACT_TAU) = 0.0;  
+    
     this->GetValue(CONTACT_SIGMA) = 0.0;
     
+    
     if (this->GetValue(FAILURE_CRITERION_STATE)<1.0)
-    {this->GetValue(FAILURE_CRITERION_STATE) = 0.0;}
+    {
+        this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
+    }
         
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;*/
+   
+    this->mContactTau = 0.0;
+    this->mContactSigma = 0.0;
+     if (this->mFailureCriterionState<1.0)
+    {
+        this->mFailureCriterionState = 0.0;
+    }
+    this->mLocalContactForce[0] = 0.0;
+    this->mLocalContactForce[1] = 0.0;
+    this->mLocalContactForce[2] = 0.0;
 
 }
 

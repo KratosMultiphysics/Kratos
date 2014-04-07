@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 #from KratosMultiphysics.MetisApplication import *
-from KratosMultiphysics.mpi import *
+#from KratosMultiphysics.mpi import *
 
 import math
 import datetime
@@ -93,27 +93,27 @@ class MaterialTest:
 
         (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
-        xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
-        xbot_area_gath        = mpi.allgather(mpi.world, xbot_area) 
-        xlat_area_gath        = mpi.allgather(mpi.world, xlat_area) 
-        xtopcorner_area_gath  = mpi.allgather(mpi.world, xtopcorner_area) 
-        xbotcorner_area_gath  = mpi.allgather(mpi.world, xbotcorner_area) 
+        #xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
+        #xbot_area_gath        = mpi.allgather(mpi.world, xbot_area) 
+        #xlat_area_gath        = mpi.allgather(mpi.world, xlat_area) 
+        #xtopcorner_area_gath  = mpi.allgather(mpi.world, xtopcorner_area) 
+        #xbotcorner_area_gath  = mpi.allgather(mpi.world, xbotcorner_area) 
         
-        xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
-        xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
-        xlat_area = reduce(lambda x, y: x + y, xlat_area_gath)
-        xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
-        xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
+        #xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
+        #xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
+        #xlat_area = reduce(lambda x, y: x + y, xlat_area_gath)
+        #xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
+        #xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
       
-        weight_top_gath = mpi.allgather(mpi.world, weight_top)
-        weight_bot_gath = mpi.allgather(mpi.world, weight_bot)
-        y_top_total_gath = mpi.allgather(mpi.world, y_top_total)
-        y_bot_total_gath = mpi.allgather(mpi.world, y_bot_total)
+        #weight_top_gath = mpi.allgather(mpi.world, weight_top)
+        #weight_bot_gath = mpi.allgather(mpi.world, weight_bot)
+        #y_top_total_gath = mpi.allgather(mpi.world, y_top_total)
+        #y_bot_total_gath = mpi.allgather(mpi.world, y_bot_total)
         
-        weight_top = reduce(lambda x, y: x + y, weight_top_gath)
-        weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
-        y_top_total = reduce(lambda x, y: x + y, y_top_total_gath)
-        y_bot_total = reduce(lambda x, y: x + y, y_bot_total_gath)
+        #weight_top = reduce(lambda x, y: x + y, weight_top_gath)
+        #weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
+        #y_top_total = reduce(lambda x, y: x + y, y_top_total_gath)
+        #y_bot_total = reduce(lambda x, y: x + y, y_bot_total_gath)
     
         initial_height_top = y_top_total/weight_top 
         initial_height_bot = y_bot_total/weight_bot

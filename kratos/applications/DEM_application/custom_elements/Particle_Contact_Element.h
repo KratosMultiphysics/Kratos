@@ -157,9 +157,18 @@ public:
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
   
     void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo );
+    
+    void PrepareForPrinting();
 
     ///@}
     ///@name Access
+    array_1d<double,3> mLocalContactForce;
+    double mContactSigma;
+    double mContactTau;
+    double mContactFailure;
+    double mFailureCriterionState;
+    double mUnidimendionalDamage;
+
     ///@{
 
     ///@}

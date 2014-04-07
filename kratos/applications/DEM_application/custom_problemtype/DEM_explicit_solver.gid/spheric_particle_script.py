@@ -240,7 +240,6 @@ print(('Main loop starts at instant: ' + str(initial_pr_time) + '\n'))
 print(('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n'))
 sys.stdout.flush()
 
-mesh_motion = DEMFEMUtilities()
 
 while (time < DEM_parameters.FinalTime):
 

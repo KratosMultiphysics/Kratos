@@ -753,7 +753,7 @@ namespace Kratos
                 for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
                     //neighbour_elements.push_back( *neighbour_it );   
                     Element* p_neighbour_element = (*neighbour_it).get();
-                    SphericParticle* p_spheric_neighbour_particle = static_cast<SphericParticle*>( p_neighbour_element );
+                    SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*>( p_neighbour_element );
                     spheric_central_particle->mNeighbourElements.push_back( p_spheric_neighbour_particle );
 
                     if( (*neighbour_it)->Id() != (*p_spheric_neighbour_particle).Id() ) KRATOS_ERROR(std::logic_error,"ELEEEEEEEEE",(*neighbour_it)->Id() );                                                
