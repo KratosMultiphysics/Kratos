@@ -19,11 +19,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("running the vms2d_test benchmark test...")
-    Msg = benchmarking.RunBenchmark("script_elemtest.py", "vms2d_test_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("script_elemtest.py", "vms2d_test_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("VMS2D element test succesful")
+        print("VMS2D element test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -40,11 +40,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     import trapezoid_benchmark
-    Msg = trapezoid_benchmark.Run()
+    success, Msg = trapezoid_benchmark.Run()
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("oss_trapezoid test succesful")
+        print("oss_trapezoid test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -61,11 +61,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     import slip_test_benchmark
-    Msg = slip_test_benchmark.Run()
+    success, Msg = slip_test_benchmark.Run()
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("slip condition test succesful")
+        print("slip condition test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -82,11 +82,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     import fs_cavity_verify_benchmark
-    Msg = fs_cavity_verify_benchmark.Run()
+    success, Msg = fs_cavity_verify_benchmark.Run()
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Fractional step 2D cavity test succesful")
+        print("Fractional step 2D cavity test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -103,11 +103,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     import cyl_verify_benchmark
-    Msg = cyl_verify_benchmark.Run()
+    success, Msg = cyl_verify_benchmark.Run()
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("cylinder with slip BC, wall law and outlet test succesful")
+        print("cylinder with slip BC, wall law and outlet test successful")
     else:
         Text += "FAILED\n"
         Text += Msg

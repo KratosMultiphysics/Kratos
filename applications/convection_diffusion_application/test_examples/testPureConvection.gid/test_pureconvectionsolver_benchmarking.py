@@ -32,7 +32,7 @@ def BenchmarkCheck(time, model_part):
         if(node.Id == 15):
             dist = node.GetSolutionStepValue(DISTANCE)
 
-    benchmarking.Output(time, "Time")
+    benchmarking.Output(time, "Time",1e-7)
     benchmarking.Output(dist, "distance on node #15", 0.00001)
 
 

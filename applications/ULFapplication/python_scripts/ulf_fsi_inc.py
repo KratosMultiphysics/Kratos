@@ -204,7 +204,7 @@ class ULF_FSISolver:
 
         print("solving the fluid problem")
         inverted_elements = (self.solver).Solve(self.domain_size, self.UlfUtils)
-        print("succesful solution of the fluid ")
+        print("successful solution of the fluid ")
         self.lagrangian_inlet_process = lagrangian_inlet_process
 
         reduction_factor = 0.5

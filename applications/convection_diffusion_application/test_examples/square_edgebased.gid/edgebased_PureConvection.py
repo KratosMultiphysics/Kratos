@@ -34,7 +34,7 @@ def BenchmarkCheck(time, model_part):
         if(node.Id == 5420):
             dist = node.GetSolutionStepValue(DISTANCE)
 
-    benchmarking.Output(time, "Time")
+    benchmarking.Output(time, "Time",1e-7)
     benchmarking.Output(dist, "distance on node #5420", 0.00001)
 
 # introducing input file name

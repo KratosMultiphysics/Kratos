@@ -18,11 +18,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Trilinos -- Cantilever_Amesos...")
-    Msg = benchmarking.MPIParallelRunBenchmark("cantilever_amesos.py", "cantilever.txt")
+    success, Msg = benchmarking.MPIParallelRunBenchmark("cantilever_amesos.py", "cantilever.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Trilinos Cantilever_Amesos example succesful")
+        print("Trilinos Cantilever_Amesos example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -37,11 +37,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Trilinos -- Cantilever_Aztec...")
-    Msg = benchmarking.MPIParallelRunBenchmark("cantilever_aztec.py", "cantilever.txt")
+    success, Msg = benchmarking.MPIParallelRunBenchmark("cantilever_aztec.py", "cantilever.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Trilinos Cantilever_Aztec example succesful")
+        print("Trilinos Cantilever_Aztec example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -56,11 +56,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Trilinos -- Cantilever_ML...")
-    Msg = benchmarking.MPIParallelRunBenchmark("cantilever_ML.py", "cantilever.txt")
+    success, Msg = benchmarking.MPIParallelRunBenchmark("cantilever_ML.py", "cantilever.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Trilinos Cantilever_ML example succesful")
+        print("Trilinos Cantilever_ML example successful")
     else:
         Text += "FAILED\n"
         Text += Msg

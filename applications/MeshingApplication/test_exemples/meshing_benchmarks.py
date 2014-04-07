@@ -18,11 +18,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Adaptive Mesher 2d benchmark...")
-    Msg = benchmarking.RunBenchmark("remesh.py", "adaptive_mesher2d_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("remesh.py", "adaptive_mesher2d_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Adaptive_mesher2d benchmarking example succesful")
+        print("Adaptive_mesher2d benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -38,11 +38,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Adaptive Mesher 3d benchmark...")
-    Msg = benchmarking.RunBenchmark("remesh.py", "adaptive_mesher3d_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("remesh.py", "adaptive_mesher3d_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Adaptive_mesher2d benchmarking example succesful")
+        print("Adaptive_mesher2d benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -57,11 +57,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Mapping_2d benchmark...")
-    Msg = benchmarking.RunBenchmark("ProjectionTest_2D_script.py", "ProjectionTest_2D_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("ProjectionTest_2D_script.py", "ProjectionTest_2D_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Mapping_2d benchmarking example succesful")
+        print("Mapping_2d benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -76,11 +76,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Mapping_3d benchmark...")
-    Msg = benchmarking.RunBenchmark("ProjectionTest_3D_script.py", "ProjectionTest_3D_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("ProjectionTest_3D_script.py", "ProjectionTest_3D_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Mapping_3d benchmarking example succesful")
+        print("Mapping_3d benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -96,11 +96,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Mapping_2d_BinBased benchmark...")
-    Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_script.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_script.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Mapping_2d_BinBased benchmarking example succesful")
+        print("Mapping_2d_BinBased benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -116,11 +116,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Mapping_3d_BinBased benchmark...")
-    Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_3D_script.py", "ProjectionTestBinBased_3D_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_3D_script.py", "ProjectionTestBinBased_3D_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("Mapping_3d_BinBased benchmarking example succesful")
+        print("Mapping_3d_BinBased benchmarking example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -134,11 +134,11 @@ def Run():
     os.chdir("test_connectivity_preserve_modeler")
     sys.path.append(os.getcwd())
     print("verifying  connectivity_preserve_modeler benchmark...")
-    Msg = benchmarking.RunBenchmark("do_test.py", "connectivity_preserve_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("do_test.py", "connectivity_preserve_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("connectivity_preserve_modeler benchmark succesful")
+        print("connectivity_preserve_modeler benchmark successful")
     else:
         Text += "FAILED\n"
         Text += Msg

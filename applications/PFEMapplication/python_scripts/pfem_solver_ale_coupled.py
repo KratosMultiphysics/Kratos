@@ -178,7 +178,7 @@ class PFEMSolver:
 
             #(self.Mesher).ReGenerateMesh("Fluid3DCoupled","Condition2D",self.model_part,self.EraseNodes, self.alpha_shape)
             (self.Mesher).ReGenerateMesh("Fluid3DCoupled", "Condition3D", self.model_part, self.EraseNodes, self.remove_nodes, self.add_nodes, self.alpha_shape, self.h_factor)
-        print("remeshing in initalize performed succesfully")
+        print("remeshing in initalize performed successfully")
 
         print("*************************************************************")
 

@@ -37,7 +37,7 @@ def BenchmarkCheck(time, model_part):
             max_temp = temp
             id_max_temp = node.Id
 
-    benchmarking.Output(time, "Time")
+    benchmarking.Output(time, "Time",1e-7)
     benchmarking.Output(max_temp, "minimum temperature", 0.00001)
     benchmarking.Output(id_max_temp, "Id of the node with maximum temperature", 0.0)
 

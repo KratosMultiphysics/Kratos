@@ -19,14 +19,14 @@ def Run():
     # sys.path.append(os.getcwd())
 
     # import column_benchmark
-    # Msg = column_benchmark.Run()
+    # success, Msg = column_benchmark.Run()
 
     # print "Running column.py..."
-    # Msg = benchmarking.RunBenchmark("column.py", "column_ref.txt")
+    # successful,Msg = benchmarking.RunBenchmark("column.py", "column_ref.txt")
 
     # if (Msg == True):
     #	Text += "OK\n"
-    #	print "colum example succesful"
+    #	print "colum example successful"
     # else:
     #	Text += "FAILED\n"
     #	Text += Msg
@@ -45,13 +45,13 @@ def Run():
         Text += "FAILED: directory not found\n"
     else:
         print("running the benchmark for naca3d test...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "run_benchmark.py",
             "benchmark_reference_solution.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("naca3d test example succesful")
+            print("naca3d test example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -71,13 +71,13 @@ def Run():
         Text += "FAILED: directory not found\n"
     else:
         print("running the benchmark for mass_conservation test...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "run_benchmark.py",
             "benchmark_reference_solution.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("mass_conservation test example succesful")
+            print("mass_conservation test example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -96,14 +96,14 @@ def Run():
 # sys.path.append(os.getcwd())
 #
 # import column_benchmark
-# Msg = column_benchmark.Run()
+# success, Msg = column_benchmark.Run()
 #
 # print "Running cavity.py..."
-# Msg = benchmarking.RunBenchmark("cavity2d.py", "cavity_ref.txt")
+# successful,Msg = benchmarking.RunBenchmark("cavity2d.py", "cavity_ref.txt")
 #
 # if (Msg == True):
 # Text += "OK\n"
-# print "cavity2d example succesful"
+# print "cavity2d example successful"
 # else:
 # Text += "FAILED\n"
 # Text += Msg
@@ -126,13 +126,13 @@ def Run():
         os.chdir("..")
     else:
         print("verifying  test_fractstep_cont_laplacian.py...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "test_fractstep_cont_laplacian.py",
             "fractstep_cont_laplacian_benchmarking_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("test_fractstep_cont_laplacian example succesful")
+            print("test_fractstep_cont_laplacian example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -140,13 +140,13 @@ def Run():
             print("test_fractstep_cont_laplacian example FAILED")
 
         print("verifying  test_fractstep_discrete_laplacian.py...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "test_fractstep_discrete_laplacian.py",
             "fractstep_discrete_laplacian_benchmarking_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("test_fractstep_discrete_laplacian example succesful")
+            print("test_fractstep_discrete_laplacian example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -167,13 +167,13 @@ def Run():
         os.chdir("..")
     else:
         print("verifying  test_fractstep_cont_laplacian.py...3D")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "test_fractstep_cont_laplacian.py",
             "fractstep_cont_laplacian_benchmarking_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("test_fractstep_cont_laplacian 3D example succesful")
+            print("test_fractstep_cont_laplacian 3D example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -193,14 +193,14 @@ def Run():
         os.chdir("..")
     else:
         # import column_benchmark
-        # Msg = column_benchmark.Run()
+        # success, Msg = column_benchmark.Run()
 
         print("Running cylinder.py...")
-        Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_ref.txt")
+        successful,Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("cylinder example succesful")
+            print("cylinder example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -220,14 +220,14 @@ def Run():
         os.chdir("..")
     else:
         # import column_benchmark
-        # Msg = column_benchmark.Run()
+        # success, Msg = column_benchmark.Run()
 
         print("Running Cilinder GLS example with explicit Runge-Kutta and FRAC STEP...")
-        Msg = benchmarking.RunBenchmark("cil_gls.py", "cil_gls_ref.txt")
+        successful,Msg = benchmarking.RunBenchmark("cil_gls.py", "cil_gls_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("cilinderGLS example succesful")
+            print("cilinderGLS example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -249,11 +249,11 @@ def Run():
     #else:
 
         #print("Running dam2d.py...")
-        #Msg = benchmarking.RunBenchmark("run_example.py", "dam2d_ref.txt")
+        #successful,Msg = benchmarking.RunBenchmark("run_example.py", "dam2d_ref.txt")
 
-        #if (Msg):
+        #if(successful==True):
             #Text += "OK\n"
-            #print("dam2d example succesful")
+            #print("dam2d example successful")
         #else:
             #Text += "FAILED\n"
             #Text += Msg
@@ -275,13 +275,13 @@ def Run():
     else:
 
         print("Running StillWater_Edgebased...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "StillWater_Edgebased_script.py",
             "StillWater_Edgebased_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("StillWater_Edgebased example succesful")
+            print("StillWater_Edgebased example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -302,13 +302,13 @@ def Run():
         os.chdir("..")
     else:
         print("Running StillWater_Edgebased_halfPorous...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "StillWater_Edgebased_halfPorous_script.py",
             "StillWater_Edgebased_halfPorous_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("StillWater_Edgebased_halfPorous example succesful")
+            print("StillWater_Edgebased_halfPorous example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -329,13 +329,13 @@ def Run():
         os.chdir("..")
     else:
         print("Running StillWater_Elembased_halfPorous...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "StillWater_Elembased_halfPorous_script.py",
             "StillWater_Elembased_halfPorous_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("StillWater_Elembased_halfPorous example succesful")
+            print("StillWater_Elembased_halfPorous example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -351,14 +351,14 @@ def Run():
     # sys.path.append(os.getcwd())
 
     # import column_benchmark
-    # Msg = column_benchmark.Run()
+    # success, Msg = column_benchmark.Run()
 
     # print "Running cylinder_3d.py..."
-    # Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_3d_ref.txt")
+    # successful,Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_3d_ref.txt")
 
     # if (Msg == True):
             # Text += "OK\n"
-            # print "cylinder_3d example succesful"
+            # print "cylinder_3d example successful"
     # else:
             # Text += "FAILED\n"
             # Text += Msg
@@ -379,16 +379,16 @@ def Run():
         os.chdir("..")
     else:
         # import column_benchmark
-        # Msg = column_benchmark.Run()
+        # success, Msg = column_benchmark.Run()
 
         print("Running script.py...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "script.py",
             "cavity_monolithic_3d_ref.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("cavity_monolithic_3d example succesful")
+            print("cavity_monolithic_3d example successful")
         else:
             Text += "FAILED\n"
             Text += Msg
@@ -410,13 +410,13 @@ def Run():
         os.chdir("..")
     else:
         print("running the benchmark for edgebased_fixed_press test...")
-        Msg = benchmarking.RunBenchmark(
+        successful,Msg = benchmarking.RunBenchmark(
             "run_benchmark.py",
             "benchmark_reference_solution.txt")
 
-        if (Msg):
+        if(successful==True):
             Text += "OK\n"
-            print("edgebased_fixed_press test example succesful")
+            print("edgebased_fixed_press test example successful")
         else:
             Text += "FAILED\n"
             Text += Msg

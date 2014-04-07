@@ -8,9 +8,9 @@ Text = " "
 
 #
 print("verifying  CoupledNonNewtSlope.py...")
-Msg = benchmarking.RunBenchmark("CoupledNonNewtSlope.py", "CoupledNonNewtSlope_ref.txt")
+successful,Msg = benchmarking.RunBenchmark("CoupledNonNewtSlope.py", "CoupledNonNewtSlope_ref.txt")
 
-if (Msg):
+if(successful==True):
     Text += "OK\n"
     print("CoupledNonNewtSlope example SUCCESFUL")
 else:

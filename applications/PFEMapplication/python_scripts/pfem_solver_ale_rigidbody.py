@@ -171,7 +171,7 @@ class PFEMSolver:
 
         # remesh
         (self.Mesher).ReGenerateMesh(self.model_part, self.alpha_shape)
-        print("remeshing in initalize performed succesfully")
+        print("remeshing in initalize performed successfully")
 
         print("*************************************************************")
 

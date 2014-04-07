@@ -24,11 +24,11 @@ def Run():
     print("Python script updated...")
 
     print("running the DEM two_balls_no_damp test...")
-    Msg = benchmarking.RunBenchmark("two_balls_no_damp.py", "two_balls_no_damp_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("two_balls_no_damp.py", "two_balls_no_damp_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("two_balls_no_damp test succesful")
+        print("two_balls_no_damp test successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -51,11 +51,11 @@ def Run():
     #~ print "References updated..."
 #~
     #~ print "running the DEM two_balls_normal_damp test..."
-    #~ Msg = benchmarking.RunBenchmark("two_balls_normal_damp_benchmark.py", "two_balls_normal_damp_ref.txt")
+    #~ successful,Msg = benchmarking.RunBenchmark("two_balls_normal_damp_benchmark.py", "two_balls_normal_damp_ref.txt")
 #~
     #~ if (Msg == True):
         #~ Text += "OK\n"
-        #~ print "two_balls_normal_damp test succesful"
+        #~ print "two_balls_normal_damp test successful"
     #~ else:
         #~ Text += "FAILED\n"
         #~ Text += Msg
@@ -79,11 +79,11 @@ def Run():
     #~ print "References updated..."
 #~
     #~ print "running the DEM rotating_ball_no_tangent_damp test..."
-    #~ Msg = benchmarking.RunBenchmark("rotating_ball_no_tangent_damp.py", "rotating_ball_no_tangent_damp_ref.txt")
+    #~ successful,Msg = benchmarking.RunBenchmark("rotating_ball_no_tangent_damp.py", "rotating_ball_no_tangent_damp_ref.txt")
 #~
     #~ if (Msg == True):
         #~ Text += "OK\n"
-        #~ print "rotating_ball_no_tangent_damp test succesful"
+        #~ print "rotating_ball_no_tangent_damp test successful"
     #~ else:
         #~ Text += "FAILED\n"
         #~ Text += Msg
@@ -107,11 +107,11 @@ def Run():
     #~ print "References updated..."
 #~
     #~ print "running the DEM rotating_ball_rolling_friction test..."
-    #~ Msg = benchmarking.RunBenchmark("rotating_ball_rolling_friction.py", "rotating_ball_rolling_friction_ref.txt")
+    #~ successful,Msg = benchmarking.RunBenchmark("rotating_ball_rolling_friction.py", "rotating_ball_rolling_friction_ref.txt")
 #~
     #~ if (Msg == True):
         #~ Text += "OK\n"
-        #~ print "rotating_ball_rolling_friction test succesful"
+        #~ print "rotating_ball_rolling_friction test successful"
     #~ else:
         #~ Text += "FAILED\n"
         #~ Text += Msg

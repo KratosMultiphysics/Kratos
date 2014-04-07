@@ -19,11 +19,11 @@ def Run():
 # sys.path.append(os.getcwd())
 #
 # print "Running rotatingcone_PureConvection.py..."
-# Msg = benchmarking.RunBenchmark("rotatingcone_PureConvectionBenchmarking.py", "rotatingcone_PureConvection_ref.txt")
+# successful,Msg = benchmarking.RunBenchmark("rotatingcone_PureConvectionBenchmarking.py", "rotatingcone_PureConvection_ref.txt")
 #
 # if (Msg == True):
 # Text += "OK\n"
-# print "square example succesful"
+# print "square example successful"
 # else:
 # Text += "FAILED\n"
 # Text += Msg
@@ -39,11 +39,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running edgebased_PureConvection.py...")
-    Msg = benchmarking.RunBenchmark("edgebased_PureConvection.py", "test_pureconvectionsolver_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("edgebased_PureConvection.py", "test_pureconvectionsolver_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("testConvectionEdgebased example succesful")
+        print("testConvectionEdgebased example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
@@ -61,11 +61,11 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running testPureConvection.py...")
-    Msg = benchmarking.RunBenchmark("test_pureconvectionsolver_benchmarking.py", "test_pureconvectionsolver_benchmarking_ref.txt")
+    successful,Msg = benchmarking.RunBenchmark("test_pureconvectionsolver_benchmarking.py", "test_pureconvectionsolver_benchmarking_ref.txt")
 
-    if (Msg):
+    if(successful==True):
         Text += "OK\n"
-        print("testPureConvection example succesful")
+        print("testPureConvection example successful")
     else:
         Text += "FAILED\n"
         Text += Msg

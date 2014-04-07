@@ -8,13 +8,13 @@ Text = " "
 
 #
 print("verifying  test_fractstep_cont_laplacian.py...3D case")
-Msg = benchmarking.RunBenchmark(
+successful,Msg = benchmarking.RunBenchmark(
     "test_fractstep_cont_laplacian.py",
     "fractstep_cont_laplacian_benchmarking_ref.txt")
 
-if (Msg):
+if(successful==True):
     Text += "OK\n"
-    print("test_fractstep_cont_laplacian 3D example succesful")
+    print("test_fractstep_cont_laplacian 3D example successful")
 else:
     Text += "FAILED\n"
     Text += Msg
