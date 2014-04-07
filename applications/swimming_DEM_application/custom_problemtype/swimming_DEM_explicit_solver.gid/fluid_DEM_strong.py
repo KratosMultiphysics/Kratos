@@ -76,7 +76,7 @@ ProjectParameters.coupling_level_type                  = 1 # one way coupling (0
 ProjectParameters.coupling_scheme_type                 = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type               = 2 # {fluid_to_DEM, DEM_to_fluid, solid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
 ProjectParameters.buoyancy_force_type                  = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
-ProjectParameters.drag_force_type                      = 1 # null drag (0), S (1), Weatherford (2), Ganser (3), Ishii (4)
+ProjectParameters.drag_force_type                      = 1 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
 ProjectParameters.virtual_mass_force_type              = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                      = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type                   = 3 # Hayder (2), Chien (3) # problemtype option
