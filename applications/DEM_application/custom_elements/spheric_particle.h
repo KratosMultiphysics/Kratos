@@ -312,7 +312,7 @@ namespace Kratos
       std::vector<double>               mFemTempNeighboursDelta;
       std::vector<int>                  mFemTempNeighboursMapping;
 
-      std::vector<double>              mFemNeighbourDelta;
+      //std::vector<double>              mFemNeighbourDelta;
       
       //ParticleWeakVectorType mrNeighbours;
 

@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "spheric_particle.h"
+#include "Particle_Contact_Element.h"
 #include "containers/vector_component_adaptor.h"
 
 
@@ -111,7 +112,7 @@ namespace Kratos
       virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
       
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
-                                              double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, ProcessInfo& rCurrentProcessInfo);
+                                              double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
                                           ProcessInfo& rCurrentProcessInfo,
@@ -201,7 +202,12 @@ namespace Kratos
       ///@}      
       ///@name Friends
       ///@{
-      std::vector<SphericParticle*> mContinuumIniNeighbourElements;
+      std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
+      std::vector<int> mContinuumIniNeighbourIds;
+      std::vector<Particle_Contact_Element*> mBondElements;
+      
+      //member variables DEM_CONTINUUM
+      int mContinuumGroup;
             
       ///@}
       
@@ -229,7 +235,7 @@ namespace Kratos
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, ProcessInfo& rCurrentProcessInfo);
+        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);
         
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -246,9 +252,7 @@ namespace Kratos
 
         virtual void ComputeNewNeighboursHistoricalData();
         virtual void ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo);
-        
-        //member variables DEM_CONTINUUM
-        int mContinuumGroup;
+                
         //DEMPACK
         int mDempack;
         double mDempack_damping;
@@ -320,6 +324,7 @@ namespace Kratos
   
         
         //fem neighbour information
+        std::vector<double>               mFemNeighbourDelta;
         
         ConditionWeakVectorType           mFemTempNeighbours;
         

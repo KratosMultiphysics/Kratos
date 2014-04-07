@@ -156,6 +156,8 @@ namespace Kratos
           "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
+                  .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)
+          
           ;
 
         }
