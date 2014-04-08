@@ -265,7 +265,7 @@ namespace Kratos
           
           //Cfeng
           this->GetRigidFaceResults().resize(number_of_elements);
-      this->GetRigidFaceResultsDistances().resize(number_of_elements);
+          this->GetRigidFaceResultsDistances().resize(number_of_elements);
 
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
@@ -275,6 +275,7 @@ namespace Kratos
 
           InitializeSolutionStep();
           InitializeElements();
+          InitializeFEMElements();
 
           mInitializeWasPerformed = true;
           
@@ -640,6 +641,34 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    
+    void InitializeFEMElements()
+    {
+        KRATOS_TRY
+
+
+        ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        //ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pTContitions.size(), this->GetElementPartition());
+
+        #pragma omp parallel for 
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ConditionsArrayType::iterator it_begin = pTContitions.ptr_begin() + this->GetElementPartition()[k];
+            typename ConditionsArrayType::iterator it_end   = pTContitions.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it){
+
+                (it)->Initialize();
+
+            }
+
+        }
+
+        KRATOS_CATCH("")
+    }
+    
+
     
     
     void SetSearchRadius(ModelPart& r_model_part, double amplification)
