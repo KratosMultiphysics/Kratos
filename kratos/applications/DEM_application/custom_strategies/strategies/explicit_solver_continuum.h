@@ -112,7 +112,10 @@ namespace Kratos
         this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
         BaseType::InitializeSolutionStep();
+        
         BaseType::InitializeElements();
+        BaseType::InitializeFEMElements();
+        
         this->GetInitializeWasPerformed() = true;
         
         this->ApplyPrescribedBoundaryConditions();
@@ -187,6 +190,7 @@ namespace Kratos
           
           // 1. Initialize step   /////////////////////////////////            
           BaseType::InitializeSolutionStep();
+          
           this->ContactInitializeSolutionStep();
           
 
