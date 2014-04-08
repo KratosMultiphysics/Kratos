@@ -111,15 +111,16 @@ public:
         PropertiesType::Pointer pProperties ) const;
 
 
-
+    void Initialize();
     void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo );
 		
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
-
+    double mTgOfFrictionAngle;
+    
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -131,6 +132,9 @@ public:
 
 
 protected:
+  
+  
+  
 
 
 private:
