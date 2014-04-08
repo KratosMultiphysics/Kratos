@@ -621,7 +621,9 @@ namespace Kratos
           
           //LOOP OVER NEIGHBOURS BEGINS:
           //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
-          for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+          for( unsigned int i = 0; i < mNeighbourElements.size(); i++) 
+          
+          {
               SphericParticle* neighbour_iterator = mNeighbourElements[i];
 
               if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
@@ -771,12 +773,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
 
       double mTimeStep    = rCurrentProcessInfo[DELTA_TIME];
-      /////int CalRotateOption = rCurrentProcessInfo[RIGID_FACE_FLAG];
-
-      //double Friction       = mTgOfFrictionAngle;
-      //double young          = mYoung;
-      //double poisson        = mPoisson;
-      //double radius         = this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
       double area           = M_PI * mRadius * mRadius;
 
       //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
@@ -786,7 +782,12 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
       for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
       {
+         
+        Condition* p_neighbour_condition = &(*ineighbour);
+        RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
 
+        double WallBallFriction = cast_neighbour->mTgOfFrictionAngle;
+        
         double LocalElasticContactForce[3]  = {0.0}; 
         double GlobalElasticContactForce[3] = {0.0};        
 
@@ -940,7 +941,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         else
         {
 
-          double ShearForceMax = LocalElasticContactForce[2] * mTgOfFrictionAngle;
+          double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
           double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
           +      LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
