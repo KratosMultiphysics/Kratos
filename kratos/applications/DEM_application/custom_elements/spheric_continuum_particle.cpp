@@ -506,8 +506,8 @@ namespace Kratos
                   calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
                 }
               
-                kn_el              = equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
-                kt_el              = kn_el/(2.0 + equiv_poisson + equiv_poisson);
+                kn_el              = 0.9237*equiv_young * calculation_area;// * radius_sum_i; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
+                kt_el              = 0.0*kn_el/(2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
             }
@@ -1860,13 +1860,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
        //if ( (node_to_neigh_element_pointer(mapping_new_cont)).expired() ) 
          //  KRATOS_WATCH("You are using a pointer that points to nowhere. Something has to be Fixed!!!")
-                  
+              
        if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
         {
             //COPY VARIABLES LOW
                                         
             //storing values:
-                
+              
             //HIGH-LOW variables
             /*array_1d<double,3> local_contact_force = lock_p_weak->GetValue(LOCAL_CONTACT_FORCE);      
             local_contact_force[0] = LocalElasticContactForce[0];
@@ -1875,7 +1875,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             bond->mLocalContactForce[0] = LocalElasticContactForce[0];
             bond->mLocalContactForce[1] = LocalElasticContactForce[1];
             bond->mLocalContactForce[2] = LocalElasticContactForce[2];
-                   
+                  
   
             /*bond->GetValue(CONTACT_SIGMA) = contact_sigma;
             bond->GetValue(CONTACT_TAU)   = contact_tau;
@@ -1893,8 +1893,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
             if( ( acumulated_damage > bond->mUnidimendionalDamage ) || ( time_steps == 0) )
              { bond->mUnidimendionalDamage = acumulated_damage; }  
-                  
+                
         } // if Target Id < Neigh Id
+        
+        
+        
 //         else   
 //         {
 //             //COPY VARIABLES HIGH 
