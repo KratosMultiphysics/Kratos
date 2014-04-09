@@ -172,7 +172,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
         //3.-Almansi Strain:
 
-        // e= 0.5*(1-invbT*invb)
+        // e= 0.5*(1-invFT*invF)
         this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
 
     }
