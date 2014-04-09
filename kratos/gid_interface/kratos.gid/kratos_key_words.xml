@@ -60,9 +60,9 @@
       <Item id="Gx" kkword="VOLUME_ACCELERATION_X" />
       <Item id="Gy" kkword="VOLUME_ACCELERATION_Y" />
       <Item id="Gz" kkword="VOLUME_ACCELERATION_Z" />
-      <Item id="Fx" kkword="POINT_FORCE_X" />
-      <Item id="Fy" kkword="POINT_FORCE_Y" />
-      <Item id="Fz" kkword="POINT_FORCE_Z" />
+      <Item id="Fx" kkword="POINT_LOAD_X" />
+      <Item id="Fy" kkword="POINT_LOAD_Y" />
+      <Item id="Fz" kkword="POINT_LOAD_Z" />
       <Item id="Mx" kkword="MOMENT_X" />
       <Item id="My" kkword="MOMENT_Y" />
       <Item id="Mz" kkword="MOMENT_Z" />
