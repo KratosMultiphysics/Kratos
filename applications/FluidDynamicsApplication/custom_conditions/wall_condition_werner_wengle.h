@@ -550,7 +550,7 @@ namespace Kratos
 	  if (w1 >= -tol && w2 >= -tol && (w1 + w2) <= 1.+tol) // check if normal intersects this face
 	    {
 	      // ywall = ||d*normal|| = |d| * ||normal|| = |d| * area
-	      ywall = fabs(d) * area;
+	      ywall = 2.0 * fabs(d) * area;
 	      if (ywall > tol * mMinEdgeLength) // don't count condition's face
 		{
 		  const array_1d<double,3> v0 = rFace[0].FastGetSolutionStepValue(VELOCITY)
