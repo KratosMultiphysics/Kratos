@@ -67,7 +67,7 @@ write_conditions = WriteConditionsFlag.WriteConditions
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 spheres_mp_filename = DEM_parameters.problem_name + "DEM"
 
-model_part_io_spheres = ModelPartIO(spheres_mp_filename)
+model_part_io_spheres = ModelPartIO(spheres_mp_filename,True)
 #
 #
 #
