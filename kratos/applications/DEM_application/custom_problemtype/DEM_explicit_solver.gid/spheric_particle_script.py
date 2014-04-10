@@ -78,7 +78,7 @@ deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-model_part_io_solid = ModelPartIO(DEM_parameters.problem_name + "DEM")
+model_part_io_solid = ModelPartIO(DEM_parameters.problem_name + "DEM", True)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
