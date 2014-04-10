@@ -101,36 +101,6 @@ creator_destructor = ParticleCreatorDestructor()
 
 solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part, creator_destructor, DEM_parameters)  # here, solver variables initialize as default
 
-# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
-inlet_option                     = 1
-dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-
-if (inlet_option):
-    max_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(balls_model_part)
-    max_FEM_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(RigidFace_model_part)
-    if ( max_FEM_node_Id > max_node_Id):
-        max_node_Id = max_FEM_node_Id
-    creator_destructor.SetMaxNodeId(max_node_Id)
-        
-    DEM_inlet_model_part = ModelPart("DEMInletPart")
-    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
-    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
-    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
-    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
-
-    # setting up the buffer size:
-    DEM_inlet_model_part.SetBufferSize(1)
-
-    # adding nodal degrees of freedom
-    SolverStrategy.AddDofs(DEM_inlet_model_part)
-    DEM_inlet_parameters = DEM_inlet_model_part.Properties
-
-    # constructiong the inlet and intializing it
-    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
-
-
-
 # Creating necessary directories
 
 main_path = os.getcwd()
@@ -171,6 +141,37 @@ print('Initializing Problem....')
 sys.stdout.flush()
 
 solver.Initialize()
+
+
+# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
+inlet_option                     = 1
+dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+
+if (inlet_option):
+    max_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(balls_model_part)
+    max_FEM_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(RigidFace_model_part)
+    if ( max_FEM_node_Id > max_node_Id):
+        max_node_Id = max_FEM_node_Id
+    creator_destructor.SetMaxNodeId(max_node_Id)
+        
+    DEM_inlet_model_part = ModelPart("DEMInletPart")
+    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
+    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+
+    # setting up the buffer size:
+    DEM_inlet_model_part.SetBufferSize(1)
+
+    # adding nodal degrees of freedom
+    SolverStrategy.AddDofs(DEM_inlet_model_part)
+    DEM_inlet_parameters = DEM_inlet_model_part.Properties
+
+    # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
+    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
+
+
 
 #-------------------------------------------------------------------------------------------------------------------------
 
@@ -240,6 +241,7 @@ print(('Main loop starts at instant: ' + str(initial_pr_time) + '\n'))
 print(('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n'))
 sys.stdout.flush()
 
+mesh_motion = DEMFEMUtilities()
 
 while (time < DEM_parameters.FinalTime):
 
