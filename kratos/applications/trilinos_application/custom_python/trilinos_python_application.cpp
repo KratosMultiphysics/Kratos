@@ -21,6 +21,7 @@
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_trilinos_communicator_to_python.h"
+#include "custom_python/add_zoltan_processes_to_python.h"
 // #include "custom_python/add_first.h"
 
 ////utilities
@@ -59,6 +60,7 @@ BOOST_PYTHON_MODULE(KratosTrilinosApplication)
     AddCustomIOToPython();
     AddCustomUtilitiesToPython();
     AddTrilinosCommunicatorToPython();
+    AddZoltanProcessesToPython();
 // 	AddFirst();
 
     //registering variables in python
