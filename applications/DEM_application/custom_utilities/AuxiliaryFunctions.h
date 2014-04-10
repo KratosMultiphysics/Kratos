@@ -39,13 +39,19 @@ class PropertiesProxy {
       double* pGetLnOfRestitCoeff()                                            { return  mLnOfRestitCoeff;                   } 
       void    SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = ln_of_restit_coeff;      }  
       
+      double  GetDensity()                                                     { return *mDensity;                           }
+      double* pGetDensity()                                                    { return  mDensity;                           }
+      void    SetDensityFromProperties(double* density)                        { mDensity = density;                         }  
+      
       PropertiesProxy operator=(PropertiesProxy props){
           
+          mId                = props.GetId();
           mYoung             = props.pGetYoung();
           mPoisson           = props.pGetPoisson();
           mRollingFriction   = props.pGetRollingFriction();
           mTgOfFrictionAngle = props.pGetTgOfFrictionAngle();
           mLnOfRestitCoeff   = props.pGetLnOfRestitCoeff();
+          mDensity           = props.pGetDensity();
                   
           return *this;
       };
@@ -57,6 +63,7 @@ class PropertiesProxy {
       double *mRollingFriction;
       double *mTgOfFrictionAngle;
       double *mLnOfRestitCoeff;
+      double *mDensity;
       
 };
   
