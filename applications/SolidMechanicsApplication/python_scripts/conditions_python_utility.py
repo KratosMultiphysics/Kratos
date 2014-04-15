@@ -8,11 +8,11 @@ CheckForPreviousImport()
 class ConditionsUtility:
     #
 
-    def __init__(self, model_part, domain_size, incr_disp, incr_load):
+    def __init__(self, model_part, domain_size, incr_disp, incr_load, rotation_dofs):
 
         self.model_part = model_part
         self.domain_size = domain_size
-
+        
         # set time evolution
         self.incr_disp = False
         if(incr_disp == "True"):
@@ -22,10 +22,13 @@ class ConditionsUtility:
         if(incr_load == "True"):
             self.incr_load = True
 
+        self.rotation_dofs = rotation_dofs;
+
     #
     def Initialize(self, time_step):
         self.SetIncrementalDisp(time_step)
-        self.SetIncrementalRotation(time_step)
+        if(self.rotation_dofs):
+            self.SetIncrementalRotation(time_step)
 
     #
     def SetIncrementalDisp(self, time_step):
@@ -154,6 +157,10 @@ class ConditionsUtility:
                     ImposedDisp[2] = 0;
 
                 node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp);
+           
+            if(self.rotation_dofs == True):
+                RestartImposedRotation();
+
 
     #
     def RestartImposedRotation(self):
