@@ -117,7 +117,8 @@ list_files.Initialize(general_variables.file_list)
 # --DEFINE CONDITIONS START--#################
 incr_disp = general_variables.Incremental_Displacement
 incr_load = general_variables.Incremental_Load
-conditions = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load)
+rotation_dofs = SolverSettings.RotationDofs
+conditions = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load, rotation_dofs)
 
 # --DEFINE CONDITIONS END--###################
 
