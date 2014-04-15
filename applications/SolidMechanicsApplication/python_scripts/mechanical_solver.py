@@ -20,6 +20,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)
     # add specific variables for the problem conditions
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(IMPOSED_ROTATION)
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
