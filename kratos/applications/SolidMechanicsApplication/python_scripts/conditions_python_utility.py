@@ -25,6 +25,7 @@ class ConditionsUtility:
     #
     def Initialize(self, time_step):
         self.SetIncrementalDisp(time_step)
+        self.SetIncrementalRotation(time_step)
 
     #
     def SetIncrementalDisp(self, time_step):
@@ -66,6 +67,32 @@ class ConditionsUtility:
             # set to buffer variables to zero
             node.SetSolutionStepValue(DISPLACEMENT, Displacement);
             node.SetSolutionStepValue(VELOCITY, Velocity);
+
+
+    #
+    def SetIncrementalRotation(self, time_step):
+
+        
+        for node in self.model_part.Nodes:
+            ImposedRotation = node.GetSolutionStepValue(IMPOSED_ROTATION)
+            Rotation = node.GetSolutionStepValue(ROTATION)
+            
+            # For displacement imposition:
+            if(node.IsFixed(ROTATION_X) == 1):
+                ImposedRotation[0] = Rotation[0]
+                Rotation[0] = 0
+            if(node.IsFixed(ROTATION_Y) == 1):
+                ImposedRotation[1] = Rotation[1];
+                Rotation[1] = 0;
+            if(node.IsFixed(ROTATION_Z) == 1):
+                ImposedRotation[2] = Rotation[2];
+                Rotation[2] = 0;
+
+            node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation);
+
+            # set to buffer variables to zero
+            node.SetSolutionStepValue(ROTATION, Rotation);
+
 
     #
     def SetIncrementalLoad(self, incr_steps, time_step):
@@ -127,5 +154,22 @@ class ConditionsUtility:
                     ImposedDisp[2] = 0;
 
                 node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp);
+
+    #
+    def RestartImposedRotation(self):
+
+        if(self.incr_disp == False):
+            for node in self.model_part.Nodes:
+                ImposedRotation = node.GetSolutionStepValue(IMPOSED_ROTATION)
+ 
+                # For displacement imposition:
+                if(node.IsFixed(ROTATION_X) == 1):
+                    ImposedRotation[0] = 0
+                if(node.IsFixed(ROTATION_Y) == 1):
+                    ImposedRotation[1] = 0;
+                if(node.IsFixed(ROTATION_Z) == 1):
+                    ImposedRotation[2] = 0;
+
+                node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation);
 
     #
