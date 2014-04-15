@@ -154,7 +154,7 @@ class DEMFEMUtilities
                     RotateRightHandedBasisAroundAxis(e1, e2, rotation_axis, ang, new_axes1, new_axes2, new_axes3)  ;
                 }                
 
-                if (mod_angular_velocity>0.0 or MathUtils<double>::Norm3(linear_velocity)>0.0) {
+                if (mod_angular_velocity>0.0 || MathUtils<double>::Norm3(linear_velocity)>0.0) {
                     
                     
                     vector<unsigned int> node_partition;  
