@@ -18,7 +18,10 @@
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "includes/model_part.h"
-#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
+
+#include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
+
+#include "pfem_solid_mechanics_application.h"
 
 
 namespace Kratos
@@ -149,7 +152,8 @@ public:
 	  Point[2] = (*nd)->Z();
 
 	  if( (*nd)->Is(BOUNDARY) && mpRigidWall->IsInside(Point,Time) ){
-	    
+	  //if( mpRigidWall->IsInside(Point,Time) && (*nd)->IsNot(RIGID) ){
+
 	    //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
 
 	    int number_properties = mrModelPart.NumberOfProperties();
@@ -160,13 +164,18 @@ public:
 
 	    ConditionType::Pointer p_cond;
 
-	    if( mpRigidWall->Axisymmetric() == true ){
-	      p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	    if( mpRigidWall->GetDimension() == 2 ){
+	      if( mpRigidWall->Axisymmetric() == true ){
+		p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	      }
+	      else{
+		p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	      }
 	    }
-	    else{
-	      p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	    else if( mpRigidWall->GetDimension() == 3 ){
+	      p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 	    }
-
+		      
 	    //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
 
 	    mrModelPart.Conditions(MeshId).push_back(p_cond);
