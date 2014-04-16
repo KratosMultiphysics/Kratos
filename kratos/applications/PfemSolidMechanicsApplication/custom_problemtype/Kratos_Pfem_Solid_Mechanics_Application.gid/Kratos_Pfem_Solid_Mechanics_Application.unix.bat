@@ -38,7 +38,7 @@ fi
 
 # Launch the script
 if [ -f "${2}/script.py" ]; then
- python "${2}/script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
+ python3 -u "${2}/script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
 fi
 
 
