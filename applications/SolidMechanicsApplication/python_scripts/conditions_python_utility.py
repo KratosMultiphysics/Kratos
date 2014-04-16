@@ -159,7 +159,7 @@ class ConditionsUtility:
                 node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp);
            
             if(self.rotation_dofs == True):
-                RestartImposedRotation();
+                self.RestartImposedRotation();
 
 
     #
