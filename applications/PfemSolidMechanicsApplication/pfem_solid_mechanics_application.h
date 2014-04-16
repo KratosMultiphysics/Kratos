@@ -30,6 +30,7 @@
 #include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
 
 #include "custom_conditions/point_rigid_contact_condition.hpp"
+#include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
 #include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
@@ -281,7 +282,7 @@ namespace Kratos
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
 
     const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw     mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    const LinearHenckyCamClayPlasticPlaneStrain2DLaw           mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    const LinearHenckyCamClayPlasticPlaneStrain2DLaw        mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     const NonLinearHenckyCamClayPlasticAxisym2DLaw          mNonLinearHenckyCamClayPlasticAxisym2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                   mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                        mHenckyJ2PlasticAxisym2DLaw;
