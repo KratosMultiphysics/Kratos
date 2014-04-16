@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/point_rigid_contact_condition.hpp"
+#include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
 
 namespace Kratos
 {
@@ -43,7 +43,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class PointRigidContactPenalty2DCondition
-    : public PointRigidContactCondition
+    : public PointRigidContactPenalty3DCondition
 {
 protected:
 
@@ -71,7 +71,7 @@ public:
     typedef Vector VectorType;
 
     ///@{
-    // Counted pointer of PointRigidContactCondition
+    // Counted pointer of PointRigidContactPenalty3DCondition
     KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty2DCondition );
     ///@}
  
@@ -114,17 +114,6 @@ public:
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
                               ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-    /**
-     * Called at the beginning of each step
-     */
-  
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Called at the beginning of each iteration
-     */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -150,9 +139,6 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    TangentialContactVariables mTangentialVariables;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -161,63 +147,12 @@ protected:
     ///@{
 
 
-    /**
-     * Initialize General Variables
-     */
-    void InitializeGeneralVariables(GeneralVariables& rVariables, 
-				    const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Calculate Condition Kinematics
-     */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, 
-				     const double& rPointNumber);
 
     /**
      * Calculation of the Integration Weight
      */
     virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
-
-
-    /**
-     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight);
-
-    virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight);
-
-    /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
-     */
-    virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
-					      GeneralVariables& rVariables,
-					      double& rIntegrationWeight );
-
-
-    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
-
-
-    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
-
-
-    double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
-    
-    double& CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables );
-
-    double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
-
-    double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
-
-
-    /**
-     * Calculation of the Contact Force Factors
-     */
-    virtual void CalculateContactFactors(GeneralVariables &rContact);
 
 
     ///@}
@@ -249,12 +184,6 @@ private:
     ///@{
 
 
-    /**
-     * Calculation utility for 2D outer product
-     */
-    inline MatrixType outer_prod_2(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -272,12 +201,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactPenalty3DCondition )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactPenalty3DCondition )
     }
 
 
