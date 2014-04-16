@@ -20,13 +20,13 @@ class ModelerUtility:
         self.neighbours_set = False
 
         # set mesh modeler
-        if(domain_size == 2):
+        if(domain_size >= 2):
             self.mesh_modeler = TriangleMesh2DModeler()
         # else:
             # self.mesh_modeler = TetrahedronMesh3DModeler()
 
         # set contact modeler
-        if(domain_size == 2):
+        if(domain_size >= 2):
             self.contact_modeler = ContactDomain2DModeler()
         # else:
             # self.contact_modeler = ContactDomain3DModeler()
