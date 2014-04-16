@@ -137,12 +137,14 @@ namespace Python
     class_<SpatialBoundingBox, boost::noncopyable > 
       ( "SpatialBoundingBox", 
 	init<Vector, double, Vector>() )
+      .def("SetDimension",&SpatialBoundingBox::SetDimension)
       ;
 
     class_<RigidWallBoundingBox, boost::noncopyable > 
       ( "RigidWallBoundingBox", 
 	init<int, Vector, Vector, Vector, Vector, Matrix, Vector, Vector, Vector>() )
       .def("SetAxisymmetric",&RigidWallBoundingBox::SetAxisymmetric)
+      .def("SetDimension",&RigidWallBoundingBox::SetDimension)
       ;
 	
      
