@@ -52,16 +52,17 @@ class SpatialBoundingBox
 {
 public:
 
-  typedef Vector              TPointType;
-  
-  
+  typedef Vector                                         TPointType;
+  typedef ModelPart::NodesContainerType          NodesContainerType;
+  typedef NodesContainerType::Pointer     NodesContainerTypePointer;
+ 
 protected:
-
 
   typedef struct
   {
-    bool   Axisymmetric;   //true or false
-    int    Convexity;      //1 or -1  if "in" is inside or outside respectively   
+    int    Dimension;           //2D or 3D
+    bool   Axisymmetric;        //true or false
+    int    Convexity;           //1 or -1  if "in" is inside or outside respectively   
     double Radius;              // box radius
     
     TPointType  HighPoint;      // box highest point
@@ -74,6 +75,7 @@ protected:
     
     void clear()
     {
+      Dimension = 2;
       Axisymmetric = false;
       Convexity = 1;
       Radius = 0;
@@ -223,6 +225,15 @@ public:
       mBox.HighPoint = rCenter + Side;
       mBox.LowPoint  = rCenter - Side;
 
+    }
+
+
+    SpatialBoundingBox(  int Label,
+			 int Convexity,
+			 double Radius,
+			 NodesContainerTypePointer GeneratrixPoints)
+    {
+      std::cout<<" Calling a Base Class Constructor: RIGID TUBE Bounding Box must be called "<<std::endl;
     }
 
 
@@ -452,6 +463,17 @@ public:
     void SetMovementLabel(int &rLabel)
     {
         mMovement.Label = rLabel;
+    }
+
+
+    void SetDimension(int dimension)
+    {
+        mBox.Dimension = dimension;
+    }
+
+    int GetDimension()
+    {
+        return mBox.Dimension;
     }
 
 
