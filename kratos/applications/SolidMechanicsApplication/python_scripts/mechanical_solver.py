@@ -26,22 +26,23 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)
     model_part.AddNodalSolutionStepVariable(SURFACE_LOAD)
+    model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
-    model_part.AddNodalSolutionStepVariable(MOMENT)
+
 
     if config is not None:
         if hasattr(config, "RotationDofs"):
             if config.RotationDofs:
                 # add specific variables for the problem (rotation dofs)
                 model_part.AddNodalSolutionStepVariable(ROTATION);
-                model_part.AddNodalSolutionStepVariable(MOMENTUM);
+                model_part.AddNodalSolutionStepVariable(TORQUE);
                 model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
                 model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
         if hasattr(config, "PressureDofs"):
             if config.PressureDofs:
                 # add specific variables for the problem (pressure dofs)
                 model_part.AddNodalSolutionStepVariable(PRESSURE)
-                model_part.AddNodalSolutionStepVariable(REACTION_PRESSURE);
+                model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION);
 
     print("variables for the structural solver added correctly")
 
@@ -57,13 +58,13 @@ def AddDofs(model_part, config=None):
         if hasattr(config, "RotationDofs"):
             if config.RotationDofs:
                 for node in model_part.Nodes:
-                    node.AddDof(ROTATION_X, MOMENTUM_X);
-                    node.AddDof(ROTATION_Y, MOMENTUM_Y);
-                    node.AddDof(ROTATION_Z, MOMENTUM_Z);
+                    node.AddDof(ROTATION_X, TORQUE_X);
+                    node.AddDof(ROTATION_Y, TORQUE_Y);
+                    node.AddDof(ROTATION_Z, TORQUE_Z);
         if hasattr(config, "PressureDofs"):
             if config.PressureDofs:
                 for node in model_part.Nodes:
-                    node.AddDof(PRESSURE, REACTION_PRESSURE);
+                    node.AddDof(PRESSURE, PRESSURE_REACTION);
 
     print("dofs for the structural solver added correctly")
 

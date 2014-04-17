@@ -30,7 +30,7 @@
 #include "containers/flags.h"
 
 //conditions
-#include "custom_conditions/point_moment_3D_condition.hpp"
+#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/point_load_2D_condition.hpp"
 #include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "custom_conditions/point_load_3D_condition.hpp"
@@ -156,6 +156,9 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_LOAD )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_LINE_LOAD )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_SURFACE_LOAD )
 
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_TORQUE )
+
 //shell generalized variables
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN )
 KRATOS_DEFINE_VARIABLE( Matrix, SHELL_STRAIN_GLOBAL )
@@ -225,7 +228,7 @@ KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
 //nodal dofs
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION )
-KRATOS_DEFINE_VARIABLE(double, REACTION_PRESSURE )
+KRATOS_DEFINE_VARIABLE(double, PRESSURE_REACTION )
 
 
 ///@}
@@ -481,7 +484,7 @@ private:
     const PointLoad2DCondition              mPointLoad2DCondition;
     const PointLoadAxisym2DCondition  mPointLoadAxisym2DCondition;
     const PointLoad3DCondition              mPointLoad3DCondition;
-    const PointMoment3DCondition          mPointMoment3DCondition;
+    const PointTorque3DCondition          mPointTorque3DCondition;
 
     const LineLoad2DCondition              mLineLoadCondition2D2N;
     const LineLoad2DCondition              mLineLoadCondition2D3N;

@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_POINT_MOMENT_3D_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_MOMENT_3D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_POINT_TORQUE_3D_CONDITION_H_INCLUDED )
+#define  KRATOS_POINT_TORQUE_3D_CONDITION_H_INCLUDED
 
 
 // System includes
@@ -50,29 +50,29 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointMoment3DCondition
+class PointTorque3DCondition
     : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PointMoment3DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointMoment3DCondition );
+    /// Counted pointer of PointTorque3DCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PointTorque3DCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    PointTorque3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    PointTorque3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    PointMoment3DCondition( PointMoment3DCondition const& rOther);
+    PointTorque3DCondition( PointTorque3DCondition const& rOther);
 
     /// Destructor.
-    virtual ~PointMoment3DCondition();
+    virtual ~PointTorque3DCondition();
 
 
     ///@}
@@ -175,7 +175,7 @@ private:
     friend class Serializer;
 
     // A private default constructor necessary for serialization
-    PointMoment3DCondition() {};
+    PointTorque3DCondition() {};
 
     virtual void save(Serializer& rSerializer) const;
 
@@ -205,15 +205,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //PointMoment3DCondition& operator=(const PointMoment3DCondition& rOther);
+    //PointTorque3DCondition& operator=(const PointTorque3DCondition& rOther);
 
     /// Copy constructor.
-    //PointMoment3DCondition(const PointMoment3DCondition& rOther);
+    //PointTorque3DCondition(const PointTorque3DCondition& rOther);
 
 
     ///@}
 
-}; // Class PointMoment3DCondition
+}; // Class PointTorque3DCondition
 
 ///@}
 
@@ -228,11 +228,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointMoment3DCondition& rThis);
+				    PointTorque3DCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointMoment3DCondition& rThis)
+				    const PointTorque3DCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -244,6 +244,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_MOMENT_3D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_TORQUE_3D_CONDITION_H_INCLUDED  defined 
 
 

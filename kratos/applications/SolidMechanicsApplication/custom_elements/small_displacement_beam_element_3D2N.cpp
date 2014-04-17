@@ -449,6 +449,7 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddLHS(LocalSystemComponents&
     //Stiffness Matrix
     noalias(rLeftHandSideMatrix)= prod(aux_matrix,Matrix(trans(rLocalSystem.RotationMatrix)));
 
+    //std::cout<<" rLocalSystem.RotationMatrix "<<rLocalSystem.RotationMatrix<<std::endl;
     //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
@@ -485,6 +486,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
       LocalVector[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y );
       LocalVector[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z );
     }
+
+    //std::cout<<" LocalVector "<<LocalVector<<std::endl;
 
     //Stiffness Matrix
     Matrix GlobalMatrix = ZeroMatrix(MatSize);
@@ -1242,20 +1245,17 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 
    KRATOS_TRY
 
-   const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-   const unsigned int dimension                  = GetGeometry().WorkingSpaceDimension();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int dimension                  = GetGeometry().WorkingSpaceDimension();
    
-   if ( rOutput.size() != integration_points_number )
-     rOutput.resize( integration_points_number );
-
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
     
     Vector Stress;
     std::vector<Vector> Load(dimension);
-
+    
     //auxiliary terms
     int factor = 1;
-
+    
     //(in fact is the two nodes beam element, only one integration point)
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
@@ -1300,34 +1300,40 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 	//std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
       }
 
+
+    //it is written in 3 integration points instead of 1
+    const unsigned int&  write_points_number = GetGeometry().IntegrationPointsNumber( GetIntegrationMethod() );
+      
+     if ( rOutput.size() != write_points_number )
+      rOutput.resize( write_points_number );
   
     //only moment in z axis (global ?)
     if(rVariable==MOMENT)
       {
 	//internal moment in not using the given load
-
+   
 	/// Punto Inical
-	rOutput[0][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 1.00 * 0.25);  //Stress[3];
-	rOutput[0][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 1.00 * 0.25);  //Stress[4];
-	rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 1.00 * 0.25);  //Stress[5];
+	rOutput[0][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 0.25);  //Stress[3];
+	rOutput[0][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 0.25);  //Stress[4];
+	rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 0.25);  //Stress[5];
         //rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[1][1], mLength * 0.25); 
 
 
-        rOutput[1][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 1.00 * 0.5);
-        rOutput[1][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 1.00 * 0.5);
-        rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 1.00 * 0.5);
+        rOutput[1][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1],  0.5);
+        rOutput[1][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 0.5);
+        rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 0.5);
         //rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[1][1], mLength * 0.5);
 
 
-        rOutput[2][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 3.00 * 0.25);
-        rOutput[2][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 3.00 * 0.25);
-        rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 3.00 * 0.25);
+        rOutput[2][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 0.75);
+        rOutput[2][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 0.75);
+        rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 0.75);
         //rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[1][1], 3.00 * mLength * 0.25);
 
     }
 
     //only force in x and y axis (global?)
-    if(rVariable==EXTERNAL_FORCE)
+    if(rVariable==FORCE)
     {
         rOutput[0][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], mLength * 0.25);
         rOutput[0][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.25);
@@ -1337,8 +1343,8 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
         rOutput[1][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.5);
         rOutput[1][2] = 0.00;
 
-        rOutput[2][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], 3.00 * mLength * 0.25);
-        rOutput[2][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], 3.00 * mLength * 0.25);
+        rOutput[2][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], mLength * 0.75);
+        rOutput[2][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.75);
         rOutput[2][2] = 0.00;
     }
 
