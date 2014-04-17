@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/point_moment_3D_condition.hpp"
+#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "utilities/math_utils.h"
 
 #include "solid_mechanics_application.h"
@@ -24,7 +24,7 @@ namespace Kratos
 {
 //************************************************************************************
 //************************************************************************************
-PointMoment3DCondition::PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+PointTorque3DCondition::PointTorque3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -32,50 +32,50 @@ PointMoment3DCondition::PointMoment3DCondition(IndexType NewId, GeometryType::Po
 
 //************************************************************************************
 //************************************************************************************
-PointMoment3DCondition::PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+PointTorque3DCondition::PointTorque3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-PointMoment3DCondition::PointMoment3DCondition( PointMoment3DCondition const& rOther )
+PointTorque3DCondition::PointTorque3DCondition( PointTorque3DCondition const& rOther )
     : Condition(rOther)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-Condition::Pointer PointMoment3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+Condition::Pointer PointTorque3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new PointTorque3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //************************************************************************************
 //************************************************************************************
-PointMoment3DCondition::~PointMoment3DCondition()
+PointTorque3DCondition::~PointTorque3DCondition()
 {
 }
 
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointTorque3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 3)
         rRightHandSideVector.resize(3,false);
 
-    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(MOMENT);
-    rRightHandSideVector[0] = Moment[0];
-    rRightHandSideVector[1] = Moment[1];
-    rRightHandSideVector[2] = Moment[2];
+    array_1d<double,3>& Torque = GetGeometry()[0].GetSolutionStepValue(POINT_TORQUE);
+    rRightHandSideVector[0] = Torque[0];
+    rRightHandSideVector[1] = Torque[1];
+    rRightHandSideVector[2] = Torque[2];
     KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointTorque3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -86,10 +86,10 @@ void PointMoment3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     if(rRightHandSideVector.size() != 3)
         rRightHandSideVector.resize(3,false);
 
-    array_1d<double,3>& Moment = GetGeometry()[0].GetSolutionStepValue(MOMENT);
-    rRightHandSideVector[0] = Moment[0];
-    rRightHandSideVector[1] = Moment[1];
-    rRightHandSideVector[2] = Moment[2];
+    array_1d<double,3>& Torque = GetGeometry()[0].GetSolutionStepValue(POINT_TORQUE);
+    rRightHandSideVector[0] = Torque[0];
+    rRightHandSideVector[1] = Torque[1];
+    rRightHandSideVector[2] = Torque[2];
 
     KRATOS_CATCH( "" )
 }
@@ -97,7 +97,7 @@ void PointMoment3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3DCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void PointTorque3DCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int index = 0;
@@ -115,7 +115,7 @@ void PointMoment3DCondition::EquationIdVector(EquationIdVectorType& rResult, Pro
 
 //************************************************************************************
 //************************************************************************************
-void PointMoment3DCondition::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+void PointTorque3DCondition::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int dimension = 3;
     ConditionalDofList.resize(GetGeometry().size()*dimension);
@@ -132,12 +132,12 @@ void PointMoment3DCondition::GetDofList(DofsVectorType& ConditionalDofList,Proce
 //***********************************************************************************
 //***********************************************************************************
 
-void PointMoment3DCondition::save( Serializer& rSerializer ) const
+void PointTorque3DCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
 }
 
-void PointMoment3DCondition::load( Serializer& rSerializer )
+void PointTorque3DCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
 }

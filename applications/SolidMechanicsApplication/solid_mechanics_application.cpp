@@ -96,6 +96,9 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_LOAD )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_LINE_LOAD )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_SURFACE_LOAD )
 
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_TORQUE )
+
 //shell generalized variables
 KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN )
 KRATOS_CREATE_VARIABLE( Matrix, SHELL_STRAIN_GLOBAL )
@@ -166,7 +169,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
 //nodal dofs
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION )
-KRATOS_CREATE_VARIABLE( double, REACTION_PRESSURE )
+KRATOS_CREATE_VARIABLE( double, PRESSURE_REACTION )
 
 
 KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
@@ -242,7 +245,7 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointLoadAxisym2DCondition( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointMoment3DCondition( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointTorque3DCondition( 0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mLineLoadAxisymCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -358,7 +361,7 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointLoad2DCondition", mPointLoad2DCondition )
     KRATOS_REGISTER_CONDITION( "PointLoadAxisym2DCondition", mPointLoadAxisym2DCondition )
 
-    KRATOS_REGISTER_CONDITION( "PointMoment3DCondition", mPointMoment3DCondition )
+    KRATOS_REGISTER_CONDITION( "PointTorque3DCondition", mPointTorque3DCondition )
 
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N", mLineLoadCondition2D2N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D3N", mLineLoadCondition2D3N )
@@ -462,6 +465,9 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_LINE_LOAD ) 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_SURFACE_LOAD )
 
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( POINT_TORQUE )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_POINT_TORQUE )      
+
     //shell generalized variables
     KRATOS_REGISTER_VARIABLE( SHELL_STRAIN )
     KRATOS_REGISTER_VARIABLE( SHELL_FORCE )
@@ -529,7 +535,7 @@ void KratosSolidMechanicsApplication::Register()
     //nodal dofs
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION     )
-    KRATOS_REGISTER_VARIABLE( REACTION_PRESSURE )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
 
 
 }

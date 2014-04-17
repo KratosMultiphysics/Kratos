@@ -135,11 +135,11 @@ class ConditionsUtility:
                 node.SetSolutionStepValue(POINT_LOAD, force);
                 
                 # point moment conditions
-                moment = node.GetSolutionStepValue(MOMENT);
+                moment = node.GetSolutionStepValue(POINT_TORQUE);
                 for comp in [0,1,2]:
                     moment[comp] = moment[comp] / (time_step * (incr_steps))
                     moment[comp] = moment[comp] * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(MOMENT, moment);
+                node.SetSolutionStepValue(POINT_TORQUE, moment);
 
     #
     def RestartImposedDisp(self):
