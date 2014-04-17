@@ -185,9 +185,11 @@ nodal_results.append("CONTACT_FORCE")
 *endif
 
 gauss_points_results = []
+*if(strcmp(GenData(Problem_Type),"mechanical")==0)
 gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
 gauss_points_results.append("CAUCHY_STRESS_TENSOR")
 gauss_points_results.append("PLASTIC_STRAIN")
+*endif
 
 # GiD output configuration
 class GidOutputConfiguration:

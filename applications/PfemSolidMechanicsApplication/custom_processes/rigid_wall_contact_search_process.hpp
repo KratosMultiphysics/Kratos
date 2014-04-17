@@ -67,12 +67,7 @@ public:
     } 
 
     /// Destructor.
-    virtual ~RigidWallContactSearchProcess() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
+    virtual ~RigidWallContactSearchProcess() {}    ///@{
 
     /// This operator is provided to call the process as a function and simply calls the Execute method.
     void operator()()
@@ -125,6 +120,19 @@ public:
 
       mConditionsNumber =  mrModelPart.Conditions(MeshId).size();
       
+      //Check if elements are beams or two nodes and set BOUNDARY flag two nodes
+      for(ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie!=mrModelPart.ElementsEnd(); ie++){
+
+	if( ie->GetGeometry().size() == 2 ){
+	  for( unsigned int i=0; i<2; i++ )
+	    {
+	      ie->GetGeometry()[i].Set(BOUNDARY,true);
+	    }
+	}
+
+      }
+
+      //Check RIGID walls and search contacts
 
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
@@ -151,38 +159,44 @@ public:
 	  Point[1] = (*nd)->Y();
 	  Point[2] = (*nd)->Z();
 
-	  if( (*nd)->Is(BOUNDARY) && mpRigidWall->IsInside(Point,Time) ){
-	  //if( mpRigidWall->IsInside(Point,Time) && (*nd)->IsNot(RIGID) ){
+	  // if( (*nd)->Is(BOUNDARY) )
+	  //   std::cout<<" Node "<<(*nd)->Id()<<" Is boundary "<<std::endl;
 
-	    //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
+	  //if( (*nd)->Is(BOUNDARY) ){
+	  //if( (*nd)->IsNot(RIGID) ){
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(RIGID) ){
 
-	    int number_properties = mrModelPart.NumberOfProperties();
+	    if( mpRigidWall->IsInside(Point,Time) ){
 
-	    PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
+	      //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
 
-	    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+	      int number_properties = mrModelPart.NumberOfProperties();
 
-	    ConditionType::Pointer p_cond;
+	      PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
-	    if( mpRigidWall->GetDimension() == 2 ){
-	      if( mpRigidWall->Axisymmetric() == true ){
-		p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	      GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+
+	      ConditionType::Pointer p_cond;
+
+	      if( mpRigidWall->GetDimension() == 2 ){
+		if( mpRigidWall->Axisymmetric() == true ){
+		  p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		}
+		else{
+		  p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		}
 	      }
-	      else{
-		p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	      else if( mpRigidWall->GetDimension() == 3 ){
+		p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 	      }
-	    }
-	    else if( mpRigidWall->GetDimension() == 3 ){
-	      p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-	    }
 		      
-	    //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
+	      //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
 
-	    mrModelPart.Conditions(MeshId).push_back(p_cond);
+	      mrModelPart.Conditions(MeshId).push_back(p_cond);
 
-	    id +=1;
+	      id +=1;
+	    }
 	  }
-	  
 	}
       
       std::cout<<" [ rigid contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
