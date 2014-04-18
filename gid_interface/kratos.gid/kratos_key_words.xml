@@ -63,9 +63,9 @@
       <Item id="Fx" kkword="POINT_LOAD_X" />
       <Item id="Fy" kkword="POINT_LOAD_Y" />
       <Item id="Fz" kkword="POINT_LOAD_Z" />
-      <Item id="Mx" kkword="MOMENT_X" />
-      <Item id="My" kkword="MOMENT_Y" />
-      <Item id="Mz" kkword="MOMENT_Z" />
+      <Item id="Mx" kkword="POINT_TORQUE_X" />
+      <Item id="My" kkword="POINT_TORQUE_Y" />
+      <Item id="Mz" kkword="POINT_TORQUE_Z" />
       <Item id="LineDFx" kkword="LINE_LOAD_X" />
       <Item id="LineDFy" kkword="LINE_LOAD_Y" />
       <Item id="LineDFz" kkword="LINE_LOAD_Z" />
