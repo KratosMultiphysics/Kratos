@@ -52,6 +52,7 @@ public:
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
+    typedef Point3D<ModelPart::NodeType>       Point3DType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -174,11 +175,12 @@ public:
 
 	      PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
-	      GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
-
 	      ConditionType::Pointer p_cond;
 
 	      if( mpRigidWall->GetDimension() == 2 ){
+
+		GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+
 		if( mpRigidWall->Axisymmetric() == true ){
 		  p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 		}
@@ -187,7 +189,11 @@ public:
 		}
 	      }
 	      else if( mpRigidWall->GetDimension() == 3 ){
+		
+		GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+
 		p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		//std::cout<<" Set Contact 3D condition "<<std::endl;
 	      }
 		      
 	      //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
