@@ -3,8 +3,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
-# SectionType: String containing the type of the section: "Square", "IPN", "HEB", ...
-# SectionData: A list containing the data related to section: IPN -> [100], Square -> [h,b] ...
+# SectionType: String containing the type of the section: "Rectangular", "IPN", "HEB", ...
+# SectionData: A list containing the data related to section: IPN -> [100], Rectangular -> [h,b] ...
 
 #TIMOSHENKO convention: X axis(longitudinal beam axis), Y axis(section vertical axis), Z axis(section horitzontal axis)
 
@@ -55,7 +55,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         BeamProperties.SetValue(CROSS_AREA, circular_area)
         return BeamProperties
 
-    if(SectionType == "Square"):
+    if(SectionType == "Rectangular"):
         if (len(SectionData) < 1):
             print("Error, Section needs at least the size of section to be given in SectionData")
             raise
@@ -63,7 +63,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         height_square = SectionData[0]
         base_square = SectionData[1]
 
-        shape = 'Square'
+        shape = 'Rectangular'
 
         square_area = base_square * height_square
         square_inertia_z = (base_square * height_square ** 3) / 12.0
@@ -111,7 +111,7 @@ def searchCVSValues(properties_filename, shape, size):
 
 
 
-# x = int(raw_input("Select shape (1=Circular,2=Square,3=Profiles,4=Irregular): "))
+# x = int(raw_input("Select shape (1=Circular,2=Rectangular,3=Profiles,4=Irregular): "))
 #
 # if x == 1:
 # shape = 'Circular'
@@ -131,7 +131,7 @@ def searchCVSValues(properties_filename, shape, size):
 #
 #
 # elif x == 2:
-# shape = 'Square'
+# shape = 'Rectangular'
 # print 'The selected shape is: ' + shape
 # base_square = float(raw_input("Base (in m): "))
 # height_square = float(raw_input("Height: (in m): "))
