@@ -1897,7 +1897,7 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 	    set SectionType $dprops($AppId,CrossSection,$PropertyId,SectionType)
 	    # Rectangular cross section
 	    if {$SectionType eq "Rectangular"} {
-		set csectiontype "\"Square\""
+		set csectiontype "\"Rectangular\""
 		set proplist [list 1 1]
 		# Get the property list
 		foreach cprop $CrossSectionProps {
