@@ -65,6 +65,7 @@ class TimeOperationUtility(object):
 
         if(current_time + 1e-20 >= self.ending_time):
             execute = True
+            self.id_counter = self.id_counter + 1
         elif(current_time > self.time_counter):
             execute = True
             self.time_counter = self.time_counter + self.time_frequency
@@ -115,6 +116,7 @@ class TimeOperationUtility(object):
 
         if(current_step == self.ending_step):
             execute = True
+            self.id_counter = self.id_counter + 1
         elif(current_step == self.step_counter):
             execute = True
             self.step_counter = self.step_counter + self.frequency
