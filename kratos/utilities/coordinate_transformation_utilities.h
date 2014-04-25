@@ -232,34 +232,37 @@ public:
     {
         const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
-        for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+        if (LocalSize > 0)
         {
-            const NodeType& rNode = rGeometry[itNode]; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
-            if( rNode.GetValue(mrFlagVariable) != mZero )
+            for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
-                // We fix the first dof (normal velocity) for each rotated block
-                unsigned int j = itNode * mBlockSize;
-                //const double k = rLocalMatrix(j,j)+rLocalMatrix(j,j+1)+rLocalMatrix(j,j+2);
-
-                // If the mesh is moving, we must impose v_normal = vmesh_normal
-                array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-                VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-                array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-                this->Normalize(rN);
-
-                for( unsigned int i = 0; i < j; ++i) // Skip term (i,j)
+                const NodeType& rNode = rGeometry[itNode]; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
+                if( rNode.GetValue(mrFlagVariable) != mZero )
                 {
-                    rLocalMatrix(i,j) = 0.0;
-                    rLocalMatrix(j,i) = 0.0;
-                }
-                for( unsigned int i = j+1; i < LocalSize; ++i)
-                {
-                    rLocalMatrix(i,j) = 0.0;
-                    rLocalMatrix(j,i) = 0.0;
-                }
+                    // We fix the first dof (normal velocity) for each rotated block
+                    unsigned int j = itNode * mBlockSize;
+                    //const double k = rLocalMatrix(j,j)+rLocalMatrix(j,j+1)+rLocalMatrix(j,j+2);
 
-                rLocalVector(j) = inner_prod(rN,VMesh);
-                rLocalMatrix(j,j) = 1.0;
+                    // If the mesh is moving, we must impose v_normal = vmesh_normal
+                    array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+                    VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                    array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+                    this->Normalize(rN);
+
+                    for( unsigned int i = 0; i < j; ++i) // Skip term (i,i)
+                    {
+                        rLocalMatrix(i,j) = 0.0;
+                        rLocalMatrix(j,i) = 0.0;
+                    }
+                    for( unsigned int i = j+1; i < LocalSize; ++i)
+                    {
+                        rLocalMatrix(i,j) = 0.0;
+                        rLocalMatrix(j,i) = 0.0;
+                    }
+
+                    rLocalVector(j) = inner_prod(rN,VMesh);
+                    rLocalMatrix(j,j) = 1.0;
+                }
             }
         }
     }
@@ -268,21 +271,24 @@ public:
     void ApplySlipCondition(TLocalVectorType& rLocalVector,
                             GeometryType& rGeometry) const
     {
-        for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+        if (rLocalVector.size() > 0)
         {
-            const NodeType& rNode = rGeometry[itNode]; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
-            if( rNode.GetValue(mrFlagVariable) != mZero )
+            for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
-                // We fix the first dof (normal velocity) for each rotated block
-                unsigned int j = itNode * mBlockSize;
+                const NodeType& rNode = rGeometry[itNode]; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
+                if( rNode.GetValue(mrFlagVariable) != mZero )
+                {
+                    // We fix the first dof (normal velocity) for each rotated block
+                    unsigned int j = itNode * mBlockSize;
 
-                // If the mesh is moving, we must impose v_normal = vmesh_normal
-                array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-                VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-                array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-                this->Normalize(rN);
+                    // If the mesh is moving, we must impose v_normal = vmesh_normal
+                    array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+                    VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                    array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+                    this->Normalize(rN);
 
-                rLocalVector[j] = inner_prod(rN,VMesh);
+                    rLocalVector[j] = inner_prod(rN,VMesh);
+                }
             }
         }
     }
@@ -785,7 +791,7 @@ private:
         boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
 
         std::vector< boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> > rRot(NumBlocks);
-        for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+        for(unsigned int j = 0; j < NumBlocks; ++j)
         {
             const NodeType& rNode = rGeometry[j];
             // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
@@ -866,7 +872,7 @@ private:
         boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
 
         std::vector< boost::numeric::ublas::bounded_matrix<double,TDim,TDim> > rRot(NumBlocks);
-        for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+        for(unsigned int j = 0; j < NumBlocks; ++j)
         {
             const NodeType& rNode = rGeometry[j];
             // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
