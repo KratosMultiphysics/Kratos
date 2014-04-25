@@ -15,6 +15,12 @@ def AddNodalVariables(model_part, variable_list):
         model_part.AddNodalSolutionStepVariable(var)
 
 def AddingDEMProcessInfoVariables(pp, dem_model_part):
+
+    gravity = Vector(3)
+    gravity[0] = pp.dem.GravityX
+    gravity[1] = pp.dem.GravityY
+    gravity[2] = pp.dem.GravityZ
+    #dem_model_part.ProcessInfo.SetValue(GRAVITY, gravity)
     dem_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, pp.buoyancy_force_type)
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.drag_force_type)
     dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
@@ -43,11 +49,14 @@ def ConstructListsOfResultsToPrint(pp):
         if (pp.print_PRESSURE_GRAD_PROJECTED_option):
             pp.dem_nodal_results += ["PRESSURE_GRAD_PROJECTED"]
 
+        if (pp.print_HYDRODYNAMIC_FORCE_option):
+            pp.dem_nodal_results += ["HYDRODYNAMIC_FORCE"]
+
         if (pp.print_FLUID_VEL_PROJECTED_option):
             pp.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
 
-    if (pp.print_BUOYANCY_option > 0):
-        pp.dem_nodal_results += ["BUOYANCY"]
+        if (pp.print_BUOYANCY_option > 0):
+            pp.dem_nodal_results += ["BUOYANCY"]
 
     if (pp.add_each_hydro_force_option):
 
@@ -120,6 +129,15 @@ def ChangeInputDataForConsistency(pp):
     if (pp.coupling_level_type == 1):
         pp.virtual_mass_force_type = 0
 
+    if (pp.coupling_level_type > 0 and not pp.body_force_on_fluid_option):
+        pp.coupling_level_type = 0
+        print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
+        print()
+        print('Two-way coupling cannot be performed if body_force_on_fluid_option = 0 !')
+        print('Running one-way copupling simulation...')
+        print()
+        print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
+
     for var in pp.mixed_nodal_results:
 
         if var in pp.nodal_results:
@@ -131,6 +149,9 @@ def ConstructListsOfVariables(pp):
     # fluid coupling variables
     pp.coupling_fluid_vars = []
     pp.coupling_fluid_vars += [ACCELERATION]
+
+    if (pp.embedded_option):
+       pp.coupling_fluid_vars += [DISTANCE]
 
     if (pp.body_force_on_fluid_option):
         pp.coupling_fluid_vars += [BODY_FORCE]
@@ -147,6 +168,12 @@ def ConstructListsOfVariables(pp):
 
     if (pp.coupling_level_type == 1):
         pp.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
+
+    if (pp.drag_force_type >= 2):
+        pp.coupling_fluid_vars += [POWER_LAW_N]
+        pp.coupling_fluid_vars += [POWER_LAW_K]
+        pp.coupling_fluid_vars += [GEL_STRENGTH]
+        pp.coupling_fluid_vars += [YIELD_STRESS]
 
     # dem coupling variables
     pp.coupling_dem_vars = []
@@ -171,7 +198,7 @@ def ConstructListsOfVariables(pp):
     if (pp.embedded_option):
        pp.coupling_dem_vars += [DISTANCE]
 
-    if (pp.drag_force_type == 2):
+    if (pp.drag_force_type >= 2):
        pp.coupling_dem_vars += [POWER_LAW_N]
        pp.coupling_dem_vars += [POWER_LAW_K]
        pp.coupling_dem_vars += [GEL_STRENGTH]
@@ -180,19 +207,19 @@ def ConstructListsOfVariables(pp):
     # VARIABLES TO ADD
     # listing nodal variables to be added to the model parts (memory will be allocated for them)
 
-    # fluid coupling variables
+    # fluid variables
     pp.fluid_vars = []
     pp.fluid_vars += pp.coupling_fluid_vars
     pp.fluid_vars += [PRESSURE_GRADIENT, AUX_DOUBLE_VAR]
 
-    if (pp.drag_force_type == 2):
+    if (pp.drag_force_type >= 0):
         pp.fluid_vars += [POWER_LAW_N]
         pp.fluid_vars += [POWER_LAW_K]
         pp.fluid_vars += [GEL_STRENGTH]
         pp.fluid_vars += [YIELD_STRESS]
         pp.fluid_vars += [BINGHAM_SMOOTHER]
 
-    # dem coupling variables
+    # dem variables
     pp.dem_vars = []
     pp.dem_vars += pp.coupling_dem_vars
 
@@ -205,13 +232,16 @@ def ConstructListsOfVariables(pp):
     if (pp.drag_force_type > 0 and  pp.add_each_hydro_force_option):
        pp.dem_vars += [DRAG_FORCE]
 
+    if (pp.drag_force_type == 2 or pp.drag_force_type == 3 and pp.add_each_hydro_force_option):
+       pp.dem_vars += [PARTICLE_SPHERICITY]
+
     if (pp.lift_force_type > 0 and  pp.add_each_hydro_force_option):
        pp.dem_vars += [LIFT_FORCE]
 
     if (pp.virtual_mass_force_type > 0 and  pp.add_each_hydro_force_option):
        pp.dem_vars += [VIRTUAL_FORCE]
 
-    # fem-dem coupling variables
+    # fem-dem variables
     pp.fem_dem_vars = [VELOCITY, DISPLACEMENT]
 
     if (pp.embedded_option):
@@ -219,7 +249,7 @@ def ConstructListsOfVariables(pp):
         pp.fem_dem_vars += [POSITIVE_FACE_PRESSURE]
         pp.fem_dem_vars += [NEGATIVE_FACE_PRESSURE]
 
-    # inlet coupling variables
+    # inlet variables
     pp.inlet_vars = pp.dem_vars
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_model_part):
@@ -530,11 +560,9 @@ class ProjectionModule:
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
     def ProjectFromFluid(self, alpha):
-
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ProjectFromNewestFluid(self):
-
         self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
 
     def ProjectFromParticles(self):
