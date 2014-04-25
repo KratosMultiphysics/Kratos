@@ -97,6 +97,8 @@ void  AddLinearSolversToPython()
     enum_<OpenCLPreconditionerType>("OpenCLPreconditionerType")
     .value("NoPreconditioner", NoPreconditioner)
     .value("ILU", ILU)
+    .value("AMG_DAMPED_JACOBI", AMG_DAMPED_JACOBI)
+    .value("AMG_SPAI0", AMG_SPAI0)
     ;
 }
 
