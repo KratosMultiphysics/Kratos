@@ -99,25 +99,28 @@ public:
           pnew_node = reference_node;
           r_modelpart.AddNode(pnew_node);   // The same node is added to r_modelpart (the calculation model part)
           pnew_node->SetId(aId);
+          pnew_node->FastGetSolutionStepValue(VELOCITY)[0]= 0.0;
+          pnew_node->FastGetSolutionStepValue(VELOCITY)[1]= 0.0;
+          pnew_node->FastGetSolutionStepValue(VELOCITY)[2]= 0.0;
+          //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
       }
 
       else {
           pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
-
+          pnew_node->FastGetSolutionStepValue(VELOCITY)                     = params[VELOCITY];
       }
 
       pnew_node->FastGetSolutionStepValue(RADIUS)                       = params[RADIUS];
-      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY)             = params[PARTICLE_DENSITY];
-      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS)                = params[YOUNG_MODULUS];
-      pnew_node->FastGetSolutionStepValue(POISSON_RATIO)                = params[POISSON_RATIO];
-      pnew_node->FastGetSolutionStepValue(PARTICLE_FRICTION)            = params[PARTICLE_FRICTION];
-      pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = params[RESTITUTION_COEFF];
-      pnew_node->FastGetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
+      //pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY)             = params[PARTICLE_DENSITY];
+      //pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS)                = params[YOUNG_MODULUS];
+      //pnew_node->FastGetSolutionStepValue(POISSON_RATIO)                = params[POISSON_RATIO];
+      //pnew_node->FastGetSolutionStepValue(PARTICLE_FRICTION)            = params[PARTICLE_FRICTION];
+      //pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = params[RESTITUTION_COEFF];
+      //pnew_node->FastGetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
       pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
       if(has_sphericity){
-      pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)          = params[PARTICLE_SPHERICITY];
-      }
-      pnew_node->FastGetSolutionStepValue(VELOCITY)                     = params[VELOCITY];
+        pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)        = params[PARTICLE_SPHERICITY];
+      }      
       array_1d<double, 3 > null_vector(3,0.0);                              
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
@@ -156,7 +159,7 @@ public:
     //MA
     //template <class DEMElementType>
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, 
-                                              Properties & r_params, const Element& r_reference_element, bool has_sphericity, bool initial) {          
+                                              Properties & r_params, const Element& r_reference_element, PropertiesProxy* p_fast_properties, bool has_sphericity, bool initial) {          
         
       Node < 3 > ::Pointer pnew_node;
             
@@ -176,23 +179,19 @@ public:
           pnew_node->Set(BLOCKED);  
       }
       
-      p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
-      p_particle->Initialize();
+      p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());      
       
-      //boost::shared_ptr<Kratos::SphericParticle> spheric_p_particle = boost::dynamic_pointer_cast<Kratos::SphericParticle> (p_particle);                              
       Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());
       
-      double radius                              = r_params[RADIUS];
-      double density                             = r_params[PARTICLE_DENSITY];          
-      double mass                                = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
+      double radius                              = r_params[RADIUS];      
       
-      spheric_p_particle->SetRadius                         (radius);
+      spheric_p_particle->SetFastProperties                 (p_fast_properties) ;
+            
+      double density = spheric_p_particle->GetDensity();
+      spheric_p_particle->SetRadius                         (radius);      
+      double mass                                = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
       spheric_p_particle->SetSqrtOfRealMass                 (sqrt(mass)); 
-      spheric_p_particle->SetYoungFromProperties            ( &( r_params.GetValue(YOUNG_MODULUS) ) );
-      spheric_p_particle->SetPoissonFromProperties          ( &( r_params.GetValue(POISSON_RATIO) ) );
-      spheric_p_particle->SetRollingFrictionFromProperties  ( &( r_params.GetValue(ROLLING_FRICTION) ) );
-      spheric_p_particle->SetTgOfFrictionAngleFromProperties( &( r_params.GetValue(PARTICLE_FRICTION) ) );
-      spheric_p_particle->SetLnOfRestitCoeffFromProperties  ( &( r_params.GetValue(LN_OF_RESTITUTION_COEFF) ) );       
+      p_particle->Initialize();
       
       r_modelpart.Elements().push_back(p_particle);          
 }    
@@ -674,6 +673,7 @@ public:
     bool mFirstTime;
     boost::numeric::ublas::vector<bool> mLayerRemoved;
     bool mBallsModelPartHasSphericity;
+    std::vector<PropertiesProxy>                 mFastProperties;
     
     /// Constructor:               
     
@@ -697,6 +697,7 @@ public:
         mFirstTime=true;
         mBallsModelPartHasSphericity=false;
         
+        
     }
             
     /// Destructor.
@@ -709,6 +710,8 @@ public:
 	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
 	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
 	}
+        
+        CreateInletPropertiesProxies(r_modelpart);
         
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;
@@ -724,15 +727,20 @@ public:
             int mesh_size=mesh_it->NumberOfNodes();
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
             
-            //I create a parallel set of properties (temporarily) to assign the same conditions but 0,0,0 velocity 
-            //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
-            Properties mesh_properties_null_vel = InletModelPart.GetProperties(mesh_number);
-            mesh_properties_null_vel[VELOCITY][0]=0.0;
-            mesh_properties_null_vel[VELOCITY][1]=0.0;
-            mesh_properties_null_vel[VELOCITY][2]=0.0;                                                                           
+            int general_properties_id = InletModelPart.GetProperties(mesh_number).Id();  
+            PropertiesProxy* p_fast_properties = NULL;
+            
+            for (unsigned int i = 0; i < mFastProperties.size(); i++){
+                int fast_properties_id = mFastProperties[i].GetId(); 
+                if( fast_properties_id == general_properties_id ){  
+                    p_fast_properties = &(mFastProperties[i]);
+                    //spheric_particle.SetFastProperties( &(mFastProperties[i]) );
+                    break;
+                }
+            }   
             
             for (int i = 0; i < mesh_size; i++){                
-                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], mesh_properties_null_vel, r_reference_element, mBallsModelPartHasSphericity, true); 
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], InletModelPart.GetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, true); 
 		max_Id++;
             }      
             
@@ -861,12 +869,24 @@ public:
                    valid_nodes_length = valid_nodes_length - 1;
                }
                
+                PropertiesProxy* p_fast_properties = NULL;
+                int general_properties_id = InletModelPart.GetProperties(mesh_number).Id();  
+                for (unsigned int i = 0; i < mFastProperties.size(); i++){
+                    int fast_properties_id = mFastProperties[i].GetId(); 
+                    if( fast_properties_id == general_properties_id ){  
+                        p_fast_properties = &(mFastProperties[i]);
+                        //spheric_particle.SetFastProperties( &(mFastProperties[i]) );
+                        break;
+                    }
+                }     
+               
+               
                //const std::string ElementNameString = std::string("SphericParticle3D");
                
                const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.GetProperties(mesh_number), r_reference_element, mBallsModelPartHasSphericity, false);
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.GetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, false);
                    inserting_nodes[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                    max_Id++;
                }                                                                   
@@ -876,7 +896,51 @@ public:
         } // for mesh_it
     }    //CreateElementsFromInletMesh
     
-    
+    void CreateInletPropertiesProxies(ModelPart& r_balls_model_part){
+          KRATOS_TRY
+          typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
+          typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+                            
+          int number_of_properties = InletModelPart.NumberOfProperties();
+          mFastProperties.resize(number_of_properties);
+          
+          PropertiesProxy aux_props;
+          int i = 0;
+                    
+          for (PropertiesIterator props_it = InletModelPart.GetMesh(0).PropertiesBegin(); 
+                                  props_it!= InletModelPart.GetMesh(0).PropertiesEnd();   props_it++ )
+          {
+              aux_props.SetId( props_it->GetId() );
+
+              double* aux_pointer = &( props_it->GetValue(YOUNG_MODULUS) );
+              aux_props.SetYoungFromProperties( aux_pointer );
+              
+              aux_pointer = &( props_it->GetValue(POISSON_RATIO) );
+              aux_props.SetPoissonFromProperties(aux_pointer);
+              if ( r_balls_model_part.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
+                aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
+                aux_props.SetRollingFrictionFromProperties(aux_pointer);
+              }
+              else {
+                aux_props.SetRollingFrictionFromProperties(NULL);
+              }
+              
+              aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
+              aux_props.SetTgOfFrictionAngleFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
+              aux_props.SetLnOfRestitCoeffFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
+              aux_props.SetDensityFromProperties(aux_pointer);
+              
+              mFastProperties[i] = aux_props;
+              i++;
+              
+      }               
+         return;          
+         KRATOS_CATCH("")
+      }
     
     
     //MA

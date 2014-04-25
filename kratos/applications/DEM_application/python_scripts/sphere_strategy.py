@@ -21,7 +21,7 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-    model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
+#    model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
 #    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
 #    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
@@ -37,11 +37,11 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(RADIUS)
 #    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
-    model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
+    #model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+    #model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
+    #model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
+    #model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
+    #model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
 
     # ROTATION RELATED PROPERTIES
 

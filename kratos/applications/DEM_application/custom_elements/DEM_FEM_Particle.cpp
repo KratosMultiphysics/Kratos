@@ -174,10 +174,9 @@ namespace Kratos
 		if (CurrentProcessInfo[VIRTUAL_MASS_OPTION])
 		{
 	
-          //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-          double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                  double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 		  
-		  double mass  = mYoung * M_PI * mRadius; 
+		  double mass  = GetYoung() * M_PI * mRadius; 
                   GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
 		  
 		  //if(mRotationOption)
@@ -294,8 +293,8 @@ namespace Kratos
 	      //const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
               const double other_young       = neighbour_iterator->GetYoung();
 	      const double other_poisson     = neighbour_iterator->GetPoisson();
-	      double equiv_young              = (mYoung + other_young) * 0.5;
-	      double equiv_poisson            = (mPoisson + other_poisson) * 0.5;
+	      double equiv_young              = (GetYoung() + other_young) * 0.5;
+	      double equiv_poisson            = (GetPoisson() + other_poisson) * 0.5;
 	      double equiv_shearM             = equiv_young / (2.0 * (1.0 + equiv_poisson));
 	      kn                              = equiv_young  * equiv_area / radius_sum;
 	      kt                              = equiv_shearM * equiv_area / radius_sum;
@@ -478,9 +477,9 @@ namespace Kratos
 		double mTimeStep    = rCurrentProcessInfo[DELTA_TIME];
 		/////int CalRotateOption = rCurrentProcessInfo[RIGID_FACE_FLAG];
 
-		double Friction       = mTgOfFrictionAngle;
-		double young          = mYoung;
-		double poisson        = mPoisson;
+		double Friction       = GetTgOfFrictionAngle();
+		double young          = GetYoung();
+		double poisson        = GetPoisson();
 		double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
 		double area           = M_PI * radius * radius;
 		double kn             = young * area / (2.0 * radius);

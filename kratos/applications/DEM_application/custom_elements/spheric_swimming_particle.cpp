@@ -333,9 +333,10 @@ namespace Kratos
       {
             KRATOS_TRY
 
-              const double& particle_density             = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
+              //const double& particle_density             = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_DENSITY);
+              const double particle_density = GetDensity();
               const double kinematic_viscosity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-              const double sphericity                    = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
+              const double sphericity                    = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
               //const array_1d<double, 3>& buoyancy       = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);//S
               const array_1d<double, 3>& gravity         = rCurrentProcessInfo[GRAVITY];
               const int manually_imposed_drag_law_option = rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];

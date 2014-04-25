@@ -53,11 +53,12 @@ namespace Kratos
 
           mDimension                = 2;
           mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
+          /*mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
           mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
           mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
           mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-          double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
+          double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);*/
+          double density            = GetDensity();
           //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
