@@ -41,7 +41,6 @@ import DEM_explicit_solver_var
 import DEM_procedures
 import swimming_DEM_procedures
 import embedded
-import mesh_motion #S
 
 # listing project parameters (to be put in problem type)
 ProjectParameters.dem                                  = DEM_explicit_solver_var
@@ -495,6 +494,7 @@ Dt_DEM       = ProjectParameters.dem.MaxTimeStep
 DEM_step     = 0      # necessary to get a good random insertion of particles
 stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
+mesh_motion = DEMFEMUtilities()
 
 while (time <= final_time):
 
