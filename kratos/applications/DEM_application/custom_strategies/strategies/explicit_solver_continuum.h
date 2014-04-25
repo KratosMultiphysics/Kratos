@@ -87,7 +87,15 @@ namespace Kratos
         ModelPart& r_model_part             = BaseType::GetModelPart();
         ModelPart& fem_model_part           = BaseType::GetFemModelPart();
         ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-                
+        
+        // Omp initializations
+        this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
+    
+        rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
+        this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
+
+        BaseType::CreatePropertiesProxies();
+        
         mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
         
         unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
@@ -101,13 +109,7 @@ namespace Kratos
         {
           this->GetRigidFaceResults().resize(number_of_elements);
           this->GetRigidFaceResultsDistances().resize(number_of_elements);
-        }
-
-        // Omp initializations
-        this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
-    
-        rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
-        this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
+        }       
         
         this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
@@ -539,57 +541,9 @@ namespace Kratos
                     }
                 }
             }
-        }                
-                
-    
-        /*for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-        {
-            Element* p_neighbour_element = (*it).get();
-            SphericContinuumParticle* p_spheric_neighbour_particle = dynamic_cast<SphericContinuumParticle*>( p_neighbour_element );            
-            std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = p_spheric_neighbour_particle->mContinuumIniNeighbourElements;
-            p_spheric_neighbour_particle->mContinuumIniNeighbourElements.clear();
-           
-            for ( unsigned int i = 0; i<r_continuum_ini_neighbours.size(); i++ ) {
-                SphericContinuumParticle* continuum_ini_neighbour_iterator = r_continuum_ini_neighbours[i];
-                
-                vector<int>& other_cont_ini_neigh_ids = continuum_ini_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS);
-
-                if ((*it)->GetGeometry()(0)->Id() > continuum_ini_neighbour_iterator->GetGeometry()(0)->Id() )                    //to avoid repetition
-                {   
-                    int index = -1;
-                     
-                    for (unsigned int iii=0; iii< other_cont_ini_neigh_ids.size(); iii++)
-                    {
-                        int neigh_neigh_ID = other_cont_ini_neigh_ids[iii];
-                                               
-                        if( neigh_neigh_ID == int((*it)->GetGeometry()(0)->Id()))
-                        { 
-                            index = iii; //we keep the last iii of the iteration and this is the one to do pushback         
-                            break; 
-                        }
-                    } // for each ini continuum neighbour's ini continuum neighbour.
-
-                    if (index == -1)
-                    {
-                        std::cout << "Wrong index!!!!" << std::endl;
-                    }
-                    else
-                    {
-                        if(index >= int(continuum_ini_neighbour_iterator->mBondElements.size()))
-                        {
-                            std::cout << "ERROR: " << (*it)->GetGeometry()(0)->Id() << " " << continuum_ini_neighbour_iterator->mBondElements.size() << " " << index << std::endl;
-                        }
-
-                        p_spheric_neighbour_particle->mBondElements[i] = continuum_ini_neighbour_iterator->mBondElements[index];
-                    }
-                } //if target id > neigh id
-                               
-            } // for every ini continuum neighbour   
-            
-        } //loop over particles     */   
-
-        KRATOS_CATCH("")
+        }                                
         
+        KRATOS_CATCH("")        
              
     } //CreateContactElements
     
@@ -646,7 +600,7 @@ namespace Kratos
               typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
               
               for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)               
-              {              
+              {                             
                 (it_contact)->InitializeSolutionStep(rCurrentProcessInfo); 
               } //loop over CONTACT ELEMENTS
               
