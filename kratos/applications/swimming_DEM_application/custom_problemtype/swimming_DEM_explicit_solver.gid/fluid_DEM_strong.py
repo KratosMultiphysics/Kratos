@@ -74,7 +74,7 @@ ProjectParameters.similarity_transformation_type       = 0 # no transformation (
 ProjectParameters.dem_inlet_element_type               = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.fluid_model_type                     = 0 # untouched, velocity incremented by 1/solid_fraction (0), modified mass conservation only (1)
 ProjectParameters.coupling_level_type                  = 1 # one way coupling (0), two way coupling (1)
-ProjectParameters.coupling_scheme_type                 = "UpdatedDEM" # "UpdatedFluid", "UpdatedDEM"
+ProjectParameters.coupling_scheme_type                 = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type               = 2 # {fluid_to_DEM, DEM_to_fluid, solid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
 ProjectParameters.buoyancy_force_type                  = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
 ProjectParameters.drag_force_type                      = 2 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
@@ -401,8 +401,7 @@ dem_solver.Initialize()
 # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
 if (ProjectParameters.embedded_option):
     calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
-    #calculate_distance_process.Execute()
-    mesh_motion = DEMFEMUtilities()
+    calculate_distance_process.Execute()
 
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
@@ -512,9 +511,12 @@ while (time <= final_time):
         time_final_DEM_substepping = time
         time_dem = time - Dt + Dt_DEM #S
    
-        # Calculate elemental distances defining the structure embedded in the fluid mesh
-        if (ProjectParameters.embedded_option): #S
-            calculate_distance_process.Execute()
+    # walls movement  
+    mesh_motion.MoveAllMeshes(fem_dem_model_part, time)
+        
+    # Calculate elemental distances defining the structure embedded in the fluid mesh
+    if (ProjectParameters.embedded_option): #S
+        calculate_distance_process.Execute()
 
     #embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
     # Calculate elemental distances defining the structure embedded in the fluid mesh
@@ -578,11 +580,7 @@ while (time <= final_time):
 
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
 
-        balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
-        
-        # walls movement  
-        if (ProjectParameters.embedded_option):
-            mesh_motion.MoveAllMeshes(fem_dem_model_part, time)
+        balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step                
 
         # applying fluid-to-DEM coupling if required
 
