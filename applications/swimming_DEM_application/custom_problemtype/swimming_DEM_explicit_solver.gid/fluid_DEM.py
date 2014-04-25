@@ -113,7 +113,7 @@ fluid_variables_to_add += [PRESSURE_GRADIENT,
 
 balls_variables_to_add = []
 balls_variables_to_add += balls_vars_for_coupling
-balls_variables_to_add += [SPHERICITY,
+balls_variables_to_add += [PARTICLE_SPHERICITY,
                            DRAG_FORCE,
                            LIFT_FORCE,
                            BUOYANCY,
