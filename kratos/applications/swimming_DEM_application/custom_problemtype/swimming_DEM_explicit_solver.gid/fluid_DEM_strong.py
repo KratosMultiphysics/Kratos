@@ -50,14 +50,14 @@ ProjectParameters.print_particles_results_option       = 0
 ProjectParameters.add_each_hydro_force_option          = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)
 ProjectParameters.project_at_every_substep_option      = 0
 ProjectParameters.velocity_trap_option                 = 0
-ProjectParameters.inlet_option                         = 0
+ProjectParameters.inlet_option                         = 1
 ProjectParameters.manually_imposed_drag_law_option     = 0
 ProjectParameters.stationary_problem_option            = 0 # stationary, stop calculating the fluid after it reaches the stationary state (1)
 ProjectParameters.flow_in_porous_medium_option         = 0 # the porosity is an imposed field (1)
 ProjectParameters.flow_in_porous_DEM_medium_option     = 0 # the DEM part is kept static (1)
 ProjectParameters.embedded_option                      = 1 # the embedded domain tools are to be used (1)
 ProjectParameters.make_results_directories_option      = 0 # results are written into a folder (../results) inside the problem folder
-ProjectParameters.body_force_on_fluid_option           = 1
+ProjectParameters.body_force_on_fluid_option           = 0
 ProjectParameters.print_REYNOLDS_NUMBER_option         = 0
 ProjectParameters.print_PRESSURE_GRAD_PROJECTED_option = 1
 ProjectParameters.print_FLUID_VEL_PROJECTED_option     = 1
@@ -395,6 +395,8 @@ dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
 dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, ProjectParameters.dem)
+# Initializing the DEM solver (must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part)
+dem_solver.Initialize()
 
 # creating a distance calculation process for the embedded technology
 # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
@@ -493,7 +495,6 @@ Dt_DEM       = ProjectParameters.dem.MaxTimeStep
 DEM_step     = 0      # necessary to get a good random insertion of particles
 stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
-dem_solver.Initialize()
 
 while (time <= final_time):
 
