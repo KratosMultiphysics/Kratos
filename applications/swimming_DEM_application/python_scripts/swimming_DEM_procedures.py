@@ -112,6 +112,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if (pp.coupling_level_type > 0 and pp.print_HYDRODYNAMIC_REACTION_option):
         pp.nodal_results += ["HYDRODYNAMIC_REACTION"]
+        
+    if (pp.embedded_option):
+        pp.nodal_results += ["DISTANCE"]
 
 def ChangeInputDataForConsistency(pp):
     pp.dem.project_from_particles_option *= pp.projection_module_option
