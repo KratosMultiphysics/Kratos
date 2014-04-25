@@ -186,7 +186,7 @@ import sphere_strategy as DEMSolverStrategy
 DEMSolverStrategy.AddVariables(balls_model_part, ProjectParameters.dem)
 
 # reading the balls model part
-model_part_io_solid = ModelPartIO(ProjectParameters.dem.problem_name + "DEM")
+model_part_io_solid = ModelPartIO(ProjectParameters.dem.problem_name + "DEM",True)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
 # reading the fem-dem model part
@@ -620,9 +620,9 @@ while (time <= final_time):
         projection_module.ProjectFromParticles()
 
         # porosity checks (debugging)
-        cylinder_vol = 5 * math.pi
-        dem_volume_tool = swimming_DEM_procedures.PorosityUtils(cylinder_vol, fluid_model_part, balls_model_part)
-        dem_volume_tool.PrintCurrentData()
+        #cylinder_vol = 5 * math.pi
+        #dem_volume_tool = swimming_DEM_procedures.PorosityUtils(cylinder_vol, fluid_model_part, balls_model_part)
+        #dem_volume_tool.PrintCurrentData()
 
     # printing if required
 
