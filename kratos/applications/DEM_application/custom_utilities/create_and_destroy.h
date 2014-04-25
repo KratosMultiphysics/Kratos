@@ -124,6 +124,26 @@ public:
       array_1d<double, 3 > null_vector(3,0.0);                              
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
+            if (pnew_node->SolutionStepsDataHas(RADIUS)){
+	      //KRATOS_WATCH("entro............................")
+      }
+     
+      if (pnew_node->SolutionStepsDataHas(SOLID_FRACTION_PROJECTED)){
+	//KRATOS_WATCH("entro.solis...........................")
+          pnew_node->GetSolutionStepValue(SOLID_FRACTION_PROJECTED)           = 0.0;
+      }
+
+      if (pnew_node->SolutionStepsDataHas(MESH_VELOCITY1)){
+          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_X)         = 0.0;
+          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Y)         = 0.0;
+          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Z)         = 0.0;
+      }
+
+      if (pnew_node->SolutionStepsDataHas(DRAG_REACTION)){
+          pnew_node->GetSolutionStepValue(DRAG_REACTION_X)          = 0.0;
+          pnew_node->GetSolutionStepValue(DRAG_REACTION_Y)          = 0.0;
+          pnew_node->GetSolutionStepValue(DRAG_REACTION_Z)          = 0.0;
+      }
       
       ///DOFS
       //pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
