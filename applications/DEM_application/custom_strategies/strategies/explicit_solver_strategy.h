@@ -209,8 +209,13 @@ namespace Kratos
               aux_pointer = &( props_it->GetValue(POISSON_RATIO) );
               aux_props.SetPoissonFromProperties(aux_pointer);
               
-              aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
-              aux_props.SetRollingFrictionFromProperties(aux_pointer);
+              if ( r_model_part.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
+                aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
+                aux_props.SetRollingFrictionFromProperties(aux_pointer);
+              }
+              else {
+                aux_props.SetRollingFrictionFromProperties(NULL);
+              }
               
               aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
               aux_props.SetTgOfFrictionAngleFromProperties(aux_pointer);
@@ -218,7 +223,9 @@ namespace Kratos
               aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
               aux_props.SetLnOfRestitCoeffFromProperties(aux_pointer);
               
-              //ROLLING FRICTION???                            
+              aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
+              aux_props.SetDensityFromProperties(aux_pointer);
+              
               mFastProperties[i] = aux_props;
               i++;
               
@@ -255,8 +262,12 @@ namespace Kratos
 
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+          
+          // Omp initializations
+          this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
+          mNeighbourCounter.resize(this->GetNumberOfThreads());
 
-          //CreatePropertiesProxies();
+          CreatePropertiesProxies();
           
           int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
@@ -266,10 +277,6 @@ namespace Kratos
           //Cfeng
           this->GetRigidFaceResults().resize(number_of_elements);
           this->GetRigidFaceResultsDistances().resize(number_of_elements);
-
-          // Omp initializations
-          this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
-          mNeighbourCounter.resize(this->GetNumberOfThreads());
 
           this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
