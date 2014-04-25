@@ -2,22 +2,23 @@
 #define VIENNACL_OCL_ERROR_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
 
-/** @file error.hpp
+/** @file viennacl/ocl/error.hpp
     @brief Error handling for the OpenCL layer of ViennaCL
 */
 
@@ -59,6 +60,11 @@ namespace viennacl
   namespace ocl
   {
     //Wrapper for OpenCL exceptions:
+
+    /** @brief Exception thrown in the case that a requested compute device was not found.
+      *
+      * This exception usually shows up if a user requests a GPU for computation, but the OpenCL SDK does not support the GPU.
+      */
     class device_not_found : public std::exception
     {
       virtual const char* what() const throw()
@@ -67,7 +73,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the selected compute device is not available (maybe locked by another process). */
     class device_not_available : public std::exception
     {
       virtual const char* what() const throw()
@@ -77,6 +84,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the OpenCL just-in-time compiler is not available. */
     class compiler_not_available : public std::exception
     {
       virtual const char* what() const throw()
@@ -85,7 +93,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if a memory object cannot be allocated. Usually the requested memory buffer is simply too large. */
     class mem_object_allocation_failure : public std::exception
     {
       virtual const char* what() const throw()
@@ -94,7 +103,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the compute device is out of resources (either global memory, registers, etc.) for the requested operation. */
     class out_of_resources : public std::exception
     {
       virtual const char* what() const throw()
@@ -104,6 +114,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the host cannot provide enough memory for the datastructures in the OpenCL backend (temporary arrays, etc.) to perform the requested operation. */
     class out_of_host_memory : public std::exception
     {
       virtual const char* what() const throw()
@@ -112,7 +123,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the OpenCL context does not have CL_QUEUE_PROFILING_ENABLE set, if the execution is not complete, or the event object is a user event object. */
     class profiling_info_not_available : public std::exception
     {
       virtual const char* what() const throw()
@@ -121,7 +133,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the source buffer overlaps the destination buffer when copying from device memory to device memory. */
     class mem_copy_overlap : public std::exception
     {
       virtual const char* what() const throw()
@@ -130,7 +143,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if there is a mismatch in image formats for the operands. */
     class image_format_mismatch : public std::exception
     {
       virtual const char* what() const throw()
@@ -139,7 +153,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the requested image format is not supported. */
     class image_format_not_supported : public std::exception
     {
       virtual const char* what() const throw()
@@ -149,6 +164,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the OpenCL program cannot be built, usually due to a syntax error in the OpenCL code. */
     class build_program_failure : public std::exception
     {
       virtual const char* what() const throw()
@@ -157,7 +173,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the mapping of device memory to the host memory space failed. */
     class map_failure : public std::exception
     {
       virtual const char* what() const throw()
@@ -166,7 +183,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown is an invalid value is provided to an OpenCL function. */
     class invalid_value : public std::exception
     {
       virtual const char* what() const throw()
@@ -175,7 +193,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid device type is specified. */
     class invalid_device_type : public std::exception
     {
       virtual const char* what() const throw()
@@ -184,7 +203,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid OpenCL platform is provided to an OpenCL function. */
     class invalid_platform : public std::exception
     {
       virtual const char* what() const throw()
@@ -193,7 +213,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid OpenCL device is provided to an OpenCL function. */
     class invalid_device : public std::exception
     {
       virtual const char* what() const throw()
@@ -202,7 +223,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid OpenCL context is provided to an OpenCL function. */
     class invalid_context : public std::exception
     {
       virtual const char* what() const throw()
@@ -211,7 +233,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if invalid OpenCL command queue properties are provided when creating a command queue. */
     class invalid_queue_properties : public std::exception
     {
       virtual const char* what() const throw()
@@ -220,7 +243,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid OpenCL command queue is provided to an OpenCL function. */
     class invalid_command_queue : public std::exception
     {
       virtual const char* what() const throw()
@@ -229,7 +253,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided pointer to host memory is invalid. */
     class invalid_host_ptr : public std::exception
     {
       virtual const char* what() const throw()
@@ -238,7 +263,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid OpenCL memory object (of type cl_mem) is passed to an OpenCL funciton. */
     class invalid_mem_object : public std::exception
     {
       virtual const char* what() const throw()
@@ -247,7 +273,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid image format descriptor is provided. */
     class invalid_image_format_descriptor : public std::exception
     {
       virtual const char* what() const throw()
@@ -256,7 +283,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the image size provided is invalid (e.g. zero). */
     class invalid_image_size : public std::exception
     {
       virtual const char* what() const throw()
@@ -265,7 +293,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an invalid sampler is provided for an image. */
     class invalid_sampler : public std::exception
     {
       virtual const char* what() const throw()
@@ -274,7 +303,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the OpenCL binary (generated from the jit-compiler or loaded from some other location) won't work on the device (e.g. due to a lack of double precision support). */
     class invalid_binary : public std::exception
     {
       virtual const char* what() const throw()
@@ -283,7 +313,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if invalid build options are passed to the OpenCL just-in-time compiler. */
     class invalid_build_options : public std::exception
     {
       virtual const char* what() const throw()
@@ -292,7 +323,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if an OpenCL program object handle is invalid (e.g. not initialized). */
     class invalid_program : public std::exception
     {
       virtual const char* what() const throw()
@@ -301,7 +333,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if there is no built program exectuable available for the device. */
     class invalid_program_executable : public std::exception
     {
       virtual const char* what() const throw()
@@ -310,7 +343,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided kernel name is invalid (e.g. not part of the program provided). */
     class invalid_kernel_name : public std::exception
     {
       virtual const char* what() const throw()
@@ -320,6 +354,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the kernel definition (number of arguments, argument types, etc.) is not the same for all devices for which the program has been built. */
     class invalid_kernel_definition : public std::exception
     {
       virtual const char* what() const throw()
@@ -329,6 +364,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the provided kernel object (of type cl_kernel) is invalid (e.g. not initialized, from different context, or corrupted). */
     class invalid_kernel : public std::exception
     {
       virtual const char* what() const throw()
@@ -337,7 +373,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the kernel argument index is invalid, e.g. an arg index larger than the number of kernel arguments was provided. */
     class invalid_arg_index : public std::exception
     {
       virtual const char* what() const throw()
@@ -346,7 +383,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the kernel argument provided has an invalid value. */
     class invalid_arg_value : public std::exception
     {
       virtual const char* what() const throw()
@@ -356,6 +394,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the arguments to an OpenCL kernel have an invalid size e.g. not sizeof(cl_mem)). */
     class invalid_arg_size : public std::exception
     {
       virtual const char* what() const throw()
@@ -364,7 +403,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the kernel arguments are invalid and/or do not fit the kernel parameter list. */
     class invalid_kernel_args : public std::exception
     {
       virtual const char* what() const throw()
@@ -373,7 +413,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the work dimension is invalid (usually this means that the work dimension was set to be larger than three. */
     class invalid_work_dimension : public std::exception
     {
       virtual const char* what() const throw()
@@ -382,7 +423,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the number of work groups is invalid (usually this means that more than 256/512/768/1024 work groups have been specified, but the device(s) cannot support this. */
     class invalid_work_group_size : public std::exception
     {
       virtual const char* what() const throw()
@@ -392,6 +434,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the number of work items per work group invalid (usually this means that more than 256/512/768/1024 work items have been specified, but the device(s) cannot support this. */
     class invalid_work_item_size : public std::exception
     {
       virtual const char* what() const throw()
@@ -400,7 +443,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided offset for get_global_id() in OpenCL kernels is invalid. */
     class invalid_global_offset : public std::exception
     {
       virtual const char* what() const throw()
@@ -409,7 +453,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided event wait list is invalid. */
     class invalid_event_wait_list : public std::exception
     {
       virtual const char* what() const throw()
@@ -418,7 +463,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided event object (of type cl_event) is invalid. */
     class invalid_event : public std::exception
     {
       virtual const char* what() const throw()
@@ -427,7 +473,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if interoperability of OpenCL with other frameworks collide. */
     class invalid_operation : public std::exception
     {
       virtual const char* what() const throw()
@@ -436,7 +483,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided OpenGL (not OpenCL) object is invalid. */
     class invalid_gl_object : public std::exception
     {
       virtual const char* what() const throw()
@@ -445,7 +493,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided buffer size is invalid (e.g. zero) */
     class invalid_buffer_size : public std::exception
     {
       virtual const char* what() const throw()
@@ -454,7 +503,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the provided miplevel is greater than zero, but the OpenGL implementation does not support creating from non-zero mipmap levels. */
     class invalid_mip_level : public std::exception
     {
       virtual const char* what() const throw()
@@ -463,7 +513,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
+
+    /** @brief Exception thrown if the total number of work items is invalid (for example, not divisible by the number of work items per work group). */
     class invalid_global_work_size : public std::exception
     {
       virtual const char* what() const throw()
@@ -473,6 +524,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if an invalid property is provided to a function (vague value). */
     class invalid_property : public std::exception
     {
       virtual const char* what() const throw()
@@ -482,6 +534,7 @@ namespace viennacl
       }
     };
 
+    /** @brief Exception thrown if the returned error cannot be resolved to some defined error constant. Might result from invalid sources, invalid memory operations, etc. */
     class unknown_error : public std::exception
     {
       virtual const char* what() const throw()
@@ -491,7 +544,7 @@ namespace viennacl
       }
     };
 
-    
+    /** @brief Exception thrown if the user wants to use double precision arithmetics, but the device does not support double precision. */
     class double_precision_not_provided_error : public std::exception
     {
       virtual const char* what() const throw()
@@ -500,8 +553,8 @@ namespace viennacl
                VIENNACL_BUG_REPORT_STRING;
       }
     };
-    
-    
+
+
     /** @brief An error reporting class. Template argument is used to avoid problems with external linkage.
     *
     *  Do not use this class directly, use the macro CL_ERROR_CHECK instead.
@@ -510,74 +563,83 @@ namespace viennacl
     template <typename T>
     struct error_checker
     {
-      
+
       /** @brief Trows exceptions that reflect OpenCL error codes */
       static void raise_exception(cl_int err)
       {
         switch (err)
         {
-          case CL_DEVICE_NOT_FOUND:               throw device_not_found(); break;
-          case CL_DEVICE_NOT_AVAILABLE:           throw device_not_available(); break;
-          case CL_COMPILER_NOT_AVAILABLE:         throw compiler_not_available(); break;
-          case CL_MEM_OBJECT_ALLOCATION_FAILURE:  throw mem_object_allocation_failure(); break;
-          case CL_OUT_OF_RESOURCES:               throw out_of_resources(); break;
-          case CL_OUT_OF_HOST_MEMORY:             throw out_of_host_memory(); break;
-          case CL_PROFILING_INFO_NOT_AVAILABLE:   throw profiling_info_not_available(); break;
-          case CL_MEM_COPY_OVERLAP:               throw mem_copy_overlap(); break;
-          case CL_IMAGE_FORMAT_MISMATCH:          throw image_format_mismatch(); break;
-          case CL_IMAGE_FORMAT_NOT_SUPPORTED:     throw image_format_not_supported(); break;
-          case CL_BUILD_PROGRAM_FAILURE:          throw build_program_failure(); break;
-          case CL_MAP_FAILURE:                    throw map_failure(); break;
+          case CL_DEVICE_NOT_FOUND:               throw device_not_found();
+          case CL_DEVICE_NOT_AVAILABLE:           throw device_not_available();
+          case CL_COMPILER_NOT_AVAILABLE:         throw compiler_not_available();
+          case CL_MEM_OBJECT_ALLOCATION_FAILURE:  throw mem_object_allocation_failure();
+          case CL_OUT_OF_RESOURCES:               throw out_of_resources();
+          case CL_OUT_OF_HOST_MEMORY:             throw out_of_host_memory();
+          case CL_PROFILING_INFO_NOT_AVAILABLE:   throw profiling_info_not_available();
+          case CL_MEM_COPY_OVERLAP:               throw mem_copy_overlap();
+          case CL_IMAGE_FORMAT_MISMATCH:          throw image_format_mismatch();
+          case CL_IMAGE_FORMAT_NOT_SUPPORTED:     throw image_format_not_supported();
+          case CL_BUILD_PROGRAM_FAILURE:          throw build_program_failure();
+          case CL_MAP_FAILURE:                    throw map_failure();
 
-          case CL_INVALID_VALUE:                  throw invalid_value(); break;
-          case CL_INVALID_DEVICE_TYPE:            throw invalid_device_type(); break;
-          case CL_INVALID_PLATFORM:               throw invalid_platform(); break;
-          case CL_INVALID_DEVICE:                 throw invalid_device(); break;
-          case CL_INVALID_CONTEXT:                throw invalid_context(); break;
-          case CL_INVALID_QUEUE_PROPERTIES:       throw invalid_queue_properties(); break;
-          case CL_INVALID_COMMAND_QUEUE:          throw invalid_command_queue(); break;
-          case CL_INVALID_HOST_PTR:               throw invalid_host_ptr(); break;
-          case CL_INVALID_MEM_OBJECT:             throw invalid_mem_object(); break;
-          case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR: throw invalid_image_format_descriptor(); break;
-          case CL_INVALID_IMAGE_SIZE:             throw invalid_image_size(); break;
-          case CL_INVALID_SAMPLER:                throw invalid_sampler(); break;
-          case CL_INVALID_BINARY:                 throw invalid_binary(); break;
-          case CL_INVALID_BUILD_OPTIONS:          throw invalid_build_options(); break;
-          case CL_INVALID_PROGRAM:                throw invalid_program(); break;
-          case CL_INVALID_PROGRAM_EXECUTABLE:     throw invalid_program_executable(); break;
-          case CL_INVALID_KERNEL_NAME:            throw invalid_kernel_name(); break;
-          case CL_INVALID_KERNEL_DEFINITION:      throw invalid_kernel_definition(); break;          
-          case CL_INVALID_KERNEL:                 throw invalid_kernel(); break;
-          case CL_INVALID_ARG_INDEX:              throw invalid_arg_index(); break;
-          case CL_INVALID_ARG_VALUE:              throw invalid_arg_value(); break;
-          case CL_INVALID_ARG_SIZE:               throw invalid_arg_size(); break;
-          case CL_INVALID_KERNEL_ARGS:            throw invalid_kernel_args(); break;
-          case CL_INVALID_WORK_DIMENSION:         throw invalid_work_dimension(); break;
-          case CL_INVALID_WORK_GROUP_SIZE:        throw invalid_work_group_size(); break;
-          case CL_INVALID_WORK_ITEM_SIZE:         throw invalid_work_item_size(); break;
-          case CL_INVALID_GLOBAL_OFFSET:          throw invalid_global_offset(); break;
-          case CL_INVALID_EVENT_WAIT_LIST:        throw invalid_event_wait_list(); break;
-          case CL_INVALID_EVENT:                  throw invalid_event(); break;
-          case CL_INVALID_OPERATION:              throw invalid_operation(); break;
-          case CL_INVALID_GL_OBJECT:              throw invalid_gl_object(); break;
-          case CL_INVALID_BUFFER_SIZE:            throw invalid_buffer_size(); break;
-          case CL_INVALID_MIP_LEVEL:              throw invalid_mip_level(); break;
-          case CL_INVALID_GLOBAL_WORK_SIZE:       throw invalid_global_work_size(); break;
+          case CL_INVALID_VALUE:                  throw invalid_value();
+          case CL_INVALID_DEVICE_TYPE:            throw invalid_device_type();
+          case CL_INVALID_PLATFORM:               throw invalid_platform();
+          case CL_INVALID_DEVICE:                 throw invalid_device();
+          case CL_INVALID_CONTEXT:                throw invalid_context();
+          case CL_INVALID_QUEUE_PROPERTIES:       throw invalid_queue_properties();
+          case CL_INVALID_COMMAND_QUEUE:          throw invalid_command_queue();
+          case CL_INVALID_HOST_PTR:               throw invalid_host_ptr();
+          case CL_INVALID_MEM_OBJECT:             throw invalid_mem_object();
+          case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR: throw invalid_image_format_descriptor();
+          case CL_INVALID_IMAGE_SIZE:             throw invalid_image_size();
+          case CL_INVALID_SAMPLER:                throw invalid_sampler();
+          case CL_INVALID_BINARY:                 throw invalid_binary();
+          case CL_INVALID_BUILD_OPTIONS:          throw invalid_build_options();
+          case CL_INVALID_PROGRAM:                throw invalid_program();
+          case CL_INVALID_PROGRAM_EXECUTABLE:     throw invalid_program_executable();
+          case CL_INVALID_KERNEL_NAME:            throw invalid_kernel_name();
+          case CL_INVALID_KERNEL_DEFINITION:      throw invalid_kernel_definition();
+          case CL_INVALID_KERNEL:                 throw invalid_kernel();
+          case CL_INVALID_ARG_INDEX:              throw invalid_arg_index();
+          case CL_INVALID_ARG_VALUE:              throw invalid_arg_value();
+          case CL_INVALID_ARG_SIZE:               throw invalid_arg_size();
+          case CL_INVALID_KERNEL_ARGS:            throw invalid_kernel_args();
+          case CL_INVALID_WORK_DIMENSION:         throw invalid_work_dimension();
+          case CL_INVALID_WORK_GROUP_SIZE:        throw invalid_work_group_size();
+          case CL_INVALID_WORK_ITEM_SIZE:         throw invalid_work_item_size();
+          case CL_INVALID_GLOBAL_OFFSET:          throw invalid_global_offset();
+          case CL_INVALID_EVENT_WAIT_LIST:        throw invalid_event_wait_list();
+          case CL_INVALID_EVENT:                  throw invalid_event();
+          case CL_INVALID_OPERATION:              throw invalid_operation();
+          case CL_INVALID_GL_OBJECT:              throw invalid_gl_object();
+          case CL_INVALID_BUFFER_SIZE:            throw invalid_buffer_size();
+          case CL_INVALID_MIP_LEVEL:              throw invalid_mip_level();
+          case CL_INVALID_GLOBAL_WORK_SIZE:       throw invalid_global_work_size();
       #ifdef CL_INVALID_PROPERTY
-	  case CL_INVALID_PROPERTY:               throw invalid_property(); break;
+    case CL_INVALID_PROPERTY:               throw invalid_property();
       #endif
           //  return "CL_INVALID_GLOBAL_WORK_SIZE";
-            
+
           default: throw unknown_error();
         }
 
       } //getErrorString
-    
-      /** @brief Checks whether an OpenCL error has occured. 
-      * 
+
+      /** @brief Checks whether an OpenCL error has occured.
+      *
       *  Do not use this function directly, use the macro CL_ERROR_CHECK instead.
       */
-      static void checkError(cl_int err, const std::string & file, const std::string & func, int line)
+      static void checkError(cl_int err,
+          #ifdef VIENNACL_DEBUG_ALL
+                             const char * file,
+                             const char * func,
+                             int line)
+          #else
+                             const char *,
+                             const char *,
+                             int)
+          #endif
       {
         if (err != CL_SUCCESS)
         {
@@ -587,11 +649,11 @@ namespace viennacl
           raise_exception(err);
         }
       } //checkError()
-      
-    }; //struct 
-    
+
+    }; //struct
+
     #define VIENNACL_ERR_CHECK(err) viennacl::ocl::error_checker<void>::checkError(err, __FILE__, __FUNCTION__, __LINE__);
-    
+
   } //namespace ocl
 } //namespace viennacl
 

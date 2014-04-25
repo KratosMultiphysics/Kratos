@@ -2,16 +2,17 @@
 #define VIENNACL_GMRES_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
@@ -37,7 +38,7 @@ namespace viennacl
 {
   namespace linalg
   {
-    
+
     /** @brief A tag for the solver GMRES. Used for supplying solver parameters and for dispatching the solve() function
     */
     class gmres_tag       //generalized minimum residual
@@ -49,64 +50,107 @@ namespace viennacl
         * @param max_iterations The maximum number of iterations (including restarts
         * @param krylov_dim     The maximum dimension of the Krylov space before restart (number of restarts is found by max_iterations / krylov_dim)
         */
-        gmres_tag(double tol = 1e-10, unsigned int max_iterations = 300, unsigned int krylov_dim = 20) 
-         : _tol(tol), _iterations(max_iterations), _krylov_dim(krylov_dim), iters_taken_(0) {};
-        
+        gmres_tag(double tol = 1e-10, unsigned int max_iterations = 300, unsigned int krylov_dim = 20)
+         : tol_(tol), iterations_(max_iterations), krylov_dim_(krylov_dim), iters_taken_(0) {}
+
         /** @brief Returns the relative tolerance */
-        double tolerance() const { return _tol; }
+        double tolerance() const { return tol_; }
         /** @brief Returns the maximum number of iterations */
-        unsigned int max_iterations() const { return _iterations; }
+        unsigned int max_iterations() const { return iterations_; }
         /** @brief Returns the maximum dimension of the Krylov space before restart */
-        unsigned int krylov_dim() const { return _krylov_dim; }
+        unsigned int krylov_dim() const { return krylov_dim_; }
         /** @brief Returns the maximum number of GMRES restarts */
         unsigned int max_restarts() const
-        { 
-          unsigned int ret = _iterations / _krylov_dim;
-          if (ret > 0 && (ret * _krylov_dim == _iterations) )
+        {
+          unsigned int ret = iterations_ / krylov_dim_;
+          if (ret > 0 && (ret * krylov_dim_ == iterations_) )
             return ret - 1;
           return ret;
         }
-        
+
         /** @brief Return the number of solver iterations: */
         unsigned int iters() const { return iters_taken_; }
         /** @brief Set the number of solver iterations (should only be modified by the solver) */
         void iters(unsigned int i) const { iters_taken_ = i; }
-        
+
         /** @brief Returns the estimated relative error at the end of the solver run */
         double error() const { return last_error_; }
         /** @brief Sets the estimated relative error at the end of the solver run */
         void error(double e) const { last_error_ = e; }
-        
+
       private:
-        double _tol;
-        unsigned int _iterations;
-        unsigned int _krylov_dim;
-        
+        double tol_;
+        unsigned int iterations_;
+        unsigned int krylov_dim_;
+
         //return values from solver
         mutable unsigned int iters_taken_;
         mutable double last_error_;
     };
-    
-    namespace
+
+    namespace detail
     {
-      
+
       template <typename SRC_VECTOR, typename DEST_VECTOR>
-      void gmres_copy_helper(SRC_VECTOR const & src, DEST_VECTOR & dest, unsigned int len)
+      void gmres_copy_helper(SRC_VECTOR const & src, DEST_VECTOR & dest, vcl_size_t len, vcl_size_t start = 0)
       {
-        for (unsigned int i=0; i<len; ++i)
-          dest[i] = src[i];
+        for (vcl_size_t i=0; i<len; ++i)
+          dest[start+i] = src[start+i];
       }
 
       template <typename ScalarType, typename DEST_VECTOR>
-      void gmres_copy_helper(viennacl::vector<ScalarType> const & src, DEST_VECTOR & dest, unsigned int len)
+      void gmres_copy_helper(viennacl::vector<ScalarType> const & src, DEST_VECTOR & dest, vcl_size_t len, vcl_size_t start = 0)
       {
-        viennacl::copy(src.begin(), src.begin() + len, dest.begin());
+        typedef typename viennacl::vector<ScalarType>::difference_type   difference_type;
+        viennacl::copy( src.begin() + static_cast<difference_type>(start),
+                        src.begin() + static_cast<difference_type>(start + len),
+                       dest.begin() + static_cast<difference_type>(start));
       }
 
-      template <typename ScalarType>
-      void gmres_copy_helper(viennacl::vector<ScalarType> const & src, viennacl::vector<ScalarType> & dest, unsigned int len)
+      /** @brief Computes the householder vector 'hh_vec' which rotates 'input_vec' such that all entries below the j-th entry of 'v' become zero.
+        *
+        * @param input_vec       The input vector
+        * @param hh_vec          The householder vector defining the relection (I - beta * hh_vec * hh_vec^T)
+        * @param beta            The coefficient beta in (I - beta  * hh_vec * hh_vec^T)
+        * @param mu              The norm of the input vector part relevant for the reflection: norm_2(input_vec[j:size])
+        * @param j               Index of the last nonzero index in 'input_vec' after applying the reflection
+      */
+      template <typename VectorType, typename ScalarType>
+      void gmres_setup_householder_vector(VectorType const & input_vec, VectorType & hh_vec, ScalarType & beta, ScalarType & mu, vcl_size_t j)
       {
-        viennacl::copy(src.begin(), src.begin() + len, dest.begin());
+        ScalarType input_j = input_vec(j);
+
+        // copy entries from input vector to householder vector:
+        detail::gmres_copy_helper(input_vec, hh_vec, viennacl::traits::size(hh_vec) - (j+1), j+1);
+
+        ScalarType sigma = viennacl::linalg::norm_2(hh_vec);
+        sigma *= sigma;
+
+        if (sigma == 0)
+        {
+          beta = 0;
+          mu = input_j;
+        }
+        else
+        {
+          mu = std::sqrt(sigma + input_j*input_j);
+
+          ScalarType hh_vec_0 = (input_j <= 0) ? (input_j - mu) : (-sigma / (input_j + mu));
+
+          beta = ScalarType(2) * hh_vec_0 * hh_vec_0 / (sigma + hh_vec_0 * hh_vec_0);
+
+          //divide hh_vec by its diagonal element hh_vec_0
+          hh_vec /= hh_vec_0;
+          hh_vec[j] = ScalarType(1);
+        }
+      }
+
+      // Apply (I - beta h h^T) to x (Householder reflection with Householder vector h)
+      template <typename VectorType, typename ScalarType>
+      void gmres_householder_reflect(VectorType & x, VectorType const & h, ScalarType beta)
+      {
+        ScalarType hT_in_x = viennacl::linalg::inner_prod(h, x);
+        x -= (beta * hT_in_x) * h;
       }
 
     }
@@ -126,74 +170,69 @@ namespace viennacl
     {
       typedef typename viennacl::result_of::value_type<VectorType>::type        ScalarType;
       typedef typename viennacl::result_of::cpu_value_type<ScalarType>::type    CPU_ScalarType;
-      unsigned int problem_size = viennacl::traits::size(rhs);
-      VectorType result(problem_size);
+      unsigned int problem_size = static_cast<unsigned int>(viennacl::traits::size(rhs));
+      VectorType result = rhs;
       viennacl::traits::clear(result);
+
       unsigned int krylov_dim = tag.krylov_dim();
       if (problem_size < tag.krylov_dim())
         krylov_dim = problem_size; //A Krylov space larger than the matrix would lead to seg-faults (mathematically, error is certain to be zero already)
-      
-      VectorType res(problem_size);
-      VectorType v_k_tilde(problem_size);
-      VectorType v_k_tilde_temp(problem_size);
-      
-      std::vector< std::vector<CPU_ScalarType> > R(krylov_dim);
-      std::vector<CPU_ScalarType> projection_rhs(krylov_dim);
-      std::vector<VectorType> U(krylov_dim);
 
-      const CPU_ScalarType gpu_scalar_minus_1 = static_cast<CPU_ScalarType>(-1);    //representing the scalar '-1' on the GPU. Prevents blocking write operations
-      const CPU_ScalarType gpu_scalar_1 = static_cast<CPU_ScalarType>(1);    //representing the scalar '1' on the GPU. Prevents blocking write operations
-      const CPU_ScalarType gpu_scalar_2 = static_cast<CPU_ScalarType>(2);    //representing the scalar '2' on the GPU. Prevents blocking write operations
-      
+      VectorType res = rhs;
+      VectorType v_k_tilde = rhs;
+      VectorType v_k_tilde_temp = rhs;
+
+      std::vector< std::vector<CPU_ScalarType> > R(krylov_dim, std::vector<CPU_ScalarType>(tag.krylov_dim()));
+      std::vector<CPU_ScalarType> projection_rhs(krylov_dim);
+
+      std::vector<VectorType>      householder_reflectors(krylov_dim, rhs);
+      std::vector<CPU_ScalarType>  betas(krylov_dim);
+
       CPU_ScalarType norm_rhs = viennacl::linalg::norm_2(rhs);
-      
+
       if (norm_rhs == 0) //solution is zero if RHS norm is zero
         return result;
-      
-      unsigned int k;
-      for (k = 0; k < krylov_dim; ++k)
-      {
-        R[k].resize(tag.krylov_dim()); 
-        viennacl::traits::resize(U[k], problem_size);
-      }
 
-      //std::cout << "Starting GMRES..." << std::endl;
       tag.iters(0);
-      
+
       for (unsigned int it = 0; it <= tag.max_restarts(); ++it)
       {
-        //std::cout << "-- GMRES Start " << it << " -- " << std::endl;
-        
+        //
+        // (Re-)Initialize residual: r = b - A*x (without temporary for the result of A*x)
+        //
         res = rhs;
         res -= viennacl::linalg::prod(matrix, result);  //initial guess zero
         precond.apply(res);
-        //std::cout << "Residual: " << res << std::endl;
-        
-        CPU_ScalarType rho_0 = viennacl::linalg::norm_2(res); 
-        CPU_ScalarType rho = static_cast<CPU_ScalarType>(1.0);
-        //std::cout << "rho_0: " << rho_0 << std::endl;
 
-        if (rho_0 / norm_rhs < tag.tolerance() || (norm_rhs == CPU_ScalarType(0.0)) )
+        CPU_ScalarType rho_0 = viennacl::linalg::norm_2(res);
+
+        //
+        // Check for premature convergence
+        //
+        if (rho_0 / norm_rhs < tag.tolerance() ) // norm_rhs is known to be nonzero here
         {
-          //std::cout << "Allowed Error reached at begin of loop" << std::endl;
           tag.error(rho_0 / norm_rhs);
           return result;
         }
 
+        //
+        // Normalize residual and set 'rho' to 1 as requested in 'A Simpler GMRES' by Walker and Zhou.
+        //
         res /= rho_0;
-        //std::cout << "Normalized Residual: " << res << std::endl;
-        
-        for (k=0; k<krylov_dim; ++k)
-        {
-          viennacl::traits::clear(R[k]);
-          viennacl::traits::clear(U[k]);
-          R[k].resize(krylov_dim); 
-          viennacl::traits::resize(U[k], problem_size);
-        }
+        CPU_ScalarType rho = static_cast<CPU_ScalarType>(1.0);
 
+
+        //
+        // Iterate up until maximal Krylove space dimension is reached:
+        //
+        unsigned int k = 0;
         for (k = 0; k < krylov_dim; ++k)
         {
           tag.iters( tag.iters() + 1 ); //increase iteration counter
+
+          // prepare storage:
+          viennacl::traits::clear(R[k]);
+          viennacl::traits::clear(householder_reflectors[k]);
 
           //compute v_k = A * v_{k-1} via Householder matrices
           if (k == 0)
@@ -204,156 +243,103 @@ namespace viennacl
           else
           {
             viennacl::traits::clear(v_k_tilde);
-            v_k_tilde[k-1] = gpu_scalar_1;
-            //Householder rotations part 1
+            v_k_tilde[k-1] = CPU_ScalarType(1);
+
+            //Householder rotations, part 1: Compute P_1 * P_2 * ... * P_{k-1} * e_{k-1}
             for (int i = k-1; i > -1; --i)
-              v_k_tilde -= U[i] * (viennacl::linalg::inner_prod(U[i], v_k_tilde) * gpu_scalar_2);
+              detail::gmres_householder_reflect(v_k_tilde, householder_reflectors[i], betas[i]);
 
             v_k_tilde_temp = viennacl::linalg::prod(matrix, v_k_tilde);
             precond.apply(v_k_tilde_temp);
             v_k_tilde = v_k_tilde_temp;
 
-            //Householder rotations part 2
+            //Householder rotations, part 2: Compute P_{k-1} * ... * P_{1} * v_k_tilde
             for (unsigned int i = 0; i < k; ++i)
-              v_k_tilde -= U[i] * (viennacl::linalg::inner_prod(U[i], v_k_tilde) * gpu_scalar_2);
+              detail::gmres_householder_reflect(v_k_tilde, householder_reflectors[i], betas[i]);
           }
-          
-          //std::cout << "v_k_tilde: " << v_k_tilde << std::endl;
 
-          viennacl::traits::clear(U[k]);
-          viennacl::traits::resize(U[k], problem_size);
-          //copy first k entries from v_k_tilde to U[k]:
-          gmres_copy_helper(v_k_tilde, U[k], k);
-          
-          U[k][k] = std::sqrt( viennacl::linalg::inner_prod(v_k_tilde, v_k_tilde) - viennacl::linalg::inner_prod(U[k], U[k]) );
+          //
+          // Compute Householder reflection for v_k_tilde such that all entries below k-th entry are zero:
+          //
+          CPU_ScalarType rho_k_k = 0;
+          detail::gmres_setup_householder_vector(v_k_tilde, householder_reflectors[k], betas[k], rho_k_k, k);
 
-          if (fabs(U[k][k]) < CPU_ScalarType(10 * std::numeric_limits<CPU_ScalarType>::epsilon()))
-            break; //Note: Solution is essentially (up to round-off error) already in Krylov space. No need to proceed.
-          
-          //copy first k+1 entries from U[k] to R[k]
-          gmres_copy_helper(U[k], R[k], k+1);
-          
-          U[k] -= v_k_tilde;
-          //std::cout << "U[k] before normalization: " << U[k] << std::endl;
-          U[k] *= gpu_scalar_minus_1 / viennacl::linalg::norm_2( U[k] );
-          //std::cout << "Householder vector U[k]: " << U[k] << std::endl;
-          
-          //DEBUG: Make sure that P_k v_k_tilde equals (rho_{1,k}, ... , rho_{k,k}, 0, 0 )
-#ifdef VIENNACL_GMRES_DEBUG
-          std::cout << "P_k v_k_tilde: " << (v_k_tilde - 2.0 * U[k] * inner_prod(U[k], v_k_tilde)) << std::endl;
-          std::cout << "R[k]: [" << R[k].size() << "](";
-          for (size_t i=0; i<R[k].size(); ++i)
-            std::cout << R[k][i] << ",";
-          std::cout << ")" << std::endl;
-#endif
-          //std::cout << "P_k res: " << (res - 2.0 * U[k] * inner_prod(U[k], res)) << std::endl;
-          res -= U[k] * (viennacl::linalg::inner_prod( U[k], res ) * gpu_scalar_2);
-          //std::cout << "zeta_k: " << viennacl::linalg::inner_prod( U[k], res ) * gpu_scalar_2 << std::endl;
-          //std::cout << "Updated res: " << res << std::endl;
+          //
+          // copy first k entries from v_k_tilde to R[k] in order to fill k-th column with result of
+          // P_k * v_k_tilde = (v[0], ... , v[k-1], norm(v), 0, 0, ...) =: (rho_{1,k}, rho_{2,k}, ..., rho_{k,k}, 0, ..., 0);
+          //
+          detail::gmres_copy_helper(v_k_tilde, R[k], k);
+          R[k][k] = rho_k_k;
 
-#ifdef VIENNACL_GMRES_DEBUG
-          VectorType v1(U[k].size()); v1.clear(); v1.resize(U[k].size());
-          v1(0) = 1.0;
-          v1 -= U[k] * (viennacl::linalg::inner_prod( U[k], v1 ) * gpu_scalar_2);
-          std::cout << "v1: " << v1 << std::endl;
-          boost::numeric::ublas::matrix<ScalarType> P = -2.0 * outer_prod(U[k], U[k]);
-          P(0,0) += 1.0; P(1,1) += 1.0; P(2,2) += 1.0;
-          std::cout << "P: " << P << std::endl;
-#endif
-          
+          //
+          // Update residual: r = P_k r
+          // Set zeta_k = r[k] including machine precision considerations: mathematically we have |r[k]| <= rho
+          // Set rho *= sin(acos(r[k] / rho))
+          //
+          detail::gmres_householder_reflect(res, householder_reflectors[k], betas[k]);
+
           if (res[k] > rho) //machine precision reached
             res[k] = rho;
-
-          if (res[k] < -1.0 * rho) //machine precision reached
-            res[k] = -1.0 * rho;
-          
+          if (res[k] < -rho) //machine precision reached
+            res[k] = -rho;
           projection_rhs[k] = res[k];
-          
-          rho *= std::sin( std::acos(projection_rhs[k] / rho) );
-          
-#ifdef VIENNACL_GMRES_DEBUG
-          std::cout << "k-th component of r: " << res[k] << std::endl;
-          std::cout << "New rho (norm of res): " << rho << std::endl;
-#endif        
 
-          if (std::fabs(rho * rho_0 / norm_rhs) < tag.tolerance())
+          rho *= std::sin( std::acos(projection_rhs[k] / rho) );
+
+          if (std::fabs(rho * rho_0 / norm_rhs) < tag.tolerance())  // Residual is sufficiently reduced, stop here
           {
-            //std::cout << "Krylov space big enough" << endl;
             tag.error( std::fabs(rho*rho_0 / norm_rhs) );
             ++k;
             break;
           }
-          
-          //std::cout << "Current residual: " << rho * rho_0 << std::endl;
-          //std::cout << " - End of Krylov space setup - " << std::endl;
         } // for k
-        
-#ifdef VIENNACL_GMRES_DEBUG
-        //inplace solution of the upper triangular matrix:
-        std::cout << "Upper triangular system:" << std::endl;
-        std::cout << "Size of Krylov space: " << k << std::endl;
-        for (size_t i=0; i<k; ++i)
-        {
-          for (size_t j=0; j<k; ++j)
-          {
-            std::cout << R[j][i] << ", ";
-          }
-          std::cout << " | " << projection_rhs[i] << std::endl;
-        }
-#endif        
-        
+
+        //
+        // Triangular solver stage:
+        //
+
         for (int i=k-1; i>-1; --i)
         {
           for (unsigned int j=i+1; j<k; ++j)
-            //temp_rhs[i] -= R[i][j] * temp_rhs[j];   //if R is not transposed
             projection_rhs[i] -= R[j][i] * projection_rhs[j];     //R is transposed
-            
+
           projection_rhs[i] /= R[i][i];
         }
-        
-#ifdef VIENNACL_GMRES_DEBUG
-        std::cout << "Result of triangular solver: ";
-        for (size_t i=0; i<k; ++i)
-          std::cout << projection_rhs[i] << ", ";
-        std::cout << std::endl;
-#endif        
+
+        //
+        // Note: 'projection_rhs' now holds the solution (eta_1, ..., eta_k)
+        //
+
         res *= projection_rhs[0];
-        
+
         if (k > 0)
         {
           for (unsigned int i = 0; i < k-1; ++i)
-          {
             res[i] += projection_rhs[i+1];
-          }
         }
 
-        for (int i = k-1; i > -1; --i)
-          res -= U[i] * (viennacl::linalg::inner_prod(U[i], res) * gpu_scalar_2);
+        //
+        // Form z inplace in 'res' by applying P_1 * ... * P_{k}
+        //
+        for (int i=k-1; i>=0; --i)
+          detail::gmres_householder_reflect(res, householder_reflectors[i], betas[i]);
 
         res *= rho_0;
-        result += res;
+        result += res;  // x += rho_0 * z    in the paper
 
-        if ( std::fabs(rho*rho_0 / norm_rhs) < tag.tolerance() )
-        {
-          //std::cout << "Allowed Error reached at end of loop" << std::endl;
-          tag.error(std::fabs(rho*rho_0 / norm_rhs));
+        //
+        // Check for convergence:
+        //
+        tag.error(std::fabs(rho*rho_0 / norm_rhs));
+        if ( tag.error() < tag.tolerance() )
           return result;
-        }
-
-        //res = rhs;
-        //res -= viennacl::linalg::prod(matrix, result);
-        //std::cout << "norm_2(r)=" << norm_2(r) << std::endl;
-        //std::cout << "std::abs(rho*rho_0)=" << std::abs(rho*rho_0) << std::endl;
-        //std::cout << r << std::endl; 
-
-        tag.error(std::fabs(rho*rho_0));
       }
 
       return result;
     }
 
     /** @brief Convenience overload of the solve() function using GMRES. Per default, no preconditioner is used
-    */ 
+    */
     template <typename MatrixType, typename VectorType>
     VectorType solve(const MatrixType & matrix, VectorType const & rhs, gmres_tag const & tag)
     {

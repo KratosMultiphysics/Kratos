@@ -2,22 +2,23 @@
 #define VIENNACL_TRAITS_FILL_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
 
-/** @file fill.hpp
+/** @file viennacl/traits/fill.hpp
     @brief Generic fill functionality for different matrix types
 */
 
@@ -27,7 +28,7 @@
 #include "viennacl/forwards.h"
 #include "viennacl/meta/result_of.hpp"
 
-#ifdef VIENNACL_HAVE_EIGEN  
+#ifdef VIENNACL_WITH_EIGEN
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #endif
@@ -40,30 +41,30 @@ namespace viennacl
 
   namespace traits
   {
-    //
-    // Resize: Change the size of vectors and matrices
-    //
+
+    /** @brief Generic filler routine for setting an entry of a matrix to a particular value */
     template <typename MatrixType, typename SCALARTYPE>
-    void fill(MatrixType & matrix, std::size_t row_index, std::size_t col_index, SCALARTYPE value)
+    void fill(MatrixType & matrix, vcl_size_t row_index, vcl_size_t col_index, SCALARTYPE value)
     {
-      matrix(row_index, col_index) = value; 
+      matrix(row_index, col_index) = value;
     }
-    
-    #ifdef VIENNACL_HAVE_EIGEN
+
+    #ifdef VIENNACL_WITH_EIGEN
+    /** @brief Generic filler routine for setting an entry of a matrix to a particular value. Special case for Eigen sparse matrices. */
     template <typename T, int options, typename SCALARTYPE>
     inline void fill(Eigen::SparseMatrix<T, options> & m,
-                     std::size_t row_index,
-                     std::size_t col_index,
+                     vcl_size_t row_index,
+                     vcl_size_t col_index,
                      SCALARTYPE value
                     )
     {
-      m.fill(row_index, col_index) = value;
-    }    
+      m.insert(row_index, col_index) = value;
+    }
     #endif
 
- 
+
   } //namespace traits
 } //namespace viennacl
-    
+
 
 #endif

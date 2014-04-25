@@ -2,16 +2,17 @@
 #define VIENNACL_LINALG_DETAIL_SPAI_SPAI_TAG_HPP
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
@@ -19,14 +20,12 @@
 
 
 /** @file viennacl/linalg/detail/spai/spai_tag.hpp
-    @brief Implementation of the spai tag holding SPAI configuration parameters. Experimental in 1.2.x.
-    
+    @brief Implementation of the spai tag holding SPAI configuration parameters. Experimental.
+
     SPAI code contributed by Nikolay Lukash
 */
 
 
-
-//#define __NO_STD_VECTOR
 #include <utility>
 #include <iostream>
 #include <fstream>
@@ -44,7 +43,7 @@
 #include "boost/numeric/ublas/io.hpp"
 #include "boost/numeric/ublas/matrix_expression.hpp"
 #include "boost/numeric/ublas/detail/matrix_assign.hpp"
-//#include "boost/thread/thread.hpp"
+
 #include "viennacl/linalg/detail/spai/block_matrix.hpp"
 #include "viennacl/linalg/detail/spai/block_vector.hpp"
 
@@ -56,7 +55,7 @@ namespace viennacl
       {
         namespace spai
         {
-        
+
           /** @brief A tag for SPAI
           * Contains values for the algorithm.
           * Must be passed to spai_precond constructor
@@ -77,71 +76,71 @@ namespace viennacl
                       double residual_threshold = 1e-2,
                       bool is_static = false,
                       bool is_right = false) :
-              _residual_norm_threshold(residual_norm_threshold),
-              _iteration_limit(iteration_limit),
-              _residual_threshold(residual_threshold),
-              _is_static(is_static),
-              _is_right(is_right) {};
-              
+              residual_norm_threshold_(residual_norm_threshold),
+              iteration_limit_(iteration_limit),
+              residual_threshold_(residual_threshold),
+              is_static_(is_static),
+              is_right_(is_right) {}
+
               double getResidualNormThreshold() const
-              { return _residual_norm_threshold; }
-              
+              { return residual_norm_threshold_; }
+
               double getResidualThreshold() const
-              { return _residual_threshold; }
-              
+              { return residual_threshold_; }
+
               unsigned int getIterationLimit () const
-              { return _iteration_limit; }
-              
+              { return iteration_limit_; }
+
               bool getIsStatic() const
-              { return _is_static; }
-              
+              { return is_static_; }
+
               bool getIsRight() const
-              { return _is_right; }
-              
+              { return is_right_; }
+
               long getBegInd() const
-              { return _beg_ind; }
-              
-              long getEndInd() const 
-              { return _end_ind; }
-              
-              
-              
+              { return beg_ind_; }
+
+              long getEndInd() const
+              { return end_ind_; }
+
+
+
               void setResidualNormThreshold(double residual_norm_threshold)
               {
                   if(residual_norm_threshold > 0)
-                      _residual_norm_threshold = residual_norm_threshold;
+                      residual_norm_threshold_ = residual_norm_threshold;
               }
-              
+
               void setResidualThreshold(double residual_threshold)
               {
                   if(residual_threshold > 0)
-                      _residual_threshold = residual_threshold;
+                      residual_threshold_ = residual_threshold;
               }
-              
+
               void setIterationLimit(unsigned int iteration_limit)
               {
                   if(iteration_limit > 0)
-                      _iteration_limit = iteration_limit;
+                      iteration_limit_ = iteration_limit;
               }
-              
-              void setIsRight(bool is_right) { _is_right = is_right; }
-              
-              void setIsStatic(bool is_static) { _is_static = is_static; }
-              
-              void setBegInd(long beg_ind) { _beg_ind = beg_ind; }
-              
-              void setEndInd(long end_ind){ _end_ind = end_ind; }
-              
-              
+
+              void setIsRight(bool is_right) { is_right_ = is_right; }
+
+              void setIsStatic(bool is_static) { is_static_ = is_static; }
+
+              void setBegInd(long beg_ind) { beg_ind_ = beg_ind; }
+
+              void setEndInd(long end_ind){ end_ind_ = end_ind; }
+
+
             private:
-              double _residual_norm_threshold;
-              unsigned int _iteration_limit;
-              long _beg_ind, _end_ind;
-              double _residual_threshold;
-              bool _is_static;
-              bool _is_right;
+              double residual_norm_threshold_;
+              unsigned int iteration_limit_;
+              long beg_ind_, end_ind_;
+              double residual_threshold_;
+              bool is_static_;
+              bool is_right_;
           };
-        
+
         }
       }
     }

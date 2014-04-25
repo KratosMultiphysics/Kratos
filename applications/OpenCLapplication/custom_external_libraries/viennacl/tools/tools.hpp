@@ -2,22 +2,23 @@
 #define VIENNACL_TOOLS_TOOLS_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
 
-/** @file tools.hpp
+/** @file viennacl/tools/tools.hpp
     @brief Various little tools used here and there in ViennaCL.
 */
 
@@ -27,21 +28,6 @@
 #include "viennacl/forwards.h"
 #include "viennacl/tools/adapter.hpp"
 
-
-#ifdef VIENNACL_HAVE_UBLAS  
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#endif
-
-#ifdef VIENNACL_HAVE_EIGEN  
-#include <Eigen/Core>
-#include <Eigen/Sparse>
-#endif
-
-#ifdef VIENNACL_HAVE_MTL4
-#include <boost/numeric/mtl/mtl.hpp>
-#endif
-
 #include <vector>
 #include <map>
 
@@ -49,42 +35,46 @@ namespace viennacl
 {
   namespace tools
   {
-    
+
+    /** \cond */
     /** @brief Supply suitable increment functions for the iterators: */
     template <class SCALARTYPE, typename F, unsigned int ALIGNMENT>
     struct MATRIX_ITERATOR_INCREMENTER<viennacl::row_iteration, viennacl::matrix<SCALARTYPE, F, ALIGNMENT> >
     {
-      static void apply(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & mat, unsigned int & row, unsigned int & col) { ++row; }
+      static void apply(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & /*mat*/, unsigned int & row, unsigned int & /*col*/) { ++row; }
     };
 
     template <class SCALARTYPE, typename F, unsigned int ALIGNMENT>
     struct MATRIX_ITERATOR_INCREMENTER<viennacl::col_iteration, viennacl::matrix<SCALARTYPE, F, ALIGNMENT> >
     {
-      static void apply(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & mat, unsigned int & row, unsigned int & col) { ++col; }
+      static void apply(const viennacl::matrix<SCALARTYPE, F, ALIGNMENT> & /*mat*/, unsigned int & /*row*/, unsigned int & col) { ++col; }
     };
+    /** \endcond */
 
-    
+
     /** @brief A guard that checks whether the floating point type of GPU types is either float or double */
     template <typename T>
     struct CHECK_SCALAR_TEMPLATE_ARGUMENT
     {
         typedef typename T::ERROR_SCALAR_MUST_HAVE_TEMPLATE_ARGUMENT_FLOAT_OR_DOUBLE  ResultType;
     };
-    
+
+    /** \cond */
     template <>
     struct CHECK_SCALAR_TEMPLATE_ARGUMENT<float>
     {
         typedef float  ResultType;
     };
-    
+
     template <>
     struct CHECK_SCALAR_TEMPLATE_ARGUMENT<double>
     {
         typedef double  ResultType;
     };
+    /** \endcond */
 
-    
-    
+
+
     /** @brief Reads a text from a file into a std::string
     *
     * @param filename   The filename
@@ -134,13 +124,46 @@ namespace viennacl
     * @return The smallest multiple of 'base' such that to_reach <= base
     */
     template <class INT_TYPE>
-    INT_TYPE roundUpToNextMultiple(INT_TYPE to_reach, INT_TYPE base)
+    INT_TYPE align_to_multiple(INT_TYPE to_reach, INT_TYPE base)
     {
       if (to_reach % base == 0) return to_reach;
       return ((to_reach / base) + 1) * base;
     }
-    
-    
+
+
+    /** @brief Rounds an integer to the previous multiple of another integer
+    *
+    * @tparam INT_TYPE  The integer type
+    * @param to_reach   The integer to be rounded down (floor operation)
+    * @param base       The base
+    * @return The biggest multiple of 'base' such that to_reach >= base
+    */
+    template <class INT_TYPE>
+    INT_TYPE roundDownToPreviousMultiple(INT_TYPE to_reach, INT_TYPE base)
+    {
+      if (to_reach % base == 0) return to_reach;
+      return (to_reach / base) * base;
+    }
+
+    /** @brief Replace in a source string a pattern by another
+     *
+     * @param source The source string
+     * @param find String to find
+     * @param replace String to replace
+     */
+    int inline find_and_replace(std::string & source, std::string const & find, std::string const & replace)
+    {
+        int num=0;
+        vcl_size_t fLen = find.size();
+        vcl_size_t rLen = replace.size();
+        for (vcl_size_t pos=0; (pos=source.find(find, pos))!=std::string::npos; pos+=rLen)
+        {
+            num++;
+            source.replace(pos, fLen, replace);
+        }
+        return num;
+    }
+
     /** @brief Create a double precision kernel out of a single precision kernel
     *
     * @param source          The source string
@@ -151,13 +174,13 @@ namespace viennacl
     {
       std::stringstream ss;
       ss << "#pragma OPENCL EXTENSION " << fp_extension << " : enable\n\n";
-      
+
       std::string result = ss.str();
       result.append(strReplace(source, "float", "double"));
       return result;
     }
-    
-    
+
+
     /** @brief Removes the const qualifier from a type */
     template <typename T>
     struct CONST_REMOVER
@@ -165,194 +188,17 @@ namespace viennacl
       typedef T   ResultType;
     };
 
+    /** \cond */
     template <typename T>
     struct CONST_REMOVER<const T>
     {
       typedef T   ResultType;
     };
+    /** \endcond */
 
 
-    /** @brief Extracts the vector type from one of the two arguments. Used for the vector_expression type.
-    *
-    * @tparam LHS   The left hand side operand of the vector_expression
-    * @tparam RHS   The right hand side operand of the vector_expression
-    */
-    template <typename LHS, typename RHS>
-    struct VECTOR_EXTRACTOR_IMPL
-    {
-      typedef typename LHS::ERROR_COULD_NOT_EXTRACT_VECTOR_INFORMATION_FROM_VECTOR_EXPRESSION  ResultType;
-    };
-    
-    template <typename LHS, typename ScalarType, unsigned int A>
-    struct VECTOR_EXTRACTOR_IMPL<LHS, viennacl::vector<ScalarType, A> >
-    {
-      typedef viennacl::vector<ScalarType, A>   ResultType;
-    };
+    /////// CPU scalar type deducer ///////////
 
-    template <typename LHS, typename VectorType>
-    struct VECTOR_EXTRACTOR_IMPL<LHS, viennacl::vector_range<VectorType> >
-    {
-      typedef VectorType   ResultType;
-    };
-
-    template <typename LHS, typename VectorType>
-    struct VECTOR_EXTRACTOR_IMPL<LHS, viennacl::vector_slice<VectorType> >
-    {
-      typedef VectorType   ResultType;
-    };
-
-    
-    template <typename RHS, typename ScalarType, unsigned int A>
-    struct VECTOR_EXTRACTOR_IMPL<viennacl::vector<ScalarType, A>, RHS>
-    {
-      typedef viennacl::vector<ScalarType, A>   ResultType;
-    };
-
-    template <typename VectorType, typename RHS>
-    struct VECTOR_EXTRACTOR_IMPL<viennacl::vector_range<VectorType>, RHS>
-    {
-      typedef VectorType   ResultType;
-    };
-
-    template <typename VectorType, typename RHS>
-    struct VECTOR_EXTRACTOR_IMPL<viennacl::vector_slice<VectorType>, RHS>
-    {
-      typedef VectorType   ResultType;
-    };
-    
-    //resolve ambiguities for previous cases:
-    template <typename ScalarType, unsigned int A>
-    struct VECTOR_EXTRACTOR_IMPL<viennacl::vector<ScalarType, A>, viennacl::vector<ScalarType, A> >
-    {
-      typedef viennacl::vector<ScalarType, A>   ResultType;
-    };
-
-    template <typename VectorType>
-    struct VECTOR_EXTRACTOR_IMPL<viennacl::vector_range<VectorType>, viennacl::vector_range<VectorType> >
-    {
-      typedef VectorType   ResultType;
-    };
-    
-    template <typename VectorType>
-    struct VECTOR_EXTRACTOR_IMPL<viennacl::vector_slice<VectorType>, viennacl::vector_slice<VectorType> >
-    {
-      typedef VectorType   ResultType;
-    };
-    
-    
-    template <typename LHS, typename RHS>
-    struct VECTOR_EXTRACTOR
-    {
-      typedef typename VECTOR_EXTRACTOR_IMPL<typename CONST_REMOVER<LHS>::ResultType,
-                                              typename CONST_REMOVER<RHS>::ResultType>::ResultType      ResultType;
-    };
-
-    /** @brief Deduces the size of the resulting vector represented by a vector_expression from the operands
-    *
-    * @tparam LHS   The left hand side operand
-    * @tparam RHS   The right hand side operand
-    * @tparam OP    The operation tag
-    */
-    template <typename LHS, typename RHS, typename OP>
-    struct VECTOR_SIZE_DEDUCER
-    {
-      //take care: using a plain, naive .size() on the left hand side type can cause subtle side-effects!
-    };
-
-    
-    template <typename ScalarType, unsigned int A, typename RHS>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::vector<ScalarType, A>, RHS, viennacl::op_add>
-    {
-      static size_t size(const viennacl::vector<ScalarType, A> & lhs,
-                         const RHS & rhs) { return lhs.size(); }
-    };
-
-    template <typename ScalarType, unsigned int A, typename RHS>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::vector<ScalarType, A>, RHS, viennacl::op_sub>
-    {
-      static size_t size(const viennacl::vector<ScalarType, A> & lhs,
-                         const RHS & rhs) { return lhs.size(); }
-    };
-    
-    
-   
-    //Standard case: LHS is the vector type and carries the correct size
-    template <typename ScalarType, unsigned int A, typename RHS>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::vector<ScalarType, A>, RHS, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::vector<ScalarType, A> & lhs,
-                         const RHS & rhs) { return lhs.size(); }
-    };
-
-    template <typename ScalarType, unsigned int A, typename RHS>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::vector<ScalarType, A>, RHS, viennacl::op_div>
-    {
-      static size_t size(const viennacl::vector<ScalarType, A> & lhs,
-                         const RHS & rhs) { return lhs.size(); }
-    };
-    
-    //special case: matrix-vector product: Return the number of rows of the matrix
-    template <typename ScalarType, typename F, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::matrix<ScalarType, F, Amat>, const viennacl::vector<ScalarType, A>, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::matrix<ScalarType, F, Amat> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.size1(); }
-    };
-
-    template <typename ScalarType, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::circulant_matrix<ScalarType, Amat>, const viennacl::vector<ScalarType, A>, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::circulant_matrix<ScalarType, Amat> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.size1(); }
-    };
-    
-    template <typename ScalarType, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::compressed_matrix<ScalarType, Amat>, const viennacl::vector<ScalarType, A>, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::compressed_matrix<ScalarType, Amat> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.size1(); }
-    };
-
-    template <typename ScalarType, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::coordinate_matrix<ScalarType, Amat>, const viennacl::vector<ScalarType, A>, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::coordinate_matrix<ScalarType, Amat> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.size1(); }
-    };
-
-    template <typename ScalarType, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::ell_matrix<ScalarType, Amat>, const viennacl::vector<ScalarType, A>, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::ell_matrix<ScalarType, Amat> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.size1(); }
-    };
-
-    template <typename ScalarType, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::hyb_matrix<ScalarType, Amat>, const viennacl::vector<ScalarType, A>, viennacl::op_prod>
-    {
-      static size_t size(const viennacl::hyb_matrix<ScalarType, Amat> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.size1(); }
-    };
-    
-    
-    //special case: transposed matrix-vector product: Return the number of cols(!) of the matrix
-    template <typename ScalarType, typename F, unsigned int Amat, unsigned int A>
-    struct VECTOR_SIZE_DEDUCER<const viennacl::matrix_expression< const viennacl::matrix<ScalarType, F, Amat>,
-                                                                  const viennacl::matrix<ScalarType, F, Amat>,
-                                                                  op_trans>,
-                               const viennacl::vector<ScalarType, A>,
-                               viennacl::op_prod>
-    {
-      static size_t size(const viennacl::matrix_expression< const viennacl::matrix<ScalarType, F, Amat>,
-                                                            const viennacl::matrix<ScalarType, F, Amat>,
-                                                            op_trans> & lhs,
-                         const viennacl::vector<ScalarType, A> & rhs) { return lhs.lhs().size2(); }
-    };
-
-    
-    
-    
-    
     /** @brief Obtain the cpu scalar type from a type, including a GPU type like viennacl::scalar<T>
     *
     * @tparam T   Either a CPU scalar type or a GPU scalar type
@@ -364,6 +210,7 @@ namespace viennacl
       //typedef T       ResultType;
     };
 
+    /** \cond */
     template <>
     struct CPU_SCALAR_TYPE_DEDUCER< float >
     {
@@ -375,7 +222,7 @@ namespace viennacl
     {
       typedef double       ResultType;
     };
-    
+
     template <typename T>
     struct CPU_SCALAR_TYPE_DEDUCER< viennacl::scalar<T> >
     {
@@ -394,16 +241,49 @@ namespace viennacl
       typedef T       ResultType;
     };
 
-    
+
     template <typename T, typename F, unsigned int A>
     struct CPU_SCALAR_TYPE_DEDUCER< viennacl::matrix_expression<const matrix<T, F, A>, const matrix<T, F, A>, op_trans> >
     {
       typedef T       ResultType;
     };
+    /** \endcond */
 
-        
+    //
+    // Converts a scalar type when necessary unless it is a viennacl::scalar<> (typical use-case: convert user-provided floats to double (and vice versa) for OpenCL kernels)
+    //
+
+    template <typename HostScalarType>
+    viennacl::scalar<HostScalarType> const & promote_if_host_scalar(viennacl::scalar<HostScalarType> const & s) { return s; }
+
+    template <typename HostScalarType>
+    viennacl::scalar_expression<const viennacl::scalar<HostScalarType>,
+                                const viennacl::scalar<HostScalarType>,
+                                viennacl::op_flip_sign> const &
+    promote_if_host_scalar(viennacl::scalar_expression<const viennacl::scalar<HostScalarType>,
+                                                       const viennacl::scalar<HostScalarType>,
+                                                       viennacl::op_flip_sign> const & s) { return s; }
+
+    template <typename HostScalarType>
+    HostScalarType promote_if_host_scalar(float s) { return s; }
+
+    template <typename HostScalarType>
+    HostScalarType promote_if_host_scalar(double s) { return s; }
+
+    template <typename HostScalarType>
+    HostScalarType promote_if_host_scalar(long s) { return s; }
+
+    template <typename HostScalarType>
+    HostScalarType promote_if_host_scalar(unsigned long s) { return s; }
+
+    template <typename HostScalarType>
+    HostScalarType promote_if_host_scalar(int s) { return s; }
+
+    template <typename HostScalarType>
+    HostScalarType promote_if_host_scalar(unsigned int s) { return s; }
+
   } //namespace tools
 } //namespace viennacl
-    
+
 
 #endif

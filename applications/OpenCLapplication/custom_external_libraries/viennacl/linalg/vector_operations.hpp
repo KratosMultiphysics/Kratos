@@ -1,1191 +1,880 @@
-#ifndef VIENNACL_VECTOR_OPERATIONS_HPP_
-#define VIENNACL_VECTOR_OPERATIONS_HPP_
+#ifndef VIENNACL_LINALG_VECTOR_OPERATIONS_HPP_
+#define VIENNACL_LINALG_VECTOR_OPERATIONS_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
 
-/** @file vector_operations.hpp
+/** @file viennacl/linalg/vector_operations.hpp
     @brief Implementations of vector operations.
 */
 
 #include "viennacl/forwards.h"
-#include "viennacl/ocl/device.hpp"
-#include "viennacl/ocl/handle.hpp"
-#include "viennacl/ocl/kernel.hpp"
 #include "viennacl/scalar.hpp"
 #include "viennacl/tools/tools.hpp"
-#include "viennacl/linalg/kernels/vector_kernels.h"
 #include "viennacl/meta/predicate.hpp"
 #include "viennacl/meta/enable_if.hpp"
 #include "viennacl/traits/size.hpp"
 #include "viennacl/traits/start.hpp"
 #include "viennacl/traits/handle.hpp"
 #include "viennacl/traits/stride.hpp"
+#include "viennacl/linalg/host_based/vector_operations.hpp"
+
+#ifdef VIENNACL_WITH_OPENCL
+  #include "viennacl/linalg/opencl/vector_operations.hpp"
+#endif
+
+#ifdef VIENNACL_WITH_CUDA
+  #include "viennacl/linalg/cuda/vector_operations.hpp"
+#endif
 
 namespace viennacl
 {
   namespace linalg
   {
-    /** @brief Assign a vector (-range/-slice) to another vector (-range/slice).
-    *
-    * Computes vec1 += vec2.
-    * 
-    * @param vec1  The result. 
-    * @param vec2  The addend
-    */
-    template <typename V1, typename V2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                >::type
-    assign(V1 & vec1,
-           const V2 & vec2)
+    template <typename T, typename ScalarType1>
+    void av(vector_base<T> & vec1,
+            vector_base<T> const & vec2, ScalarType1 const & alpha, vcl_size_t len_alpha, bool reciprocal_alpha, bool flip_sign_alpha)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_add()!");
-      
-      
-      //unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "assign");
+      assert(viennacl::traits::size(vec1) == viennacl::traits::size(vec2) && bool("Incompatible vector sizes in v1 = v2 @ alpha: size(v1) != size(v2)"));
 
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)))
-                            );
-    }
-    
-    /** @brief Addition of two vectors.
-    *
-    * @param vec1  The first addend. 
-    * @param vec2  The second addend.
-    * @param result The result vector.
-    */
-    template <typename V1, typename V2, typename V3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_vector<V3>::value
-                                >::type
-    add(const V1 & vec1, 
-        const V2 & vec2, 
-        V3 & result)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && (viennacl::traits::size(vec1) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in add()!");
-
-      //unsigned int size = std::min(viennacl::traits::internal_size(vec1),
-      //                             viennacl::traits::internal_size(vec2));
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "add");
-      
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)),
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)) )
-                            );
-    }
-
-    /** @brief Inplace addition of two vectors. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes vec1 += vec2.
-    * 
-    * @param vec1  The result. 
-    * @param vec2  The addend
-    */
-    template <typename V1, typename V2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                >::type
-    inplace_add(V1 & vec1,
-                const V2 & vec2)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_add()!");
-      
-      
-      //unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_add");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)))
-                            );
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::av(vec1, vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::av(vec1, vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::av(vec1, vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
 
-
-    /** @brief Subtraction of two vectors. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * result = vec1 - vec2
-    *
-    * @param vec1  The first operand. 
-    * @param vec2  The second operand.
-    * @param result The result vector.
-    */
-    template <typename V1, typename V2, typename V3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_vector<V3>::value
-                                >::type
-    sub(const V1 & vec1,
-        const V2 & vec2,
-        V3 & result)
+    template <typename T, typename ScalarType1, typename ScalarType2>
+    void avbv(vector_base<T> & vec1,
+              vector_base<T> const & vec2, ScalarType1 const & alpha, vcl_size_t len_alpha, bool reciprocal_alpha, bool flip_sign_alpha,
+              vector_base<T> const & vec3, ScalarType2 const & beta,  vcl_size_t len_beta,  bool reciprocal_beta,  bool flip_sign_beta)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && (viennacl::traits::size(vec1) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in sub()!");
-      
-      //unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "sub");
+      assert(viennacl::traits::size(vec1) == viennacl::traits::size(vec2) && bool("Incompatible vector sizes in v1 = v2 @ alpha + v3 @ beta: size(v1) != size(v2)"));
+      assert(viennacl::traits::size(vec2) == viennacl::traits::size(vec3) && bool("Incompatible vector sizes in v1 = v2 @ alpha + v3 @ beta: size(v2) != size(v3)"));
 
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)),
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)) )
-                            );        
-    }
-
-    /** @brief Inplace addition of two vectors. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes vec1 -= vec2.
-    * 
-    * @param vec1  The result. 
-    * @param vec2  The subtracted vector
-    */
-    template <typename V1, typename V2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                >::type
-    inplace_sub(V1 & vec1,
-                const V2 & vec2)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_sub()!");
-      
-      //unsigned int size = std::min(vec1.internal_size(), vec2.internal_size());
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_sub");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)))
-                            );        
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::avbv(vec1,
+                                                  vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha,
+                                                  vec3,  beta, len_beta,  reciprocal_beta,  flip_sign_beta);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::avbv(vec1,
+                                         vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha,
+                                         vec3,  beta, len_beta,  reciprocal_beta,  flip_sign_beta);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::avbv(vec1,
+                                       vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha,
+                                       vec3,  beta, len_beta,  reciprocal_beta,  flip_sign_beta);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
 
-    //result = vec * scalar
-    /** @brief Scales a vector. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result = vec * alpha, where alpha is a gpu scalar
-    *
-    * @param vec    The vector to be scaled.
-    * @param alpha  The scaling factor.
-    * @param result The result vector.
-    */
-    template <typename V1, typename S2, typename V3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_scalar<S2>::value
-                                  && viennacl::is_vector<V3>::value
-                                >::type
-    mult(const V1 & vec,
-         S2 const & alpha,
-         V3 & result)
+    template <typename T, typename ScalarType1, typename ScalarType2>
+    void avbv_v(vector_base<T> & vec1,
+                vector_base<T> const & vec2, ScalarType1 const & alpha, vcl_size_t len_alpha, bool reciprocal_alpha, bool flip_sign_alpha,
+                vector_base<T> const & vec3, ScalarType2 const & beta,  vcl_size_t len_beta,  bool reciprocal_beta,  bool flip_sign_beta)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in mult()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "mult");
+      assert(viennacl::traits::size(vec1) == viennacl::traits::size(vec2) && bool("Incompatible vector sizes in v1 += v2 @ alpha + v3 @ beta: size(v1) != size(v2)"));
+      assert(viennacl::traits::size(vec2) == viennacl::traits::size(vec3) && bool("Incompatible vector sizes in v1 += v2 @ alpha + v3 @ beta: size(v2) != size(v3)"));
 
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),
-                               alpha,
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)))
-                            );        
-    }
-
-    /** @brief Scales a vector. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result = vec * alpha, where alpha is a cpu scalar
-    *
-    * @param vec    The vector to be scaled.
-    * @param alpha  The scaling factor.
-    * @param result The result vector.
-    */
-    template <typename V1, typename SCALARTYPE, typename V3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_cpu_scalar<SCALARTYPE>::value
-                                  && viennacl::is_vector<V3>::value
-                                >::type
-    mult(V1 const & vec,
-         SCALARTYPE alpha,
-         V3 & result)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in mult()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "cpu_mult");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),
-                               static_cast<value_type>(alpha),
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)))
-                            );        
-    }
-
-    /** @brief Scales a vector inplace. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result *= alpha, where alpha is a gpu scalar
-    *
-    * @param vec    The vector to be scaled.
-    * @param alpha  The scaling factor.
-    */
-    template <typename V1, typename S2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_scalar<S2>::value
-                                >::type
-    inplace_mult(V1 & vec,
-                 S2 const & alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_mult");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),
-                               alpha)
-                            );
-    }
-
-    /** @brief Scales a vector inplace. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result *= alpha, where alpha is a cpu scalar
-    *
-    * @param vec    The vector to be scaled.
-    * @param alpha  The scaling factor.
-    */
-    template <typename V1, typename S2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_cpu_scalar<S2>::value
-                                >::type
-    inplace_mult(V1 & vec,
-                 S2 alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "cpu_inplace_mult");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec), 
-                                cl_uint(viennacl::traits::start(vec)), 
-                                cl_uint(viennacl::traits::stride(vec)), 
-                                cl_uint(viennacl::traits::size(vec)), 
-                               static_cast<value_type>(alpha))
-                            );        
-    }
-
-    //result = vec / scalar
-    /** @brief Scales a vector. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result = vec / alpha, where alpha is a gpu scalar
-    *
-    * @param vec    The vector to be scaled.
-    * @param alpha  The (inverse) scaling factor.
-    * @param result The result vector.
-    */
-    template <typename V1, typename S2, typename V3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_scalar<S2>::value
-                                  && viennacl::is_vector<V3>::value
-                                >::type
-    divide(V1 const & vec,
-           S2 const & alpha,
-           V3 & result)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in divide()!");
-
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "divide");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec), 
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),
-                               alpha,
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)))
-                            );
-    }
-
-    /** @brief Scales a vector inplace. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result *= alpha, where alpha is a gpu scalar
-    *
-    * @param vec    The vector to be scaled.
-    * @param alpha  The (inverse) scaling factor.
-    */
-    template <typename V1, typename S2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_scalar<S2>::value
-                                >::type
-    inplace_divide(V1 & vec,
-                   S2 const & alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_divide");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)), 
-                               alpha) 
-                            );
-    }
-
-    //result = factor * vec1 + vec2
-    /** @brief Multiply-add operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result = alpha * vec1 + vec2, where alpha is a gpu scalar
-    *
-    * @param vec1    The first added
-    * @param alpha  The scaling factor for the first addend.
-    * @param vec2    The second added.
-    * @param result The result vector.
-    */
-    template <typename V1, typename S2, typename V3, typename V4>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_scalar<S2>::value
-                                  && viennacl::is_vector<V3>::value
-                                  && viennacl::is_vector<V4>::value
-                                >::type
-    mul_add(V1 const & vec1,
-            S2 const & alpha,
-            V3 const & vec2,
-            V4 & result)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && (viennacl::traits::size(vec1) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in mul_add()!");
-      
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "mul_add");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               alpha,
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)),
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)))
-                            );        
-    }
-
-    /** @brief Multiply-add operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result = alpha * vec1 + vec2, where alpha is a cpu scalar
-    *
-    * @param vec1    The first added
-    * @param alpha   The scaling factor for the first addend.
-    * @param vec2    The second added.
-    * @param result  The result vector.
-    */
-    template <typename V1, typename SCALARTYPE, typename V3, typename V4>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_cpu_scalar<SCALARTYPE>::value
-                                  && viennacl::is_vector<V3>::value
-                                  && viennacl::is_vector<V4>::value
-                                >::type
-    mul_add(V1 const & vec1,
-            SCALARTYPE alpha,
-            V3 const & vec2,
-            V4 & result)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && (viennacl::traits::size(vec1) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in mul_add()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "cpu_mul_add");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)), 
-                               static_cast<value_type>(alpha),
-                               viennacl::traits::handle(vec2), 
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)), 
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)))
-                            );
-    }
-
-    //vec1 += factor * vec2
-    /** @brief Inplace Multiply-add operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes vec1 += alpha * vec2, where alpha is a gpu scalar
-    *
-    * @param vec1    The first added
-    * @param alpha   The scaling factor for the first addend.
-    * @param vec2    The second added.
-    */
-    template <typename V1, typename V2, typename S3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_scalar<S3>::value
-                                >::type
-    inplace_mul_add(V1 & vec1,
-                    V2 const & vec2,
-                    S3 const & alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_mul_add()!");
-      
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_mul_add");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)), 
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)), 
-                               alpha));
-    }
-
-    /** @brief Inplace Multiply-add operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes vec1 += alpha * vec2, where alpha is a cpu scalar
-    *
-    * @param vec1    The first added
-    * @param vec2    The second added.
-    * @param alpha   The scaling factor for the first addend.
-    */
-    template <typename V1, typename V2, typename SCALARTYPE>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_cpu_scalar<SCALARTYPE>::value
-                                >::type
-    inplace_mul_add(V1 & vec1,
-                    V2 const & vec2,
-                    SCALARTYPE alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_mul_add()!");
-
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "cpu_inplace_mul_add");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)), 
-                                cl_uint(viennacl::traits::size(vec1)), 
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)), 
-                                cl_uint(viennacl::traits::size(vec2)), 
-                               value_type(alpha)));
-    }
-
-    /** @brief Multiply-subtract operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes result = alpha * vec1 - vec2, where alpha is a gpu scalar
-    *
-    * @param vec1    The first vector operand
-    * @param alpha   The scaling factor for the first vector.
-    * @param vec2    The second operand.
-    * @param result  The result vector.
-    */
-    template <typename V1, typename S2, typename V3, typename V4>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_scalar<S2>::value
-                                  && viennacl::is_vector<V3>::value
-                                  && viennacl::is_vector<V4>::value
-                                >::type
-    mul_sub(V1 const & vec1,
-            S2 const & alpha,
-            V3 const & vec2,
-            V4 & result)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && (viennacl::traits::size(vec1) == viennacl::traits::size(result))
-             && "Incompatible vector sizes in mul_sub()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "mul_sub");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)), 
-                               alpha,
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)), 
-                               viennacl::traits::handle(result),
-                                cl_uint(viennacl::traits::start(result)),
-                                cl_uint(viennacl::traits::stride(result)),
-                                cl_uint(viennacl::traits::size(result)))
-                            );
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::avbv_v(vec1,
+                                                    vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha,
+                                                    vec3,  beta, len_beta,  reciprocal_beta,  flip_sign_beta);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::avbv_v(vec1,
+                                           vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha,
+                                           vec3,  beta, len_beta,  reciprocal_beta,  flip_sign_beta);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::avbv_v(vec1,
+                                         vec2, alpha, len_alpha, reciprocal_alpha, flip_sign_alpha,
+                                         vec3,  beta, len_beta,  reciprocal_beta,  flip_sign_beta);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
 
-    /** @brief Inplace Multiply-subtract operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
+    /** @brief Assign a constant value to a vector (-range/-slice)
     *
-    * Computes vec1 -= alpha * vec2, where alpha is a gpu scalar
-    *
-    * @param vec1    The result vector which is updated
-    * @param vec2    The second operand.
-    * @param alpha   The scaling factor for the vector update.
+    * @param vec1   The vector to which the value should be assigned
+    * @param alpha  The value to be assigned
+    * @param up_to_internal_size    Whether 'alpha' should be written to padded memory as well. This is used for setting all entries to zero, including padded memory.
     */
-    template <typename V1, typename V2, typename S3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_scalar<S3>::value
-                                >::type
-    inplace_mul_sub(V1 & vec1,
-                    V2 const & vec2,
-                    S3 const & alpha)
+    template <typename T>
+    void vector_assign(vector_base<T> & vec1, const T & alpha, bool up_to_internal_size = false)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_mul_sub()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_mul_sub");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)), 
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)), 
-                               alpha)
-                            );        
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::vector_assign(vec1, alpha, up_to_internal_size);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::vector_assign(vec1, alpha, up_to_internal_size);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::vector_assign(vec1, alpha, up_to_internal_size);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
-    /** @brief Inplace divide-add operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes vec1 += vec2 / alpha, where alpha is a gpu scalar
-    *
-    * @param vec1    The first vector
-    * @param vec2    The vector update
-    * @param alpha   The scaling factor for the second vector.
-    */
-    template <typename V1, typename V2, typename S3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_scalar<S3>::value
-                                >::type
-    inplace_div_add(V1 & vec1,
-                    V2 const & vec2,
-                    S3 const & alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_div_add()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_div_add");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)), 
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)), 
-                               alpha)
-                            );
+    /** @brief Swaps the contents of two vectors, data is copied
+    *
+    * @param vec1   The first vector (or -range, or -slice)
+    * @param vec2   The second vector (or -range, or -slice)
+    */
+    template <typename T>
+    void vector_swap(vector_base<T> & vec1, vector_base<T> & vec2)
+    {
+      assert(viennacl::traits::size(vec1) == viennacl::traits::size(vec2) && bool("Incompatible vector sizes in vector_swap()"));
+
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::vector_swap(vec1, vec2);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::vector_swap(vec1, vec2);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::vector_swap(vec1, vec2);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
-    /** @brief Inplace divide-subtract operation. Try to use the overloaded operators for vector instead, unless you want to fine-tune the number of GPU threads involved.
-    *
-    * Computes vec1 -= vec2 / alpha, where alpha is a gpu scalar
-    *
-    * @param vec1    The first vector
-    * @param vec2    The vector update
-    * @param alpha   The scaling factor for the second vector.
-    */
-    template <typename V1, typename V2, typename S3>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_scalar<S3>::value
-                                >::type
-    inplace_div_sub(V1 & vec1,
-                    V2 const & vec2,
-                    S3 const & alpha)
-    {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inplace_div_sub()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inplace_div_sub");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
 
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)),
-                               alpha)
-                            );
+    ///////////////////////// Elementwise operations /////////////
+
+
+
+    /** @brief Implementation of the element-wise operation v1 = v2 .* v3 and v1 = v2 ./ v3    (using MATLAB syntax)
+    *
+    * @param vec1   The result vector (or -range, or -slice)
+    * @param proxy  The proxy object holding v2, v3 and the operation
+    */
+    template <typename T, typename OP>
+    void element_op(vector_base<T> & vec1,
+                    vector_expression<const vector_base<T>, const vector_base<T>, OP> const & proxy)
+    {
+      assert(viennacl::traits::size(vec1) == viennacl::traits::size(proxy) && bool("Incompatible vector sizes in element_op()"));
+
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::element_op(vec1, proxy);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::element_op(vec1, proxy);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::element_op(vec1, proxy);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
+    /** \cond */
+
+// Helper macro for generating binary element-wise operations such as element_prod(), element_div(), element_pow() without unnecessary code duplication */
+#define VIENNACL_GENERATE_BINARY_ELEMENTOPERATION_OVERLOADS(OPNAME) \
+    template <typename T> \
+    viennacl::vector_expression<const vector_base<T>, const vector_base<T>, op_element_binary<op_##OPNAME> > \
+    element_##OPNAME(vector_base<T> const & v1, vector_base<T> const & v2) \
+    { \
+      return viennacl::vector_expression<const vector_base<T>, const vector_base<T>, op_element_binary<op_##OPNAME> >(v1, v2); \
+    } \
+\
+    template <typename V1, typename V2, typename OP, typename T> \
+    viennacl::vector_expression<const vector_expression<const V1, const V2, OP>, const vector_base<T>, op_element_binary<op_##OPNAME> > \
+    element_##OPNAME(vector_expression<const V1, const V2, OP> const & proxy, vector_base<T> const & v2) \
+    { \
+      return viennacl::vector_expression<const vector_expression<const V1, const V2, OP>, const vector_base<T>, op_element_binary<op_##OPNAME> >(proxy, v2); \
+    } \
+\
+    template <typename T, typename V2, typename V3, typename OP> \
+    viennacl::vector_expression<const vector_base<T>, const vector_expression<const V2, const V3, OP>, op_element_binary<op_##OPNAME> > \
+    element_##OPNAME(vector_base<T> const & v1, vector_expression<const V2, const V3, OP> const & proxy) \
+    { \
+      return viennacl::vector_expression<const vector_base<T>, const vector_expression<const V2, const V3, OP>, op_element_binary<op_##OPNAME> >(v1, proxy); \
+    } \
+\
+    template <typename V1, typename V2, typename OP1, \
+              typename V3, typename V4, typename OP2> \
+    viennacl::vector_expression<const vector_expression<const V1, const V2, OP1>, \
+                                const vector_expression<const V3, const V4, OP2>, \
+                                op_element_binary<op_##OPNAME> > \
+    element_##OPNAME(vector_expression<const V1, const V2, OP1> const & proxy1, \
+                     vector_expression<const V3, const V4, OP2> const & proxy2) \
+    {\
+      return viennacl::vector_expression<const vector_expression<const V1, const V2, OP1>, \
+                                         const vector_expression<const V3, const V4, OP2>, \
+                                         op_element_binary<op_##OPNAME> >(proxy1, proxy2); \
+    }
+
+    VIENNACL_GENERATE_BINARY_ELEMENTOPERATION_OVERLOADS(prod)  //for element_prod()
+    VIENNACL_GENERATE_BINARY_ELEMENTOPERATION_OVERLOADS(div)   //for element_div()
+    VIENNACL_GENERATE_BINARY_ELEMENTOPERATION_OVERLOADS(pow)   //for element_pow()
+
+#undef VIENNACL_GENERATE_BINARY_ELEMENTOPERATION_OVERLOADS
+
+// Helper macro for generating unary element-wise operations such as element_exp(), element_sin(), etc. without unnecessary code duplication */
+#define VIENNACL_MAKE_UNARY_ELEMENT_OP(funcname) \
+    template <typename T> \
+    viennacl::vector_expression<const vector_base<T>, const vector_base<T>, op_element_unary<op_##funcname> > \
+    element_##funcname(vector_base<T> const & v) \
+    { \
+      return viennacl::vector_expression<const vector_base<T>, const vector_base<T>, op_element_unary<op_##funcname> >(v, v); \
+    } \
+    template <typename LHS, typename RHS, typename OP> \
+    viennacl::vector_expression<const vector_expression<const LHS, const RHS, OP>, \
+                                const vector_expression<const LHS, const RHS, OP>, \
+                                op_element_unary<op_##funcname> > \
+    element_##funcname(vector_expression<const LHS, const RHS, OP> const & proxy) \
+    { \
+      return viennacl::vector_expression<const vector_expression<const LHS, const RHS, OP>, \
+                                         const vector_expression<const LHS, const RHS, OP>, \
+                                         op_element_unary<op_##funcname> >(proxy, proxy); \
+    } \
+
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(abs)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(acos)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(asin)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(atan)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(ceil)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(cos)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(cosh)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(exp)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(fabs)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(floor)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(log)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(log10)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(sin)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(sinh)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(sqrt)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(tan)
+    VIENNACL_MAKE_UNARY_ELEMENT_OP(tanh)
+
+#undef VIENNACL_MAKE_UNARY_ELEMENT_OP
+
+    /** \endcond */
 
     ///////////////////////// Norms and inner product ///////////////////
 
 
     //implementation of inner product:
     //namespace {
-    /** @brief Computes the inner product of two vectors - implementation. Library users should call inner_prod(vec1, vec2).
+
+    /** @brief Computes the inner product of two vectors - dispatcher interface
      *
      * @param vec1 The first vector
      * @param vec2 The second vector
      * @param result The result scalar (on the gpu)
-     * @param dummy  Dummy parameter used for SFINAE
      */
-    template <typename V1, typename V2, typename S3>
-    void inner_prod_impl(V1 const & vec1,
-                         V2 const & vec2,
-                         S3 & result,
-                         typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                                       && viennacl::is_vector<V2>::value
-                                                       && viennacl::is_scalar<S3>::value
-#ifdef _MSC_VER
-                                                     >::type * dummy = 0)
-#else
-                                                     >::type * dummy)
-#endif                                                   
+    template <typename T>
+    void inner_prod_impl(vector_base<T> const & vec1,
+                         vector_base<T> const & vec2,
+                         scalar<T> & result)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-    
-      assert( (viennacl::traits::size(vec1) == viennacl::traits::size(vec2))
-             && "Incompatible vector sizes in inner_prod_impl()!");
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "inner_prod");
-      //cl_uint size = static_cast<cl_uint>(std::min(vec1.internal_size(), vec2.internal_size()));
-      unsigned int work_groups = k.global_work_size() / k.local_work_size();
-      
-      static viennacl::vector<value_type> temp(work_groups);
-      
-      //Note: Number of work groups MUST be a power of two!
-      //std::cout << work_groups << ", " << k.local_work_size() << ", " << k.global_work_size() << std::endl;
-      assert( work_groups * k.local_work_size() == k.global_work_size() );
-      assert( (k.global_work_size() / k.local_work_size()) == 1 
-              || (k.global_work_size() / k.local_work_size()) == 2 
-              || (k.global_work_size() / k.local_work_size()) == 4
-              || (k.global_work_size() / k.local_work_size()) == 8
-              || (k.global_work_size() / k.local_work_size()) == 16
-              || (k.global_work_size() / k.local_work_size()) == 32
-              || (k.global_work_size() / k.local_work_size()) == 64
-              || (k.global_work_size() / k.local_work_size()) == 128
-              || (k.global_work_size() / k.local_work_size()) == 256
-              || (k.global_work_size() / k.local_work_size()) == 512 );
-              
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),
-                                cl_uint(viennacl::traits::size(vec1)),
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),
-                                cl_uint(viennacl::traits::size(vec2)),
-                               viennacl::ocl::local_mem(sizeof(value_type) * k.local_work_size()),
-                               temp));        
+      assert( vec1.size() == vec2.size() && bool("Size mismatch") );
 
-      viennacl::ocl::kernel & ksum = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "sum");
-      
-      ksum.local_work_size(0, work_groups);
-      ksum.global_work_size(0, work_groups);
-      viennacl::ocl::enqueue(ksum(viennacl::traits::handle(temp),
-                                  cl_uint(viennacl::traits::start(temp)),
-                                  cl_uint(viennacl::traits::stride(temp)),
-                                  cl_uint(viennacl::traits::size(temp)),
-                                  result)
-                            );
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::inner_prod_impl(vec1, vec2, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::inner_prod_impl(vec1, vec2, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::inner_prod_impl(vec1, vec2, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
 
-    //public interface of inner product
-    /** @brief Computes the inner product of two vectors.
-    *
-    * @param vec1 The first vector
-    * @param vec2 The second vector
-    * @return The result
-    */
-    template <typename V1, typename V2>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value,
-                                  viennacl::scalar_expression< const V1, 
-                                                               const V2,
-                                                               viennacl::op_inner_prod >
-                                >::type
-    inner_prod_impl(V1 const & vec1,
-                    V2 const & vec2)
+    // vector expression on lhs
+    template <typename LHS, typename RHS, typename OP, typename T>
+    void inner_prod_impl(viennacl::vector_expression<LHS, RHS, OP> const & vec1,
+                         vector_base<T> const & vec2,
+                         scalar<T> & result)
     {
-      return viennacl::scalar_expression< const V1, 
-                                          const V2,
-                                          viennacl::op_inner_prod >(vec1, vec2);
+      viennacl::vector<T> temp = vec1;
+      inner_prod_impl(temp, vec2, result);
     }
 
 
-    
-    /** @brief Computes the l^1-norm of a vector
+    // vector expression on rhs
+    template <typename T, typename LHS, typename RHS, typename OP>
+    void inner_prod_impl(vector_base<T> const & vec1,
+                         viennacl::vector_expression<LHS, RHS, OP> const & vec2,
+                         scalar<T> & result)
+    {
+      viennacl::vector<T> temp = vec2;
+      inner_prod_impl(vec1, temp, result);
+    }
+
+
+    // vector expression on lhs and rhs
+    template <typename LHS1, typename RHS1, typename OP1,
+              typename LHS2, typename RHS2, typename OP2, typename T>
+    void inner_prod_impl(viennacl::vector_expression<LHS1, RHS1, OP1> const & vec1,
+                         viennacl::vector_expression<LHS2, RHS2, OP2> const & vec2,
+                         scalar<T> & result)
+    {
+      viennacl::vector<T> temp1 = vec1;
+      viennacl::vector<T> temp2 = vec2;
+      inner_prod_impl(temp1, temp2, result);
+    }
+
+
+
+
+    /** @brief Computes the inner product of two vectors with the final reduction step on the CPU - dispatcher interface
+     *
+     * @param vec1 The first vector
+     * @param vec2 The second vector
+     * @param result The result scalar (on the gpu)
+     */
+    template <typename T>
+    void inner_prod_cpu(vector_base<T> const & vec1,
+                        vector_base<T> const & vec2,
+                        T & result)
+    {
+      assert( vec1.size() == vec2.size() && bool("Size mismatch") );
+
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::inner_prod_impl(vec1, vec2, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::inner_prod_cpu(vec1, vec2, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::inner_prod_cpu(vec1, vec2, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
+    }
+
+    // vector expression on lhs
+    template <typename LHS, typename RHS, typename OP, typename T>
+    void inner_prod_cpu(viennacl::vector_expression<LHS, RHS, OP> const & vec1,
+                        vector_base<T> const & vec2,
+                        T & result)
+    {
+      viennacl::vector<T> temp = vec1;
+      inner_prod_cpu(temp, vec2, result);
+    }
+
+
+    // vector expression on rhs
+    template <typename T, typename LHS, typename RHS, typename OP>
+    void inner_prod_cpu(vector_base<T> const & vec1,
+                        viennacl::vector_expression<LHS, RHS, OP> const & vec2,
+                        T & result)
+    {
+      viennacl::vector<T> temp = vec2;
+      inner_prod_cpu(vec1, temp, result);
+    }
+
+
+    // vector expression on lhs and rhs
+    template <typename LHS1, typename RHS1, typename OP1,
+              typename LHS2, typename RHS2, typename OP2, typename S3>
+    void inner_prod_cpu(viennacl::vector_expression<LHS1, RHS1, OP1> const & vec1,
+                        viennacl::vector_expression<LHS2, RHS2, OP2> const & vec2,
+                        S3 & result)
+    {
+      viennacl::vector<S3> temp1 = vec1;
+      viennacl::vector<S3> temp2 = vec2;
+      inner_prod_cpu(temp1, temp2, result);
+    }
+
+
+
+    /** @brief Computes the inner products <x, y1>, <x, y2>, ..., <x, y_N> and writes the result to a (sub-)vector
+     *
+     * @param x       The common vector
+     * @param y_tuple A collection of vector, all of the same size.
+     * @param result  The result scalar (on the gpu). Needs to match the number of elements in y_tuple
+     */
+    template <typename T>
+    void inner_prod_impl(vector_base<T> const & x,
+                         vector_tuple<T> const & y_tuple,
+                         vector_base<T> & result)
+    {
+      assert( x.size() == y_tuple.const_at(0).size() && bool("Size mismatch") );
+      assert( result.size() == y_tuple.const_size() && bool("Number of elements does not match result size") );
+
+      switch (viennacl::traits::handle(x).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::inner_prod_impl(x, y_tuple, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::inner_prod_impl(x, y_tuple, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::inner_prod_impl(x, y_tuple, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
+    }
+
+
+    /** @brief Computes the l^1-norm of a vector - dispatcher interface
     *
     * @param vec The vector
     * @param result The result scalar
-    * @param dummy  Dummy parameter used for SFINAE
     */
-    template <typename V1, typename S2>
-    void norm_1_impl(V1 const & vec,
-                     S2 & result,
-                     typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                                   && viennacl::is_scalar<S2>::value
-#ifdef _MSC_VER
-                                                 >::type * dummy = 0)
-#else
-                                                 >::type * dummy)
-#endif                                                   
+    template <typename T>
+    void norm_1_impl(vector_base<T> const & vec,
+                     scalar<T> & result)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "norm_1");
-      //cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
-      
-      if (k.local_work_size() != k.global_work_size())
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
       {
-        //NOTE: For some reasons the kernel could not be started with several work groups on NVIDIA hardware. This forces us to use as many parallel threads within a single work group as possible
-        k.local_work_size(0, viennacl::ocl::current_device().max_work_group_size());
-        k.global_work_size(0, viennacl::ocl::current_device().max_work_group_size());
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::norm_1_impl(vec, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::norm_1_impl(vec, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::norm_1_impl(vec, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
       }
-      
-      unsigned int work_groups = k.global_work_size() / k.local_work_size();
-      viennacl::vector<value_type> temp(work_groups);
-
-      //Note: Number of work groups MUST be a power of two!
-      //std::cout << work_groups << ", " << k.local_work_size() << ", " << k.global_work_size() << std::endl;
-      assert( work_groups * k.local_work_size() == k.global_work_size() );
-      assert( (k.global_work_size() / k.local_work_size()) == 1 
-             || (k.global_work_size() / k.local_work_size()) == 2 
-             || (k.global_work_size() / k.local_work_size()) == 4
-             || (k.global_work_size() / k.local_work_size()) == 8
-             || (k.global_work_size() / k.local_work_size()) == 16
-             || (k.global_work_size() / k.local_work_size()) == 32
-             || (k.global_work_size() / k.local_work_size()) == 64
-             || (k.global_work_size() / k.local_work_size()) == 128
-             || (k.global_work_size() / k.local_work_size()) == 256
-             || (k.global_work_size() / k.local_work_size()) == 512 );
-               
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),                                 
-                                viennacl::ocl::local_mem(sizeof(value_type) * k.local_work_size()),
-                                temp));        
-      
-      viennacl::ocl::kernel & ksum = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "sum");
-      
-      ksum.local_work_size(0, work_groups);
-      ksum.global_work_size(0, work_groups);
-      viennacl::ocl::enqueue(ksum(viennacl::traits::handle(temp),
-                                  cl_uint(viennacl::traits::start(temp)),
-                                  cl_uint(viennacl::traits::stride(temp)),
-                                  cl_uint(viennacl::traits::size(temp)),
-                                  result)
-                            );
     }
 
-    /** @brief Computes the l^2-norm of a vector - implementation
+
+    /** @brief Computes the l^1-norm of a vector - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    * @param result The result scalar
+    */
+    template <typename LHS, typename RHS, typename OP, typename S2>
+    void norm_1_impl(viennacl::vector_expression<LHS, RHS, OP> const & vec,
+                     S2 & result)
+    {
+      viennacl::vector<typename viennacl::result_of::cpu_value_type<S2>::type> temp = vec;
+      norm_1_impl(temp, result);
+    }
+
+
+
+    /** @brief Computes the l^1-norm of a vector with final reduction on the CPU
     *
     * @param vec The vector
     * @param result The result scalar
-    * @param dummy  Dummy parameter used for SFINAE
     */
-    template <typename V1, typename S2>
-    void norm_2_impl(V1 const & vec,
-                     S2 & result,
-                     typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                                  && viennacl::is_scalar<S2>::value
-#ifdef _MSC_VER
-                                                 >::type * dummy = 0)
-#else
-                                                 >::type * dummy)
-#endif                                                   
+    template <typename T>
+    void norm_1_cpu(vector_base<T> const & vec,
+                    T & result)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "norm_2");
-      //cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
-      
-      if (k.local_work_size() != k.global_work_size())
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
       {
-        //NOTE: For some reasons the kernel could not be started with several work groups on NVIDIA hardware. This forces us to use as many parallel threads within a single work group as possible
-        k.local_work_size(0, viennacl::ocl::current_device().max_work_group_size());
-        k.global_work_size(0, viennacl::ocl::current_device().max_work_group_size());
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::norm_1_impl(vec, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::norm_1_cpu(vec, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::norm_1_cpu(vec, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
       }
-
-      unsigned int work_groups = k.global_work_size() / k.local_work_size();
-      viennacl::vector<value_type> temp(work_groups);
-        
-      //Note: Number of work groups MUST be a power of two!
-      //std::cout << work_groups << ", " << k.local_work_size() << ", " << k.global_work_size() << std::endl;
-      assert( work_groups * k.local_work_size() == k.global_work_size() );
-      assert( (k.global_work_size() / k.local_work_size()) == 1 
-             || (k.global_work_size() / k.local_work_size()) == 2 
-             || (k.global_work_size() / k.local_work_size()) == 4
-             || (k.global_work_size() / k.local_work_size()) == 8
-             || (k.global_work_size() / k.local_work_size()) == 16
-             || (k.global_work_size() / k.local_work_size()) == 32
-             || (k.global_work_size() / k.local_work_size()) == 64
-             || (k.global_work_size() / k.local_work_size()) == 128
-             || (k.global_work_size() / k.local_work_size()) == 256
-             || (k.global_work_size() / k.local_work_size()) == 512 );
-               
-        viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                  cl_uint(viennacl::traits::start(vec)),
-                                  cl_uint(viennacl::traits::stride(vec)),
-                                  cl_uint(viennacl::traits::size(vec)),                                 
-                                 viennacl::ocl::local_mem(sizeof(value_type) * k.local_work_size()),
-                                 temp)
-                              );
-
-        viennacl::ocl::kernel & sqrt_sum = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "sqrt_sum");
-        
-        sqrt_sum.local_work_size(0, work_groups);
-        sqrt_sum.global_work_size(0, work_groups);
-        viennacl::ocl::enqueue(
-                        sqrt_sum(viennacl::traits::handle(temp),
-                                  cl_uint(viennacl::traits::start(temp)),
-                                  cl_uint(viennacl::traits::stride(temp)),
-                                  cl_uint(viennacl::traits::size(temp)),
-                                 result)
-                              );
     }
+
+    /** @brief Computes the l^1-norm of a vector with final reduction on the CPU - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    * @param result The result scalar
+    */
+    template <typename LHS, typename RHS, typename OP, typename S2>
+    void norm_1_cpu(viennacl::vector_expression<LHS, RHS, OP> const & vec,
+                    S2 & result)
+    {
+      viennacl::vector<typename viennacl::result_of::cpu_value_type<LHS>::type> temp = vec;
+      norm_1_cpu(temp, result);
+    }
+
+
+
+
+    /** @brief Computes the l^2-norm of a vector - dispatcher interface
+    *
+    * @param vec The vector
+    * @param result The result scalar
+    */
+    template <typename T>
+    void norm_2_impl(vector_base<T> const & vec,
+                     scalar<T> & result)
+    {
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::norm_2_impl(vec, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::norm_2_impl(vec, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::norm_2_impl(vec, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
+    }
+
+    /** @brief Computes the l^2-norm of a vector - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    * @param result The result scalar
+    */
+    template <typename LHS, typename RHS, typename OP, typename T>
+    void norm_2_impl(viennacl::vector_expression<LHS, RHS, OP> const & vec,
+                     scalar<T> & result)
+    {
+      viennacl::vector<T> temp = vec;
+      norm_2_impl(temp, result);
+    }
+
+
+    /** @brief Computes the l^2-norm of a vector with final reduction on the CPU - dispatcher interface
+    *
+    * @param vec The vector
+    * @param result The result scalar
+    */
+    template <typename T>
+    void norm_2_cpu(vector_base<T> const & vec,
+                    T & result)
+    {
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::norm_2_impl(vec, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::norm_2_cpu(vec, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::norm_2_cpu(vec, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
+    }
+
+    /** @brief Computes the l^2-norm of a vector with final reduction on the CPU - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    * @param result The result scalar
+    */
+    template <typename LHS, typename RHS, typename OP, typename S2>
+    void norm_2_cpu(viennacl::vector_expression<LHS, RHS, OP> const & vec,
+                    S2 & result)
+    {
+      viennacl::vector<typename viennacl::result_of::cpu_value_type<LHS>::type> temp = vec;
+      norm_2_cpu(temp, result);
+    }
+
+
+
 
     /** @brief Computes the supremum-norm of a vector
     *
     * @param vec The vector
     * @param result The result scalar
-    * @param dummy  Dummy parameter used for SFINAE
     */
-    template <typename V1, typename S2>
-    void norm_inf_impl(V1 const & vec,
-                       S2 & result,
-                       typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                                     && viennacl::is_scalar<S2>::value
-#ifdef _MSC_VER
-                                                   >::type * dummy = 0)
-#else
-                                                   >::type * dummy)
-#endif                                                   
+    template <typename T>
+    void norm_inf_impl(vector_base<T> const & vec,
+                       scalar<T> & result)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      //cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "norm_inf");
-
-      if (k.local_work_size() != k.global_work_size())
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
       {
-        //NOTE: For some reasons the kernel could not be started with several work groups on NVIDIA hardware. This forces us to use as many parallel threads within a single work group as possible
-        k.local_work_size(0, viennacl::ocl::current_device().max_work_group_size());
-        k.global_work_size(0, viennacl::ocl::current_device().max_work_group_size());
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::norm_inf_impl(vec, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::norm_inf_impl(vec, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::norm_inf_impl(vec, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
       }
-      
-      unsigned int work_groups = k.global_work_size() / k.local_work_size();
-      viennacl::vector<value_type> temp(work_groups);
-        
-      //Note: Number of work groups MUST be a power of two!
-      //std::cout << work_groups << ", " << k.local_work_size() << ", " << k.global_work_size() << std::endl;
-      assert( work_groups * k.local_work_size() == k.global_work_size() );
-      assert( work_groups == 1 
-             || work_groups == 2 
-             || work_groups == 4
-             || work_groups == 8
-             || work_groups == 16
-             || work_groups == 32
-             || work_groups == 64
-             || work_groups == 128
-             || work_groups == 256
-             || work_groups == 512 );
-               
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),                                 
-                               viennacl::ocl::local_mem(sizeof(value_type) * k.local_work_size()),
-                               temp));
-      //viennacl::ocl::get_queue().finish();
-      
-      //part 2: parallel reduction of reduced kernel:
-      viennacl::ocl::kernel & max_kernel = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "vmax");
-      max_kernel.local_work_size(0, work_groups);
-      max_kernel.global_work_size(0, work_groups);
-      
-      viennacl::ocl::enqueue(
-                       max_kernel(viennacl::traits::handle(temp),
-                                   cl_uint(viennacl::traits::start(temp)),
-                                   cl_uint(viennacl::traits::stride(temp)),
-                                   cl_uint(viennacl::traits::size(temp)),
-                                  result)
-                            );
     }
 
-    //This function should return a CPU scalar, otherwise statements like 
-    // vcl_rhs[index_norm_inf(vcl_rhs)] 
+    /** @brief Computes the supremum norm of a vector - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    * @param result The result scalar
+    */
+    template <typename LHS, typename RHS, typename OP, typename T>
+    void norm_inf_impl(viennacl::vector_expression<LHS, RHS, OP> const & vec,
+                       scalar<T> & result)
+    {
+      viennacl::vector<T> temp = vec;
+      norm_inf_impl(temp, result);
+    }
+
+
+    /** @brief Computes the supremum-norm of a vector with final reduction on the CPU
+    *
+    * @param vec The vector
+    * @param result The result scalar
+    */
+    template <typename T>
+    void norm_inf_cpu(vector_base<T> const & vec,
+                      T & result)
+    {
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::norm_inf_impl(vec, result);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::norm_inf_cpu(vec, result);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::norm_inf_cpu(vec, result);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
+    }
+
+    /** @brief Computes the supremum norm of a vector with final reduction on the CPU - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    * @param result The result scalar
+    */
+    template <typename LHS, typename RHS, typename OP, typename S2>
+    void norm_inf_cpu(viennacl::vector_expression<LHS, RHS, OP> const & vec,
+                      S2 & result)
+    {
+      viennacl::vector<typename viennacl::result_of::cpu_value_type<LHS>::type> temp = vec;
+      norm_inf_cpu(temp, result);
+    }
+
+
+    //This function should return a CPU scalar, otherwise statements like
+    // vcl_rhs[index_norm_inf(vcl_rhs)]
     // are ambiguous
     /** @brief Computes the index of the first entry that is equal to the supremum-norm in modulus.
     *
     * @param vec The vector
-    * @return The result. Note that the result must be a CPU scalar (unsigned int), since gpu scalars are floating point types.
+    * @return The result. Note that the result must be a CPU scalar
     */
-    template <typename V1>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value,
-                                  cl_uint
-                                >::type
-    index_norm_inf(V1 const & vec)
+    template <typename T>
+    vcl_size_t index_norm_inf(vector_base<T> const & vec)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      viennacl::ocl::handle<cl_mem> h = viennacl::ocl::current_context().create_memory(CL_MEM_READ_WRITE, sizeof(cl_uint));
-      
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<value_type, ALIGNMENT>::program_name(), "index_norm_inf");
-      //cl_uint size = static_cast<cl_uint>(vcl_vec.internal_size());
-
-      k.global_work_size(0, k.local_work_size());
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec),
-                                cl_uint(viennacl::traits::start(vec)),
-                                cl_uint(viennacl::traits::stride(vec)),
-                                cl_uint(viennacl::traits::size(vec)),                                 
-                               viennacl::ocl::local_mem(sizeof(value_type) * k.local_work_size()),
-                               viennacl::ocl::local_mem(sizeof(cl_uint) * k.local_work_size()), h));
-      
-      //read value:
-      cl_uint result;
-      cl_int err;
-      err = clEnqueueReadBuffer(viennacl::ocl::get_queue().handle().get(), h.get(), CL_TRUE, 0, sizeof(cl_uint), &result, 0, NULL, NULL);
-      VIENNACL_ERR_CHECK(err);
-      return result;
+      switch (viennacl::traits::handle(vec).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          return viennacl::linalg::host_based::index_norm_inf(vec);
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          return viennacl::linalg::opencl::index_norm_inf(vec);
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          return viennacl::linalg::cuda::index_norm_inf(vec);
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
-    
-    //TODO: Special case vec1 == vec2 allows improvement!!
+
+    /** @brief Computes the supremum norm of a vector with final reduction on the CPU - interface for a vector expression. Creates a temporary.
+    *
+    * @param vec    The vector expression
+    */
+    template <typename LHS, typename RHS, typename OP>
+    vcl_size_t index_norm_inf(viennacl::vector_expression<LHS, RHS, OP> const & vec)
+    {
+      viennacl::vector<typename viennacl::result_of::cpu_value_type<LHS>::type> temp = vec;
+      return index_norm_inf(temp);
+    }
+
+
     /** @brief Computes a plane rotation of two vectors.
     *
     * Computes (x,y) <- (alpha * x + beta * y, -beta * x + alpha * y)
     *
     * @param vec1   The first vector
     * @param vec2   The second vector
-    * @param alpha  The first transformation coefficient
-    * @param beta   The second transformation coefficient
+    * @param alpha  The first transformation coefficient (CPU scalar)
+    * @param beta   The second transformation coefficient (CPU scalar)
     */
-    template <typename V1, typename V2, typename SCALARTYPE>
-    typename viennacl::enable_if< viennacl::is_vector<V1>::value
-                                  && viennacl::is_vector<V2>::value
-                                  && viennacl::is_cpu_scalar<SCALARTYPE>::value
-                                >::type
-    plane_rotation(V1 & vec1,
-                   V2 & vec2,
-                   SCALARTYPE alpha,
-                   SCALARTYPE beta)
+    template <typename T>
+    void plane_rotation(vector_base<T> & vec1,
+                        vector_base<T> & vec2,
+                        T alpha, T beta)
     {
-      typedef typename viennacl::result_of::cpu_value_type<V1>::type        value_type;
-      
-      //TODO: Ensure that correct alignment is chosen for the kernels.
-      const unsigned int ALIGNMENT = V1::alignment;
-      
-      assert(viennacl::traits::size(vec1) == viennacl::traits::size(vec2));
-      viennacl::ocl::kernel & k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::vector<SCALARTYPE, ALIGNMENT>::program_name(), "plane_rotation");
-
-      viennacl::ocl::enqueue(k(viennacl::traits::handle(vec1),
-                                cl_uint(viennacl::traits::start(vec1)),
-                                cl_uint(viennacl::traits::stride(vec1)),                                 
-                                cl_uint(viennacl::traits::size(vec1)),                                 
-                               viennacl::traits::handle(vec2),
-                                cl_uint(viennacl::traits::start(vec2)),
-                                cl_uint(viennacl::traits::stride(vec2)),                                 
-                                cl_uint(viennacl::traits::size(vec2)),                                 
-                               alpha,
-                               beta)
-                            );
+      switch (viennacl::traits::handle(vec1).get_active_handle_id())
+      {
+        case viennacl::MAIN_MEMORY:
+          viennacl::linalg::host_based::plane_rotation(vec1, vec2, alpha, beta);
+          break;
+#ifdef VIENNACL_WITH_OPENCL
+        case viennacl::OPENCL_MEMORY:
+          viennacl::linalg::opencl::plane_rotation(vec1, vec2, alpha, beta);
+          break;
+#endif
+#ifdef VIENNACL_WITH_CUDA
+        case viennacl::CUDA_MEMORY:
+          viennacl::linalg::cuda::plane_rotation(vec1, vec2, alpha, beta);
+          break;
+#endif
+        case viennacl::MEMORY_NOT_INITIALIZED:
+          throw memory_exception("not initialised!");
+        default:
+          throw memory_exception("not implemented");
+      }
     }
-    
+
   } //namespace linalg
 } //namespace viennacl
 
