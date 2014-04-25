@@ -2,24 +2,25 @@
 #define VIENNACL_LINALG_DETAIL_SPAI_SMALL_MATRIX_HPP
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
 
 /** @file viennacl/linalg/detail/spai/small_matrix.hpp
-    @brief Implementation of a routines for small matrices (helper for SPAI). Experimental in 1.2.x.
-    
+    @brief Implementation of a routines for small matrices (helper for SPAI). Experimental.
+
     SPAI code contributed by Nikolay Lukash
 */
 
@@ -57,17 +58,17 @@ namespace viennacl
           // Constructs an orthonormal sparse matrix M (with M^T M = Id). Is composed of elementary 2x2 rotation matrices with suitable renumbering.
           //
           template <typename MatrixType>
-          void make_rotation_matrix(MatrixType & mat, size_t new_size, size_t off_diagonal_distance = 4)
+          void make_rotation_matrix(MatrixType & mat, vcl_size_t new_size, vcl_size_t off_diagonal_distance = 4)
           {
             mat.resize(new_size, new_size, false);
             mat.clear();
 
-            double val = 1 / sqrt(2.0);
+            double val = 1.0 / std::sqrt(2.0);
 
-            for (size_t i=0; i<new_size; ++i)
+            for (vcl_size_t i=0; i<new_size; ++i)
               mat(i,i) = val;
 
-            for (size_t i=off_diagonal_distance; i<new_size; ++i)
+            for (vcl_size_t i=off_diagonal_distance; i<new_size; ++i)
             {
               mat(i-off_diagonal_distance, i) = val; mat(i, i-off_diagonal_distance) = -val;
             }
@@ -80,28 +81,28 @@ namespace viennacl
           double determinant(boost::numeric::ublas::matrix_expression<MatrixType> const& mat_r)
           {
               double det = 1.0;
-              
+
               MatrixType mLu(mat_r() );
-              boost::numeric::ublas::permutation_matrix<std::size_t> pivots(mat_r().size1() );
-              
+              boost::numeric::ublas::permutation_matrix<vcl_size_t> pivots(mat_r().size1() );
+
               int is_singular = static_cast<int>(lu_factorize(mLu, pivots));
-              
+
               if (!is_singular)
               {
-                  for (std::size_t i=0; i < pivots.size(); ++i)
+                  for (vcl_size_t i=0; i < pivots.size(); ++i)
                   {
                       if (pivots(i) != i)
                           det *= -1.0;
-                      
+
                       det *= mLu(i,i);
                   }
               }
               else
                   det = 0.0;
-              
+
               return det;
-          } 
-          
+          }
+
         }
       }
     }

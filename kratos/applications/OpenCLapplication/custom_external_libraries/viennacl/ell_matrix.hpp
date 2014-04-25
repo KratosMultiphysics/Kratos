@@ -2,24 +2,25 @@
 #define VIENNACL_ELL_MATRIX_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
 ============================================================================= */
 
-/** @file ell_matrix.hpp
+/** @file viennacl/ell_matrix.hpp
     @brief Implementation of the ell_matrix class
-    
+
     Contributed by Volodymyr Kysenko.
 */
 
@@ -28,42 +29,68 @@
 #include "viennacl/vector.hpp"
 
 #include "viennacl/tools/tools.hpp"
-#include "viennacl/ocl/backend.hpp"
 
-#include "viennacl/linalg/kernels/ell_matrix_kernels.h"
+#include "viennacl/linalg/sparse_matrix_operations.hpp"
 
 namespace viennacl
 {
+    /** @brief Sparse matrix class using the ELLPACK format for storing the nonzeros.
+      *
+      * This format works best for matrices where the number of nonzeros per row is mostly the same.
+      * Finite element and finite difference methods on nicely shaped domains often result in such a nonzero pattern.
+      * For a matrix
+      *
+      *   (1 2 0 0 0)
+      *   (2 3 4 0 0)
+      *   (0 5 6 0 7)
+      *   (0 0 8 9 0)
+      *
+      * the entries are layed out in chunks of size 3 as
+      *   (1 2 5 8; 2 3 6 9; 0 4 7 0)
+      * Note that this is a 'transposed' representation in order to maximize coalesced memory access.
+      */
     template<typename SCALARTYPE, unsigned int ALIGNMENT /* see forwards.h for default argument */>
     class ell_matrix
     {
+      public:
+        typedef viennacl::backend::mem_handle                                                              handle_type;
+        typedef scalar<typename viennacl::tools::CHECK_SCALAR_TEMPLATE_ARGUMENT<SCALARTYPE>::ResultType>   value_type;
+        typedef vcl_size_t                                                                                 size_type;
+
+        ell_matrix() : rows_(0), cols_(0), maxnnz_(0) {}
+
+        ell_matrix(viennacl::context ctx) : rows_(0), cols_(0), maxnnz_(0)
+        {
+            coords_.switch_active_handle_id(ctx.memory_type());
+          elements_.switch_active_handle_id(ctx.memory_type());
+
+#ifdef VIENNACL_WITH_OPENCL
+          if (ctx.memory_type() == OPENCL_MEMORY)
+          {
+              coords_.opencl_handle().context(ctx.opencl_context());
+            elements_.opencl_handle().context(ctx.opencl_context());
+          }
+#endif
+        }
 
       public:
-        ell_matrix() 
-        {
-          viennacl::linalg::kernels::ell_matrix<SCALARTYPE, ALIGNMENT>::init();
-        }
-        
-        ell_matrix(std::size_t row_num, std::size_t col_num) 
-        {
-          viennacl::linalg::kernels::ell_matrix<SCALARTYPE, ALIGNMENT>::init();
-        }
-    
-      public:
-        std::size_t internal_size1() const { return viennacl::tools::roundUpToNextMultiple<std::size_t>(rows_, ALIGNMENT); }
-        std::size_t internal_size2() const { return viennacl::tools::roundUpToNextMultiple<std::size_t>(cols_, ALIGNMENT); }
+        vcl_size_t internal_size1() const { return viennacl::tools::align_to_multiple<vcl_size_t>(rows_, ALIGNMENT); }
+        vcl_size_t internal_size2() const { return viennacl::tools::align_to_multiple<vcl_size_t>(cols_, ALIGNMENT); }
 
-        std::size_t size1() const { return rows_; }
-        std::size_t size2() const { return cols_; }
-        
-        std::size_t internal_maxnnz() const {return viennacl::tools::roundUpToNextMultiple<std::size_t>(maxnnz_, ALIGNMENT); }
-        std::size_t maxnnz() const { return maxnnz_; }
+        vcl_size_t size1() const { return rows_; }
+        vcl_size_t size2() const { return cols_; }
 
-        std::size_t nnz() const { return rows_ * maxnnz_; }
-        std::size_t internal_nnz() const { return internal_size1() * internal_maxnnz(); }
+        vcl_size_t internal_maxnnz() const {return viennacl::tools::align_to_multiple<vcl_size_t>(maxnnz_, ALIGNMENT); }
+        vcl_size_t maxnnz() const { return maxnnz_; }
 
-        const viennacl::ocl::handle<cl_mem>& handle1( ) const { return elements_; } 
-        const viennacl::ocl::handle<cl_mem>& handle2() const { return coords_; }
+        vcl_size_t nnz() const { return rows_ * maxnnz_; }
+        vcl_size_t internal_nnz() const { return internal_size1() * internal_maxnnz(); }
+
+              handle_type & handle()       { return elements_; }
+        const handle_type & handle() const { return elements_; }
+
+              handle_type & handle2()       { return coords_; }
+        const handle_type & handle2() const { return coords_; }
 
       #if defined(_MSC_VER) && _MSC_VER < 1500          //Visual Studio 2005 needs special treatment
         template <typename CPU_MATRIX>
@@ -71,27 +98,30 @@ namespace viennacl
       #else
         template <typename CPU_MATRIX, typename T, unsigned int ALIGN>
         friend void copy(const CPU_MATRIX & cpu_matrix, ell_matrix<T, ALIGN> & gpu_matrix );
-      #endif        
-        
-      private:
-        std::size_t rows_;
-        std::size_t cols_;
-        std::size_t maxnnz_;
+      #endif
 
-        viennacl::ocl::handle<cl_mem> coords_;
-        viennacl::ocl::handle<cl_mem> elements_;        
+      private:
+        vcl_size_t rows_;
+        vcl_size_t cols_;
+        vcl_size_t maxnnz_;
+
+        handle_type coords_;
+        handle_type elements_;
     };
 
     template <typename CPU_MATRIX, typename SCALARTYPE, unsigned int ALIGNMENT>
     void copy(const CPU_MATRIX& cpu_matrix, ell_matrix<SCALARTYPE, ALIGNMENT>& gpu_matrix )
     {
+      assert( (gpu_matrix.size1() == 0 || viennacl::traits::size1(cpu_matrix) == gpu_matrix.size1()) && bool("Size mismatch") );
+      assert( (gpu_matrix.size2() == 0 || viennacl::traits::size2(cpu_matrix) == gpu_matrix.size2()) && bool("Size mismatch") );
+
       if(cpu_matrix.size1() > 0 && cpu_matrix.size2() > 0)
       {
         //determine max capacity for row
-        std::size_t max_entries_per_row = 0;
+        vcl_size_t max_entries_per_row = 0;
         for (typename CPU_MATRIX::const_iterator1 row_it = cpu_matrix.begin1(); row_it != cpu_matrix.end1(); ++row_it)
         {
-          std::size_t num_entries = 0;
+          vcl_size_t num_entries = 0;
           for (typename CPU_MATRIX::const_iterator2 col_it = row_it.begin(); col_it != row_it.end(); ++col_it)
           {
               ++num_entries;
@@ -105,62 +135,54 @@ namespace viennacl
         gpu_matrix.rows_ = cpu_matrix.size1();
         gpu_matrix.cols_ = cpu_matrix.size2();
 
-        std::size_t nnz = gpu_matrix.internal_nnz();
+        vcl_size_t nnz = gpu_matrix.internal_nnz();
 
-        std::vector<cl_uint> coords(nnz, 0);
+        viennacl::backend::typesafe_host_array<unsigned int> coords(gpu_matrix.handle2(), nnz);
         std::vector<SCALARTYPE> elements(nnz, 0);
 
-        // std::cout << "ELL_MATRIX copy " << gpu_matrix.maxnnz_ << " " << gpu_matrix.rows_ << " " << gpu_matrix.cols_ << " " 
+        // std::cout << "ELL_MATRIX copy " << gpu_matrix.maxnnz_ << " " << gpu_matrix.rows_ << " " << gpu_matrix.cols_ << " "
         //             << gpu_matrix.internal_maxnnz() << "\n";
 
         for (typename CPU_MATRIX::const_iterator1 row_it = cpu_matrix.begin1(); row_it != cpu_matrix.end1(); ++row_it)
         {
-          std::size_t data_index = 0;
-          
+          vcl_size_t data_index = 0;
+
           for (typename CPU_MATRIX::const_iterator2 col_it = row_it.begin(); col_it != row_it.end(); ++col_it)
           {
-            coords[gpu_matrix.internal_size1() * data_index + col_it.index1()]   = col_it.index2();
+            coords.set(gpu_matrix.internal_size1() * data_index + col_it.index1(), col_it.index2());
             elements[gpu_matrix.internal_size1() * data_index + col_it.index1()] = *col_it;
             //std::cout << *col_it << "\n";
               data_index++;
           }
         }
 
-
-        gpu_matrix.coords_   = viennacl::ocl::current_context().create_memory(CL_MEM_READ_ONLY, coords);
-        gpu_matrix.elements_ = viennacl::ocl::current_context().create_memory(CL_MEM_READ_ONLY, elements);
+        viennacl::backend::memory_create(gpu_matrix.handle2(), coords.raw_size(),                   traits::context(gpu_matrix.handle2()), coords.get());
+        viennacl::backend::memory_create(gpu_matrix.handle(), sizeof(SCALARTYPE) * elements.size(), traits::context(gpu_matrix.handle()), &(elements[0]));
       }
     }
 
     template <typename CPU_MATRIX, typename SCALARTYPE, unsigned int ALIGNMENT>
     void copy(const ell_matrix<SCALARTYPE, ALIGNMENT>& gpu_matrix, CPU_MATRIX& cpu_matrix)
     {
+      assert( (viennacl::traits::size1(cpu_matrix) == gpu_matrix.size1()) && bool("Size mismatch") );
+      assert( (viennacl::traits::size2(cpu_matrix) == gpu_matrix.size2()) && bool("Size mismatch") );
+
       if(gpu_matrix.size1() > 0 && gpu_matrix.size2() > 0)
       {
-        cpu_matrix.resize(gpu_matrix.size1(), gpu_matrix.size2());
-
         std::vector<SCALARTYPE> elements(gpu_matrix.internal_nnz());
-        std::vector<cl_uint> coords(gpu_matrix.internal_nnz());
+        viennacl::backend::typesafe_host_array<unsigned int> coords(gpu_matrix.handle2(), gpu_matrix.internal_nnz());
 
-        cl_int err;
+        viennacl::backend::memory_read(gpu_matrix.handle(), 0, sizeof(SCALARTYPE) * elements.size(), &(elements[0]));
+        viennacl::backend::memory_read(gpu_matrix.handle2(), 0, coords.raw_size(), coords.get());
 
-        err = clEnqueueReadBuffer(viennacl::ocl::get_queue().handle(), gpu_matrix.handle1(), CL_TRUE, 0, sizeof(SCALARTYPE) * elements.size(), &(elements[0]), 0, NULL, NULL);
-        VIENNACL_ERR_CHECK(err);
-        err = clEnqueueReadBuffer(viennacl::ocl::get_queue().handle(), gpu_matrix.handle2(), CL_TRUE, 0, sizeof(cl_uint) * coords.size(), &(coords[0]), 0, NULL, NULL);
-        VIENNACL_ERR_CHECK(err);
-
-        viennacl::ocl::get_queue().finish();
-
-        for(std::size_t row = 0; row < gpu_matrix.size1(); row++)
+        for(vcl_size_t row = 0; row < gpu_matrix.size1(); row++)
         {
-          for(std::size_t ind = 0; ind < gpu_matrix.internal_maxnnz(); ind++)
+          for(vcl_size_t ind = 0; ind < gpu_matrix.internal_maxnnz(); ind++)
           {
-            std::size_t offset = gpu_matrix.internal_size1() * ind + row;
-            
+            vcl_size_t offset = gpu_matrix.internal_size1() * ind + row;
+
             if(elements[offset] == static_cast<SCALARTYPE>(0.0))
-            {
                 continue;
-            }
 
             if(coords[offset] >= gpu_matrix.size2())
             {
@@ -174,108 +196,101 @@ namespace viennacl
       }
     }
 
+
+    //
+    // Specify available operations:
+    //
+
+    /** \cond */
+
     namespace linalg
     {
-      /** @brief Returns a proxy class that represents matrix-vector multiplication with a hyb_matrix
-      *
-      * This is used for the convenience expression result = prod(mat, vec);
-      *
-      * @param mat    The matrix
-      * @param vec    The vector
-      */
-      template<class SCALARTYPE, unsigned int ALIGNMENT, unsigned int VECTOR_ALIGNMENT>
-      vector_expression<const ell_matrix<SCALARTYPE, ALIGNMENT>,
-                        const vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
-                        op_prod > prod_impl(const ell_matrix<SCALARTYPE, ALIGNMENT> & mat, 
-                                            const vector<SCALARTYPE, VECTOR_ALIGNMENT> & vec)
+      namespace detail
       {
-        return vector_expression<const ell_matrix<SCALARTYPE, ALIGNMENT>,
-                                 const vector<SCALARTYPE, VECTOR_ALIGNMENT>, 
-                                 op_prod >(mat, vec);
-      }
-      
-      template<class TYPE, unsigned int ALIGNMENT, unsigned int VECTOR_ALIGNMENT>
-      void prod_impl(
-                      const viennacl::ell_matrix<TYPE, ALIGNMENT>& mat, 
-                      const viennacl::vector<TYPE, VECTOR_ALIGNMENT>& vec,
-                      viennacl::vector<TYPE, VECTOR_ALIGNMENT>& result)
-      {
-        assert(mat.size1() == result.size());
-        assert(mat.size2() == vec.size());
+        // x = A * y
+        template <typename T, unsigned int A>
+        struct op_executor<vector_base<T>, op_assign, vector_expression<const ell_matrix<T, A>, const vector_base<T>, op_prod> >
+        {
+            static void apply(vector_base<T> & lhs, vector_expression<const ell_matrix<T, A>, const vector_base<T>, op_prod> const & rhs)
+            {
+              // check for the special case x = A * x
+              if (viennacl::traits::handle(lhs) == viennacl::traits::handle(rhs.rhs()))
+              {
+                viennacl::vector<T> temp(lhs);
+                viennacl::linalg::prod_impl(rhs.lhs(), rhs.rhs(), temp);
+                lhs = temp;
+              }
+              else
+                viennacl::linalg::prod_impl(rhs.lhs(), rhs.rhs(), lhs);
+            }
+        };
 
-        result.clear();
+        template <typename T, unsigned int A>
+        struct op_executor<vector_base<T>, op_inplace_add, vector_expression<const ell_matrix<T, A>, const vector_base<T>, op_prod> >
+        {
+            static void apply(vector_base<T> & lhs, vector_expression<const ell_matrix<T, A>, const vector_base<T>, op_prod> const & rhs)
+            {
+              viennacl::vector<T> temp(lhs);
+              viennacl::linalg::prod_impl(rhs.lhs(), rhs.rhs(), temp);
+              lhs += temp;
+            }
+        };
 
-        std::stringstream ss;
-        ss << "vec_mul_" << 1;//(ALIGNMENT != 1?4:1);
-        viennacl::ocl::kernel& k = viennacl::ocl::get_kernel(viennacl::linalg::kernels::ell_matrix<TYPE, ALIGNMENT>::program_name(), "vec_mul");
-
-        unsigned int thread_num = 128;
-        unsigned int group_num = 256;
-
-        k.local_work_size(0, thread_num);
-        k.global_work_size(0, thread_num * group_num);
-
-        viennacl::ocl::enqueue(k(mat.handle2(), 
-                                 mat.handle1(),
-                                 vec,
-                                 result,
-                                 cl_uint(mat.size1()),
-                                 cl_uint(mat.size2()),
-                                 cl_uint(mat.internal_size1()),
-                                 cl_uint(mat.maxnnz()),
-                                 cl_uint(mat.internal_maxnnz())
-                                ) 
-        );
+        template <typename T, unsigned int A>
+        struct op_executor<vector_base<T>, op_inplace_sub, vector_expression<const ell_matrix<T, A>, const vector_base<T>, op_prod> >
+        {
+            static void apply(vector_base<T> & lhs, vector_expression<const ell_matrix<T, A>, const vector_base<T>, op_prod> const & rhs)
+            {
+              viennacl::vector<T> temp(lhs);
+              viennacl::linalg::prod_impl(rhs.lhs(), rhs.rhs(), temp);
+              lhs -= temp;
+            }
+        };
 
 
-      }
-    }
-    
-    
-    /** @brief Implementation of the operation v1 = A * v2, where A is a matrix
-    *
-    * @param proxy  An expression template proxy class.
-    */
-    template <typename SCALARTYPE, unsigned int ALIGNMENT>
-    template <unsigned int MAT_ALIGNMENT>
-    viennacl::vector<SCALARTYPE, ALIGNMENT> & 
-    viennacl::vector<SCALARTYPE, ALIGNMENT>::operator=(const viennacl::vector_expression< const ell_matrix<SCALARTYPE, MAT_ALIGNMENT>,
-                                                                                          const viennacl::vector<SCALARTYPE, ALIGNMENT>,
-                                                                                          viennacl::op_prod> & proxy) 
-    {
-      // check for the special case x = A * x
-      if (proxy.rhs().handle().get() == this->handle().get())
-      {
-        viennacl::vector<SCALARTYPE, ALIGNMENT> result(proxy.rhs().size());
-        viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), result);
-        *this = result;
-        return *this;
-      }
-      else
-      {
-        viennacl::linalg::prod_impl(proxy.lhs(), proxy.rhs(), *this);
-        return *this;
-      }
-      return *this;
-    }
-    
+        // x = A * vec_op
+        template <typename T, unsigned int A, typename LHS, typename RHS, typename OP>
+        struct op_executor<vector_base<T>, op_assign, vector_expression<const ell_matrix<T, A>, const vector_expression<const LHS, const RHS, OP>, op_prod> >
+        {
+            static void apply(vector_base<T> & lhs, vector_expression<const ell_matrix<T, A>, const vector_expression<const LHS, const RHS, OP>, op_prod> const & rhs)
+            {
+              viennacl::vector<T> temp(rhs.rhs(), viennacl::traits::context(rhs));
+              viennacl::linalg::prod_impl(rhs.lhs(), temp, lhs);
+            }
+        };
+
+        // x = A * vec_op
+        template <typename T, unsigned int A, typename LHS, typename RHS, typename OP>
+        struct op_executor<vector_base<T>, op_inplace_add, vector_expression<const ell_matrix<T, A>, const vector_expression<const LHS, const RHS, OP>, op_prod> >
+        {
+            static void apply(vector_base<T> & lhs, vector_expression<const ell_matrix<T, A>, const vector_expression<const LHS, const RHS, OP>, op_prod> const & rhs)
+            {
+              viennacl::vector<T> temp(rhs.rhs(), viennacl::traits::context(rhs));
+              viennacl::vector<T> temp_result(lhs);
+              viennacl::linalg::prod_impl(rhs.lhs(), temp, temp_result);
+              lhs += temp_result;
+            }
+        };
+
+        // x = A * vec_op
+        template <typename T, unsigned int A, typename LHS, typename RHS, typename OP>
+        struct op_executor<vector_base<T>, op_inplace_sub, vector_expression<const ell_matrix<T, A>, const vector_expression<const LHS, const RHS, OP>, op_prod> >
+        {
+            static void apply(vector_base<T> & lhs, vector_expression<const ell_matrix<T, A>, const vector_expression<const LHS, const RHS, OP>, op_prod> const & rhs)
+            {
+              viennacl::vector<T> temp(rhs.rhs(), viennacl::traits::context(rhs));
+              viennacl::vector<T> temp_result(lhs);
+              viennacl::linalg::prod_impl(rhs.lhs(), temp, temp_result);
+              lhs -= temp_result;
+            }
+        };
+
+     } // namespace detail
+   } // namespace linalg
+
+    /** \endcond */
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -2,16 +2,17 @@
 #define VIENNACL_META_TAGOF_HPP_
 
 /* =========================================================================
-   Copyright (c) 2010-2012, Institute for Microelectronics,
+   Copyright (c) 2010-2014, Institute for Microelectronics,
                             Institute for Analysis and Scientific Computing,
                             TU Wien.
+   Portions of this software are copyright by UChicago Argonne, LLC.
 
                             -----------------
                   ViennaCL - The Vienna Computing Library
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
@@ -22,18 +23,23 @@
     @brief Dispatch facility for distinguishing between ublas, STL and ViennaCL types
 */
 
-#ifdef VIENNACL_HAVE_UBLAS  
+#include <vector>
+#include <map>
+
+#include "viennacl/forwards.h"
+
+#ifdef VIENNACL_WITH_UBLAS
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #endif
 
-#ifdef VIENNACL_HAVE_EIGEN  
+#ifdef VIENNACL_WITH_EIGEN
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #endif
 
-#ifdef VIENNACL_HAVE_MTL4
+#ifdef VIENNACL_WITH_MTL4
 #include <boost/numeric/mtl/mtl.hpp>
 #endif
 
@@ -43,11 +49,17 @@ namespace viennacl
   // ----------------------------------------------------
   // TAGS
   //
+  /** @brief A tag class for identifying 'unknown' types. */
   struct tag_none     {};
+  /** @brief A tag class for identifying types from MTL4. */
   struct tag_mtl4     {};
+  /** @brief A tag class for identifying types from Eigen. */
   struct tag_eigen    {};
+  /** @brief A tag class for identifying types from uBLAS. */
   struct tag_ublas    {};
+  /** @brief A tag class for identifying types from the C++ STL. */
   struct tag_stl      {};
+  /** @brief A tag class for identifying types from ViennaCL. */
   struct tag_viennacl {};
 
   namespace traits
@@ -56,7 +68,7 @@ namespace viennacl
     // GENERIC BASE
     //
     /** @brief Generic base for wrapping other linear algebra packages
-    * 
+    *
     *  Maps types to tags, e.g. viennacl::vector to tag_viennacl, ublas::vector to tag_ublas
     *  if the matrix type is unknown, tag_none is returned
     *
@@ -66,14 +78,15 @@ namespace viennacl
     */
     template< typename T, typename Active = void >
     struct tag_of;
-   
+
+    /** \cond */
     template < typename Sequence, typename Active >
     struct tag_of
     {
       typedef viennacl::tag_none  type;
     };
-    
-    #ifdef VIENNACL_HAVE_MTL4
+
+    #ifdef VIENNACL_WITH_MTL4
     // ----------------------------------------------------
     // MTL4
     //
@@ -95,9 +108,9 @@ namespace viennacl
       typedef viennacl::tag_mtl4  type;
     };
     #endif
-    
-    
-    #ifdef VIENNACL_HAVE_EIGEN
+
+
+    #ifdef VIENNACL_WITH_EIGEN
     // ----------------------------------------------------
     // Eigen
     //
@@ -130,10 +143,10 @@ namespace viennacl
     {
       typedef viennacl::tag_eigen  type;
     };
-    
+
     #endif
-    
-    #ifdef VIENNACL_HAVE_UBLAS
+
+    #ifdef VIENNACL_WITH_UBLAS
     // ----------------------------------------------------
     // UBLAS
     //
@@ -160,13 +173,13 @@ namespace viennacl
     {
       typedef viennacl::tag_ublas  type;
     };
-    
+
     #endif
 
     // ----------------------------------------------------
     // STL types
     //
-    
+
     //vector
     template< typename T, typename A >
     struct tag_of< std::vector<T, A> >
@@ -187,8 +200,8 @@ namespace viennacl
     {
       typedef viennacl::tag_stl  type;
     };
-    
-    
+
+
     // ----------------------------------------------------
     // VIENNACL
     //
@@ -215,7 +228,7 @@ namespace viennacl
     {
       typedef viennacl::tag_viennacl  type;
     };
-    
+
     template< typename T, unsigned int I>
     struct tag_of< viennacl::compressed_matrix<T,I> >
     {
@@ -239,7 +252,7 @@ namespace viennacl
     {
       typedef viennacl::tag_viennacl  type;
     };
-    
+
     template< typename T, unsigned int I>
     struct tag_of< viennacl::circulant_matrix<T,I> >
     {
@@ -251,90 +264,98 @@ namespace viennacl
     {
       typedef viennacl::tag_viennacl  type;
     };
-    
+
     template< typename T, unsigned int I>
     struct tag_of< viennacl::toeplitz_matrix<T,I> >
     {
       typedef viennacl::tag_viennacl  type;
     };
-    
+
     template< typename T, unsigned int I>
     struct tag_of< viennacl::vandermonde_matrix<T,I> >
     {
       typedef viennacl::tag_viennacl  type;
     };
-    
-    
+    /** \endcond */
+
     // ----------------------------------------------------
   } // end namespace traits
 
 
-  /** @brief Meta function which checks whether a tag is tag_mtl4 
+  /** @brief Meta function which checks whether a tag is tag_mtl4
   *
   *  This is an internal function only, there is no need for a library user of ViennaCL to care about it any further
   */
   template <typename Tag>
   struct is_mtl4
   {
-     enum { value = false };  
+     enum { value = false };
   };
 
+  /** \cond */
   template <>
   struct is_mtl4< viennacl::tag_mtl4 >
   {
-     enum { value = true };  
+     enum { value = true };
   };
+  /** \endcond */
 
-  /** @brief Meta function which checks whether a tag is tag_eigen 
+  /** @brief Meta function which checks whether a tag is tag_eigen
   *
   *  This is an internal function only, there is no need for a library user of ViennaCL to care about it any further
   */
   template <typename Tag>
   struct is_eigen
   {
-     enum { value = false };  
+     enum { value = false };
   };
 
+  /** \cond */
   template <>
   struct is_eigen< viennacl::tag_eigen >
   {
-     enum { value = true };  
+     enum { value = true };
   };
+  /** \endcond */
 
 
-  /** @brief Meta function which checks whether a tag is tag_ublas 
+  /** @brief Meta function which checks whether a tag is tag_ublas
   *
   *  This is an internal function only, there is no need for a library user of ViennaCL to care about it any further
   */
   template <typename Tag>
   struct is_ublas
   {
-     enum { value = false };  
+     enum { value = false };
   };
 
+  /** \cond */
   template <>
   struct is_ublas< viennacl::tag_ublas >
   {
-     enum { value = true };  
+     enum { value = true };
   };
+  /** \endcond */
 
-  /** @brief Meta function which checks whether a tag is tag_ublas 
+  /** @brief Meta function which checks whether a tag is tag_ublas
   *
   *  This is an internal function only, there is no need for a library user of ViennaCL to care about it any further
   */
   template <typename Tag>
   struct is_stl
   {
-     enum { value = false };  
+     enum { value = false };
   };
 
+  /** \cond */
   template <>
   struct is_stl< viennacl::tag_stl >
   {
-     enum { value = true };  
+     enum { value = true };
   };
+  /** \endcond */
 
-  
+
   /** @brief Meta function which checks whether a tag is tag_viennacl
   *
   *  This is an internal function only, there is no need for a library user of ViennaCL to care about it any further
@@ -342,14 +363,16 @@ namespace viennacl
   template <typename Tag>
   struct is_viennacl
   {
-     enum { value = false };  
+     enum { value = false };
   };
 
+  /** \cond */
   template <>
   struct is_viennacl< viennacl::tag_viennacl >
   {
-     enum { value = true };  
+     enum { value = true };
   };
+  /** \endcond */
 
 } // end namespace viennacl
 
