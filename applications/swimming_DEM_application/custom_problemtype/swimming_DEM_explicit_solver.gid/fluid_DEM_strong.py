@@ -41,21 +41,22 @@ import DEM_explicit_solver_var
 import DEM_procedures
 import swimming_DEM_procedures
 import embedded
+import mesh_motion #S
 
 # listing project parameters (to be put in problem type)
 ProjectParameters.dem                                  = DEM_explicit_solver_var
 ProjectParameters.projection_module_option             = 1
 ProjectParameters.print_particles_results_option       = 0
-ProjectParameters.add_each_hydro_force_option          = 0 # add each of the hydrodynamic forces (drag, lift and virtual mass)
-ProjectParameters.project_at_every_substep_option      = 1
+ProjectParameters.add_each_hydro_force_option          = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)
+ProjectParameters.project_at_every_substep_option      = 0
 ProjectParameters.velocity_trap_option                 = 0
 ProjectParameters.inlet_option                         = 0
 ProjectParameters.manually_imposed_drag_law_option     = 0
-ProjectParameters.stationary_problem_option            = 1 # stationary, stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.stationary_problem_option            = 0 # stationary, stop calculating the fluid after it reaches the stationary state (1)
 ProjectParameters.flow_in_porous_medium_option         = 0 # the porosity is an imposed field (1)
 ProjectParameters.flow_in_porous_DEM_medium_option     = 0 # the DEM part is kept static (1)
-ProjectParameters.embedded_option                      = 0 # the embedded domain tools are to be used (1)
-ProjectParameters.make_results_directories_option      = 1 # results are written into a folder (../results) inside the problem folder
+ProjectParameters.embedded_option                      = 1 # the embedded domain tools are to be used (1)
+ProjectParameters.make_results_directories_option      = 0 # results are written into a folder (../results) inside the problem folder
 ProjectParameters.body_force_on_fluid_option           = 1
 ProjectParameters.print_REYNOLDS_NUMBER_option         = 0
 ProjectParameters.print_PRESSURE_GRAD_PROJECTED_option = 1
@@ -69,14 +70,15 @@ ProjectParameters.print_MESH_VELOCITY1_option          = 1
 ProjectParameters.print_SOLID_FRACTION_GRADIENT_option = 1
 ProjectParameters.print_BODY_FORCE_option              = 1
 ProjectParameters.print_HYDRODYNAMIC_REACTION_option   = 1
+ProjectParameters.print_HYDRODYNAMIC_FORCE_option      = 1
 ProjectParameters.similarity_transformation_type       = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type               = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-ProjectParameters.fluid_model_type                     = 1 # untouched, velocity incremented by 1/solid_fraction (0), modified mass conservation only (1)
+ProjectParameters.fluid_model_type                     = 0 # untouched, velocity incremented by 1/solid_fraction (0), modified mass conservation only (1)
 ProjectParameters.coupling_level_type                  = 1 # one way coupling (0), two way coupling (1)
-ProjectParameters.coupling_scheme_type                 = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
+ProjectParameters.coupling_scheme_type                 = "UpdatedDEM" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type               = 2 # {fluid_to_DEM, DEM_to_fluid, solid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
 ProjectParameters.buoyancy_force_type                  = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
-ProjectParameters.drag_force_type                      = 1 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
+ProjectParameters.drag_force_type                      = 2 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
 ProjectParameters.virtual_mass_force_type              = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                      = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type                   = 3 # Hayder (2), Chien (3) # problemtype option
@@ -104,6 +106,9 @@ swimming_DEM_procedures.ModifyProjectParameters(ProjectParameters)
 # * Listing nodal variables to be added to the model parts (memory will be allocated for them).
 #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
 swimming_DEM_procedures.ConstructListsOfVariables(ProjectParameters)
+
+#print (ProjectParameters.dem_vars)
+#print (ProjectParameters.fem_dem_vars)
 
 #_____________________________________________________________________________________________________________________________________
 #
@@ -151,7 +156,7 @@ swimming_DEM_procedures.AddNodalVariables(fluid_model_part, ProjectParameters.fl
 input_file_name = ProjectParameters.problem_name
 
 # reading the fluid part
-model_part_io_fluid = ModelPartIO(input_file_name)
+model_part_io_fluid = ModelPartIO(input_file_name, True)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #_____________________________________________________________________________________________________________________________________
@@ -168,6 +173,8 @@ print('Adding nodal variables to the balls_model_part')  # (memory allocation)
 sys.stdout.flush()
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, ProjectParameters.dem_vars)
+
+print (balls_model_part.GetNodalSolutionStepVariablesList())
 
 print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
 sys.stdout.flush()
@@ -391,6 +398,13 @@ dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
 dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, ProjectParameters.dem)
 
+# creating a distance calculation process for the embedded technology
+# (used to calculate elemental distances defining the structure embedded in the fluid mesh)
+if (ProjectParameters.embedded_option):
+    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
+    #calculate_distance_process.Execute()
+    mesh_motion = DEMFEMUtilities()
+
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
 if (ProjectParameters.inlet_option):
@@ -412,7 +426,7 @@ if (ProjectParameters.inlet_option):
     # constructiong the inlet and intializing it
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
-
+    
 # creating problem directories
 directories = ['results']
 
@@ -497,6 +511,11 @@ while (time <= final_time):
 
     else:
         time_final_DEM_substepping = time
+        time_dem = time - Dt + Dt_DEM #S
+   
+        # Calculate elemental distances defining the structure embedded in the fluid mesh
+        if (ProjectParameters.embedded_option): #S
+            calculate_distance_process.Execute()
 
     #embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
     # Calculate elemental distances defining the structure embedded in the fluid mesh
@@ -504,9 +523,9 @@ while (time <= final_time):
     #calculate_distance_process.Execute()
     #calculate_DEM_distance_process.Execute()
 
-    #if(step >= 3):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
-        #embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
-        #embedded.ApplyEmbeddedBCsToBalls(balls_model_part)
+    if (step >= 3 and ProjectParameters.embedded_option):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
+        embedded.ApplyEmbeddedBCsToBalls(balls_model_part, ProjectParameters.dem)
 
     # solving the fluid part
 
@@ -561,6 +580,10 @@ while (time <= final_time):
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
 
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
+        
+        # walls movement  
+        if (ProjectParameters.embedded_option):
+            mesh_motion.MoveAllMeshes(fem_dem_model_part, time)
 
         # applying fluid-to-DEM coupling if required
 
@@ -593,7 +616,7 @@ while (time <= final_time):
 
     # applying DEM-to-fluid coupling
 
-    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.dem.project_from_particles_option):
+    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.coupling_level_type == 1):
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
         projection_module.ProjectFromParticles()
