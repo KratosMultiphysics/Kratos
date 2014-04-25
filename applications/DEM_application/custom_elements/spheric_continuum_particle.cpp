@@ -429,16 +429,20 @@ namespace Kratos
                                                           other_to_me_vect[1] * other_to_me_vect[1] +
                                                           other_to_me_vect[2] * other_to_me_vect[2]);
             double radius_sum                     = mRadius + other_radius;
-            double radius_sum_i                   = 1 / radius_sum;
-            double equiv_radius                   = 2 * mRadius * other_radius * radius_sum_i; 
+            double radius_sum_i                   = 1.0 / radius_sum;
+            double equiv_radius                   = 2.0 * mRadius * other_radius * radius_sum_i; 
             
             double initial_delta                  = mNeighbourDelta[i_neighbour_count]; //*
             double initial_dist                   = (radius_sum - initial_delta);
-            double initial_dist_i                 = 1 / initial_dist;
+            double initial_dist_i                 = 1.0 / initial_dist;
             double indentation                    = initial_dist - distance;   //#1
             double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
             double calculation_area               = equiv_area;
             double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
+            double myYoung                        = GetYoung();
+            double myPoisson                      = GetPoisson();
+            double myLnOfRestitCoeff              = GetLnOfRestitCoeff();
+            double myTgOfFrictionAngle            = GetTgOfFrictionAngle();
 
             double equiv_young;
             double equiv_poisson;
@@ -477,10 +481,10 @@ namespace Kratos
             double other_ln_of_restit_coeff  = neighbour_iterator->GetLnOfRestitCoeff();
             double other_tg_of_fri_angle     = neighbour_iterator->GetTgOfFrictionAngle();
 
-            equiv_young                       = 2 * mYoung * other_young / (mYoung + other_young);
-            equiv_poisson                     = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-            equiv_ln_of_restit_coeff          = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-            equiv_tg_of_fri_ang               = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+            equiv_young                       = 2.0 * myYoung * other_young / (myYoung + other_young);
+            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+            equiv_ln_of_restit_coeff          = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+            equiv_tg_of_fri_ang               = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
         
             double aux_norm_to_tang = 0.0;
 
@@ -491,7 +495,7 @@ namespace Kratos
               if(other_radius<mRadius) rmin = other_radius;
               
               calculation_area = M_PI*rmin*rmin;
-              double equiv_shear = equiv_young/(2*(1+equiv_poisson));
+              double equiv_shear = equiv_young/(2.0*(1+equiv_poisson));
               
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
@@ -678,7 +682,7 @@ namespace Kratos
                 else //KDEM
                 {
                 
-                  if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0)
+                  if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0)
                   {
                       equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn_el);
                       equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
@@ -715,7 +719,7 @@ namespace Kratos
               ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,rInitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
             }
 
-            if(mContactMeshOption==1 && (mapping_new_cont !=-1)) 
+            if(mContactMeshOption==1 && (mapping_new_cont !=-1) && this->Id() < neighbour_iterator_id) 
             {
 
               CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_cont, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, time_steps);
@@ -1534,14 +1538,16 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                       if( my_id < neigh_id )
                         {
 
-                          lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[cont_neigh_index];
+                          //lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[cont_neigh_index];
+                          lock_p_weak->mLocalContactAreaLow = mcont_ini_neigh_area[cont_neigh_index];
                                                     
                         } // if my id < neigh id
                         
                         else
                         {
 
-                          lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[cont_neigh_index];
+                          //lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[cont_neigh_index];
+                          lock_p_weak->mLocalContactAreaHigh = mcont_ini_neigh_area[cont_neigh_index];
                           
                         }
                         
@@ -1564,7 +1570,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                 else //last operation
                 {
                   
-                  mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+                  //mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+                   mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->mMeanContactArea;   
                 
                 }
                 
@@ -1600,7 +1607,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                 }
 
                 //double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
-                double K = mYoung * M_PI * mRadius;
+                double K = GetYoung() * M_PI * mRadius;
 
                 Output = 0.34 * sqrt( mass / K);
 
@@ -1861,40 +1868,40 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
        //if ( (node_to_neigh_element_pointer(mapping_new_cont)).expired() ) 
          //  KRATOS_WATCH("You are using a pointer that points to nowhere. Something has to be Fixed!!!")
               
-       if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
-        {
-            //COPY VARIABLES LOW
-                                        
-            //storing values:
-              
-            //HIGH-LOW variables
-            /*array_1d<double,3> local_contact_force = lock_p_weak->GetValue(LOCAL_CONTACT_FORCE);      
-            local_contact_force[0] = LocalElasticContactForce[0];
-            local_contact_force[1] = LocalElasticContactForce[1];
-            local_contact_force[2] = LocalElasticContactForce[2];*/
-            bond->mLocalContactForce[0] = LocalElasticContactForce[0];
-            bond->mLocalContactForce[1] = LocalElasticContactForce[1];
-            bond->mLocalContactForce[2] = LocalElasticContactForce[2];
-                  
-  
-            /*bond->GetValue(CONTACT_SIGMA) = contact_sigma;
-            bond->GetValue(CONTACT_TAU)   = contact_tau;
+       //if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
+        //{
+        //COPY VARIABLES LOW
 
-            bond->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
-            bond->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
+        //storing values:
 
-            if( ( acumulated_damage > bond->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (rCurrentProcessInfo[TIME_STEPS] == 0) )
-             { bond->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }  */
-            bond->mContactSigma = contact_sigma;
-            bond->mContactTau   = contact_tau;
+        //HIGH-LOW variables
+        /*array_1d<double,3> local_contact_force = lock_p_weak->GetValue(LOCAL_CONTACT_FORCE);      
+        local_contact_force[0] = LocalElasticContactForce[0];
+        local_contact_force[1] = LocalElasticContactForce[1];
+        local_contact_force[2] = LocalElasticContactForce[2];*/
+        bond->mLocalContactForce[0] = LocalElasticContactForce[0];
+        bond->mLocalContactForce[1] = LocalElasticContactForce[1];
+        bond->mLocalContactForce[2] = LocalElasticContactForce[2];
 
-            bond->mContactFailure = (mNeighbourFailureId[i_neighbour_count]);                                        
-            bond->mFailureCriterionState = failure_criterion_state;
 
-            if( ( acumulated_damage > bond->mUnidimendionalDamage ) || ( time_steps == 0) )
-             { bond->mUnidimendionalDamage = acumulated_damage; }  
+        /*bond->GetValue(CONTACT_SIGMA) = contact_sigma;
+        bond->GetValue(CONTACT_TAU)   = contact_tau;
+
+        bond->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
+        bond->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
+
+        if( ( acumulated_damage > bond->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (rCurrentProcessInfo[TIME_STEPS] == 0) )
+         { bond->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }  */
+        bond->mContactSigma = contact_sigma;
+        bond->mContactTau   = contact_tau;
+
+        bond->mContactFailure = (mNeighbourFailureId[i_neighbour_count]);                                        
+        bond->mFailureCriterionState = failure_criterion_state;
+
+        if( ( acumulated_damage > bond->mUnidimendionalDamage ) || ( time_steps == 0) )
+         { bond->mUnidimendionalDamage = acumulated_damage; }  
                 
-        } // if Target Id < Neigh Id
+       // } // if Target Id < Neigh Id
         
         
         

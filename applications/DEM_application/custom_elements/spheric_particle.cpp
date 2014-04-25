@@ -54,36 +54,27 @@ namespace Kratos
 
           mDimension                = 3;
           mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
-          mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-          mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-          mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-          double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-          //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+          
+          
+          /*mYoung                    = GetProperties()[YOUNG_MODULUS];         
+          mPoisson                  = GetProperties()[POISSON_RATIO];  
+          mTgOfFrictionAngle        = GetProperties()[PARTICLE_FRICTION];  
+          mLnOfRestitCoeff          = GetProperties()[LN_OF_RESTITUTION_COEFF];  
+          double& density           = GetProperties()[PARTICLE_DENSITY];  */
+          double density            = GetDensity();
+          
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);          
 
           double mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);
-          //double moment_of_inertia         = 0.4 * mass * mRadius * mRadius; 
           
-          //mRealMass                 = mass;                    
           mSqrtOfRealMass           = sqrt_of_mass;
-          //mMomentOfInertia          = moment_of_inertia;
 
-          //if (mRotationOption){
           if (this->Is(DEMFlags::HAS_ROTATION) ){
             double moment_of_inertia = 0.4 * mass * mRadius * mRadius;   
             GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }
-          
-          //OPTIMIZATION
-          //GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS)         = GetGeometry()[0].GetDofPosition(VELOCITY_X); 
-          //GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS)         = GetGeometry()[0].GetDofPosition(VELOCITY_Y); 
-          //GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS)         = GetGeometry()[0].GetDofPosition(VELOCITY_Z); 
-          //GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_X_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_X); 
-          //GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_Y); 
-          //GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_Z);
-          //GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES)            = GetGeometry()(0)->Coordinates();
+
           if ( GetGeometry()(0)->GetDof(VELOCITY_X).IsFixed() )         GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_X,true);
           else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_X,false);
           if ( GetGeometry()(0)->GetDof(VELOCITY_Y).IsFixed() )         GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_Y,true);
@@ -198,6 +189,8 @@ namespace Kratos
           //ParticleWeakVectorType& rNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
           double added_potential_energy_of_contacts   = 0.0;
           size_t i_neighbour_count                    = 0;
+          double myYoung = GetYoung();
+          double myPoisson = GetPoisson();
 
           ComputeNewNeighboursHistoricalData();
 
@@ -224,8 +217,8 @@ namespace Kratos
               const double other_young           = neighbour_iterator->GetYoung();
               const double other_poisson         = neighbour_iterator->GetPoisson();
 
-              equiv_young                         = 2 * mYoung * other_young / (mYoung + other_young);
-              equiv_poisson                       = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+              equiv_young                         = 2 * myYoung * other_young / (myYoung + other_young);
+              equiv_poisson                       = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
           
 
        
@@ -405,8 +398,6 @@ namespace Kratos
                                                       SphericParticle* neighbour_iterator,
                                                       double& distance)
       {
-
-
           // FORMING LOCAL CORDINATES
 
           //Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
@@ -415,20 +406,12 @@ namespace Kratos
           GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coord System (normalizes other_to_me_vect)
 
           // FORMING OLD LOCAL CORDINATES
-
-          //array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES);
-          //array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES);
           const array_1d<double,3> old_coord_target       = this->GetGeometry()(0)->Coordinates() - delta_displ;
           const array_1d<double, 3 > & other_delta_displ  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
           const array_1d<double,3> old_coord_neigh        = neighbour_iterator->GetGeometry()(0)->Coordinates() - other_delta_displ;
           
           array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;                    
 
-          //OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
-          //OldNormalDir[1] = Old_other_to_me_vect[1];
-          //OldNormalDir[2] = Old_other_to_me_vect[2];
-          
-          //GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
           const double old_distance = sqrt(Old_other_to_me_vect[0]*Old_other_to_me_vect[0] + Old_other_to_me_vect[1]*Old_other_to_me_vect[1] + Old_other_to_me_vect[2]*Old_other_to_me_vect[2]);
           
           GeometryFunctions::ComputeContactLocalCoordSystem(Old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coord System
@@ -436,7 +419,6 @@ namespace Kratos
           // VELOCITIES AND DISPLACEMENTS
           const array_1d<double, 3 >& other_vel          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
           
-
           RelVel[0] = (vel[0] - other_vel[0]);
           RelVel[1] = (vel[1] - other_vel[1]);
           RelVel[2] = (vel[2] - other_vel[2]);
@@ -505,7 +487,7 @@ namespace Kratos
 
           //if (mRollingFrictionOption){  // rolling friction 
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){    
-              double rolling_friction_coeff            = mRollingFriction * mRadius;
+              double rolling_friction_coeff            = GetRollingFriction() * mRadius;
               //const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               const double other_rolling_friction = neighbour_iterator->GetRollingFriction();
               double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
@@ -772,10 +754,11 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           
       ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
 
-      double mTimeStep    = rCurrentProcessInfo[DELTA_TIME];
-      double area           = M_PI * mRadius * mRadius;
+      double mTimeStep        = rCurrentProcessInfo[DELTA_TIME];
+      double myYoung          = GetYoung();
+      double myPoisson        = GetPoisson();
+      double area             = M_PI * mRadius * mRadius;
 
-      //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
       array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
 
       std::size_t iRigidFaceNeighbour = 0;
@@ -812,20 +795,20 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
         
             case 0:
-                kn_el    = 1.0 * mYoung * area / (2.0 * mRadius - ini_delta);
+                kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
             break;
             
             case 1:
-                kn_el    = (4/3) * (mYoung / 2 * (1 - mPoisson * mPoisson)) * sqrt(mRadius - ini_delta);
+                kn_el    = (4/3) * (myYoung / 2 * (1 - myPoisson * myPoisson)) * sqrt(mRadius - ini_delta);
             break;
             
             default:
-                kn_el    = 1.0 * mYoung * area / (2.0 * mRadius - ini_delta);
+                kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
             break;
             
         }//switch
         
-        double ks_el = kn_el / (2.0 * (1.0 + mPoisson));
+        double ks_el = kn_el / (2.0 * (1.0 + myPoisson));
         double aux_norm_to_tang = sqrt(ks_el / kn_el);
         double DistPToB = 0.0;
 
@@ -867,26 +850,19 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         }
         
         double indentation = -(DistPToB - mRadius) - ini_delta;
-
         
         double DeltDisp[3] = {0.0};
         double DeltVel [3] = {0.0};
 
-
-
         DeltVel[0] = (vel[0] - other_to_me_vel[0]);
         DeltVel[1] = (vel[1] - other_to_me_vel[1]);
         DeltVel[2] = (vel[2] - other_to_me_vel[2]);
-
-
 
         // For translation movement delt displacement
         DeltDisp[0] = DeltVel[0] * mTimeStep;
         DeltDisp[1] = DeltVel[1] * mTimeStep;
         DeltDisp[2] = DeltVel[2] * mTimeStep;
 
-
-        //if (mRotationOption)
         if (this->Is(DEMFlags::HAS_ROTATION) )
         {
           double velA[3]   = {0.0};
@@ -940,7 +916,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         }
         else
         {
-
           double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
           double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
           +      LocalElasticContactForce[1] * LocalElasticContactForce[1]);
@@ -985,13 +960,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           else
           {
             
-            if (mLnOfRestitCoeff > 0.0)
+            if ( GetLnOfRestitCoeff() > 0.0)
             {
               equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
             }
             else 
             {
-              equiv_visco_damp_coeff_normal = -2.0 * mLnOfRestitCoeff * sqrt(mass * kn_el / (mLnOfRestitCoeff * mLnOfRestitCoeff + M_PI * M_PI));
+              equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + M_PI * M_PI));
             }
 
             equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
@@ -1035,7 +1010,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               
             
-            double rolling_friction_coeff       = mRollingFriction * mRadius;
+            double rolling_friction_coeff       = GetRollingFriction() * mRadius;
 
             if (rolling_friction_coeff != 0.0)
             {
@@ -1130,6 +1105,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           double visco_damp_coeff_normal;
           double visco_damp_coeff_tangential;
           //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+          double myYoung = GetYoung();
+          double myPoisson = GetPoisson();
 
           InitialRotaMoment [0] = rInitialRotaMoment [0];
           InitialRotaMoment [1] = rInitialRotaMoment [1];
@@ -1208,21 +1185,21 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
                 
                          case 0:
-                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                             kt = kn / (2.0 * (1.0 + mPoisson));
+                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + myPoisson));
                         
                          break;
 
                          case 1:
-                             equiv_young = mYoung / (1- mPoisson * mPoisson);
+                             equiv_young = myYoung / (1- myPoisson * myPoisson);
                              kn                 = (4/3) * equiv_young * sqrt(mRadius);
-                             kt                 = 2.0 * kn * (1 - mPoisson * mPoisson) / ((2.0 - mPoisson) * (1 + mPoisson));               
+                             kt                 = 2.0 * kn * (1 - myPoisson * myPoisson) / ((2.0 - myPoisson) * (1 + myPoisson));               
                  
                          break;
 
                          default:
-                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                             kt = kn / (2.0 * (1.0 + mPoisson));
+                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + myPoisson));
 
                          break;
 
@@ -1242,13 +1219,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  double aux_norm_to_tang = sqrt(kt / kn);
                  double mass = mSqrtOfRealMass * mSqrtOfRealMass;
 
-                 if (mLnOfRestitCoeff > 0.0){
+                 if (GetLnOfRestitCoeff() > 0.0){
                      visco_damp_coeff_normal     = 2 * sqrt(mass * kn);
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
                  }
 
           else {
-                     visco_damp_coeff_normal     = - 2 * mLnOfRestitCoeff * sqrt(mass * kn / (mLnOfRestitCoeff * mLnOfRestitCoeff + M_PI * M_PI));
+                     visco_damp_coeff_normal     = - 2 * GetLnOfRestitCoeff() * sqrt(mass * kn / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + M_PI * M_PI));
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
           }
 
@@ -1427,7 +1404,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
                          //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
                          
-                         double rolling_friction_coeff       = mRollingFriction * mRadius;
+                         double rolling_friction_coeff       = GetRollingFriction() * mRadius;
 
                          if (rolling_friction_coeff != 0.0){
 							 double MaxRotaMoment[3]      = {0.0};
@@ -1506,6 +1483,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
           double dt             = rCurrentProcessInfo[DELTA_TIME];
           int time_step         = rCurrentProcessInfo[TIME_STEPS];
+          
+          double myYoung = GetYoung();
+          double myPoisson = GetPoisson();
+          double myLnOfRestitCoeff = GetLnOfRestitCoeff();
 
           array_1d<double,3> CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_1];
           array_1d<double,3> InitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE_1];
@@ -1698,22 +1679,22 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
                 
                          case 0:
-                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                             kt = kn / (2.0 * (1.0 + mPoisson));
+                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + myPoisson));
                         
                          break;
 
                          case 1:
-                             equiv_young      = mYoung / (1- mPoisson * mPoisson);
+                             equiv_young      = myYoung / (1- myPoisson * myPoisson);
                              effective_radius = mRadius * CylinderRadius / (CylinderRadius - mRadius);
                              kn                      = (4/3) * equiv_young * sqrt(effective_radius);
-                             kt                      = 2.0 * kn * (1 - mPoisson * mPoisson) / ((2.0 - mPoisson) * (1 + mPoisson));               
+                             kt                      = 2.0 * kn * (1 - myPoisson * myPoisson) / ((2.0 - myPoisson) * (1 + myPoisson));               
                  
                          break;
 
                          default:
-                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                             kt = kn / (2.0 * (1.0 + mPoisson));
+                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + myPoisson));
 
                          break;
 
@@ -1733,13 +1714,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      double aux_norm_to_tang = sqrt(kt / kn);
                      double mass = mSqrtOfRealMass * mSqrtOfRealMass;
 
-                     if (mLnOfRestitCoeff > 0.0){
+                     if (myLnOfRestitCoeff > 0.0){
                          visco_damp_coeff_normal     = 2 * sqrt(mass * kn);
                          visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
                      }
     
                      else {
-                         visco_damp_coeff_normal     = - 2 * mLnOfRestitCoeff * sqrt(mass * kn / (mLnOfRestitCoeff * mLnOfRestitCoeff + M_PI * M_PI));
+                         visco_damp_coeff_normal     = - 2 * myLnOfRestitCoeff * sqrt(mass * kn / (myLnOfRestitCoeff * myLnOfRestitCoeff + M_PI * M_PI));
                          visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
                      }
 
@@ -1934,7 +1915,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                          //if (mRollingFrictionOption){  // Rolling friction 
                          if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
                              //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-                             double rolling_friction_coeff       = mRollingFriction * mRadius;
+                             double rolling_friction_coeff       = GetRollingFriction() * mRadius;
 
                              if (rolling_friction_coeff != 0.0){
 								 double MaxRotaMoment[3]      = {0.0};
@@ -2079,6 +2060,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                                                                       //ParticleWeakIteratorType neighbour_iterator)
                                                                       SphericParticle* neighbour_iterator)
       {
+          double myYoung = GetYoung();
+          double myPoisson = GetPoisson();
+          double myLnOfRestitCoeff = GetLnOfRestitCoeff();
+          double myTgOfFrictionAngle = GetTgOfFrictionAngle();
         //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
         double other_sqrt_of_mass               = neighbour_iterator->GetSqrtOfRealMass();
         //const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
@@ -2111,10 +2096,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
         
             case 0:
-                equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
-                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+                equiv_young                     = 2 * myYoung * other_young / (myYoung + other_young);
+                equiv_poisson                   = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
 
                 kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
@@ -2123,10 +2108,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             break;
 
             case 1:
-                equiv_young                     = mYoung * other_young / (other_young * (1- mPoisson * mPoisson) + mYoung * (1- other_poisson * other_poisson));
-                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+                equiv_young                     = myYoung * other_young / (other_young * (1- myPoisson * myPoisson) + myYoung * (1- other_poisson * other_poisson));
+                equiv_poisson                   = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
 
                 kn                              = (4/3) * equiv_young * sqrt(effective_radius);
                 kt                              = 2.0 * kn * (1 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1 + equiv_poisson));
@@ -2135,10 +2120,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             break;
 
             default:
-                equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
-                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+                equiv_young                     = 2 * myYoung * other_young / (myYoung + other_young);
+                equiv_poisson                   = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
 
                 kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
@@ -2148,7 +2133,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         }//switch
 
 
-        if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
+        if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
             equiv_visco_damp_coeff_normal = 2 * sqrt(equiv_mass * kn);
 
         }
@@ -2327,10 +2312,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
               else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME,false);
                                                            this->Set(DEMFlags::HAS_ROTATION_SPRING,false);
               
-              if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
+              /*if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
               //    SetRollingFriction(???) this should be in other part
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-              }
+              }*/
 
               AdditionalMemberDeclarationFirstStep(r_process_info);
           }
@@ -2439,7 +2424,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                       mass = mass / (1 - coeff);
                   }
 
-                  double K = M_PI * mYoung * mRadius; //M. Error, should be the same that the local definition.
+                  double K = M_PI * GetYoung() * mRadius; //M. Error, should be the same that the local definition.
 
                   Output = 0.34 * sqrt(mass / K);
 
@@ -2517,32 +2502,34 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       double SphericParticle::GetSqrtOfRealMass()                                              { return mSqrtOfRealMass;                                                                }
       void   SphericParticle::SetSqrtOfRealMass(double sqrt_of_real_mass)                      { mSqrtOfRealMass = sqrt_of_real_mass;                                                   }
       
-      double SphericParticle::GetYoung()                                                       { return mYoung;                                                                         }
+      /*double SphericParticle::GetYoung()                                                       { return mYoung;                                                                         }
       double SphericParticle::GetRollingFriction()                                             { return mRollingFriction;                                                               }
       double SphericParticle::GetPoisson()                                                     { return mPoisson;                                                                       }
       double SphericParticle::GetTgOfFrictionAngle()                                           { return mTgOfFrictionAngle;                                                             }
-      double SphericParticle::GetLnOfRestitCoeff()                                             { return mLnOfRestitCoeff;                                                               }
+      double SphericParticle::GetLnOfRestitCoeff()                                             { return mLnOfRestitCoeff;                                                               }*/
 
-      void   SphericParticle::SetYoungFromProperties(double* young)                            { mYoung = *young;                                                                       }
+      /*void   SphericParticle::SetYoungFromProperties(double* young)                            { mYoung = *young;                                                                       }
       void   SphericParticle::SetPoissonFromProperties(double* poisson)                        { mPoisson = *poisson;                                                                   }
       void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { mRollingFriction = *rolling_friction;                                                  }
       void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { mTgOfFrictionAngle = *tg_of_friction_angle;                                            }
-      void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = *ln_of_restit_coeff;                                                }
-      /*double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                                }
+      void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = *ln_of_restit_coeff;                                                }*/
+      
+      double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                                }
       double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                      }
       double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                                              }
       double SphericParticle::GetTgOfFrictionAngle()                                           { return GetFastProperties()->GetTgOfFrictionAngle() ;                                   }
-      double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                      }*/
+      double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                      }
+      double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                                              }
       
-      //WHAT NOT TO DO: properties must not be set from elements!!!!!
-      //void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                                   }
-      //void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);              }
-      //void   SphericParticle::SetPoissonFromProperties(double* poisson)                        { GetFastProperties()->SetPoissonFromProperties( poisson);                               }
-      //void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { GetFastProperties()->SetTgOfFrictionAngleFromProperties( tg_of_friction_angle);        }
-      //void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);            }  
+      void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                                   }
+      void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);              }
+      void   SphericParticle::SetPoissonFromProperties(double* poisson)                        { GetFastProperties()->SetPoissonFromProperties( poisson);                               }
+      void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { GetFastProperties()->SetTgOfFrictionAngleFromProperties( tg_of_friction_angle);        }
+      void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);            }  
+      void   SphericParticle::SetDensityFromProperties(double* density)                        { GetFastProperties()->SetDensityFromProperties( density);                               }
 
-      /*PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                                }
-      void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                              }*/
+      PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                                }
+      void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                              }
 
 }  // namespace Kratos.
 

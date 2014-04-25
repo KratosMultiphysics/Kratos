@@ -110,7 +110,8 @@ void Particle_Contact_Element::Initialize()
     
     this->GetValue(LOW_POISSON_FORCE) = 0.0;  
     this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
-    this->GetValue(MEAN_CONTACT_AREA) = 0.0;    
+    //this->GetValue(MEAN_CONTACT_AREA) = 0.0;   
+    mMeanContactArea = 0.0;
     this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
     this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
     this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
@@ -234,15 +235,15 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;*/
    
-    this->mContactTau = 0.0;
-    this->mContactSigma = 0.0;
-     if (this->mFailureCriterionState<1.0)
+    mContactTau = 0.0;
+    mContactSigma = 0.0;
+     if (mFailureCriterionState<1.0)
     {
-        this->mFailureCriterionState = 0.0;
+        mFailureCriterionState = 0.0;
     }
-    this->mLocalContactForce[0] = 0.0;
-    this->mLocalContactForce[1] = 0.0;
-    this->mLocalContactForce[2] = 0.0;
+    mLocalContactForce[0] = 0.0;
+    mLocalContactForce[1] = 0.0;
+    mLocalContactForce[2] = 0.0;
 
 }
 
@@ -259,7 +260,9 @@ void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, dou
   if (rVariable == MEAN_CONTACT_AREA)
   {
  
-    this-> GetValue(MEAN_CONTACT_AREA) = 0.5* this-> GetValue(LOCAL_CONTACT_AREA_LOW) + 0.5* this-> GetValue(LOCAL_CONTACT_AREA_HIGH);
+    //this-> GetValue(MEAN_CONTACT_AREA) = 0.5* this-> GetValue(LOCAL_CONTACT_AREA_LOW) + 0.5* this-> GetValue(LOCAL_CONTACT_AREA_HIGH);
+    //mMeanContactArea = 0.5* this-> GetValue(LOCAL_CONTACT_AREA_LOW) + 0.5* this-> GetValue(LOCAL_CONTACT_AREA_HIGH);
+    mMeanContactArea = 0.5 * ( mLocalContactAreaLow + mLocalContactAreaHigh );
 
   }
   
