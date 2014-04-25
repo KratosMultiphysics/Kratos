@@ -188,7 +188,7 @@ class SphericElementGlobalPhysicsCalculator
 
           Vector radii;
           radii.resize(size);
-          unsigned int particle_counter;
+          unsigned int particle_counter = 0;
 
           #pragma omp parallel for private(particle_counter)
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
@@ -200,13 +200,17 @@ class SphericElementGlobalPhysicsCalculator
                 }
 
             }
+          if (particle_counter) {
+            std::sort(radii.begin(), radii.end());
+            int half   = div(size, 2).quot;
+            bool even  = (size%2 == 0);
+            double d50 = even ? 2 * radii[half] : radii[half] + radii[half + 1];
 
-          std::sort(radii.begin(), radii.end());
-          int half   = div(size, 2).quot;
-          bool even  = (size%2 == 0);
-          double d50 = even ? 2 * radii[half] : radii[half] + radii[half + 1];
-
-          return d50;
+            return d50;
+          }
+          else {
+            return 0.00;          
+          }
       }
 
       //***************************************************************************************************************
