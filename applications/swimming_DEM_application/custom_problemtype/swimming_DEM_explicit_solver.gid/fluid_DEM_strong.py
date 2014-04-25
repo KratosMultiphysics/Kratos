@@ -174,8 +174,6 @@ sys.stdout.flush()
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, ProjectParameters.dem_vars)
 
-print (balls_model_part.GetNodalSolutionStepVariablesList())
-
 print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
 sys.stdout.flush()
 
