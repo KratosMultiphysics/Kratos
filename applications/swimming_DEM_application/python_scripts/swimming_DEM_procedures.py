@@ -129,14 +129,14 @@ def ChangeInputDataForConsistency(pp):
     if (pp.coupling_level_type == 1):
         pp.virtual_mass_force_type = 0
 
-    if (pp.coupling_level_type > 0 and not pp.body_force_on_fluid_option):
-        pp.coupling_level_type = 0
-        print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
-        print()
-        print('Two-way coupling cannot be performed if body_force_on_fluid_option = 0 !')
-        print('Running one-way copupling simulation...')
-        print()
-        print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
+    #if (pp.coupling_level_type > 0 and not pp.body_force_on_fluid_option):
+        #pp.coupling_level_type = 0
+        #print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
+        #print()
+        #print('Two-way coupling cannot be performed if body_force_on_fluid_option = 0 !')
+        #print('Running one-way copupling simulation...')
+        #print()
+        #print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
 
     for var in pp.mixed_nodal_results:
 
@@ -153,8 +153,7 @@ def ConstructListsOfVariables(pp):
     if (pp.embedded_option):
        pp.coupling_fluid_vars += [DISTANCE]
 
-    if (pp.body_force_on_fluid_option):
-        pp.coupling_fluid_vars += [BODY_FORCE]
+    pp.coupling_fluid_vars += [BODY_FORCE]
 
     if (pp.fluid_model_type == 0):
         pp.coupling_fluid_vars += [MESH_VELOCITY1]
