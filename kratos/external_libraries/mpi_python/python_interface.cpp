@@ -11,6 +11,9 @@ namespace Python
 
 using namespace boost::python;
 
+boost::python::list (PythonMPI::*gather_list)(PythonMPIComm&,
+	        boost::python::list, int) = &PythonMPI::gather;
+
 BOOST_PYTHON_MODULE(mpipython)
 {
     class_<PythonMPIComm,boost::noncopyable>("PythonMPIComm")
@@ -28,6 +31,7 @@ BOOST_PYTHON_MODULE(mpipython)
     .add_property("size",FSize)
     .def("gather",&PythonMPI::gather<double>)
     .def("gather",&PythonMPI::gather<int>)
+    .def("gather", gather_list)
     .def("allgather",&PythonMPI::allgather<double>)
     .def("allgather",&PythonMPI::allgather<int>)
     .add_property("world",make_function(&PythonMPI::GetWorld,return_internal_reference<1,with_custodian_and_ward_postcall<1,0> >() ) )
