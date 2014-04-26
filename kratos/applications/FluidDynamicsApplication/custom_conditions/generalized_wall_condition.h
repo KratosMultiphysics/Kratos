@@ -782,6 +782,8 @@ protected:
 			ResB = EvaluateWallFunctionResidual(rWallHeight,rWallVel,B,rWallGradP);
 		}
 
+		return 0.0;
+
 		KRATOS_CATCH("");
 	}
 
