@@ -22,7 +22,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stationary_stokes.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition_werner_wengle.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/werner_wengle_wall_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/generalized_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition_discontinuous.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_wall_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fs_periodic_condition.cpp
