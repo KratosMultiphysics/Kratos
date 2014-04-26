@@ -221,12 +221,14 @@ public:
       * to be the center of symmetry for node pairs.
       * @param pProperties Pointer to the properties that will be assigned to new conditions. Note that PeriodicConditon
       * objects need to have a value for PERIODIC_VARIABLES in their properties.
+      * @param rConditionLabel Label of the periodic condition to be generated.
       * @param Tolerance Spatial search tolerance. Two nodes will be considered each other's image if the distance
       * between one and the image of the other is less than this value.
       */
     template< class TReference >
     void GenerateConditions(const TReference& MovementRef,
                             Properties::Pointer pProperties,
+			    const std::string& rConditionLabel,
                             const double Tolerance = 1e-4)
     {
         KRATOS_TRY
@@ -235,8 +237,8 @@ public:
         if(mpSearchStrategy == 0)
             KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: GenerateConditions() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
-            // Get reference condition
-            const Condition& rCondition = KratosComponents<Condition>::Get("PeriodicCondition");
+        // Get reference condition
+	const Condition& rCondition = KratosComponents<Condition>::Get(rConditionLabel);
 
         // Create a geometry for new conditions
         ModelPart::ConditionsContainerType& rConditions = mrModelPart.Conditions();
@@ -284,6 +286,7 @@ public:
       * where one is the image of the other by the translation
       * defined by the arguments. The resulting conditions will enforce
       * equal values of velocity for each node pair.
+      * @param rConditionLabel Label of the periodic condition to be generated.
       * @param TranslationX X component of the vector that transforms each
       * node in one side of the periodic boundary to its image in the other.
       * @param TranslationY Y component of the vector that transforms each
@@ -292,6 +295,7 @@ public:
       * node in one side of the periodic boundary to its image in the other.
       */
     void DefinePeriodicBoundary(Properties::Pointer pNewProperties,
+				const std::string& rConditionLabel,
                                 const double TranslationX,
                                 const double TranslationY,
                                 const double TranslationZ = 0.0)
@@ -310,7 +314,7 @@ public:
         Translation[1] = TranslationY;
         Translation[2] = TranslationZ;
 
-        GenerateConditions(Translation,pNewProperties,Tolerance);
+	GenerateConditions(Translation,pNewProperties,rConditionLabel,Tolerance);
 
         KRATOS_CATCH("")
     }

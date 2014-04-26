@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/fractional_step_settings.h"
+#include "custom_utilities/fractional_step_settings_periodic.h"
 #include "utilities/split_tetrahedra.h"
 
 namespace Kratos
@@ -130,6 +131,13 @@ void  AddCustomUtilitiesToPython()
     .def("SetTurbulenceModel",SetTurbModel_Pass)
     .def("GetStrategy",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
     .def("SetEchoLevel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
+    ;
+    
+    class_< FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
+            ("FractionalStepSettingsPeriodic",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
+    .def("SetStrategy",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy)
+    .def("GetStrategy",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
+    .def("SetEchoLevel",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
 
 }
