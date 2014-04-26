@@ -110,6 +110,7 @@ void  AddCustomStrategiesToPython()
     class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, bases<BaseSolvingStrategyType>, boost::noncopyable >
             ("FSStrategy",init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
             .def(init< ModelPart&, SolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
+            .def(init< ModelPart&, SolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool, const Kratos::Variable<int>& >() )
             .def("CalculateReactions",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateReactions)
             .def("AddIterationStep",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::AddIterationStep)
             ;

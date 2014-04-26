@@ -61,7 +61,7 @@ def AddDofs(model_part, config=None):
 
 class IncompressibleFluidSolver:
 
-    def __init__(self, model_part, domain_size):
+    def __init__(self, model_part, domain_size, periodic=False):
 
         # neighbour search
         number_of_avg_elems = 10
@@ -71,6 +71,7 @@ class IncompressibleFluidSolver:
 
         self.model_part = model_part
         self.domain_size = domain_size
+        self.periodic = periodic
 
         # assignation of parameters to be used
         self.vel_toll = 1e-6
@@ -171,12 +172,20 @@ class IncompressibleFluidSolver:
 # self.time_order,
 # self.domain_size,
 # self.predictor_corrector)
-        self.solver_settings = FractionalStepSettings(self.model_part,
-                                                      self.domain_size,
-                                                      self.time_order,
-                                                      self.use_slip_conditions,
-                                                      MoveMeshFlag,
-                                                      self.ReformDofAtEachIteration)
+        if self.periodic == True:
+            self.solver_settings = FractionalStepSettingsPeriodic(self.model_part,
+                                                                  self.domain_size,
+                                                                  self.time_order,
+                                                                  self.use_slip_conditions,
+                                                                  MoveMeshFlag,
+                                                                  self.ReformDofAtEachIteration,PATCH_INDEX)
+        else:
+            self.solver_settings = FractionalStepSettings(self.model_part,
+                                                          self.domain_size,
+                                                          self.time_order,
+                                                          self.use_slip_conditions,
+                                                          MoveMeshFlag,
+                                                          self.ReformDofAtEachIteration)
         self.solver_settings.SetEchoLevel(self.echo_level)
 
         self.solver_settings.SetStrategy(StrategyLabel.Velocity,
@@ -222,9 +231,15 @@ class IncompressibleFluidSolver:
                 sa_non_linear_tol,
                 sa_max_it)
 
-        self.solver = FSStrategy(self.model_part,
-                                 self.solver_settings,
-                                 self.predictor_corrector)
+        if self.periodic == True:
+            self.solver = FSStrategy(self.model_part,
+                                     self.solver_settings, 
+                                     self.predictor_corrector, 
+                                     PATCH_INDEX)
+        else:
+            self.solver = FSStrategy(self.model_part,
+                                     self.solver_settings, 
+                                     self.predictor_corrector)
 
         self.solver.Check()
 
