@@ -735,7 +735,7 @@ public:
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB,
-        typename ModelPart::DofsArrayType& rdof_set,
+        ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
     )
     {
