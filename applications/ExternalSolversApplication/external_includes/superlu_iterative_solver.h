@@ -499,9 +499,11 @@ public:
 
             /* Scale the solution back if equilibration was performed. */
             if (*equed == 'C' || *equed == 'B')
-#pragma omp parallel for
+            {
+                #pragma omp parallel for
                 for (int i = 0; i < n; i++) x[i] *= C[i];
-
+            }
+            
             t = SuperLU_timer_() - t;
 
             /* Output the result. */
