@@ -1143,8 +1143,10 @@ protected:
         AdvVelNorm = sqrt(AdvVelNorm);
 
         const double Element_Size = this->ElementSize(Area);
-
-        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+//G
+    //  TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 5.6666666666 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+//Z
         TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
         //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 12.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
         //TauTwo = Density * (KinViscosity + Element_Size * AdvVelNorm / 6.0);
@@ -1267,7 +1269,7 @@ protected:
             for (unsigned int d = 0; d < TDim; d++)
             {
 //G
-                //RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+//              RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
                 RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + (FluidFraction * rShapeDeriv(i,d) + FluidFractionGradient[d] * rShapeFunc[i]) * DivProj); // TauOne * (a * Grad(v)) * MomProjection + TauTwo * Div(v) * MassProjection
 //Z
                 RHS[FirstRow+TDim] -= Weight * rShapeDeriv(i,d) * MomProj[d]; // TauOne * Grad(q) * MomProjection
@@ -1361,9 +1363,8 @@ protected:
 
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
-//G
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
+//G
         double FluidFraction;
         array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
@@ -1374,8 +1375,7 @@ protected:
             this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT) = FluidFractionGradient;
         }
 
-        FluidFractionGradient *= -1;
-
+        FluidFractionGradient *= -1;        
 //Z
 
         // Note: Dof order is (vx,vy,[vz,]p) for each node
@@ -1392,7 +1392,7 @@ protected:
                     rLHSMatrix(FirstRow + d, FirstCol + d) += K;
                     // Delta(u) * TauOne * Grad(q) in q * Div(u) block
 //G
-                    //rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
+    //              rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
                     rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * rShapeFunc[j];
 //Z
                 }
@@ -1460,8 +1460,9 @@ protected:
                     //K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
                     // v * Grad(p) block
-//G
+
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+//G
                     GEps = TauOne * Density * AGradN[i] * (FluidFraction * rShapeDeriv(j, m) + FluidFractionGradient[m] * rShapeFunc[j]); // Stabilization: (a * Grad(u)) * TauOne * (eps * Grad(q) - q * Grad(eps))
                     DivPEpsilon = (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeFunc[j]; // eps * q * Div(v) + q * Grad(eps) * u
 //Z
@@ -1470,19 +1471,19 @@ protected:
                     rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
                     // Use symmetry to write the q * Div(u) component
 //G
-                    //rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+    //              rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
                     rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (GEps + DivPEpsilon);
 
-                    // q-p stabilization block
-                    //L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
-                    L += (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeDeriv(j, m); // Stabilization: (eps * Grad(q) - q * Grad(eps)) * TauOne * Grad(p)
+    //              q-p stabilization block
+    //              L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
+                    L += (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeDeriv(j, m); // Stabilization: (eps * Grad(q) + q * Grad(eps)) * TauOne * Grad(p)
 //Z
                     for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
                     {
                         // Velocity block
 //G
-                        //rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
-                        rDampingMatrix(FirstRow + m, FirstCol + n) +=  Weight * TauTwo * rShapeDeriv(i, m) * (FluidFraction * rShapeDeriv(j, n) + FluidFractionGradient[n] * rShapeFunc[j]); // Stabilization: Div(v) * TauTwo * (eps * Div(u) + Grad(eps) * u)
+    //                  rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                        rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * (FluidFraction * rShapeDeriv(j, n) + FluidFractionGradient[n] * rShapeFunc[j]); // Stabilization: Div(v) * TauTwo * (eps * Div(u) + Grad(eps) * u)
 //Z
                     }
 
@@ -1506,7 +1507,7 @@ protected:
             {
 //G
                 rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-                //qF += rShapeDeriv(i, d) * BodyForce[d];
+    //          qF += rShapeDeriv(i, d) * BodyForce[d];
                 qF += (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * BodyForce[d];
 //Z
             }
@@ -1639,8 +1640,8 @@ protected:
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
-//G
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+//G
         double FluidFraction;
         array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
@@ -1660,8 +1661,10 @@ protected:
             // Compute this node's contribution to the residual (evaluated at inegration point)
             for (unsigned int d = 0; d < TDim; ++d)
             {
-//G
+
                 rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
+//G
+    //          rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
                 rElementalMassRes -= Weight * (FluidFraction * rShapeDeriv(i, d) * rVelocity[d] + FluidFractionGradient[d] * rVelocity[d]);
             }
 
