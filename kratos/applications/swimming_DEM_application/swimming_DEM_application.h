@@ -23,6 +23,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "custom_elements/monolithic_dem_coupled.h"
+#include "custom_elements/monolithic_dem_coupled_weak.h"
 
 namespace Kratos
 {
@@ -156,6 +157,11 @@ private:
     const MonolithicDEMCoupled<2> mMonolithicDEMCoupled2D;
     /// 3D instance of the VMS element
     const MonolithicDEMCoupled<3> mMonolithicDEMCoupled3D;
+
+    /// 2D instance of the VMS element
+    const MonolithicDEMCoupledWeak<2> mMonolithicDEMCoupledWeak2D;
+    /// 3D instance of the VMS element
+    const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
 
     //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const VariablesList mVariablesList;
