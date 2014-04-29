@@ -683,6 +683,7 @@ private:
         }
 
         else if (mCouplingType == 1){
+
             if (*r_destination_variable == BODY_FORCE){
                 TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
             }
@@ -759,11 +760,11 @@ private:
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        array_1d<double, 3>& step_data = (pnode)->GetSolutionStepValue(r_destination_variable, 0);
-        const array_1d<double, 3>& velocity = (pnode)->GetSolutionStepValue(VELOCITY, 0);
-        const array_1d<double, 3>& node0_data = geom[0].GetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3>& node1_data = geom[1].GetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3>& node2_data = geom[2].GetSolutionStepValue(r_origin_variable, 0);
+        array_1d<double, 3>& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        const array_1d<double, 3>& velocity = (pnode)->FastGetSolutionStepValue(VELOCITY, 0);
+        const array_1d<double, 3>& node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3>& node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
 
         // copying this data in the position of the vector we are interested in
 
@@ -788,12 +789,12 @@ private:
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        array_1d<double, 3 > & step_data = (pnode)->GetSolutionStepValue(r_destination_variable);
+        array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
-        const array_1d<double, 3 > & node0_data = geom[0].GetSolutionStepValue(r_origin_variable);
-        const array_1d<double, 3 > & node1_data = geom[1].GetSolutionStepValue(r_origin_variable);
-        const array_1d<double, 3 > & node2_data = geom[2].GetSolutionStepValue(r_origin_variable);
-        const array_1d<double, 3 > & node3_data = geom[3].GetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(r_origin_variable);
 
         for (unsigned int j = 0; j < TDim; j++) {
             step_data[j] = N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j];
@@ -817,17 +818,17 @@ private:
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        array_1d<double, 3 > & step_data = (pnode)->GetSolutionStepValue(r_destination_variable, 0);
+        array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
 
-        const array_1d<double, 3 > & node0_data = geom[0].GetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3 > & node1_data = geom[1].GetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3 > & node2_data = geom[2].GetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3 > & node3_data = geom[3].GetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(r_origin_variable, 0);
 
-        const array_1d<double, 3 > & node0_data_prev = geom[0].GetSolutionStepValue(r_origin_variable, 1);
-        const array_1d<double, 3 > & node1_data_prev = geom[1].GetSolutionStepValue(r_origin_variable, 1);
-        const array_1d<double, 3 > & node2_data_prev = geom[2].GetSolutionStepValue(r_origin_variable, 1);
-        const array_1d<double, 3 > & node3_data_prev = geom[3].GetSolutionStepValue(r_origin_variable, 1);
+        const array_1d<double, 3 > & node0_data_prev = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
+        const array_1d<double, 3 > & node1_data_prev = geom[1].FastGetSolutionStepValue(r_origin_variable, 1);
+        const array_1d<double, 3 > & node2_data_prev = geom[2].FastGetSolutionStepValue(r_origin_variable, 1);
+        const array_1d<double, 3 > & node3_data_prev = geom[3].FastGetSolutionStepValue(r_origin_variable, 1);
 
         for (unsigned int j = 0; j < TDim; j++) {
             step_data[j] = alpha * (N[0] * node0_data[j]      + N[1] * node1_data[j]      + N[2] * node2_data[j]      + N[3] * node3_data[j]) +
@@ -1059,7 +1060,7 @@ private:
             const double node1_mass_inv     = mParticlesPerDepthDistance / (fluid_fraction1 * node1_volume * node1_density);
             const double node2_mass_inv     = mParticlesPerDepthDistance / (fluid_fraction2 * node2_volume * node2_density);
             const double node3_mass_inv     = mParticlesPerDepthDistance / (fluid_fraction3 * node3_volume * node3_density);
-            
+
             for (unsigned int j= 0; j< TDim; j++){
                 double data   = origin_data[j];
                 double data_0 = -N[0] * data * node0_mass_inv;
