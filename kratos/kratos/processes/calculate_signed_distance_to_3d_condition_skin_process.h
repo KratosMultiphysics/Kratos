@@ -76,7 +76,8 @@ namespace Kratos
 
 class DistanceSpatialContainersConditionConfigure
 {
-
+    public:
+        
     class CellNodeData
     {
         double mDistance;
@@ -91,7 +92,7 @@ class DistanceSpatialContainersConditionConfigure
         std::size_t& Id(){return mId;}
     };
 
-public:
+
 
 
     ///@name Type Definitions
@@ -1028,7 +1029,7 @@ private:
                                      array_1d<unsigned int,3>&           IndexNodes_T2)
       {
           double maxDist = 0;
-          unsigned int indexExcludedNode; // index of the node which is not part of the second triangle
+          unsigned int indexExcludedNode = 1000000; // index of the node which is not part of the second triangle
           array_1d<double,3> TrianglePoint;
           array_1d<double,3> RemainingPoint;
           array_1d<double,3> DistVecNode;
@@ -1259,7 +1260,13 @@ private:
                 high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
             }
         }
-        
+// KRATOS_WATCH( low[0] )      
+// KRATOS_WATCH( low[1] )
+// KRATOS_WATCH( low[2] )
+// KRATOS_WATCH( "" )
+// KRATOS_WATCH( high[0] )      
+// KRATOS_WATCH( high[1] )
+// KRATOS_WATCH( high[2] )
         mOctree.SetBoundingBox(low,high);
 
         //mOctree.RefineWithUniformSize(0.0625);

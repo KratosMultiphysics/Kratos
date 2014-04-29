@@ -86,7 +86,7 @@ namespace Kratos
 
 class DistanceSpatialContainersConfigure
 {
-
+public:
     class CellNodeData
     {
         double mDistance;
@@ -101,7 +101,7 @@ class DistanceSpatialContainersConfigure
         std::size_t& Id(){return mId;}
     };
 
-public:
+
 
 
     ///@name Type Definitions
