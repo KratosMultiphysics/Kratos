@@ -1108,7 +1108,7 @@ private:
 
     void CalculateNodalSolidFractionWithLinearWeighing(
         Element::Pointer el_it,
-        const array_1d<double,4>& N,
+        const array_1d<double,4>& NN,
         Node<3>::Pointer pnode)
     {
         // Geometry element of the origin model part
@@ -1123,8 +1123,8 @@ private:
         const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
         const double particle_volume = 1.33333333333333333333 * M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-        for (unsigned int inode = 0; inode < N.size(); inode++){
-            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += N[inode] * particle_volume;
+        for (unsigned int inode = 0; inode < NN.size(); inode++){
+            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += NN[inode] * particle_volume;
             geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[0] += DN_DX(inode, 0) * particle_volume;
             geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[1] += DN_DX(inode, 1) * particle_volume;
             geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[2] += DN_DX(inode, 2) * particle_volume;
