@@ -918,8 +918,8 @@ public:
     
     void CreateInletPropertiesProxies(ModelPart& r_balls_model_part){
           KRATOS_TRY
-          typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
-          typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+          typedef PointerVectorSet<Properties, IndexedObject>      PropertiesContainerType;
+          typedef PropertiesContainerType::iterator                PropertiesIterator;
                             
           int number_of_properties = InletModelPart.NumberOfProperties();
           mFastProperties.resize(number_of_properties);
