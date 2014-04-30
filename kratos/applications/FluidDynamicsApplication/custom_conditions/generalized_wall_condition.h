@@ -743,7 +743,7 @@ protected:
 				Min1 = 3.0 * Xm * Q - fabs(Tol * Q);
 				Min2 = fabs(E * Q);
 
-				if (2.0 * P < fmin(Min1, Min2))
+				if (2.0 * P < std::min(Min1, Min2))
 				{
 					E = D;
 					D = P / Q;
