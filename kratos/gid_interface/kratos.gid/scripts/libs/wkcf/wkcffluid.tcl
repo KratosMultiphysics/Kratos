@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     3.5- 05/05/14-G. Socorro, add the correction of Jordi Cotela to set FLAG_VARIABLE = 1 (write always flag=1)
 #     3.4- 19/12/13-G. Socorro, add the proc WritePFEMLagrangianFluidFixedWallBC
 #     3.3- 31/10/13-G. Socorro, change the proc GetDensityViscosityValues by the proc GetFluidMaterialProperties 
 #     3.2- 14/07/13-G. Socorro, modify the proc WriteFluidIsSlipWallLawBC to write is-slip and walllaw BC
@@ -799,8 +800,8 @@ proc ::wkcf::WriteFluidFlagVariableBC {AppId flagvariablelist} {
     set isbcpropid "1"
 
     # Write the flag condition
-    set flag1 0
-    set fvitem "FLAG-VARIABLE"
+    set flag1 1
+    set fvitem "FLAG_VARIABLE"
     set isbitem "IS_BOUNDARY"
     
     # For each group in the flag-variable condition
