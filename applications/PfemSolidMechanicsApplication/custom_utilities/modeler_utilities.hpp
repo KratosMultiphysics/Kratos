@@ -87,12 +87,11 @@ public:
     ///@name Operations
     ///@{
    
-    void SetDomainLabels (ModelPart& rModelPart);
+    void SetDomainLabels   (ModelPart& rModelPart);
 
-
-    void BuildTotalMesh (ModelPart& rModelPart);
+    void BuildTotalMesh    (ModelPart& rModelPart);
     
-    void CleanMeshFlags (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
+    void CleanMeshFlags    (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
 
     void CleanRemovedNodes (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
 
@@ -100,37 +99,44 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    bool CheckSubdomain(Geometry<Node<3> >& vertices);
+    bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
     
-    bool CheckInnerCentre(Geometry<Node<3> >& vertices);
+    bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
     
-    bool CheckOuterCentre(Geometry<Node<3> >& vertices,double &offset_factor);
-         
+    bool CheckOuterCentre   (Geometry<Node<3> >& rGeometry, double& rOffsetFactor);
+
+    bool CheckGeometryShape (Geometry<Node<3> >& rGeometry, double& rShape);         
 
     //*******************************************************************************************
     //*******************************************************************************************
 
       
-    double FindBoundaryH (Node<3>& BoundaryPoint);
+    //computes geometry radius
+    double& ComputeRadius   (double& rRadius, double& rVolume, std::vector<Vector >& rVertices,const unsigned int& dimension);
 
     //returns false if it should be removed
-    bool ShrankAlphaShape(double alpha_param, Geometry<Node<3> >& vertices,double & offset_factor);
+    bool AlphaShape         (double AlphaParameter, Geometry<Node<3> >& rGeometry);
 
     //returns false if it should be removed
-    bool AlphaShape(double alpha_param, Geometry<Node<3> >& vertices);
+    bool ShrankAlphaShape   (double AlphaParameter, Geometry<Node<3> >& rGeometry, double& rOffsetFactor);
+
+    //returns the nodal h relative to a single boundary node
+    double FindBoundaryH    (Node<3>& BoundaryPoint);
     
-    void CheckParticles (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
+    //writes a list of particles telling if they are set as boundary or not
+    void CheckParticles     (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
     
     //*******************************************************************************************
     //*******************************************************************************************
    
-    inline double CalculateSideLength(PointType& P1,PointType& P2)
+    static inline double CalculateSideLength(PointType& P1,PointType& P2)
     {
       return sqrt( (P1.X()-P2.X())*(P1.X()-P2.X()) + (P1.Y()-P2.Y())*(P1.Y()-P2.Y()) );
     };
 
-    inline double CalculateCircRadius(Geometry< Node<3> >& rGeometry)
+    static inline double CalculateTriangleRadius(Geometry< Node<3> >& rGeometry)
     {
+
       double L1 = CalculateSideLength (rGeometry[0],rGeometry[1]);
       double L2 = CalculateSideLength (rGeometry[1],rGeometry[2]);
       double L3 = CalculateSideLength (rGeometry[2],rGeometry[0]);
@@ -139,17 +145,17 @@ public:
       double Area = rGeometry.Area();
       
       
-      double  Rcrit = Area*2/(L1+L2+L3);
+      double Rcrit = Area*2/(L1+L2+L3);
       
       return Rcrit;
       
     };
   
 
-    inline double CalculateCircRadius(const double x0, const double y0,
-				      const double x1, const double y1,
-				      const double x2, const double y2,
-				      double& Area)
+    static inline double CalculateTriangleRadius(const double x0, const double y0,
+						 const double x1, const double y1,
+						 const double x2, const double y2,
+						 double& Area)
     {
       
       double L1 = sqrt((x0-x1)*(x0-x1) + (y0-y1)*(y0-y1));
@@ -160,14 +166,14 @@ public:
       
       // std::cout<< " Area "<<Area<<" L1 "<<L1<<" L2 "<<L2<<" L3 "<<L3<<std::endl;
       
-      double  Rcrit = Area*2/(L1+L2+L3);
+      double Rcrit = Area*2/(L1+L2+L3);
       
       return Rcrit;
     }
 
-    inline double CalculateAverageSideLength(const double x0, const double y0,
-					     const double x1, const double y1,
-					     const double x2, const double y2) 
+    static inline double CalculateAverageSideLength(const double x0, const double y0,
+						    const double x1, const double y1,
+						    const double x2, const double y2) 
     { 
       double length_0 = sqrt( x0*x0 + y0*y0 );
       double length_1 = sqrt( x1*x1 + y1*y1 );
@@ -175,25 +181,31 @@ public:
       
       return 0.5*( length_0 + length_1 + length_2 );
     };
-  //*******************************************************************************************
-  //*******************************************************************************************				   
-    
-      
 
-    bool CheckConditionInBox(Condition::Pointer& pCond, SpatialBoundingBox& RefiningBox, ProcessInfo& CurrentProcessInfo);
+    //*******************************************************************************************
+    //*******************************************************************************************				           
+
+    bool CheckConditionInBox (Condition::Pointer& pCondition, SpatialBoundingBox& rRefiningBox, ProcessInfo& rCurrentProcessInfo);
     
-    bool CheckElementInBox(Element::Pointer& pElem, SpatialBoundingBox& RefiningBox, ProcessInfo& CurrentProcessInfo);
+    bool CheckElementInBox   (Element::Pointer& pElement, SpatialBoundingBox& rRefiningBox, ProcessInfo& rCurrentProcessInfo);
     
-    bool CheckVerticesInBox(Geometry<Node<3> >& rGeom, SpatialBoundingBox& RefiningBox, ProcessInfo& CurrentProcessInfo);
+    bool CheckVerticesInBox  (Geometry<Node<3> >& rGeometry, SpatialBoundingBox& rRefiningBox, ProcessInfo& rCurrentProcessInfo);
     
 
-    Condition::Pointer FindMasterCondition(Condition::Pointer& pCond, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found);
+    //*******************************************************************************************
+    //*******************************************************************************************		
 
-    Condition::Pointer FindMasterCondition(Condition::Pointer& pCond, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found);
+    Condition::Pointer FindMasterCondition(Condition::Pointer& pCondition, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found);
+
+    Condition::Pointer FindMasterCondition(Condition::Pointer& pCondition, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found);
     
-    bool CheckContactActive(GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes);
+
+    //*******************************************************************************************
+    //*******************************************************************************************		
+
+    bool CheckContactActive    (GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes);
     
-    bool CheckNodeCloseWallTip(std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
+    bool CheckNodeCloseWallTip (std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
 
     ///@}
     ///@name Access

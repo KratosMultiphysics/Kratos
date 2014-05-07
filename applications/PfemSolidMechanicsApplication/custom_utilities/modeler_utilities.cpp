@@ -181,7 +181,7 @@ namespace Kratos
       {
 
 	i_node->Reset(NEW_ENTITY); //reset here if the node is labeled as insert 
-	i_node->Reset(TO_REFINE); //reset here if the node is labeled as refine (to not duplicate bo
+	i_node->Reset(TO_REFINE);  //reset here if the node is labeled as refine (to not duplicate bo
 
       }
 
@@ -198,7 +198,7 @@ namespace Kratos
 
   void ModelerUtilities::CleanRemovedNodes(ModelPart& rModelPart,ModelPart::IndexType MeshId)
   {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     //MESH 0 total domain mesh
     ModelPart::NodesContainerType temporal_nodes;
@@ -222,23 +222,25 @@ namespace Kratos
 	
 
     KRATOS_CATCH( "" )
-      }
+  }
 
 
   //*******************************************************************************************
   //*******************************************************************************************
 
  
-  bool ModelerUtilities::CheckSubdomain(Geometry<Node<3> >& vertices)
+  bool ModelerUtilities::CheckSubdomain(Geometry<Node<3> >& rGeometry)
   {
 
-    unsigned int DomainLabel = vertices[0].GetValue(DOMAIN_LABEL); //DOMAIN_LABEL must be set as nodal variable
+    KRATOS_TRY
+
+    unsigned int DomainLabel = rGeometry[0].GetValue(DOMAIN_LABEL); //DOMAIN_LABEL must be set as nodal variable
       
     int samesbd=0;
       
     for(int pn=1; pn<3; pn++)
       {
-	if(DomainLabel!=vertices[pn].GetValue(DOMAIN_LABEL))
+	if(DomainLabel!=rGeometry[pn].GetValue(DOMAIN_LABEL))
 	  {
 	    samesbd++;
 	  }
@@ -249,195 +251,182 @@ namespace Kratos
       return false;
 
     return true;
+
+    KRATOS_CATCH( "" )
   }
   
 
   //*******************************************************************************************
   //*******************************************************************************************
 
-
-  bool ModelerUtilities::CheckInnerCentre(Geometry<Node<3> >& vertices)
+  bool ModelerUtilities::CheckInnerCentre(Geometry<Node<3> >& rGeometry)
   {
-    int nbound=0;
 
-    int Nn=vertices.size();
+    KRATOS_TRY
 
-    for(int pn=0; pn<Nn; pn++)
+    bool inner = true;
+
+    unsigned int BoundaryNodes = 0;
+    const unsigned int size = rGeometry.size();
+
+    for(unsigned int i = 0; i < size; i++)
       {
-	if(vertices[pn].Is(BOUNDARY))
+	if(rGeometry[i].Is(BOUNDARY))
 	  {
-	    nbound++;
+	    BoundaryNodes += 1;
 	  }
       }
 
 
-    if(nbound==3)
+    if(BoundaryNodes == size)
       {
 
-	//std::cout<<" checked "<<std::endl;
-	//Triangle2D3<Node<3> > Geometry (vertices[0], vertices[1], vertices[2]);
-	//Center=Geometry.GetBariCentre(Center);
-
 	//Baricenter
-	array_1d<double, 3> Center;
-	array_1d<double, 3> Normal;
+	array_1d<double, 3>  Center;
+	array_1d<double, 3>  Normal;
 
-	Center[0] = vertices[0].X() + vertices[1].X() + vertices[2].X();
-	Center[1] = vertices[0].Y() + vertices[1].Y() + vertices[2].Y();
-	Center[2] = 0;
-	Center /=3.0;
+	std::vector<array_1d<double, 3> > Vertices;
+	array_1d<double, 3>  Vertex;
+	
+	for(unsigned int i = 0; i < size; i++)
+	  {    
+	    Vertex  = rGeometry[i].Coordinates();
+
+	    Vertices.push_back(Vertex);
+
+	    Center  += Vertex;
+	  }
+	
+	Center /= (double)size;
 	    
-	bool outer=true;
-	double tolerance = 0.05;
-	int numouter=0;
+	array_1d<double, 3> Corner;
 
-	for(int v=0; v<Nn; v++)
+	double tolerance = 0.05;
+	int numouter     = 0;
+
+
+	for(unsigned int i = 0; i < size; i++)
 	  {
 
-	    array_1d<double, 3> Corner;
-	    Corner[0] = vertices[v].X();
-	    Corner[1] = vertices[v].Y();
-	    Corner[2] = 0;
-
-	    Normal=vertices[v].FastGetSolutionStepValue(NORMAL); 
-
-	    if(norm_2(Normal))
-	      Normal  /= norm_2(Normal);
+	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
 
 	    //change position to be the vector from the vertex to the geometry center
-	    Corner = Center-Corner;
+	    Corner = Center-Vertices[i];
+
 	    if(norm_2(Corner))
 	      Corner/= norm_2(Corner);
 
-	    double projection=inner_prod(Corner,Normal);
+	    double projection = inner_prod(Corner,Normal);
 
-	    if(projection>tolerance)
+	    if( projection > tolerance )
 	      {
 		numouter++;
 	      }
 	  }
 
 
-	if(numouter>0)
-	  outer=false;
+	if( numouter > 0 )
+	  inner = false;
 
-	return outer; //if is outside to the  body domain returns false
+	
       }
 
+    return inner; //if is inside the body domain returns true
 
-    return true;
-
+    KRATOS_CATCH( "" )
   }
 
 
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool ModelerUtilities::CheckOuterCentre(Geometry<Node<3> >& vertices,double &offset_factor)
+  bool ModelerUtilities::CheckOuterCentre(Geometry<Node<3> >& rGeometry, double& rOffsetFactor)
   {
-    int nbound=0;
+    KRATOS_TRY
+
     bool outer=false;
 
-    int Nn=vertices.size();
+    unsigned int BoundaryNodes = 0;
+    const unsigned int size = rGeometry.size();
 
-    for(int pn=0; pn<Nn; pn++)
+    for(unsigned int i = 0; i < size; i++)
       {
-	if(vertices[pn].Is(BOUNDARY))
+	if(rGeometry[i].Is(BOUNDARY))
 	  {
-	    nbound++;
+	    BoundaryNodes += 1;
 	  }
       }
 
 
-    if(nbound==3)
+    if(BoundaryNodes == size)
       {
 
-	//Triangle2D3<Node<3> > Geometry (vertices[0], vertices[1], vertices[2]);
-	//Center=Geometry.GetBariCentre(Center);
-
 	//Baricenter
-	array_1d<double, 3> Center;
+	array_1d<double, 3>  Center;
 
-	array_1d<double, 3> Normal =vertices[0].FastGetSolutionStepValue(NORMAL); 
-	double  Shrink             =vertices[0].FastGetSolutionStepValue(SHRINK_FACTOR);   
+	std::vector<array_1d<double, 3> > Vertices;
+	array_1d<double, 3>  Vertex;
+	array_1d<double, 3>  Normal;
+	double Shrink = 0;
+	
+	for(unsigned int i = 0; i < size; i++)
+	  {
+	    Normal  = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
-	double x0 = vertices[0].X()-Normal[0]*Shrink*offset_factor;
-	double y0 = vertices[0].Y()-Normal[1]*Shrink*offset_factor;
+	    Shrink  = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
 	    
-	Normal = vertices[1].FastGetSolutionStepValue(NORMAL); 
-	Shrink = vertices[1].FastGetSolutionStepValue(SHRINK_FACTOR);   
-
-	double x1 = vertices[1].X()-Normal[0]*Shrink*offset_factor;
-	double y1 = vertices[1].Y()-Normal[1]*Shrink*offset_factor;
-
-	Normal = vertices[2].FastGetSolutionStepValue(NORMAL); 
-	Shrink = vertices[2].FastGetSolutionStepValue(SHRINK_FACTOR);   
+	    Normal *= Shrink * rOffsetFactor;
 	    
+	    Vertex  = rGeometry[i].Coordinates() - Normal;
 
-	double x2 = vertices[2].X()-Normal[0]*Shrink*offset_factor;
-	double y2 = vertices[2].Y()-Normal[1]*Shrink*offset_factor;
+	    Vertices.push_back(Vertex);
 
-	Center[0] = x0 + x1 + x2;
-	Center[1] = y0 + y1 + y2;
-	Center[2] = 0;
-	Center /=3.0;
+	    Center  += Vertex;
+	  }
+	
+	Center /= (double)size;
 	    
 	double ortho  = 0.15;
 	double slope  = 0.25;  //error assumed for some elements in the corners < 45 degrees
 	double extra  = 0.95;
 
-	int numouter=0;
-	int numextra=0;
-	int numcoplanar=0;
-	int numsamedirection=0;
-	int numorthogonal=0;
+	int numouter         =0;
+	int numextra         =0;
+	int numcoplanar      =0;
+	int numsamedirection =0;
+	int numorthogonal    =0;
 
-	array_1d<double, 3> Coplanar = vertices[0].FastGetSolutionStepValue(NORMAL); 
+	array_1d<double, 3> Coplanar = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
+	array_1d<double, 3> Corner;
 
-	if(norm_2(Coplanar))
-	  Coplanar/= norm_2(Coplanar);
-
-	//std::cout<<" vertices contact element: "<<std::endl;
-
-	for(int v=0; v<Nn; v++)
+	for(unsigned int i = 0; i < size; i++)
 	  {
 	   
-	    //std::cout<<" V: ("<<vertices[v].Id()<<"): ["<<vertices[v].X()<<", "<<vertices[v].Y()<<"]  Normal:"<<vertices[v].FastGetSolutionStepValue(NORMAL)<<std::endl;
+	    //std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
 
-	    Normal.clear();
-
-	    array_1d<double, 3> Corner;
-	    Normal = vertices[v].FastGetSolutionStepValue(NORMAL); 
-	    Shrink = vertices[v].FastGetSolutionStepValue(SHRINK_FACTOR);   
+	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
 				
-	    Corner[0] = vertices[v].X()-Normal[0]*Shrink*offset_factor;
-	    Corner[1] = vertices[v].Y()-Normal[1]*Shrink*offset_factor;
-	    Corner[2] = 0;
-
-	    if(norm_2(Normal))
-	      Normal  /= norm_2(Normal);
-
 	    //change position to be the vector from the vertex to the geometry center
-	    Corner =Corner-Center;
+	    Corner = Vertices[i]-Center;
 
 	    if(norm_2(Corner))
 	      Corner/= norm_2(Corner);
 
-	    double projection=inner_prod(Corner,Normal);
+	    double projection = inner_prod(Corner,Normal);
 
-	    if(projection<slope)
+	    if( projection < slope)
 	      {
 		numouter++;
 	      }
 	    else
 	      {
-		if(projection<extra)
+		if( projection < extra)
 		  numextra++;
 	      }
 		
-	    double coplanar  =inner_prod(Coplanar,Normal);
+	    double coplanar = inner_prod(Coplanar,Normal);
 
-	    //std::cout<<" V["<<v<<"]: "<<vertices[v]<<" Normal:"<<Normal<<" coplanar "<<fabs(coplanar)<<" < "<<ortho<<std::endl;
+	    //std::cout<<" V["<<i<<"]: "<<rGeometry[i]<<" Normal:"<<Normal<<" coplanar "<<fabs(coplanar)<<" < "<<ortho<<std::endl;
 
 	    if(coplanar>0){
 	      numsamedirection++;
@@ -456,27 +445,28 @@ namespace Kratos
 	//std::cout<<std::endl;
 	//std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"]"<<std::endl;
 	
+	int num = (int)size;
 
-	if(numouter==3)
+	if(numouter==num)
 	  outer=true;
 
-	if(numouter==2 && numextra==1)
+	if(numouter==(num-1) && numextra==1)
 	  outer=true;
 	
 	if(numouter>0 && (numextra>0 && numorthogonal>0)){
 	  outer=true;
-	  std::cout<<"   Element with 3 corners accepted:case1 "<<std::endl;
+	  std::cout<<"   Element with "<<num<<" corners accepted:case1 "<<std::endl;
 	}
 	
-	if(numouter==0 && (numextra>2 && numorthogonal>0)){
+	if(numouter==0 && (numextra>(num-2) && numorthogonal>0)){
 	  outer=true;
-	  std::cout<<"   Element with 3 corners accepted:case2 "<<std::endl;
+	  std::cout<<"   Element with "<<num<<" corners accepted:case2 "<<std::endl;
 	}
 
-	if(numcoplanar==3)
+	if(numcoplanar==num)
 	  outer=false;
 	    
-	if(numsamedirection==3 && numorthogonal==0)
+	if(numsamedirection==num && numorthogonal==0)
 	  outer=false;
 	    
 	// if(numorthogonal>=1)
@@ -485,16 +475,104 @@ namespace Kratos
 
       }
 
-    return outer; //if is out to the  body domain returns true
+    return outer; //if is outside the body domain returns true
 
+    KRATOS_CATCH( "" )
   }
 
   
   //*******************************************************************************************
   //*******************************************************************************************
 
+  bool ModelerUtilities::CheckGeometryShape(Geometry<Node<3> >& rGeometry, double& rShape)
+  {
+    KRATOS_TRY
+      
+    bool sliver    = false;
+    bool distorted = false;
+
+    const unsigned int  size = rGeometry.size();
+
+    //check if is a sliver and the distorsion of the sliver
+
+    double Volume = 0;
+    double MaximumSideLength = 0;
+    //double MinimumSideLength = 0;
+    
+    double CriticalRelativeSideLength = (double)size; //edge relative length
+    
+    Volume = rGeometry.Volume();
+    
+    //compare side lengths
+    double RelativeSideLength = 0;
+    //RelativeSideLength = CompareSideLengths(rGeometry, MaximumSideLength, MinimumSideLength);
+ 
+    if( RelativeSideLength > CriticalRelativeSideLength ){
+      distorted = true;
+    }
+      
+    double GeometrySideVolume =  1e-6 * pow( MaximumSideLength, size );
+
+    if( Volume < GeometrySideVolume ){
+      sliver = true;
+    }
+    
+    //check if is an SELF CONTACT element (contact domain definition)
+    std::vector<int> SlaveVertices;
+    //CheckContactElement(rGeometry, SlaveVertices);
+
+    //check if is an EDGE or a FACE element (contact domain definition)
+    unsigned int slaves = SlaveVertices.size();
+    if( slaves == 1 ){ //FACE
+      
+      //check the projection of the slave vertex on the geometry face
+      double AreaTolerance = 2; //if is outside of the face (only a 2*FaceArea deviation is allowed)
+      double FaceArea = 0;
+      double ProjectedArea = 0;
+      //FaceArea = ComputeFaceArea(rGeometry, SlaveVertex);
+      //ProjectedArea = ComputePointToFaceProjection(rGeometry, SlaveVertex);
+
+      if( ProjectedArea < 0 ){ // projection outside of the face
+	
+	if( FaceArea < AreaTolerance * fabs(ProjectedArea) ) 
+	  distorted = true;
+      }
+
+    }
+    else if( slaves > 1 ){ //EDGE
+
+      //compare vertex normals (detect coplanar faces and orthogonal faces)
+      //if( !CheckVertexNormals(rGeometry) )
+      distorted = true;
+    }
+    else if( slaves == 0 ){ //SELF CONTACT  :: element with crossed diagonals (strange situation)
+      
+      //compare vertex normals (detect coplanar faces and orthogonal faces)
+      //if( !CheckVertexNormals(rGeometry) )
+      distorted = true;
+    }
+
+    if( sliver )
+      rShape = 1;
+    else
+      rShape = 0;
+   
+    if( distorted )
+      return false; //returns false if the geometry has not the correct shape and has to be removed
+    else
+      return true;  //returns true if the geometry the correct shape and is kept
+    
+    
+    KRATOS_CATCH( "" )
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
   double ModelerUtilities::FindBoundaryH (Node<3>& BoundaryPoint)
   {
+    KRATOS_TRY
 
     double havg = 0.00;
       
@@ -533,6 +611,208 @@ namespace Kratos
       }
 			  
     return havg;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  //returns false if it should be removed
+  double& ModelerUtilities::ComputeRadius(double& rRadius, double& rVolume, std::vector<Vector >& rVertices,const unsigned int& dimension)
+  {
+    KRATOS_TRY
+        
+    if( dimension == 2 ){
+
+      bounded_matrix<double,2,2> mJ;    //local jacobian
+      bounded_matrix<double,2,2> mJinv; //inverse jacobian
+
+      //calculation of the jacobian  //coordinate center point 0
+      for(unsigned int i=0;i<dimension;i++)
+	{
+	  for(unsigned int j=0;j<dimension;i++)
+	    {
+	      mJ(i,j)=rVertices[i+1][j]-rVertices[0][j];
+	    }
+	}
+      
+      mJ *= 2.0;
+
+      //calculation of the determinant (volume/2)
+      rVolume = mJ(0,0)*mJ(1,1)-mJ(0,1)*mJ(1,0); //detJ
+
+      //calculation of the inverse of the jacobian
+      mJinv(0,0) =  mJ(1,1);
+      mJinv(0,1) = -mJ(0,1);
+      mJinv(1,0) = -mJ(1,0);
+      mJinv(1,1) =  mJ(0,0);
+        
+      mJinv /= rVolume;
+  
+      //calculation of the center
+      Vector Center = ZeroVector(3);    //center pos
+
+      //center point 0
+      for(unsigned int i=0;i<dimension;i++)
+	{
+	  for(unsigned int j=0;j<dimension;i++)
+	    {
+	      Center[i]  += (rVertices[i+1][j] * rVertices[i+1][j]);
+	      Center[i]	 -= (rVertices[0][j]   * rVertices[0][j]  );
+	    }
+	}
+
+      Center = prod(mJinv,Center);
+
+      //calculate the element radius
+      Center -= rVertices[0];
+
+      rRadius = norm_2(Center);
+      
+    }
+    else if( dimension == 3 ){
+
+      bounded_vector<double,3>   mRHS;  //center pos
+      bounded_matrix<double,3,3> mJ;    //local jacobian
+      bounded_matrix<double,3,3> mJinv; //inverse jacobian
+
+
+      //calculation of the jacobian  //coordinate center point 0
+      for(unsigned int i=0;i<dimension;i++)
+	{
+	  for(unsigned int j=0;j<dimension;i++)
+	    {
+	      mJ(i,j)=rVertices[i+1][j]-rVertices[0][j];
+	    }
+	}
+
+      //calculation of the inverse of the jacobian
+      //first column
+      mJinv(0,0) =  mJ(1,1)*mJ(2,2) - mJ(1,2)*mJ(2,1);
+      mJinv(1,0) = -mJ(1,0)*mJ(2,2) + mJ(1,2)*mJ(2,0);
+      mJinv(2,0) =  mJ(1,0)*mJ(2,1) - mJ(1,1)*mJ(2,0);		
+      //second column
+      mJinv(0,1) = -mJ(0,1)*mJ(2,2) + mJ(0,2)*mJ(2,1);
+      mJinv(1,1) =  mJ(0,0)*mJ(2,2) - mJ(0,2)*mJ(2,0);
+      mJinv(2,1) = -mJ(0,0)*mJ(2,1) + mJ(0,1)*mJ(2,0);
+      //third column
+      mJinv(0,2) =  mJ(0,1)*mJ(1,2) - mJ(0,2)*mJ(1,1);
+      mJinv(1,2) = -mJ(0,0)*mJ(1,2) + mJ(0,2)*mJ(1,0);
+      mJinv(2,2) =  mJ(0,0)*mJ(1,1) - mJ(0,1)*mJ(1,0);
+      
+
+      //calculation of the determinant (volume/6) 
+      rVolume = mJ(0,0)*mJinv(0,0)+ mJ(0,1)*mJinv(1,0)+ mJ(0,2)*mJinv(2,0); //detJ
+
+
+      //calculation of the center
+      Vector Center = ZeroVector(3);    //center pos
+  
+      mRHS[0]= (mJ(0,0)*mJ(0,0)+ mJ(0,1)*mJ(0,1)+ mJ(0,2)*mJ(0,2));
+      mRHS[1]= (mJ(1,0)*mJ(1,0)+ mJ(1,1)*mJ(1,1)+ mJ(1,2)*mJ(1,2));
+      mRHS[2]= (mJ(2,0)*mJ(2,0)+ mJ(2,1)*mJ(2,1)+ mJ(2,2)*mJ(2,2));
+
+
+      //bxc
+      Center[0] = (+mRHS[0])*(mJ(1,1)*mJ(2,2)-mJ(1,2)*mJ(2,1));
+      Center[1] = (-mRHS[0])*(mJ(1,0)*mJ(2,2)-mJ(1,2)*mJ(2,0));
+      Center[2] = (+mRHS[0])*(mJ(1,0)*mJ(2,1)-mJ(1,1)*mJ(2,0));
+  
+      //cxa
+      Center[0]+= (+mRHS[1])*(mJ(2,1)*mJ(0,2)-mJ(2,2)*mJ(0,1));
+      Center[1]+= (-mRHS[1])*(mJ(2,0)*mJ(0,2)-mJ(2,2)*mJ(0,0));
+      Center[2]+= (+mRHS[1])*(mJ(2,0)*mJ(0,1)-mJ(2,1)*mJ(0,0));
+  
+      //axb
+      Center[0]+= (+mRHS[2])*(mJ(0,1)*mJ(1,2)-mJ(0,2)*mJ(1,1));
+      Center[1]+= (-mRHS[2])*(mJ(0,0)*mJ(1,2)-mJ(0,2)*mJ(1,0));
+      Center[2]+= (+mRHS[2])*(mJ(0,0)*mJ(1,1)-mJ(0,1)*mJ(1,0));
+  
+      Center /= (2.0*rVolume);
+    
+      //calculate the element radius
+      rRadius = norm_2(Center);
+
+     }
+    else{
+
+      rRadius = 0;
+      KRATOS_ERROR(std::logic_error, "WorkingSpaceDimension not Correct in Radius AlphaShape calculation", "" )
+      
+    }
+
+    return rRadius;
+
+
+    KRATOS_CATCH( "" )      
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  
+  //returns false if it should be removed
+  bool ModelerUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry)
+  {
+    KRATOS_TRY
+
+    const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+    const unsigned int size      = rGeometry.size();
+
+    //calculate geometry radius and volume
+    double Radius = 0;
+    double Volume = 0;
+    std::vector<Vector > Vertices;
+    Vector Vertex = ZeroVector(3);
+    for(unsigned int i = 0; i < size; i++)
+      {
+	Vertex[0] = rGeometry[i].X();
+	Vertex[1] = rGeometry[i].Y();
+	Vertex[2] = rGeometry[i].Z();
+
+	Vertices.push_back(Vertex);
+      }
+    
+    Radius = ComputeRadius(Radius, Volume, Vertices, dimension);
+
+    //calculate average h
+    double h = 0;
+    
+    for( unsigned int i = 0; i<size; i++ )
+      {
+	h += rGeometry[i].FastGetSolutionStepValue(NODAL_H);
+      }
+
+    h /= (double)size;
+
+    double CriticalVolume = 1e-6 * pow(h, size-1);
+    double AlphaRadius    = AlphaParameter * h;
+
+
+    if( Volume < CriticalVolume ) //sliver
+      {
+	return false;
+      }
+    else
+      {
+
+	if( Radius < AlphaRadius )
+	  {
+	    return true;
+	  }
+	else
+	  {
+	    return false;
+	  }
+      }
+
+
+    KRATOS_CATCH( "" )
   }
 
 
@@ -540,217 +820,70 @@ namespace Kratos
   //*******************************************************************************************
 
   //returns false if it should be removed
-  bool ModelerUtilities::ShrankAlphaShape(double alpha_param, Geometry<Node<3> >& vertices,double & offset_factor)
+  bool ModelerUtilities::ShrankAlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry,double& rOffsetFactor)
   {
     KRATOS_TRY
 
-      boost::numeric::ublas::bounded_matrix<double,2,2> mJ; //local jacobian
-    boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
-    array_1d<double,2> mC; //center pos
-    array_1d<double,2> mRhs; //center pos
+    const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+    const unsigned int size      = rGeometry.size();
+
+    //calculate geometry radius and volume
+    double Radius = 0;
+    double Volume = 0;
+    std::vector<Vector > Vertices;
+
+    Vector Vertex = ZeroVector(3);
+    array_1d<double, 3>  Normal;
+    double Shrink = 0;
+
+    for(unsigned int i = 0; i < size; i++)
+      {
+	Normal    = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+	Shrink    = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
 	
-    array_1d<double, 3>  Normal=vertices[0].FastGetSolutionStepValue(NORMAL); 
-    double  Shrink             =vertices[0].FastGetSolutionStepValue(SHRINK_FACTOR);   
+	Normal *= Shrink * rOffsetFactor;
 
-    //if normal not normalized
-    //Shrink /=norm_2(Normal);
+	Vertex[0] = rGeometry[i].X() - Normal[0];
+	Vertex[1] = rGeometry[i].Y() - Normal[1];
+	Vertex[2] = rGeometry[i].Z() - Normal[2];
 
-    double x0 = vertices[0].X()-Normal[0]*Shrink*offset_factor;
-    double y0 = vertices[0].Y()-Normal[1]*Shrink*offset_factor;
-
-    //std::cout<<" [0] ("<<x0<<", "<<y0<<") Shrink: "<<Shrink<<" offset_factor: "<<offset_factor<<std::endl; 
-
-    Normal = vertices[1].FastGetSolutionStepValue(NORMAL); 
-    Shrink = vertices[1].FastGetSolutionStepValue(SHRINK_FACTOR);   
-
-    double x1 = vertices[1].X()-Normal[0]*Shrink*offset_factor;
-    double y1 = vertices[1].Y()-Normal[1]*Shrink*offset_factor;
-
-    //std::cout<<" [1] ("<<x1<<", "<<y1<<") Shrink: "<<Shrink<<" offset_factor: "<<offset_factor<<std::endl;
-
-    Normal = vertices[2].FastGetSolutionStepValue(NORMAL); 
-    Shrink = vertices[2].FastGetSolutionStepValue(SHRINK_FACTOR);   
-
-    double x2 = vertices[2].X()-Normal[0]*Shrink*offset_factor;
-    double y2 = vertices[2].Y()-Normal[1]*Shrink*offset_factor;
+	Vertices.push_back(Vertex);
+      }
     
-    //std::cout<<" [2] ("<<x2<<", "<<y2<<") Shrink: "<<Shrink<<" offset_factor: "<<offset_factor<<std::endl;
+    Radius = ComputeRadius(Radius, Volume, Vertices, dimension);
 
-    mJ(0,0)=2.0*(x1-x0);
-    mJ(0,1)=2.0*(y1-y0);
-    mJ(1,0)=2.0*(x2-x0);
-    mJ(1,1)=2.0*(y2-y0);
 
-    double detJ = mJ(0,0)*mJ(1,1)-mJ(0,1)*mJ(1,0);
+    //calculate average h and  average h of boundary face
+    double h = 0;
+    double h_face = 0;
 
-    mJinv(0,0) =  mJ(1,1);
-    mJinv(0,1) = -mJ(0,1);
-    mJinv(1,0) = -mJ(1,0);
-    mJinv(1,1) =  mJ(0,0);
+    for( unsigned int i = 0; i<size; i++ )
+      {
+	h += rGeometry[i].FastGetSolutionStepValue(NODAL_H);
+	h_face += FindBoundaryH(rGeometry[i]);
+      }
 
-    bounded_matrix<double,2,2> check;
+    h /= (double)size;
+    h_face /= (double)size;
 
-    //calculate average h
-    double h;
-    h =  vertices[0].FastGetSolutionStepValue(NODAL_H);
-    h += vertices[1].FastGetSolutionStepValue(NODAL_H);
-    h += vertices[2].FastGetSolutionStepValue(NODAL_H);
-    h *= 0.333333333;
+   
+    if(h_face>h)
+      h = h_face;
 
-    //calculate average h of boundary faces
-    double h_side = FindBoundaryH(vertices[0]) + FindBoundaryH(vertices[1]) + FindBoundaryH(vertices[2]);
-    h_side *= 0.333333333;   
+    double ExtraAlpha = 1.4;
     
-    if(h_side>h)
-      h = h_side;
+    double CriticalVolume = 1e-6 * pow(h, size-1);
+    double AlphaRadius    = AlphaParameter * h * ExtraAlpha;
 
-    // if( h > h_side ){
-    //   //std::cout<<" hside "<<h_side<<" h "<<h<<"  h bigger  "<<std::endl;
-    //   if( h > 5 * h_side ){
-    // 	h = h_side * 5;
-    //   }
-    //   else{
-    // 	h = h_side;
-    //   }
-    // }
-    // else{
-    //   //std::cout<<" hside "<<h_side<<" h "<<h<<"  h_side bigger  "<<std::endl;
-    //   if( h_side > 5 * h ){
-    // 	h *= 5;
-    //   }
-    //   else{
-    // 	h  = h_side;
-    //   }
-    // }
-         
-    if(detJ < 1e-6*h*h) 
+
+    if( Volume < CriticalVolume ) //sliver
       {
-	std::cout << "Alpha shape: volume criterion  = " << detJ << std::endl;
-	////mark as boundary
-	vertices[0].Set(BOUNDARY);
-	vertices[1].Set(BOUNDARY);
-	vertices[2].Set(BOUNDARY);
-	return false;
-	    
-      }
-    else
-      {
-
-	double x0_2 = x0*x0 + y0*y0;
-	double x1_2 = x1*x1 + y1*y1;
-	double x2_2 = x2*x2 + y2*y2;
-	    
-	//finalizing the calculation of the inverted matrix
-	//std::cout<<"MATR INV"<<MatrixInverse(mJ)<<std::endl;
-	mJinv /= detJ;
-	//calculating the RHS
-	mRhs[0] = (x1_2 - x0_2);
-	mRhs[1] = (x2_2 - x0_2);
-	    
-	//calculate position of the center
-	noalias(mC) = prod(mJinv,mRhs);
-	    
-	double radius = sqrt(pow(mC[0]-x0,2)+pow(mC[1]-y0,2));
-	    
-	// std::cout<<" CircumCenter "<<mC<<std::endl;
-	    
-	// std::cout<<" Shrank Alpha Shape "<<radius<<" < "<<h*alpha_param<<" ";//<<std::endl;
-
-	double extra_alpha=1.4;
-
-	if (radius < h*alpha_param*extra_alpha)
-	  {
-	    //std::cout<<" TRUE "<<std::endl;
-	    return true;
-	  }
-	else
-	  {
-	    //std::cout<<" FALSE "<<std::endl;
-	    return false;
-	  }
-      }
-
-
-    KRATOS_CATCH( "" )
-      }
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  //returns false if it should be removed
-  bool ModelerUtilities::AlphaShape(double alpha_param, Geometry<Node<3> >& vertices)
-  {
-    KRATOS_TRY
-
-      boost::numeric::ublas::bounded_matrix<double,2,2> mJ; //local jacobian
-    boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
-    array_1d<double,2> mC; //center pos
-    array_1d<double,2> mRhs; //center pos
-
-    double x0 = vertices[0].X();
-    double x1 = vertices[1].X();
-    double x2 = vertices[2].X();
-
-    double y0 = vertices[0].Y();
-    double y1 = vertices[1].Y();
-    double y2 = vertices[2].Y();
-
-    mJ(0,0)=2.0*(x1-x0);
-    mJ(0,1)=2.0*(y1-y0);
-    mJ(1,0)=2.0*(x2-x0);
-    mJ(1,1)=2.0*(y2-y0);
-
-    double detJ = mJ(0,0)*mJ(1,1)-mJ(0,1)*mJ(1,0);
-
-    mJinv(0,0) =  mJ(1,1);
-    mJinv(0,1) = -mJ(0,1);
-    mJinv(1,0) = -mJ(1,0);
-    mJinv(1,1) =  mJ(0,0);
-
-    bounded_matrix<double,2,2> check;
-
-    //calculate average h
-    double h;
-    h =  vertices[0].FastGetSolutionStepValue(NODAL_H);
-    h += vertices[1].FastGetSolutionStepValue(NODAL_H);
-    h += vertices[2].FastGetSolutionStepValue(NODAL_H);
-    h *= 0.333333333;
-
-    if(detJ < 5e-5*h*h)
-      {
-	////mark as boundary
-	vertices[0].Set(BOUNDARY);
-	vertices[1].Set(BOUNDARY);
-	vertices[2].Set(BOUNDARY);
-
-	//std::cout<<" detJ "<<detJ<<" h "<<h<<" alpha_param "<<alpha_param<<std::endl;
-
 	return false;
       }
     else
       {
 
-	double x0_2 = x0*x0 + y0*y0;
-	double x1_2 = x1*x1 + y1*y1;
-	double x2_2 = x2*x2 + y2*y2;
-
-	//finalizing the calculation of the inverted matrix
-	//std::cout<<"MATR INV"<<MatrixInverse(mJ)<<std::endl;
-	mJinv /= detJ;
-	//calculating the RHS
-	mRhs[0] = (x1_2 - x0_2);
-	mRhs[1] = (x2_2 - x0_2);
-
-	//calculate position of the center
-	noalias(mC) = prod(mJinv,mRhs);
-
-	double radius = sqrt(pow(mC[0]-x0,2)+pow(mC[1]-y0,2));
-
-	//std::cout<<" radius "<<radius<<" h "<<h<<" alpha_param "<<alpha_param<<std::endl;
-
-	if (radius < h*alpha_param)
+	if( Radius < AlphaRadius )
 	  {
 	    return true;
 	  }
@@ -762,7 +895,8 @@ namespace Kratos
 
 
     KRATOS_CATCH( "" )
-      }
+  }
+
 
 
   //*******************************************************************************************
@@ -770,6 +904,8 @@ namespace Kratos
 
   void ModelerUtilities::CheckParticles (ModelPart& rModelPart,ModelPart::IndexType MeshId)
   {
+    KRATOS_TRY
+
     int NumberOfNodes = rModelPart.NumberOfNodes();
     std::cout<<" Number of Nodes "<<NumberOfNodes<<std::endl;
     for(int id=1; id<=NumberOfNodes; id++)
@@ -783,158 +919,107 @@ namespace Kratos
 	}  
 
       }
+
+    KRATOS_CATCH( "" )
   }
 
 
   //*******************************************************************************************
   //*******************************************************************************************
-  
-  // inline double ModelerUtilities::CalculateSideLength(PointType& P1,PointType& P2)
-  // {
-  //   return sqrt( (P1.X()-P2.X())*(P1.X()-P2.X()) + (P1.Y()-P2.Y())*(P1.Y()-P2.Y()) );
-  // };
 
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  // inline double ModelerUtilities::CalculateCircRadius(Geometry< Node<3> >& rGeometry)
-  // {
-  //   double L1 = CalculateSideLength (rGeometry[0],rGeometry[1]);
-  //   double L2 = CalculateSideLength (rGeometry[1],rGeometry[2]);
-  //   double L3 = CalculateSideLength (rGeometry[2],rGeometry[0]);
-      
-      
-  //   double Area = rGeometry.Area();
-       
-
-  //   double  Rcrit = Area*2/(L1+L2+L3);
-
-  //   return Rcrit;
-
-  // };
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  // inline double ModelerUtilities::CalculateCircRadius(const double x0, const double y0,
-  // 						      const double x1, const double y1,
-  // 						      const double x2, const double y2,
-  // 						      double& Area)
-  // {
-
-  //   double L1 = sqrt((x0-x1)*(x0-x1) + (y0-y1)*(y0-y1));
-  //   double L2 = sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
-  //   double L3 = sqrt((x2-x0)*(x2-x0) + (y2-y0)*(y2-y0));     
-      
-  //   Area = fabs( 0.5 * ( (x0*y1) - (x0*y2) - (x1*y0) + (x1*y2) + (x2*y0) - (x2*y1) ) );
-      
-  //   // std::cout<< " Area "<<Area<<" L1 "<<L1<<" L2 "<<L2<<" L3 "<<L3<<std::endl;
-      
-  //   double  Rcrit = Area*2/(L1+L2+L3);
-
-  //   return Rcrit;
-  // };
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  // inline double ModelerUtilities::CalculateAverageSideLength(const double x0, const double y0,
-  // 							   const double x1, const double y1,
-  // 							   const double x2, const double y2)
-  // {
-  //   double length_0 = sqrt( x0*x0 + y0*y0 );
-  //   double length_1 = sqrt( x1*x1 + y1*y1 );
-  //   double length_2 = sqrt( x2*x2 + y2*y2 );
-      
-  //   return 0.5*( length_0 + length_1 + length_2 );
-  // };
-
-
-
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  bool ModelerUtilities::CheckConditionInBox(Condition::Pointer& pCond, SpatialBoundingBox& RefiningBox, ProcessInfo& CurrentProcessInfo)
+  bool ModelerUtilities::CheckConditionInBox(Condition::Pointer& pCondition, SpatialBoundingBox& rRefiningBox, ProcessInfo& rCurrentProcessInfo)
   {
-    bool inside = true;
-    Vector Point(2);
-    Geometry< Node<3> >& rGeom = pCond->GetGeometry();
+    KRATOS_TRY
 
-    for(unsigned int i=0; i<rGeom.size(); i++)
+    bool inside = true;
+    Vector Point(3);
+    Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
+
+    for(unsigned int i=0; i<rGeometry.size(); i++)
       {
-	Point[0] = rGeom[i].X();
-	Point[1] = rGeom[i].Y();
-	if( !RefiningBox.IsInside(Point,CurrentProcessInfo[TIME]) ){
+	Point[0] = rGeometry[i].X();
+	Point[1] = rGeometry[i].Y();
+	Point[2] = rGeometry[i].Z();
+	if( !rRefiningBox.IsInside(Point,rCurrentProcessInfo[TIME]) ){
 	  inside = false;
 	  break;
 	}
       }
 
     return inside;
+
+    KRATOS_CATCH( "" )
   }
 
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool ModelerUtilities::CheckElementInBox(Element::Pointer& pElem, SpatialBoundingBox& RefiningBox, ProcessInfo& CurrentProcessInfo)
+  bool ModelerUtilities::CheckElementInBox(Element::Pointer& pElement, SpatialBoundingBox& rRefiningBox, ProcessInfo& rCurrentProcessInfo)
   {
+    KRATOS_TRY
+    
     bool inside = true;
-    Vector Point(2);
-    Geometry< Node<3> >& rGeom = pElem->GetGeometry();
+    Vector Point(3);
+    Geometry< Node<3> >& rGeometry = pElement->GetGeometry();
 
-    for(unsigned int i=0; i<rGeom.size(); i++)
+    for(unsigned int i=0; i<rGeometry.size(); i++)
       {
-	Point[0] = rGeom[i].X();
-	Point[1] = rGeom[i].Y();
-	if( !RefiningBox.IsInside(Point,CurrentProcessInfo[TIME]) ){
+	Point[0] = rGeometry[i].X();
+	Point[1] = rGeometry[i].Y();
+	Point[2] = rGeometry[i].Z();
+	if( !rRefiningBox.IsInside(Point,rCurrentProcessInfo[TIME]) ){
 	  inside = false;
 	  break;
 	}
       }
 
     return inside;
+
+    KRATOS_CATCH( "" )
   }
 
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool ModelerUtilities::CheckVerticesInBox(Geometry<Node<3> >& rGeom, SpatialBoundingBox& RefiningBox, ProcessInfo& CurrentProcessInfo)
+  bool ModelerUtilities::CheckVerticesInBox(Geometry<Node<3> >& rGeometry, SpatialBoundingBox& rRefiningBox, ProcessInfo& rCurrentProcessInfo)
   {
-    bool inside = true;
-    Vector Point(2);
+    KRATOS_TRY
 
-    for(unsigned int i=0; i<rGeom.size(); i++)
+    bool inside = true;
+    Vector Point(3);
+
+    for(unsigned int i=0; i<rGeometry.size(); i++)
       {
-	Point[0] = rGeom[i].X();
-	Point[1] = rGeom[i].Y();
-	if( !RefiningBox.IsInside(Point,CurrentProcessInfo[TIME]) ){
+	Point[0] = rGeometry[i].X();
+	Point[1] = rGeometry[i].Y();
+	Point[2] = rGeometry[i].Z();
+	if( !rRefiningBox.IsInside(Point,rCurrentProcessInfo[TIME]) ){
 	  inside = false;
 	  break;
 	}
       }
 
     return inside;
+
+    KRATOS_CATCH( "" )
   }
 
 
   //*******************************************************************************************
   //*******************************************************************************************
 
-  Condition::Pointer ModelerUtilities::FindMasterCondition(Condition::Pointer& pCond, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found)
+  Condition::Pointer ModelerUtilities::FindMasterCondition(Condition::Pointer& pCondition, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found)
   {
+    KRATOS_TRY
 		
     Condition::Pointer pMasterCondition;
 
-    Geometry< Node<3> >& rGeom = pCond->GetGeometry();
+    Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
     boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-    rGeom.NodesInFaces(lpofa);   
+    rGeometry.NodesInFaces(lpofa);   
 		
     //std::cout<<" lpofa "<<lpofa<<std::endl;
-    //std::cout<<" rGeom "<<rGeom<<std::endl;
+    //std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
     condition_found=false;
     for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
@@ -947,12 +1032,12 @@ namespace Kratos
 	  for(unsigned int i=0; i<lpofa.size2();i++)
 	    {
 	      // std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
-	      // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeom[lpofa(1,i)].Id()<<"] ["<<rGeom[lpofa(2,i)].Id()<<"] "<<std::endl;
+	      // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
 
-	      if( (   rConditionGeom[0].Id() == rGeom[lpofa(1,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeom[lpofa(2,i)].Id() ) || 
-		  (   rConditionGeom[0].Id() == rGeom[lpofa(2,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeom[lpofa(1,i)].Id() ) )
+	      if( (   rConditionGeom[0].Id() == rGeometry[lpofa(1,i)].Id() 
+		      && rConditionGeom[1].Id() == rGeometry[lpofa(2,i)].Id() ) || 
+		  (   rConditionGeom[0].Id() == rGeometry[lpofa(2,i)].Id() 
+		      && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() ) )
 		{
 		  pMasterCondition= *(ic.base());
 		  condition_found=true;
@@ -972,7 +1057,7 @@ namespace Kratos
     if(!condition_found) {
       //   //KRATOS_ERROR(std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
       std::cout<<" Boundary Condition NOT FOUND after CONTACT MESHING SEARCH "<<std::endl;
-      //   std::cout<<" rGeom "<<rGeom<<std::endl;
+      //   std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
       //   for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
       //     {
@@ -983,7 +1068,7 @@ namespace Kratos
       for(unsigned int i=0; i<lpofa.size2();i++)
 	{
 	  // 	  std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
-	  std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeom[lpofa(1,i)].Id()<<"] ["<<rGeom[lpofa(2,i)].Id()<<"] "<<std::endl;
+	  std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
 		
 	}
 
@@ -992,22 +1077,24 @@ namespace Kratos
 
     return pMasterCondition;
 	
+    KRATOS_CATCH( "" )
   }
   
   //*******************************************************************************************
   //*******************************************************************************************
 
-  Condition::Pointer ModelerUtilities::FindMasterCondition(Condition::Pointer& pCond, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found)
+  Condition::Pointer ModelerUtilities::FindMasterCondition(Condition::Pointer& pCondition, PointType& pSlaveNode, ModelPart::ConditionsContainerType & rModelConditions,bool & condition_found)
   {
-      
+    KRATOS_TRY    
+    
     Condition::Pointer pMasterCondition;
 
-    Geometry< Node<3> >& rGeom = pCond->GetGeometry();
+    Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
     boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
-    rGeom.NodesInFaces(lpofa);   
+    rGeometry.NodesInFaces(lpofa);   
 		
     //std::cout<<" lpofa "<<lpofa<<std::endl;
-    //std::cout<<" rGeom "<<rGeom<<std::endl;
+    //std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
     condition_found=false;
     for(ModelPart::ConditionsContainerType::iterator ic=rModelConditions.begin(); ic!=rModelConditions.end(); ic++)
@@ -1020,16 +1107,16 @@ namespace Kratos
 	  for(unsigned int i=0; i<lpofa.size2();i++)
 	    {
 	      // std::cout<<" General Conditions IDs ["<<rConditionGeom[0].Id()<<"] ["<<rConditionGeom[1].Id()<<"] "<<std::endl;
-	      // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeom[lpofa(1,i)].Id()<<"] ["<<rGeom[lpofa(2,i)].Id()<<"] "<<std::endl;
+	      // std::cout<<" Local Conditions IDs ("<<i<<"):["<<rGeometry[lpofa(1,i)].Id()<<"] ["<<rGeometry[lpofa(2,i)].Id()<<"] "<<std::endl;
 
-	      if( (   rConditionGeom[0].Id() == rGeom[lpofa(1,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeom[lpofa(2,i)].Id() ) || 
-		  (   rConditionGeom[0].Id() == rGeom[lpofa(2,i)].Id() 
-		      && rConditionGeom[1].Id() == rGeom[lpofa(1,i)].Id() ) )
+	      if( (   rConditionGeom[0].Id() == rGeometry[lpofa(1,i)].Id() 
+		      && rConditionGeom[1].Id() == rGeometry[lpofa(2,i)].Id() ) || 
+		  (   rConditionGeom[0].Id() == rGeometry[lpofa(2,i)].Id() 
+		      && rConditionGeom[1].Id() == rGeometry[lpofa(1,i)].Id() ) )
 		{
 		  pMasterCondition = *(ic.base());
-		  pSlaveNode = rGeom[lpofa(0,i)];
-		  //std::cout<<"   Slave_Node: found: "<<rGeom[lpofa(0,i)].Id()<<std::endl;
+		  pSlaveNode = rGeometry[lpofa(0,i)];
+		  //std::cout<<"   Slave_Node: found: "<<rGeometry[lpofa(0,i)].Id()<<std::endl;
 		  condition_found=true;
 		  break;
 		}
@@ -1047,6 +1134,9 @@ namespace Kratos
     //     KRATOS_ERROR( std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
 
     return pMasterCondition;
+
+    KRATOS_CATCH( "" )
+
   }
 
 
@@ -1058,6 +1148,8 @@ namespace Kratos
  
   bool ModelerUtilities::CheckContactActive(GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes)
   {
+    KRATOS_TRY
+
     unsigned int size = rConditionGeometry.size();
     unsigned int counter = 0;
 
@@ -1081,6 +1173,7 @@ namespace Kratos
     else
       return false;
       
+    KRATOS_CATCH( "" )
   }
 
 
@@ -1090,6 +1183,8 @@ namespace Kratos
 
   bool ModelerUtilities::CheckNodeCloseWallTip(std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor)
   {
+    KRATOS_TRY
+    
     // double tip_radius = 0;
     // Vector tip_center = ZeroVector(3);
     
@@ -1127,6 +1222,7 @@ namespace Kratos
       
     return false;
 
+    KRATOS_CATCH( "" )
   }
 
 
