@@ -414,18 +414,16 @@ namespace Kratos
             rInitialRotaMoment[2] = RotaAcc[2] * moment_of_inertia;
 
         }        
-
-        //size_t i_neighbour_count = 0;       
+        
         
         //r(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin(); neighbour_iterator != mrNeighbours.end(); neighbour_iterator++) {
         for( unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
             SphericParticle* neighbour_iterator = mNeighbourElements[i_neighbour_count];
-            //if(mNeighbourElements[i]->Id() != neighbour_iterator->Id() ) KRATOS_ERROR(std::logic_error,"ALAAAAAAAAAA",this->Id());
+                        
+            unsigned int neighbour_iterator_id = neighbour_iterator->Id();                        
         
             array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-            //const double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             const double &other_radius                  = neighbour_iterator->GetRadius();
-            //const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);           
             const double &other_sqrt_of_mass            = neighbour_iterator->GetSqrtOfRealMass();    
  
             double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
@@ -471,14 +469,9 @@ namespace Kratos
             double contact_sigma = 0.0;
             double failure_criterion_state = 0.0; 
             double acumulated_damage = 0.0; 
-            
-            unsigned int neighbour_iterator_id = neighbour_iterator->Id();
+
 
             // Getting neighbour properties
-            /*double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-            double &other_poisson             = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-            double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-            double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);*/
             double other_young               = neighbour_iterator->GetYoung();
             double other_poisson             = neighbour_iterator->GetPoisson();
             double other_ln_of_restit_coeff  = neighbour_iterator->GetLnOfRestitCoeff();
@@ -744,13 +737,6 @@ namespace Kratos
             //i_neighbour_count++;
 
         }//for each neighbour
-        
-        /*rInitialRotaMoment [0] = InitialRotaMoment [0];
-        rInitialRotaMoment [1] = InitialRotaMoment [1];
-        rInitialRotaMoment [2] = InitialRotaMoment [2];*/
-
-
-        //ComputeStressStrain(mStressTensor, rCurrentProcessInfo);  //MSIMSI 10
         
         KRATOS_CATCH("")         
             
@@ -1105,16 +1091,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
    
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() 
   {
-    //ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
-    //ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);        
-    
-    //TempNeighbours.swap(neighbour_elements); 
     mTempNeighbourElements.swap(mNeighbourElements);//////////////////////////////////
-    
-    //unsigned int temp_size = TempNeighbours.size();
+
     unsigned int temp_size = mTempNeighbourElements.size();
     
-    //neighbour_elements.clear(); 
     mNeighbourElements.clear();//////////////////////////////////////              
             
     mTempNeighboursIds.resize(temp_size);
@@ -1131,7 +1111,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     vector_of_zeros[2]                   = 0.0;
     
     unsigned int neighbour_counter       = 0; //Not increased at every iteration!! only if found as a real neighbour.
-    //for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++) {
+
     for (unsigned int j = 0; j < mTempNeighbourElements.size(); j++) {
       SphericParticle* i = mTempNeighbourElements[j];
 
@@ -1141,9 +1121,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       double                mapping_new_ini     = -1;  
       double                mapping_new_cont    = -1;
 
-      //Loop Over Initial Neighbours
-        //unsigned int start_searching_here = 0; //only to be used if neighbours are already sorted
-        
+      //Loop Over Initial Neighbours        
         
       for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
       {
@@ -1168,7 +1146,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         }
         
         //Judge if its neighbour            
-        //double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
         double other_radius                 = i->GetRadius();
         double radius_sum                   = mRadius + other_radius;
         array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
@@ -1177,7 +1154,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
         if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
         {        
-            //neighbour_elements.push_back(*(i.base()));  
             mNeighbourElements.push_back(i);  ///////////////////////////////*/
             
             mTempNeighboursIds[neighbour_counter]              = static_cast<int>((i)->Id());
@@ -1193,7 +1169,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
       }//for ParticleWeakIteratorType i
       
-      //int final_size = neighbour_elements.size();
       int final_size = mNeighbourElements.size();
       mTempNeighboursIds.resize(final_size);
       mTempNeighboursDelta.resize(final_size);
