@@ -247,6 +247,12 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    /// Assignment operator.
+    Modeler& operator=(Modeler const& rOther);
+
+    /// Copy constructor.
+    Modeler(Modeler const& rOther){};
+
 
     ///@}
     ///@name Protected Operations
@@ -303,13 +309,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    Modeler& operator=(Modeler const& rOther);
-
-    /// Copy constructor.
-    Modeler(Modeler const& rOther);
-
 
     ///@}
 

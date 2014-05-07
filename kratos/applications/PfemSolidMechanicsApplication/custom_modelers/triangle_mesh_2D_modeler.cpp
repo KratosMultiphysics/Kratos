@@ -24,7 +24,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TriangleMesh2DModeler::SetInitialMeshData (int number_of_domains)
+  void TriangleMesh2DModeler::Initialize (int number_of_domains)
   {
     
     std::cout<<" INITIALIZE MESH DATA: [ number of domains = "<<number_of_domains<<" ]"<<std::endl;
@@ -1537,10 +1537,10 @@ namespace Kratos
 
 		  		  
 		double element_area = 0;
-		double element_radius = mModelerUtilities.CalculateCircRadius (vertices[0].X(),vertices[0].Y(),
-									       vertices[1].X(),vertices[1].Y(),
-									       vertices[2].X(),vertices[2].Y(),
-									       element_area);
+		double element_radius = ModelerUtilities::CalculateTriangleRadius (vertices[0].X(),vertices[0].Y(),
+										   vertices[1].X(),vertices[1].Y(),
+										   vertices[2].X(),vertices[2].Y(),
+										   element_area);
 		  
 	
 		//calculate the prescribed h
@@ -2374,7 +2374,7 @@ namespace Kratos
 		    double mean_node_radius = 0;
 		    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 		      {
-			mean_node_radius+= mModelerUtilities.CalculateCircRadius(ne->GetGeometry());
+			mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
 		      }
 		    
 		    mean_node_radius /= double(neighb_elems.size());
@@ -3588,7 +3588,7 @@ namespace Kratos
 		  //condition_radius is side_length
 		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
 
-		  //condition_radius = mModelerUtilities.CalculateCircRadius (pGeom);
+		  //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
 
 		  //if( plastic_power > rVariables.Refine.critical_dissipation && condition_radius > rVariables.Refine.critical_radius )
 		  if( plastic_power > rVariables.Refine.critical_dissipation && side_length > size_for_energy_side )
@@ -3625,7 +3625,7 @@ namespace Kratos
 		  //condition_radius is side_length
 		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
 
-		  //condition_radius = mModelerUtilities.CalculateCircRadius (pGeom);
+		  //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
 		  double critical_side_size = 0;
 		  
 		  bool on_tip = false;
