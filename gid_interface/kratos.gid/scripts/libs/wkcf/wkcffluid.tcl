@@ -1647,9 +1647,9 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     set findcomma [string last "," $nodal_results]
     if {$findcomma !="-1"} {
 	set nodal_results [string range $nodal_results 0 end-1]
+    }
 	append nodal_results "\]" 
 	puts $fileid "$nodal_results"
-    }
     
     # Set gauss_points_results to empty
     puts $fileid "gauss_points_results=\[\]"
