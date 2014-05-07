@@ -89,7 +89,7 @@ namespace Python
 
   void SetInitialDataOnMesher(TriangleMesh2DModeler& Mesher,int number_of_domains)
   {
-    Mesher.SetInitialMeshData(number_of_domains);
+    Mesher.Initialize(number_of_domains);
   }
 
   void TransferContactBoundaryData(ContactDomain2DModeler& Mesher, ModelPart& model_part, bool initial)
