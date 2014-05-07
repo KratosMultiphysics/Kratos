@@ -72,6 +72,7 @@ namespace Kratos
 /** Detail class definition.
  */
 class TriangleMesh2DModeler
+  : public Modeler
 {
 protected:
 
@@ -312,7 +313,10 @@ public:
     ///@{
 
     /// Default constructor.
-    TriangleMesh2DModeler() {} //
+    TriangleMesh2DModeler(): Modeler() {} //
+
+    /// Copy constructor.
+    TriangleMesh2DModeler(TriangleMesh2DModeler const& rOther): Modeler(rOther) {}
 
     /// Destructor.
     virtual ~TriangleMesh2DModeler() {}
@@ -328,7 +332,7 @@ public:
 
     //*******************************************************************************************
     //*******************************************************************************************
-    void SetInitialMeshData (int number_of_domains);
+    void Initialize (int number_of_domains);
   
     void SetRemeshData (Element   const& rReferenceElement,
 			Condition const& rReferenceCondition,
@@ -492,7 +496,7 @@ protected:
     ///@{
 
     /// Assignment operator.
-    TriangleMesh2DModeler& operator=(TriangleMesh2DModeler const& rOther);
+   TriangleMesh2DModeler& operator=(TriangleMesh2DModeler const& rOther);
 
     ///@}
     ///@name Private Operations
