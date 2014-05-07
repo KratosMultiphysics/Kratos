@@ -26,7 +26,7 @@
 #include "Particle_Contact_Element.h"
 #include "containers/vector_component_adaptor.h"
 
-#include "custom_constitutive/testlaw.h"
+#include "../custom_constitutive/testlaw.h"
 
 namespace Kratos
 {
