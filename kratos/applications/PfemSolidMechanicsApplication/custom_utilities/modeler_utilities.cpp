@@ -310,6 +310,10 @@ namespace Kratos
 
 	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
 
+	    double NormNormal = norm_2(Normal);
+	    if( NormNormal != 0)
+	      Normal /= NormNormal;
+
 	    //change position to be the vector from the vertex to the geometry center
 	    Corner = Center-Vertices[i];
 
@@ -373,6 +377,10 @@ namespace Kratos
 	  {
 	    Normal  = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
+	    double NormNormal = norm_2(Normal);
+	    if( NormNormal != 0)
+	      Normal /= NormNormal;
+
 	    Shrink  = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
 	    
 	    Normal *= Shrink * rOffsetFactor;
@@ -397,6 +405,10 @@ namespace Kratos
 	int numorthogonal    =0;
 
 	array_1d<double, 3> Coplanar = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
+	double NormCoplanar = norm_2(Coplanar);
+	if( NormCoplanar != 0)
+	  Coplanar /= NormCoplanar;
+
 	array_1d<double, 3> Corner;
 
 	for(unsigned int i = 0; i < size; i++)
@@ -405,7 +417,12 @@ namespace Kratos
 	    //std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
 
 	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
+
+	    double NormNormal = norm_2(Normal);
+	    if( NormNormal != 0)
+	      Normal /= NormNormal;
 				
+
 	    //change position to be the vector from the vertex to the geometry center
 	    Corner = Vertices[i]-Center;
 
@@ -839,6 +856,11 @@ namespace Kratos
     for(unsigned int i = 0; i < size; i++)
       {
 	Normal    = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+
+	double NormNormal = norm_2(Normal);
+	if( NormNormal != 0)
+	  Normal /= NormNormal;
+
 	Shrink    = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
 	
 	Normal *= Shrink * rOffsetFactor;
