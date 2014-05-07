@@ -459,36 +459,23 @@ namespace Kratos
 
       void SphericParticle::ComputeMoments(double LocalElasticContactForce[3],
                                            double GlobalElasticContactForce[3],
-                                           //double InitialRotaMoment[3],
                                            array_1d<double, 3>& rInitialRotaMoment,
                                            double LocalCoordSystem[3][3],
                                            const double& other_radius,
                                            array_1d<double, 3>& rContactMoment,
-                                           //ParticleWeakIteratorType neighbour_iterator)
                                            SphericParticle* neighbour_iterator)
       {
-          double MA[3]         = {0.0};
-          //double RotaMoment[3] = {0.0};
-          
-          /*RotaMoment[0] = rContactMoment[0];
-          RotaMoment[1] = rContactMoment[1];
-          RotaMoment[2] = rContactMoment[2]; */         
+          double MA[3]         = {0.0};      
 
           GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalElasticContactForce, MA);
 
-          /*RotaMoment[0] -= MA[0] * mRadius;
-          RotaMoment[1] -= MA[1] * mRadius;
-          RotaMoment[2] -= MA[2] * mRadius;*/
           rContactMoment[0] -= MA[0] * mRadius;
           rContactMoment[1] -= MA[1] * mRadius;
           rContactMoment[2] -= MA[2] * mRadius;
 
           // ROLLING FRICTION
-
-          //if (mRollingFrictionOption){  // rolling friction 
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){    
               double rolling_friction_coeff            = GetRollingFriction() * mRadius;
-              //const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               const double other_rolling_friction = neighbour_iterator->GetRollingFriction();
               double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
               double equiv_rolling_friction_coeff  = std::min(rolling_friction_coeff,other_rolling_friction_coeff);
@@ -499,9 +486,6 @@ namespace Kratos
                   double CoordSystemMoment2[3] = {0.0};
                   double MR[3]                 = {0.0};
 
-                  /*MaxRotaMoment[0] = InitialRotaMoment[0] + RotaMoment[0];
-                  MaxRotaMoment[1] = InitialRotaMoment[1] + RotaMoment[1];
-                  MaxRotaMoment[2] = InitialRotaMoment[2] + RotaMoment[2];*/
                   MaxRotaMoment[0] = rInitialRotaMoment[0] + rContactMoment[0];
                   MaxRotaMoment[1] = rInitialRotaMoment[1] + rContactMoment[1];
                   MaxRotaMoment[2] = rInitialRotaMoment[2] + rContactMoment[2];
@@ -529,18 +513,12 @@ namespace Kratos
                   double MR_max = sqrt(MaxRotaMoment[0] * MaxRotaMoment[0] + MaxRotaMoment[1] * MaxRotaMoment[1] + MaxRotaMoment[2] * MaxRotaMoment[2]);
 
                   if (MR_max > MR_now){
-                       /*RotaMoment[0] += MR[0] * equiv_rolling_friction_coeff;
-                       RotaMoment[1] += MR[1] * equiv_rolling_friction_coeff;
-                       RotaMoment[2] += MR[2] * equiv_rolling_friction_coeff;*/
                        rContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
                        rContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
                        rContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
                    }
 
                    else {
-                       /*RotaMoment[0] = - InitialRotaMoment[0];
-                       RotaMoment[1] = - InitialRotaMoment[1];
-                       RotaMoment[2] = - InitialRotaMoment[2];*/
                        rContactMoment[0] = - rInitialRotaMoment[0];
                        rContactMoment[1] = - rInitialRotaMoment[1];
                        rContactMoment[2] = - rInitialRotaMoment[2];
@@ -2213,7 +2191,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           }
 
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
+          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce); //is this line necessary?????
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)
