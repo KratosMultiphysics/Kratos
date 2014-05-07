@@ -446,11 +446,12 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddLHS(LocalSystemComponents&
     Matrix aux_matrix   = ZeroMatrix(MatSize);
     noalias(aux_matrix) = prod(rLocalSystem.RotationMatrix, LocalStiffnessMatrix);
 
-    //Stiffness Matrix
-    noalias(rLeftHandSideMatrix)= prod(aux_matrix,Matrix(trans(rLocalSystem.RotationMatrix)));
 
-    //std::cout<<" rLocalSystem.RotationMatrix "<<rLocalSystem.RotationMatrix<<std::endl;
-    //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
+    //Stiffness Matrix
+    noalias(rLeftHandSideMatrix) = prod(aux_matrix,Matrix(trans(rLocalSystem.RotationMatrix)));
+
+    // std::cout<<" rLocalSystem.RotationMatrix "<<rLocalSystem.RotationMatrix<<std::endl;
+    // std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -681,103 +682,110 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalStiffnessMatrix(Matrix& Loc
 //*****************************************************************************
 //*****************************************************************************
 
-void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& RotationMatrix)
+
+void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRotationMatrix)
 
 {
 
     KRATOS_TRY
-
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       size            = number_of_nodes * dimension;
     unsigned int       MatSize         = 2 * size;
 
-    Vector NormalVectors        = ZeroVector(9);    // vector containing director cosines
+
+    Vector GlobalY = ZeroVector(3);
+    GlobalY[1]=1.0;
+
+    Vector GlobalZ = ZeroVector(3);
+    GlobalZ[2]=1.0;
+
+    Vector DirectionVectorX     = ZeroVector(3);
     Vector ReferenceCoordinates = ZeroVector(size);
 
-    double nx, ny, nz, theta;
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * ( dimension );
-      
-      ReferenceCoordinates[index]   = GetGeometry()[i].X0();
-      ReferenceCoordinates[index+1] = GetGeometry()[i].Y0();
-      ReferenceCoordinates[index+2] = GetGeometry()[i].Z0();     
-    }
-
-    double length_inverse = ( 1.00 / mLength );
     
+    ReferenceCoordinates[0] = GetGeometry()[0].X();
+    ReferenceCoordinates[1] = GetGeometry()[0].Y();
+    ReferenceCoordinates[2] = GetGeometry()[0].Z();     
+
+    int k = number_of_nodes - 1 ;
+
+    ReferenceCoordinates[3] = GetGeometry()[k].X();
+    ReferenceCoordinates[4] = GetGeometry()[k].Y();
+    ReferenceCoordinates[5] = GetGeometry()[k].Z();     
+   
     for( unsigned int i = 0; i < dimension; i++ )
     {
-      NormalVectors[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
-      NormalVectors[i] *= length_inverse;
+      DirectionVectorX[i]  = (ReferenceCoordinates[i+3] - ReferenceCoordinates[i]);
     }
 
-    // local x-axis (e1_local) is the beam axis 
-    nx = NormalVectors[0];
-    ny = NormalVectors[1];
-    nz = NormalVectors[2];
+    // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
+    double VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
+    if( VectorNorm != 0)
+      DirectionVectorX /= VectorNorm;
+    
+    // local y-axis (e2_local) (in GID is e1_local)
+    Vector DirectionVectorY = ZeroVector(3);
 
-
-    // local axis parallel to the global plane x-y
-    if (nx == 0.0)
-    {
-	theta = 0;
-
-	// local y-axis (e2_local) is the vector product of the local e1(beam axis) and the local e2(parallel to the global x-y)
-	NormalVectors[6] = -nz*cos(theta);
-	NormalVectors[7] = -nz*sin(theta);
-	NormalVectors[8] =  nx*cos(theta) + ny*sin(theta);
-
-
-	// local z-axis (e3_local) is always parallel to the global plane x-y
-	NormalVectors[6] = -sin(theta);
-	NormalVectors[7] =  cos(theta);
-	NormalVectors[8] =  0.0;
-
+    double tolerance = 1.0/64.0;
+    if(fabs(DirectionVectorX[0])< tolerance && fabs(DirectionVectorX[1])< tolerance){
+      DirectionVectorY = MathUtils<double>::CrossProduct(GlobalY, DirectionVectorX);
     }
-    else
-    {
-        theta = atan(ny/nx);
-
-	if(nx < 0.0)
-	  theta = theta + PI;
-
-	// local y-axis (e2_local) is always parallel to the global plane x-y
-	NormalVectors[3] = -sin(theta);
-	NormalVectors[4] =  cos(theta);
-	NormalVectors[5] =  0.0;
-	
-	// local z-axis (e3_local) is the vector product of the local e1(beam axis) and the local e2(parallel to the global x-y)
-	NormalVectors[6] = -nz*cos(theta);
-	NormalVectors[7] = -nz*sin(theta);
-	NormalVectors[8] =  nx*cos(theta) + ny*sin(theta);
-
+    else{
+      DirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, DirectionVectorX);
     }
 
-    //Transformation matrix T = [e1_local, e2_local, e3_local] for each column
+    VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
+    if( VectorNorm != 0)
+      DirectionVectorY /= VectorNorm;
 
+    // local z-axis (e3_local) (in GID is e2_local)
+    Vector DirectionVectorZ = MathUtils<double>::CrossProduct(DirectionVectorX,DirectionVectorY);
 
-    //Building the rotation matrix
+    VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
+    if( VectorNorm != 0 )
+      DirectionVectorZ /= VectorNorm;
+
+      
+    //Transformation matrix T = [e1_local, e2_local, e3_local] 
+    Matrix AuxRotationMatrix;
+    
+    if( AuxRotationMatrix.size1() != dimension )
+      AuxRotationMatrix.resize(dimension, dimension, false);
+    
+    // std::cout<<" Xlocal "<<DirectionVectorX<<std::endl;
+    // std::cout<<" Ylocal "<<DirectionVectorY<<std::endl;
+    // std::cout<<" Zlocal "<<DirectionVectorZ<<std::endl;
+
+    for (unsigned int i=0; i<dimension; i++)
+      {
+	AuxRotationMatrix(i,0) = DirectionVectorX[i];  // column distribution
+	AuxRotationMatrix(i,1) = DirectionVectorY[i];
+	AuxRotationMatrix(i,2) = DirectionVectorZ[i];
+      }
+      
+
+    if( rRotationMatrix.size1() != MatSize )
+      rRotationMatrix.resize(MatSize, MatSize, false);
+
+    rRotationMatrix = ZeroMatrix(MatSize);
+ 
+    //Building the rotation matrix for the local element matrix
     for (unsigned int kk=0; kk < MatSize; kk += dimension)
     {
         for (unsigned int i=0; i<dimension; i++)
         {
             for(unsigned int j=0; j<dimension; j++)
             {
-	      RotationMatrix(i+kk,j+kk) = NormalVectors[3*j+i];
+	      rRotationMatrix(i+kk,j+kk) = AuxRotationMatrix(i,j);
             }
         }
     }
 
 
-
     KRATOS_CATCH( "" )
 
 }
-
-
 
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
@@ -1123,8 +1131,8 @@ void SmallDisplacementBeamElement3D2N::CalculateDistributedBodyForce(const int D
         LocalBeamAxis[i] = ReferenceCoordinates[i+3] - ReferenceCoordinates[i];
     }
 
-    if( Load.size() != 2 )
-      Load.resize(2, false);
+    if( Load.size() != 3 )
+      Load.resize(3, false);
 
     double alpha  =  0.00;
     double sign  =  1.00;
@@ -1268,6 +1276,14 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 
 	this->CalculateLocalNodalStress(Stress, VolumeForce);
 
+        //Transform to Global Stress
+	Matrix Rotation = ZeroMatrix(12);
+	this->CalculateTransformationMatrix(Rotation);
+        Stress = prod(Rotation, Stress);
+
+	//std::cout<<" Stress "<<Stress<<std::endl;
+    
+
 	//dangerous:
 	for(unsigned int i = 0; i<Stress.size(); i++)
 	  {
@@ -1294,9 +1310,13 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 	    factor = 1; //-1;
 	  }
 	
-	for( unsigned int i= 0; i< dimension; i++ )
-	  CalculateDistributedBodyForce(i, Load[i], VolumeForce);
+	// for( unsigned int i= 0; i< dimension; i++ )
+	//   CalculateDistributedBodyForce(i, Load[i], VolumeForce);
 
+	if( Load[PointNumber].size() != 3 )
+	  Load[PointNumber].resize(3, false);
+
+	Load[PointNumber] = ZeroVector(3);
 	//std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
       }
 
@@ -1313,39 +1333,40 @@ void SmallDisplacementBeamElement3D2N::CalculateOnIntegrationPoints(  const Vari
 	//internal moment in not using the given load
    
 	/// Punto Inical
-	rOutput[0][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 0.25);  //Stress[3];
-	rOutput[0][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 0.25);  //Stress[4];
-	rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 0.25);  //Stress[5];
-        //rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[1][1], mLength * 0.25); 
+	rOutput[0][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[0][1], 0.25);  //Stress[3];
+	rOutput[0][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[0][1], 0.25);  //Stress[4];
+	rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[0][1], 0.25);  //Stress[5];
+        //rOutput[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[0][1], mLength * 0.25); 
 
 
-        rOutput[1][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1],  0.5);
-        rOutput[1][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 0.5);
-        rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 0.5);
-        //rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[1][1], mLength * 0.5);
+        rOutput[1][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[0][1],  0.5);
+        rOutput[1][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[0][1], 0.5);
+        rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[0][1], 0.5);
+        //rOutput[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[0][1], mLength * 0.5);
 
 
-        rOutput[2][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[1][1], 0.75);
-        rOutput[2][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[1][1], 0.75);
-        rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[1][1], 0.75);
-        //rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[1][1], 3.00 * mLength * 0.25);
+        rOutput[2][0] = factor * CalculateInternalMoment(Stress[3], Stress[9], Load[0][1], 0.75);
+        rOutput[2][1] = factor * CalculateInternalMoment(Stress[4], Stress[10], Load[0][1], 0.75);
+        rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load[0][1], 0.75);
+        //rOutput[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load[0][1], 3.00 * mLength * 0.25);
 
     }
 
     //only force in x and y axis (global?)
     if(rVariable==FORCE)
     {
-        rOutput[0][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], mLength * 0.25);
-        rOutput[0][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.25);
-        rOutput[0][2] = 0.00;
+   
+        rOutput[0][0] = factor * CalculateInternalAxil(Stress[0], Load[0][0], mLength * 0.25);
+        rOutput[0][1] = factor * CalculateInternalShear(Stress[1], Load[0][1], mLength * 0.25);
+        rOutput[0][2] = factor * CalculateInternalShear(Stress[2], Load[0][2], mLength * 0.25);
 
-        rOutput[1][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], mLength * 0.5);
-        rOutput[1][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.5);
-        rOutput[1][2] = 0.00;
+        rOutput[1][0] = factor * CalculateInternalAxil(Stress[0], Load[0][0], mLength * 0.5);
+        rOutput[1][1] = factor * CalculateInternalShear(Stress[1], Load[0][1], mLength * 0.5);
+        rOutput[1][2] = factor * CalculateInternalShear(Stress[2], Load[0][2], mLength * 0.5);
 
-        rOutput[2][0] = factor * CalculateInternalAxil(Stress[0], Load[1][0], mLength * 0.75);
-        rOutput[2][1] = factor * CalculateInternalShear(Stress[1], Load[1][1], mLength * 0.75);
-        rOutput[2][2] = 0.00;
+        rOutput[2][0] = factor * CalculateInternalAxil(Stress[0], Load[0][0], mLength * 0.75);
+        rOutput[2][1] = factor * CalculateInternalShear(Stress[1], Load[0][1], mLength * 0.75);
+        rOutput[2][2] = factor * CalculateInternalShear(Stress[2], Load[0][2], mLength * 0.75);
     }
 
     KRATOS_CATCH( "" )
@@ -1423,9 +1444,6 @@ void SmallDisplacementBeamElement3D2N::CalculateLocalNodalStress(Vector& Stress,
     noalias(Stress) = prod(LocalMatrix, LocalDisplacement); 
     Stress -= LocalForceVector; 
 
-    //std::cout<<" Stress "<<Stress<<std::endl;
-
-    return;
 
     KRATOS_CATCH( "" )
 }
