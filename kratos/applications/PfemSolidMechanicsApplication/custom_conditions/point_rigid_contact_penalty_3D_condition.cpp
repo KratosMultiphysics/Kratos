@@ -210,12 +210,20 @@ namespace Kratos
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
+    double factor = 4;
+    if( distance < 1.0 ){ //take a number bigger than 1.0 (length units)
+      int order = (int)((-1) * std::log10(distance) + 1) ;
+      distance *= factor * pow(10,order);
+    }
+
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
 
-    //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
+    // std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
+    // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
+
     KRATOS_CATCH( "" )
       }
   
