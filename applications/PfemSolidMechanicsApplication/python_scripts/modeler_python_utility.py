@@ -21,7 +21,7 @@ class ModelerUtility:
 
         # set mesh modeler
         if(domain_size >= 2):
-            self.mesh_modeler = TriangleMesh2DModeler()
+            self.mesh_modeler = TriangularMesh2DModeler()
         # else:
             # self.mesh_modeler = TetrahedronMesh3DModeler()
 

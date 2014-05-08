@@ -18,7 +18,7 @@
 #include "custom_python/add_custom_modelers_to_python.h"
 
 // Meshers
-#include "custom_modelers/triangle_mesh_2D_modeler.hpp"
+#include "custom_modelers/triangular_mesh_2D_modeler.hpp"
 #include "custom_modelers/contact_domain_2D_modeler.hpp"
 
 // Bounding Boxes
@@ -46,7 +46,7 @@ namespace Python
   //////////////////////////////////////////////////////////////////////////////////////////
 
   //triangle mesher
-  void GenerateTriangleMesh(TriangleMesh2DModeler& Mesher, ModelPart& model_part)
+  void GenerateTriangleMesh(TriangularMesh2DModeler& Mesher, ModelPart& model_part)
   {
     Mesher.GenerateMesh(model_part);
   }
@@ -61,7 +61,7 @@ namespace Python
 			       friction_active, nu_static, nu_dynamic);
   }
 
-  void SetRemeshDataOnMesher(TriangleMesh2DModeler& Mesher, char* ElementName, char* ConditionName,bool remesh, bool constrained, bool mesh_smoothing, bool jacobi_smoothing, bool avoid_tip_elements, double alpha_shape, double offset_factor, int domain)
+  void SetRemeshDataOnMesher(TriangularMesh2DModeler& Mesher, char* ElementName, char* ConditionName,bool remesh, bool constrained, bool mesh_smoothing, bool jacobi_smoothing, bool avoid_tip_elements, double alpha_shape, double offset_factor, int domain)
   {
     //this is the maximum number of parameters to compile successfully
     Mesher.SetRemeshData (KratosComponents<Element>::Get(ElementName),
@@ -70,24 +70,24 @@ namespace Python
 			  avoid_tip_elements, alpha_shape, offset_factor, domain );
   }
 
-  void SetRefineDataOnMesher(TriangleMesh2DModeler& Mesher, bool refine, double h_factor, double critical_dissipation, double critical_radius, double reference_error, int domain)
+  void SetRefineDataOnMesher(TriangularMesh2DModeler& Mesher, bool refine, double h_factor, double critical_dissipation, double critical_radius, double reference_error, int domain)
   {
     //this is the maximum number of parameters to compile successfully
     Mesher.SetRefineData ( refine, h_factor, critical_dissipation,
 			   critical_radius, reference_error, domain);
   }
 
-  void SetRigidWall(TriangleMesh2DModeler& Mesher,RigidWallBoundingBox::Pointer pRigidWall)
+  void SetRigidWall(TriangularMesh2DModeler& Mesher,RigidWallBoundingBox::Pointer pRigidWall)
   {
     Mesher.SetRigidWall(pRigidWall);
   }
 
-  void SetRefiningBox(TriangleMesh2DModeler& Mesher,double radius, Vector center, Vector velocity)
+  void SetRefiningBox(TriangularMesh2DModeler& Mesher,double radius, Vector center, Vector velocity)
   {
     Mesher.SetRefiningBox(radius,center,velocity);
   }
 
-  void SetInitialDataOnMesher(TriangleMesh2DModeler& Mesher,int number_of_domains)
+  void SetInitialDataOnMesher(TriangularMesh2DModeler& Mesher,int number_of_domains)
   {
     Mesher.Initialize(number_of_domains);
   }
@@ -114,7 +114,7 @@ namespace Python
 
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
-    class_<TriangleMesh2DModeler >("TriangleMesh2DModeler",
+    class_<TriangularMesh2DModeler >("TriangularMesh2DModeler",
 				   init< >())
       .def("SetInitialMeshData",SetInitialDataOnMesher)
       .def("SetRemeshData",SetRemeshDataOnMesher)

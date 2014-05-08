@@ -19,11 +19,18 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-//#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
+
 #include "pfem_solid_mechanics_application.h"
+
+#ifdef   SINGLE
+#define  REAL float
+#else    // not SINGLE
+#define  REAL double
+#endif   // not SINGLE
+
 
 #if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
 #define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED

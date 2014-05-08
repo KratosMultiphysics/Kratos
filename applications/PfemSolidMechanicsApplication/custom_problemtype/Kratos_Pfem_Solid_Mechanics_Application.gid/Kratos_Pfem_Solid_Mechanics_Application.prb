@@ -2,8 +2,8 @@ PROBLEM DATA
 BOOK: Problem Parameters
 TITLE:Problem
 # Options
-QUESTION: Problem_Type#CB#(Mechanical)
-VALUE: Mechanical
+QUESTION: Problem_Type#CB#(mechanical)
+VALUE: mechanical
 QUESTION: Solver_Type#CB#(StaticSolver,QuasiStaticSolver,DynamicSolver)
 VALUE: StaticSolver
 QUESTION: Time_Step

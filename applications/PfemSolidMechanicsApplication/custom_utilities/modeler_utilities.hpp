@@ -115,10 +115,10 @@ public:
     double& ComputeRadius   (double& rRadius, double& rVolume, std::vector<Vector >& rVertices,const unsigned int& dimension);
 
     //returns false if it should be removed
-    bool AlphaShape         (double AlphaParameter, Geometry<Node<3> >& rGeometry);
+    bool AlphaShape         (double AlphaParameter, Geometry<Node<3> >& rGeometry, const unsigned int dimension);
 
     //returns false if it should be removed
-    bool ShrankAlphaShape   (double AlphaParameter, Geometry<Node<3> >& rGeometry, double& rOffsetFactor);
+    bool ShrankAlphaShape   (double AlphaParameter, Geometry<Node<3> >& rGeometry, double& rOffsetFactor, const unsigned int dimension);
 
     //returns the nodal h relative to a single boundary node
     double FindBoundaryH    (Node<3>& BoundaryPoint);
