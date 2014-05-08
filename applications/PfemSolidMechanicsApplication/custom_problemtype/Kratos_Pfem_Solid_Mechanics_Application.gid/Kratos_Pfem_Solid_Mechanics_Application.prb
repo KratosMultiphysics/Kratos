@@ -106,7 +106,7 @@ DEPENDENCIES:(AxisymContactDomainLM2DCondition,RESTORE,Stability_Parameter,#CURR
 DEPENDENCIES:(ContactDomainPenalty2DCondition,RESTORE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#)
 DEPENDENCIES:(AxisymContactPenalty2DCondition,RESTORE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#)
 QUESTION: Penalty_Parameter
-VALUE: 1000
+VALUE: 10
 QUESTION: Stability_Parameter
 VALUE: 0.01
 QUESTION: Offset_Factor

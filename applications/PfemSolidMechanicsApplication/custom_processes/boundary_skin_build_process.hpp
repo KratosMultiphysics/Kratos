@@ -246,8 +246,12 @@ namespace Kratos
 			    
 			    bool perform_search = true;
 			    for(unsigned int i=0; i<size; i++)
-			      if( rConditionGeom[i].SolutionStepsDataHas(RIGID_WALL) )
-				perform_search = false;			   		     
+			      {
+				if( rConditionGeom[i].SolutionStepsDataHas(RIGID_WALL) ){
+				  if( rConditionGeom[i].FastGetSolutionStepValue(RIGID_WALL) ) //if is a rigid wall do not search else do search
+				    perform_search = false;
+				}
+			      }		   		     
 
 			    if( size != 2 ) 
 			      perform_search = false;
