@@ -283,10 +283,12 @@ namespace Kratos
 
 	//Baricenter
 	array_1d<double, 3>  Center;
+	Center.clear();
 	array_1d<double, 3>  Normal;
 
 	std::vector<array_1d<double, 3> > Vertices;
 	array_1d<double, 3>  Vertex;
+	
 	
 	for(unsigned int i = 0; i < size; i++)
 	  {    
@@ -294,9 +296,10 @@ namespace Kratos
 
 	    Vertices.push_back(Vertex);
 
-	    Center  += Vertex;
+	    Center += Vertex;
 	  }
 	
+
 	Center /= (double)size;
 	    
 	array_1d<double, 3> Corner;
@@ -317,8 +320,9 @@ namespace Kratos
 	    //change position to be the vector from the vertex to the geometry center
 	    Corner = Center-Vertices[i];
 
-	    if(norm_2(Corner))
-	      Corner/= norm_2(Corner);
+	    double NormCorner = norm_2(Corner);
+	    if( NormCorner != 0 )
+	      Corner/= NormCorner;
 
 	    double projection = inner_prod(Corner,Normal);
 
@@ -331,7 +335,6 @@ namespace Kratos
 
 	if( numouter > 0 )
 	  inner = false;
-
 	
       }
 
@@ -367,7 +370,7 @@ namespace Kratos
 
 	//Baricenter
 	array_1d<double, 3>  Center;
-
+	Center.clear();
 	std::vector<array_1d<double, 3> > Vertices;
 	array_1d<double, 3>  Vertex;
 	array_1d<double, 3>  Normal;
@@ -649,9 +652,9 @@ namespace Kratos
       bounded_matrix<double,2,2> mJinv; //inverse jacobian
 
       //calculation of the jacobian  //coordinate center point 0
-      for(unsigned int i=0;i<dimension;i++)
+      for(unsigned int i = 0; i < dimension; i++)
 	{
-	  for(unsigned int j=0;j<dimension;i++)
+	  for(unsigned int j = 0; j < dimension; j++)
 	    {
 	      mJ(i,j)=rVertices[i+1][j]-rVertices[0][j];
 	    }
@@ -674,9 +677,9 @@ namespace Kratos
       Vector Center = ZeroVector(3);    //center pos
 
       //center point 0
-      for(unsigned int i=0;i<dimension;i++)
+      for(unsigned int i = 0; i < dimension; i++)
 	{
-	  for(unsigned int j=0;j<dimension;i++)
+	  for(unsigned int j = 0; j < dimension; j++)
 	    {
 	      Center[i]  += (rVertices[i+1][j] * rVertices[i+1][j]);
 	      Center[i]	 -= (rVertices[0][j]   * rVertices[0][j]  );
@@ -699,9 +702,9 @@ namespace Kratos
 
 
       //calculation of the jacobian  //coordinate center point 0
-      for(unsigned int i=0;i<dimension;i++)
+      for(unsigned int i = 0; i < dimension; i++)
 	{
-	  for(unsigned int j=0;j<dimension;i++)
+	  for(unsigned int j = 0; j < dimension; j++)
 	    {
 	      mJ(i,j)=rVertices[i+1][j]-rVertices[0][j];
 	    }
@@ -774,11 +777,10 @@ namespace Kratos
 
   
   //returns false if it should be removed
-  bool ModelerUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry)
+  bool ModelerUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry, const unsigned int dimension)
   {
     KRATOS_TRY
-
-    const unsigned int dimension = rGeometry.WorkingSpaceDimension();
+   
     const unsigned int size      = rGeometry.size();
 
     //calculate geometry radius and volume
@@ -837,11 +839,10 @@ namespace Kratos
   //*******************************************************************************************
 
   //returns false if it should be removed
-  bool ModelerUtilities::ShrankAlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry,double& rOffsetFactor)
+  bool ModelerUtilities::ShrankAlphaShape(double AlphaParameter, Geometry<Node<3> >& rGeometry,double& rOffsetFactor, const unsigned int dimension)
   {
     KRATOS_TRY
 
-    const unsigned int dimension = rGeometry.WorkingSpaceDimension();
     const unsigned int size      = rGeometry.size();
 
     //calculate geometry radius and volume

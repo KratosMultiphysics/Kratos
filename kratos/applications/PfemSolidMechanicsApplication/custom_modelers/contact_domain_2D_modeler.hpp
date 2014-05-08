@@ -1,7 +1,7 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Project Name:                       MachiningApplication $
 //   Last modified by:    $Author:                JMCarbonell $
-//   Date:                $Date:                    July 2013 $
+//   Date:                $Date:                     May 2014 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
@@ -14,7 +14,7 @@
 // System includes
 
 // Project includes
-#include "custom_modelers/triangle_mesh_2D_modeler.hpp"
+#include "custom_modelers/triangular_mesh_2D_modeler.hpp"
 
 namespace Kratos
 {
@@ -41,20 +41,20 @@ namespace Kratos
 /** Detail class definition.
  */
 class ContactDomain2DModeler 
-  : public TriangleMesh2DModeler
+  : public TriangularMesh2DModeler
 {
 protected:
 
     struct ContactVariables
     {
-      double  offset_factor;  
-      double  penalty_parameter;
-      double  stability_parameter;
-      double  mu_static;
-      double  mu_dynamic;
+      double  OffsetFactor;  
+      double  PenaltyParameter;
+      double  StabilityParameter;
+      double  StaticFrictionCoefficient;
+      double  DynamicFrictionCoefficient;
       
-      unsigned int    friction_active;
-      unsigned int    penalty_contact;
+      unsigned int    FrictionFlag;
+      unsigned int    PenaltyContactFlag;
     };
 
 public:
@@ -101,7 +101,8 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferContactBoundaryData(ModelPart& rModelPart, bool initial);
+    void TransferContactBoundaryData(ModelPart& rModelPart, 
+				     bool initial);
 
 
     //*******************************************************************************************
@@ -110,15 +111,15 @@ public:
     void GenerateContactMesh (ModelPart& rModelPart,
 			      Element   const& rReferenceElement,
 			      Condition const& rReferenceCondition,
-			      bool constrained = false,
-			      double my_alpha  = 1.4,
-			      double h_factor  = 0.5,
-			      double my_offset = 1.0,
-			      double penalty_parameter = 1000,
-			      double stability_parameter = 0.01,
-			      bool friction_active = false,
-			      double mu_static = 0.3,
-			      double mu_dynamic = 0.2);
+			      bool   ConstrainedFlag = false,
+			      double AlphaParameter = 1.4,
+			      double SizeFactor = 0.5,
+			      double OffsetFactor = 1.0,
+			      double PenaltyParameter = 1000,
+			      double StabilityParameter = 0.01,
+			      bool   FrictionFlag = false,
+			      double StaticFrictionCoefficient = 0.3,
+			      double DynamicFrictionCoefficient = 0.2);
 
        
 
@@ -126,7 +127,7 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
     void GenerateContactDT(ModelPart& rModelPart,
-			   TriangleMesh2DModeler::MeshingVariables& rMeshingVariables,
+			   MeshModeler::MeshingVariables& rMeshingVariables,
 			   ContactVariables& rContactVariables);
     
 
@@ -134,7 +135,7 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
     void GenerateContactCDT(ModelPart& rModelPart,
-			    TriangleMesh2DModeler::MeshingVariables& rMeshingVariables,
+			    MeshModeler::MeshingVariables& rMeshingVariables,
 			    ContactVariables& rContactVariables);
 
 
@@ -246,9 +247,9 @@ private:
     ///@name Unaccessible methods
     ///@{
 
-    void SetTriangulateShrankNodes   (ModelPart& rModelPart,
+    void SetTriangulationShrankNodes   (ModelPart& rModelPart,
 				      ModelPart::NodesContainerType&  rBoundaryNodes,
-				      TriangleMesh2DModeler::MeshingVariables& rMeshingVariables,
+				      MeshModeler::MeshingVariables& rMeshingVariables,
 				      ContactVariables& rContactVariables,
 				      struct triangulateio& in,
 				      struct triangulateio& out);
@@ -260,12 +261,12 @@ private:
     //Clear contact conditions in model_part
     void ClearContactConditions (ModelPart& rModelPart);
 
-    //Set contact elements in model_part after the Delaunay Tesselation
-    void SetContactConditions (ModelPart& rModelPart,
-			       ModelPart::NodesContainerType& rBoundaryNodes,
-			       TriangleMesh2DModeler::MeshingVariables& rMeshingVariables,
-			       ContactVariables& rContactVariables,
-			       struct triangulateio &out);
+    //Build contact elements in model_part after the Delaunay Tesselation
+    void BuildContactConditions (ModelPart& rModelPart,
+				 ModelPart::NodesContainerType& rBoundaryNodes,
+				 MeshModeler::MeshingVariables& rMeshingVariables,
+				 ContactVariables& rContactVariables,
+				 struct triangulateio &out);
     ///@}
 
 }; // Class ContactDomain2DModeler
