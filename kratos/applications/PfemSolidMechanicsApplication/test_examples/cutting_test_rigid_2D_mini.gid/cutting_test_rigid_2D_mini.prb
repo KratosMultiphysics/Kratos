@@ -123,7 +123,7 @@ DEPENDENCIES: (#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Rigid_Body_Penalt
 QUESTION: Contact_Condition#CB#(2D,Axisymmetric)
 VALUE: 2D
 QUESTION: Rigid_Body_Penalty_Parameter
-VALUE: 1000
+VALUE: 1
 QUESTION: Number_of_Walls
 VALUE: 1
 QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)
