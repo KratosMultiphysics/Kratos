@@ -536,20 +536,22 @@ class DEMFEMProcedures:
 
 
     def MeasureForces(self):
+	    
+       if self.RigidFace_model_part.NumberOfMeshes() > 1:
 
-       if(self.RigidFace_model_part.GetMesh(1)[FORCE_INTEGRATION_GROUP]):
+        for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
 
-        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(1).Nodes
-
-        #print("dt",self.dt)
-        self.total_force_top = 0.0
-
-        for node in self.top_mesh_nodes:
-
-          force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-
-          self.total_force_top += force_node_y
-          #print("force",total_force_top)
+          if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+         
+           self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+         
+           self.total_force_top = 0.0
+         
+           for node in self.top_mesh_nodes:
+         
+             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+         
+             self.total_force_top += force_node_y
 
     #-------------------------------------------------------------------------------------#
 
