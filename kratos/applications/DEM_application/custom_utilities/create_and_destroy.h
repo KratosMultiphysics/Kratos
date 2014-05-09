@@ -209,7 +209,7 @@ public:
             
       double density = spheric_p_particle->GetDensity();
       spheric_p_particle->SetRadius                         (radius);      
-      double mass                                = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
+      double mass                                = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
       spheric_p_particle->SetSqrtOfRealMass                 (sqrt(mass)); 
       p_particle->Initialize();
       
