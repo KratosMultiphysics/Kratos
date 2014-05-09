@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 /* Project includes */
+#include "includes/constant.h"
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_dll.h"
 
