@@ -19,7 +19,7 @@ namespace Kratos
         //const double &mLnOfRestitCoeff          = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
         double radius_sum_i                     = 1 / radius_sum;
         double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
-        double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+        double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
         double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
         double equiv_ln_of_restit_coeff;
         double aux_norm_to_tang;
@@ -44,7 +44,7 @@ namespace Kratos
                 equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
                 equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
 
-                kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kn                              = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang                = sqrt(kt / kn);
                 

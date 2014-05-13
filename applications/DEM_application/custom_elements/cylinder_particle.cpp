@@ -63,7 +63,7 @@ namespace Kratos
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-          double mass               = M_PI * density * mRadius * mRadius * 1.0;
+          double mass               = KRATOS_M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
           moment_of_inertia         = 0.5 * mass * mRadius * mRadius;
           //mRealMass                 = mass;          

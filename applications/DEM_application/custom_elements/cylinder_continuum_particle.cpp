@@ -64,7 +64,7 @@ namespace Kratos
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           //double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-          double mass               = M_PI * density * mRadius * mRadius * 1.0;
+          double mass               = KRATOS_M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
           //mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
@@ -89,7 +89,7 @@ namespace Kratos
       { 
 
         double alpha = 1.0;
-        double sphere_perimeter = 2*M_PI*mRadius;  
+        double sphere_perimeter = 2*KRATOS_M_PI*mRadius;  
         
         double total_equiv_perimeter = 0.0;
 
@@ -107,7 +107,7 @@ namespace Kratos
         {   
             double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
-            //double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
+            //double equiv_area       = (0.25)*KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
             total_equiv_perimeter  += equiv_radius;
         
             mcont_ini_neigh_area[index] = equiv_radius; //*  //this is consistent since in 2D, we work with cylinders of depth unit 1.0.

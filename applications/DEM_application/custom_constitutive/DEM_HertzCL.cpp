@@ -21,7 +21,7 @@ namespace Kratos
 
         double radius_sum_i                     = 1 / radius_sum;
         double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
-        double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+        double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
         double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
         double equiv_ln_of_restit_coeff;
         double aux_norm_to_tang;

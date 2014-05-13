@@ -59,7 +59,7 @@ namespace Kratos
             double initial_dist                   = (radius_sum - initial_delta);
             double initial_dist_i                 = 1.0 / initial_dist;
             double indentation                    = initial_dist - distance;   //#1
-            double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
+            double equiv_area                     = 0.25*KRATOS_M_PI * equiv_radius * equiv_radius; //#2 
             double calculation_area               = equiv_area;
             double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
             double myYoung                        = GetYoung();
@@ -111,7 +111,7 @@ namespace Kratos
               double rmin = mRadius;
               if(other_radius<mRadius) rmin = other_radius;
               
-              calculation_area = M_PI*rmin*rmin;
+              calculation_area = KRATOS_M_PI*rmin*rmin;
               double equiv_shear = equiv_young/(2.0*(1+equiv_poisson));
               
               kn_el = equiv_young*calculation_area*initial_dist_i;
