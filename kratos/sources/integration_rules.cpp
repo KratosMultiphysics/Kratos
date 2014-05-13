@@ -51,6 +51,7 @@ SOFTKRATOS_TRI_G4_waRE OR THE USE OR OTHER DEALINGS IN THE SOFTKRATOS_TRI_G4_waR
 #include "integration/hexahedra_gaussian_integration_points.h"
 #include "integration/quadrilateral_gaussian_integration_points.h"
 #include "integration/prism_gaussian_integration_points.h"
+#include "integration/interface_integration_points.h"
 
 #define tet10_a 0.108103018168070
 #define tet10_b 0.445948490915965
@@ -414,5 +415,44 @@ HexahedraGaussianIntegrationPoints3::msIntegrationPoints =
     }
 };
 
+// interface geometries
+QuadrilateralInterfaceLobattoIntegrationPoints2::IntegrationPointsArrayType
+QuadrilateralInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( -1.00 , -1.00, 0.50 ),
+		IntegrationPointType(  1.00 , -1.00, 0.50 ),
+		IntegrationPointType(  1.00 ,  1.00, 0.50 ),
+		IntegrationPointType( -1.00 ,  1.00, 0.50 )
+	}
+};
+
+HexaedralInterfaceLobattoIntegrationPoints2::IntegrationPointsArrayType
+HexaedralInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( -1.00 , -1.00, -1.00, 0.50 ),
+		IntegrationPointType(  1.00 , -1.00, -1.00, 0.50 ),
+		IntegrationPointType(  1.00 ,  1.00, -1.00, 0.50 ),
+		IntegrationPointType( -1.00 ,  1.00, -1.00, 0.50 ),
+		IntegrationPointType( -1.00 , -1.00,  1.00, 0.50 ),
+		IntegrationPointType(  1.00 , -1.00,  1.00, 0.50 ),
+		IntegrationPointType(  1.00 ,  1.00,  1.00, 0.50 ),
+		IntegrationPointType( -1.00 ,  1.00,  1.00, 0.50 )
+	}
+};
+
+PrismInterfaceLobattoIntegrationPoints2::IntegrationPointsArrayType
+PrismInterfaceLobattoIntegrationPoints2::msIntegrationPoints =
+{
+	{
+		IntegrationPointType( 0.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 1.0 , 0.0 , 0.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 0.0 , 1.0 , 0.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 0.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 1.0 , 0.0 , 1.0 , 1.00 / 12.00 ),
+		IntegrationPointType( 0.0 , 1.0 , 1.0 , 1.00 / 12.00 )
+	}
+};
 
 }
