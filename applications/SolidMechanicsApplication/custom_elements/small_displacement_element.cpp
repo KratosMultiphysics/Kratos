@@ -362,8 +362,10 @@ void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number );
 
-    for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
+    for ( unsigned int ii = 0; ii < integration_points_number; ii++ ) {
+		rValues[ii] = 0.0;
         rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+	}
 
   }
 
@@ -486,13 +488,16 @@ void SmallDisplacementElement::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+	// NOTE:
+	// The following check on the constitutiveLawVector size
+	// has been moved into the method InitializeMaterial()
 
-    //Constitutive Law initialisation
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
-    {
-        mConstitutiveLawVector.resize( integration_points.size() );
-    }
+    //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    ////Constitutive Law initialisation
+    //if ( mConstitutiveLawVector.size() != integration_points.size() )
+    //{
+    //    mConstitutiveLawVector.resize( integration_points.size() );
+    //}
 
     //Material initialisation
     InitializeMaterial();
@@ -994,7 +999,6 @@ void SmallDisplacementElement::FinalizeNonLinearIteration( ProcessInfo& rCurrent
 
 void SmallDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-
     //create and initialize element variables:
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
@@ -1035,6 +1039,43 @@ void SmallDisplacementElement::InitializeMaterial()
 {
     KRATOS_TRY
 
+	// NOTE:
+	// This is the standard (previous) implementation:
+	// If we are here, it means that no one already set up the constitutive law vector
+	// through the method SetValue<CONSTITUTIVE_LAW_POINTER>
+
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+	//Constitutive Law initialization
+    if ( mConstitutiveLawVector.size() != integration_points.size() )
+    {
+        mConstitutiveLawVector.resize( integration_points.size() );
+    }
+	else
+	{
+		// check whether the constitutive law pointers have been already set up
+		bool already_set_up = true;
+		for(unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
+		{
+			if(mConstitutiveLawVector[i] == NULL)
+				already_set_up = false;
+		}
+		if(already_set_up)
+		{
+			for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+			{
+				mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
+						row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+			}
+			return; // if so, we are done here!
+		}
+	}
+
+	// NOTE:
+	// This is the standard (previous) implementation:
+	// If we are here, it means that no one already set up the constitutive law vector
+	// through the method SetValue<CONSTITUTIVE_LAW_POINTER>
+
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1045,9 +1086,11 @@ void SmallDisplacementElement::InitializeMaterial()
         }
     }
     else
+	{
         KRATOS_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
-        KRATOS_CATCH( "" )
-    }
+	}
+	KRATOS_CATCH( "" )
+}
 
 
 //************************************************************************************
