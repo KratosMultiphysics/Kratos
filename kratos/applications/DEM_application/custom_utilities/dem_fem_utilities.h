@@ -98,7 +98,7 @@ class DEMFEMUtilities
                 array_1d<double, 3 > angle;
 
                 if (linear_period > 0.0){
-                    double linear_omega = 2.0 * KRATOS_M_PI / linear_period;
+                    double linear_omega = 2.0 * KRATOS_KRATOS_M_PI / linear_period;
                     double inv_linear_omega = 1.0/linear_omega;
                     center_position = initial_center + linear_velocity * sin(linear_omega * time)* inv_linear_omega;
                     linear_velocity_changed = linear_velocity * cos(linear_omega * time);
@@ -109,7 +109,7 @@ class DEMFEMUtilities
                 }
 
                 if (angular_period > 0.0){
-                    double angular_omega = 2.0 * KRATOS_M_PI / angular_period;
+                    double angular_omega = 2.0 * KRATOS_KRATOS_M_PI / angular_period;
                     double inv_angular_omega = 1.0/angular_omega;
                     angle = angular_velocity * sin(angular_omega * time) * inv_angular_omega;
                     angular_velocity_changed = angular_velocity * cos(angular_omega * time);

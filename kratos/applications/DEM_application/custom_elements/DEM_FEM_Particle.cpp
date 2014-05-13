@@ -176,7 +176,7 @@ namespace Kratos
 	
                   double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 		  
-		  double mass  = GetYoung() * M_PI * mRadius; 
+		  double mass  = GetYoung() * KRATOS_M_PI * mRadius; 
                   GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
 		  
 		  //if(mRotationOption)
@@ -264,7 +264,7 @@ namespace Kratos
 	      double kn;
 	      double kt;
               
-              double equiv_area                       =  M_PI * equiv_radius * equiv_radius;
+              double equiv_area                       =  KRATOS_M_PI * equiv_radius * equiv_radius;
 			  
 			  
 	      double other_cohesion = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
@@ -481,7 +481,7 @@ namespace Kratos
 		double young          = GetYoung();
 		double poisson        = GetPoisson();
 		double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-		double area           = M_PI * radius * radius;
+		double area           = KRATOS_M_PI * radius * radius;
 		double kn             = young * area / (2.0 * radius);
 		double ks             = kn / (2.0 * (1.0 + poisson));
 		

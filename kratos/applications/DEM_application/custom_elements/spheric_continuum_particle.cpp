@@ -303,7 +303,7 @@ namespace Kratos
       { 
 
           double alpha = 1.0;
-          double external_sphere_area = 4*M_PI*mRadius*mRadius;  
+          double external_sphere_area = 4*KRATOS_M_PI*mRadius*mRadius;  
           
           double total_equiv_area = 0.0;
 
@@ -326,7 +326,7 @@ namespace Kratos
               //double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               double other_radius     = ini_cont_neighbour_iterator->GetRadius();
               double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
-              double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
+              double equiv_area       = (0.25)*KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
               total_equiv_area       += equiv_area;
           
               mcont_ini_neigh_area[index] = equiv_area; //*
@@ -437,7 +437,7 @@ namespace Kratos
             double initial_dist                   = (radius_sum - initial_delta);
             double initial_dist_i                 = 1.0 / initial_dist;
             double indentation                    = initial_dist - distance;   //#1
-            double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
+            double equiv_area                     = 0.25*KRATOS_M_PI * equiv_radius * equiv_radius; //#2 
             double calculation_area               = equiv_area;
             double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
             double myYoung                        = GetYoung();
@@ -490,7 +490,7 @@ namespace Kratos
               double rmin = mRadius;
               if(other_radius<mRadius) rmin = other_radius;
               
-              calculation_area = M_PI*rmin*rmin;
+              calculation_area = KRATOS_M_PI*rmin*rmin;
               double equiv_shear = equiv_young/(2.0*(1+equiv_poisson));
               
               kn_el = equiv_young*calculation_area*initial_dist_i;
@@ -686,7 +686,7 @@ namespace Kratos
 
                   else 
                   {
-                      equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn_el / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
+                      equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn_el / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
                       equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
                   }
                   
@@ -905,7 +905,7 @@ namespace Kratos
                 double other_poisson    = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
                 double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);
                 int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
-                double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
+                double equiv_area       = (0.25)*KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
                 double equiv_poisson    = 2* mPoisson * other_poisson / (mPoisson + other_poisson);
                 //double equiv_young      = 2 * young * other_young / (young + other_young);
                 //bool is_continuum       = false;
@@ -1584,8 +1584,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                     mass /= 1-coeff;
                 }
 
-                //double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
-                double K = GetYoung() * M_PI * mRadius;
+                //double K = mYoung * KRATOS_M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
+                double K = GetYoung() * KRATOS_M_PI * mRadius;
 
                 Output = 0.34 * sqrt( mass / K);
 
@@ -1691,7 +1691,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       {         
           
           /*double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
-          mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;   */ 
+          mSectionalInertia                 = 0.25 * KRATOS_M_PI * mRadius * mRadius * mRadius  * mRadius ;   */ 
           
           /*double& mRepresentativeVolume    = this->GetGeometry()(0)->FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
           mRepresentativeVolume            = 0.0;*/
@@ -2477,7 +2477,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 //                   double equiv_cohesion = (mCohesion + other_cohesion) * 0.5;
 // 
 //                   double equiv_radius     = (mRadius + other_radius) * 0.5 ;
-//                   double equiv_area       = M_PI * equiv_radius * equiv_radius;
+//                   double equiv_area       = KRATOS_M_PI * equiv_radius * equiv_radius;
 //                   double equiv_poisson    = (mPoisson + other_poisson) * 0.5 ;
 //                   double equiv_young      = (mYoung  + other_young)  * 0.5;
 // 

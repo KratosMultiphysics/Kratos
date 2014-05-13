@@ -65,7 +65,7 @@ namespace Kratos
           
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);          
 
-          double mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
+          double mass                      = 4.0 / 3.0 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);
           
           mSqrtOfRealMass           = sqrt_of_mass;
@@ -203,7 +203,7 @@ namespace Kratos
               double radius_sum                       = mRadius + other_radius;
               double radius_sum_i                     = 1 / radius_sum;
               double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
-              double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+              double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
               double corrected_area                   = equiv_area;
               double equiv_young;
               double equiv_poisson;
@@ -222,7 +222,7 @@ namespace Kratos
           
 
        
-              kn                                  = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+              kn                                  = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
               kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
            
 
@@ -735,7 +735,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       double mTimeStep        = rCurrentProcessInfo[DELTA_TIME];
       double myYoung          = GetYoung();
       double myPoisson        = GetPoisson();
-      double area             = M_PI * mRadius * mRadius;
+      double area             = KRATOS_M_PI * mRadius * mRadius;
 
       array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
 
@@ -944,7 +944,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             }
             else 
             {
-              equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + M_PI * M_PI));
+              equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
             }
 
             equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
@@ -1163,7 +1163,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
                 
                          case 0:
-                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kn = KRATOS_M_PI * 0.5 * myYoung * mRadius; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                              kt = kn / (2.0 * (1.0 + myPoisson));
                         
                          break;
@@ -1176,7 +1176,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                          break;
 
                          default:
-                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kn = KRATOS_M_PI * 0.5 * myYoung * mRadius; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                              kt = kn / (2.0 * (1.0 + myPoisson));
 
                          break;
@@ -1203,8 +1203,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  }
 
           else {
-                     visco_damp_coeff_normal     = - 2 * GetLnOfRestitCoeff() * sqrt(mass * kn / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + M_PI * M_PI));
-                     visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
+                     visco_damp_coeff_normal     = - 2 * GetLnOfRestitCoeff() * sqrt(mass * kn / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
+                     visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (KRATOS_M_PI * KRATOS_M_PI)));
           }
 
                  // FORMING LOCAL CORDINATES
@@ -1287,7 +1287,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                  LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
                  
-                 double dyn_friction_angle =  surface_friction * M_PI / 180;
+                 double dyn_friction_angle =  surface_friction * KRATOS_M_PI / 180;
                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                  double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];                
 
@@ -1657,7 +1657,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
                 
                          case 0:
-                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kn = KRATOS_M_PI * 0.5 * myYoung * mRadius; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                              kt = kn / (2.0 * (1.0 + myPoisson));
                         
                          break;
@@ -1671,7 +1671,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                          break;
 
                          default:
-                             kn = M_PI * 0.5 * myYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kn = KRATOS_M_PI * 0.5 * myYoung * mRadius; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                              kt = kn / (2.0 * (1.0 + myPoisson));
 
                          break;
@@ -1698,8 +1698,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      }
     
                      else {
-                         visco_damp_coeff_normal     = - 2 * myLnOfRestitCoeff * sqrt(mass * kn / (myLnOfRestitCoeff * myLnOfRestitCoeff + M_PI * M_PI));
-                         visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
+                         visco_damp_coeff_normal     = - 2 * myLnOfRestitCoeff * sqrt(mass * kn / (myLnOfRestitCoeff * myLnOfRestitCoeff + KRATOS_M_PI * KRATOS_M_PI));
+                         visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (KRATOS_M_PI * KRATOS_M_PI)));
                      }
 
                      // FORMING LOCAL CORDINATES
@@ -1799,7 +1799,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                      LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
-                     double dyn_friction_angle =  CylinderFriction * M_PI / 180;
+                     double dyn_friction_angle =  CylinderFriction * KRATOS_M_PI / 180;
                      double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                      double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];
 
@@ -2052,7 +2052,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         double radius_sum_i                     = 1 / radius_sum;
         double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
-        double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+        double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
         double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
         double equiv_ln_of_restit_coeff;
         double aux_norm_to_tang;
@@ -2079,7 +2079,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                 equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
                 equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
 
-                kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kn                              = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang                = sqrt(kt / kn);
                 
@@ -2103,7 +2103,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                 equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
                 equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
 
-                kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kn                              = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang                = sqrt(kt / kn);
             break;
@@ -2118,7 +2118,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         else {
 
-            equiv_visco_damp_coeff_normal = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
+            equiv_visco_damp_coeff_normal = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
         }
 
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
@@ -2402,7 +2402,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                       mass = mass / (1 - coeff);
                   }
 
-                  double K = M_PI * GetYoung() * mRadius; //M. Error, should be the same that the local definition.
+                  double K = KRATOS_M_PI * GetYoung() * mRadius; //M. Error, should be the same that the local definition.
 
                   Output = 0.34 * sqrt(mass / K);
 

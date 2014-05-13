@@ -124,7 +124,7 @@ namespace Kratos
           }
 
           else {
-              const double volume = 1.333333333333333 * M_PI * mRadius * mRadius * mRadius;
+              const double volume = 1.333333333333333 * KRATOS_M_PI * mRadius * mRadius * mRadius;
 
               if (mDragForceType == 2){ // Weatherford
                   noalias(buoyancy) =  - gravity * fluid_density * volume;
@@ -321,7 +321,7 @@ namespace Kratos
             const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
             const double solid_fraction      = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
 
-            double  drag_coeff  = 6 * M_PI * kinematic_viscosity * fluid_density * solid_fraction * mRadius;
+            double  drag_coeff  = 6 * KRATOS_M_PI * kinematic_viscosity * fluid_density * solid_fraction * mRadius;
 
             return drag_coeff;
       }
@@ -356,7 +356,7 @@ namespace Kratos
               const double drag_law_slope                = rCurrentProcessInfo[DRAG_LAW_SLOPE];
               const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOLERANCE];
 
-              const double area                          = M_PI * mRadius * mRadius;
+              const double area                          = KRATOS_M_PI * mRadius * mRadius;
               const array_1d<double, 3> weight           = mSqrtOfRealMass * mSqrtOfRealMass * gravity;
               const array_1d<double, 3> buoyancy         = fluid_density / particle_density * weight; // hydrostatic case!! (only for Weatherford)
 
@@ -517,8 +517,8 @@ namespace Kratos
          const double kinematic_viscosity         = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
          const double sphericity                  = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
          const int isometric_shape                = 1; // TEMPORARY!! yes (1) or no (0); shold be given as data
-         const double surface_area                = 4 * M_PI * mRadius * mRadius; // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
-         const double surface_area_circular_diam  = sqrt(4.0 * surface_area / M_PI);
+         const double surface_area                = 4 * KRATOS_M_PI * mRadius * mRadius; // TEMPORARY!! corresponding to a sphere; should be generalized b taking it as a parameter
+         const double surface_area_circular_diam  = sqrt(4.0 * surface_area / KRATOS_M_PI);
 
          double equiv_reynolds;
          double k_1;
@@ -556,7 +556,7 @@ namespace Kratos
              coeff = (24 + 2.4 * pow(reynolds, 0.75)) / reynolds;
            }
 
-         double drag_coeff = 0.5 * coeff * M_PI * mRadius * mRadius;
+         double drag_coeff = 0.5 * coeff * KRATOS_M_PI * mRadius * mRadius;
 
          return drag_coeff;
      }
@@ -595,7 +595,7 @@ namespace Kratos
              const double shear_rate_p   = norm_of_slip_vel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
              double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
              const double coeff          = std::max(0.09 * norm_of_slip_vel, 5.82 * sqrt(0.5 * norm_of_shear_rate * equivalent_viscosity / fluid_density));
-             const double lift_coeff     = 0.5 * M_PI * mRadius * mRadius * fluid_density * coeff * norm_of_slip_vel / vorticity_norm;
+             const double lift_coeff     = 0.5 * KRATOS_M_PI * mRadius * mRadius * fluid_density * coeff * norm_of_slip_vel / vorticity_norm;
              return(lift_coeff);
          }
 
