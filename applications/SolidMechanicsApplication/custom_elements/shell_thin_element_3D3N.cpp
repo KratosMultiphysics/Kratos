@@ -358,6 +358,13 @@ namespace Kratos
                 KRATOS_ERROR(std::logic_error, "THICKNESS not provided for element ", this->Id());
             if(props[THICKNESS] <= 0.0)
                 KRATOS_ERROR(std::logic_error, "wrong THICKNESS value provided for element ", this->Id());
+
+			ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
+			dummySection->BeginStack();
+			dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
+			dummySection->EndStack();
+			dummySection->SetSectionBehavior(ShellCrossSection::Thin);
+			dummySection->Check(props, geom, rCurrentProcessInfo);
         }
 
         return 0;
