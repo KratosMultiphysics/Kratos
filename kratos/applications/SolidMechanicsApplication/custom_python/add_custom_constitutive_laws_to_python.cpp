@@ -60,6 +60,8 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
+#include "custom_constitutive/linear_elastic_orthotropic_3D_law.hpp"
+
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_axisym_2D_law.hpp"
@@ -167,7 +169,10 @@ void  AddCustomConstitutiveLawsToPython()
       init<>() )
     ;
 
-
+	class_< LinearElasticOrthotropic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LinearElasticOrthotropic3DLaw",
+      init<>() )
+    ;
 
     //Hyperelastic Plastic laws
 
