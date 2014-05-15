@@ -374,12 +374,25 @@ class ExplicitStrategy:
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
-
+        
         self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
                                              self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
         self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
 
+        
+        #Setting the constitutive LAWS
+ 
+        for properties in self.model_part.Properties:
+            
+            ConstitutiveLawString = properties[DEM_CONSTITUTIVE_LAW_NAME];
+            ConstitutiveLaw = globals().get(ConstitutiveLawString)()
+            #ConstitutiveLawPointer = ConstitutiveLaw.Clone()
+            ConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+            #properties.SetValue(DEM_CONSTITUTIVE_LAW_POINTER,ConstitutiveLawPointer)
+            
+       
+        
     #
 
     def Solve(self):
