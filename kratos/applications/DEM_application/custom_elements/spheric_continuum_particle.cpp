@@ -558,7 +558,7 @@ namespace Kratos
                     if (mapping_new_cont!=-1)
                     {
                
-                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, equiv_young, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini, rCurrentProcessInfo );
+                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, equiv_young, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini, rCurrentProcessInfo[TIME_STEPS] );
                                         
                     }
                     
@@ -699,12 +699,12 @@ namespace Kratos
            
             // Transforming to global forces and adding up
             double LocalContactForce[3] =                 {0.0};
-            double ViscoDampingGlobalContactForce[3] =    {0.0}; 
+            //double ViscoDampingGlobalContactForce[3] =    {0.0}; 
             double GlobalContactForce[3] =                {0.0};
             
               
             AddUpForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                  GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,rElasticForce,
+                                  GlobalElasticContactForce,ViscoDampingLocalContactForce/*,ViscoDampingGlobalContactForce*/,rContactForce,rElasticForce,
                                   i_neighbour_count);
             
      
@@ -2030,7 +2030,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       void SphericContinuumParticle::AddPoissonContribution(double LocalCoordSystem[3][3], //TODO: array 1d i boost::numeric::ublas::bounded_matrix o Matrix(,) si no saps el tamany a alocar.
                                                                     double GlobalContactForce[3],
                                                                     double GlobalElasticContactForce[3],
-                                                                    double ViscoDampingGlobalContactForce[3],
+                                                                    //double ViscoDampingGlobalContactForce[3],
                                                                     array_1d<double, 3>& rContactForce,
                                                                     array_1d<double,3>& damp_forces)
       {     
