@@ -22,7 +22,6 @@
 #include "DEM_application.h"
 #include "utilities/openmp_utils.h"
 
-#include "custom_constitutive/testlaw.h"
 
 //TIMER....................
 #include "utilities/timer.h"
@@ -64,8 +63,7 @@ namespace Kratos
   
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
-     TestLaw law1;
-
+      
       void SphericContinuumParticle::SetInitialSphereContacts() 
       {   
                 
