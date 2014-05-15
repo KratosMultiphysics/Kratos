@@ -5,7 +5,7 @@
 namespace Kratos
 {
 
-    void CalculateContactForces(double LocalElasticContactForce[3] double indentation){
+    void CalculateContactForces(double LocalElasticContactForce[3],double indentation,SphericParticle *neighbour_iterator){
 
         double myYoung = GetYoung();
         double myPoisson = GetPoisson();
