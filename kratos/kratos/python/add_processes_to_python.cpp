@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h" 
 #include "processes/translation_operation.h"
 #include "processes/rotation_operation.h"
+#include "processes/tetrahedral_mesh_orientation_check.h"
 #include "includes/node.h"
 
 
@@ -144,6 +145,10 @@ void  AddProcessesToPython()
 
     class_<RotationOperation, bases<Process> >("RotationOperation",
             init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
+    ;
+
+    class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
+            init<ModelPart&, bool>())
     ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
