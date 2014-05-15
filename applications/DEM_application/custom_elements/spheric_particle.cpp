@@ -622,7 +622,7 @@ namespace Kratos
               double LocalElasticContactForce[3]       = {0.0};
               double GlobalElasticContactForce[3]      = {0.0};
               double ViscoDampingLocalContactForce[3]  = {0.0};
-              double ViscoDampingGlobalContactForce[3] = {0.0};
+              //double ViscoDampingGlobalContactForce[3] = {0.0};
 
               GlobalElasticContactForce[0]             = mOldNeighbourContactForces[i_neighbour_count][0];
               GlobalElasticContactForce[1]             = mOldNeighbourContactForces[i_neighbour_count][1];
@@ -650,7 +650,7 @@ namespace Kratos
               
               // Transforming to global forces and adding up
 
-              AddUpForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, rElasticForce, i_neighbour_count);
+              AddUpForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, /*ViscoDampingGlobalContactForce,*/ rContactForce, rElasticForce, i_neighbour_count);
 
               // ROTATION FORCES
 
@@ -958,11 +958,11 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         
 
          double LocalContactForce[3] =                 {0.0};
-         double ViscoDampingGlobalContactForce[3] =    {0.0}; 
+         //double ViscoDampingGlobalContactForce[3] =    {0.0}; 
          double GlobalContactForce[3] =                {0.0};
         
          AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                  GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,rElasticForce,
+                                  GlobalElasticContactForce,ViscoDampingLocalContactForce,/*ViscoDampingGlobalContactForce,*/rContactForce,rElasticForce,
                                   iRigidFaceNeighbour);
         
  
@@ -1320,7 +1320,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  // Transforming to global forces and adding up
 
                  double LocalContactForce[3]              = {0.0};
-                 double ViscoDampingGlobalContactForce[3] = {0.0};
+                 //double ViscoDampingGlobalContactForce[3] = {0.0};
                  double GlobalContactForce[3]             = {0.0};
 
                  for (unsigned int index = 0; index < 3; index++){
@@ -1328,7 +1328,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  }
 
                  GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-                 GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
+                 //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
                  GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
                  rContactForce[0] += GlobalContactForce[0];
@@ -1832,7 +1832,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      // Transforming to global forces and adding up
 
                      double LocalContactForce[3]              = {0.0};
-                     double ViscoDampingGlobalContactForce[3] = {0.0};
+                     //double ViscoDampingGlobalContactForce[3] = {0.0};
                      double GlobalContactForce[3]             = {0.0};
 
                      for (unsigned int index = 0; index < 3; index++){
@@ -1840,7 +1840,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      }
 
                      GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-                     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
+                     //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
                      GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
                      rContactForce[0] += GlobalContactForce[0];
@@ -2180,7 +2180,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                                                   double GlobalContactForce[3],
                                                   double GlobalElasticContactForce[3],
                                                   double ViscoDampingLocalContactForce[3],
-                                                  double ViscoDampingGlobalContactForce[3],
+                                                  //double ViscoDampingGlobalContactForce[3],
                                                   array_1d<double, 3> &rContactForce,
                                                   array_1d<double, 3> &rElasticForce,
                                                   const double &i_neighbour_count)
@@ -2191,7 +2191,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           }
 
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce); //is this line necessary?????
+          //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce); //is this line necessary?????
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)
@@ -2217,7 +2217,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                                                   double GlobalContactForce[3],
                                                   double GlobalElasticContactForce[3],
                                                   double ViscoDampingLocalContactForce[3],
-                                                  double ViscoDampingGlobalContactForce[3],
+                                                  //double ViscoDampingGlobalContactForce[3],
                                                   array_1d<double, 3> &rContactForce,
                                                   array_1d<double, 3> &rElasticForce,
                                                   const double &iRigidFaceNeighbour)
@@ -2228,7 +2228,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           }
 
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
+          //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)

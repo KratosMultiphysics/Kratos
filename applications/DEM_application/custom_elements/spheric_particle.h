@@ -250,7 +250,7 @@ namespace Kratos
                                 double GlobalContactForce[3],
                                 double GlobalElasticContactForce[3],
                                 double ViscoDampingLocalContactForce[3],
-                                double ViscoDampingGlobalContactForce[3],
+                                //double ViscoDampingGlobalContactForce[3],
                                 array_1d<double, 3> &rContactForce,
                                 array_1d<double, 3> &rElasticForce,
                                 const double &i_neighbour_count);
@@ -261,7 +261,7 @@ namespace Kratos
                                 double GlobalContactForce[3],
                                 double GlobalElasticContactForce[3],
                                 double ViscoDampingLocalContactForce[3],
-                                double ViscoDampingGlobalContactForce[3],
+                                //double ViscoDampingGlobalContactForce[3],
                                 array_1d<double, 3> &rContactForce,
                                 array_1d<double, 3> &rElasticForce,
                                 const double &iRigidFaceNeighbour);
