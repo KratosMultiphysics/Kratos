@@ -10,6 +10,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+	    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_continuum_particle.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_swimming_particle.cpp
@@ -19,6 +20,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidEdge.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp 
+		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp 
 )
 
 ###############################################################
