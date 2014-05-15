@@ -10,6 +10,7 @@
 
 
 #include <cmath>
+#include "containers/array_1d.h"
 
 
 class PropertiesProxy {
