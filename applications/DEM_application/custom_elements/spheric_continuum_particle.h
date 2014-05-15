@@ -133,7 +133,7 @@ namespace Kratos
       virtual void AddPoissonContribution(double LocalCoordSystem[3][3],
                                           double GlobalContactForce[3],
                                           double GlobalElasticContactForce[3],
-                                          double ViscoDampingGlobalContactForce[3],
+                                          //double ViscoDampingGlobalContactForce[3],
                                           array_1d<double, 3>& rContactForce,
                                           array_1d<double,3>& damp_forces);
 
