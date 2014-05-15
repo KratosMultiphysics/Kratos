@@ -37,6 +37,9 @@
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
 
+//constitutive laws
+#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
 const long double pi = 3.141592653589793238462643383279;  //this one is used in the forward_euler_scheme... does it have to be here?
 
@@ -45,6 +48,13 @@ namespace Kratos
 
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
+  
+   
+
+  //constitutive law
+  KRATOS_DEFINE_VARIABLE( std::string, DEM_CONSTITUTIVE_LAW_NAME )
+  //KRATOS_DEFINE_VARIABLE( DEMConstitutiveLaw::Pointer, DEM_CONSTITUTIVE_LAW_POINTER )
+    
   
   // OPTIONS AND FLAGS
   
