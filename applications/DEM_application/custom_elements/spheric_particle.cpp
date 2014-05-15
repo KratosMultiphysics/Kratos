@@ -88,6 +88,10 @@ namespace Kratos
           if ( GetGeometry()(0)->GetDof(ANGULAR_VELOCITY_Z).IsFixed() ) GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
           else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 
+          
+          mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+          mDiscontinuumConstitutiveLaw->Initialize();
+          
           CustomInitialize();
 
           KRATOS_CATCH( "" )
