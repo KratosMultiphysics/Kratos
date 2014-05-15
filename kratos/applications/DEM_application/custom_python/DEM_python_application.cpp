@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "DEM_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 
 namespace Kratos
@@ -84,9 +85,16 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
 
     AddCustomStrategiesToPython();
     AddCustomUtilitiesToPython();
+    AddCustomConstitutiveLawsToPython();
 
     //registering variables in python
-
+    
+    //constitutive law
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DEM_CONSTITUTIVE_LAW_NAME )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER )
+  
+    
     // OPTIONS AND FLAGS
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(TOP)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(BOTTOM)
