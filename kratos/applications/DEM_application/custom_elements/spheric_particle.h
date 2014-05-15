@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 
 
 
@@ -276,7 +277,9 @@ namespace Kratos
 
       virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
       virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-
+      
+      DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
+      
       const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
       //int mInitializedVariablesFlag;
       int mDimension;
