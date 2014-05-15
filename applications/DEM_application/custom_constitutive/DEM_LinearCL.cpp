@@ -5,17 +5,17 @@
 namespace Kratos
 {
 
-    void CalculateContactForces(double LocalElasticContactForce[3], double indentation,PropertiesProxy myProperties,PropertiesProxy neighbourProperties){
+    void CalculateContactForces(double LocalElasticContactForce[3], double indentation,PropertiesProxy *myProperties,PropertiesProxy *neighbourProperties){
 
-        double myYoung             = GetYoung();                     myProperties->GetYoung()
-        double myPoisson           = GetPoisson();                   myProperties->GetPoisson()
-        double myLnOfRestitCoeff   = GetLnOfRestitCoeff();           myProperties->GetLnOfRestitCoeff()
-        double myTgOfFrictionAngle = GetTgOfFrictionAngle()          myProperties->GetTgOfFrictionAngle()
+        double myYoung             = myProperties->GetYoung(); 
+        double myPoisson           = myProperties->GetPoisson();                 
+        double myLnOfRestitCoeff   = myProperties->GetLnOfRestitCoeff();      
+        double myTgOfFrictionAngle = myProperties->GetTgOfFrictionAngle();    
         //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-        double other_sqrt_of_mass                 = neighbour_iterator->GetSqrtOfRealMass();                    neighbourProperties->GetSqrtOfRealMass()
+        double other_sqrt_of_mass                 = neighbourProperties->neighbour_iterator->GetSqrtOfRealMass();
         //const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-        const double other_ln_of_restit_coeff     = neighbour_iterator->GetLnOfRestitCoeff();                   neighbourProperties->GetLnOfRestitCoeff()
-        const double other_tg_of_fri_angle        = neighbour_iterator->GetTgOfFrictionAngle();                 neighbourProperties->GetTgOfFrictionAngle()
+        const double other_ln_of_restit_coeff     = neighbourProperties->neighbour_iterator->GetLnOfRestitCoeff();
+        const double other_tg_of_fri_angle        = neighbourProperties->neighbour_iterator->GetTgOfFrictionAngle();
         //const double &mLnOfRestitCoeff          = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
         double radius_sum_i                     = 1 / radius_sum;
         double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;

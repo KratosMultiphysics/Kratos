@@ -3,8 +3,7 @@
 #define  DEM_LINEARCL_H_INCLUDED
 
 /* Project includes */
-#include "includes/define.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "DEM_constitutive_law.h"
 
 namespace Kratos
 {
@@ -14,8 +13,7 @@ class DEM_LinearCL:DEMConstitutiveLaw
 public:
 
     void  CalculateContactForces(double LocalElasticContactForce[3],double indentation,SphericParticle *neighbour_iterator);
-}
-
+};
 
 } /* namespace Kratos.*/
 #endif /* DEM_LINEARCL_H_INCLUDED  defined */
