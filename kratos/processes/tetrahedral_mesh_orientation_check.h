@@ -261,7 +261,7 @@ private:
         const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
         double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
 
-        typename Geometry< Node<3> >::ShapeFunctionsGradientsType DN_DX;
+        Geometry< Node<3> >::ShapeFunctionsGradientsType DN_DX;
         rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,Method);
         Matrix& rDN_DX = DN_DX[0];
 
