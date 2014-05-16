@@ -104,9 +104,12 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const Vector& rHenckyStrainVec
 void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress)
 {
 
-    double ReferencePressure = 20.0;
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
     double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
+
+    double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
+    double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
+    ReferencePressure /= OCR;    
 
     double DeviatoricStrain2Norm = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
@@ -115,9 +118,15 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
     for (unsigned int i = 3; i < 6; ++i)
 	DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2.0);
 
-
     rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
 
+
+/*   std::cout << " VOLUMETRICMOD " << -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * ( 1.0 + AlphaShear*DeviatoricStrain2Norm / SwellingSlope) << std::endl;
+   std::cout << "      ShearNor " << DeviatoricStrain2Norm << std::endl;
+   std::cout << "      ShearTer " << AlphaShear*DeviatoricStrain2Norm/SwellingSlope << std::endl;
+   std::cout << "      VolStrain" << rVolumetricStrain << std::endl;
+   std::cout << "      MeanStres" << rMeanStress << std::endl; 
+*/
 }
 
 
@@ -125,16 +134,24 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
 {
-    double ReferencePressure = 20.0;
+    double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
+    double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
+    ReferencePressure /= OCR;    
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
     double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 
+
     rDeviatoricStress = rDeviatoricStrainVector;
     rDeviatoricStress *= 2.0*AlphaShear*ReferencePressure* std::exp(-rVolumetricStrain / SwellingSlope);
-
+    
     for (unsigned int i = 3; i<6; ++i)
          rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
-  
+
+    /*std::cout << " SHEAR MODULUS " << 2.0*AlphaShear*ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) << std::endl;
+    std::cout << "     DevStrain " << rDeviatoricStrainVector << std::endl;
+    std::cout << "     VolumeStra" << rVolumetricStrain << std::endl;
+    std::cout << "     rDeviatStr" << rDeviatoricStress << std::endl;
+  */
 
 }
 
@@ -172,7 +189,10 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
    MeanStress /= 3.0;
 
 
-   double ReferencePressure = 20.0;
+   double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
+   double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
+   ReferencePressure /= OCR;    
+
    double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
    double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 
@@ -222,15 +242,53 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
    double OtherSlope             = mpYieldCriterion->GetHardeningLaw().GetProperties()[NORMAL_COMPRESSION_SLOPE];
 
 
-   rH = (MeanStress-PreconsolidationStress) ;
+   rH = (2.0*MeanStress-PreconsolidationStress) ;
  //  rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
    rH *= (-MeanStress);
    rH *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
-   rH *= 4.0;
+//   rH *= 4.0;
    rH *= 3.0;
+   rH /= 3.0;
  
    rH /= 1000.0;
    rH /= 1000.0;
+}
+
+
+void CamClayExplicitFlowRule::CalculatePlasticPotentialDerivatives( const Vector& rStressVector, Vector& rFirstDerivative, Matrix & rSecondDerivative)
+{
+
+    double M = mpYieldCriterion->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE] ; 
+
+    M = M * M;
+
+    rSecondDerivative = ZeroMatrix(6);
+
+    for (unsigned int i = 0; i< 3; i++) {
+       for (unsigned int j = 0; j < 3; ++j)  {
+          rSecondDerivative(i,j) = 2.0/9.0 * 1  - 1.0 / M;
+       }
+    }
+   
+    for (unsigned int i = 0; i < 3; ++i)
+      rSecondDerivative(i,i) = 3.0 / M ;
+ 
+    for (unsigned int i = 3; i < 6; ++i)
+      rSecondDerivative(i,i) = 3.0*2.0 / M  ;
+
+    rSecondDerivative /= 1000.0;
+
+}
+
+void CamClayExplicitFlowRule::save( Serializer& rSerializer) const 
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
+}
+
+void CamClayExplicitFlowRule::load( Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
+
 }
 
 

@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined (KRATOS_HENCKY_J2_AXISYM_STRAIN_2D_LAW_H_INCLUDED)
-#define       KRATOS_HENCKY_J2_AXISYM_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_HENCKY_TRESCA_AXISYM_STRAIN_2D_LAW_H_INCLUDED)
+#define       KRATOS_HENCKY_TRESCA_AXISYM_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 
@@ -15,8 +15,8 @@
 
 // Project includes
 #include "custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
+#include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 
@@ -32,7 +32,7 @@ namespace Kratos
 
 
 
-class HenckyJ2PlasticAxisym2DLaw 
+class HenckyTrescaPlasticAxisym2DLaw 
   : public NonLinearHenckyElasticPlasticAxisym2DLaw
 
 {
@@ -50,10 +50,10 @@ public:
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
-     * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
+     * Counted pointer of HyperElasticPlasticTrescaPlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HenckyJ2PlasticAxisym2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( HenckyTrescaPlasticAxisym2DLaw );
 
     /**
      * Life Cycle
@@ -62,15 +62,15 @@ public:
     /**
      * Default constructor.
      */
-    HenckyJ2PlasticAxisym2DLaw();
+    HenckyTrescaPlasticAxisym2DLaw();
 
 
-    HenckyJ2PlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HenckyTrescaPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
      */
-    HenckyJ2PlasticAxisym2DLaw (const HenckyJ2PlasticAxisym2DLaw& rOther);
+    HenckyTrescaPlasticAxisym2DLaw (const HenckyTrescaPlasticAxisym2DLaw& rOther);
 
 
     /**
@@ -88,7 +88,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HenckyJ2PlasticAxisym2DLaw();
+    virtual ~HenckyTrescaPlasticAxisym2DLaw();
 
     /**
      * Operators

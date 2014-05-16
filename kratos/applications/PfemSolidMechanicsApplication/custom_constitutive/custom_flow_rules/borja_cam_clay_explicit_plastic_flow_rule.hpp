@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED )
-#define      KRATOS_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED
+#if !defined(KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED )
+#define      KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED
 
 
 // System includes
@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
 
 namespace Kratos
 {
@@ -44,8 +44,8 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class CamClayExplicitFlowRule
-	  :public NonAssociativeExplicitPlasticFlowRule
+  class BorjaCamClayExplicitFlowRule
+	  :public CamClayExplicitFlowRule
   {
   
 
@@ -55,29 +55,29 @@ namespace Kratos
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION( CamClayExplicitFlowRule );
+      KRATOS_CLASS_POINTER_DEFINITION(BorjaCamClayExplicitFlowRule);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CamClayExplicitFlowRule();
+    BorjaCamClayExplicitFlowRule();
 
     /// Initialization constructor.
-    CamClayExplicitFlowRule(YieldCriterionPointer pYieldCriterion);
+    BorjaCamClayExplicitFlowRule(YieldCriterionPointer pYieldCriterion);
 
     /// Copy constructor.
-    CamClayExplicitFlowRule(CamClayExplicitFlowRule const& rOther);
+    BorjaCamClayExplicitFlowRule(BorjaCamClayExplicitFlowRule const& rOther);
 
     /// Assignment operator.
-    CamClayExplicitFlowRule& operator=(CamClayExplicitFlowRule const& rOther);
+    BorjaCamClayExplicitFlowRule& operator=(BorjaCamClayExplicitFlowRule const& rOther);
 	
     // CLONE
     virtual FlowRule::Pointer Clone() const;
 
     /// Destructor.
-    virtual ~CamClayExplicitFlowRule();
+    virtual ~BorjaCamClayExplicitFlowRule();
 
 
     ///@}
@@ -91,9 +91,12 @@ namespace Kratos
     
       virtual void CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress);
 
+//      void CalculateMeanStress(const Vector& rHenckyStrainVector, double& rMeanStress);
+
       virtual void CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
 
       virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix);
+
     ///@}
     ///@name Access
     ///@{
@@ -144,20 +147,17 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-      virtual void CalculateKirchhoffStressVector(const Vector& rHencyStrainVector, Vector& rKirchhoffStressVector);
+//      virtual void CalculateKirchhoffStressVector(const Vector& rHencyStrainVector, Vector& rKirchhoffStressVector);
 
 
-      void CalculateMeanStress(const Vector& rHenckyStrainVector, double& rMeanStress);
-
-
-      virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+//      virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
 
 //    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
 
 
     //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
     
-    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
+//    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
            
 //    void CalculateInvariantsAndDerivatives(const Vector& rStressVector, InvariantsStructure& rInv);
     

@@ -163,7 +163,7 @@ namespace Kratos
 
     bool& EvaluateElastoPlasticUnloadingCondition( bool& rUnloadingCondition, const Matrix& rElasticLeftCauchyGreen, const Matrix& rDeltaDeformationGradient, const InternalVariables& rPlasticVariables, const double & rTolerance);
 
-    void CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient,  const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain);
+    void CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient,  const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain);
 
     virtual void CalculateKirchhoffStressVector(const Vector& rElasticHenckyStrain, Vector& rNewStressVector)
     {
@@ -191,7 +191,7 @@ namespace Kratos
     //  Calculates One Explicit Step (Either Elastic or Plastic) 
 //    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
 
-    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
+    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
 
 
     void CalculateExplicitSolutionWithChange(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector,  const double& rTolerance);
@@ -211,7 +211,7 @@ namespace Kratos
 
 
 
-    void ReturnStressToYieldSurface(Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
+    void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
 
     void ReturnStressToYieldSurface(Vector& rElasticHenckyStrainVector, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
 
@@ -266,9 +266,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-//    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const;
 
-//    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private Inquiry

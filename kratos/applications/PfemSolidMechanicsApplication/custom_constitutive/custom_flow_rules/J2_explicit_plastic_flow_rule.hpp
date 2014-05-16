@@ -151,7 +151,7 @@ namespace Kratos
 
     //void UpdateConfiguration( ExponentialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
     
-//    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
+    void CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative); 
            
 //    void CalculateInvariantsAndDerivatives(const Vector& rStressVector, InvariantsStructure& rInv);
     
@@ -204,9 +204,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-//    virtual void save(Serializer& rSerializer) const;
+    virtual void save(Serializer& rSerializer) const;
 
-//    virtual void load(Serializer& rSerializer);
+    virtual void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private Inquiry

@@ -63,6 +63,8 @@ J2YieldCriterion::~J2YieldCriterion()
 
 double& J2YieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
 {
+
+   double YieldStress = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
  
    rStateFunction = 0.0;
 
@@ -81,7 +83,8 @@ double& J2YieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
 
 
    rStateFunction = pow(3.0/2.0, 1.0/2.0)*pow( rStateFunction , 1.0/2.0);
-   rStateFunction /= 50.0;
+   rStateFunction /= 2.0*YieldStress;
+   // ASSUMING THAT YIELD STRESS IS EQUAL TO S_u
    rStateFunction -= 1.0;
 //   rStateFunction = -1.0;
    return rStateFunction; 
@@ -95,6 +98,7 @@ double& J2YieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
 void J2YieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
 {
 
+     double YieldStress = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
      double MeanStress = 0.0;
  
      for (unsigned int i = 0; i<3; ++i)
@@ -119,7 +123,7 @@ void J2YieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVec
 
      rYieldFunctionD = ShearVector;
  
-     rYieldFunctionD *= 3.0/2.0/denominador/50.0;
+     rYieldFunctionD *= 3.0/2.0/denominador/(2.0*YieldStress);
 
 
 }

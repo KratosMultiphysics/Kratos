@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined (KRATOS_HENCKY_J2_AXISYM_STRAIN_2D_LAW_H_INCLUDED)
-#define       KRATOS_HENCKY_J2_AXISYM_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_LINEAR_HENCKY_CAM_CLAY_PLASTIC_AXISYM_2D_LAW_H_INCLUDED)
+#define       KRATOS_LINEAR_HENCKY_CAM_CLAY_PLASTIC_AXISYM_2D_LAW_H_INCLUDED
 
 // System includes
 
@@ -15,8 +15,8 @@
 
 // Project includes
 #include "custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.hpp"
-#include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
+#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 
@@ -32,7 +32,7 @@ namespace Kratos
 
 
 
-class HenckyJ2PlasticAxisym2DLaw 
+class LinearHenckyCamClayPlasticAxisym2DLaw 
   : public NonLinearHenckyElasticPlasticAxisym2DLaw
 
 {
@@ -53,7 +53,7 @@ public:
      * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HenckyJ2PlasticAxisym2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( LinearHenckyCamClayPlasticAxisym2DLaw );
 
     /**
      * Life Cycle
@@ -62,15 +62,15 @@ public:
     /**
      * Default constructor.
      */
-    HenckyJ2PlasticAxisym2DLaw();
+    LinearHenckyCamClayPlasticAxisym2DLaw();
 
 
-    HenckyJ2PlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    LinearHenckyCamClayPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
      */
-    HenckyJ2PlasticAxisym2DLaw (const HenckyJ2PlasticAxisym2DLaw& rOther);
+    LinearHenckyCamClayPlasticAxisym2DLaw (const LinearHenckyCamClayPlasticAxisym2DLaw& rOther);
 
 
     /**
@@ -88,7 +88,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HenckyJ2PlasticAxisym2DLaw();
+    virtual ~LinearHenckyCamClayPlasticAxisym2DLaw();
 
     /**
      * Operators
@@ -191,4 +191,4 @@ private:
 
 }; // Class HyperElasticPlasticJ2PlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HENCKY_MATSUOKA_AXISYM_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_HENCKY_MATSUOKA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined

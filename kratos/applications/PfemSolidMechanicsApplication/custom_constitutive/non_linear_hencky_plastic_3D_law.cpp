@@ -11,7 +11,11 @@
 #include "../PfemSolidMechanicsApplication/custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
 
 #include "solid_mechanics_application.h"
-//Molt important, el tema de constructors... etc
+#include "pfem_solid_mechanics_application.h"
+
+//#include <iostream>
+
+
 namespace Kratos
 {
 
@@ -90,9 +94,6 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     ReturnMappingVariables.clear();
     ReturnMappingVariables.DeltaTime = CurProcessInfo[DELTA_TIME];
 
-    // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
-    // double voigtsize = StressVector.size(); not used JM
- //   VectorSplit SplitStressVector;
     MatrixSplit SplitConstitutiveMatrix;
 
     //1.- Lame constants
@@ -147,67 +148,10 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
 
 
-// ONE POINT GAUSS INTEGRATION TO CHECK THE CONSTITUTIVE EQUATION
-// DEBUGG ZONE FOR THE CONSTITUTIVE EQUATIONS
-if (false) {
-
-   unsigned int nPassos = 500;
-   Vector ThisStressVector;
-   Matrix IncrementalDeformationGradient;
-   DeformationGradientF0 = ZeroMatrix(3);
-   for (unsigned int j = 0 ; j < 3; ++j)
-      DeformationGradientF0(j,j) = 1.0;
-   DeformationGradientF0(0,0) -= 1e-12;
-   NewElasticLeftCauchyGreen = prod(DeformationGradientF0, trans(DeformationGradientF0));
-
-   Matrix RotationMatrix = ZeroMatrix(3);
-   RotationMatrix(2,2) = 1.0;
-   for (unsigned j = 0; j < 3; ++j)
-      RotationMatrix(j,j) = 1.0;
-   /*RotationMatrix(0,0) = cos(1.0/ double(nPassos) * 3.14159);
-   RotationMatrix(1,1) = RotationMatrix(0,0);
-   RotationMatrix(0,1) = - pow(  1- RotationMatrix(0,0)*RotationMatrix(0,0), 0.5);
-   RotationMatrix(1,0) = - RotationMatrix(0,1);
-*/
-   for (unsigned int i = 0; i < nPassos; ++i) {
-
-       // SETTING THE NEW DEFORMATION
-       IncrementalDeformationGradient = ZeroMatrix(3);
-       for (unsigned int j = 0; j < 3; ++j) 
-           IncrementalDeformationGradient(j,j) = 1.0;
-
-       double Inc = (double) rand()/ (double) RAND_MAX;
-       IncrementalDeformationGradient(1,1) = 1.0 - 0.01*(Inc - 0.3);
-       std::cout << "Hello"  <<  IncrementalDeformationGradient(1,1) << std::endl;;
-//       IncrementalDeformationGradient(1,1) = 0.999;
-       IncrementalDeformationGradient = prod(RotationMatrix, IncrementalDeformationGradient);
-       //COMPUTING
-       mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
-
-       // FINALIZING STEP
-       mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
-       mElasticLeftCauchyGreen = NewElasticLeftCauchyGreen;
-       ThisStressVector = MathUtils<double>::StressTensorToVector(StressMatrix, 6);
-       DeformationGradientF0 = prod( IncrementalDeformationGradient, DeformationGradientF0);
-
-        // WRITTING
-        std::cout << "DebugConst Results " << i << std::endl;
-        std::cout << "DebugConst F0   " << DeformationGradientF0 << std::endl;
-        std::cout << "DebugConst ELCG " << mElasticLeftCauchyGreen << std::endl;
-        std::cout << "DebugConst INCR " << IncrementalDeformationGradient << std::endl;
-        std::cout << "DebugConst STRE "<< ThisStressVector << std::endl;
-        std::cout << " " << std::endl;
-    }  
-    KRATOS_ERROR( std::logic_error, "FINISHING THE CONSTITUTIVE TEST DEBUG ZONE BLAH BLAH BLAH", "" );
-
-}
-
-
     //Matrix IsochoricStressMatrix = ZeroMatrix(3);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        //ReturnMappingVariables.Control.PlasticRegion = mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
          mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
 
     }
@@ -264,10 +208,120 @@ if (false) {
       mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
       mElasticLeftCauchyGreen = NewElasticLeftCauchyGreen;
-       
- 
+
+      //IncrementalDeformationGradient = prod(DeformationGradientFbar, DeformationGradientF0);
+      //std::cout << " DEBUG " << IncrementalDeformationGradient(1,1)-1.0 <<" " <<  NewElasticLeftCauchyGreen(1,1)-1.0 << " " << prod(DeformationGradientFbar, DeformationGradientF0) << " STRESS " << StressVector << " rAlpha " << ReturnMappingVariables.DeltaGamma << std::endl;
+      //std::cout << " FINALIZE: Stress " << StressVector << " rAlphA " << ReturnMappingVariables.DeltaGamma << std::endl; 
     }
 
+}
+
+
+double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue)
+{
+
+   /* POST-PROCESS LOTS OF VARIABLES. ONLY IF DEFINED IN THE APPROPIATE FILE
+   if ( (rThisVariable==PLASTIC_VOL) || (rThisVariable==PLASTIC_SHEAR) )
+   {
+
+       const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+       if ( rThisVariable==PLASTIC_VOL) {
+             rValue = InternalVariables.EquivalentPlasticStrain; 
+       }
+       else {
+            rValue = InternalVariables.EquivalentPlasticStrainOld;
+       }
+
+       return rValue;
+   }
+
+   if ( (rThisVariable==STRESS_P) || (rThisVariable==STRESS_Q) || (rThisVariable==STRESS_THETA) || (rThisVariable==STRESS_RATIO ) ) 
+   {
+         Matrix StressMatrix;
+         Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
+         Matrix DeformationGradientF0 = ZeroMatrix(3);
+         for (unsigned int i = 0; i < 3; ++i)
+              DeformationGradientF0(i,i) = 1.0;
+         Matrix IncrementalDeformationGradient = DeformationGradientF0;
+ 
+         FlowRule::RadialReturnVariables ReturnMappingVariables;
+       
+         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+
+         double MeanStress = 0.0;
+         for (unsigned int i = 0; i < 3; ++i)
+              MeanStress += StressMatrix(i,i)/3.0;
+
+         if (rThisVariable==STRESS_P) {
+              rValue = -MeanStress;
+              return rValue;
+         }
+
+         double StressQ = 0.0;
+         for (unsigned int i = 0; i <3; ++i) 
+              StressQ += pow( StressMatrix(i,i) - MeanStress, 2.0);
+
+          StressQ += 2.0*pow( StressMatrix(0,1) , 2.0);
+          StressQ += 2.0*pow( StressMatrix(0,2) , 2.0);
+          StressQ += 2.0*pow( StressMatrix(1,2) , 2.0);
+    
+          if (rThisVariable== STRESS_Q)  {
+
+              rValue = pow( 3.0/2.0*StressQ, 1.0/2.0);
+              return rValue; 
+          }
+          if ( rThisVariable == STRESS_RATIO) {
+              //if ( ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION) ) {
+                  rValue = pow( 3.0 / 2.0 * StressQ, 1.0/2.0) / (-MeanStress);
+                  return rValue;
+             // / * }
+             // else {
+             //     rValue = 0.0;
+             //     return rValue;
+             // } * /
+          } 
+          StressQ /= 2.0;
+
+          for (unsigned int i = 0; i < 3 ; ++i ) 
+              StressMatrix(i,i) -= MeanStress;
+
+          double ThirdInvariant = 0.0;
+     
+          ThirdInvariant = MathUtils<double>::Det( StressMatrix );
+ 
+          ThirdInvariant *= 3.0*pow( 3.0, 1.0/2.0) / 2.0;
+          ThirdInvariant /= pow( StressQ, 3.0/2.0);
+
+          ThirdInvariant = std::asin( ThirdInvariant);
+          rValue = ThirdInvariant / 3.0 * 180 / 3.14159265359; 
+
+   }
+
+   if (rThisVariable==PRECONSOLIDATION) 
+   {
+       const FlowRule::InternalVariables& InternalVariables=mpFlowRule->GetInternalVariables();
+       double Alpha = InternalVariables.EquivalentPlasticStrain;
+       rValue = mpHardeningLaw->CalculateHardening(rValue, Alpha);
+   } 
+  if (rThisVariable==PLASTIC_STRAIN)
+    {
+      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+      rValue=InternalVariables.EquivalentPlasticStrain;
+    }
+  
+  if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    {
+      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+      rValue=InternalVariables.EquivalentPlasticStrain;
+    }
+  if (rThisVariable==PLASTIC_DISSIPATION)
+    {
+      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
+      rValue =  InternalVariables.EquivalentPlasticStrain;
+      rValue = fabs( rValue) +1.0;
+    }
+   */
+   return (rValue);
 }
 
 
