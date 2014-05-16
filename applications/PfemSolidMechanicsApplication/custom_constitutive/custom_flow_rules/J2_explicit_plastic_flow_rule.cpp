@@ -77,8 +77,8 @@ void J2ExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector
 
       Matrix Aux = ZeroMatrix(6);
       rElasticMatrix = Aux;
-      double Young = 2.069E+05;
-      double Nu = 0.29;
+      double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+      double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
       double diagonal =   Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
       double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
       double corte      = Young/(1.0+Nu)/2.0;
@@ -106,6 +106,67 @@ void J2ExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHenckyS
      rH = 0.0;
 
 }
+ 
+void J2ExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative)
+{
+     double YieldStress = mpYieldCriterion->GetHardeningLaw().GetProperties()[YIELD_STRESS]
+;
 
+     rSecondDerivative = ZeroMatrix(6);
+
+     double MeanStress  = 0.0;
+     for (unsigned int i = 0; i < 3; ++i)
+         MeanStress += rStressVector(i);
+     MeanStress /= 3.0;
+
+     double Denominador = 0.0;
+     Vector ShearVector = ZeroVector(6);
+
+     for (unsigned int i = 0; i < 3; ++i) {
+         Denominador += pow( rStressVector(i) - MeanStress, 2.0);
+         ShearVector(i) = rStressVector(i) - MeanStress;
+     }
+
+     for (unsigned int i = 3; i < 6; ++i) {
+         Denominador += 2.0 * pow ( rStressVector(i) , 2.0);
+         ShearVector(i) = 2.0 * rStressVector(i);
+     }
+
+     if (Denominador < 1e-8) {
+         return;
+     }
+     for (unsigned int i = 0; i < 3; ++i)
+         rSecondDerivative(i,i) = 1.0; 
+
+     for (unsigned int i = 3; i < 6; ++i)
+         rSecondDerivative(i,i) = 2.0; 
+
+     for (unsigned int i = 0; i < 3; ++i) {
+         for (unsigned int j = 0; j < 3; ++j) {
+             rSecondDerivative(i,j) = -1.0/3.0;
+         }
+      }
+
+     rSecondDerivative *= sqrt (3.0/2.0) / sqrt(Denominador);
+
+     for (unsigned int i = 0; i < 6; ++i) {
+         for (unsigned int j = 0; j < 6; ++j) {
+             rSecondDerivative(i,j) += - sqrt(3.0/2.0) * ShearVector(i) * ShearVector(j)  / pow( Denominador, 3.0/2.0); 
+         }
+     }
+    
+     rSecondDerivative /= YieldStress ; 
+
+}
+void J2ExplicitFlowRule::save( Serializer& rSerializer) const 
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
+}
+
+void J2ExplicitFlowRule::load( Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
+
+}
 
 } //end namespace kratos

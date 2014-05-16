@@ -18,7 +18,6 @@
 #include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
-#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -33,7 +32,7 @@ namespace Kratos
 
 
 class LinearHenckyCamClayPlasticPlaneStrain2DLaw 
-  : public NonLinearHenckyCamClayPlasticPlaneStrain2DLaw
+  : public NonLinearHenckyElasticPlasticPlaneStrain2DLaw
 
 {
 public:
@@ -179,12 +178,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearHenckyCamClayPlasticPlaneStrain2DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NonLinearHenckyElasticPlasticPlaneStrain2DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearHenckyCamClayPlasticPlaneStrain2DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, NonLinearHenckyElasticPlasticPlaneStrain2DLaw);
     }
 
 

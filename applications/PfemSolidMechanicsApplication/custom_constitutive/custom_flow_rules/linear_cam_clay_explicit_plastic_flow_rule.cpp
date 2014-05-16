@@ -104,7 +104,9 @@ void LinearCamClayExplicitFlowRule::CalculateMeanStress(const Vector& rHenckyStr
 void LinearCamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress)
 {
 
-    double ReferencePressure = 80.0;
+    double ReferencePressure = mpYieldCriterion->GetHardeningLaw().GetProperties()[PRE_CONSOLIDATION_STRESS];
+    double OCR = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
+    ReferencePressure /= OCR;    
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
 
 
@@ -119,10 +121,11 @@ void LinearCamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVol
     double YoungModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     double PoissonCoef  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     double ShearModulus = YoungModulus / 2.0 / (1.0 + PoissonCoef);
-    ShearModulus = 120.0;
+    //ShearModulus = 1200.0;
+    //ShearModulus = 23.5*50.0;
 
     rDeviatoricStress = rDeviatoricStrainVector;
-    rDeviatoricStress *= 3.0*ShearModulus;
+    rDeviatoricStress *= 2.0*ShearModulus;
 
     for (unsigned int i = 3; i<6; ++i)
          rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
@@ -140,7 +143,7 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
     double YoungModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     double PoissonCoef  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     double ShearModulus = YoungModulus / 2.0 / (1.0 + PoissonCoef);
-    ShearModulus = 120.0;
+    //ShearModulus = 23.50*50.0;
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
 
     Matrix FourthOrderIdentity = ZeroMatrix(6);
@@ -168,16 +171,22 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
    }
    MeanStress /= 3.0;
 
-
-
-
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
-   rElasticMatrix += 3.0*ShearModulus*FourthOrderIdentity;
-
+   rElasticMatrix += 2.0*ShearModulus*(FourthOrderIdentity - IdentityCross/3.0);
 
 
 }
 
+void LinearCamClayExplicitFlowRule::save( Serializer& rSerializer) const 
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
+}
+
+void LinearCamClayExplicitFlowRule::load( Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
+
+}
 
 /*void LinearCamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH)
 {

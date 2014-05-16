@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
@@ -23,30 +23,30 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrain2DLaw()
-    : NonLinearHenckyElasticPlasticPlaneStrain2DLaw()
+HenckyTrescaPlasticAxisym2DLaw::HenckyTrescaPlasticAxisym2DLaw()
+    : NonLinearHenckyElasticPlasticAxisym2DLaw()
 {
-  mpHardeningLaw   = HardeningLaw::Pointer( new CamClayKinematicHardeningLaw() );
-  mpYieldCriterion = YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
-  mpFlowRule       = FlowRule::Pointer( new LinearCamClayExplicitFlowRule(mpYieldCriterion) );
+  mpFlowRule       = FlowRule::Pointer( new TrescaExplicitFlowRule() );
+  mpYieldCriterion = YieldCriterion::Pointer( new TrescaYieldCriterion() );
+  mpHardeningLaw   = HardeningLaw::Pointer( new HardeningLaw() );
 }
 
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+HenckyTrescaPlasticAxisym2DLaw::HenckyTrescaPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
-  mpHardeningLaw    =  pHardeningLaw;
-  mpYieldCriterion  =  YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
   mpFlowRule        =  pFlowRule;
+  mpYieldCriterion  =  YieldCriterion::Pointer( new TrescaYieldCriterion() );
+  mpHardeningLaw    =  pHardeningLaw;
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrain2DLaw(const LinearHenckyCamClayPlasticPlaneStrain2DLaw& rOther)
-    : NonLinearHenckyElasticPlasticPlaneStrain2DLaw(rOther)
+HenckyTrescaPlasticAxisym2DLaw::HenckyTrescaPlasticAxisym2DLaw(const HenckyTrescaPlasticAxisym2DLaw& rOther)
+    : NonLinearHenckyElasticPlasticAxisym2DLaw(rOther)
 {
 
 }
@@ -54,16 +54,16 @@ LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrai
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearHenckyCamClayPlasticPlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer HenckyTrescaPlasticAxisym2DLaw::Clone() const
 {
-    LinearHenckyCamClayPlasticPlaneStrain2DLaw::Pointer p_clone(new LinearHenckyCamClayPlasticPlaneStrain2DLaw(*this));
+    HenckyTrescaPlasticAxisym2DLaw::Pointer p_clone(new HenckyTrescaPlasticAxisym2DLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-LinearHenckyCamClayPlasticPlaneStrain2DLaw::~LinearHenckyCamClayPlasticPlaneStrain2DLaw()
+HenckyTrescaPlasticAxisym2DLaw::~HenckyTrescaPlasticAxisym2DLaw()
 {
 }
 
