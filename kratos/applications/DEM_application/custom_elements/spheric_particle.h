@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
-#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 
 
 
