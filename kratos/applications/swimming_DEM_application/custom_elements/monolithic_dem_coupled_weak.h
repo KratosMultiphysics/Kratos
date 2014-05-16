@@ -374,7 +374,7 @@ public:
         /*
 //             else if (this->GetValue(TRACK_SUBSCALES) == 1)// Experimental: Dynamic tracking of ASGS subscales (see Codina 2002 Stabilized finite element ... using orthogonal subscales)
 //             {
-//                 /* We want to evaluate v * d(u_subscale)/dt. This term is zero in OSS, due the orthogonality of the two terms. in ASGS, we approximate it as
+//                  * We want to evaluate v * d(u_subscale)/dt. This term is zero in OSS, due the orthogonality of the two terms. in ASGS, we approximate it as
 //                  * d(u_s)/dt = u_s(last iteration) - u_s(previous time step) / DeltaTime where u_s(last iteration) = TauOne(MomResidual(last_iteration) + u_s(previous step)/DeltaTime)
 //                  *
 //                 array_1d<double, 3 > AdvVel;
@@ -444,7 +444,7 @@ public:
         this->EvaluateInPoint(Density, DENSITY, N);
 
         // Add 'classical' mass matrix (lumped)
-        double Coeff = Density * Area / TNumNodes; //Optimize!
+        //double Coeff = Density * Area / TNumNodes; //Optimize!
 //GG
         // Shape functions and integration points
         MatrixType NContainer;
@@ -485,7 +485,7 @@ public:
         //this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
 
 
-        /* For ASGS: add dynamic stabilization terms.
+         For ASGS: add dynamic stabilization terms.
          These terms are not used in OSS, as they belong to the finite element
          space and cancel out with their projections.
          //
@@ -1245,7 +1245,8 @@ protected:
         double lu = lp;
         double c2u = 2;
         double c2p = c2u;
-        double sigma = 1.0;
+        double sigma = 0.5;
+        //this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
         if (sigma > 0.00001){
             TauOne = Element_Size * Element_Size / (c2u * sigma * lu * lu);
             TauTwo = lp * lp * sigma * c2p;
@@ -1305,7 +1306,8 @@ protected:
         double lp = sqrt(L0 * Element_Size);
         double lu = lp;
         double c2u = 2;
-        double sigma = 1.0;
+        double sigma = 0.5;
+        //this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 
         if (sigma > 0.00001){
             TauOne = Element_Size * Element_Size / (c2u * sigma * lu * lu);
@@ -1384,7 +1386,8 @@ protected:
             AGradN[i] = 0.0;
           }
 
-        double sigma = 1.0;
+        double sigma = 0.5;
+        this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         array_1d<double,3> MomProj(3,0.0);
         double DivProj = 0.0;
@@ -1523,7 +1526,8 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 1.0;
+        double sigma = 0.5;
+        this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
 //Z
 
@@ -1576,7 +1580,8 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 1.0;
+        double sigma = 0.5;
+        this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         // Build the local matrix and RHS
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
@@ -1829,7 +1834,8 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 1.0;
+        double sigma = 0.5;
+        this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
 //G
         double FluidFraction;
@@ -1890,7 +1896,8 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 1.0;
+        double sigma = 0.5;
+        this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
@@ -1937,7 +1944,8 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 1.0;
+        double sigma = 0.5;
+        this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
