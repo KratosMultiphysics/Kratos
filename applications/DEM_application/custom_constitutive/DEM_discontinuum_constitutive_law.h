@@ -15,7 +15,7 @@ namespace Kratos
 /**
  * Base class of constitutive laws.
  */
-  class __declspec( dllexport ) DEMDiscontinuumConstitutiveLaw : public Flags
+  class /*__declspec( dllexport )*/ DEMDiscontinuumConstitutiveLaw : public Flags
   {
 
   public:
