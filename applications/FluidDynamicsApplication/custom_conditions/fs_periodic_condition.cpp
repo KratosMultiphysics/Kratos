@@ -49,7 +49,7 @@ FSPeriodicCondition<TDim>& FSPeriodicCondition<TDim>::operator =(FSPeriodicCondi
 template< unsigned int TDim >
 Condition::Pointer FSPeriodicCondition<TDim>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return FSPeriodicCondition::Pointer(new FSPeriodicCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new FSPeriodicCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 template< unsigned int TDim >
