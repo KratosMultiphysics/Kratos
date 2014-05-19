@@ -822,7 +822,7 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(co
  
       Matrix AuxiliarInverse = ElasticMatrixTrial;
 
-      int Singular ;
+      int Singular = 0;
       Singular = SolidMechanicsMathUtilities<double>::InvertMatrix( ElasticMatrixTrial, AuxiliarInverse);
   //    std::cout << Hola << " HOLA 1 : " << rElasticMatrix << std::endl;
       AuxiliarInverse += rReturnMappingVariables.DeltaBeta * AuxiliarDerivatives.PlasticPotentialDD;
