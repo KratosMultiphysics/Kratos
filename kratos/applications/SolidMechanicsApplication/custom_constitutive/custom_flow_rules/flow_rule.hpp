@@ -96,6 +96,8 @@ namespace Kratos
       double LameMu_bar;
       double DeltaTime;
 
+      double IncrementalPlasticShearStrain; 
+
       double Temperature;
 
       Matrix TrialIsoStressMatrix;
@@ -328,7 +330,7 @@ namespace Kratos
 	    return 0;
     };
 
-    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rDeformationGradientF0, const Matrix& rDeltaDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
+    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
     {
 	    KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
 
