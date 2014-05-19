@@ -54,6 +54,13 @@ namespace Kratos
         Matrix PlasticPotentialDD;
      };
 
+    struct ExplicitStressUpdateInformation
+    {
+        double StressErrorMeasure;
+        double NewEquivalentPlasticStrain;
+        double IncrementPlasticStrain;
+
+    };
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
       KRATOS_CLASS_POINTER_DEFINITION( NonAssociativeExplicitPlasticFlowRule );
 
@@ -89,20 +96,16 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    //bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, const Vector& rPrincipalSrainTrial );
 
-    //virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix);
+    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
-    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rDeformationGradientF0, const Matrix &rDeltaHenckyStrain, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
-
-//    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix &rDeltaHenckyStrain, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
 
 
     virtual void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix);
 
-      virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix)
+    virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix)
     {
 	    KRATOS_ERROR( std::logic_error, "calling not the base class but another function in FlowRule ... illegal operation!!", "" )
     };
@@ -149,7 +152,9 @@ namespace Kratos
     //Vector mTrialEigenValues;
     //Matrix mEigenVectors;
 
-	
+
+    double mIncrementalPlasticShearStrain;
+   
     ///@}
     ///@name Protected Operators
     ///@{
@@ -163,7 +168,7 @@ namespace Kratos
 
     bool& EvaluateElastoPlasticUnloadingCondition( bool& rUnloadingCondition, const Matrix& rElasticLeftCauchyGreen, const Matrix& rDeltaDeformationGradient, const InternalVariables& rPlasticVariables, const double & rTolerance);
 
-    void CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient,  const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain);
+    void CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient,  const Matrix& rPreviousElasticLeftCauchyGreen, const double& rPreviousEquivalentPlasticStrain, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain);
 
     virtual void CalculateKirchhoffStressVector(const Vector& rElasticHenckyStrain, Vector& rNewStressVector)
     {
@@ -186,21 +191,22 @@ namespace Kratos
 	KRATOS_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
-    void ComputeIncrementalDeformationGradient(const Matrix& rInitialDeformationGradient, const Matrix& rFinalDeformationGradient, const double& rReferenceConfiguration, const double& rFinalConfiguration, Matrix& rIncrementalDeformationGradient);
+    void ComputeSubstepIncrementalDeformationGradient(const Matrix& rDeformationGradient, const double& rReferenceConfiguration, const double& rFinalConfiguration, Matrix& rIncrementalDeformationGradient);
 
     //  Calculates One Explicit Step (Either Elastic or Plastic) 
 //    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
 
-    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, double& rNewPlasticShearStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
+    void CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, ExplicitStressUpdateInformation& rStressUpdateInformation);
 
 
-    void CalculateExplicitSolutionWithChange(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector,  const double& rTolerance);
+    void CalculateExplicitSolutionWithChange(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector,  const double& rTolerance);
 
-    void CalculateExplicitSolution( const Matrix & rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix&  rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, const double& rTolerance);
+    void CalculateExplicitSolution( const Matrix & rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix&  rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, const double& rTolerance);
 
     // Calculates Stress From ElasticLeftCauchyGreen
     void CalculateKirchhoffStressVector( const Matrix& rElasticLeftCauchyGreen, Vector& rStressVector);
 
+    void UpdateRadialReturnVariables(RadialReturnVariables& rReturnMappingVariables, const ExplicitStressUpdateInformation& rStressUpdateInformation);
 
 //    void CalculateOneExplicitStep(const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
 
@@ -211,7 +217,7 @@ namespace Kratos
 
 
 
-    void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
+    void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
 
     void ReturnStressToYieldSurface(Vector& rElasticHenckyStrainVector, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
 

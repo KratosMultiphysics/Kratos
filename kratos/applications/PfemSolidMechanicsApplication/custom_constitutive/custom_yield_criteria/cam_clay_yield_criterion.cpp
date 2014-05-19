@@ -161,7 +161,6 @@ void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStre
     for (unsigned int i = 3; i<6; ++i)
        ShearVector(i) = 2.0*rStressVector(i);
  
-    double Beta = 1.0;
     double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
   
 //    rYieldFunctionD = 2.0/pow(Beta, 2.0)*(MeanStress-PreconsolidationStress)*IdentityVector;
