@@ -42,14 +42,30 @@
 #include "includes/ublas_interface.h"
 
 // yield Criteria
+#include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
 
+//flow rule
+#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
+
+//hardening laws
+#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 //constitutive laws
 #include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
 
 namespace Kratos
 {
@@ -284,8 +300,27 @@ namespace Kratos
     const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw     mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     const LinearHenckyCamClayPlasticPlaneStrain2DLaw        mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     const NonLinearHenckyCamClayPlasticAxisym2DLaw          mNonLinearHenckyCamClayPlasticAxisym2DLaw;
+    const LinearHenckyCamClayPlasticAxisym2DLaw                mLinearHenckyCamClayPlasticAxisym2DLaw;
+    const BorjaHenckyCamClayPlasticAxisym2DLaw                  mBorjaHenckyCamClayPlasticAxisym2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                   mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                        mHenckyJ2PlasticAxisym2DLaw;
+    const HenckyTrescaPlasticAxisym2DLaw                        mHenckyTrescaPlasticAxisym2DLaw;
+
+
+    const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
+    const TrescaExplicitFlowRule                 mTrescaExplicitFlowRule; 
+    const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
+    const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
+    const BorjaCamClayExplicitFlowRule        mBorjaCamClayExplicitFlowRule;
+
+
+
+    const J2YieldCriterion                   mJ2YieldCriterion;
+    const TrescaYieldCriterion                   mTrescaYieldCriterion;
+    const CamClayYieldCriterion              mCamClayYieldCriterion;
+
+    const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;
+
     ///@} 
     ///@name Private Operators
     ///@{ 

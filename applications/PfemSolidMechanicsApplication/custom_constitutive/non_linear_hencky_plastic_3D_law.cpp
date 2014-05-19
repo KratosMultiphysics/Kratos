@@ -152,7 +152,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
 
     }
     //OPTION 1:
@@ -246,7 +246,7 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
  
          FlowRule::RadialReturnVariables ReturnMappingVariables;
        
-         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
 
          double MeanStress = 0.0;
          for (unsigned int i = 0; i < 3; ++i)
