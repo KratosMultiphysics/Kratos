@@ -89,8 +89,8 @@ namespace Kratos
           else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 
           
-          mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
-          mDiscontinuumConstitutiveLaw->Initialize();
+          //mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+          //mDiscontinuumConstitutiveLaw->Initialize();
           
           CustomInitialize();
 
