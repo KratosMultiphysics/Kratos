@@ -166,6 +166,12 @@ if (inlet_option):
     # adding nodal degrees of freedom
     SolverStrategy.AddDofs(DEM_inlet_model_part)
     DEM_inlet_parameters = DEM_inlet_model_part.Properties
+    
+    for properties in DEM_inlet_model_part.Properties:
+            
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
 
     # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
