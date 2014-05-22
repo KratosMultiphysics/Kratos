@@ -215,6 +215,7 @@ namespace Kratos
        SphericContinuumParticle();
 
         void SetInitialSphereContacts();
+        void CreateContinuumConstitutiveLaws();
         void SetInitialFemContacts();
         void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         void CheckPairWiseBreaking(); //MSIMSI DEBUG
@@ -332,8 +333,8 @@ namespace Kratos
         std::vector<int>                  mFemMappingNewIni;
         
         
-        
-        
+        std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+
         
         //Non-linear
          double mN1;
