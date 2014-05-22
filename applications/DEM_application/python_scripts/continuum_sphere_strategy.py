@@ -386,10 +386,20 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
             
-
         # OTHERS
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
+
+        for properties in self.model_part.Properties:
+            
+            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME];
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+            
+            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            
+            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -399,7 +409,7 @@ class ExplicitStrategy:
 
         self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating)
 
-    #
+        #Setting the constitutive LAWS
 
     def Initial_Critical_Time(self):
         (self.solver).InitialTimeStepCalculation()
