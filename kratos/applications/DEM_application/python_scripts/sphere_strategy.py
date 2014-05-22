@@ -273,6 +273,7 @@ class ExplicitStrategy:
         # Setting ProcessInfo variables
 
        # SIMULATION FLAGS
+       
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
@@ -372,6 +373,14 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
         self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
 
+        
+        for properties in self.model_part.Properties:
+            
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)           
+        
+        
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
         
@@ -383,14 +392,7 @@ class ExplicitStrategy:
         
         #Setting the constitutive LAWS
  
-        for properties in self.model_part.Properties:
-            
-            ConstitutiveLawString = properties[DEM_CONSTITUTIVE_LAW_NAME];
-            ConstitutiveLaw = globals().get(ConstitutiveLawString)()
-            #ConstitutiveLawPointer = ConstitutiveLaw.Clone()
-            ConstitutiveLaw.SetConstitutiveLawInProperties(properties)
-            #properties.SetValue(DEM_CONSTITUTIVE_LAW_POINTER,ConstitutiveLawPointer)
-            
+       
        
         
     #
