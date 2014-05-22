@@ -190,6 +190,9 @@ public:
       nodelist.push_back(pnew_node);                                              
       
       Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_modelpart.pGetProperties(0));
+      //boost::shared_ptr<Properties> params_ptr=boost::make_shared(*r_params);
+      //Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, params_ptr);
+      p_particle->GetProperties() = r_params;
       
       p_particle->Set(NEW_ENTITY);            
       pnew_node->Set(NEW_ENTITY);
