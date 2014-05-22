@@ -13,7 +13,7 @@ namespace Kratos
     int DEMDiscontinuumConstitutiveLaw::Initialize()
 
     {
-        std::cout << " DEMDiscontinuumConstitutiveLaw print on screen..." << std::endl;
+        //std::cout << " DEMDiscontinuumConstitutiveLaw print on screen..." << std::endl;
         return 0;
     }
 
@@ -32,7 +32,9 @@ namespace Kratos
     }
     
     DEMDiscontinuumConstitutiveLaw::~DEMDiscontinuumConstitutiveLaw()
-    { std::cout << "Law destructor..." ; }
+    { 
+        //std::cout << "Law destructor..." ; 
+    }
     
     
      void DEMDiscontinuumConstitutiveLaw::PlasticityAndDamage(double LocalElasticContactForce[3], double kn_el, double equiv_young, double indentation, double      calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps)
