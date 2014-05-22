@@ -13,7 +13,6 @@ namespace Kratos
     int DEMDiscontinuumConstitutiveLaw::Initialize()
 
     {
-        DEMDiscontinuumConstitutiveLaw test;
         std::cout << " DEMDiscontinuumConstitutiveLaw print on screen..." << std::endl;
         return 0;
     }
