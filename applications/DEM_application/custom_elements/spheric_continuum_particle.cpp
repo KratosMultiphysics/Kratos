@@ -189,8 +189,31 @@ namespace Kratos
         }
 
     }//SetInitialSphereContacts
-    
-    
+
+
+  //**************************************************************************************************************************************************
+  //**************************************************************************************************************************************************
+
+
+      void SphericContinuumParticle::CreateContinuumConstitutiveLaws()
+      {
+
+          unsigned int cont_neigh_size = mContinuumIniNeighbourElements.size();
+
+          mContinuumConstitutiveLawArray.resize(cont_neigh_size);
+
+          for (unsigned int i = 0; i < cont_neigh_size; i++)
+          {
+
+             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+             mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
+
+          }
+
+
+      }
+
+
   //**************************************************************************************************************************************************
   //**************************************************************************************************************************************************
 
@@ -1623,6 +1646,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
         {            
             SetInitialSphereContacts();
+
+            CreateContinuumConstitutiveLaws();
             return;
         }
         
