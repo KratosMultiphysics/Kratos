@@ -244,7 +244,7 @@ void LinearElastic3DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatr
 {
     rConstitutiveMatrix.clear();
 
-    //plane strain constitutive matrix:
+    //plane strain constitutive matrix: 
     rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));
     rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
     rConstitutiveMatrix ( 2 , 2 ) = rConstitutiveMatrix ( 0 , 0 );
