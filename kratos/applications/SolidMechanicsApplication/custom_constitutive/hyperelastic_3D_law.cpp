@@ -578,7 +578,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
         Vector& rStrainVector )
 {
 
-    // e= 0.5*(1-invbT*invb)
+    // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
 
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
