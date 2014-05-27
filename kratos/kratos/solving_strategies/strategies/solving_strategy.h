@@ -184,6 +184,13 @@ public:
     }
 
     /**
+    Initialization of member variables and prior operations
+     */
+    virtual void Initialize()
+    {
+    }
+
+    /**
     the problem of interest is solved
      */
     virtual double Solve()
