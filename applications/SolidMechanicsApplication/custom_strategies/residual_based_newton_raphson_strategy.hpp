@@ -370,6 +370,41 @@ public:
         KRATOS_CATCH( "" )
     }
 
+
+    //*********************************************************************************
+    /**
+    Initialize members
+     */
+    //**********************************************************************
+
+
+    void Initialize()
+    {
+        KRATOS_TRY
+
+        //pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = GetScheme();
+        typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
+
+        //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+        if (pScheme->SchemeIsInitialized() == false)
+            pScheme->Initialize(BaseType::GetModelPart());
+
+        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
+        if (pScheme->ElementsAreInitialized() == false)
+            pScheme->InitializeElements(BaseType::GetModelPart());
+
+        //initialisation of the convergence criteria
+        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
+            mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
+
+
+        mInitializeWasPerformed = true;
+
+        KRATOS_CATCH( "" )
+    }
+
+
     //*********************************************************************************
     /**
     the problem of interest is solved
@@ -842,36 +877,6 @@ protected:
     //**********************************************************************
     //**********************************************************************
 
-    void Initialize()
-    {
-        KRATOS_TRY
-
-        //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-
-        //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-        if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(BaseType::GetModelPart());
-
-        //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-        if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(BaseType::GetModelPart());
-
-        //initialisation of the convergence criteria
-        if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
-            mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
-
-
-        mInitializeWasPerformed = true;
-
-        KRATOS_CATCH( "" )
-    }
-
-
-    //**********************************************************************
-    //**********************************************************************
-
     void InitializeSolutionStep()
     {
         KRATOS_TRY
@@ -916,7 +921,7 @@ protected:
     int Check()
     {
         KRATOS_TRY
-
+        
         BaseType::Check();
 
         GetBuilderAndSolver()->Check(BaseType::GetModelPart());
