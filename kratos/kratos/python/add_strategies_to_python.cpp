@@ -251,6 +251,7 @@ namespace Kratos
             //strategy base class
             class_< BaseSolvingStrategyType, boost::noncopyable > ("SolvingStrategy", init < ModelPart&, bool >())
                     .def("Predict", &BaseSolvingStrategyType::Predict)
+                    .def("Initialize", &BaseSolvingStrategyType::Initialize)
                     .def("Solve", &BaseSolvingStrategyType::Solve)
                     .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
                     .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
