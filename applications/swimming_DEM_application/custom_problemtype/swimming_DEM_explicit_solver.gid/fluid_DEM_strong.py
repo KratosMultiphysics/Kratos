@@ -420,6 +420,12 @@ if (ProjectParameters.inlet_option):
     DEMSolverStrategy.AddDofs(DEM_inlet_model_part)
     DEM_inlet_parameters = DEM_inlet_model_part.Properties
     swimming_DEM_procedures.AddingDEMProcessInfoVariables(ProjectParameters, DEM_inlet_model_part)
+    
+    for properties in DEM_inlet_model_part.Properties:
+            
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)  
 
     # constructiong the inlet and intializing it
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
