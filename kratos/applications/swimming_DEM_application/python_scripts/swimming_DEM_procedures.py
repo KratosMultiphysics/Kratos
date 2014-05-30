@@ -43,9 +43,6 @@ def ConstructListsOfResultsToPrint(pp):
 
     if (pp.projection_module_option):
 
-        if (pp.print_SOLID_FRACTION_option):
-            pp.dem_nodal_results += ["SOLID_FRACTION"]
-
         if (pp.print_REYNOLDS_NUMBER_option):
             pp.dem_nodal_results += ["REYNOLDS_NUMBER"]
 
@@ -97,6 +94,9 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if (pp.coupling_level_type > 0 and pp.print_FLUID_FRACTION_option):
         pp.nodal_results += ["FLUID_FRACTION"]
+
+    if (pp.print_SOLID_FRACTION_option):
+        pp.nodal_results += ["SOLID_FRACTION"]
 
     if (pp.fluid_model_type == 0 and pp.print_MESH_VELOCITY1_option):
         pp.nodal_results += ["MESH_VELOCITY1"]
@@ -223,6 +223,7 @@ def ConstructListsOfVariables(pp):
 
     # dem variables
     pp.dem_vars = []
+    pp.dem_vars += [SOLID_FRACTION]
     pp.dem_vars += pp.coupling_dem_vars
 
     if (pp.print_REYNOLDS_NUMBER_option):
@@ -281,29 +282,14 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_m
         for node in fem_dem_model_part.Nodes:
             node.Id += max_id
 
+def SetCurrentNodalVariableValue(model_part, var, value):
 
-def InitializeVariablesToZero(model_part, variable_list):
+    for node in model_part.Nodes:
+        node.SetSolutionStepValue(var, 0, value)
 
-    for var in variable_list:
-
-        if (var == FLUID_FRACTION):
-
-            for node in model_part.Nodes:
-                node.SetSolutionStepValue(var, 0, 0.0)
-
-        elif (var == MESH_VELOCITY1):
-
-            for node in model_part.Nodes:
-                node.SetSolutionStepValue(MESH_VELOCITY1_X, 0, 0.0)
-                node.SetSolutionStepValue(MESH_VELOCITY1_Y, 0, 0.0)
-                node.SetSolutionStepValue(MESH_VELOCITY1_Z, 0, 0.0)
-
-        elif (var == HYDRODYNAMIC_REACTION):
-
-            for node in model_part.Nodes:
-                node.SetSolutionStepValue(HYDRODYNAMIC_REACTION_X, 0, 0.0)
-                node.SetSolutionStepValue(HYDRODYNAMIC_REACTION_Y, 0, 0.0)
-                node.SetSolutionStepValue(HYDRODYNAMIC_REACTION_Z, 0, 0.0)
+def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part):
+    SetCurrentNodalVariableValue(fluid_model_part, FLUID_FRACTION, 1.0)
+    SetCurrentNodalVariableValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
 
