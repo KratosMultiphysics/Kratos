@@ -3549,16 +3549,16 @@ namespace Kratos
 
 		  if(projection_normals!=0)
 		    relative_angle = projection_sides/projection_normals;
-
-		  // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
-		  // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
-		  // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
 		  
 		  condition_angle = (180.0/3.14159) * std::acos(relative_angle);
 
 		  if(inner_prod(S1,N2)<0) 
 		    condition_angle *=(-1);
 
+		  // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
+		  // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
+		  // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
+		  // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
 
 		  if(condition_angle<critical_angle){
 		
