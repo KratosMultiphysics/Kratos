@@ -912,7 +912,7 @@ private:
 
             for (NodesArrayType::iterator inode = this->GetNodePartitionBegin(rfluid_model_part, k); inode != this->GetNodePartitionEnd(rfluid_model_part, k); ++inode){
                 double& fluid_fraction = inode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
-                fluid_fraction /= inode->FastGetSolutionStepValue(NODAL_AREA, 0);
+                fluid_fraction = 1 - fluid_fraction / inode->FastGetSolutionStepValue(NODAL_AREA, 0);
 
                 if (fluid_fraction < mMinFluidFraction){
                     fluid_fraction = mMinFluidFraction;
@@ -1278,7 +1278,7 @@ private:
         const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-        (el_it->GetGeometry())[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION, 0) -= particle_volume;
+        (el_it->GetGeometry())[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION, 0) += particle_volume;
     }
 
     //***************************************************************************************************************
@@ -1302,10 +1302,10 @@ private:
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
         for (unsigned int inode = 0; inode < NN.size(); inode++){
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION, 0) -= NN[inode] * particle_volume;
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[0] -= DN_DX(inode, 0) * particle_volume;
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[1] -= DN_DX(inode, 1) * particle_volume;
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[2] -= DN_DX(inode, 2) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION, 0) += NN[inode] * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[0] += DN_DX(inode, 0) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[1] += DN_DX(inode, 1) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[2] += DN_DX(inode, 2) * particle_volume;
           }
 
     }
@@ -1323,7 +1323,7 @@ private:
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
         for (unsigned int inode = 0; inode < NN.size(); inode++){
-            (el_it->GetGeometry())[inode].FastGetSolutionStepValue(FLUID_FRACTION, 0) -= NN[inode] * particle_volume;
+            (el_it->GetGeometry())[inode].FastGetSolutionStepValue(FLUID_FRACTION, 0) += NN[inode] * particle_volume;
           }
 
     }
@@ -1368,10 +1368,10 @@ private:
 
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             const double& radius = neighbours[i]->FastGetSolutionStepValue(RADIUS, 0);
-            destination_data -= weights[i] * radius * radius * radius;
+            destination_data += weights[i] * radius * radius * radius;
           }
 
-        destination_data *=  4 / 3 * KRATOS_M_PI;
+        destination_data = 1 -  4 / 3 * KRATOS_M_PI * destination_data;
     }
 
     //***************************************************************************************************************
@@ -1383,14 +1383,7 @@ private:
         for (NodeIteratorType node_it = rdem_model_part.NodesBegin(); node_it != rdem_model_part.NodesEnd(); ++node_it){
 
             for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
-
-                if (*mDEMCouplingVariables[i] == FLUID_FRACTION_PROJECTED){
-                    node_it->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED, 0) = 1.0;
-                  }
-
-                else {
-                    ClearVariable(node_it, mDEMCouplingVariables[i]);
-                  }
+                ClearVariable(node_it, mDEMCouplingVariables[i]);
               }
 
           }
@@ -1405,9 +1398,7 @@ private:
 
         for (NodeIteratorType node_it = rfluid_model_part.NodesBegin(); node_it != rfluid_model_part.NodesEnd(); ++node_it){
 
-              if (mCouplingType != - 1){
-                  node_it->FastGetSolutionStepValue(FLUID_FRACTION, 0) = 1.0;
-                }
+              ClearVariable(node_it, FLUID_FRACTION);
 
               array_1d<double, 3>& body_force                = node_it->FastGetSolutionStepValue(BODY_FORCE, 0);
               array_1d<double, 3>& old_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
