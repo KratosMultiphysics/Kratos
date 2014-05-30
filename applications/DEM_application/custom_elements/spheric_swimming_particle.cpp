@@ -156,7 +156,7 @@ namespace Kratos
               array_1d<double, 3> slip_vel;
 
               if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
-                  const double fluid_fraction         = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
+                  const double fluid_fraction         = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
                   noalias(slip_vel)                   = fluid_vel / fluid_fraction - particle_vel;
               }
 
@@ -212,7 +212,7 @@ namespace Kratos
               const double delta_t_inv                = 1 / rCurrentProcessInfo[DELTA_TIME];
               array_1d<double, 3> fluid_acc           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
               const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 0) - GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 1));
-              const double fluid_fraction             = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
+              const double fluid_fraction             = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
               array_1d<double, 3> slip_acc;
 
               if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
@@ -247,8 +247,8 @@ namespace Kratos
               array_1d<double, 3> minus_slip_vel;
 
               if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
-                  const double fluid_fraction = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
-                  noalias(minus_slip_vel)           = particle_vel - fluid_vel / fluid_fraction;
+                  const double fluid_fraction = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
+                  noalias(minus_slip_vel)     = particle_vel - fluid_vel / fluid_fraction;
               }
 
               else {
@@ -297,7 +297,7 @@ namespace Kratos
               array_1d<double, 3> slip_vel;
 
               if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
-                  const double fluid_fraction         = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
+                  const double fluid_fraction         = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
                   noalias(slip_vel)                   = fluid_vel / fluid_fraction - particle_vel;
               }
 
@@ -319,9 +319,9 @@ namespace Kratos
       double SphericSwimmingParticle::ComputeStokesDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
       {
             const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-            const double solid_fraction      = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
+            const double fluid_fraction      = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
 
-            double  drag_coeff  = 6 * KRATOS_M_PI * kinematic_viscosity * fluid_density * solid_fraction * mRadius;
+            double  drag_coeff  = 6 * KRATOS_M_PI * kinematic_viscosity * fluid_density * fluid_fraction * mRadius;
 
             return drag_coeff;
       }
