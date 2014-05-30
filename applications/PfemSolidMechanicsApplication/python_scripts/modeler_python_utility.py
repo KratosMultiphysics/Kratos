@@ -59,20 +59,16 @@ class ModelerUtility:
         self.contact_condition = "ContactDomainLM2DCondition"
 
         # time step meshing control parameters
-        self.remesh_frequency = 1
-        self.contact_search_frequency = 1
 
         self.remesh_executed = False
-        self.remesh_step = 0
         self.contact_transfer_done = False
-        self.contact_search_step = 0
-
+         
     #
-    def Initialize(self, remesh_step, contact_search_step):
+    def Initialize(self):
 
-        self.remesh_step = remesh_step
-        self.contact_search_step = contact_search_step
-
+        self.remesh_executed = False
+        self.contact_transfer_done = False
+        
     #
     def InitializeDomains(self):
 
@@ -307,32 +303,24 @@ class ModelerUtility:
             self.contact_transfer_done = True
 
     #
-    def ContactSearch(self, current_step):
+    def ContactSearch(self):
 
         if(self.contact_search):
             print(" CONTACT SEARCH : ", self.contact_condition)
 
-            if(self.remesh_executed or current_step == self.contact_search_step):
-                self.ContactTransfer()
-                self.contact_modeler.GenerateContactMesh(self.model_part, "Element2D", self.contact_condition, self.constrained_contact, self.alpha_shape, self.h_factor, self.contact_offset_factor, self.penalty_parameter, self.stability_parameter, self.friction_active, self.mu_static, self.mu_dynamic);
-
-                if(current_step == self.contact_search_step):
-                    self.contact_search_step = self.contact_search_step + self.contact_search_frequency
-
+            self.ContactTransfer()
+            self.contact_modeler.GenerateContactMesh(self.model_part, "Element2D", self.contact_condition, self.constrained_contact, self.alpha_shape, self.h_factor, self.contact_offset_factor, self.penalty_parameter, self.stability_parameter, self.friction_active, self.mu_static, self.mu_dynamic);
+            
     #
-    def RemeshDomains(self, current_step):
+    def RemeshDomains(self):
 
         if(self.remesh_domains):
-            if(current_step == self.remesh_step):
-                if(self.contact_search):
-                    self.ContactTransfer()
+            if(self.contact_search):
+                self.ContactTransfer()
 
-                print("MESH DOMAIN")
-                self.mesh_modeler.GenerateMesh(self.model_part);
-                self.remesh_executed = True
-
-                self.remesh_step = self.remesh_step + self.remesh_frequency
-
+            print("MESH DOMAIN")
+            self.mesh_modeler.GenerateMesh(self.model_part);
+            self.remesh_executed = True
  
 
     #
