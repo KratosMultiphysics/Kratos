@@ -2288,7 +2288,7 @@ Begin Nodes // GUI group identifier: shell
 2273 16.06969 19.15111 0.00000
 End Nodes
 
-Begin Elements IsoShellElement   // GUI group identifier: shell
+Begin Elements IsotropicShellElement3D3N  // GUI group identifier: shell
 1 1 2049 2055 2033
 2 1 2218 2221 2211
 3 1 693 673 684

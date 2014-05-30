@@ -14,24 +14,24 @@ def Run():
     #
     # VMS2D element test
 
-    Text += "Shell T3 Isotropic  Scordelis  test: "
-    os.chdir("scordelis.gid")
-    sys.path.append(os.getcwd())
+     # Text += "Shell T3 Isotropic  Scordelis  test: "
+     # os.chdir("scordelis.gid")
+     # sys.path.append(os.getcwd())
 
-    print("---start solid mechanics application tests---")
-    print("running the Scordelis Low Roof benchmark test...")
-    successful,Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
+     #  # print("---start solid mechanics application tests---")
+     # print("running the Scordelis Low Roof benchmark test...")
+     # successful,Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
 
-    if(successful==True):
-        Text += "OK\n"
-        print("Scordelis Low Roof test successful")
-    else:
-        Text += "FAILED\n"
-        Text += Msg
-        Text += "\n\n"
-        print("Scordelis Low Roof test FAILED")
+     # if(successful==True):
+     #     Text += "OK\n"
+     #     print("Scordelis Low Roof test successful")
+     # else:
+     #     Text += "FAILED\n"
+     #     Text += Msg
+     #     Text += "\n\n"
+     #     print("Scordelis Low Roof test FAILED")
 
-    os.chdir("..")
+     #  # os.chdir("..")
 
     #
     
