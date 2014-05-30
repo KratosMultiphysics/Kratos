@@ -43,6 +43,9 @@ def ConstructListsOfResultsToPrint(pp):
 
     if (pp.projection_module_option):
 
+        if (pp.print_SOLID_FRACTION_option):
+            pp.dem_nodal_results += ["SOLID_FRACTION"]
+
         if (pp.print_REYNOLDS_NUMBER_option):
             pp.dem_nodal_results += ["REYNOLDS_NUMBER"]
 
@@ -76,19 +79,13 @@ def ConstructListsOfResultsToPrint(pp):
 
 def ModifyProjectParameters(pp):
     # defining and adding imposed porosity fields
-    pp.solid_fraction_fields = []
-    field1 = SolidFractionFieldUtility.LinearField(0.0,
-                                                  [0.0, 0.0, - 1.0],
+    pp.fluid_fraction_fields = []
+    field1 = FluidFractionFieldUtility.LinearField(0.0,
+                                                  [0.0, 0.0, 0.0],
                                                   [-1.0, -1.0, 0.15],
                                                   [1.0, 1.0, 0.3])
 
-    field2 = SolidFractionFieldUtility.LinearField(1.0,
-                                                  [0.0, 0.0, 1.0],
-                                                  [-1.0, -1.0, 0.3],
-                                                  [1.0, 1.0, 0.45])
-
-    pp.solid_fraction_fields.append(field1)
-    pp.solid_fraction_fields.append(field2)
+    pp.fluid_fraction_fields.append(field1)
 
     # changes on PROJECT PARAMETERS for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)
@@ -98,14 +95,14 @@ def ModifyProjectParameters(pp):
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
 
-    if (pp.coupling_level_type > 0 and pp.print_SOLID_FRACTION_option):
-        pp.nodal_results += ["SOLID_FRACTION"]
+    if (pp.coupling_level_type > 0 and pp.print_FLUID_FRACTION_option):
+        pp.nodal_results += ["FLUID_FRACTION"]
 
     if (pp.fluid_model_type == 0 and pp.print_MESH_VELOCITY1_option):
         pp.nodal_results += ["MESH_VELOCITY1"]
 
-    if (pp.fluid_model_type == 1 and pp.print_SOLID_FRACTION_GRADIENT_option):
-        pp.nodal_results += ["SOLID_FRACTION_GRADIENT"]
+    if (pp.fluid_model_type == 1 and pp.print_FLUID_FRACTION_GRADIENT_option):
+        pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
 
     if (pp.body_force_on_fluid_option and pp.print_BODY_FORCE_option):
         pp.nodal_results += ["BODY_FORCE"]
@@ -121,7 +118,7 @@ def ChangeInputDataForConsistency(pp):
     pp.project_at_every_substep_option *= pp.projection_module_option
 
     if (pp.flow_in_porous_medium_option):
-        pp.coupling_weighing_type = - 1 # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
+        pp.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
 
     pp.time_steps_per_stationarity_step = max(1, int(pp.time_steps_per_stationarity_step)) # it should never be smaller than 1!
     pp.stationary_problem_option *= not pp.dem.project_from_particles_option
@@ -162,11 +159,14 @@ def ConstructListsOfVariables(pp):
         pp.coupling_fluid_vars += [MESH_VELOCITY1]
 
     if (pp.fluid_model_type == 0 or pp.coupling_level_type == 1 or pp.drag_force_type == 4):
+        pp.coupling_fluid_vars += [FLUID_FRACTION]
+
+    if (pp.coupling_level_type > 0 and pp.print_SOLID_FRACTION_option):
         pp.coupling_fluid_vars += [SOLID_FRACTION]
 
     if (pp.fluid_model_type == 1):
-        pp.coupling_fluid_vars += [SOLID_FRACTION_GRADIENT]
-        pp.coupling_fluid_vars += [SOLID_FRACTION_RATE]
+        pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
+        pp.coupling_fluid_vars += [FLUID_FRACTION_RATE]
 
     if (pp.coupling_level_type == 1):
         pp.coupling_fluid_vars += [HYDRODYNAMIC_REACTION]
@@ -188,7 +188,7 @@ def ConstructListsOfVariables(pp):
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
 
     if (pp.coupling_level_type == 1 or pp.fluid_model_type == 0):
-       pp.coupling_dem_vars += [SOLID_FRACTION_PROJECTED]
+       pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
     if (pp.lift_force_type == 1):
        pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
@@ -286,7 +286,7 @@ def InitializeVariablesToZero(model_part, variable_list):
 
     for var in variable_list:
 
-        if (var == SOLID_FRACTION):
+        if (var == FLUID_FRACTION):
 
             for node in model_part.Nodes:
                 node.SetSolutionStepValue(var, 0, 0.0)
@@ -319,7 +319,7 @@ def GetWordWithSpaces(word, total_length):
 
     return word
 
-class SolidFractionFieldUtility:
+class FluidFractionFieldUtility:
 
     def CheckIsInside(self, p, l, h):  # p is the point, l and h are the low and high corners of the bounding box
 
@@ -332,29 +332,29 @@ class SolidFractionFieldUtility:
     class LinearField:
 
         def __init__(self,
-                     solid_fraction_at_zero,
-                     solid_fraction_gradient,
+                     fluid_fraction_at_zero,
+                     fluid_fraction_gradient,
                      lower_corner,
                      upper_corner):
 
-            self.frac_0 = solid_fraction_at_zero
-            self.frac_grad = solid_fraction_gradient
+            self.frac_0 = fluid_fraction_at_zero
+            self.frac_grad = fluid_fraction_gradient
             self.low = lower_corner
             self.high = upper_corner
 
-    def __init__(self, fluid_model_part, max_solid_fraction):
+    def __init__(self, fluid_model_part, min_fluid_fraction):
         self.fluid_model_part = fluid_model_part
-        self.max_solid_fraction = max_solid_fraction
+        self.min_fluid_fraction = min_fluid_fraction
         self.field_list = list()
 
     def AppendLinearField(self, field):
         self.field_list.append(field)
 
-    def AddSolidFractionField(self):
+    def AddFluidFractionField(self):
 
         print('******************************************************************')
         print()
-        print('Adding Imposed Solid Fraction Fields...')
+        print('Adding Imposed Fluid Fraction Fields...')
         print()
 
         count = 0
@@ -372,12 +372,12 @@ class SolidFractionFieldUtility:
         for field in self.field_list:
 
             for node in self.fluid_model_part.Nodes:
-                solid_fraction = node.GetSolutionStepValue(SOLID_FRACTION, 0)
+                fluid_fraction = node.GetSolutionStepValue(FLUID_FRACTION, 0)
 
                 if (self.CheckIsInside([node.X, node.Y, node.Z], field.low, field.high)):
-                    value = solid_fraction + field.frac_0 + field.frac_grad[0] * node.X + field.frac_grad[1] * node.Y + field.frac_grad[2] * node.Z
-                    value = min(max(value, 0.0), self.max_solid_fraction)
-                    node.SetSolutionStepValue(SOLID_FRACTION, 0, value)
+                    value = fluid_fraction + field.frac_0 + field.frac_grad[0] * node.X + field.frac_grad[1] * node.Y + field.frac_grad[2] * node.Z
+                    value = min(max(value, 0.0), self.min_fluid_fraction)
+                    node.SetSolutionStepValue(FLUID_FRACTION, 0, value)
 
 def MultiplyNodalVariableByFactor(model_part, variable, factor):
 
@@ -392,8 +392,8 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
 
     elif (transformation_type == 1):
 
-        print ('***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
-        print ('The particles diameters quotient is\n')
+        print('***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
+        print('The particles diameters quotient is\n')
         print('D_model / D_real =', mod_over_real)
         print()
 
@@ -524,20 +524,23 @@ class ProjectionModule:
 
     def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, pp):
 
-        self.fluid_model_part = fluid_model_part
+        self.fluid_model_part     = fluid_model_part
         self.particles_model_part = balls_model_part
-        self.FEM_DEM_model_part = FEM_DEM_model_part
-        self.dimension = dimension
-        self.max_solid_fraction = pp.max_solid_fraction
-        self.coupling_type = pp.coupling_weighing_type
+        self.FEM_DEM_model_part   = FEM_DEM_model_part
+        self.dimension            = dimension
+        self.min_fluid_fraction   = pp.min_fluid_fraction
+        self.coupling_type        = pp.coupling_weighing_type
         self.n_particles_in_depth = pp.n_particles_in_depth
+        self.meso_scale_length    = pp.meso_scale_length
+        self.shape_factor         = pp.shape_factor
+        self.search_strategy      = OMP_DEMSearch()
 
         if (self.dimension == 3):
-            self.projector = BinBasedDEMFluidCoupledMapping3D(self.max_solid_fraction, self.coupling_type)
+            self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.search_strategy)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            self.projector = BinBasedDEMFluidCoupledMapping2D(self.max_solid_fraction, self.coupling_type, self.n_particles_in_depth)
+            self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.search_strategy, self.n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
@@ -569,7 +572,11 @@ class ProjectionModule:
 
     def ProjectFromParticles(self):
 
-        self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
+        if (self.coupling_type < 3):
+            self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
+
+        else:
+            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.shape_factor)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
