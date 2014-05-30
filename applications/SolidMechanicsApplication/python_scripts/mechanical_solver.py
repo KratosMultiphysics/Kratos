@@ -149,6 +149,9 @@ class StructuralSolver:
         # check if everything is assigned correctly
         self.Check();
 
+        # initialize strategy solver
+        self.mechanical_solver.Initialize()
+
         print(" [Initialization mechanical solver finished] ")
 
     #
@@ -174,9 +177,6 @@ class StructuralSolver:
 
     #
     def Check(self):
-        self.builder_and_solver.Check(self.model_part)
-        self.mechanical_scheme.Check(self.model_part)
-        self.mechanical_convergence_criterion.Check(self.model_part)
         self.mechanical_solver.Check();
 
     #

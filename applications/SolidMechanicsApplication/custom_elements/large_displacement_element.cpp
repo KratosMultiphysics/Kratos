@@ -372,7 +372,8 @@ void LargeDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
 
       for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
         rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-    }}
+    }
+}
 
 //**********************************GET VECTOR VALUE**********************************
 //************************************************************************************
