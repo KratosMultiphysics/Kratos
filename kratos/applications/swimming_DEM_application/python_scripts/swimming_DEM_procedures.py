@@ -145,6 +145,7 @@ def ChangeInputDataForConsistency(pp):
 
 def ConstructListsOfVariables(pp):
     # COUPLING VARIABLES
+    # listing the variables involved in the fluid-particles coupling
 
     # fluid coupling variables
     pp.coupling_fluid_vars = []
@@ -282,14 +283,14 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_m
         for node in fem_dem_model_part.Nodes:
             node.Id += max_id
 
-def SetCurrentNodalVariableValue(model_part, var, value):
+def SetModelPartSolutionStepValue(model_part, var, value):
 
     for node in model_part.Nodes:
         node.SetSolutionStepValue(var, 0, value)
 
 def InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part):
-    SetCurrentNodalVariableValue(fluid_model_part, FLUID_FRACTION, 1.0)
-    SetCurrentNodalVariableValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
+    SetModelPartSolutionStepValue(fluid_model_part, FLUID_FRACTION, 1.0)
+    SetModelPartSolutionStepValue(balls_model_part, FLUID_FRACTION_PROJECTED, 1.0)
 
 def FixModelPart(model_part):
 
