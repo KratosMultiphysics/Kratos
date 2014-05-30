@@ -67,7 +67,7 @@ VALUE: SpatialLagrangianUPElement2D3N
 QUESTION: MeshDomains:(SubDomain,Remesh,Constrained,Refine,MeshSmoothing,JacobiSmoothing,MeshElement)
 VALUE: #N# 7 1 1 1 1 1 1 SpatialLagrangianUPElement2D3N
 QUESTION: Meshing_Frequency
-VALUE: 1
+VALUE: 0
 QUESTION: Refine_active_on_subdomains#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#)
@@ -112,7 +112,7 @@ VALUE: 0.01
 QUESTION: Offset_Factor
 VALUE: 0.0001
 QUESTION: Contact_Search_Frequency
-VALUE: 1
+VALUE: 0
 QUESTION: Constrained_Contact#CB#(False,True)
 VALUE: True
 QUESTION: Friction_Active#CB#(False,True)
