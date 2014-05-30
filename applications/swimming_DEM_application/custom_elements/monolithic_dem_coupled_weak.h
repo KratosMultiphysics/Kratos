@@ -38,7 +38,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
+//   Last Modified by:    $Author: gcasas $
 //   Date:                $Date: 2010-10-09 10:34:00 $
 //   Revision:            $Revision: 0.1 $
 //
@@ -1348,8 +1348,8 @@ protected:
     const double& DeltaTime)
     {
 
-      double SolidFractionRate;
-      this->EvaluateTimeDerivativeInPoint(SolidFractionRate, SOLID_FRACTION_RATE, rShapeFunc, DeltaTime, TimeSchemeWeights);
+      double FluidFractionRate;
+      this->EvaluateTimeDerivativeInPoint(FluidFractionRate, FLUID_FRACTION_RATE, rShapeFunc, DeltaTime, TimeSchemeWeights);
 
       // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
       int LocalIndex = 0;
@@ -1357,7 +1357,7 @@ protected:
       for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
 
           for (unsigned int d = 0; d < TDim; ++d){
-              F[LocalIndex++] += SolidFractionRate;
+              F[LocalIndex++] -= FluidFractionRate;
           }
 
           ++LocalIndex; // Skip pressure Dof
@@ -1402,7 +1402,7 @@ protected:
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
 //G
-            double FluidFraction = 1.0 - this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
+            double FluidFraction = this->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION);
             array_1d<double,3> FluidFractionGradient(3,0.0);
             FluidFractionGradient[0] += rShapeDeriv(i, 0) * FluidFraction;
             FluidFractionGradient[1] += rShapeDeriv(i, 1) * FluidFraction;
@@ -1513,15 +1513,12 @@ protected:
 //G
         double FluidFraction;
         array_1d<double,3> FluidFractionGradient(3,0.0);
-        this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
-        FluidFraction = 1.0 - FluidFraction;
-        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, SOLID_FRACTION, rShapeDeriv);
+        this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
+        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
 
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT) = FluidFractionGradient;
+            this->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT) = FluidFractionGradient;
         }
-
-        FluidFractionGradient *= -1;
 //GG
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
@@ -1593,10 +1590,8 @@ protected:
 //G
         double DivPEpsilon, GEps, FluidFraction;
         array_1d<double,3> FluidFractionGradient(3,0.0);
-        this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
-        FluidFraction = 1.0 - FluidFraction;
-        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, SOLID_FRACTION, rShapeDeriv);
-        FluidFractionGradient *= -1;
+        this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
+        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
 //GG
         // Lumped version for 1 integration point of the sigma u*v terms
 //        unsigned int DofIndex = 0;
@@ -1839,11 +1834,9 @@ protected:
 //ZZ
 //G
         double FluidFraction;
-        array_1d<double,3> FluidFractionGradient(3,0.0);
-        this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
-        FluidFraction = 1.0 - FluidFraction;
-        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, SOLID_FRACTION, rShapeDeriv);
-        FluidFractionGradient *= -1;
+        array_1d<double,3> FluidFractionGradient(3,0.0);       
+        this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
+        this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
 //Z
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
@@ -1866,7 +1859,7 @@ protected:
                 rElementalMassRes -= Weight * (FluidFraction * rShapeDeriv(i, d) * rVelocity[d] + FluidFractionGradient[d] * rVelocity[d]);
             }
 
-            rElementalMassRes -=  Weight * this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE); // SOLID_FRACTION_RATE = - time derivative of the fluid fraction
+            rElementalMassRes +=  Weight * this->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION_RATE);
 //Z
 
         }
@@ -2124,7 +2117,7 @@ protected:
     {
         // Compute the time derivative of a nodal variable as a liner contribution of weighted value of the nodal variable in the (Gauss) Point
 
-      if (rVariable == SOLID_FRACTION_RATE){
+      if (rVariable == FLUID_FRACTION_RATE){
           rResult = 0.0;
 
           for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
