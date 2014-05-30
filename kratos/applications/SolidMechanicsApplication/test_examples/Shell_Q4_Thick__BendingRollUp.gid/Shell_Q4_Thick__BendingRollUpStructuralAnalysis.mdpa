@@ -457,23 +457,23 @@ Begin NodalData ROTATION_Z
          5    1   0.000000
 End NodalData
 
-Begin Conditions PointMoment3DCondition // GUI puntual load group identifier: load
+Begin Conditions PointTorque3DCondition // GUI puntual load group identifier: load
    1    1        241
    2    1        242
    3    1        243
 End Conditions
 
-Begin NodalData MOMENT_Y // GUI puntual load group identifier: load
+Begin NodalData TORQUE_Y // GUI puntual load group identifier: load
        241  0       511.3269000000
        242  0       511.3269000000
        243  0       511.3269000000
 End NodalData
 
-Begin Conditions PointMoment3DCondition // GUI puntual load group identifier: load2
+Begin Conditions PointTorque3DCondition // GUI puntual load group identifier: load2
    4    1        242
 End Conditions
 
-Begin NodalData MOMENT_Y // GUI puntual load group identifier: load2
+Begin NodalData TORQUE_Y // GUI puntual load group identifier: load2
        242  0       511.3269000000
 End NodalData
 

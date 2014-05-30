@@ -30,7 +30,7 @@ domain_size = ProjectParameters.domain_size
 
 
 from KratosMultiphysics import *
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 
 if(ProjectParameters.LinearSolver == "SuperLUSolver" or ProjectParameters.LinearSolver == "SuperLUIterativeSolver"):
     from KratosMultiphysics.ExternalSolversApplication import *
@@ -66,15 +66,15 @@ if(ProjectParameters.Rotational_Dofs == "True"):
 if(ProjectParameters.Solution_method == "Newton-Raphson"):
     if(ProjectParameters.SolverType == "StaticSolver"):
         if(ProjectParameters.LinearSolver == "ParallelMKLPardisoSolver"):
-            import structural_solver_static_parallel as SolverType
+            import mechanical_solver as SolverType
         else:
-            import structural_solver_static as SolverType
+            import mechanical_solver as SolverType
 
 if(ProjectParameters.Solution_method == "ArcLength"):
-    import structural_solver_static_arc_length as SolverType
+    import mechanical_solver as SolverType
 
 if(ProjectParameters.Solution_method == "LineSearch"):
-    import structural_solver_static_general as SolverType
+    import mechanical_solver as SolverType
 
 SolverType.AddVariables(model_part)
 
