@@ -39,7 +39,9 @@ from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 import DEM_explicit_solver_var
 import DEM_procedures
-import swimming_DEM_procedures
+import swimming_DEM_procedures as swim_proc
+import CFD_DEM_coupling
+import variables_management as vars_man
 import embedded
 
 # listing project parameters (to be put in problem type)
@@ -96,18 +98,26 @@ ProjectParameters.time_steps_per_stationarity_step     = 15 # number of fluid ti
 ProjectParameters.meso_scale_length                    = -1 # the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)
 ProjectParameters.shape_factor                         = 1.0 # the density function's maximum over its support's radius (only relevant if coupling_weighing_type == 3)
 
+# defining and adding imposed porosity fields
+ProjectParameters.fluid_fraction_fields = []
+field1 = swim_proc.FluidFractionFieldUtility.LinearField(0.0,
+                                                                       [0.0, 0.0, 0.0],
+                                                                       [-1.0, -1.0, 0.15],
+                                                                       [1.0, 1.0, 0.3])
+ProjectParameters.fluid_fraction_fields.append(field1)
+
 # constructing lists of variables to be printed
-swimming_DEM_procedures.ConstructListsOfResultsToPrint(ProjectParameters)
+vars_man.ConstructListsOfResultsToPrint(ProjectParameters)
 
 # performing some extra changes on Project Parameters, ensuring consistency in the input
-swimming_DEM_procedures.ModifyProjectParameters(ProjectParameters)
+vars_man.ModifyProjectParameters(ProjectParameters)
 
 # constructing lists of variables to add
 # * Choosing the variables to be passed as a parameter to the constructor of a ProjectionModule
 #       instance to be filled with the other phase's info through the coupling process
 # * Listing nodal variables to be added to the model parts (memory will be allocated for them).
 #       Note that additional variables may be added as well by the fluid and/or DEM strategies.
-swimming_DEM_procedures.ConstructListsOfVariables(ProjectParameters)
+vars_man.ConstructListsOfVariables(ProjectParameters)
 
 #print (ProjectParameters.dem_vars)
 #print (ProjectParameters.fem_dem_vars)
@@ -151,7 +161,7 @@ sys.stdout.flush()
 
 # caution with breaking up this block (memory allocation)! {
 solver_module.AddVariables(fluid_model_part, SolverSettings)
-swimming_DEM_procedures.AddNodalVariables(fluid_model_part, ProjectParameters.fluid_vars)  #     MOD.
+vars_man.AddNodalVariables(fluid_model_part, ProjectParameters.fluid_vars)  #     MOD.
 # }
 
 # introducing input file name
@@ -174,12 +184,12 @@ fem_dem_model_part = ModelPart("RigidFace_Part");
 print('Adding nodal variables to the balls_model_part')  # (memory allocation)
 sys.stdout.flush()
 
-swimming_DEM_procedures.AddNodalVariables(balls_model_part, ProjectParameters.dem_vars)
+vars_man.AddNodalVariables(balls_model_part, ProjectParameters.dem_vars)
 
 print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
 sys.stdout.flush()
 
-swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, ProjectParameters.fem_dem_vars)
+vars_man.AddNodalVariables(fem_dem_model_part, ProjectParameters.fem_dem_vars)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
@@ -203,7 +213,7 @@ balls_model_part.SetBufferSize(1)
 DEMSolverStrategy.AddDofs(balls_model_part)
 
 # adding extra process info variables
-swimming_DEM_procedures.AddingDEMProcessInfoVariables(ProjectParameters, balls_model_part)
+vars_man.AddingDEMProcessInfoVariables(ProjectParameters, balls_model_part)
 
 #_____________________________________________________________________________________________________________________________________
 #
@@ -361,10 +371,10 @@ if (ProjectParameters.body_force_on_fluid_option):
 
 # applying changes to the physiscal properties of the model to adjust for
 # the similarity transformation if required (fluid effects only).
-swimming_DEM_procedures.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
+swim_proc.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
 
 # creating a Post Utils object that executes several post-related tasks
-post_utils = swimming_DEM_procedures.PostUtils(swimming_DEM_gid_io,
+post_utils = swim_proc.PostUtils(swimming_DEM_gid_io,
                                                ProjectParameters,
                                                fluid_model_part,
                                                balls_model_part,
@@ -372,7 +382,7 @@ post_utils = swimming_DEM_procedures.PostUtils(swimming_DEM_gid_io,
                                                mixed_model_part)
 
 # creating an IOTools object to perform other printing tasks
-io_tools = swimming_DEM_procedures.IOTools(ProjectParameters)
+io_tools = swim_proc.IOTools(ProjectParameters)
 
 # creating a projection module for the fluid-DEM coupling
 h_min = 0.01
@@ -388,7 +398,7 @@ if (ProjectParameters.projection_module_option):
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(balls_model_part, RADIUS)
         ProjectParameters.meso_scale_length = 20 * biggest_size
 
-    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters)
+    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters)
     projection_module.UpdateDatabase(h_min)
 
 # creating a custom functions calculator for the implementation of additional custom functions
@@ -396,7 +406,7 @@ custom_functions_tool = CustomFunctionsCalculator()
 
 # creating a CreatorDestructor object, responsible for any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
-max_fluid_node_Id = swimming_DEM_procedures.FindMaxNodeIdInFLuid(fluid_model_part)
+max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
 creator_destructor.SetMaxNodeId(max_fluid_node_Id)
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
@@ -416,7 +426,7 @@ if (ProjectParameters.inlet_option):
     DEM_inlet_model_part = ModelPart("DEMInletPart")
     DEM_Inlet_filename = ProjectParameters.dem.problem_name + "DEM_Inlet"
     DEMSolverStrategy.AddVariables(DEM_inlet_model_part, ProjectParameters.dem)
-    swimming_DEM_procedures.AddNodalVariables(DEM_inlet_model_part, ProjectParameters.inlet_vars)
+    vars_man.AddNodalVariables(DEM_inlet_model_part, ProjectParameters.inlet_vars)
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
@@ -426,7 +436,7 @@ if (ProjectParameters.inlet_option):
     # adding nodal degrees of freedom
     DEMSolverStrategy.AddDofs(DEM_inlet_model_part)
     DEM_inlet_parameters = DEM_inlet_model_part.Properties
-    swimming_DEM_procedures.AddingDEMProcessInfoVariables(ProjectParameters, DEM_inlet_model_part)
+    vars_man.AddingDEMProcessInfoVariables(ProjectParameters, DEM_inlet_model_part)
 
     for properties in DEM_inlet_model_part.Properties:
 
@@ -451,7 +461,7 @@ if (ProjectParameters.make_results_directories_option):
 
 # renumerating IDs if required
 
-# swimming_DEM_procedures.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
+# swim_proc.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
 
 # Stepping and time settings
 
@@ -470,7 +480,7 @@ step = 0
 #_____________________________________________________________________________________________________________________________________
 
 if (ProjectParameters.flow_in_porous_medium_option):
-    fluid_frac_util = swimming_DEM_procedures.FluidFractionFieldUtility(fluid_model_part, ProjectParameters.min_fluid_fraction)
+    fluid_frac_util = swim_proc.FluidFractionFieldUtility(fluid_model_part, ProjectParameters.min_fluid_fraction)
 
     for field in ProjectParameters.fluid_fraction_fields:
         fluid_frac_util.AppendLinearField(field)
@@ -478,7 +488,7 @@ if (ProjectParameters.flow_in_porous_medium_option):
     fluid_frac_util.AddFluidFractionField()
 
 if (ProjectParameters.flow_in_porous_DEM_medium_option):
-    swimming_DEM_procedures.FixModelPart(balls_model_part)
+    swim_proc.FixModelPart(balls_model_part)
 
 # choosing the directory in which we want to work (print to)
 
@@ -507,7 +517,7 @@ DEM_step     = 0      # necessary to get a good random insertion of particles
 stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
 mesh_motion = DEMFEMUtilities()
-swimming_DEM_procedures.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
+swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
 
 while (time <= final_time):
 
@@ -634,7 +644,7 @@ while (time <= final_time):
 
         # porosity checks (debugging)
         #cylinder_vol = 5 * math.pi
-        #dem_volume_tool = swimming_DEM_procedures.PorosityUtils(cylinder_vol, fluid_model_part, balls_model_part)
+        #dem_volume_tool = swim_proc.PorosityUtils(cylinder_vol, fluid_model_part, balls_model_part)
         #dem_volume_tool.PrintCurrentData()
 
     # printing if required
