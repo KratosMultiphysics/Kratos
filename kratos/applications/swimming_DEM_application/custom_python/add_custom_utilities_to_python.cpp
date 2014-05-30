@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_python/add_custom_utilities_to_python.h" -S
 //#include "custom_utilities/create_and_destroy.h"
 
+#include "custom_utilities/vector_field.h"
 #include "custom_utilities/custom_functions.h"
 #include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h" //S
 #include "custom_utilities/volume_averaging_tool.h"
@@ -96,6 +97,12 @@ void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionM
 void  AddCustomUtilitiesToPython(){
 using namespace boost::python;
 
+    class_<VectorField<3>, boost::noncopyable >
+        ("VectorField", init<>())
+        .def("CalculateVector", &VectorField<3>::CalculateVector)
+        .def("CalculateGradient", &VectorField<3>::CalculateGradient)
+        ;
+
     class_<CustomFunctionsCalculator, boost::noncopyable >
         ("CustomFunctionsCalculator", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
@@ -104,18 +111,20 @@ using namespace boost::python;
         .def("CalculateGlobalFluidVolume", &CustomFunctionsCalculator::CalculateGlobalFluidVolume)
         ; 
     
-    class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double, int, int>())
+    class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double, int, SpatialSearch::Pointer, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolateFromFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolateFromDEMMesh)
+        .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 2 > ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", AddDEMCouplingVariable < 2 >)
         .def("AddFluidCouplingVariable", AddFluidCouplingVariable < 2 >)
         ;
 
-    class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double, int>())
+    class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double, int, SpatialSearch::Pointer>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromNewestFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromDEMMesh)
+        .def("HomogenizeFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::HomogenizeFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 3 > ::ComputePostProcessResults)
         .def("AddDEMCouplingVariable", AddDEMCouplingVariable < 3 >)
         .def("AddFluidCouplingVariable", AddFluidCouplingVariable < 3 >)
