@@ -391,7 +391,7 @@ public:
      */
     virtual double Area() const
     {
-        return fabs(DeterminantOfJacobian(PointType())) * 0.5;
+        return this->Volume();
     }
 
 
