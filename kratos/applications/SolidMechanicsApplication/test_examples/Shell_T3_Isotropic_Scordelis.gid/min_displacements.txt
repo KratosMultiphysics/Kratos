@@ -1,0 +1,3 @@
+KRATOS_BENCHMARK | Float | min dx | -0.164436233514 | 1e-09 | 1e-05
+KRATOS_BENCHMARK | Float | min dy | -0.287997701838 | 1e-09 | 1e-05
+KRATOS_BENCHMARK | Float | min dz | -0.008178364490 | 1e-09 | 1e-05
