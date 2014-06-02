@@ -682,7 +682,7 @@ namespace Kratos
 			noalias( generalizedStrainVector ) = generalizedStrainVector_element;
 
 		// compute the drilling stiffness parameter
-		if(!mHasDrillingPenalty)
+		if(!mHasDrillingPenalty && compute_constitutive_tensor)
 		{
 			mDrillingPenalty = constitutiveMatrix(2, 2);
 			mHasDrillingPenalty = true;
