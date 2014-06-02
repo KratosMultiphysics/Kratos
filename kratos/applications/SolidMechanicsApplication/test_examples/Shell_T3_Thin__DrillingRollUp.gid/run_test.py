@@ -13,6 +13,8 @@ from time import *
 print(ctime())
 # measure process time
 t0p = clock()
+# measure wall time
+# t0w = time()
 
 # ----------------------------------------------------------------#
 # --CONFIGURATIONS START--####################
@@ -30,16 +32,13 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 
 # import the python utilities:
-# import restart_utility as restart_utils
-# import gid_output_utility as gid_utils
+import restart_utility as restart_utils
+import gid_output_utility as gid_utils
 
 import conditions_python_utility as condition_utils
-# import list_files_python_utility as files_utils
+import list_files_python_utility as files_utils
 
 import time_operation_utility as operation_utils
-# import modeler_python_utility       as modeler_utils
-# import graph_plot_python_utility    as plot_utils
-
 
 # ------------------------#--FUNCTIONS START--#------------------#
 # ---------------------------------------------------------------#
@@ -101,13 +100,13 @@ main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
 
 # set the restart of the problem
 restart_step = general_variables.Restart_Step
-# problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
+problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
 
 # set the results file list of the problem (managed by the problem_restart and gid_print)
 print_lists = general_variables.PrintLists
 output_mode = general_variables.GidOutputConfiguration.GiDPostMode
-# list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode)
-# list_files.Initialize(general_variables.file_list)
+list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode)
+list_files.Initialize(general_variables.file_list)
 
 # --READ AND SET MODEL FILES END--############
 
@@ -119,6 +118,14 @@ rotation_dofs = SolverSettings.RotationDofs
 conditions = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load, rotation_dofs)
 
 # --DEFINE CONDITIONS END--###################
+
+
+# --GID OUTPUT OPTIONS START--###############
+# set gid print options
+gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutputConfiguration)
+
+# --GID OUTPUT OPTIONS END--##################
+
 
 # --CONFIGURATIONS END--######################
 # ----------------------------------------------------------------#
@@ -136,30 +143,58 @@ buffer_size = 3
 # define problem variables:
 solver_constructor.AddVariables(model_part, SolverSettings)
 
+
 # --- READ MODEL ------#
-# reading the model
-model_part_io = ModelPartIO(problem_name)
-model_part_io.ReadModelPart(model_part)
+if(load_restart == False):
 
-# set the buffer size
-model_part.SetBufferSize(buffer_size)
-# Note: the buffer size should be set once the mesh is read for the first time
+    # remove results, restart, graph and list previous files
+    problem_restart.CleanPreviousFiles()
+    list_files.RemoveListFiles()
 
-# set the degrees of freedom
-solver_constructor.AddDofs(model_part, SolverSettings)
+    # reading the model
+    model_part_io = ModelPartIO(problem_name)
+    model_part_io.ReadModelPart(model_part)
 
-# set the constitutive law
-import constitutive_law_python_utility as constitutive_law_utils
+    # set the buffer size
+    model_part.SetBufferSize(buffer_size)
+    # Note: the buffer size should be set once the mesh is read for the first time
 
-constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
-constitutive_law.Initialize();
+    # set the degrees of freedom
+    solver_constructor.AddDofs(model_part, SolverSettings)
+
+    # set the constitutive law
+    import constitutive_law_python_utility as constitutive_law_utils
+
+    constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
+    constitutive_law.Initialize();
+
+else:
+
+    # reading the model from the restart file
+    problem_restart.Load(restart_step);
+
+    # remove results, restart, graph and list posterior files
+    problem_restart.CleanPosteriorFiles(restart_step)
+    list_files.ReBuildListFiles()
+
+# set mesh searches and modeler
+# modeler.InitializeDomains();
+
+# if(load_restart == False):
+    # find nodal h
+    # modeler.SearchNodalH();
+
 
 # --- PRINT CONTROL ---#
 print(model_part)
 print(model_part.Properties[1])
 
+
 # --INITIALIZE--###########################
 #
+
+# set delta time in process info
+model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
 
 # solver initialize
 main_step_solver.Initialize()
@@ -168,67 +203,113 @@ main_step_solver.SetRestart(load_restart)
 # initial contact search
 # modeler.InitialContactSearch()
 
+#define time steps and loop range of steps
+time_step = model_part.ProcessInfo[DELTA_TIME]
+
 # define time steps and loop range of steps
-istep = 0
-nstep = int(general_variables.nsteps) + buffer_size
-time_step = general_variables.time_step
-current_step = 0
-model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
-conditions.Initialize(time_step);
+if(load_restart):
+
+    buffer_size = 0
+
+else:
+
+    model_part.ProcessInfo[TIME]                = 0
+    model_part.ProcessInfo[TIME_STEPS]          = 0
+    model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
+
+    conditions.Initialize(time_step);
+
 
 # initialize step operations
-starting_time = current_step * time_step
-ending_time = general_variables.nsteps * time_step;
+starting_step  = model_part.ProcessInfo[TIME_STEPS]
+starting_time  = model_part.ProcessInfo[TIME]
+ending_step    = general_variables.nsteps
+ending_time    = general_variables.nsteps * time_step
+
 
 output_print = operation_utils.TimeOperationUtility()
 gid_time_frequency = general_variables.GiDWriteFrequency
 output_print.InitializeTime(starting_time, ending_time, time_step, gid_time_frequency)
 
+restart_print = operation_utils.TimeOperationUtility()
+restart_time_frequency = general_variables.RestartFrequency
+restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
+
+
 # --TIME INTEGRATION--#######################
 #
 
-# initialize time integration variables
-start_steps = buffer_size - 1
-start_time = start_steps * time_step;
+# writing a single file
+gid_print.initialize_results(model_part)
 
-for step in range(istep, nstep):
+#initialize time integration variables
+current_time = starting_time
+current_step = starting_step
 
-    time = time_step * step
-    model_part.CloneTimeStep(time)
-    model_part.ProcessInfo[DELTA_TIME] = time_step
-    model_part.ProcessInfo[TIME_STEPS] = step
+# filling the buffer
+for step in range(0,buffer_size):
 
-    current_time = time - start_time
-    current_step = step - start_steps - 1
+  model_part.CloneTimeStep(current_time)
+  model_part.ProcessInfo[DELTA_TIME] = time_step
+  model_part.ProcessInfo[TIME_STEPS] = step-buffer_size
 
-    if(current_time > 0):
-        print("STEP = ", current_step)
-        print("TIME = ", current_time)
-        model_part.ProcessInfo[TIME] = current_time
+# writing a initial state results file
+current_id = 0
+gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
+list_files.PrintListFiles(current_id);
 
-    step_printed = False;
+# solving the problem
+while(current_time <= ending_time):
 
-    # solving the solid problem
-    if(step > start_steps):
+  # store previous time step
+  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
+  # set new time step ( it can change when solve is called )
+  time_step = model_part.ProcessInfo[DELTA_TIME]
 
-        clock_time = StartTimeMeasuring();
-        # solve time step non-linear system
-        main_step_solver.Solve()
-        StopTimeMeasuring(clock_time, "Solving");
+  current_time = current_time + time_step
+  current_step = current_step + 1
+  model_part.CloneTimeStep(current_time)
+  model_part.ProcessInfo[TIME] = current_time
 
-        # plot graphs
+  print("STEP = ", current_step)
+  print("TIME = ", current_time)
 
-        # update previous time step
-        model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
+  clock_time = StartTimeMeasuring();
+  # solve time step non-linear system
+  main_step_solver.Solve()
+  StopTimeMeasuring(clock_time, "Solving");
 
-        # incremental load
-        incr_steps = current_step + 1
-        conditions.SetIncrementalLoad(incr_steps, time_step);
+  # incremental load
+  conditions.SetIncrementalLoad(current_step, time_step);
+
+  # print the results at the end of the step
+  execute_write = output_print.perform_time_operation(current_time)
+  if(execute_write):
+      clock_time = StartTimeMeasuring();
+      current_id = output_print.operation_id()
+      # print gid output file
+      gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
+      # print on list files
+      list_files.PrintListFiles(current_id);
+      StopTimeMeasuring(clock_time, "Write Results");
+
+  # print restart file
+  if(save_restart):
+      execute_save = restart_print.perform_time_operation(current_time)
+      if(execute_save):
+          clock_time = StartTimeMeasuring();
+          current_id = output_print.operation_id()
+          problem_restart.Save(current_time, current_step, current_id);
+          StopTimeMeasuring(clock_time, "Restart");
+
         
-        conditions.RestartImposedDisp()
+  conditions.RestartImposedDisp()
 
 # --FINALIZE--############################
 #
+
+# writing a single file
+gid_print.finalize_results()
 
 print("Analysis Finalized ")
 
@@ -237,22 +318,13 @@ print("Analysis Finalized ")
 
 # measure process time
 tfp = clock()
+# measure wall time
+# tfw = time()
+
 print(ctime())
+# print "Analysis Completed  [Process Time = ", tfp - t0p, "seconds, Wall Time = ", tfw - t0w, " ]"
 print("Analysis Completed  [Process Time = ", tfp - t0p, "] ")
 
-# benchmarking...
-import sys
-kratos_benchmarking_path = '../../../../benchmarking'  # kratos_root/benchmarking
-sys.path.append(kratos_benchmarking_path)
-import benchmarking
-if (benchmarking.InBenchmarkingMode()):
-    # find max Y rotation
-    r_max = 0.0
-    for node in model_part.Nodes:
-        ir = node.GetSolutionStepValue(ROTATION_Z)
-        if(ir > r_max):
-            r_max = ir
-    # write
-    abs_tol = 1e-9
-    rel_tol = 1e-5
-    benchmarking.Output(r_max, "Z Rotation", abs_tol, rel_tol)
+from run_test_benchmark_results import *
+
+WriteBenchmarkResults(model_part)

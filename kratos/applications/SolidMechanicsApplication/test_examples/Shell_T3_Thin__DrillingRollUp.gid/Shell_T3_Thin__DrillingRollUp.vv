@@ -1,11 +1,11 @@
-BeginZE C:\KRATOS_TUT\ShellElementTest\Shell_T3_Thin__DrillingRollUp.gid\Shell_T3_Thin__DrillingRollUp.vv
-   x -4.9485025405883789 14.182119369506836
-   y 6.551393985748291 -5.362999439239502
-   z -5.5277080535888672 5.5277080535888672
-   e 5.5277080535888672
-   v -0 -0 -8.7422776573475858e-008
+BeginZE /home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_T3_Thin__DrillingRollUp.gid/Shell_T3_Thin__DrillingRollUp.vv
+   x -4.94850254058837891 14.1821193695068359
+   y 6.88642358779907227 -5.6980290412902832
+   z -5.52770805358886719 5.52770805358886719
+   e 5.52770805358886719
+   v -0 -0 -8.74227765734758577e-08
    r -1
-   m 1 -1.7484555314695172e-007 0 0 1.7484555314695172e-007 1 0 0 0 0 1 0 0 0 0 1
+   m 1 -1.74845553146951715e-07 0 0 1.74845553146951715e-07 1 0 0 0 0 1 0 0 0 0 1
    c 5 0.125 0
    pd 0
    pno 0
@@ -29,7 +29,7 @@ BeginZE C:\KRATOS_TUT\ShellElementTest\Shell_T3_Thin__DrillingRollUp.gid\Shell_T
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\KRATOS_TUT\ShellElementTest\Shell_T3_Thin__DrillingRollUp.gid\Shell_T3_Thin__DrillingRollUp.vv
+EndZE /home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_T3_Thin__DrillingRollUp.gid/Shell_T3_Thin__DrillingRollUp.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
