@@ -53,40 +53,31 @@ namespace Kratos
           KRATOS_TRY
 
           mDimension                = 3;
-          mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+          mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+          double density            = GetDensity();          
+          double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);          
           
-          
-          /*mYoung                    = GetProperties()[YOUNG_MODULUS];         
-          mPoisson                  = GetProperties()[POISSON_RATIO];  
-          mTgOfFrictionAngle        = GetProperties()[PARTICLE_FRICTION];  
-          mLnOfRestitCoeff          = GetProperties()[LN_OF_RESTITUTION_COEFF];  
-          double& density           = GetProperties()[PARTICLE_DENSITY];  */
-          double density            = GetDensity();
-          
-          double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);          
-
-          double mass                      = 4.0 / 3.0 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
-          sqrt_of_mass              = sqrt(mass);
-          
+          double mass               = 4.0 / 3.0 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
+          sqrt_of_mass              = sqrt(mass);          
           mSqrtOfRealMass           = sqrt_of_mass;
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
             double moment_of_inertia = 0.4 * mass * mRadius * mRadius;   
-            GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }
 
-          if ( GetGeometry()(0)->GetDof(VELOCITY_X).IsFixed() )         GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_X,true);
-          else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_X,false);
-          if ( GetGeometry()(0)->GetDof(VELOCITY_Y).IsFixed() )         GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_Y,true);
-          else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_Y,false);
-          if ( GetGeometry()(0)->GetDof(VELOCITY_Z).IsFixed() )         GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_Z,true);
-          else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_VEL_Z,false);
-          if ( GetGeometry()(0)->GetDof(ANGULAR_VELOCITY_X).IsFixed() ) GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_X,true);
-          else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_X,false);
-          if ( GetGeometry()(0)->GetDof(ANGULAR_VELOCITY_Y).IsFixed() ) GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Y,true);
-          else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Y,false);
-          if ( GetGeometry()(0)->GetDof(ANGULAR_VELOCITY_Z).IsFixed() ) GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
-          else                                                          GetGeometry()(0)->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
+          if ( GetGeometry()[0].GetDof(VELOCITY_X).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,true);
+          else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,false);
+          if ( GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,true);
+          else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,false);
+          if ( GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,true);
+          else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,false);
+          if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,true);
+          else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,false);
+          if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+          else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,false);
+          if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+          else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 
           mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
           mDiscontinuumConstitutiveLaw->Initialize();
@@ -133,7 +124,14 @@ namespace Kratos
           rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
           rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[1];
           rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[2];
-		  
+          
+          array_1d<double,3>& total_forces  = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+          array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+
+          for (int i = 0; i < 3; i++){
+              total_forces[i] = rRightHandSideVector[i];
+              total_moment[i] = rRightHandSideVector[3 + i];
+          }	  
 
           KRATOS_CATCH( "" )
       }
@@ -146,15 +144,15 @@ namespace Kratos
 
           if (rCurrentMaxIndentation > rTolerance){
               //ParticleWeakVectorType& rNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-              //double& radius                      = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); // cannot use the member variable mRadius because it may not be initialized
+              //double& radius                      = GetGeometry()[0].FastGetSolutionStepValue(RADIUS); // cannot use the member variable mRadius because it may not be initialized
               rCurrentMaxIndentation              = 0.0;
 
               //for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
               for (unsigned int j = 0; j < mNeighbourElements.size(); j++) {
                   SphericParticle* i = mNeighbourElements[j];
                   
-                  array_1d<double, 3> other_to_me_vect  = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
-                  //double &other_radius                  = i->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  array_1d<double, 3> other_to_me_vect  = this->GetGeometry()[0].Coordinates() - i->GetGeometry()[0].Coordinates();
+                  //double &other_radius                  = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                   double other_radius                  = i->GetRadius();
                   double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                                other_to_me_vect[1] * other_to_me_vect[1] +
@@ -175,9 +173,9 @@ namespace Kratos
 
       void SphericParticle::CalculateKineticEnergy(double& rKineticEnergy)
       {
-          const array_1d<double, 3>& vel    = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-          const array_1d<double, 3> ang_vel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
           double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];          
 
@@ -201,7 +199,7 @@ namespace Kratos
           for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
               SphericParticle* neighbour_iterator = mNeighbourElements[i];
               
-              //const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              //const double &other_radius              = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
               const double &other_radius              = neighbour_iterator->GetRadius();
               double radius_sum                       = mRadius + other_radius;
               double radius_sum_i                     = 1 / radius_sum;
@@ -215,8 +213,8 @@ namespace Kratos
 
 
               // Getting neighbour properties
-              //const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-              //const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+              //const double &other_young           = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+              //const double &other_poisson         = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
               const double other_young           = neighbour_iterator->GetYoung();
               const double other_poisson         = neighbour_iterator->GetPoisson();
 
@@ -273,7 +271,7 @@ namespace Kratos
 
       void SphericParticle::CalculateMomentum(array_1d<double, 3>& rMomentum)
       {
-          const array_1d<double, 3>& vel = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
           rMomentum = mSqrtOfRealMass * mSqrtOfRealMass * vel;
       }
 
@@ -282,8 +280,8 @@ namespace Kratos
 
       void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum)
       {
-          const array_1d<double, 3> ang_vel  = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          const array_1d<double, 3> ang_vel  = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           rAngularMomentum = moment_of_inertia * ang_vel;
       }
 
@@ -409,9 +407,9 @@ namespace Kratos
           GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coord System (normalizes other_to_me_vect)
 
           // FORMING OLD LOCAL CORDINATES
-          const array_1d<double,3> old_coord_target       = this->GetGeometry()(0)->Coordinates() - delta_displ;
-          const array_1d<double, 3 > & other_delta_displ  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          const array_1d<double,3> old_coord_neigh        = neighbour_iterator->GetGeometry()(0)->Coordinates() - other_delta_displ;
+          const array_1d<double,3> old_coord_target       = this->GetGeometry()[0].Coordinates() - delta_displ;
+          const array_1d<double, 3 > & other_delta_displ  = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double,3> old_coord_neigh        = neighbour_iterator->GetGeometry()[0].Coordinates() - other_delta_displ;
           
           array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;                    
 
@@ -420,7 +418,7 @@ namespace Kratos
           GeometryFunctions::ComputeContactLocalCoordSystem(Old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coord System
 
           // VELOCITIES AND DISPLACEMENTS
-          const array_1d<double, 3 >& other_vel          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3 >& other_vel          = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
           
           RelVel[0] = (vel[0] - other_vel[0]);
           RelVel[1] = (vel[1] - other_vel[1]);
@@ -441,7 +439,7 @@ namespace Kratos
                                                       //ParticleWeakIteratorType neighbour_iterator)
                                                       SphericParticle* neighbour_iterator)
       {
-          array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
           double velA[3]                        = {0.0};
           double velB[3]                        = {0.0};
           double dRotaDisp[3]                   = {0.0};
@@ -551,10 +549,10 @@ namespace Kratos
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 
-          const array_1d<double, 3>& vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-          const array_1d<double, 3>& delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          const array_1d<double, 3>& ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double RotaAcc[3]                      = {0.0};
 
           //if (mRotationOption){
@@ -592,8 +590,8 @@ namespace Kratos
               if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
               
               // BASIC CALCULATIONS              
-              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-              //const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+              //const double &other_radius              = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
               const double &other_radius              = neighbour_iterator->GetRadius();
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
@@ -740,13 +738,12 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       double myPoisson        = GetPoisson();
       double area             = KRATOS_M_PI * mRadius * mRadius;
 
-      array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+      array_1d<double, 3 > vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
       std::size_t iRigidFaceNeighbour = 0;
 
       for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
       {
-         
         Condition* p_neighbour_condition = &(*ineighbour);
         RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
 
@@ -760,7 +757,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};			
         
-        array_1d<double, 3> node_coor_array = this->GetGeometry()(0)->Coordinates();
+        array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
         
         double node_coor[3];
         
@@ -769,7 +766,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         node_coor[2]=node_coor_array[2];
         
         double ini_delta = GetInitialDelta(iRigidFaceNeighbour);
-
         double kn_el;
 
 
@@ -807,23 +803,23 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
           // Triangle
           
-          Coord[0][0] = ineighbour->GetGeometry()(0)->Coordinates()[0];    //MSIMSI 1 can be optimized with vector access.
-          Coord[0][1] = ineighbour->GetGeometry()(0)->Coordinates()[1];
-          Coord[0][2] = ineighbour->GetGeometry()(0)->Coordinates()[2];
+          Coord[0][0] = ineighbour->GetGeometry()[0].Coordinates()[0];    //MSIMSI 1 can be optimized with vector access.
+          Coord[0][1] = ineighbour->GetGeometry()[0].Coordinates()[1];
+          Coord[0][2] = ineighbour->GetGeometry()[0].Coordinates()[2];
 
-          Coord[1][0] = ineighbour->GetGeometry()(1)->Coordinates()[0];
-          Coord[1][1] = ineighbour->GetGeometry()(1)->Coordinates()[1];
-          Coord[1][2] = ineighbour->GetGeometry()(1)->Coordinates()[2];
+          Coord[1][0] = ineighbour->GetGeometry()[1].Coordinates()[0];
+          Coord[1][1] = ineighbour->GetGeometry()[1].Coordinates()[1];
+          Coord[1][2] = ineighbour->GetGeometry()[1].Coordinates()[2];
 
-          Coord[2][0] = ineighbour->GetGeometry()(2)->Coordinates()[0];
-          Coord[2][1] = ineighbour->GetGeometry()(2)->Coordinates()[1];
-          Coord[2][2] = ineighbour->GetGeometry()(2)->Coordinates()[2];
+          Coord[2][0] = ineighbour->GetGeometry()[2].Coordinates()[0];
+          Coord[2][1] = ineighbour->GetGeometry()[2].Coordinates()[1];
+          Coord[2][2] = ineighbour->GetGeometry()[2].Coordinates()[2];
 
           if(ineighbour->GetGeometry().size() == 4)
           {
-            Coord[3][0] = ineighbour->GetGeometry()(3)->Coordinates()[0];
-            Coord[3][1] = ineighbour->GetGeometry()(3)->Coordinates()[1];
-            Coord[3][2] = ineighbour->GetGeometry()(3)->Coordinates()[2];
+            Coord[3][0] = ineighbour->GetGeometry()[3].Coordinates()[0];
+            Coord[3][1] = ineighbour->GetGeometry()[3].Coordinates()[1];
+            Coord[3][2] = ineighbour->GetGeometry()[3].Coordinates()[2];
           }
             
             GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
@@ -849,7 +845,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           double velA[3]   = {0.0};
           double dRotaDisp[3] = {0.0};
 
-          array_1d<double, 3 > AngularVel= GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          array_1d<double, 3 > AngularVel= GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
           double Vel_Temp[3] = { AngularVel[0], AngularVel[1], AngularVel[2]};
           GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
@@ -916,7 +912,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             If_sliding = true;
           }
         }
-
         
         //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
 
@@ -988,7 +983,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           //if (mRollingFrictionOption)
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
           {  // Rolling friction type
-            //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+            //double rolling_friction             = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_FRICTION);
               
             
             double rolling_friction_coeff       = GetRollingFriction() * mRadius;
@@ -1079,13 +1074,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
           // INITIALIZATIONS
 
-          const array_1d<double, 3> vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-          const array_1d<double, 3> delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          const array_1d<double, 3> ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const array_1d<double, 3> vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double, 3> ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
           double InitialRotaMoment[3]           = {0.0};
           double visco_damp_coeff_normal;
           double visco_damp_coeff_tangential;
-          //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+          //const double &mLnOfRestitCoeff        = this->GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
           double myYoung = GetYoung();
           double myPoisson = GetPoisson();
 
@@ -1133,7 +1128,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           if (surface_num == 3){GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_4);}
           if (surface_num == 4){GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_5);}
           
-          array_1d<double, 3> point_coor = this->GetGeometry()(0)->Coordinates();
+          array_1d<double, 3> point_coor = this->GetGeometry()[0].Coordinates();
 
           //Calculate surface equation
 
@@ -1383,7 +1378,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                      //if (mRollingFrictionOption){  // Rolling friction type
                      if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
-                         //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                         //double rolling_friction             = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_FRICTION);
                          
                          double rolling_friction_coeff       = GetRollingFriction() * mRadius;
 
@@ -1475,7 +1470,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 		  double CylinderVelocity                      = rCurrentProcessInfo[CYLINDER_VELOCITY_1];
           double CylinderAngularVelocity               = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_1];          
           double CylinderFriction                      = rCurrentProcessInfo[CYLINDER_FRICTION_1];  
-          //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+          //const double &mLnOfRestitCoeff        = this->GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
           if (cylinder_num == 1){
 			  CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_2];
@@ -1517,9 +1512,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
              // INITIALIZATIONS
 
-             const array_1d<double, 3> vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-             const array_1d<double, 3> delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-             const array_1d<double, 3> ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+             const array_1d<double, 3> vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+             const array_1d<double, 3> delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+             const array_1d<double, 3> ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
              double InitialRotaMoment[3]           = {0.0};
              double visco_damp_coeff_normal;
              double visco_damp_coeff_tangential;
@@ -1540,7 +1535,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
              if (cylinder_num == 3){GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_4);}
              if (cylinder_num == 4){GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_5);}
              
-             array_1d<double, 3> point_coord                   = this->GetGeometry()(0)->Coordinates();
+             array_1d<double, 3> point_coord                   = this->GetGeometry()[0].Coordinates();
 
              //Calculate surface equation-> Surface perpendicular to cylinder axis and containing the point centre of the ball
 
@@ -1895,7 +1890,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                          //if (mRollingFrictionOption){  // Rolling friction 
                          if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
-                             //double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                             //double rolling_friction             = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_FRICTION);
                              double rolling_friction_coeff       = GetRollingFriction() * mRadius;
 
                              if (rolling_friction_coeff != 0.0){
@@ -2045,13 +2040,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           double myPoisson = GetPoisson();
           double myLnOfRestitCoeff = GetLnOfRestitCoeff();
           double myTgOfFrictionAngle = GetTgOfFrictionAngle();
-        //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+        //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
         double other_sqrt_of_mass               = neighbour_iterator->GetSqrtOfRealMass();
-        //const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-        //const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+        //const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+        //const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_FRICTION);
         const double other_ln_of_restit_coeff     = neighbour_iterator->GetLnOfRestitCoeff();
         const double other_tg_of_fri_angle        = neighbour_iterator->GetTgOfFrictionAngle();
-        //const double &mLnOfRestitCoeff          = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+        //const double &mLnOfRestitCoeff          = this->GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
         double radius_sum_i                     = 1 / radius_sum;
         double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
@@ -2067,8 +2062,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         double equiv_poisson;
         double corrected_area               = equiv_area;
 
-        //const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-        //const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+        //const double &other_young       = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+        //const double &other_poisson     = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
         const double other_young       = neighbour_iterator->GetYoung();
         const double other_poisson     = neighbour_iterator->GetPoisson();
         
@@ -2279,7 +2274,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           if (this->IsNot(DEMFlags::HAS_INITIALIZED_VARIABLES) ){
 
                if (r_process_info[PRINT_EXPORT_ID] == 1){
-                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
+                   this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
                }
                           
 
@@ -2295,7 +2290,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
               
               /*if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
               //    SetRollingFriction(???) this should be in other part
-                  mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                  mRollingFriction           = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_FRICTION);
               }*/
 
               AdditionalMemberDeclarationFirstStep(r_process_info);
