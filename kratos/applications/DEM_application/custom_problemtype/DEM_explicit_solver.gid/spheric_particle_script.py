@@ -173,9 +173,9 @@ if (inlet_option):
             DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
 
-    # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
+    # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, dem_inlet_element_type)
 
 
 
@@ -187,7 +187,7 @@ if (inlet_option):
 # Initialization of physics monitor and of the initial position of the center of mass
 # physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 # properties_list = []
-print('Initialitzation Complete' + '\n')
+print('Initialization Complete' + '\n')
 sys.stdout.flush()
 
 # BENCHMARK ###
@@ -204,7 +204,7 @@ initial_real_time = timer.time()
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
-#-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
+#-----------------------SINGLE FILE MESH AND RESULTS INITIALIZATION-------------------------------------------------------------------
 
 post_utility = PostUtilities()
 
@@ -312,6 +312,7 @@ while (time < DEM_parameters.FinalTime):
         
         print("")
         print("*******************  PRINTING RESULTS FOR GID  ***************************")
+        print("                        (", balls_model_part.NumberOfElements(0), " elements)")
         sys.stdout.flush()
         
         # BENCHMARK ###
