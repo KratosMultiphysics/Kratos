@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_python/add_custom_utilities_to_python.h" -S
 //#include "custom_utilities/create_and_destroy.h"
 
-#include "custom_utilities/vector_field.h"
+//#include "custom_utilities/vector_field.h"
 #include "custom_utilities/custom_functions.h"
 #include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h" //S
 #include "custom_utilities/volume_averaging_tool.h"
@@ -97,11 +97,11 @@ void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionM
 void  AddCustomUtilitiesToPython(){
 using namespace boost::python;
 
-    class_<VectorField<3>, boost::noncopyable >
+/*class_<VectorField<3>, boost::noncopyable >
         ("VectorField", init<>())
         .def("CalculateVector", &VectorField<3>::CalculateVector)
         .def("CalculateGradient", &VectorField<3>::CalculateGradient)
-        ;
+        ;*/
 
     class_<CustomFunctionsCalculator, boost::noncopyable >
         ("CustomFunctionsCalculator", init<>())
