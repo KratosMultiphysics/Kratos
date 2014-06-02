@@ -433,17 +433,7 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
-                  Element::GeometryType& geom = it->GetGeometry();
-
-                  (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);
-
-                  array_1d<double,3>& total_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-                  array_1d<double,3>& total_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
-
-                  for (int i = 0; i < 3; i++){
-                      total_forces[i] = rhs_elem[i];
-                      total_moment[i] = rhs_elem[3 + i];
-                  }
+                  (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);                  
 
               } //loop over particles
 
