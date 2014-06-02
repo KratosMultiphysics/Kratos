@@ -147,7 +147,7 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
 
   contact_model_part = solver.contact_model_part
 
-#-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
+#-----------------------SINGLE FILE MESH AND RESULTS INITIALIZATION-------------------------------------------------------------------
 
 post_utility = PostUtilities()
 
