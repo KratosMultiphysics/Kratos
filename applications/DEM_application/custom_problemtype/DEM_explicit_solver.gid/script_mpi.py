@@ -88,7 +88,7 @@ export_model_part = solid_model_part
 
 #-------------------------------------------------------------------------------------------------------------------------
 
-#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATION--------------------------------------------------------
+#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATION--------------------------------------------------------
 
 if (Param.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
@@ -96,7 +96,7 @@ if (Param.ModelDataInfo == "ON"):
     os.chdir(main_path)
 
 if(mpi.rank == 0):
-    print('Initialitzating Problem....')
+    print('Initializing Problem....')
 
 # MPI initialization
 mpiutils = MpiUtilities()
@@ -115,7 +115,7 @@ physics_calculator = SphericElementGlobalPhysicsCalculator(solid_model_part)
 properties_list = []
 
 if(mpi.rank == 0):
-    print('Initialitzation Complete' + '\n')
+    print('Initialization Complete' + '\n')
 
 dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
@@ -127,7 +127,7 @@ initial_real_time = timer.time()
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
-#-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
+#-----------------------SINGLE FILE MESH AND RESULTS INITIALIZATION-------------------------------------------------------------------
 
 #
 
