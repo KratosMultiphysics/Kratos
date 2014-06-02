@@ -11,33 +11,30 @@ def Run():
     Msg = ""
     Text = "===== Solid Mechanics Application =====\n"
 
-    #
-    # VMS2D element test
-
-     # Text += "Shell T3 Isotropic  Scordelis  test: "
-     # os.chdir("scordelis.gid")
-     # sys.path.append(os.getcwd())
-
-     #  # print("---start solid mechanics application tests---")
-     # print("running the Scordelis Low Roof benchmark test...")
-     # successful,Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
-
-     # if(successful==True):
-     #     Text += "OK\n"
-     #     print("Scordelis Low Roof test successful")
-     # else:
-     #     Text += "FAILED\n"
-     #     Text += Msg
-     #     Text += "\n\n"
-     #     print("Scordelis Low Roof test FAILED")
-
-     #  # os.chdir("..")
-
-    #
     
     #
     # SHELL elements tests
-    
+   
+    Text += "Shell T3 Isotropic  Scordelis  test: "
+    os.chdir("Shell_T3_Isotropic_Scordelis.gid")
+    sys.path.append(os.getcwd())
+
+    print("---start solid mechanics application tests---")
+
+    print("running the Scordelis Low Roof benchmark test...")
+    successful,Msg = benchmarking.RunBenchmark("run_test.py", "min_displacements.txt")
+
+    if(successful==True):
+        Text += "OK\n"
+        print("Scordelis Low Roof test successful")
+    else:
+        Text += "FAILED\n"
+        Text += Msg
+        Text += "\n\n"
+        print("Scordelis Low Roof test FAILED")
+
+    os.chdir("..")
+ 
     # Bending RollUp Q4 test:
     Text += "Shell Q4 Thick Bending  RollUp test: "
     os.chdir("Shell_Q4_Thick__BendingRollUp.gid")
@@ -112,3 +109,4 @@ def Run():
 
 if __name__ == '__main__':
     Run()
+
