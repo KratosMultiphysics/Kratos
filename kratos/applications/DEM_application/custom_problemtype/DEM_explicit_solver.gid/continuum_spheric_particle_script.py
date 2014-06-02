@@ -140,9 +140,6 @@ KRATOSprint ("Initializing Problem....")
 #
 #
 #
-#MIQUEL
-#Procedures.SetCustomSkin(balls_model_part)
-
 
 solver.Initialize()
 
@@ -180,6 +177,10 @@ if (DEM_parameters.Multifile == "single_file"):
 
 Procedures = DEM_procedures.Procedures(DEM_parameters)
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part)
+
+
+#Procedures.SetCustomSkin(balls_model_part)
+
 
 if(DEM_parameters.TestType != "None"):
  
