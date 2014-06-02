@@ -45,7 +45,7 @@ Incremental_Displacement = "True"
 #PostProcess Data
 #################################################
 
-nodal_results=["DISPLACEMENT","ROTATION","REACTION"]
+nodal_results=["DISPLACEMENT","REACTION"]
 gauss_points_results=["SHELL_FORCE","SHELL_FORCE_GLOBAL","SHELL_MOMENT","SHELL_STRAIN","SHELL_STRAIN_GLOBAL","MATERIAL_ORIENTATION_DX","MATERIAL_ORIENTATION_DY","MATERIAL_ORIENTATION_DZ"]
 
 # GiD output configuration
@@ -75,4 +75,4 @@ LoadRestart = False
 Restart_Step = 0
 
 problem_name="Shell_T3_Thin__DrillingRollUpStructuralAnalysis"
-problem_path="/NO_DIR_FOR_OUTPUT"
+problem_path="/home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_T3_Thin__DrillingRollUp.gid"

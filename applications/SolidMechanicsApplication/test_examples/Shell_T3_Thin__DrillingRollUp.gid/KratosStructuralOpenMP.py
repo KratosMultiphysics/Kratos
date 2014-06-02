@@ -39,9 +39,6 @@ import conditions_python_utility as condition_utils
 import list_files_python_utility as files_utils
 
 import time_operation_utility as operation_utils
-# import modeler_python_utility       as modeler_utils
-# import graph_plot_python_utility    as plot_utils
-
 
 # ------------------------#--FUNCTIONS START--#------------------#
 # ---------------------------------------------------------------#
@@ -117,7 +114,8 @@ list_files.Initialize(general_variables.file_list)
 # --DEFINE CONDITIONS START--#################
 incr_disp = general_variables.Incremental_Displacement
 incr_load = general_variables.Incremental_Load
-conditions = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load)
+rotation_dofs = SolverSettings.RotationDofs
+conditions = condition_utils.ConditionsUtility(model_part, domain_size, incr_disp, incr_load, rotation_dofs)
 
 # --DEFINE CONDITIONS END--###################
 
@@ -128,27 +126,6 @@ gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutput
 
 # --GID OUTPUT OPTIONS END--##################
 
-
-# --PLOT GRAPHS OPTIONS START--###############
-
-# plot_active    = general_variables.PlotGraphs
-# plot_frequency = general_variables.PlotFrequency
-
-# graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
-
-# x_var   = "TIME"
-# y_var   = "REACTION"
-# mesh_id = 1
-
-# plot variables on the domain which is remeshed
-# for conditions in general_variables.MeshConditions:
-#  if(conditions["Remesh"] == 1):
-#    mesh_id =int(conditions["Subdomain"])
-
-# print " Graph Subdomain ", mesh_id
-# graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
-
-# --PLOT GRAPHS OPTIONS END--#################
 
 # --CONFIGURATIONS END--######################
 # ----------------------------------------------------------------#
@@ -216,6 +193,9 @@ print(model_part.Properties[1])
 # --INITIALIZE--###########################
 #
 
+# set delta time in process info
+model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
+
 # solver initialize
 main_step_solver.Initialize()
 main_step_solver.SetRestart(load_restart)
@@ -223,30 +203,29 @@ main_step_solver.SetRestart(load_restart)
 # initial contact search
 # modeler.InitialContactSearch()
 
+#define time steps and loop range of steps
+time_step = model_part.ProcessInfo[DELTA_TIME]
+
 # define time steps and loop range of steps
 if(load_restart):
 
-    istep = model_part.ProcessInfo[TIME_STEPS] + 1
-    nstep = int(general_variables.nsteps)
-    time_step = model_part.ProcessInfo[DELTA_TIME]
-    current_step = istep
     buffer_size = 0
 
 else:
 
-    istep = 0
-    nstep = int(general_variables.nsteps) + buffer_size
-    time_step = general_variables.time_step
-    current_step = 0
-
+    model_part.ProcessInfo[TIME]                = 0
+    model_part.ProcessInfo[TIME_STEPS]          = 0
     model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
 
     conditions.Initialize(time_step);
 
 
 # initialize step operations
-starting_time = current_step * time_step
-ending_time = general_variables.nsteps * time_step;
+starting_step  = model_part.ProcessInfo[TIME_STEPS]
+starting_time  = model_part.ProcessInfo[TIME]
+ending_step    = general_variables.nsteps
+ending_time    = general_variables.nsteps * time_step
+
 
 output_print = operation_utils.TimeOperationUtility()
 gid_time_frequency = general_variables.GiDWriteFrequency
@@ -257,80 +236,74 @@ restart_time_frequency = general_variables.RestartFrequency
 restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
 
 
-# initialize mesh modeling variables for time integration
-# modeler.Initialize(current_step,current_step)
-
-# initialize graph plot variables for time integration
-# graph_plot.Initialize(current_step)
-
-
 # --TIME INTEGRATION--#######################
 #
 
 # writing a single file
 gid_print.initialize_results(model_part)
 
-# initialize time integration variables
-start_steps = buffer_size - 1
-start_time = start_steps * time_step;
+#initialize time integration variables
+current_time = starting_time
+current_step = starting_step
 
-for step in range(istep, nstep):
+# filling the buffer
+for step in range(0,buffer_size):
 
-    time = time_step * step
-    model_part.CloneTimeStep(time)
-    model_part.ProcessInfo[DELTA_TIME] = time_step
-    model_part.ProcessInfo[TIME_STEPS] = step
+  model_part.CloneTimeStep(current_time)
+  model_part.ProcessInfo[DELTA_TIME] = time_step
+  model_part.ProcessInfo[TIME_STEPS] = step-buffer_size
 
-    current_time = time - start_time
-    current_step = step - start_steps - 1
+# writing a initial state results file
+current_id = 0
+gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
+list_files.PrintListFiles(current_id);
 
-    if(current_time > 0):
-        print("STEP = ", current_step)
-        print("TIME = ", current_time)
-        model_part.ProcessInfo[TIME] = current_time
+# solving the problem
+while(current_time <= ending_time):
 
-    step_printed = False;
+  # store previous time step
+  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
+  # set new time step ( it can change when solve is called )
+  time_step = model_part.ProcessInfo[DELTA_TIME]
 
-    # solving the solid problem
-    if(step > start_steps):
+  current_time = current_time + time_step
+  current_step = current_step + 1
+  model_part.CloneTimeStep(current_time)
+  model_part.ProcessInfo[TIME] = current_time
 
-        clock_time = StartTimeMeasuring();
-        # solve time step non-linear system
-        main_step_solver.Solve()
-        StopTimeMeasuring(clock_time, "Solving");
+  print("STEP = ", current_step)
+  print("TIME = ", current_time)
 
-        # plot graphs
+  clock_time = StartTimeMeasuring();
+  # solve time step non-linear system
+  main_step_solver.Solve()
+  StopTimeMeasuring(clock_time, "Solving");
 
-        # update previous time step
-        model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
+  # incremental load
+  conditions.SetIncrementalLoad(current_step, time_step);
 
-        # incremental load
-        incr_steps = current_step + 1
-        conditions.SetIncrementalLoad(incr_steps, time_step);
+  # print the results at the end of the step
+  execute_write = output_print.perform_time_operation(current_time)
+  if(execute_write):
+      clock_time = StartTimeMeasuring();
+      current_id = output_print.operation_id()
+      # print gid output file
+      gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
+      # print on list files
+      list_files.PrintListFiles(current_id);
+      StopTimeMeasuring(clock_time, "Write Results");
 
-        # print the results at the end of the step
-        if(general_variables.WriteResults == "PreMeshing"):
-            execute_write = output_print.perform_time_operation(current_time)
-            if(execute_write):
-                clock_time = StartTimeMeasuring();
-                # print gid output file
-                gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, output_print.operation_id())
-                # print on list files
-                list_files.PrintListFiles(current_step);
-                StopTimeMeasuring(clock_time, "Write Results");
-                # plot graphs
-                # graph_plot.Plot(current_time)
-
-        # print restart file
-        if(save_restart):
-            execute_save = restart_print.perform_time_operation(current_time)
-            if(execute_save):
-                clock_time = StartTimeMeasuring();
-                problem_restart.Save(current_time, current_step, restart_print.operation_id());
-                StopTimeMeasuring(clock_time, "Restart");
+  # print restart file
+  if(save_restart):
+      execute_save = restart_print.perform_time_operation(current_time)
+      if(execute_save):
+          clock_time = StartTimeMeasuring();
+          current_id = output_print.operation_id()
+          problem_restart.Save(current_time, current_step, current_id);
+          StopTimeMeasuring(clock_time, "Restart");
 
         
-        conditions.RestartImposedDisp()
+  conditions.RestartImposedDisp()
 
 # --FINALIZE--############################
 #
@@ -351,3 +324,7 @@ tfp = clock()
 print(ctime())
 # print "Analysis Completed  [Process Time = ", tfp - t0p, "seconds, Wall Time = ", tfw - t0w, " ]"
 print("Analysis Completed  [Process Time = ", tfp - t0p, "] ")
+
+from run_test_benchmark_results import *
+
+WriteBenchmarkResults(model_part)

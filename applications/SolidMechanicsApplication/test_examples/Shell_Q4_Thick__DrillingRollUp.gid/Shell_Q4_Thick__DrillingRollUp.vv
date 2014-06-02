@@ -1,12 +1,12 @@
-BeginZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__DrillingRollUp.gid\Shell_Q4_Thick__DrillingRollUp.vv
-   x -3.3146414756774902 3.4361562728881836
-   y 3.9623100757598877 -0.39204615354537964
-   z -10.797154426574707 10.797154426574707
-   e 5.5277080535888672
-   v -0 -0 -8.7422776573475858e-008
-   r -1
-   m 1 -1.7484555314695172e-007 0 0 1.7484555314695172e-007 1 0 0 0 0 1 0 0 0 0 1
-   c 0.0013688073959201574 1.7925586700439453 0
+BeginZE /home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_Q4_Thick__DrillingRollUp.gid/Shell_Q4_Thick__DrillingRollUp.vv
+   x -3.40310764312744141 13.4031076431274414
+   y 5.65270805358886719 -5.40270805358886719
+   z -16.5831241607666016 16.5831241607666016
+   e 5.52770805358886719
+   v -0 -0 -8.74227800037247454e-08
+   r -0.999999999999996225
+   m 1 -1.74845553146951715e-07 0 0 1.74845553146951715e-07 1 0 0 0 0 1 0 0 0 0 1
+   c 5 0.125 0
    pd 0
    pno 0
    pfo 0
@@ -29,7 +29,7 @@ BeginZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__DrillingRollUp.gid\Shell_
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE C:\KRATOS_TUT\ShellElementTest\Shell_Q4_Thick__DrillingRollUp.gid\Shell_Q4_Thick__DrillingRollUp.vv
+EndZE /home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_Q4_Thick__DrillingRollUp.gid/Shell_Q4_Thick__DrillingRollUp.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

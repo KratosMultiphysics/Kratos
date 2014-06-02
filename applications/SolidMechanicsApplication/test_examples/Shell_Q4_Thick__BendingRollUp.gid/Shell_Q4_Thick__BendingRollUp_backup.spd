@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Kratos_Data version="1.2.28">
     <Groups modeltype="GiD">
-        <Group id="Group0" color="{#0ac646}" state="1" type="Generic"/>
-        <Group id="fix_x" color="{#be1036}" state="1" type="Generic"/>
-        <Group id="fix_y" color="{#c6a901}" state="1" type="Generic"/>
-        <Group id="load" color="{#bcdd59}" state="1" type="Generic"/>
-        <Group id="-AKGSkinMesh3D" color="{#104b91}" state="1" type="Generic"/>
-        <Group id="load2" color="{#e20b3b}" state="1" type="Generic"/>
+        <Group id="Group0" color="{#c92576}" state="1" type="Generic"/>
+        <Group id="fix_x" color="{#3690e8}" state="1" type="Generic"/>
+        <Group id="fix_y" color="{#d26969}" state="1" type="Generic"/>
+        <Group id="load" color="{#707c7d}" state="1" type="Generic"/>
+        <Group id="-AKGSkinMesh3D" color="{#500676}" state="1" type="Generic"/>
+        <Group id="load2" color="{#9857f9}" state="1" type="Generic"/>
     </Groups>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -83,12 +83,12 @@
             </Container>
         </Container>
         <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesStruct" icon="propsTreeNew.gif" help="Add a new Property" open="1" dv="UserDefined">
-            <Container id="Property1" pid="Property1" class="Property" icon="propsTree.gif" help="Property" open="0">
+            <Container id="Property1" pid="Property1" class="Property" icon="propsTree.gif" help="Property" open="1">
                 <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                     <Item id="ElemType" pid="Property type" dv="Shell" state="normal" GCV="ElemType" help="Element type"/>
                     <Item id="MatModel" pid="Constitutive law" state="normal" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
                     <Item id="Material" pid="Material" dv="Steel_AISI1059" state="normal" GCV="Materials" help="Material"/>
-                    <Item id="Thickness" pid="Thickness" state="normal" dv="0.25" help="Thickness"/>
+                    <Item id="Thickness" pid="Thickness" state="normal" dv="0.025" help="Thickness"/>
                     <Item id="SectionType" pid="Section type" state="normal" dv="UserDefined" GCV="SectType" help="Select the section type"/>
                     <Item id="ProfileDB" pid="Profile list" state="normal" dv="" GCV="ProfileType" help="Select the profile from the list"/>
                     <Item id="Area" pid="Area" dv="1.0" state="normal" help="Cross section area"/>
@@ -147,23 +147,23 @@
             </Container>
             <Container id="Moment" pid="Moment Load" nDim="3D" class="SameTemplateGroups" help="External Load" open="1" icon="groupsTreeNew.gif">
                 <Container id="PointMoment" pid="Over Points" nDim="3D" class="Groups" idTemplate="PointMoment" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Bending Moment" open="1">
-                    <Container id="load" pid="load" class="Group" icon="groupsTree.gif" help="Point Moment" open="0" active="1">
+                    <Container id="load" pid="load" class="Group" icon="groupsTree.gif" help="Point Moment" open="1" active="1">
                         <Container id="MainProperties" pid="Point Moment" state="hidden" help="Values" open="0">
                             <Item id="Fx" pid="Fx" dv="0.0" state="hidden" help="Fx Vector"/>
                             <Item id="Fy" pid="Fy" dv="0.0" state="hidden" help="Fy Vector"/>
                             <Item id="Fz" pid="Fz" dv="0.0" state="hidden" help="Fz Vector"/>
                             <Item id="Mx" pid="Mx" dv="0.0" nDim="3D" help="Mx Vector"/>
-                            <Item id="My" pid="My" dv="0.511325e+6" nDim="3D" help="My Vector"/>
+                            <Item id="My" pid="My" dv="511.3269" nDim="3D" help="My Vector"/>
                             <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>
                         </Container>
                     </Container>
-                    <Container id="load2" pid="load2" class="Group" icon="groupsTree.gif" help="Point Moment" open="0" active="1">
+                    <Container id="load2" pid="load2" class="Group" icon="groupsTree.gif" help="Point Moment" open="1" active="1">
                         <Container id="MainProperties" pid="Point Moment" state="hidden" help="Values" open="0">
                             <Item id="Fx" pid="Fx" dv="0.0" state="hidden" help="Fx Vector"/>
                             <Item id="Fy" pid="Fy" dv="0.0" state="hidden" help="Fy Vector"/>
                             <Item id="Fz" pid="Fz" dv="0.0" state="hidden" help="Fz Vector"/>
                             <Item id="Mx" pid="Mx" dv="0.0" nDim="3D" help="Mx Vector"/>
-                            <Item id="My" pid="My" dv="0.511325e+6" nDim="3D" help="My Vector"/>
+                            <Item id="My" pid="My" dv="511.3269" nDim="3D" help="My Vector"/>
                             <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>
                         </Container>
                     </Container>

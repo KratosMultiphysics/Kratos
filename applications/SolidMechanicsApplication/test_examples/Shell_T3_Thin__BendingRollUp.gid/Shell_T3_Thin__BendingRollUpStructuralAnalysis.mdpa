@@ -623,7 +623,7 @@ Begin Conditions PointTorque3DCondition // GUI puntual load group identifier: lo
    3    1        243
 End Conditions
 
-Begin NodalData TORQUE_Y // GUI puntual load group identifier: load
+Begin NodalData POINT_TORQUE_Y // GUI puntual load group identifier: load
        241  0       511.3269000000
        242  0       511.3269000000
        243  0       511.3269000000
@@ -633,7 +633,7 @@ Begin Conditions PointTorque3DCondition // GUI puntual load group identifier: lo
    4    1        242
 End Conditions
 
-Begin NodalData TORQUE_Y // GUI puntual load group identifier: load2
+Begin NodalData POINT_TORQUE_Y // GUI puntual load group identifier: load2
        242  0       511.3269000000
 End NodalData
 
