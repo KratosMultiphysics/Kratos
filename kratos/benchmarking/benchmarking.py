@@ -2,11 +2,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
-# Utility routines for automatic benchmarking of Kratos examples          #
+# Utility routines for automatic benchmarking of Kratos examples        #
 #
 #
 #
-# Version history:                                                        #
+# Version history:                                                      #
 #
 # 1.00: Farshid Mossaiby, Initial Version                               #
 # 1.10: Farshid Mossaiby, Added the ability of determining build        #
@@ -199,7 +199,8 @@ def TypedCompare(lr, lt):
         Msg += " absolute_tol "+str(absolute_tol)+"\n"
         Msg += " abs(ref_data - test_data) "+str(abs(ref_data - test_data))+"\n"
         Msg += " abs(ref_data ) "+str(abs(ref_data ))+"\n"
-        Msg += " abs(ref_data - test_data)/abs(ref_data ) "+str(abs(ref_data - test_data)/abs(ref_data )) +"\n"
+        if(ref_data != 0):
+            Msg += " abs(ref_data - test_data)/abs(ref_data ) "+str(abs(ref_data - test_data)/abs(ref_data )) +"\n"
         Msg += " relative_tol "+str(ref_relative_tol)+"\n"      
         Msg += "Reference:" + str(lr) + "\n"
         Msg += "Test:     " + str(lt)
