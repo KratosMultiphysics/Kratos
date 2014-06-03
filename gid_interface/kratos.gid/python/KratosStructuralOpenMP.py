@@ -198,7 +198,7 @@ model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
 
 # solver initialize
 main_step_solver.Initialize()
-main_step_solver.SetRestart(load_restart)
+main_step_solver.SetRestart(load_restart) #calls strategy initialize if no restart
 
 # initial contact search
 # modeler.InitialContactSearch()
