@@ -198,7 +198,7 @@ model_part.ProcessInfo[DELTA_TIME] = general_variables.time_step
 
 # solver initialize
 main_step_solver.Initialize()
-main_step_solver.SetRestart(load_restart)
+main_step_solver.SetRestart(load_restart) #calls strategy initialize if no restart
 
 # initial contact search
 # modeler.InitialContactSearch()
@@ -259,7 +259,7 @@ gid_print.write_results(model_part, general_variables.nodal_results, general_var
 list_files.PrintListFiles(current_id);
 
 # solving the problem
-while(current_time <= ending_time):
+while(current_time < ending_time):
 
   # store previous time step
   model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step
@@ -325,6 +325,7 @@ print(ctime())
 # print "Analysis Completed  [Process Time = ", tfp - t0p, "seconds, Wall Time = ", tfw - t0w, " ]"
 print("Analysis Completed  [Process Time = ", tfp - t0p, "] ")
 
+# to create a benchmark: add standard benchmark files and decomment next two lines 
+# rename the file to: run_test.py
 from run_test_benchmark_results import *
-
 WriteBenchmarkResults(model_part)

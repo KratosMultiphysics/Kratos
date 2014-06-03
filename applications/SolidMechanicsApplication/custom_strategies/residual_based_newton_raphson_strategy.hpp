@@ -382,6 +382,10 @@ public:
     {
         KRATOS_TRY
 
+        if(mInitializeWasPerformed = true)
+	  KRATOS_ERROR( std::logic_error, " Initialize was already performed ", mInitializeWasPerformed );
+
+	  
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;

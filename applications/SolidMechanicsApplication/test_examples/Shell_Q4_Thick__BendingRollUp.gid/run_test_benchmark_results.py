@@ -23,4 +23,5 @@ def WriteBenchmarkResults(model_part):
         # write
         abs_tol = 1e-9
         rel_tol = 1e-5
+        print(r_max)
         benchmarking.Output(r_max, "Y Rotation", abs_tol, rel_tol)

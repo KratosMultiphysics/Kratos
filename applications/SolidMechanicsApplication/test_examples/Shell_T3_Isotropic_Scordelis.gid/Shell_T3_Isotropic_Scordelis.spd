@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Kratos_Data version="1.2.29">
     <Groups modeltype="GiD">
-        <Group id="supports" color="{#86a35b}" state="1" type="Generic"/>
-        <Group id="shell" color="{#861fcd}" state="1" type="Generic"/>
-        <Group id="sides" color="{#b721ce}" state="1" type="Generic"/>
-        <Group id="-AKGSkinMesh3D" color="{#81689c}" state="1" type="Generic"/>
+        <Group id="supports" color="{#39be42}" state="1" type="Generic"/>
+        <Group id="shell" color="{#02a380}" state="1" type="Generic"/>
+        <Group id="sides" color="{#f14bd8}" state="1" type="Generic"/>
+        <Group id="-AKGSkinMesh3D" color="{#fc0cf4}" state="1" type="Generic"/>
     </Groups>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
