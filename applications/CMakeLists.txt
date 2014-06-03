@@ -30,6 +30,7 @@ message("PURE_DIFFUSION_APPLICATION...........${PURE_DIFFUSION_APPLICATION}")
 message("MESHLESS_APPLICATION.................${MESHLESS_APPLICATION}")
 message("WIND_TURBINE_APPLICATION ........... ${WIND_TURBINE_APPLICATION}")
 message("CLICK2CAST_APPLICATION ........... ${CLICK2CAST_APPLICATION}")
+message("MULTISCALE_APPLICATION ........... ${MULTISCALE_APPLICATION}")
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -152,6 +153,10 @@ endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
 if(${CLICK2CAST_APPLICATION} MATCHES ON)
   add_subdirectory(Click2CastApplication)
 endif(${CLICK2CAST_APPLICATION} MATCHES ON)
+
+if(${MULTISCALE_APPLICATION} MATCHES ON)
+  add_subdirectory(MultiScaleApplication)
+endif(${MULTISCALE_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
