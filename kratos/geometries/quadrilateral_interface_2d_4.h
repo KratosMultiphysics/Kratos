@@ -195,8 +195,13 @@ public:
                       const PointType& FourthPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
-		double lx = (SecondPoint.X() - FirstPoint.X() + ThirdPoint.X() - FourthPoint.X())*0.5;
-		double ly = (FourthPoint.Y() - FirstPoint.Y() + ThirdPoint.Y() - SecondPoint.Y())*0.5;
+        double p2_p1_X = (ThirdPoint->X() + FourthPoint->X() - FirstPoint->X() - SecondPoint->X())*0.5;
+        double p2_p1_Y = (ThirdPoint->Y() + FourthPoint->Y() - FirstPoint->Y() - SecondPoint->Y())*0.5;
+        double p4_p3_X = (ThirdPoint->X() + SecondPoint->X() - FirstPoint->X() - FourthPoint->X())*0.5;
+        double p4_p3_Y = (ThirdPoint->Y() + SecondPoint->Y() - FirstPoint->Y() - FourthPoint->Y())*0.5;
+
+        double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
+        double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
 		if(lx > ly) 
 		{
 			this->Points().push_back( typename PointType::Pointer( new PointType( FirstPoint ) ) );
@@ -219,8 +224,13 @@ public:
                       typename PointType::Pointer pFourthPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
-		double lx = (pSecondPoint->X() - pFirstPoint->X() + pThirdPoint->X() - pFourthPoint->X())*0.5;
-		double ly = (pFourthPoint->Y() - pFirstPoint->Y() + pThirdPoint->Y() - pSecondPoint->Y())*0.5;
+        double p2_p1_X = (pThirdPoint->X() + pFourthPoint->X() - pFirstPoint->X() - pSecondPoint->X())*0.5;
+        double p2_p1_Y = (pThirdPoint->Y() + pFourthPoint->Y() - pFirstPoint->Y() - pSecondPoint->Y())*0.5;
+        double p4_p3_X = (pThirdPoint->X() + pSecondPoint->X() - pFirstPoint->X() - pFourthPoint->X())*0.5;
+        double p4_p3_Y = (pThirdPoint->Y() + pSecondPoint->Y() - pFirstPoint->Y() - pFourthPoint->Y())*0.5;
+
+        double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
+        double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
 		if(lx > ly) 
 		{
 			this->Points().push_back( pFirstPoint );
@@ -238,11 +248,38 @@ public:
     }
 
     QuadrilateralInterface2D4( const PointsArrayType& ThisPoints )
-        : BaseType( ThisPoints, &msGeometryData )
+        : BaseType( PointsArrayType(), &msGeometryData )
     {
-        if ( this->PointsNumber() != 4 )
+        if ( ThisPoints.size() != 4 )
             KRATOS_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
+
+		const typename PointType::Pointer& pFirstPoint  = ThisPoints(0);
+		const typename PointType::Pointer& pSecondPoint = ThisPoints(1);
+		const typename PointType::Pointer& pThirdPoint  = ThisPoints(2);
+		const typename PointType::Pointer& pFourthPoint = ThisPoints(3);
+
+        double p2_p1_X = (pThirdPoint->X() + pFourthPoint->X() - pFirstPoint->X() - pSecondPoint->X())*0.5;
+        double p2_p1_Y = (pThirdPoint->Y() + pFourthPoint->Y() - pFirstPoint->Y() - pSecondPoint->Y())*0.5;
+        double p4_p3_X = (pThirdPoint->X() + pSecondPoint->X() - pFirstPoint->X() - pFourthPoint->X())*0.5;
+        double p4_p3_Y = (pThirdPoint->Y() + pSecondPoint->Y() - pFirstPoint->Y() - pFourthPoint->Y())*0.5;
+
+        double lx = std::sqrt(p4_p3_X*p4_p3_X + p4_p3_Y*p4_p3_Y);
+        double ly = std::sqrt(p2_p1_X*p2_p1_X + p2_p1_Y*p2_p1_Y);
+		if(lx > ly) 
+		{
+			this->Points().push_back( pFirstPoint );
+			this->Points().push_back( pSecondPoint );
+			this->Points().push_back( pThirdPoint );
+			this->Points().push_back( pFourthPoint );
+		}
+		else
+		{
+			this->Points().push_back( pFourthPoint );
+			this->Points().push_back( pFirstPoint );
+			this->Points().push_back( pSecondPoint );
+			this->Points().push_back( pThirdPoint );
+		}
     }
 
     /**

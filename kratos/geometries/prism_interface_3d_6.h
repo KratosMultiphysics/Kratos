@@ -273,7 +273,7 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily()
     {
-        return GeometryData::Kratos_Triangle;
+        return GeometryData::Kratos_Prism;
     }
 
     GeometryData::KratosGeometryType GetGeometryType()
