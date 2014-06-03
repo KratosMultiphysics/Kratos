@@ -46,35 +46,41 @@ class RestartUtility:
     #
     def CleanPreviousFileType(self, file_ending_type):
 
-        filelist = [f for f in os.listdir(self.problem_path) if f.endswith(file_ending_type)]
+        if(os.path.exists(self.problem_path) == False):
+            print(" Problem Path do not exists , check the Problem Path selected ")
+        else:
+            filelist = [f for f in os.listdir(self.problem_path) if f.endswith(file_ending_type)]
 
-        for f in filelist:
-            try:
-                os.remove(f)
-            except WindowsError:
-                pass
+            for f in filelist:
+                try:
+                    os.remove(f)
+                except WindowsError:
+                    pass
 
     #
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
-        filelist = []
-        for f in os.listdir(self.problem_path):
-            if(f.endswith(file_ending_type)):
-                #if f.name = problem_tested_145.post.bin
-                file_parts = f.split('_')  # you get ["problem","tested","145.post.bin"]
-                num_parts  = len(file_parts) 
+        if(os.path.exists(self.problem_path) == False):
+            print(" Problem Path do not exists , check the Problem Path selected ")
+        else:
+            filelist = []
+            for f in os.listdir(self.problem_path):
+                if(f.endswith(file_ending_type)):
+                    #if f.name = problem_tested_145.post.bin
+                    file_parts = f.split('_')  # you get ["problem","tested","145.post.bin"]
+                    num_parts  = len(file_parts) 
                     
-                end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
-                print_id   = end_parts[0] # you get "145"
+                    end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
+                    print_id   = end_parts[0] # you get "145"
 
-                if( int(print_id)>=restart_step ):
-                    filelist.append(f)
+                    if( int(print_id)>=restart_step ):
+                        filelist.append(f)
 
-        for f in filelist:
-            try:
-                os.remove(f)
-            except WindowsError:
-                pass
+            for f in filelist:
+                try:
+                    os.remove(f)
+                except WindowsError:
+                    pass
 
     #
     def CleanPreviousFiles(self):
