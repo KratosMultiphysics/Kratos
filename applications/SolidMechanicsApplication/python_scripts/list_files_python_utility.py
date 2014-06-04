@@ -125,38 +125,44 @@ class ListFilesUtility:
     def RemoveListFiles(self):
 
         # remove previous list files:
-        filelist = [f for f in os.listdir(self.problem_path) if f.endswith(".lst")]
-        for f in filelist:
-            try:
-                os.remove(f)
-            except WindowsError:
-                pass
+        if(os.path.exists(self.problem_path) == False):
+            print(" Problem Path do not exists , check the Problem Path selected ")
+        else:
+            filelist = [f for f in os.listdir(self.problem_path) if f.endswith(".lst")]
+            for f in filelist:
+                try:
+                    os.remove(f)
+                except WindowsError:
+                    pass
 
     #
     def PrintListFiles(self, current_id):
 
-        # print list files:
-        if(self.print_lists):
+        if(os.path.exists(self.problem_path) == False):
+            print(" Problem Path do not exists , check the Problem Path selected ")
+        else:
+            # print list files:
+            if(self.print_lists):
 
-            num_list_files = len(self.file_list)
+                num_list_files = len(self.file_list)
 
-            for lfile in range(0, num_list_files):
+                for lfile in range(0, num_list_files):
 
-                if(self.file_list[lfile] == self.listprint[lfile]):
-                    problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
-                    listfile = open(problempath, "a")
+                    if(self.file_list[lfile] == self.listprint[lfile]):
+                        problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
+                        listfile = open(problempath, "a")
 
-                    if(self.header_in_list[lfile]):
-                        problemname = "Multiple\n"
+                        if(self.header_in_list[lfile]):
+                            problemname = "Multiple\n"
+                            listfile.write(problemname)
+                            self.header_in_list[lfile] = False
+
+                        problemname = self.problem_name + "_" + str(current_id) + self.output_mode + "\n"
                         listfile.write(problemname)
-                        self.header_in_list[lfile] = False
-
-                    problemname = self.problem_name + "_" + str(current_id) + self.output_mode + "\n"
-                    listfile.write(problemname)
-                    listfile.close()
-                    self.listprint[lfile] = 1
-                else:
-                    self.listprint[lfile] = self.listprint[lfile] + 1
+                        listfile.close()
+                        self.listprint[lfile] = 1
+                    else:
+                        self.listprint[lfile] = self.listprint[lfile] + 1
 
     #
 
