@@ -1,0 +1,109 @@
+ Begin ModelPartData
+ //  VARIABLE_NAME value
+ End ModelPartData
+
+//  Begin Table table_id variable1 variable2 
+//  // table_x table_y
+//  End Table
+
+ Begin Properties  1
+ //  VARIABLE_NAME value
+RADIUS 0.014
+THICKNESS 1.63000e-03
+YOUNG_MODULUS 4.0e5
+POISSON_RATIO 0.499999
+DYNAMIC_VISCOSITY 0.004
+DENSITY 1021.0
+ End Properties
+
+ Begin Properties  2
+ //  VARIABLE_NAME value
+RADIUS 0.014
+THICKNESS 1.63000e-03
+YOUNG_MODULUS 4.0e5
+POISSON_RATIO 0.499999
+DYNAMIC_VISCOSITY 0.004
+DENSITY 1021.0
+ End Properties
+ 
+ Begin Nodes
+ // id	  X	Y	Z
+    1    1.00000e-01    0.00000e+00    0.00000e+00
+    2    9.50000e-02    0.00000e+00    0.00000e+00
+    3    9.00000e-02    0.00000e+00    0.00000e+00
+    4    8.50000e-02    0.00000e+00    0.00000e+00
+    5    8.00000e-02    0.00000e+00    0.00000e+00
+    6    7.50000e-02    0.00000e+00    0.00000e+00
+    7    7.00000e-02    0.00000e+00    0.00000e+00
+    8    6.50000e-02    0.00000e+00    0.00000e+00
+    9    6.00000e-02    0.00000e+00    0.00000e+00
+   10    5.50000e-02    0.00000e+00    0.00000e+00
+   11    5.00000e-02    0.00000e+00    0.00000e+00
+   12    4.50000e-02    0.00000e+00    0.00000e+00
+   13    4.00000e-02    0.00000e+00    0.00000e+00
+   14    3.50000e-02    0.00000e+00    0.00000e+00
+   15    3.00000e-02    0.00000e+00    0.00000e+00
+   16    2.50000e-02    0.00000e+00    0.00000e+00
+   17    2.00000e-02    0.00000e+00    0.00000e+00
+   18    1.50000e-02    0.00000e+00    0.00000e+00
+   19    1.00000e-02    0.00000e+00    0.00000e+00
+   20    5.00000e-03    0.00000e+00    0.00000e+00
+   21    0.00000e+00    0.00000e+00    0.00000e+00
+ End Nodes
+ 
+ Begin Elements ArteryElement
+ // id prop_id	 n1	n2	n3	...
+         1        1   21        20          
+         2        1   20        19           
+         3        1   19        18           
+         4        1   18        17           
+         5        1   17        16           
+         6        1   16        15           
+         7        1   15        14           
+         8        1   14        13           
+         9        1   13        12           
+        10        1   12        11           
+//        11        1   11        10
+        11        2   10         9
+        12        2   9         8
+        13        2   8         7
+        14        2   7         6
+        15        2   6         5
+        16        2   5         4
+        17        2   4         3
+        18        2   3         2
+        19        2   2         1
+ End Elements
+
+Begin Conditions ArteryInletCondition
+// // id prop_id	 n1	n2	n3	...
+1 1 21
+End Conditions
+
+//Begin Conditions ArteryOutletCondition
+// // id prop_id	 n1	n2	n3	...
+//2 1 1
+//End Conditions
+
+Begin Conditions ArteryOutletFreeCondition
+// // id prop_id	 n1	n2	n3	...
+2 1 2 1
+End Conditions
+
+Begin Conditions Artery11Condition
+// // id prop_id	 n1	n2	n3	...
+3 1 11 10
+End Conditions
+
+ Begin NodalData FLOW
+21 1 0.0008
+//1  0 0.0008
+ End NodalData
+ 
+ Begin NodalData NODAL_AREA
+//21 1 0.00061575216010359944
+//1  1 0.00061575216010359944
+ End NodalData
+
+
+ 

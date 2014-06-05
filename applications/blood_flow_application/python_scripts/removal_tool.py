@@ -26,10 +26,10 @@ def DoRemoval(model_part):
     import config
     import full_nodes_table
     # print "CoupledTool:v4_27102003"
-    print("deactivate_list", config.deactivate_list)
-    print("list of inlets", config.inlets_1d)
-    print("list of outlets", config.outlets_1d)
-    print("full nodes table", full_nodes_table.table)
+    #print("deactivate_list", config.deactivate_list)
+    #print("list of inlets", config.inlets_1d)
+    #print("list of outlets", config.outlets_1d)
+    #print("full nodes table", full_nodes_table.table)
     # print model_part
 
     # mark for deactivation all of the nodes which are not needed
@@ -70,7 +70,7 @@ def DoRemoval(model_part):
         # nodes_to_preserve.append(node_begin)
         nodes_to_preserve.append(node_before)
         inlet_nodes.append(node_before)
-        FFR_nodes.append(node_begin)
+        FFR_nodes.append(node_begin)        
 
     # mark for erasal nodes after outlet
     for i in range(0, len(config.outlets_1d)):
@@ -201,4 +201,5 @@ def ComputePressure(model_part1D, dyastolic_pressure):
         print (press)
         # press = initial_pressure+beta*(math.sqrt(A/A0)) - beta
         node.SetSolutionStepValue(PRESSURE, 0, press)
+        err
         raw_input()
