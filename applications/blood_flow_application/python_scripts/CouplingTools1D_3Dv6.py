@@ -836,13 +836,13 @@ class TransferTools:
     
     def ComputeFFR_Health_Values(self,total_aortic_pressure,mean_pressure_1d_value,out_pressure_1d_value,mean_flow_1d_value,counter,summary_file):
 	
-	ToWriteIn_Summary= "FFR values in hypothic healthy situation" + "\n"
-	ToWriteIn_Summary+= "total_aortic_pressure: " + str(total_aortic_pressure) + "\n"
-	ToWriteIn_Summary+="mean_pressure_1d_value:  "+ str(mean_pressure_1d_value)	 + "\n"
-	ToWriteIn_Summary+="out_pressure_1d_value "+ str(out_pressure_1d_value) + "\n"
-	ToWriteIn_Summary+="mean_flow_1d_value "+ str(mean_flow_1d_value) + "\n"
-	ToWriteIn_Summary+="-----------------------------------------------------------"+ "\n"
-	summary_file.write(ToWriteIn_Summary)   
+	#ToWriteIn_Summary= "FFR values in hypothic healthy situation" + "\n"
+	#ToWriteIn_Summary+= "total_aortic_pressure: " + str(total_aortic_pressure) + "\n"
+	#ToWriteIn_Summary+="mean_pressure_1d_value:  "+ str(mean_pressure_1d_value)	 + "\n"
+	#ToWriteIn_Summary+="out_pressure_1d_value "+ str(out_pressure_1d_value) + "\n"
+	#ToWriteIn_Summary+="mean_flow_1d_value "+ str(mean_flow_1d_value) + "\n"
+	#ToWriteIn_Summary+="-----------------------------------------------------------"+ "\n"
+	#summary_file.write(ToWriteIn_Summary)   
 	
 	Mean_Pressure_OUT_TOTAL=0.0
 	Mean_Pressure_IN_TOTAL=0.0

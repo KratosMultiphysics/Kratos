@@ -11,7 +11,7 @@ save_results = 0.0001   # save_results = 0.0 (save all results)
 #
 # Config_Initial_conditions
 inlet_pressure_type = "coseno"  # coseno, parabolic,table
-Q_initial = 0.0000001
+Q_initial = 0.0
 #
 # Config_initial_radius
 FitRadius = True
