@@ -33,10 +33,6 @@ FitValues = True  # To get A-B of the 3D model
 Coupled_Simulation = True
 #
 # Config_factor_variables_to_check_different_options(TBR)
-pressure_factor = 1
-flow_factor = 1
-Resistence_factor = 1
-Condition_Variable = True
 only1Dtest = False  # Use A-B parameters setted in Simulation_config
 nodeAB = 0  # Force 1 node A-B Parameters
 A = 0
