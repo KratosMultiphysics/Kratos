@@ -16,7 +16,7 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # input_file_name: Name
     # FFR_Inlet_NODES_Values
     # FFR_Outlet_NODES_Values
-    Config_version="ONLY1D.PY:VERSION 04_June_2014_local"
+    Config_version="ONLY1D.PY:VERSION 05_June_2014_local"
     transfer_obj = CouplingTools1D_3Dv6.TransferTools(model_part1D, model_part3D)
     transfer_obj.Initialize()
     print(Config_version)    
@@ -462,32 +462,25 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     summary_file.write(ToWriteIn_Summary)
     
     #counter_FFR=counter_FFR/nro_FFR_cardiac_cycles
-    print(total_aortic_pressure)
-    print(mean_flow_1d_value)
-    print(mean_pressure_1d_value)
-    print(out_pressure_1d_value)
-		
-	
-    raw_input()
+    #print(total_aortic_pressure)
+    #print(mean_flow_1d_value)
+    #print(mean_pressure_1d_value)
+    #print(out_pressure_1d_value)
+
     #transfer_obj.ComputeFFR_Hypermia_Values(total_aortic_pressure,mean_pressure_1d_value,out_pressure_1d_value,mean_flow_1d_value,counter_FFR,summary_file)
     transfer_obj.ComputeFFR_Health_Values(total_aortic_pressure,mean_pressure_1d_value,out_pressure_1d_value,mean_flow_1d_value,counter_FFR,summary_file)
-    raw_input()				
+	
     #NO PARA BIFURCACION
-    Mean_Pressure_OUT_TOTAL=0.0
-    Mean_FLOW_IN_FFR_TOTAL=0.0 
-    Mean_Pressure_IN_TOTAL=0.0
-    Mean_total_aortic_pressure=0.0
-    FFR_Value = 0.0
-    #Mean_Pressure_IN_TOTAL = Pressure_IN_TOTAL / counter_FFR
+    mean_flow_1d_value = mean_flow_1d_value / counter_FFR
+    
     Mean_Pressure_IN_TOTAL = mean_pressure_1d_value / counter_FFR
-    Mean_Pressure_OUT_TOTAL = out_pressure_1d_value / counter_FFR
-    Mean_FLOW_IN_FFR_TOTAL=mean_flow_1d_value/counter_FFR
     Mean_total_aortic_pressure=total_aortic_pressure/counter_FFR
+    Mean_Pressure_OUT_TOTAL=out_pressure_1d_value/counter_FFR
 
     FFR_Value_Aortic=Mean_Pressure_OUT_TOTAL/Mean_total_aortic_pressure
     result_FFR_3D = Mean_Pressure_OUT_TOTAL/Mean_Pressure_IN_TOTAL
-    print("FFR_Value_Aortic: ", FFR_Value_Aortic)
-    print("result_FFR_3D: ", result_FFR_3D)
+    #print("FFR_Value_Aortic: ", FFR_Value_Aortic)
+    #print("result_FFR_3D: ", result_FFR_3D)
     
     ToWrite = str(Aortic_inlet) + " "
     ToWrite += str(FFR_Value_Aortic) + "\n"
@@ -570,5 +563,5 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 # print "FLOW_Index :::> ", FFR_Nodes[i_FFR], "--",  result_Flow
 
         
-    return [Mean_FLOW_IN_FFR_TOTAL]
+    return [mean_flow_1d_value]
     print("---------------------------------------------END-------------------------------------------")
