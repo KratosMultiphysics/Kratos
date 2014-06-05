@@ -263,7 +263,7 @@ if(fluid_model_part.NumberOfMeshes() > 1):
 
 # Stepping and time settings
 Dt = ProjectParameters.Dt
-max_Dt = 10.0 * Dt
+max_Dt = 2.0 * Dt
 Nsteps = ProjectParameters.nsteps
 final_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
