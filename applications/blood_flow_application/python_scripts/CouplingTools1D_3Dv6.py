@@ -37,7 +37,7 @@ class TransferTools:
       self.Aprime = []
       self.Bprime = []
       # compute normals and 3d areas
-      Coupling_version="CoupledTool1D_3Dv5.py:03_06_2014"
+      Coupling_version="CoupledTool1D_3Dv6.py:05_06_2014"
       print(Coupling_version)
  
       #ThrowErrors = False

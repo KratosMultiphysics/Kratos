@@ -64,9 +64,9 @@ model_part3D.AddNodalSolutionStepVariable(DISTANCE)
 import config
 import simulation_config
 import removal_tool
-import CouplingTools1D_3Dv5
+import CouplingTools1D_3Dv6
 
-Config_version="ToRun.PY:VERSION 03_June_2014_local"
+Config_version="ToRun.PY:VERSION 05_June_2014_local"
 print(Config_version)
 #print("LOCAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLLLLLLLLLLLLL")
 #raw_input()
@@ -119,6 +119,7 @@ else:
 # Pressure conditions
 diastolic_pressure = config.diastolic_pressure	# Pa
 systolic_pressure = config.systolic_pressure  # Pa
+venous_pressure=diastolic_pressure*0.9 #Pa
 diastolic_hypermia_pressure = config.diastolic_hypermia_pressure  # Pa
 time_period = config.time_period
 InletProfileType = simulation_config.inlet_pressure_type
@@ -132,11 +133,11 @@ save_results = simulation_config.save_results
 # This variable is only for doing test A-B with the 1D model.
 Fit_control = False
 var_aux = True
-pressure_factor = simulation_config.pressure_factor
-Resistence_factor = simulation_config.Resistence_factor
-Condition_Variable = simulation_config.Condition_Variable
-diastolic_pressure = pressure_factor * diastolic_pressure
-systolic_pressure = pressure_factor * systolic_pressure
+#pressure_factor = simulation_config.pressure_factor
+Resistence_factor = config.hypermia_Resistence_factor
+Condition_Variable = config.hypermia_Condition_Variable
+#diastolic_pressure = pressure_factor * diastolic_pressure
+#systolic_pressure = pressure_factor * systolic_pressure
 
 # Set Initial_conditions
 Q_initial = simulation_config.Q_initial
@@ -579,7 +580,7 @@ if (Coupled_Simulation == True):
 	solver3D.compute_reactions = False
 	solver3D.activate_smagorinsky(0.2)
 	solver3D.Initialize()	
-	transfer_obj = CouplingTools1D_3Dv5.TransferTools(model_part1D, model_part3D)
+	transfer_obj = CouplingTools1D_3Dv6.TransferTools(model_part1D, model_part3D)
 	transfer_obj.Setting3d(P_initial, blood_density, blood_viscosity)
 	transfer_obj.Initialize()
 	#transfer_obj.Velocity_Initial_Contitions()	# Setting the velocity
@@ -628,14 +629,15 @@ if (InletPressure):
 		ToWriteIn_Summary += "Using as InletProfileType ---> COSENO" + "\n"
 		pressure_parameter_1 = (systolic_pressure + diastolic_pressure) / 2
 		pressure_parameter_2 = (diastolic_pressure - systolic_pressure) / 2
-	print("Pressure_Factor: ", pressure_factor)
-	ToWriteIn_Summary += "Pressure_Factor: " + str(pressure_factor) + "\n"
+	#print("Pressure_Factor: ", pressure_factor)
+	#ToWriteIn_Summary += "Pressure_Factor: " + str(pressure_factor) + "\n"
 	print("Diastolic pressure: ", diastolic_pressure)
 	ToWriteIn_Summary += "Diastolic pressure: " + str(diastolic_pressure) + "\n"
 	print("Systolic Pressure: ", systolic_pressure)
 	ToWriteIn_Summary += "Systolic Pressure: " + str(systolic_pressure) + "\n"
+	print("Venous Pressure: ", venous_pressure)
+	ToWriteIn_Summary += "Venous Pressure: " + str(venous_pressure) + "\n"
 	# diastolic_pressure=inletconditiontable.GetValue(0)
-	venous_pressure=diastolic_pressure*0.9
 	for node in model_part1D.Nodes:
 		if(node.IsFixed(PRESSURE) == False):
 			node.SetSolutionStepValue(FLOW, 0, Q_initial)
@@ -651,7 +653,6 @@ else:
 	print("Inlet Profile: Flow")
 	ToWriteIn_Summary += "Inlet Profile: Flow" + "\n"
 	Q_initial = inletconditiontable.GetValue(0)
-	venous_pressure=diastolic_pressure*0.9 #diastolic_hypermia_pressure
 	for node in model_part1D.Nodes:
 		if(node.IsFixed(FLOW) == False):
 			node.SetSolutionStepValue(FLOW, 0, Q_initial)
@@ -664,12 +665,6 @@ else:
 			node.SetSolutionStepValue(DYASTOLIC_PRESSURE, 0,diastolic_pressure)
 			node.SetSolutionStepValue(PRESSURE_VENOUS, 0, venous_pressure)
 
-print(venous_pressure)
-print(diastolic_pressure)
-print(Q_initial)
-print(P_initial)
-print("Hyperemia conditions set")
-raw_input()
 # Fit_control = This variable is only for doing test A-B with the 1D model. CouplingTools1D_3Dv5 is needed to inizializate the radius
 # TBR
 if((FitValues) and (Fit_control)):
@@ -863,9 +858,6 @@ if(only1Dtest == False):
 		#ToWriteIn_Summary += " Instant area imposed in the inlet node:	"  + str(A) + " mm " + "\n"	
 		#summary_file.write(ToWriteIn_Summary)
 		##ToWriteIn_summary_file_pressure_Flow_Aortic=str(Q)
-		print(total_aortic_pressure)
-		print(counter)
-		print(step)
 		#raw_input()
 		ToWriteIn_summary_file_pressure_inlet1D=str(instant_pressure) + "\n"
 		summary_file_pressure_inlet1D.write(ToWriteIn_summary_file_pressure_inlet1D)
@@ -1051,11 +1043,11 @@ if(only1Dtest == False):
 					print(step)
 					print(total_aortic_pressure)
 					print(counter)
-					print("Start Coupling")
-					ToWriteIn_Summary = "Start Coupling " + "\n"			
+					print("Start Coupling:: Only the last Cardiac_cycle ", cardiac_cycle_to_3D)
+					ToWriteIn_Summary = "Start Coupling:: Only the last Cardiac_cycle " + str(cardiac_cycle_to_3D) + "\n"			
 					summary_file.write(ToWriteIn_Summary)
 					print("time",time)
-					raw_input()
+					#raw_input()
 			control_sub_step = 0
 			out = 0
 			print("Cardiac_cycle: ------------------------>", nro_cardiac_cycle)
@@ -1064,7 +1056,7 @@ if(only1Dtest == False):
 			#raw_input()
 
 		if (step_size_control):
-			Dt = integrator.EstimateDeltaTime(model_part1D, 0.8, minlength)
+			Dt = integrator.EstimateDeltaTime(model_part1D, 0.6, minlength)
 		else:
 			Dt = step_size
 
@@ -1086,23 +1078,6 @@ ToWriteIn_Summary += str(time.strftime("%H:%M:%S")) + "\n"
 ToWriteIn_Summary += "-----------------------------------------------" + "\n"
 summary_file.write(ToWriteIn_Summary)
 print("---------------------------------------------------------------")
-
-
-#print(total_aortic_pressure)
-#print(total_aortic_pressure/step)
-#mean_pressure_1d_value=mean_pressure_1d_value/step
-#print(mean_pressure_1d_value)
-#print(mean_pressure_1d_value)
-#print(out_pressure_1d_value)
-#print(mean_flow_1d_value)
-#print(total_aortic_pressure)
-#print(counter)
-#raw_input()
-#transfer_obj.ComputeFFR_Health_Values(total_aortic_pressure,mean_pressure_1d_value,out_pressure_1d_value,mean_flow_1d_value,counter,summary_file)
-##transfer_obj.ComputeFFR_Rest_Values(total_aortic_pressure,mean_flow_1d_FFR,mean_pressure_1d_FFR,out_pressure_1d_value_FFR,counter,summary_file)
-#mean_flow_1d_FFR_2=mean_flow_1d_FFR
-#raw_input()
-
 
 if (Coupled_Simulation == True):
 	print("Computing 3D Energy Losses")
@@ -1193,6 +1168,8 @@ if (Coupled_Simulation == True):
 	print("Setting Hypermenia Conditions")
 	print("Sistolic_hypermia_pressure", config.systolic_hypermia_pressure)
 	print("Diastolic_hypermia_pressure", config.diastolic_hypermia_pressure)
+	Venous_hypermia_pressure = config.diastolic_hypermia_pressure * 0.9
+	print("Venous_hypermia_pressure ", Venous_hypermia_pressure)
 	#ToWriteIn_Summary = "-----------------------------------------------" + "\n"	
 	#ToWriteIn_Summary += "Setting Hypermenia Conditions"+ "\n"
 	#ToWriteIn_Summary += "Diastolic_hypermia_pressure: "+ str(diastolic_hypermia_pressure) + "\n"
@@ -1202,7 +1179,7 @@ if (Coupled_Simulation == True):
 		for cond in model_part1D.Conditions:
 			for node in cond.GetNodes():
 				# cond.SetValue(PRESSURE_VENOUS,diastolic_hypermia_pressure)
-				node.SetSolutionStepValue(PRESSURE_VENOUS, 0, diastolic_hypermia_pressure)
+				node.SetSolutionStepValue(PRESSURE_VENOUS, 0, Venous_hypermia_pressure)
 				cond.SetValue(PRESSURE_DT, Resistence_factor)
 				# print diastolic_pressure
 				# print PRESSURE_VENOUS

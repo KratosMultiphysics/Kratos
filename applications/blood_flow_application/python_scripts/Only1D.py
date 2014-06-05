@@ -9,7 +9,7 @@ import math
 def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, input_file_name, FFR_Inlet_NODES_Values, FFR_Outlet_NODES_Values,summary_file,mean_flow_1d_value,Aortic_inlet):
 
     import time
-    import CouplingTools1D_3Dv5
+    import CouplingTools1D_3Dv6
     # model_part1D: 1D.MDPA
     # config: initial conditions
     # simulation_config: Simulation conditions
@@ -17,7 +17,7 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # FFR_Inlet_NODES_Values
     # FFR_Outlet_NODES_Values
     Config_version="ONLY1D.PY:VERSION 04_June_2014_local"
-    transfer_obj = CouplingTools1D_3Dv5.TransferTools(model_part1D, model_part3D)
+    transfer_obj = CouplingTools1D_3Dv6.TransferTools(model_part1D, model_part3D)
     transfer_obj.Initialize()
     print(Config_version)    
     print("---------------------------------- FFR COMPUTATION ------------------------------------------")
@@ -67,15 +67,17 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # This variable is only for doing test A-B with the 1D model.
     Fit_control = False
     var_aux = True
-    pressure_factor = simulation_config.pressure_factor
-    Resistence_factor = simulation_config.Resistence_factor
-    Condition_Variable = simulation_config.Condition_Variable
+    hypermia_pressure_factor = config.hypermia_pressure_factor
+    hypermia_Resistence_factor = config.hypermia_Resistence_factor
+    hypermia_Condition_Variable = config.hypermia_Condition_Variable
+    hypermia_flow_factor=config.hypermia_flow_factor
+    
     nro_cardiac_cycle = 1.0
-    diastolic_hypermia_pressure = pressure_factor * diastolic_hypermia_pressure
-    systolic_hypermia_pressure = pressure_factor * systolic_hypermia_pressure
+    diastolic_hypermia_pressure = hypermia_pressure_factor * diastolic_hypermia_pressure
+    systolic_hypermia_pressure = hypermia_pressure_factor * systolic_hypermia_pressure
 
     # Set Initial_conditions
-    Q_initial = simulation_config.Q_initial
+    Q_initial = hypermia_flow_factor*simulation_config.Q_initial
     P_initial = diastolic_hypermia_pressure
 
     transfer_obj.Setting3d(P_initial, blood_density, blood_viscosity)
@@ -153,15 +155,15 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     
     ToWriteIn_Summary = "-----------------------------------------------" + "\n"
     ToWriteIn_Summary += "Setting Hypermenia Conditions"+ "\n"
-    ToWriteIn_Summary +="Condition Variable to modify the TERMINAL_RESISTANCE: " + str(Condition_Variable) + "\n"
-    if(Condition_Variable):	  
+    ToWriteIn_Summary +="Condition Variable to modify the TERMINAL_RESISTANCE: " + str(hypermia_Condition_Variable) + "\n"
+    if(hypermia_Condition_Variable):	  
 	  #ToWriteIn_Summary+="Pressure imposed: " + str(PRESSURE_DT) + "\n"
-	  ToWriteIn_Summary+="Modify terminal resistence using factor of: " + str(Resistence_factor) + "\n"
+	  ToWriteIn_Summary+="Modify terminal resistence using factor of: " + str(hypermia_Resistence_factor) + "\n"
 	  for cond in model_part1D.Conditions:
 		for node in cond.GetNodes():
 			# cond.SetValue(PRESSURE_VENOUS,diastolic_hypermia_pressure)
 			#node.SetSolutionStepValue(PRESSURE_VENOUS, 0, diastolic_hypermia_pressure)
-			cond.SetValue(PRESSURE_DT, Resistence_factor)
+			cond.SetValue(PRESSURE_DT, hypermia_Resistence_factor)
 			#print (str(cond.GetValue(PRESSURE_DT)))
     # Initial Values. Set the intial pressure as reference for the 1D model
     # (all nodes take the systolic pressure and the initial flow)
