@@ -48,7 +48,7 @@ import embedded
 ProjectParameters.dem                                  = DEM_explicit_solver_var
 ProjectParameters.projection_module_option             = 1
 ProjectParameters.print_particles_results_option       = 0
-ProjectParameters.add_each_hydro_force_option          = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)
+ProjectParameters.add_each_hydro_force_option          = 0 # add each of the hydrodynamic forces (drag, lift and virtual mass)
 ProjectParameters.project_at_every_substep_option      = 0
 ProjectParameters.velocity_trap_option                 = 0
 ProjectParameters.inlet_option                         = 1
@@ -66,7 +66,7 @@ ProjectParameters.print_BUOYANCY_option                = 1
 ProjectParameters.print_DRAG_FORCE_option              = 1
 ProjectParameters.print_VIRTUAL_MASS_FORCE_option      = 1
 ProjectParameters.print_LIFT_FORCE_option              = 1
-ProjectParameters.print_SOLID_FRACTION_option          = 1
+ProjectParameters.print_SOLID_FRACTION_option          = 0
 ProjectParameters.print_FLUID_FRACTION_option          = 1
 ProjectParameters.print_MESH_VELOCITY1_option          = 1
 ProjectParameters.print_FLUID_FRACTION_GRADIENT_option = 1
@@ -76,7 +76,7 @@ ProjectParameters.print_HYDRODYNAMIC_FORCE_option      = 1
 ProjectParameters.similarity_transformation_type       = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type               = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.fluid_model_type                     = 0 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)
-ProjectParameters.coupling_level_type                  = 1 # one way coupling (0), two way coupling (1)
+ProjectParameters.coupling_level_type                  = 0 # one way coupling (0), two way coupling (1)
 ProjectParameters.coupling_scheme_type                 = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type               = 3 # {fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)
 ProjectParameters.buoyancy_force_type                  = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
@@ -101,26 +101,13 @@ ProjectParameters.shape_factor                         = 1.0 # the density funct
 # defining and adding imposed porosity fields
 ProjectParameters.fluid_fraction_fields = []
 field1 = swim_proc.FluidFractionFieldUtility.LinearField(0.0,
-                                                                       [0.0, 0.0, 0.0],
-                                                                       [-1.0, -1.0, 0.15],
-                                                                       [1.0, 1.0, 0.3])
+                                                         [0.0, 0.0, 0.0],
+                                                         [-1.0, -1.0, 0.15],
+                                                         [1.0, 1.0, 0.3])
 ProjectParameters.fluid_fraction_fields.append(field1)
 
-# constructing lists of variables to be printed
-vars_man.ConstructListsOfResultsToPrint(ProjectParameters)
-
-# performing some extra changes on Project Parameters, ensuring consistency in the input
-vars_man.ModifyProjectParameters(ProjectParameters)
-
-# constructing lists of variables to add
-# * Choosing the variables to be passed as a parameter to the constructor of a ProjectionModule
-#       instance to be filled with the other phase's info through the coupling process
-# * Listing nodal variables to be added to the model parts (memory will be allocated for them).
-#       Note that additional variables may be added as well by the fluid and/or DEM strategies.
+# building lists of variables for which memory is to be allocated
 vars_man.ConstructListsOfVariables(ProjectParameters)
-
-#print (ProjectParameters.dem_vars)
-#print (ProjectParameters.fem_dem_vars)
 
 #_____________________________________________________________________________________________________________________________________
 #
