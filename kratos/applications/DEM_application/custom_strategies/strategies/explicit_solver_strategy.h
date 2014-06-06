@@ -16,9 +16,7 @@
 // Project includes
 #include "utilities/timer.h"
 
-#include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
-
 #include "includes/variables.h"
 #include "DEM_application.h"
 
