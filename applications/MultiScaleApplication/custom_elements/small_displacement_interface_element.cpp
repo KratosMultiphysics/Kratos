@@ -738,7 +738,7 @@ namespace Kratos
 	{
 		noalias( generalizedStrains ) = prod( B, U );
 
-		SizeType ndim = GetGeometry().WorkingSpaceDimension();
+//		SizeType ndim = GetGeometry().WorkingSpaceDimension();
 
 		//double normalGap = generalizedStrains( ndim-1 );
 		//if(normalGap <= 0.0)
