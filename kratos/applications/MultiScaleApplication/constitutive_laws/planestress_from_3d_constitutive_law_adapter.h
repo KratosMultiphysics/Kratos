@@ -111,7 +111,7 @@ public:
      */
     virtual ConstitutiveLaw::Pointer Clone() const
 	{
-		return PlaneStressFrom3DConstitutiveLawAdapter::Pointer( new PlaneStressFrom3DConstitutiveLawAdapter( mpAdaptee->Clone() ) );
+        return PlaneStressFrom3DConstitutiveLawAdapter::Pointer( new PlaneStressFrom3DConstitutiveLawAdapter( MyBase::mpAdaptee->Clone() ) );
 	}
 
     /**
@@ -269,7 +269,7 @@ public:
 		KRATOS_TRY
 		MyBase::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 		
-		if(mpAdaptee->GetStrainSize() != 6)
+        if(MyBase::mpAdaptee->GetStrainSize() != 6)
 			KRATOS_ERROR( std::logic_error, "PlaneStressFrom3DConstitutiveLawAdapter - the strain size of the Adaptee material should be 6", "");
 		
 		return 0;
@@ -357,8 +357,7 @@ private:
 
 		// begin
 		int iter(0);
-		double tolerance = relative_tolerance;
-		bool converged = false;
+        double tolerance = relative_tolerance;
 		Matrix Czz(3, 3, 0.0);
 		Matrix invCzz(3, 3);
 		double dummy_det(0.0);
@@ -366,7 +365,7 @@ private:
 		for(iter = 0; iter < maxiter; iter++)
 		{
 			// calculate 3d material response
-			mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
+            MyBase::mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
 
 			// copy the condensed components
 			Czz(0,0) = tangent_3d(2,2);  Czz(0,1) = tangent_3d(2,4);  Czz(0,2) = tangent_3d(2,5);
@@ -382,11 +381,10 @@ private:
 				tolerance = Szz_norm * relative_tolerance;
 				if(tolerance < always_converged_tolerance)
 					tolerance = always_converged_tolerance;
-			}
+            }
 
 			// check convergence
 			if(Szz_norm <= tolerance) {
-				converged = true;
 				break;
 			}
 

@@ -111,7 +111,7 @@ public:
      */
     virtual ConstitutiveLaw::Pointer Clone() const
 	{
-		return ShellFrom3DConstitutiveLawAdapter::Pointer( new ShellFrom3DConstitutiveLawAdapter( mpAdaptee->Clone() ) );
+        return ShellFrom3DConstitutiveLawAdapter::Pointer( new ShellFrom3DConstitutiveLawAdapter( MyBase::mpAdaptee->Clone() ) );
 	}
 
     /**
@@ -268,7 +268,7 @@ public:
 		KRATOS_TRY
 		MyBase::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 		
-		if(mpAdaptee->GetStrainSize() != 6)
+        if(MyBase::mpAdaptee->GetStrainSize() != 6)
 			KRATOS_ERROR( std::logic_error, "ShellFrom3DConstitutiveLawAdapter - the strain size of the Adaptee material should be 6", "");
 		
 		return 0;
@@ -363,7 +363,7 @@ private:
 		for(iter = 0; iter < maxiter; iter++)
 		{
 			// calculate 3d material response
-			mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
+            MyBase::mpAdaptee->CalculateMaterialResponse(rValues3D, rStressMeasure);
 
 			Czz = tangent_3d(2,2);
 			Szz = stress_3d(2);

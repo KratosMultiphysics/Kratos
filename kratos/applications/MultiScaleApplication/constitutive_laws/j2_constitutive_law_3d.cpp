@@ -453,8 +453,7 @@ namespace Kratos
 
 
 	void J2ConstitutiveLaw3D::CalculateNumericalVersion(Parameters& rValues)
-	{
-		const Properties& props = rValues.GetMaterialProperties();
+    {
 		const Vector& eps = rValues.GetStrainVector();
 
 		Flags& options = rValues.GetOptions();

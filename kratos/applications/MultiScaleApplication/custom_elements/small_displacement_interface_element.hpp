@@ -80,12 +80,12 @@ namespace Kratos
 			, GapT2(0.0)
 			, LastGapT1(0.0)
 			, LastGapT2(0.0)
-			, IsSliding(false)
-			, WasSliding(false)
+            , IsSliding(false)
 			, Tau1(0.0)
 			, Tau2(0.0)
 			, LastTau1(0.0)
 			, LastTau2(0.0)
+            , WasSliding(false)
 		{
 		}
 
