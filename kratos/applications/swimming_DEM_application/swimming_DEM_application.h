@@ -24,6 +24,7 @@
 #include "includes/variables.h"
 #include "custom_elements/monolithic_dem_coupled.h"
 #include "custom_elements/monolithic_dem_coupled_weak.h"
+#include "custom_elements/spheric_swimming_particle.h"
 
 namespace Kratos
 {
@@ -162,6 +163,9 @@ private:
     const MonolithicDEMCoupledWeak<2> mMonolithicDEMCoupledWeak2D;
     /// 3D instance of the VMS element
     const MonolithicDEMCoupledWeak<3> mMonolithicDEMCoupledWeak3D;
+
+    /// swimming derivation of spheric basic DEM element (SphericParticle)
+    const SphericSwimmingParticle mSphericSwimmingParticle3D;
 
     //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const VariablesList mVariablesList;
