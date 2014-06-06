@@ -31,7 +31,6 @@
 #include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
-#include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/DEM_FEM_Particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_conditions/RigidFace.h"
@@ -121,16 +120,6 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, PREDEFINED_SKIN)
   // *************** Continuum only END ***************
 
-  // *************** Swimming only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(int, NON_NEWTONIAN_OPTION)
-  KRATOS_DEFINE_VARIABLE(int, MANUALLY_IMPOSED_DRAG_LAW_OPTION)
-  KRATOS_DEFINE_VARIABLE(int, DRAG_MODIFIER_TYPE)
-  KRATOS_DEFINE_VARIABLE(int, BUOYANCY_FORCE_TYPE)
-  KRATOS_DEFINE_VARIABLE(int, DRAG_FORCE_TYPE)
-  KRATOS_DEFINE_VARIABLE(int, VIRTUAL_MASS_FORCE_TYPE)
-  KRATOS_DEFINE_VARIABLE(int, LIFT_FORCE_TYPE)
-  // *************** Swimming only END ***************
-
   // COUNTING
 
   KRATOS_DEFINE_VARIABLE(int, NUM_OF_NEIGH)
@@ -141,13 +130,6 @@ namespace Kratos
   // TOLERANCES
 
   KRATOS_DEFINE_VARIABLE(double, DISTANCE_TOLERANCE)
-
-  
-
-  // *************** Swimming only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(double, POWER_LAW_TOLERANCE)
-  KRATOS_DEFINE_VARIABLE(int, FLUID_MODEL_TYPE)
-  // *************** Swimming only END ***************
 
   // TIME RELATED
 
@@ -213,16 +195,7 @@ namespace Kratos
 
   // *************** Continuum only END *************
 
-  // *************** Swimming only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(double, INIT_DRAG_FORCE)
-  KRATOS_DEFINE_VARIABLE(double, DRAG_LAW_SLOPE)
-  // *************** Swimming only END ***************
-
   // GEOMETRIC PARAMETERS
-
-  // *************** Swimming only BEGIN *************
-  KRATOS_DEFINE_VARIABLE(double, PARTICLE_SPHERICITY)
-  // *************** Swimming only END ***************
 
   KRATOS_DEFINE_VARIABLE(double, MAX_INDENTATION)
 
@@ -308,12 +281,6 @@ namespace Kratos
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_MOMENTUM)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_MOMENTUM)
-
-  // *************** Swimming only BEGIN *************
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LIFT_FORCE)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VIRTUAL_MASS_FORCE)
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BUOYANCY)
-  // *************** Swimming only END ***************
 
   // ENERGY
 
@@ -556,7 +523,6 @@ private:
     const CylinderContinuumParticle mCylinderContinuumParticle2D;
     const SphericParticle mSphericParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D;
-    const SphericSwimmingParticle mSphericSwimmingParticle3D;
 
     //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const DEM_FEM_Particle mDEM_FEM_Particle3D;

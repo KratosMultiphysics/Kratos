@@ -92,17 +92,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, PREDEFINED_SKIN)
   // *************** Continuum only END ***************
 
-  // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_VARIABLE(int, NON_NEWTONIAN_OPTION)
-  KRATOS_CREATE_VARIABLE(int, MANUALLY_IMPOSED_DRAG_LAW_OPTION)
-  KRATOS_CREATE_VARIABLE(int, DRAG_MODIFIER_TYPE)
-  KRATOS_CREATE_VARIABLE(int, BUOYANCY_FORCE_TYPE)
-  KRATOS_CREATE_VARIABLE(int, DRAG_FORCE_TYPE)
-  KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_FORCE_TYPE)
-  KRATOS_CREATE_VARIABLE(int, LIFT_FORCE_TYPE)
-  
-  // *************** Swimming only END ***************
-
   // COUNTING
 
   KRATOS_CREATE_VARIABLE(int, NUM_OF_NEIGH)
@@ -113,11 +102,6 @@ namespace Kratos
   // TOLERANCES
 
   KRATOS_CREATE_VARIABLE(double, DISTANCE_TOLERANCE)
-
-  // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, POWER_LAW_TOLERANCE)
-  KRATOS_CREATE_VARIABLE(int, FLUID_MODEL_TYPE)
-  // *************** Swimming only END ***************
 
   // TIME RELATED
 
@@ -186,16 +170,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, HIGH_POISSON_FORCE)
   // *************** Continuum only END *************
 
-  // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, INIT_DRAG_FORCE)
-  KRATOS_CREATE_VARIABLE(double, DRAG_LAW_SLOPE)
-  // *************** Swimming only END ***************
-
   // GEOMETRIC PARAMETERS
-
-  // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, PARTICLE_SPHERICITY)
-  // *************** Swimming only END ***************
 
   KRATOS_CREATE_VARIABLE(double, MAX_INDENTATION)
 
@@ -276,13 +251,6 @@ namespace Kratos
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MAX_ROTA_MOMENT)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_MOMENTUM)
-
-
-  // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(LIFT_FORCE)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VIRTUAL_MASS_FORCE)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BUOYANCY)
-  // *************** Swimming only END ***************
 
   // ENERGY
 
@@ -409,7 +377,6 @@ namespace Kratos
   mCylinderContinuumParticle2D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mSphericParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mDEM_FEM_Particle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
   mRigidFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -500,16 +467,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PREDEFINED_SKIN)
     // *************** Continuum only END ***************
 
-    // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(NON_NEWTONIAN_OPTION)
-    KRATOS_REGISTER_VARIABLE(MANUALLY_IMPOSED_DRAG_LAW_OPTION)
-    KRATOS_REGISTER_VARIABLE(DRAG_MODIFIER_TYPE)
-    KRATOS_REGISTER_VARIABLE(BUOYANCY_FORCE_TYPE)
-    KRATOS_REGISTER_VARIABLE(DRAG_FORCE_TYPE)
-    KRATOS_REGISTER_VARIABLE(VIRTUAL_MASS_FORCE_TYPE)
-    KRATOS_REGISTER_VARIABLE(LIFT_FORCE_TYPE)
-    // *************** Swimming only END ***************
-
     // COUNTING
 
     KRATOS_REGISTER_VARIABLE(NUM_OF_NEIGH)
@@ -520,11 +477,6 @@ namespace Kratos
     // TOLERANCES
 
     KRATOS_REGISTER_VARIABLE(DISTANCE_TOLERANCE)
-
-    // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(POWER_LAW_TOLERANCE)
-    KRATOS_REGISTER_VARIABLE(FLUID_MODEL_TYPE)
-    // *************** Swimming only END ***************
 
     // TIME RELATED
 
@@ -590,16 +542,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(HIGH_POISSON_FORCE)
     // *************** Continuum only END *************
 
-    // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(INIT_DRAG_FORCE)
-    KRATOS_REGISTER_VARIABLE(DRAG_LAW_SLOPE)
-    // *************** Swimming only END ***************
-
     // GEOMETRIC PARAMETERS
-
-    // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(PARTICLE_SPHERICITY)
-    // *************** Swimming only END ***************
 
     KRATOS_REGISTER_VARIABLE(MAX_INDENTATION)
 
@@ -683,12 +626,6 @@ namespace Kratos
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MAX_ROTA_MOMENT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_MOMENTUM)
-
-    // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(LIFT_FORCE)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VIRTUAL_MASS_FORCE)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BUOYANCY)
-    // *************** Swimming only END ***************
 
     // ENERGY
 
@@ -785,7 +722,6 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("CylinderContinuumParticle2D", mCylinderContinuumParticle2D)
     KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
     KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle3D", mDEM_FEM_Particle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
 		
