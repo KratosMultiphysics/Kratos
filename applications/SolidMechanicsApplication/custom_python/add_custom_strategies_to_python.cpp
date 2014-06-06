@@ -46,6 +46,12 @@
 #include "custom_strategies/custom_schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 
+// modified schemes for the new custom operations on nodal variables
+#include "custom_strategies/custom_schemes/residual_based_static_scheme_v2.hpp"
+#include "custom_strategies/custom_schemes/residual_based_newmark_scheme_v2.hpp"
+#include "custom_strategies/custom_schemes/residual_based_bossak_scheme_v2.hpp"
+
+
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -89,6 +95,10 @@ void  AddCustomStrategiesToPython()
     typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
 
+	//custom scheme types - modified
+	typedef ResidualBasedStaticScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType_V2;
+    typedef ResidualBasedNewmarkScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType_V2;
+    typedef ResidualBasedBossakScheme_V2< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType_V2;
 
     //custom convergence criterion types
     typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
@@ -176,6 +186,39 @@ void  AddCustomStrategiesToPython()
                 "ResidualBasedRelaxationScheme", init< double , double >() )
 
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+
+	//********************************************************************
+    //*************************SCHEME CLASSES*****************************
+	//****MODIFIED TO TEST THE NEW CUSTOM OPERATION ON NODAL VARIABLES****
+    //********************************************************************
+
+	// Static Scheme Type
+    class_< ResidualBasedStaticSchemeType_V2,
+	    bases< BaseSchemeType >, boost::noncopyable >
+            (
+	         "ResidualBasedStaticScheme_V2", init< >() )
+      
+            .def("Initialize", &ResidualBasedStaticSchemeType_V2::Initialize)
+            ;
+
+    // Residual Based Newmark Scheme Type
+    class_< ResidualBasedNewmarkSchemeType_V2,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedNewmarkScheme_V2", init< double >() )
+
+            .def("Initialize", &ResidualBasedNewmarkSchemeType_V2::Initialize)
+
+            ;
+
+    // Residual Based Bossak Scheme Type
+    class_< ResidualBasedBossakSchemeType_V2,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedBossakScheme_V2", init< double , double >() )
+
+            .def("Initialize", &ResidualBasedBossakSchemeType_V2::Initialize)
             ;
 
     //********************************************************************
