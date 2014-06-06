@@ -25,6 +25,8 @@ import MPIer
 
 if (mpi.rank == 0):
   MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
+  
+mpi.world.barrier()
 
 my_timer = Timer();
 balls_model_part = ModelPart("SpheresPart");
