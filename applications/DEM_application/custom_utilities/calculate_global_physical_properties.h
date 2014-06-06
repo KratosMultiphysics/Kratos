@@ -9,7 +9,6 @@
 #include "utilities/timer.h"
 #include "custom_utilities/create_and_destroy.h"
 
-#include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 
 #include "includes/variables.h"
