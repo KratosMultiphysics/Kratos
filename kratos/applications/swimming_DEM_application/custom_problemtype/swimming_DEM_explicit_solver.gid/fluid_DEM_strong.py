@@ -431,9 +431,9 @@ if (ProjectParameters.inlet_option):
             DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
 
-    # constructiong the inlet and intializing it
+    # constructiong the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type)
 
 # creating problem directories
 directories = ['results']
@@ -505,6 +505,8 @@ stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
 mesh_motion = DEMFEMUtilities()
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
+for node in balls_model_part.Nodes:
+    print(node.GetSolutionStepValue(eval("RADIUS"), 0))
 
 while (time <= final_time):
 
