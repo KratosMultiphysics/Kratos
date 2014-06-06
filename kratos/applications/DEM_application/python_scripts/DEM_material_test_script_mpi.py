@@ -324,13 +324,13 @@ class MaterialTest:
         self.bot_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
         prepare_check[3] = -1
 
-  	if(mpi.rank == 0 ):
+    if(mpi.rank == 0 ):
   
       prepare_check_gath[0] = mpi.gather(mpi.world,prepare_check[0],0)
       prepare_check_gath[1] = mpi.gather(mpi.world,prepare_check[1],0)
       prepare_check_gath[2] = mpi.gather(mpi.world,prepare_check[2],0)
       prepare_check_gath[3] = mpi.gather(mpi.world,prepare_check[3],0)
-	  
+  
       prepare_check[0] = reduce(lambda x,y: max(x,y), prepare_check_gath[0])
       prepare_check[1] = reduce(lambda x,y: max(x,y), prepare_check_gath[1])
       prepare_check[2] = reduce(lambda x,y: min(x,y), prepare_check_gath[2])
@@ -362,7 +362,7 @@ class MaterialTest:
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1] 
         total_force_bts += force_node_y
       
-	 if(mpi.rank == 0 ):
+    if(mpi.rank == 0 ):
       total_force_bts_gather = mpi.gather(mpi.world, total_force_bts, 0)
       total_force_bts = reduce(lambda x, y: x + y, total_force_bts_gather)
       
