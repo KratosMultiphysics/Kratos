@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/residualbased_incrementalupdate_variable_property_static_scheme.h"
+#include "custom_strategies/general_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -98,6 +99,12 @@ void  AddCustomStrategiesToPython()
 	    bases< ResidualBasedIncrementalUpdateStaticScheme <SparseSpaceType, LocalSpaceType> >, boost::noncopyable >
 	    (
 	    "ResidualBasedIncrementalUpdateStaticVariablePropertyScheme", init< >()
+	    );
+
+    class_< GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme< SparseSpaceType, LocalSpaceType>,
+	    bases< ResidualBasedIncrementalUpdateStaticScheme <SparseSpaceType, LocalSpaceType> >, boost::noncopyable >
+	    (
+	    "GeneralResidualBasedIncrementalUpdateStaticVariablePropertyScheme", init< >()
 	    );
 
 // 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
