@@ -73,7 +73,7 @@ class MaterialTest:
            
       if(self.parameters.TestType == "BTS"):
         
-		if(mpi.rank == 0):
+        if(mpi.rank == 0):
         
           self.bts_export = open(self.parameters.problem_name + "_bts" + ".grf", 'w');
         
@@ -374,8 +374,8 @@ class MaterialTest:
       if( self.parameters.TestType =="Hydrostatic"):
         
         radial_strain = -100*self.MeasureRadialStrain()
-		if(mpi.rank == 0):        
-		  self.volumetric_strain = self.strain + 2.0*radial_strain
+        if(mpi.rank == 0):        
+          self.volumetric_strain = self.strain + 2.0*radial_strain
 
       total_force_top = 0.0
       total_force_bot = 0.0
