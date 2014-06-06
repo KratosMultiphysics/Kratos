@@ -283,7 +283,8 @@ while(current_time < ending_time):
   conditions.SetIncrementalLoad(current_step, time_step);
 
   # print the results at the end of the step
-  execute_write = output_print.perform_time_operation(current_time)
+  #execute_write = output_print.perform_time_operation(current_time)
+  execute_write = False
   if(execute_write):
       clock_time = StartTimeMeasuring();
       current_id = output_print.operation_id()
@@ -294,6 +295,7 @@ while(current_time < ending_time):
       StopTimeMeasuring(clock_time, "Write Results");
 
   # print restart file
+  save_restart = False
   if(save_restart):
       execute_save = restart_print.perform_time_operation(current_time)
       if(execute_save):
