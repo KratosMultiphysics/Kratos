@@ -75,4 +75,4 @@ LoadRestart = False
 Restart_Step = 0
 
 problem_name="Shell_T3_Thin__DrillingRollUpStructuralAnalysis"
-problem_path="/home/jmaria/kratos/applications/SolidMechanicsApplication/test_examples/Shell_T3_Thin__DrillingRollUp.gid"
+problem_path="/home/kratos/applications/SolidMechanicsApplication/test_examples/Shell_T3_Thin__DrillingRollUp.gid"
