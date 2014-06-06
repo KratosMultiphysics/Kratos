@@ -26,7 +26,7 @@
 #include "discrete_particle_configure.h"
 #include "includes/define.h"
 #include "../../DEM_application/custom_elements/discrete_element.h"
-#include "../../DEM_application/custom_elements/spheric_swimming_particle.h"
+#include "custom_elements/spheric_swimming_particle.h"
 #include "includes/define.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "../../DEM_application/custom_elements/spheric_particle.h"
