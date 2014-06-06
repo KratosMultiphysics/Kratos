@@ -129,6 +129,9 @@ void  AddCustomUtilitiesToPython()
 	.def("SolidificationDuringFilling", &BiphasicFillingUtilities::SolidificationDuringFilling)  
 	.def("ViscosityBasedSolidification", &BiphasicFillingUtilities::ViscosityBasedSolidification)
 	.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation) 
+	.def("ComputePosetiveVolume", &BiphasicFillingUtilities::ComputePosetiveVolume)
+	.def("PosetiveVolumeCorrection", &BiphasicFillingUtilities::PosetiveVolumeCorrection)
+	
     ; 
 
 
