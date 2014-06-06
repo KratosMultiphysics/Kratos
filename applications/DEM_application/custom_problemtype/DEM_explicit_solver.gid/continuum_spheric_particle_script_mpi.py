@@ -36,8 +36,8 @@ RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 RigidFace_model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
 RigidFace_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
-RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
+if(DEM_parameters.PostGroupId):
+  RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
 
 # Importing the strategy object
 
@@ -178,6 +178,13 @@ if (DEM_parameters.Multifile == "single_file"):
 
    #ProceduresSetPredefinedSkin(balls_model_part)
 
+Procedures = DEM_procedures.Procedures(DEM_parameters)
+DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part)
+
+
+#Procedures.SetCustomSkin(balls_model_part)
+
+
 if(DEM_parameters.TestType != "None"):
  
  MaterialTest = DEM_material_test_script_mpi.MaterialTest(DEM_parameters, Procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
@@ -225,6 +232,7 @@ KRATOSprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 
 KRATOSprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
+mesh_motion = DEMFEMUtilities()
 #if(DEM_parameters.PoissonMeasure == "ON"):
   #MaterialTest.PoissonMeasure()
   
@@ -287,6 +295,13 @@ while (time < DEM_parameters.FinalTime):
       if(mpi.rank == 0):
         MaterialTest.PrintGraph(step)
 
+    #########################GENERAL_STUFF#########################################
+
+    if( DEM_parameters.TestType == "None"):
+
+      DEMFEMProcedures.MeasureForces()
+      DEMFEMProcedures.PrintGraph(time)
+
     ##########################___GiD IO____#########################################
     
     os.chdir(list_path)    
@@ -341,6 +356,7 @@ while (time < DEM_parameters.FinalTime):
         Procedures.PrintingBallsVariables(gid_io, balls_model_part, time)
         
         if (DEM_parameters.ContactMeshOption == "ON"):
+            solver.PrepareContactElementsForPrinting()
             Procedures.PrintingContactElementsVariables(gid_io, contact_model_part, time)
         
         os.chdir(main_path)     
