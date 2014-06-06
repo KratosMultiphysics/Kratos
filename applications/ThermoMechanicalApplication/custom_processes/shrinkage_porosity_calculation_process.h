@@ -193,23 +193,49 @@ public:
 			}
 			else // node is solidified and we add its shrinkage to the cluster
 			{
-				cluster_shrinkage += mNodalVolumes[i_node->Id() - 1] * shrinkage_factor;
+				cluster_shrinkage += mNodalVolumes[i_node->Id() - 1] * shrinkage_factor + mNodalShrinkage[i_node->Id() - 1];
 			}
 		}
 
-		
-        for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
-        {
-			mNodalShrinkage[i_node->Id() - 1] += cluster_shrinkage;
-		}
+		KRATOS_WATCH(cluster_shrinkage);
+		if(cluster_fluid_nodes)
+		{
+			cluster_shrinkage /= cluster_fluid_nodes;
 
-		if(cluster_fluid_nodes < 8)
+			for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+			{
+				if(i_node->GetSolutionStepValue(SOLID_FRACTION) < 1.00) // the node still is fluid
+					mNodalShrinkage[i_node->Id() - 1] += cluster_shrinkage;
+			}
+		}
+		else
 		{
 			for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
 			{
-				i_node->GetSolutionStepValue(MACRO_POROSITY) = mNodalShrinkage[i_node->Id() - 1];
+					i_node->GetSolutionStepValue(MACRO_POROSITY) = cluster_shrinkage;
 			}
+			//cluster_shrinkage /= cluster_nodes.size();
+
+			//for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+			//{
+			//		mNodalShrinkage[i_node->Id() - 1] = cluster_shrinkage;
+			//}
 		}
+
+		//if(cluster_fluid_nodes < 2)
+		//{
+		//	double final_shrinkage = 0.00;
+		//	for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+		//	{
+		//		//if(i_node->GetSolutionStepValue(SOLID_FRACTION) < 1.00) // the node still is fluid
+		//			final_shrinkage += mNodalShrinkage[i_node->Id() - 1];
+		//	}
+
+		//	for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+		//	{
+		//			i_node->GetSolutionStepValue(MACRO_POROSITY) = final_shrinkage;
+		//	}
+		//}
 
 
 			KRATOS_WATCH(cluster_nodes.size());
