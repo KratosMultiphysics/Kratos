@@ -34,6 +34,6 @@ def PerformInitialPartition(model_part, model_part_io_solid, input_file_name):
     print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+input_file_name+"_"+str(mpi.rank))
 
     my_input_filename = input_file_name + "_" + str(mpi.rank)
-    model_part_io_solid = ModelPartIO(my_input_filename)
+    model_part_io_solid = ModelPartIO(my_input_filename, True)
 
     return [model_part_io_solid, model_part]
