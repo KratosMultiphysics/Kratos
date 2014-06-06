@@ -149,10 +149,7 @@ class StructuralSolver:
         # check if everything is assigned correctly
         self.Check();
 
-        # initialize strategy solver
-        self.mechanical_solver.Initialize()
-
-        print(" [Initialization mechanical solver finished] ")
+        print(" [Assignation of the  mechanical solver finished] ")
 
     #
     def Solve(self):
@@ -171,6 +168,10 @@ class StructuralSolver:
         if(load_restart):
             # set solver as initialized if is a run which is restarted
             self.mechanical_solver.SetInitializePerformedFlag(True)
+        else:
+            # initialize strategy solver
+            self.mechanical_solver.Initialize()
+
     #
     def Clear(self):
         (self.solver).Clear()
