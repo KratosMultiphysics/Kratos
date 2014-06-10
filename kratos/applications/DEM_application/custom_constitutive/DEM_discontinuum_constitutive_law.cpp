@@ -6,9 +6,13 @@ namespace Kratos
   
     DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw()
     {
-        std::cout << " DEMDiscontinuumConstitutiveLaw constructor.." << std::endl;
+        //std::cout << " DEMDiscontinuumConstitutiveLaw constructor..." << std::endl;
 
     } // Class DEMDiscontinuumConstitutiveLaw
+    
+    DEMDiscontinuumConstitutiveLaw::DEMDiscontinuumConstitutiveLaw( const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw){
+        //std::cout << " DEMDiscontinuumConstitutiveLaw copy constructor..." << std::endl;
+    }
 
     int DEMDiscontinuumConstitutiveLaw::Initialize()
 
