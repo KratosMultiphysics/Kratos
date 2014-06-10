@@ -11,8 +11,11 @@
 
 #include <cmath>
 #include "containers/array_1d.h"
+#include "../../../kratos/includes/serializer.h"
 
-
+namespace Kratos
+{
+    
 class PropertiesProxy {
             
   public:
@@ -55,7 +58,7 @@ class PropertiesProxy {
           mDensity           = props.pGetDensity();
                   
           return *this;
-      };
+      }
            
   private:
       int     mId;
@@ -66,10 +69,37 @@ class PropertiesProxy {
       double *mLnOfRestitCoeff;
       double *mDensity;
       
+      
+      friend class Serializer;
+
+      virtual void save(Serializer& rSerializer) const
+      {
+          rSerializer.save("mId",mId);
+          rSerializer.save("mYoung",mYoung);
+          rSerializer.save("mPoisson",mPoisson);
+          rSerializer.save("mRollingFriction",mRollingFriction);
+          rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
+          rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);
+          rSerializer.save("mDensity",mDensity);
+
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+          rSerializer.load("mId",mId);
+          rSerializer.load("mYoung",mYoung);
+          rSerializer.load("mPoisson",mPoisson);
+          rSerializer.load("mRollingFriction",mRollingFriction);
+          rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
+          rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);
+          rSerializer.load("mDensity",mDensity);
+          
+
+      }
+      
 };
   
-namespace Kratos
-{
+
     namespace AuxiliaryFunctions
     {
 
