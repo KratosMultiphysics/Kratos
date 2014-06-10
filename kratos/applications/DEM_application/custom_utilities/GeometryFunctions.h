@@ -127,8 +127,15 @@ namespace Kratos
     static inline void CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector)
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
-      ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
-      ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+        ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+        ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+    }
+    
+    static inline void CrossProduct( double u[3], const array_1d<double,3>& v, double ReturnVector[3])
+    {
+    	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
+        ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+        ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
    //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F.Chun was for a more generalized case) 
