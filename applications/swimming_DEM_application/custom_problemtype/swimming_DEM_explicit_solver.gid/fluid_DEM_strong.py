@@ -494,7 +494,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
 ######################################################################################################################################
 
-#                      I N I T I A L I Z I N G    T I M E    L O O P     ...
+#                      I N I T I A L I Z I N G    T I M E    L O O P     ...   ( M I X E D    F L U I D / D E M    B L O C K )
 
 ######################################################################################################################################
 
@@ -505,8 +505,6 @@ stat_steps   = 0      # relevant to the stationarity assessment tool
 stationarity = False
 mesh_motion = DEMFEMUtilities()
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
-for node in balls_model_part.Nodes:
-    print(node.GetSolutionStepValue(eval("RADIUS"), 0))
 
 while (time <= final_time):
 
@@ -527,12 +525,12 @@ while (time <= final_time):
     # walls movement
     mesh_motion.MoveAllMeshes(fem_dem_model_part, time)
 
-    # Calculate elemental distances defining the structure embedded in the fluid mesh
+    # calculating elemental distances defining the structure embedded in the fluid mesh
     if (ProjectParameters.embedded_option): #S
         calculate_distance_process.Execute()
 
     #embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
-    # Calculate elemental distances defining the structure embedded in the fluid mesh
+    # calculating elemental distances defining the structure embedded in the fluid mesh
     #calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
     #calculate_distance_process.Execute()
     #calculate_DEM_distance_process.Execute()
