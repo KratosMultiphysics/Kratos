@@ -24,6 +24,8 @@ namespace Kratos
 
       DEMDiscontinuumConstitutiveLaw();
       
+      DEMDiscontinuumConstitutiveLaw( const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
+      
       int Initialize();
       
       void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
