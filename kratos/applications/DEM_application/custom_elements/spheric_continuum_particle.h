@@ -230,6 +230,7 @@ namespace Kratos
         virtual double GetInitialDelta(int index);
       
         void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
+        //void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
         virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
         //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
@@ -445,11 +446,17 @@ namespace Kratos
       virtual void save(Serializer& rSerializer) const
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
+          rSerializer.save("mContinuumGroup",mContinuumGroup);
+          rSerializer.save("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
+          rSerializer.save("mBondElements",mBondElements);                              
       }
 
       virtual void load(Serializer& rSerializer)
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
+          rSerializer.load("mContinuumGroup",mContinuumGroup);
+          rSerializer.load("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
+          rSerializer.load("mBondElements",mBondElements);
       }
       
       
