@@ -47,7 +47,6 @@ class SphericElementGlobalPhysicsCalculator
       {
           mInitialCenterOfMassAndMass = CalculateCenterOfMass(r_model_part);
           mInitialMass                = CalculateTotalMass(r_model_part);
-          mNumThreads                 = OpenMPUtils::GetNumThreads(); // it should not change during the simulation
       }
 
       /// Destructor.
@@ -60,25 +59,25 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateTotalVolume(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads, r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
           double added_volume = 0.0;
 
           #pragma omp parallel for reduction(+ : added_volume)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   const double& particle_radius = (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                  added_volume += particle_radius * particle_radius * particle_radius;
+                  added_volume += 4.0 / 3 * pi * particle_radius * particle_radius * particle_radius;
               }
 
           }
 
-        return 4.0 / 3 * KRATOS_M_PI * added_volume;
+        return added_volume;
       }
 
       //***************************************************************************************************************
       //***************************************************************************************************************
-      // Returns the minimum value of a double type nodal variable in the model part.
+      // Returns the minimum value of a double variable in the model part.
 
       double CalculateMaxNodalVariable(ModelPart& r_model_part, const Variable<double>& r_variable)
       {
@@ -94,20 +93,20 @@ class SphericElementGlobalPhysicsCalculator
             KRATOS_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
           }
 
-        double max_val = - std::numeric_limits<double>::max();
         Vector max_values;
-        max_values.resize(mNumThreads);
+        double max_val = - std::numeric_limits<double>::max();
+        max_values.resize(OpenMPUtils::GetNumThreads());
 
-        for (int k = 0; k < mNumThreads; k++){
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             max_values[k] = max_val;
           }
 
-        OpenMPUtils::CreatePartition(mNumThreads, pElements.size(), mElementsPartition);
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), mElementsPartition);
 
         unsigned int elem_counter;
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < mNumThreads; k++){
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             elem_counter = mElementsPartition[k];
 
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
@@ -120,7 +119,7 @@ class SphericElementGlobalPhysicsCalculator
 
         // getting the maximum between threads:
 
-        for (int k = 0; k < mNumThreads; k++){
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             max_val = std::max(max_val, max_values[k]);
           }
 
@@ -145,19 +144,19 @@ class SphericElementGlobalPhysicsCalculator
           }
 
         Vector min_values;
-        min_values.resize(mNumThreads);
         double min_val = std::numeric_limits<double>::max();
+        min_values.resize(OpenMPUtils::GetNumThreads());
 
-        for (int k = 0; k < mNumThreads; k++){
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             min_values[k] = min_val;
           }
 
-        OpenMPUtils::CreatePartition(mNumThreads, pElements.size(), mElementsPartition);
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), mElementsPartition);
 
         unsigned int elem_counter;
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < mNumThreads; k++){
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             elem_counter = mElementsPartition[k];
 
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
@@ -170,7 +169,7 @@ class SphericElementGlobalPhysicsCalculator
 
         // getting the minimum between threads:
 
-        for (int k = 0; k < mNumThreads; k++){
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             min_val = std::min(min_val, min_values[k]);
           }
 
@@ -183,14 +182,14 @@ class SphericElementGlobalPhysicsCalculator
       double CalculateD50(ModelPart& r_model_part)
       {
           const unsigned int size = r_model_part.GetCommunicator().LocalMesh().Elements().size();
-          OpenMPUtils::CreatePartition(mNumThreads, size, mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), size, mElementsPartition);
 
           Vector radii;
           radii.resize(size);
           unsigned int particle_counter = 0;
 
           #pragma omp parallel for private(particle_counter)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
               particle_counter = mElementsPartition[k];
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
@@ -199,7 +198,6 @@ class SphericElementGlobalPhysicsCalculator
                 }
 
             }
-
           if (particle_counter) {
             std::sort(radii.begin(), radii.end());
             int half   = div(size, 2).quot;
@@ -208,7 +206,6 @@ class SphericElementGlobalPhysicsCalculator
 
             return d50;
           }
-
           else {
             return 0.00;          
           }
@@ -219,12 +216,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateTotalMass(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads,r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double added_mass = 0.0;
 
           #pragma omp parallel for reduction(+ : added_mass)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
@@ -241,7 +238,7 @@ class SphericElementGlobalPhysicsCalculator
 
       array_1d<double, 3> CalculateCenterOfMass(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads, r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           const double total_mass_inv         = 1 / CalculateTotalMass(r_model_part);
           double cm_x = 0.0;
@@ -249,7 +246,7 @@ class SphericElementGlobalPhysicsCalculator
           double cm_z = 0.0;
 
           #pragma omp parallel for reduction(+ : cm_x, cm_y, cm_z)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
@@ -289,12 +286,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateKineticEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads, r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double kinetic_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : kinetic_energy)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   double particle_kinetic_energy;
@@ -312,12 +309,12 @@ class SphericElementGlobalPhysicsCalculator
 
       double CalculateElasticEnergy(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads, r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double potential_energy = 0.0;
 
           #pragma omp parallel for reduction(+ : potential_energy)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   double particle_contacts_potential_energy;
@@ -336,14 +333,14 @@ class SphericElementGlobalPhysicsCalculator
 
       array_1d<double, 3> CalculateTotalMomentum(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads, r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double m_x = 0.0;
           double m_y = 0.0;
           double m_z = 0.0;
 
           #pragma omp parallel for reduction(+ : m_x, m_y, m_z)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   array_1d<double, 3> particle_momentum;
@@ -368,7 +365,7 @@ class SphericElementGlobalPhysicsCalculator
 
       array_1d<double, 3> CalulateTotalAngularMomentum(ModelPart& r_model_part)
       {
-          OpenMPUtils::CreatePartition(mNumThreads, r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           const array_1d<double, 3> center_of_mass   = CalculateCenterOfMass(r_model_part);
           double am_x = 0.0;
@@ -376,7 +373,7 @@ class SphericElementGlobalPhysicsCalculator
           double am_z = 0.0;
 
           #pragma omp parallel for reduction(+ : am_x, am_y, am_z)
-          for (int k = 0; k < mNumThreads; k++){
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   array_1d<double, 3> particle_momentum;
@@ -512,9 +509,10 @@ class SphericElementGlobalPhysicsCalculator
         ///@}
         ///@name Member r_variables
         ///@{
-        int mNumThreads;
-        double mInitialMass;
+
         array_1d<double, 3> mInitialCenterOfMassAndMass;
+        double mInitialMass;
+
 
         ///@}
         ///@name Private Operators
