@@ -382,7 +382,7 @@ public:
     {
         KRATOS_TRY
 
-        if(mInitializeWasPerformed = true)
+        if(mInitializeWasPerformed == true)
 	  KRATOS_ERROR( std::logic_error, " Initialize was already performed ", mInitializeWasPerformed );
 
 	  
