@@ -66,7 +66,7 @@ import simulation_config
 import removal_tool
 import CouplingTools1D_3Dv6
 
-Config_version="ToRun.PY:VERSION 05_June_2014_local"
+Config_version="ToRun.PY:VERSION 10_June_2014_local"
 print(Config_version)
 #print("LOCAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLLLLLLLLLLLLL")
 #raw_input()
@@ -211,13 +211,13 @@ if (systolic_pressure < diastolic_pressure):
 	summary_file.write(ToWriteIn_Summary)
 	sys.exit("Proccess Kill")
 
-if (diastolic_pressure < diastolic_hypermia_pressure):
-	print("Please revise:: diastolic hypermia pressure and diastolic pressure:")
-	print("diastolic pressure -> ", systolic_pressure, "must be higher than diastolic hypermia_pressure-> ", diastolic_pressure)
-	print("Please check config file")
-	ToWriteIn_Summary += "diastolic pressure -> " +  str(systolic_pressure) + " must be higher than diastolic hypermia_pressure-> " + str(diastolic_pressure) + " Please check config file" + "\n"
-	summary_file.write(ToWriteIn_Summary)
-	sys.exit("Proccess Kill")
+#if (diastolic_pressure < diastolic_hypermia_pressure):
+	#print("Please revise:: diastolic hypermia pressure and diastolic pressure:")
+	#print("diastolic pressure -> ", systolic_pressure, "must be higher than diastolic hypermia_pressure-> ", diastolic_pressure)
+	#print("Please check config file")
+	#ToWriteIn_Summary += "diastolic pressure -> " +  str(systolic_pressure) + " must be higher than diastolic hypermia_pressure-> " + str(diastolic_pressure) + " Please check config file" + "\n"
+	#summary_file.write(ToWriteIn_Summary)
+	#sys.exit("Proccess Kill")
 
 # Select 1D mdpa file
 if (artery_type == 1):
@@ -298,11 +298,11 @@ else:
 #cardiac_cycle_to_3D=2
 			
 # select_centerline
+input_centerline_name = relative_path_1D + "centerline"
 ToWriteIn_Summary += "Name_model_1D: "
 ToWriteIn_Summary += str(input_file_name)
 ToWriteIn_Summary += "\n"
-if(Use_Catheter==True):
-	input_centerline_name = relative_path_1D + "centerline"
+if(Use_Catheter==True):	
 	print("1D CenterLine_Arterial model:::>>> ", input_centerline_name)
 	ToWriteIn_Summary += "Name_model_1D_centerline: "
 	ToWriteIn_Summary += str(input_centerline_name)
@@ -324,9 +324,10 @@ ToWriteIn_Summary += "Initial Flow: " + str(Q_initial) + "\n"
 ToWriteIn_Summary += "Initial Pressure: " + str(P_initial) + "\n"
 
 # Read_Centerline
-if(Use_Catheter==True):
-	model_part_io_centerline = ModelPartIO(input_centerline_name)
-	model_part_io_centerline.ReadModelPart(model_part_centerline)
+#if(Use_Catheter==True):
+model_part_io_centerline = ModelPartIO(input_centerline_name)
+model_part_io_centerline.ReadModelPart(model_part_centerline)
+
 
 # Preparing GiD FILES
 gid_mode = GiDPostMode.GiD_PostBinary
