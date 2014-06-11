@@ -1341,7 +1341,7 @@ private:
         array_1d<double, 3>& destination_data = pnode->FastGetSolutionStepValue(r_destination_variable, 0);
         const double& fluid_density  = pnode->FastGetSolutionStepValue(DENSITY, 0);
         const double& fluid_fraction = pnode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
-        array_1d<double, 3> neighbours_contribution;
+        array_1d<double, 3> neighbours_contribution = ZeroVector(3);;
 
         for (unsigned int i = 0; i < neighbours.size(); ++i){
             const array_1d<double, 3>& origin_data = neighbours[i]->FastGetSolutionStepValue(r_origin_variable, 0);
