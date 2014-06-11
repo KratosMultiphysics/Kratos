@@ -439,6 +439,41 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }
+      void FastGetForce()
+      {
+          KRATOS_TRY
+
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+          
+
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+
+              typename ElementsArrayType::iterator it_begin   = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end     = pElements.ptr_begin() + this->GetElementPartition()[k+1];
+
+              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                  SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                  spheric_particle.FirstCalculateRightHandSide(rCurrentProcessInfo);                  
+              } //loop over particles
+              
+              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                  SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                  spheric_particle.CollectCalculateRightHandSide(rCurrentProcessInfo);                  
+              } //loop over particles
+              
+              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                  SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                  spheric_particle.FinalCalculateRightHandSide(rCurrentProcessInfo);                  
+              } //loop over particles
+
+          } // loop threads OpenMP
+
+          KRATOS_CATCH("")
+      }
 
       virtual void PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
       {
@@ -780,7 +815,7 @@ namespace Kratos
                     SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*>( p_neighbour_element );
                     spheric_central_particle->mNeighbourElements.push_back( p_spheric_neighbour_particle );
 
-                    if( (*neighbour_it)->Id() != (*p_spheric_neighbour_particle).Id() ) KRATOS_ERROR(std::logic_error,"ELEEEEEEEEE",(*neighbour_it)->Id() );                                                
+                    //if( (*neighbour_it)->Id() != (*p_spheric_neighbour_particle).Id() ) KRATOS_ERROR(std::logic_error,"ELEEEEEEEEE",(*neighbour_it)->Id() );                                                
                 }
 
                 this->GetResults()[ResultCounter].clear();
@@ -805,7 +840,7 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        //ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
         
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -814,14 +849,12 @@ namespace Kratos
         for (int k = 0; k < this->GetNumberOfThreads(); k++){
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            double dummy;
             
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-           
-                (it)->Calculate(CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA, dummy, rCurrentProcessInfo);
-            
-              
+                Kratos::SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);           
+                //(it)->Calculate(CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA, dummy, rCurrentProcessInfo);
+                spheric_particle.ComputeNewNeighboursHistoricalData();
+                          
             }
 
         }

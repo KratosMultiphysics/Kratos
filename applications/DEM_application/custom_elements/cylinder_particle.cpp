@@ -87,48 +87,45 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          array_1d<double, 3> contact_force;
-          array_1d<double, 3> contact_moment;
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
           array_1d<double, 3> initial_rotation_moment;     
           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
 
-          contact_force.clear();
-          contact_moment.clear();
+          mContactForce.clear();
+          mContactMoment.clear();
           additionally_applied_force.clear();
           additionally_applied_moment.clear();
           initial_rotation_moment.clear();
           elastic_force.clear();
 
-          ComputeNewNeighboursHistoricalData();
+          bool multi_stage_RHS = false;
 
-          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
+          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, multi_stage_RHS );
 
-          /*if (mLimitSurfaceOption > 0){
+          //Cfeng,RigidFace
+          if( mFemOldNeighbourIds.size() > 0)
+          {
+            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo);
+          }
+              
+          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
 
-              for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
-                  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
-              }
-          }*/
           
-          /*if (mLimitCylinderOption > 0){
-
-              for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
-                  ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
-              }
-          }*/
+          rRightHandSideVector[0] = mContactForce[0]  + additionally_applied_force[0];
+          rRightHandSideVector[1] = mContactForce[1]  + additionally_applied_force[1];
+          rRightHandSideVector[2] = mContactForce[2]  + additionally_applied_force[2];
+          rRightHandSideVector[3] = mContactMoment[0] + additionally_applied_moment[0];
+          rRightHandSideVector[4] = mContactMoment[1] + additionally_applied_moment[1];
+          rRightHandSideVector[5] = mContactMoment[2] + additionally_applied_moment[2];
           
-          ComputeAdditionalForces(contact_force, contact_moment, additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
+          array_1d<double,3>& total_forces  = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+          array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
 
-          rRightHandSideVector[0] = contact_force[0]  + additionally_applied_force[0];
-          rRightHandSideVector[1] = contact_force[1]  + additionally_applied_force[1];
-          rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
-          //rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
-          rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
-          rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[0];
-          rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
-          //rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
+          for (int i = 0; i < 3; i++){
+              total_forces[i] = rRightHandSideVector[i];
+              total_moment[i] = rRightHandSideVector[3 + i];
+          }	  
 
           KRATOS_CATCH( "" )
       }
