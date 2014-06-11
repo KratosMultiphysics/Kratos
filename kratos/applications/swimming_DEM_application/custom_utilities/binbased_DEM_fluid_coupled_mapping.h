@@ -680,7 +680,7 @@ private:
         geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
 
         array_1d<double, 3> vorticity = ZeroVector(3);
-        array_1d<double, 3> derivatives;
+        array_1d<double, 3> derivatives = ZeroVector(3);
 
         const unsigned int n_nodes = geom.PointsNumber();
 
