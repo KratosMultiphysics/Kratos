@@ -665,7 +665,8 @@ protected:
 		const double Eps = 1.0e-8;
 		double A =-0.1;
 		double B = 0.1;
-		double C, D, E, Xm, P, Q, R, S, Min1, Min2, ResA, ResB, ResC, Tol;
+		double C,/* D, E, */Xm, P, Q, R, S, Min1, Min2, ResA, ResB, ResC, Tol;
+                double D=0.0, E=0.0;
 
 		for (SizeType k=0; k < 10; ++k)
 		{
