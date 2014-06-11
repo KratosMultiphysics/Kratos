@@ -12,6 +12,9 @@ ApplicationsRoot = KratosRoot + "applications/"
 
 os.chdir(ApplicationsRoot)
 
+# SolidMechanicsApplication
+os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
+
 # PFEM
 os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
 # os.chdir("PFEMapplication/test_examples")
