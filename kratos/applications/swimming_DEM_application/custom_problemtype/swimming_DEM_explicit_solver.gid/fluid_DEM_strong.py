@@ -48,7 +48,7 @@ import embedded
 ProjectParameters.dem                                  = DEM_explicit_solver_var
 ProjectParameters.projection_module_option             = 1
 ProjectParameters.print_particles_results_option       = 0
-ProjectParameters.add_each_hydro_force_option          = 0 # add each of the hydrodynamic forces (drag, lift and virtual mass)
+ProjectParameters.add_each_hydro_force_option          = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)
 ProjectParameters.project_at_every_substep_option      = 0
 ProjectParameters.velocity_trap_option                 = 0
 ProjectParameters.inlet_option                         = 1

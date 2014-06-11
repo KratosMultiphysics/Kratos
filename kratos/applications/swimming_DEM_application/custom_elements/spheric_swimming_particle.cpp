@@ -47,9 +47,7 @@ namespace Kratos
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-      void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force,
-                                                            array_1d<double, 3>& contact_moment,
-                                                            array_1d<double, 3>& additionally_applied_force,
+      void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                                             array_1d<double, 3>& additionally_applied_moment,
                                                             ProcessInfo& rCurrentProcessInfo)
       {
@@ -57,8 +55,9 @@ namespace Kratos
 
           const array_1d<double, 3>& gravity = rCurrentProcessInfo[GRAVITY];
           const double& fluid_density        = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-                  const double mass                  = mSqrtOfRealMass * mSqrtOfRealMass;
-              array_1d<double, 3> buoyancy;
+          const double mass                  = mSqrtOfRealMass * mSqrtOfRealMass;
+          
+          array_1d<double, 3> buoyancy;
           array_1d<double, 3> drag_force;
           array_1d<double, 3> lift_force;
           array_1d<double, 3> virtual_mass_force;
@@ -116,7 +115,7 @@ namespace Kratos
 
       void SphericSwimmingParticle::ComputeBuoyancy(array_1d<double, 3>& buoyancy, const double& fluid_density, const array_1d<double, 3>& gravity, ProcessInfo& rCurrentProcessInfo)
       {
-
+          
           if (mBuoyancyForceType == 0 || fluid_density < 0.00000000001  || GetGeometry()[0].Is(BLOCKED)){ // case of identically null buoyancy
               noalias(buoyancy) = ZeroVector(3);
               return;
