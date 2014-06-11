@@ -733,7 +733,7 @@ namespace Kratos
           for(int i = 0; i < mpi_size; i++)
           {   
               std::cout << "Adding " << RecvObjects[i].size() << " from process " << i << std::endl;
-              for( int j = 0; j < RecvObjects[i].size(); j++)
+              for( unsigned int j = 0; j < RecvObjects[i].size(); j++)
               {
                   mModelPart.GetMesh(groupId).Nodes().push_back(mModelPart.pGetNode(RecvObjects[i][j]));
               }
