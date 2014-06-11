@@ -64,7 +64,6 @@ def ConstructListsOfVariables(pp):
 
     # dem variables
     pp.dem_vars = []
-    pp.dem_vars += [SOLID_FRACTION]
     pp.dem_vars += pp.dem_printing_vars
     pp.dem_vars += pp.coupling_dem_vars
 
@@ -131,6 +130,9 @@ def ConstructListsOfResultsToPrint(pp):
         if (pp.lift_force_type > 0 and pp.print_LIFT_FORCE_option):
             pp.dem_nodal_results += ["LIFT_FORCE"]
 
+    # changes on the fluid variables to print for the sake of consistency
+    ChangeListOfFluidNodalResultsToPrint(pp)
+    
     pp.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
 
     pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
@@ -209,9 +211,6 @@ def ConstructListsOfVariablesForCoupling(pp):
 
 def ModifyProjectParameters(pp):
 
-    # changes on PROJECT PARAMETERS for the sake of consistency
-    ChangeListOfFluidNodalResultsToPrint(pp)
-
     # applying changes to input data to avoid inconsistencies
     ChangeInputDataForConsistency(pp)
 
@@ -239,8 +238,16 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
         pp.nodal_results += ["DISTANCE"]
 
 def ChangeInputDataForConsistency(pp):
+    pp.coupling_level_type = pp.dem.project_from_particles_option
     pp.dem.project_from_particles_option *= pp.projection_module_option
     pp.project_at_every_substep_option *= pp.projection_module_option
+    pp.lift_force_type *= pp.dem.consider_lift_force_option
+    pp.drag_modifier_type = pp.dem.drag_modifier_type
+    
+    if (pp.dem.VelocityTrapOption == "ON"):
+        pp.velocity_trap_option = 1
+    else: 
+        pp.velocity_trap_option = 0
 
     if (pp.flow_in_porous_medium_option):
         pp.coupling_weighing_type = - 1 # the fluid fraction is not projected from DEM (there may not be a DEM part) but is externally imposed
