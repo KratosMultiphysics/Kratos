@@ -13,14 +13,14 @@ kratos_path = '../../../../'  # kratos_root/
 kratos_benchmarking_path = '../../../../benchmarking'  # kratos_root/benchmarking
 
 import sys
-sys.path.append(kratos_lpath)
+sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
 # importing Kratos main library
 from KratosMultiphysics import *
 
 # importing applications
-from KratosMultiphysics.IncompressibleFluidApplicationimport *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
 
@@ -45,7 +45,7 @@ def BenchmarkCheck(time, node1, node2):
 
 # defining a model part
 model_part = ModelPart("FluidPart");
-print "aaa"
+print ("aaa")
 
 # importing the solver files and adding the variables
 import pfem_solver_ale
@@ -58,7 +58,7 @@ deformed_print_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 gid_io = GidIO("dam2d", gid_mode_flag, use_multifile, deformed_print_flag, write_conditions)
 gid_io.ReadModelPart(model_part)
-print model_part
+print (model_part)
 
 # the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
@@ -122,7 +122,7 @@ solver.Initialize(Dt, output_Dt)
 
 time = Dt
 for step in range(0, nsteps):
-    print "solution step =", step
+    print ("solution step =", step)
 
     new_Dt = solver.EstimateDeltaTime(min_dt, max_dt)
    # print "time = ", time, " new_Dt= ",new_Dt," step = ", step
@@ -134,17 +134,17 @@ for step in range(0, nsteps):
     # time = Dt*step
     model_part.CloneTimeStep(time)
 
-    print time
+    print (time)
     # print model_part.ProcessInfo()[TIME]
 
     # solving the fluid problem
-    print "qui"
+    print ("qui")
     if(step > 3):
         solver.Solve(time, gid_io)
 # if(step > 4):
 # solver.box_corner2[1] = 0.1
-    print "li"
+    print ("li")
 
     BenchmarkCheck(time, node_1, node_2)
 
-print "solution finished"
+print ("solution finished")
