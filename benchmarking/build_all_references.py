@@ -6,23 +6,24 @@ import benchmarking
 
 sys.path.append(".")
 
-CurrentDir = os.curdir
-KratosRoot = CurrentDir + "/../"
-ApplicationsRoot = KratosRoot + "applications/"
-
-os.chdir(ApplicationsRoot)
+CurrentDir = os.getcwd()
 
 # SolidMechanicsApplication
-os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
+os.chdir('../applications')
+os.chdir('./SolidMechanicsApplication/test_examples/')
+
 
 # PFEM
-os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
-# os.chdir("PFEMapplication/test_examples")
+os.chdir('../')
+os.chdir('../')
+os.chdir('./PFEMapplication/test_exemples')
 
 import pfem_build_references
 
 # Fluid Dynamics Application
-os.chdir(ApplicationsRoot + "FluidDynamicsApplication/test_examples")
+os.chdir('../')
+os.chdir('../')
+os.chdir('./FluidDynamicsApplication/test_examples')
 
 import fluid_dynamics_build_all_references
 
