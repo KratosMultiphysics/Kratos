@@ -106,28 +106,21 @@ namespace Kratos
             
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
-        //for (ParticleWeakIteratorType_ptr neighbour_iterator = mrNeighbours.ptr_begin(); neighbour_iterator != mrNeighbours.ptr_end(); neighbour_iterator++) {
         for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);    
 
-            //array_1d<double, 3 > other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*neighbour_iterator).lock())->GetGeometry()(0)->Coordinates();
             array_1d<double, 3 > other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
             
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                     other_to_me_vect[1] * other_to_me_vect[1] +
                     other_to_me_vect[2] * other_to_me_vect[2]);
 
-            //double radius_sum = mRadius + ((*neighbour_iterator).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-            //double radius_sum = mRadius + neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             double radius_sum = mRadius + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
 
-            //int r_other_continuum_group = ((*neighbour_iterator).lock())->GetGeometry()(0)->FastGetSolutionStepValue(COHESIVE_GROUP);
-            //int r_other_continuum_group = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(COHESIVE_GROUP);
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup;
 
             ini_size++;
-            //mIniNeighbourIds[ini_size - 1] = ((*neighbour_iterator).lock())->Id();
             mIniNeighbourIds[ini_size - 1] = neighbour_iterator->Id();
             mIniNeighbourFailureId[ini_size - 1] = 1;
             mMapping_New_Ini[ini_size - 1] = ini_size - 1;
@@ -328,8 +321,6 @@ namespace Kratos
           
           double total_equiv_area = 0.0;
 
-          //ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-          //int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
           int cont_ini_neighbours_size = mContinuumIniNeighbourElements.size();
           
           mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
@@ -337,10 +328,7 @@ namespace Kratos
           //computing the total equivalent area
           
           size_t index = 0;
-          
-          /*for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
-              ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-          {*/
+
           for(unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++ ){
               SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
               
@@ -551,9 +539,9 @@ namespace Kratos
             double LocalElasticContactForce[3]  = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double GlobalElasticContactForce[3] = {0.0};
 
-            GlobalElasticContactForce[0] = mOldNeighbourContactForces[i_neighbour_count][0];  
-            GlobalElasticContactForce[1] = mOldNeighbourContactForces[i_neighbour_count][1];
-            GlobalElasticContactForce[2] = mOldNeighbourContactForces[i_neighbour_count][2];
+            GlobalElasticContactForce[0] = mOldNeighbourElasticContactForces[i_neighbour_count][0];  
+            GlobalElasticContactForce[1] = mOldNeighbourElasticContactForces[i_neighbour_count][1];
+            GlobalElasticContactForce[2] = mOldNeighbourElasticContactForces[i_neighbour_count][2];
             
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); 
             //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
@@ -725,7 +713,7 @@ namespace Kratos
             
               
             AddUpForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                  GlobalElasticContactForce,ViscoDampingLocalContactForce/*,ViscoDampingGlobalContactForce*/,rContactForce,rElasticForce,
+                                  GlobalElasticContactForce,ViscoDampingLocalContactForce/*,ViscoDampingGlobalContactForce,rContactForce*/,rElasticForce,
                                   i_neighbour_count);
             
      
@@ -733,7 +721,7 @@ namespace Kratos
 
             //if(mRotationOption){
             if (this->Is(DEMFlags::HAS_ROTATION) ){
-              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,rInitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
+              ComputeMoments(LocalElasticContactForce[2],mOldNeighbourElasticContactForces[i_neighbour_count],rInitialRotaMoment,LocalCoordSystem[2],/*other_radius,rContactMoment,*/neighbour_iterator);
             }
 
             if(mContactMeshOption==1 && (mapping_new_cont !=-1) && this->Id() < neighbour_iterator_id) 
@@ -1121,7 +1109,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     mTempNeighboursIds.resize(temp_size);
     mTempNeighboursDelta.resize(temp_size);
     mTempNeighboursFailureId.resize(temp_size);
-    mTempNeighboursContactForces.resize(temp_size);
+    mTempNeighbourElasticContactForces.resize(temp_size);
+    mTempNeighbourTotalContactForces.resize(temp_size);
     mTempNeighboursMapping.resize(temp_size);
     mTempContNeighboursMapping.resize(temp_size);
     
@@ -1138,7 +1127,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
       double                ini_delta           = 0.0;
       int                   failure_id          = 1;
-      array_1d<double, 3>   neigh_forces        = vector_of_zeros;
+      array_1d<double, 3>   neigh_elastic_forces        = vector_of_zeros;
+      array_1d<double, 3>   neigh_total_forces        = vector_of_zeros;
       double                mapping_new_ini     = -1;  
       double                mapping_new_cont    = -1;
 
@@ -1161,7 +1151,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         {
           if ( static_cast<int>((i)->Id()) == mOldNeighbourIds[j])
           {
-            neigh_forces = mOldNeighbourContactForces[j];
+            neigh_elastic_forces = mOldNeighbourElasticContactForces[j];
+            neigh_total_forces   = mOldNeighbourTotalContactForces[j];
             break;
           }
         }
@@ -1182,7 +1173,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mTempContNeighboursMapping[neighbour_counter]     = mapping_new_cont;                
             mTempNeighboursDelta[neighbour_counter]            = ini_delta;
             mTempNeighboursFailureId[neighbour_counter]       = failure_id;
-            mTempNeighboursContactForces[neighbour_counter]   = neigh_forces;
+            mTempNeighbourElasticContactForces[neighbour_counter]   = neigh_elastic_forces;
+            mTempNeighbourTotalContactForces[neighbour_counter]   = neigh_total_forces;
             
             neighbour_counter++;
             
@@ -1194,7 +1186,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       mTempNeighboursIds.resize(final_size);
       mTempNeighboursDelta.resize(final_size);
       mTempNeighboursFailureId.resize(final_size);
-      mTempNeighboursContactForces.resize(final_size);
+      mTempNeighbourElasticContactForces.resize(final_size);
+      mTempNeighbourTotalContactForces.resize(final_size);
       mTempNeighboursMapping.resize(final_size);
       mTempContNeighboursMapping.resize(final_size);
       
@@ -1203,7 +1196,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       mOldNeighbourIds.swap(mTempNeighboursIds);
       mNeighbourDelta.swap(mTempNeighboursDelta);
       mNeighbourFailureId.swap(mTempNeighboursFailureId);
-      mOldNeighbourContactForces.swap(mTempNeighboursContactForces);
+      mOldNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
+      mOldNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
     
   } //ComputeNewNeighboursHistoricalData
   
@@ -1227,7 +1221,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
         std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
         std::vector<int>&                  temp_neighbours_failure_id = mTempNeighboursFailureId;
-        std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
+        std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighbourElasticContactForces;
         std::vector<int>&                  temp_neighbours_mapping = mTempNeighboursMapping;
         std::vector<int>&                  temp_cont_neighbours_mapping = mTempContNeighboursMapping;   
         
@@ -1290,7 +1284,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             {
               if (static_cast<int>(i->Id()) == mOldNeighbourIds[j])
               {
-                neigh_forces = mOldNeighbourContactForces[j];
+                neigh_forces = mOldNeighbourElasticContactForces[j];
                 break;
               }
 
@@ -1327,7 +1321,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mOldNeighbourIds.resize(neighbour_counter);
             mNeighbourDelta.resize(neighbour_counter);
             mNeighbourFailureId.resize(neighbour_counter);
-            mOldNeighbourContactForces.resize(neighbour_counter);
+            mOldNeighbourElasticContactForces.resize(neighbour_counter);
         }   
         
         for(unsigned int w=0; w<neighbour_counter; w++)
@@ -1337,7 +1331,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           mOldNeighbourIds[w]           = temp_neighbours_ids[w];
           mNeighbourDelta[w]            = temp_neighbours_delta[w];
           mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];
-          mOldNeighbourContactForces[w] = temp_neighbours_contact_forces[w];
+          mOldNeighbourElasticContactForces[w] = temp_neighbours_contact_forces[w];
         }
         
         
@@ -1374,7 +1368,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       std::vector<array_1d<double, 3> >& fem_temp_neighbours_contact_forces = mFemTempNeighboursContactForces;
       std::vector<int>&                  fem_temp_neighbours_mapping = mFemTempNeighboursMapping;
       
-    //       vector<int> mFemOldNeighbourIds;
+    //       vector<int> mFemOldNeighbourIds;te
     //       vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
     //       std::vector<int> mFemTempNeighboursIds;
     //       std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
@@ -1679,8 +1673,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
 
          
-     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
-                                                            array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
+     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
     {
           const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
 

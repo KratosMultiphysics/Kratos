@@ -313,9 +313,9 @@ namespace Kratos
               double GlobalElasticContactForce[3]      = {0.0};
 
 
-              GlobalElasticContactForce[0]             = mOldNeighbourContactForces[i_neighbour_count][0];
-              GlobalElasticContactForce[1]             = mOldNeighbourContactForces[i_neighbour_count][1];
-              GlobalElasticContactForce[2]             = mOldNeighbourContactForces[i_neighbour_count][2];
+              GlobalElasticContactForce[0]             = mOldNeighbourElasticContactForces[i_neighbour_count][0];
+              GlobalElasticContactForce[1]             = mOldNeighbourElasticContactForces[i_neighbour_count][1];
+              GlobalElasticContactForce[2]             = mOldNeighbourElasticContactForces[i_neighbour_count][2];
 
               GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
               GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
@@ -395,9 +395,9 @@ namespace Kratos
 
             GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
 
-            mOldNeighbourContactForces[i_neighbour_count][0] = GlobalElasticContactForce[0];
-            mOldNeighbourContactForces[i_neighbour_count][1] = GlobalElasticContactForce[1];
-            mOldNeighbourContactForces[i_neighbour_count][2] = GlobalElasticContactForce[2];
+            mOldNeighbourElasticContactForces[i_neighbour_count][0] = GlobalElasticContactForce[0];
+            mOldNeighbourElasticContactForces[i_neighbour_count][1] = GlobalElasticContactForce[1];
+            mOldNeighbourElasticContactForces[i_neighbour_count][2] = GlobalElasticContactForce[2];
 			
 			
 
