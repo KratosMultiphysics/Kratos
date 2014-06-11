@@ -157,7 +157,6 @@ proc ::KTables::TableFrameCreateDSets { w action } {
   		 -labelpady 0 \
   		 -showarrow 0 \
   		 -showseparators yes \
-		 -labelbg lightyellow \
 		 -xscrollcommand [list $hsb set] \
 		 -yscrollcommand [list $vsb set] \
 		 -resizablecolumns yes \
