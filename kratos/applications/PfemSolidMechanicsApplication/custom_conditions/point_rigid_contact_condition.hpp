@@ -566,4 +566,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_FORCE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED defined 
