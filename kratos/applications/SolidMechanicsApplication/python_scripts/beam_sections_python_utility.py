@@ -29,6 +29,8 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         print(("inertia", inertia))
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, cross_area)
+        mean_radius =  size_profile*0.5
+        BeamProperties.SetValue(MEAN_RADIUS, radius)
         return BeamProperties
 
     if(SectionType == "Circular"):
@@ -53,6 +55,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         print(("inertia", inertia))
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, circular_area)
+        BeamProperties.SetValue(MEAN_RADIUS, radius)
         return BeamProperties
 
     if(SectionType == "Rectangular"):
@@ -81,6 +84,8 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         print(("inertia", inertia))
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, square_area)
+        mean_radius = sqrt(square_area)
+        BeamProperties.SetValue(MEAN_RADIUS, mean_radius)
         return BeamProperties
 
 
