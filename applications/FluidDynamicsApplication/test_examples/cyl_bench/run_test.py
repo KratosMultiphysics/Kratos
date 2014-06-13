@@ -448,10 +448,9 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
             drag[2] += reaction[2]
 
         if (benchmarking.InBenchmarkingMode()):
-            if (benchmarking.InBuildReferenceMode()):
-                benchmarking.Output(drag, "drag", 1e-9, 1e-3)
-            else:
-                benchmarking.Output(drag, "drag", 1e-9, 1e-3)
+            benchmarking.Output(drag[0], "drag X", 1e-9, 1e-3)
+            benchmarking.Output(drag[1], "drag Y", 1e-9, 1e-3)
+            benchmarking.Output(drag[2], "drag Z", 1e-9, 1e-3)
 
         output = str(time) + " " + str(drag[0]) + " " + str(drag[1]) + " " + str(drag[2]) + "\n"
         # print drag_file_output_list[i]
