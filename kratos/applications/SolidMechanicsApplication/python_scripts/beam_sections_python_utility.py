@@ -40,7 +40,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
             print("Error, Section needs at least the size of section to be given in SectionData")
             raise
 
-        radius = SectionData[0]
+        radius = SectionData[0]*0.5
 
         shape = 'Circular'
 
