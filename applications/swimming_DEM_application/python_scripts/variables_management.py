@@ -34,13 +34,13 @@ def AddingDEMProcessInfoVariables(pp, dem_model_part):
 
 def ConstructListsOfVariables(pp):
 
+    # INPUT CHANGES FOR CONSISTENCY
+    # performing some extra changes on Project Parameters, ensuring consistency in the input
+    ChangeInputDataForConsistency(pp)
+
     # PRINTING VARIABLES
     # constructing lists of variables to be printed
     ConstructListsOfResultsToPrint(pp)
-
-    # INPUT CHANGES FOR CONCISTENCY
-    # performing some extra changes on Project Parameters, ensuring consistency in the input
-    ModifyProjectParameters(pp)
 
     # COUPLING VARIABLES
     # listing the variables involved in the fluid-particles coupling
@@ -92,6 +92,7 @@ def ConstructListsOfVariables(pp):
 
     # inlet variables
     pp.inlet_vars = pp.dem_vars
+   
 
 def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
@@ -127,7 +128,7 @@ def ConstructListsOfResultsToPrint(pp):
         if (pp.virtual_mass_force_type > 0 and pp.print_VIRTUAL_MASS_FORCE_option):
             pp.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
 
-        if (pp.lift_force_type > 0 and pp.print_LIFT_FORCE_option):
+        if (pp.print_LIFT_FORCE_option):
             pp.dem_nodal_results += ["LIFT_FORCE"]
 
     # changes on the fluid variables to print for the sake of consistency
@@ -149,6 +150,14 @@ def ConstructListsOfResultsToPrint(pp):
     for variable in pp.mixed_nodal_results:
         pp.dem_printing_vars += [eval(variable)]
         pp.fluid_printing_vars += [eval(variable)]
+        
+    for var in pp.mixed_nodal_results:
+
+        if var in pp.nodal_results:
+            pp.nodal_results.remove(var)
+            
+    if (not pp.print_PRESSURE_option):        
+        pp.nodal_results.remove("PRESSURE")
 
 def ConstructListsOfVariablesForCoupling(pp):
 
@@ -166,6 +175,9 @@ def ConstructListsOfVariablesForCoupling(pp):
 
     if (pp.fluid_model_type == 0 or pp.coupling_level_type == 1 or pp.drag_force_type == 4):
         pp.coupling_fluid_vars += [FLUID_FRACTION]
+        
+        if (pp.print_SOLID_FRACTION_option):
+            pp.coupling_fluid_vars += [SOLID_FRACTION]
 
     if (pp.fluid_model_type == 1):
         pp.coupling_fluid_vars += [FLUID_FRACTION_GRADIENT]
@@ -209,14 +221,10 @@ def ConstructListsOfVariablesForCoupling(pp):
        pp.coupling_dem_vars += [GEL_STRENGTH]
        pp.coupling_dem_vars += [YIELD_STRESS]
 
-def ModifyProjectParameters(pp):
-
-    # applying changes to input data to avoid inconsistencies
-    ChangeInputDataForConsistency(pp)
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
 
-    if (pp.coupling_level_type > 0 and pp.print_FLUID_FRACTION_option):
+    if (pp.print_FLUID_FRACTION_option):
         pp.nodal_results += ["FLUID_FRACTION"]
 
     if (pp.print_SOLID_FRACTION_option):
@@ -231,7 +239,7 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if (pp.body_force_on_fluid_option and pp.print_BODY_FORCE_option):
         pp.nodal_results += ["BODY_FORCE"]
 
-    if (pp.coupling_level_type > 0 and pp.print_HYDRODYNAMIC_REACTION_option):
+    if (pp.print_HYDRODYNAMIC_REACTION_option):
         pp.nodal_results += ["HYDRODYNAMIC_REACTION"]
 
     if (pp.embedded_option):
@@ -255,12 +263,6 @@ def ChangeInputDataForConsistency(pp):
     pp.time_steps_per_stationarity_step = max(1, int(pp.time_steps_per_stationarity_step)) # it should never be smaller than 1!
     pp.stationary_problem_option *= not pp.dem.project_from_particles_option
 
-    if (pp.dem.project_from_particles_option or pp.fluid_model_type == 0):
-        pp.coupling_level_type = 1
-
-    if (pp.coupling_level_type == 1):
-        pp.virtual_mass_force_type = 0
-
     #if (pp.coupling_level_type > 0 and not pp.body_force_on_fluid_option):
         #pp.coupling_level_type = 0
         #print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
@@ -270,7 +272,4 @@ def ChangeInputDataForConsistency(pp):
         #print()
         #print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
 
-    for var in pp.mixed_nodal_results:
 
-        if var in pp.nodal_results:
-            pp.nodal_results.remove(var)
