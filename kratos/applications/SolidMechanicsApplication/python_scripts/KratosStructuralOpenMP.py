@@ -223,8 +223,8 @@ else:
 # initialize step operations
 starting_step  = model_part.ProcessInfo[TIME_STEPS]
 starting_time  = model_part.ProcessInfo[TIME]
-ending_step    = general_variables.nsteps
-ending_time    = general_variables.nsteps * time_step
+#ending_step    = general_variables.nsteps
+ending_time    = general_variables.end_time
 
 
 output_print = operation_utils.TimeOperationUtility()
