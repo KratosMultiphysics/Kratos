@@ -3,6 +3,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
+from math import sqrt
+
 # SectionType: String containing the type of the section: "Rectangular", "IPN", "HEB", ...
 # SectionData: A list containing the data related to section: IPN -> [100], Rectangular -> [h,b] ...
 
