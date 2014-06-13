@@ -27,6 +27,7 @@
 #include "custom_strategies/residual_based_newton_raphson_strategy.hpp"
 #include "custom_strategies/component_wise_newton_raphson_strategy.hpp"
 #include "custom_strategies/residual_based_newton_raphson_line_search_strategy.hpp"
+#include "custom_strategies/explicit_strategy.hpp" 
 
 //builders and solvers
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
@@ -45,6 +46,7 @@
 #include "custom_strategies/custom_schemes/residual_based_contact_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
+#include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp" 
 
 // modified schemes for the new custom operations on nodal variables
 #include "custom_strategies/custom_schemes/residual_based_static_scheme_v2.hpp"
@@ -81,6 +83,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
     typedef ComponentWiseNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseNewtonRaphsonStrategyType;
     typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
+    typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
 
     //custom builder_and_solver types
     typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
@@ -94,9 +97,9 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
     typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
-
-	//custom scheme types - modified
-	typedef ResidualBasedStaticScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType_V2;
+  typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+  //custom scheme types - modified
+  typedef ResidualBasedStaticScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType_V2;
     typedef ResidualBasedNewmarkScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType_V2;
     typedef ResidualBasedBossakScheme_V2< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType_V2;
 
@@ -112,7 +115,7 @@ void  AddCustomStrategiesToPython()
     // Residual Based Builder and Solver
     class_< ResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
             (
-	      "ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ()
+        "ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ()
             );
 
     // Component Wise Builder and Solver
@@ -134,9 +137,9 @@ void  AddCustomStrategiesToPython()
 
     // Static Scheme Type
     class_< ResidualBasedStaticSchemeType,
-	    bases< BaseSchemeType >, boost::noncopyable >
+      bases< BaseSchemeType >, boost::noncopyable >
             (
-	         "ResidualBasedStaticScheme", init< >() )
+           "ResidualBasedStaticScheme", init< >() )
       
             .def("Initialize", &ResidualBasedStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
@@ -188,16 +191,25 @@ void  AddCustomStrategiesToPython()
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
-	//********************************************************************
+    // Explicit scheme: Central differences 
+    class_< ExplicitCentralDifferencesSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
+
+            .def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+
+  //********************************************************************
     //*************************SCHEME CLASSES*****************************
-	//****MODIFIED TO TEST THE NEW CUSTOM OPERATION ON NODAL VARIABLES****
+  //****MODIFIED TO TEST THE NEW CUSTOM OPERATION ON NODAL VARIABLES****
     //********************************************************************
 
-	// Static Scheme Type
+  // Static Scheme Type
     class_< ResidualBasedStaticSchemeType_V2,
-	    bases< BaseSchemeType >, boost::noncopyable >
+      bases< BaseSchemeType >, boost::noncopyable >
             (
-	         "ResidualBasedStaticScheme_V2", init< >() )
+           "ResidualBasedStaticScheme_V2", init< >() )
       
             .def("Initialize", &ResidualBasedStaticSchemeType_V2::Initialize)
             ;
@@ -246,14 +258,27 @@ void  AddCustomStrategiesToPython()
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
 
+    // Solid Mechanics Explicit Strategy
+    class_< ExplicitStrategyType, 
+      bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+       "ExplicitStrategy",
+       init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool
+       >())
+      
+           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+           .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
+           .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+      ;
+
 
     // Residual Based Newton-Raphson Strategy
     class_< ResidualBasedNewtonRaphsonStrategyType, 
-	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+      bases< BaseSolvingStrategyType >, boost::noncopyable >
             (
-	     "ResidualBasedNewtonRaphsonStrategy",
-	     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
-	     >())
+       "ResidualBasedNewtonRaphsonStrategy",
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
+       >())
       
            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
            .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
@@ -266,11 +291,11 @@ void  AddCustomStrategiesToPython()
 
     // Component Wise Newton-Raphson Strategy
     class_< ComponentWiseNewtonRaphsonStrategyType, 
-	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+      bases< BaseSolvingStrategyType >, boost::noncopyable >
             (
-	     "ComponentWiseNewtonRaphsonStrategy",
-	     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
-	     >())
+       "ComponentWiseNewtonRaphsonStrategy",
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
+       >())
       
            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
            .def("SetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::SetMaxIterationNumber)
@@ -283,11 +308,11 @@ void  AddCustomStrategiesToPython()
   
     // Residual Based Newton-Raphson Line Search Strategy
     class_< ResidualBasedNewtonRaphsonLineSearchStrategyType, 
-	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+      bases< BaseSolvingStrategyType >, boost::noncopyable >
             (
-	     "ResidualBasedNewtonRaphsonLineSearchStrategy",
-	     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
-	     >())
+       "ResidualBasedNewtonRaphsonLineSearchStrategy",
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
+       >())
       
            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
            .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetMaxIterationNumber)
@@ -297,7 +322,7 @@ void  AddCustomStrategiesToPython()
            .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
            .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
       ;
-	   
+     
 
 
 }
