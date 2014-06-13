@@ -73,6 +73,7 @@ ProjectParameters.print_FLUID_FRACTION_GRADIENT_option = 0
 ProjectParameters.print_BODY_FORCE_option              = 0
 ProjectParameters.print_HYDRODYNAMIC_REACTION_option   = 1
 ProjectParameters.print_HYDRODYNAMIC_FORCE_option      = 1
+ProjectParameters.print_PRESSURE_option                = 0
 ProjectParameters.similarity_transformation_type       = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type               = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.fluid_model_type                     = 0 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)
@@ -86,9 +87,6 @@ ProjectParameters.lift_force_type                      = 1 # null lift force (0)
 ProjectParameters.drag_modifier_type                   = 3 # Hayder (2), Chien (3) # problemtype option
 ProjectParameters.interaction_start_time               = 0.00
 ProjectParameters.min_fluid_fraction                   = 0.4
-#ProjectParameters.gel_strength                         = 0.0   # problemtype option
-#ProjectParameters.power_law_n                          = 0.0   # problemtype option
-#ProjectParameters.power_law_k                          = 0.0   # problemtype option
 ProjectParameters.initial_drag_force                   = 0.0   # problemtype option
 ProjectParameters.drag_law_slope                       = 0.0   # problemtype option
 ProjectParameters.power_law_tol                        = 0.0
@@ -124,8 +122,6 @@ variables_dictionary = {"PRESSURE"   : PRESSURE,
                         "BUOYANCY"   : BUOYANCY,   #    MOD.
                         "DRAG_FORCE" : DRAG_FORCE,  #    MOD.
                         "LIFT_FORCE" : LIFT_FORCE} #    MOD.
-#                        "REACTION": REACTION,
-#                        "DISTANCE": DISTANCE, }
 
 # defining a model part for the fluid part
 fluid_model_part = ModelPart("FluidPart")
