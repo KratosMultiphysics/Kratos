@@ -341,10 +341,9 @@ public:
         const int n_dem_elements = rdem_model_part.Elements().size();
         const int n_fluid_nodes = rfluid_model_part.Nodes().size();
 
-        #pragma omp parallel {
         if (IsDEMVariable(REYNOLDS_NUMBER)){
 
-            #pragma omp for
+            #pragma omp parallel for
             for (int i = 0; i < n_dem_elements; i++){
                 ElementIteratorType ielem = rdem_model_part.ElementsBegin() + i;
                 Geometry< Node<3> >& geom = ielem->GetGeometry();
@@ -355,7 +354,7 @@ public:
        
         if (IsFluidVariable(MESH_VELOCITY1)){
 
-            #pragma omp for
+            #pragma omp parallel for
             for (int i = 0; i < n_fluid_nodes; i++){
                 NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
                 double fluid_fraction                         = inode->FastGetSolutionStepValue(FLUID_FRACTION);
@@ -368,7 +367,7 @@ public:
 
         if (IsFluidVariable(SOLID_FRACTION)){
 
-            #pragma omp for
+            #pragma omp parallel for
             for (int i = 0; i < n_fluid_nodes; i++){
                 NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
                 double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION);
@@ -376,7 +375,6 @@ public:
               }
 
           }
-        }//#pragma omp parallel{
 
     }
 
