@@ -43,7 +43,12 @@ def AddVariables(model_part, config=None):
                 # add specific variables for the problem (pressure dofs)
                 model_part.AddNodalSolutionStepVariable(PRESSURE)
                 model_part.AddNodalSolutionStepVariable(PRESSURE_REACTION);
-
+        if hasattr(config, "time_integration_method"):
+            if config.time_integration_method == "Explicit" :
+                model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+                model_part.AddNodalSolutionStepVariable(RHS)
+                model_part.AddNodalSolutionStepVariable(MID_POS_VELOCITY)
+                
     print("variables for the structural solver added correctly")
 
 
@@ -75,6 +80,7 @@ class StructuralSolver:
     def __init__(self, model_part, domain_size):
 
         # default settings
+        
         self.echo_level = 0
         self.model_part = model_part
         self.domain_size = domain_size
@@ -84,7 +90,9 @@ class StructuralSolver:
 
         # definition of the solvers
         self.scheme_type = "Dynamic"
-
+        self.time_integration_method = "Implicit" 
+        self.explicit_integration_scheme = "CentralDifferences" #for explicit strategies
+             
         self.linear_solver = SkylineLUFactorizationSolver()
 
         # definition of the convergence criteria
@@ -117,6 +125,11 @@ class StructuralSolver:
 
         # definition of the (x_n+1 = x_n+dx) in each iteration -> strategy base class includes de MoveMesh method
         self.move_mesh_flag = True
+        
+        self.max_delta_time = 1e-5
+        self.fraction_delta_time = 0.9
+        self.time_step_prediction_level = 0
+        self.rayleigh_damping = True
 
         print("Construction structural solver finished")
 
@@ -128,22 +141,29 @@ class StructuralSolver:
 
         # creating the solution scheme:
         self.SetSolutionScheme()
+    
+        if(self.time_integration_method == "Implicit"):
 
-        # creating the convergence criterion:
-        self.SetConvergenceCriterion()
+          # creating the convergence criterion:
+          self.SetConvergenceCriterion()
 
-        # creating the solution strategy (application strategy or python strategy)
+          # creating the solution strategy (application strategy or python strategy)
 
-        # self.reform_step_dofs = False;
+          # self.reform_step_dofs = False;
 
-        if(self.component_wise):
-            self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-        else:
-            if(self.line_search):
-                self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-            else:
-                self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+          if(self.component_wise):
+              self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+          
+          else:
+              if(self.line_search):
+                  self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+              else:
+                  self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion, self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
 
+        if(self.time_integration_method == "Explicit"):
+
+          self.mechanical_solver = ExplicitStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+     
         (self.mechanical_solver).SetEchoLevel(self.echo_level)
 
         # check if everything is assigned correctly
@@ -153,9 +173,9 @@ class StructuralSolver:
 
     #
     def Solve(self):
-        print(" MECHANICAL SOLUTION START ")
+        #print(" MECHANICAL SOLUTION START ")
         (self.mechanical_solver).Solve()
-        print(" MECHANICAL SOLUTION PERFORMED ")
+        #print(" MECHANICAL SOLUTION PERFORMED ")
 
     #
     def SetEchoLevel(self, level):
@@ -197,43 +217,52 @@ class StructuralSolver:
     #
     def SetSolutionScheme(self):
 
-       # type of solver (static,dynamic,quasi-static,pseudo-dynamic)
-        if(self.scheme_type == "StaticSolver"):
-            self.mechanical_scheme = ResidualBasedStaticScheme()
-        elif(self.scheme_type == "DynamicSolver"):
-            # definition of time scheme
-            self.damp_factor_f = 0.00;
-            self.damp_factor_m = -0.01;
-            self.dynamic_factor = 1;
+        if(self.time_integration_method == "Explicit"):
             
-            self.model_part.ProcessInfo[RAYLEIGH_ALPHA] = 0.0
-            self.model_part.ProcessInfo[RAYLEIGH_BETA ] = 0.0
+            if(self.explicit_integration_scheme == "CentralDifferences"):
 
-            if(self.component_wise):
-                self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
-            else:
-                if(self.compute_contact_forces):
-                    self.mechanical_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m, self.dynamic_factor)
-                else:
-                    self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
-        elif(self.scheme_type == "QuasiStaticSolver"):
-            # definition of time scheme
-            self.damp_factor_f = 0.00;
-            self.damp_factor_m = 0.00;
-            self.dynamic_factor = 0;  # quasi-static
-            if(self.component_wise):
-                self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
-            else:
-                if(self.compute_contact_forces):
-                    self.mechanical_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m, self.dynamic_factor)
-                else:
-                    self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
-                # self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
-        elif(self.scheme_type == "PseudoDynamicSolver"):
-            # definition of time scheme
-            self.damp_factor_f = -0.3;
-            self.damp_factor_m = 10.0;
-            self.mechanical_scheme = ResidualBasedRelaxationScheme(self.damp_factor_f, self.damp_factor_m)
+                  self.mechanical_scheme = ExplicitCentralDifferencesScheme(self.max_delta_time, self.fraction_delta_time, self.time_step_prediction_level, self.rayleigh_damping)
+          
+        else:
+          
+          # type of solver for implicit solution method (static,dynamic,quasi-static,pseudo-dynamic)
+               
+          if(self.scheme_type == "StaticSolver"):
+              self.mechanical_scheme = ResidualBasedStaticScheme()
+          elif(self.scheme_type == "DynamicSolver"):
+              # definition of time scheme
+              self.damp_factor_f = 0.00;
+              self.damp_factor_m = -0.01;
+              self.dynamic_factor = 1;
+              
+              self.model_part.ProcessInfo[RAYLEIGH_ALPHA] = 0.0
+              self.model_part.ProcessInfo[RAYLEIGH_BETA ] = 0.0
+
+              if(self.component_wise):
+                  self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
+              else:
+                  if(self.compute_contact_forces):
+                      self.mechanical_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m, self.dynamic_factor)
+                  else:
+                      self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
+          elif(self.scheme_type == "QuasiStaticSolver"):
+              # definition of time scheme
+              self.damp_factor_f = 0.00;
+              self.damp_factor_m = 0.00;
+              self.dynamic_factor = 0;  # quasi-static
+              if(self.component_wise):
+                  self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m, self.dynamic_factor)
+              else:
+                  if(self.compute_contact_forces):
+                      self.mechanical_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m, self.dynamic_factor)
+                  else:
+                      self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m, self.dynamic_factor)
+                  # self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
+          elif(self.scheme_type == "PseudoDynamicSolver"):
+              # definition of time scheme
+              self.damp_factor_f = -0.3;
+              self.damp_factor_m = 10.0;
+              self.mechanical_scheme = ResidualBasedRelaxationScheme(self.damp_factor_f, self.damp_factor_m)
 
     #
     def SetConvergenceCriterion(self):
@@ -300,6 +329,12 @@ def CreateSolver(model_part, config):
 
     structural_solver = StructuralSolver(model_part, config.domain_size)
 
+    #Explicit scheme parameters
+    if(hasattr(config, "max_delta_time")):
+        structural_solver.max_delta_time = config.max_delta_time
+    if(hasattr(config, "time_step_prediction_level")):
+        structural_solver.time_step_prediction_level = config.time_step_prediction_level
+
     # definition of the convergence criteria
     if(hasattr(config, "convergence_criterion")):
         structural_solver.convergence_criterion_type = config.convergence_criterion
@@ -317,6 +352,11 @@ def CreateSolver(model_part, config):
     # definition of the global solver type
     if(hasattr(config, "scheme_type")):
         structural_solver.scheme_type = config.scheme_type
+    if(hasattr(config, "time_integration_method")):
+        structural_solver.time_integration_method = config.time_integration_method
+    if(hasattr(config, "explicit_integration_scheme")):
+        structural_solver.explicit_integration_scheme = config.explicit_integration_scheme
+
 
     # definition of the solver parameters
     if(hasattr(config, "ComputeReactions")):
