@@ -1,4 +1,4 @@
-KRATOS_BENCHMARK | Float | x velocity at node 303 | 0.0196331431583 | None | 1e-05
-KRATOS_BENCHMARK | Float | y velocity at node 303 | -0.000489544141211 | None | 1e-05
-KRATOS_BENCHMARK | Float | x velocity at node 312 | 0.182170202304 | None | 1e-05
-KRATOS_BENCHMARK | Float | x velocity at node 312 | 0.241270697531 | None | 1e-05
+KRATOS_BENCHMARK | Float | x velocity at node 303 | 1.963314315833E-02 | None | 1e-05
+KRATOS_BENCHMARK | Float | y velocity at node 303 | -4.895441412114E-04 | None | 1e-05
+KRATOS_BENCHMARK | Float | x velocity at node 312 | 1.821702023038E-01 | None | 1e-05
+KRATOS_BENCHMARK | Float | x velocity at node 312 | 2.412706975312E-01 | None | 1e-05
