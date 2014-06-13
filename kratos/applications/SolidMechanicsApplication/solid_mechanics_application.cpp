@@ -56,6 +56,10 @@ namespace Kratos
 {
 //Create Variables
 
+
+//For explicit schemes
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MID_POS_VELOCITY)
+
 //solution
 KRATOS_CREATE_VARIABLE(bool, COMPUTE_DYNAMIC_TANGENT )
 KRATOS_CREATE_VARIABLE(int, WRITE_ID )
@@ -427,7 +431,11 @@ void KratosSolidMechanicsApplication::Register()
 
     //Register Variables
 
+    //For explicit schemes
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MID_POS_VELOCITY)
+
     //solution
+    
     KRATOS_REGISTER_VARIABLE( COMPUTE_DYNAMIC_TANGENT )
     KRATOS_REGISTER_VARIABLE( WRITE_ID )
     KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME )
