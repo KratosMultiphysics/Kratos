@@ -341,25 +341,26 @@ public:
         const int n_dem_elements = rdem_model_part.Elements().size();
         const int n_fluid_nodes = rfluid_model_part.Nodes().size();
 
+        #pragma omp parallel {
         if (IsDEMVariable(REYNOLDS_NUMBER)){
 
-            #pragma omp parallel
+            #pragma omp for
             for (int i = 0; i < n_dem_elements; i++){
                 ElementIteratorType ielem = rdem_model_part.ElementsBegin() + i;
                 Geometry< Node<3> >& geom = ielem->GetGeometry();
-                double& reynolds_number = geom[0].FastGetSolutionStepValue(REYNOLDS_NUMBER, 0);
+                double& reynolds_number = geom[0].FastGetSolutionStepValue(REYNOLDS_NUMBER);
                 ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
               }
           }
-
+       
         if (IsFluidVariable(MESH_VELOCITY1)){
 
-            #pragma omp parallel
+            #pragma omp for
             for (int i = 0; i < n_fluid_nodes; i++){
                 NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
-                double fluid_fraction                         = inode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
-                const array_1d<double, 3>& darcy_vel          = inode->FastGetSolutionStepValue(VELOCITY, 0);
-                array_1d<double, 3>& space_averaged_fluid_vel = inode->FastGetSolutionStepValue(MESH_VELOCITY1, 0);
+                double fluid_fraction                         = inode->FastGetSolutionStepValue(FLUID_FRACTION);
+                const array_1d<double, 3>& darcy_vel          = inode->FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3>& space_averaged_fluid_vel = inode->FastGetSolutionStepValue(MESH_VELOCITY1);
                 space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
               }
 
@@ -367,14 +368,15 @@ public:
 
         if (IsFluidVariable(SOLID_FRACTION)){
 
-            #pragma omp parallel
+            #pragma omp for
             for (int i = 0; i < n_fluid_nodes; i++){
                 NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
-                double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
-                solid_fraction = 1 - inode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
+                double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION);
+                solid_fraction = 1.0 - inode->FastGetSolutionStepValue(FLUID_FRACTION);
               }
 
           }
+        }//#pragma omp parallel{
 
     }
 
@@ -911,8 +913,8 @@ private:
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
             for (NodesArrayType::iterator inode = this->GetNodePartitionBegin(rfluid_model_part, k); inode != this->GetNodePartitionEnd(rfluid_model_part, k); ++inode){
-                double& fluid_fraction = inode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
-                fluid_fraction = 1 - fluid_fraction / inode->FastGetSolutionStepValue(NODAL_AREA, 0);
+                double& fluid_fraction = inode->FastGetSolutionStepValue(FLUID_FRACTION);
+                fluid_fraction = 1 - fluid_fraction / inode->FastGetSolutionStepValue(NODAL_AREA);
 
                 if (fluid_fraction < mMinFluidFraction){
                     fluid_fraction = mMinFluidFraction;
@@ -940,10 +942,10 @@ private:
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        array_1d<double, 3>& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
-        const array_1d<double, 3>& node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3>& node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
+        array_1d<double, 3>& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
+        const array_1d<double, 3>& node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3>& node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3>& node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable);
 
         // copying this data in the position of the vector we are interested in
 
@@ -997,12 +999,12 @@ private:
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
-        const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
-        const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(r_origin_variable, 0);
+        const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable);
+        const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(r_origin_variable);
 
         const array_1d<double, 3 > & node0_data_prev = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
         const array_1d<double, 3 > & node1_data_prev = geom[1].FastGetSolutionStepValue(r_origin_variable, 1);
@@ -1031,10 +1033,10 @@ private:
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
-        const double node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
+        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
+        const double node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable);
+        const double node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable);
+        const double node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable);
 
         // copying this data in the position of the vector we are interested in
         step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data;
@@ -1055,11 +1057,11 @@ private:
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
-        const double node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node3_data = geom[3].FastGetSolutionStepValue(r_origin_variable, 0);
+        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
+        const double node0_data = geom[0].FastGetSolutionStepValue(r_origin_variable);
+        const double node1_data = geom[1].FastGetSolutionStepValue(r_origin_variable);
+        const double node2_data = geom[2].FastGetSolutionStepValue(r_origin_variable);
+        const double node3_data = geom[3].FastGetSolutionStepValue(r_origin_variable);
         step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
     }
 
@@ -1078,12 +1080,12 @@ private:
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
         // getting the data of the solution step
-        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
-        const double node0_data      = geom[0].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node1_data      = geom[1].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node2_data      = geom[2].FastGetSolutionStepValue(r_origin_variable, 0);
-        const double node3_data      = geom[3].FastGetSolutionStepValue(r_origin_variable, 0);
+        const double node0_data      = geom[0].FastGetSolutionStepValue(r_origin_variable);
+        const double node1_data      = geom[1].FastGetSolutionStepValue(r_origin_variable);
+        const double node2_data      = geom[2].FastGetSolutionStepValue(r_origin_variable);
+        const double node3_data      = geom[3].FastGetSolutionStepValue(r_origin_variable);
 
         const double node0_data_prev = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
         const double node1_data_prev = geom[1].FastGetSolutionStepValue(r_origin_variable, 1);
@@ -1104,7 +1106,7 @@ private:
         Variable<double>& r_destination_variable)
     {
         double shear_rate = CalculateNormOfSymmetricGradient(el_it->GetGeometry(), 0);
-        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        double& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
         step_data = shear_rate;
     }
@@ -1121,7 +1123,7 @@ private:
     {
         double shear_rate       = CalculateNormOfSymmetricGradient(el_it->GetGeometry(), 0);
         double prev_shear_rate  = CalculateNormOfSymmetricGradient(el_it->GetGeometry(), 1);
-        double& step_data       = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        double& step_data       = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
         step_data = alpha * shear_rate + (1.0 - alpha) * prev_shear_rate;
     }
@@ -1136,7 +1138,7 @@ private:
         Variable<array_1d<double, 3> >& r_destination_variable)
     {
         array_1d<double, 3> vorticity  = CalculateVorticity(el_it->GetGeometry(), 0);
-        array_1d<double, 3>& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        array_1d<double, 3>& step_data = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
         step_data = vorticity;
     }
@@ -1153,7 +1155,7 @@ private:
     {
         array_1d<double, 3> vorticity      = CalculateVorticity(el_it->GetGeometry(), 0);
         array_1d<double, 3> prev_vorticity = CalculateVorticity(el_it->GetGeometry(), 1);
-        array_1d<double, 3>& step_data     = (pnode)->FastGetSolutionStepValue(r_destination_variable, 0);
+        array_1d<double, 3>& step_data     = (pnode)->FastGetSolutionStepValue(r_destination_variable);
 
         step_data = alpha * vorticity + (1.0 - alpha) * prev_vorticity;
     }
@@ -1171,14 +1173,14 @@ private:
         // Geometry element of the origin model part
         Geometry< Node<3> >& geom              = el_it->GetGeometry();
         unsigned int i_nearest_node            = GetNearestNode(N);
-        const array_1d<double, 3>& origin_data = (pnode)->FastGetSolutionStepValue(r_origin_variable, 0);
-        const double fluid_fraction            = geom[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION, 0);
-        array_1d<double, 3>& destination_data  = geom[i_nearest_node].FastGetSolutionStepValue(r_destination_variable, 0);
+        const array_1d<double, 3>& origin_data = (pnode)->FastGetSolutionStepValue(r_origin_variable);
+        const double fluid_fraction            = geom[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION);
+        array_1d<double, 3>& destination_data  = geom[i_nearest_node].FastGetSolutionStepValue(r_destination_variable);
 
         if (r_origin_variable == HYDRODYNAMIC_FORCE){
-            const double density                       = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY, 0);
-            const double nodal_volume                  = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA, 0);
-            array_1d<double, 3>& old_drag_contribution = geom[i_nearest_node].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
+            const double density                       = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY);
+            const double nodal_volume                  = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA);
+            array_1d<double, 3>& old_drag_contribution = geom[i_nearest_node].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
             const double nodal_mass_inv                = mParticlesPerDepthDistance / (density * nodal_volume);
 
             for (unsigned int j= 0; j< TDim; j++){
@@ -1208,32 +1210,32 @@ private:
         // Geometry element of the origin model part
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-        const array_1d<double, 3>& origin_data = (pnode)->FastGetSolutionStepValue(r_origin_variable, 0);
-        array_1d<double, 3>& node0_data     = geom[0].FastGetSolutionStepValue(r_destination_variable, 0);
-        array_1d<double, 3>& node1_data     = geom[1].FastGetSolutionStepValue(r_destination_variable, 0);
-        array_1d<double, 3>& node2_data     = geom[2].FastGetSolutionStepValue(r_destination_variable, 0);
-        array_1d<double, 3>& node3_data     = geom[3].FastGetSolutionStepValue(r_destination_variable, 0);
+        const array_1d<double, 3>& origin_data = (pnode)->FastGetSolutionStepValue(r_origin_variable);
+        array_1d<double, 3>& node0_data     = geom[0].FastGetSolutionStepValue(r_destination_variable);
+        array_1d<double, 3>& node1_data     = geom[1].FastGetSolutionStepValue(r_destination_variable);
+        array_1d<double, 3>& node2_data     = geom[2].FastGetSolutionStepValue(r_destination_variable);
+        array_1d<double, 3>& node3_data     = geom[3].FastGetSolutionStepValue(r_destination_variable);
 
         if (r_origin_variable == HYDRODYNAMIC_FORCE){
-            array_1d<double, 3>& node0_drag = geom[0].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
-            array_1d<double, 3>& node1_drag = geom[1].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
-            array_1d<double, 3>& node2_drag = geom[2].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
-            array_1d<double, 3>& node3_drag = geom[3].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
+            array_1d<double, 3>& node0_drag = geom[0].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& node1_drag = geom[1].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& node2_drag = geom[2].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
+            array_1d<double, 3>& node3_drag = geom[3].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
 
-            const double fluid_fraction0    = geom[0].FastGetSolutionStepValue(FLUID_FRACTION, 0);
-            const double fluid_fraction1    = geom[1].FastGetSolutionStepValue(FLUID_FRACTION, 0);
-            const double fluid_fraction2    = geom[2].FastGetSolutionStepValue(FLUID_FRACTION, 0);
-            const double fluid_fraction3    = geom[3].FastGetSolutionStepValue(FLUID_FRACTION, 0);
+            const double fluid_fraction0    = geom[0].FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction1    = geom[1].FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction2    = geom[2].FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction3    = geom[3].FastGetSolutionStepValue(FLUID_FRACTION);
 
-            const double& node0_volume      = geom[0].FastGetSolutionStepValue(NODAL_AREA, 0);
-            const double& node1_volume      = geom[1].FastGetSolutionStepValue(NODAL_AREA, 0);
-            const double& node2_volume      = geom[2].FastGetSolutionStepValue(NODAL_AREA, 0);
-            const double& node3_volume      = geom[3].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const double& node0_volume      = geom[0].FastGetSolutionStepValue(NODAL_AREA);
+            const double& node1_volume      = geom[1].FastGetSolutionStepValue(NODAL_AREA);
+            const double& node2_volume      = geom[2].FastGetSolutionStepValue(NODAL_AREA);
+            const double& node3_volume      = geom[3].FastGetSolutionStepValue(NODAL_AREA);
 
-            const double& node0_density     = geom[0].FastGetSolutionStepValue(DENSITY, 0);
-            const double& node1_density     = geom[1].FastGetSolutionStepValue(DENSITY, 0);
-            const double& node2_density     = geom[2].FastGetSolutionStepValue(DENSITY, 0);
-            const double& node3_density     = geom[3].FastGetSolutionStepValue(DENSITY, 0);
+            const double& node0_density     = geom[0].FastGetSolutionStepValue(DENSITY);
+            const double& node1_density     = geom[1].FastGetSolutionStepValue(DENSITY);
+            const double& node2_density     = geom[2].FastGetSolutionStepValue(DENSITY);
+            const double& node3_density     = geom[3].FastGetSolutionStepValue(DENSITY);
 
             const double node0_mass_inv     = mParticlesPerDepthDistance / (fluid_fraction0 * node0_volume * node0_density);
             const double node1_mass_inv     = mParticlesPerDepthDistance / (fluid_fraction1 * node1_volume * node1_density);
@@ -1275,10 +1277,10 @@ private:
         i_nearest_node = GetNearestNode(N);
 
         // getting the data of the solution step
-        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS);
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-        (el_it->GetGeometry())[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION, 0) += particle_volume;
+        (el_it->GetGeometry())[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
     }
 
     //***************************************************************************************************************
@@ -1298,14 +1300,14 @@ private:
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N_2, element_volume);
 
         // getting the data of the solution step
-        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS);
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
         for (unsigned int inode = 0; inode < NN.size(); inode++){
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION, 0) += NN[inode] * particle_volume;
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[0] += DN_DX(inode, 0) * particle_volume;
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[1] += DN_DX(inode, 1) * particle_volume;
-            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT, 0)[2] += DN_DX(inode, 2) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION) += NN[inode] * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)[0] += DN_DX(inode, 0) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)[1] += DN_DX(inode, 1) * particle_volume;
+            geom[inode].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)[2] += DN_DX(inode, 2) * particle_volume;
           }
 
     }
@@ -1319,11 +1321,11 @@ private:
         Node<3>::Pointer inode)
     {
         // getting the data of the solution step
-        const double& radius         = (inode)->FastGetSolutionStepValue(RADIUS, 0);
+        const double& radius         = (inode)->FastGetSolutionStepValue(RADIUS);
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
         for (unsigned int inode = 0; inode < NN.size(); inode++){
-            (el_it->GetGeometry())[inode].FastGetSolutionStepValue(FLUID_FRACTION, 0) += NN[inode] * particle_volume;
+            (el_it->GetGeometry())[inode].FastGetSolutionStepValue(FLUID_FRACTION) += NN[inode] * particle_volume;
           }
 
     }
@@ -1338,13 +1340,13 @@ private:
         Variable<array_1d<double, 3> >& r_destination_variable,
         Variable<array_1d<double, 3> >& r_origin_variable)
     {
-        array_1d<double, 3>& destination_data = pnode->FastGetSolutionStepValue(r_destination_variable, 0);
-        const double& fluid_density  = pnode->FastGetSolutionStepValue(DENSITY, 0);
-        const double& fluid_fraction = pnode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
+        array_1d<double, 3>& destination_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+        const double& fluid_density  = pnode->FastGetSolutionStepValue(DENSITY);
+        const double& fluid_fraction = pnode->FastGetSolutionStepValue(FLUID_FRACTION);
         array_1d<double, 3> neighbours_contribution = ZeroVector(3);;
 
         for (unsigned int i = 0; i < neighbours.size(); ++i){
-            const array_1d<double, 3>& origin_data = neighbours[i]->FastGetSolutionStepValue(r_origin_variable, 0);
+            const array_1d<double, 3>& origin_data = neighbours[i]->FastGetSolutionStepValue(r_origin_variable);
             neighbours_contribution += origin_data * weights[i];
           }
 
@@ -1364,10 +1366,10 @@ private:
         const DistanceType& weights
         )
     {
-        double& destination_data = pnode->FastGetSolutionStepValue(FLUID_FRACTION, 0);
+        double& destination_data = pnode->FastGetSolutionStepValue(FLUID_FRACTION);
 
         for (unsigned int i = 0; i != neighbours.size(); ++i){
-            const double& radius = neighbours[i]->FastGetSolutionStepValue(RADIUS, 0);
+            const double& radius = neighbours[i]->FastGetSolutionStepValue(RADIUS);
             destination_data += weights[i] * radius * radius * radius;
           }
 
@@ -1400,8 +1402,8 @@ private:
 
               ClearVariable(node_it, FLUID_FRACTION);
 
-              array_1d<double, 3>& body_force                = node_it->FastGetSolutionStepValue(BODY_FORCE, 0);
-              array_1d<double, 3>& old_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION, 0);
+              array_1d<double, 3>& body_force                = node_it->FastGetSolutionStepValue(BODY_FORCE);
+              array_1d<double, 3>& old_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
               body_force -= old_hydrodynamic_reaction;
 
               noalias(old_hydrodynamic_reaction) = ZeroVector(3);
