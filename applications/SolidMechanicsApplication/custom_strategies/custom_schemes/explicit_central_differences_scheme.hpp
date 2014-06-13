@@ -530,7 +530,7 @@ public:
     {
         KRATOS_TRY
 
-        int thread = OpenMPUtils::ThisThread();
+ //       int thread = OpenMPUtils::ThisThread();
 
         //basic operations for the element considered
         (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
