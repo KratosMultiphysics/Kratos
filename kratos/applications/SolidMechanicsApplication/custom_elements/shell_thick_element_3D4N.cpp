@@ -1,4 +1,3 @@
-﻿//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
 //   Date:                $Date: 2013-10-03 19:00:00 $
