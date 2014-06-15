@@ -380,7 +380,7 @@ public:
 
 		inline void SetConstitutiveLawAt(IntegrationPointCollection::size_type integrationPointID, const ConstitutiveLaw::Pointer& pNewConstitutiveLaw)
 		{
-			if(integrationPointID >= 0 && integrationPointID < mIntegrationPoints.size())
+			if(integrationPointID < mIntegrationPoints.size())
 				mIntegrationPoints[integrationPointID].SetConstitutiveLaw(pNewConstitutiveLaw);
 		}
 		
@@ -975,7 +975,7 @@ public:
 	*/
 	inline SizeType NumberOfIntegrationPointsAt(SizeType ply_id)const
 	{
-		if(ply_id >= 0 && ply_id < mStack.size())
+		if(ply_id < mStack.size())
 			return mStack[ply_id].NumberOfIntegrationPoints();
 		return 0;
 	}
@@ -987,10 +987,8 @@ public:
 	*/
 	inline void SetConstitutiveLawAt(SizeType ply_id, SizeType point_id, const ConstitutiveLaw::Pointer& pNewConstitutiveLaw)
 	{
-		if(ply_id >= 0 && ply_id < mStack.size())
-		{
+		if(ply_id < mStack.size())
 			mStack[ply_id].SetConstitutiveLawAt(point_id, pNewConstitutiveLaw);
-		}
 	}
 
 	/**
