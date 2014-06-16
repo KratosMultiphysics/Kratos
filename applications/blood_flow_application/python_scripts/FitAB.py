@@ -65,8 +65,8 @@ class Fitter:
         A = (b1 / a11) - ((a12 * B) / a11)
         ToWrite = str(A) + " " + str(B) + "\n"
         ffit_1d[k].write(ToWrite)
-        return [self.node_id, A, B]
-
+        return [self.node_id, A, B]       
+        
     def DoFitting_3D_2(self, k, ffit_3d):
         print("DoFitting_3D_2: (Q positivo)")
         a11 = 0.0
