@@ -37,7 +37,7 @@ class TransferTools:
       self.Aprime = []
       self.Bprime = []
       # compute normals and 3d areas
-      Coupling_version="CoupledTool1D_3Dv6.py:05_06_2014"
+      Coupling_version="CoupledTool1D_3Dv6.py:10_06_2014"
       print(Coupling_version)
  
       #ThrowErrors = False
@@ -309,22 +309,45 @@ class TransferTools:
 	  Total_area_outlet = Total_area_outlet + area3d
 	  print("area3d_outlet", Total_area_outlet)
       Total_area_outlet = Total_area_outlet / len(self.inlets_3d)
-    
+      
       for prop in self.model_part_1d.Properties:
-	A_prime = 0.0
-	B_prime = 0.0
-	if (prop.Id == config.deactivate_list[0]):
-	    Reference_Radius = prop.GetValue(RADIUS)
-	    Reference_viscosity = simulation_config.blood_static_viscosity
-	    Reference_density = simulation_config.blood_density
-	    Area_Stenosis = 0.5 * Total_area_outlet
-	    A_prime = (8 * Reference_viscosity) / (3.1416 * math.pow(Reference_Radius, 4))
-	    B_prime = (Reference_density) * ((Total_area_outlet / Area_Stenosis) - 1) * ((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
-	    self.Aprime.append(A_prime)
-	    self.Bprime.append(B_prime)
-	    # print "A_prime",A_prime
-	    # print "B_prime",B_prime
-	    break
+	  A_prime = 0.0
+	  B_prime = 0.0
+	  if (prop.Id == config.deactivate_list[0]):
+	      Reference_Radius = prop.GetValue(RADIUS)
+	      Reference_viscosity = simulation_config.blood_static_viscosity
+	      Reference_density = simulation_config.blood_density
+	      Area_Stenosis = 0.5 * Total_area_outlet
+	      A_prime = (8 * Reference_viscosity) / (3.1416 * math.pow(Reference_Radius, 4))
+	      B_prime = (Reference_density) * ((Total_area_outlet / Area_Stenosis) - 1) * ((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
+	      self.Aprime.append(A_prime)
+	      self.Bprime.append(B_prime)
+	      # print "A_prime",A_prime
+	      # print "B_prime",B_prime
+	      break
+      
+      #A_prime = 0.0
+      #B_prime = 0.0
+      #for prop in self.model_part_1d.Properties:
+      #if (prop.Id == config.deactivate_list[0]):
+	  #Reference_Radius = prop.GetValue(RADIUS)
+	  #Reference_Radius_Inlet3D= prop.GetValue(RADIUS)
+	  #Reference_viscosity = simulation_config.blood_static_viscosity
+	  #Reference_density = simulation_config.blood_density
+	  ##A_prime = ((Reference_viscosity) / (2* 3.1416 * math.pow(Reference_Radius_Inlet3D, 3))
+	  ##B_prime = (Reference_density * math.pow((Total_area_inlet / (Total_area_outlet - 1)), 2))/(2** math.pow(Total_area_inlet,2))  #self.Aprime.append(A_prime)		
+	  ##self.Bprime.append(B_prime)
+	  ## print "A_prime",A_prime
+	  ## print "B_prime",B_prime
+	  #A_prime = 0.0
+	  #B_prime = 0.0
+	  #break
+      #A_prime = ((Reference_viscosity) / (2* 3.1416 * math.pow(Reference_Radius_Inlet3D, 3))
+      #B_prime = (Reference_density * math.pow((Total_area_inlet / (Total_area_outlet - 1)), 2))/(2** math.pow(Total_area_inlet,2))
+      #self.Aprime.append(A_prime)
+      #self.Bprime.append(B_prime)
+	  
+	
 
       if (simulation_config.FitRadius):
 	  meanArea = Total_area_inlet
@@ -763,7 +786,8 @@ class TransferTools:
                 fitter.AddTotal_time(total_time)
                 # self.fitters_3d[i].AddPin(avg_press)
             # print "pressure", avg_press
-
+	    print ("flow 1D", inlet_nodes_1d[0].GetSolutionStepValue(FLOW))
+	  
         j = 0  # print inlet_nodes_1d[0]
         for j in range(0, len(self.outlets_1d)):
             outlet_nodes_1d = self.outlets_1d[j]
@@ -775,17 +799,18 @@ class TransferTools:
 		normal = node.GetSolutionStepValue(NORMAL)
 		vel = node.GetSolutionStepValue(VELOCITY)
 		flow_3d += normal[0] * vel[0] + normal[1] * vel[1] + normal[2] * vel[2]
-		print flow_3d
-		print "flow", outlet_nodes_1d[0].GetSolutionStepValue(FLOW)
-		raw_input()	
+	    #print ("flow 3D", flow_3d)
+	    #print ("flow 3D", outlet_nodes_1d[0].GetSolutionStepValue(FLOW))
+	    
+	    #raw_input()	
             # print "node", node
             # print "velo", vel
             # print "pressure1D",outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
 
 
-            print("flow_3d", flow_3d)
+            print("flow_3D", flow_3d)
             print("node", outlet_nodes_1d[0])
-            print("flow_1d", outlet_nodes_1d[0].GetSolutionStepValue(FLOW))
+            #print("flow_1d", outlet_nodes_1d[0].GetSolutionStepValue(FLOW))
             self.fitters_3d[j].AddQ(flow_3d)
             self.fitters_3d[j].AddPout(outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE))
             # raw_input()
