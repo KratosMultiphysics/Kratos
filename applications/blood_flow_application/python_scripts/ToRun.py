@@ -66,10 +66,9 @@ import simulation_config
 import removal_tool
 import CouplingTools1D_3Dv6
 
-Config_version="ToRun.PY:VERSION 10_June_2014_local"
+Config_version="ToRun.PY:VERSION 16_June_2014_local"
 print(Config_version)
-#print("LOCAAAAAAAAAAAAAAAAAAAAAAAALLLLLLLLLLLLLLLLLLLLLLLLLLL")
-#raw_input()
+
 
 SUMADOR=0.0
 SUMADOR_2=0.0
@@ -327,7 +326,6 @@ ToWriteIn_Summary += "Initial Pressure: " + str(P_initial) + "\n"
 #if(Use_Catheter==True):
 model_part_io_centerline = ModelPartIO(input_centerline_name)
 model_part_io_centerline.ReadModelPart(model_part_centerline)
-
 
 # Preparing GiD FILES
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -1096,7 +1094,7 @@ if (Coupled_Simulation == True):
 			print("ONLY TO CHECK HYPERMIA AND HEALTHY MODEL")
 			A = 0
 			B = 0
-			raw_input()
+			#raw_input()
 	else:  # only if you want to set A-B parameters manually
 		A = simulation_config.A
 		B = simulation_config.B
@@ -1142,7 +1140,7 @@ if (Coupled_Simulation == True):
 					#print("---------------------------------------------------------------------------------------------------------")
 
 	for item in ab_3d_list:
-		raw_input()
+		#raw_input()
 		[node_id, A, B] = item
 		for cond in model_part1D.Conditions:
 			cond_of_interest = False

@@ -298,7 +298,7 @@ class TransferTools:
 	  Norm_Mean[0] =  Norm_Mean[0]/normN_promedio
 	  Norm_Mean[1] =  Norm_Mean[1]/normN_promedio
 	  Norm_Mean[2] =  Norm_Mean[2]/normN_promedio
-	  print(Norm_Mean)
+	  #print(Norm_Mean)
 	  for node in inlet_nodes_3d:
 	      n = node.GetSolutionStepValue(NORMAL)
 	      #a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2) Direct Method, up-stimation
@@ -311,20 +311,20 @@ class TransferTools:
       Total_area_outlet = Total_area_outlet / len(self.inlets_3d)
     
       for prop in self.model_part_1d.Properties:
-	  A_prime = 0.0
-	  B_prime = 0.0
-	  if (prop.Id == config.deactivate_list[0]):
-	      Reference_Radius = prop.GetValue(RADIUS)
-	      Reference_viscosity = simulation_config.blood_static_viscosity
-	      Reference_density = simulation_config.blood_density
-	      Area_Stenosis = 0.5 * Total_area_outlet
-	      A_prime = (8 * Reference_viscosity) / (3.1416 * math.pow(Reference_Radius, 4))
-	      B_prime = (Reference_density) * ((Total_area_outlet / Area_Stenosis) - 1) * ((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
-	      self.Aprime.append(A_prime)
-	      self.Bprime.append(B_prime)
-	      # print "A_prime",A_prime
-	      # print "B_prime",B_prime
-	      break
+	A_prime = 0.0
+	B_prime = 0.0
+	if (prop.Id == config.deactivate_list[0]):
+	    Reference_Radius = prop.GetValue(RADIUS)
+	    Reference_viscosity = simulation_config.blood_static_viscosity
+	    Reference_density = simulation_config.blood_density
+	    Area_Stenosis = 0.5 * Total_area_outlet
+	    A_prime = (8 * Reference_viscosity) / (3.1416 * math.pow(Reference_Radius, 4))
+	    B_prime = (Reference_density) * ((Total_area_outlet / Area_Stenosis) - 1) * ((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
+	    self.Aprime.append(A_prime)
+	    self.Bprime.append(B_prime)
+	    # print "A_prime",A_prime
+	    # print "B_prime",B_prime
+	    break
 
       if (simulation_config.FitRadius):
 	  meanArea = Total_area_inlet
@@ -403,7 +403,7 @@ class TransferTools:
                         #print("k", k)
                         # node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
                         k = k + 1
-                        #raw_input()
+                        ##raw_input()
 	print ("final to set 3D inlet velocity Conditions")
 	#raw_input()
 
@@ -465,8 +465,7 @@ class TransferTools:
 		    # print "area3d",area3d ,"area1d",inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA), "del nodo", inlet_nodes_1d[0].Id
 		    # print "Estoy fijando la velocidad en el inlet del 3D que proviene del nodo " , inlet_nodes_1d[0].Id, " del 1D. La velocidad que estoy fijando es"
 		    # print "vel1d",vel1d, "del nodo", inlet_nodes_1d[0].Id
-
-	#raw_input()
+	##raw_input()
         
         for i in range(0, len(self.outlets_1d)):
             outlet_nodes_1d = self.outlets_1d[i]
@@ -475,7 +474,7 @@ class TransferTools:
             # pressinlet3D = 0
             # print "NODO 1D-3D: outlet_nodes_1d[0].Id::::::outlet 1D coupled with the 3D outlet>>>> ",outlet_nodes_1d[0].Id
             # print "pressinlet3D ",pressinlet3D
-            # raw_input()
+            ## raw_input()
             # double beta = E0*thickness0*1.77245385/(1.0-nu0*nu0);
             beta = outlet_nodes_1d[0].GetSolutionStepValue(BETA)
             # beta = ((outlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * outlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)) / (
@@ -583,7 +582,7 @@ class TransferTools:
             # print " velocity del 3D", vel
             # print " velocity del 1D", vel
             # print "in Transfer Flow 3D_to_1D----->", -flow, " to node" , outlet_nodes_1d[0].Id
-        # raw_input()
+        ## raw_input()
 #-------------------------------------------------------------------------
 # FIT VALUES (WRITE FILE)
 #-------------------------------------------------------------------------
@@ -619,7 +618,7 @@ class TransferTools:
 	# set output (overwrites the others)
       #print(a)
       #a=0
-      #raw_input()
+      ##raw_input()
       for cond in self.model_part_3d.Conditions:
 	  if(cond.Properties.Id > 1000):  # outlet
 	      for node in cond.GetNodes():
@@ -650,7 +649,7 @@ class TransferTools:
 	    # copy Y_WALL
       #print(a)
       #a=0
-      #raw_input()
+      ##raw_input()
       
       for cond in self.model_part_3d.Conditions:
 	  if(cond.Properties.Id == 100):  # inlet
@@ -681,7 +680,7 @@ class TransferTools:
 	# set sides (overwrites the inlet)
       #print(a)
       #a=0
-      #raw_input()
+      ##raw_input()
       
       if (simulation_config.Use_Catheter):
 	    for node in self.model_part_3d.Nodes:
@@ -696,7 +695,7 @@ class TransferTools:
 	      #print (node)
 
       #print (counter)
-      #raw_input()      
+      ##raw_input()      
         # print "n pressure nodes ",counter
     # def FitValues_Inlet(self):
       # for i in range(0,len(self.fixed_flow_nodes)):
@@ -765,7 +764,6 @@ class TransferTools:
                 # self.fitters_3d[i].AddPin(avg_press)
             # print "pressure", avg_press
 
-            # print "HOLLLLLLLLLLLLLLLLLLAAAAAAAAAAAAAAAAAAAAAAAA"
         j = 0  # print inlet_nodes_1d[0]
         for j in range(0, len(self.outlets_1d)):
             outlet_nodes_1d = self.outlets_1d[j]
@@ -774,13 +772,17 @@ class TransferTools:
             # compute flow on 3D outlet
             flow_3d = 0.0
             for node in outlet_nodes_3d:
-                normal = node.GetSolutionStepValue(NORMAL)
-                vel = node.GetSolutionStepValue(VELOCITY)
-                flow_3d += normal[0] * vel[0] + normal[1] * vel[1] + normal[2] * vel[2]
+		normal = node.GetSolutionStepValue(NORMAL)
+		vel = node.GetSolutionStepValue(VELOCITY)
+		flow_3d += normal[0] * vel[0] + normal[1] * vel[1] + normal[2] * vel[2]
+		print flow_3d
+		print "flow", outlet_nodes_1d[0].GetSolutionStepValue(FLOW)
+		raw_input()	
             # print "node", node
             # print "velo", vel
             # print "pressure1D",outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
-            # print "flow", outlet_nodes_1d[0].GetSolutionStepValue(FLOW)
+
+
             print("flow_3d", flow_3d)
             print("node", outlet_nodes_1d[0])
             print("flow_1d", outlet_nodes_1d[0].GetSolutionStepValue(FLOW))
@@ -1012,7 +1014,7 @@ class TransferTools:
             print("B = ", B)
             A = 0.0
             B = 0.0
-            raw_input()
+            #raw_input()
             print("----------------------------------------------------------------------------------------------------------------")
             # ffit_3d_3.append(k)
             # results = str("Fitter_3D_3" + str(k) + "_.txt")
@@ -1047,7 +1049,7 @@ class TransferTools:
             return_list_3D.append([node_id, A, B])
             A = 0.0
             B = 0.0
-	    raw_input()
+	    #raw_input()
             print("----------------------------------------------------------")
             # ffit_3d_5.append(k)
             # results = str("Fitter_3D_5" + str(k) + "_.txt")
