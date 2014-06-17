@@ -120,7 +120,7 @@ namespace Kratos
         
         this->GetInitializeWasPerformed() = true;
         
-        this->ApplyPrescribedBoundaryConditions();
+        BaseType::ApplyPrescribedBoundaryConditions();
         
         // 0. Set search radius.
         
@@ -871,85 +871,7 @@ namespace Kratos
     } //SetInitialDemContacts
  
 
-     void ApplyPrescribedBoundaryConditions()
-    {
-      
-      KRATOS_TRY
-
-      ModelPart& r_model_part           = BaseType::GetModelPart();
-
-      for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it)
-      {
-
-          bool fix_x = bool((*mesh_it)[IMPOSED_VELOCITY_X]);
-          bool fix_y = bool((*mesh_it)[IMPOSED_VELOCITY_Y]);
-          bool fix_z = bool((*mesh_it)[IMPOSED_VELOCITY_Z]);
-          
-         if( fix_x || fix_y || fix_z )
-         {
-         
-          double vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
-          double vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];  
-          double vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];  
-
-          NodesArrayType& pNodes = mesh_it->Nodes();
         
-          vector<unsigned int> node_partition;
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
-
-          #pragma omp parallel for
-          
-          for(int k=0; k<this->GetNumberOfThreads(); k++)
-          {
-              typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-              typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-
-              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-              {
-
-                array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
-                
-                if(fix_x)
-                {
-                  velocity[0] = vel_x;
-                  //unsigned int pos_x = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);  
-                  //i->GetDof(VELOCITY_X, pos_x).FixDof(); 
-                  //i->GetDof(VELOCITY_X).FixDof(); 
-                  i->Set(DEMFlags::FIXED_VEL_X,true);
-                }
-                
-                if(fix_y)
-                {
-                  velocity[1] = vel_y;
-                  //unsigned int pos_y = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);  
-                  //i->GetDof(VELOCITY_Y, pos_y).FixDof(); 
-                  //i->GetDof(VELOCITY_Y).FixDof(); 
-                  i->Set(DEMFlags::FIXED_VEL_Y,true);
-
-                }
-                
-                if(fix_z)
-                {
-                  velocity[2] = vel_z;
-                  //unsigned int pos_z = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);  
-                  //i->GetDof(VELOCITY_Z, pos_z).FixDof(); 
-                  //i->GetDof(VELOCITY_Z).FixDof();
-                  i->Set(DEMFlags::FIXED_VEL_Z,true);
-                
-                }
-     
-              } //loop over particles
-
-            }// loop threads OpenMP
-            
-          } //if(fix_x || fix_y || fix_z)
-        
-      } //for each mesh
-      
-      KRATOS_CATCH("")
-
-    }
-    
 
    void CheckPairWiseBreaking()
      {
