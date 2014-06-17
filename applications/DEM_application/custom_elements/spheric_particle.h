@@ -14,7 +14,7 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
 // External includes
@@ -188,7 +188,6 @@ namespace Kratos
       
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
-    
       void CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       void CalculateKineticEnergy(double& rKineticEnergy);
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);

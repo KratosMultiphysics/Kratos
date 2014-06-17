@@ -448,7 +448,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
 
      void SphericParticle::ComputeNewNeighboursHistoricalData()
-     {      
+     {
        unsigned int new_size                = mNeighbourElements.size();
        
        unsigned int neighbour_counter       = 0;
