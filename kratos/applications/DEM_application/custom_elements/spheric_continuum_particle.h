@@ -105,6 +105,8 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
+      void ComputeNewNeighboursHistoricalData();
+      
       virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) ;
 
 
@@ -229,9 +231,13 @@ namespace Kratos
 	
         virtual double GetInitialDelta(int index);
       
-        //void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
-        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+        void ComputeBallToBallContactForce(   //array_1d<double, 3>& rContactForce, 
+                                                    //array_1d<double, 3>& rContactMoment, 
+                                                    array_1d<double, 3>& rElasticForce, 
+                                                    array_1d<double, 3>& InitialRotaMoment, 
+                                                    ProcessInfo& rCurrentProcessInfo, 
+                                                    const bool multi_stage_RHS);         
         //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
@@ -250,8 +256,7 @@ namespace Kratos
         void ComputeParticleRotationSpring();
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
-
-        virtual void ComputeNewNeighboursHistoricalData();
+        
         virtual void ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo);
                 
         //DEMPACK

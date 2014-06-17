@@ -389,15 +389,12 @@ namespace Kratos
        * @param rContactMoment
        * @param rCurrentProcessInfo
        **/
-                                                                                                                      
-      void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, 
-                                                                   array_1d<double, 3>& rElasticForce, array_1d<double, 3>& rInitialRotaMoment, 
-                                                                   ProcessInfo& rCurrentProcessInfo)
-      {
-                 
+       void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce, 
+                                                        array_1d<double, 3>& rInitialRotaMoment, 
+                                                        ProcessInfo& rCurrentProcessInfo, 
+                                                        const bool multi_stage_RHS)
+        {                                                                                                                             
         KRATOS_TRY
-
-        //ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);        
         
         const double dt = rCurrentProcessInfo[DELTA_TIME];        
         const double dt_i = 1 / dt; 
@@ -412,7 +409,6 @@ namespace Kratos
         const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
         double RotaAcc[3]                       = {0.0};
 
-        //if (mRotationOption){
         if (this->Is(DEMFlags::HAS_ROTATION) ){    
             RotaAcc[0]                         = ang_vel[0] * dt_i;
             RotaAcc[1]                         = ang_vel[1] * dt_i;
@@ -424,8 +420,6 @@ namespace Kratos
 
         }        
         
-        
-        //r(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin(); neighbour_iterator != mrNeighbours.end(); neighbour_iterator++) {
         for( unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
             SphericParticle* neighbour_iterator = mNeighbourElements[i_neighbour_count];
                         
@@ -1368,7 +1362,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       std::vector<array_1d<double, 3> >& fem_temp_neighbours_contact_forces = mFemTempNeighboursContactForces;
       std::vector<int>&                  fem_temp_neighbours_mapping = mFemTempNeighboursMapping;
       
-    //       vector<int> mFemOldNeighbourIds;te
+    //       vector<int> mFemOldNeighbourIds;
     //       vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
     //       std::vector<int> mFemTempNeighboursIds;
     //       std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
