@@ -85,9 +85,8 @@ public:
 
     }
     
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool has_sphericity, bool initial)
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool has_sphericity, bool has_rotation, bool initial)
     {
-
         
       double bx= reference_node->X();
       double cy= reference_node->Y();
@@ -107,12 +106,16 @@ public:
           pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
           pnew_node->FastGetSolutionStepValue(VELOCITY)                     = params[VELOCITY];
       }
-
-      pnew_node->FastGetSolutionStepValue(RADIUS)                       = params[RADIUS];
-      pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
+            
+      if(has_rotation){
+          pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
+      }
+      
       if(has_sphericity){
         pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)        = params[PARTICLE_SPHERICITY];
       }      
+      
+      pnew_node->FastGetSolutionStepValue(RADIUS)                       = params[RADIUS];
       array_1d<double, 3 > null_vector(3,0.0);                              
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
@@ -159,11 +162,11 @@ public:
     void PrintingTest() {}
 
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, 
-                                              Properties::Pointer r_params, const Element& r_reference_element, PropertiesProxy* p_fast_properties, bool has_sphericity, bool initial) {          
+                                              Properties::Pointer r_params, const Element& r_reference_element, PropertiesProxy* p_fast_properties, bool has_sphericity, bool has_rotation, bool initial) {          
         
       Node < 3 > ::Pointer pnew_node;
             
-      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, has_sphericity, initial); 
+      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, has_sphericity, has_rotation, initial); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
@@ -193,6 +196,9 @@ public:
       spheric_p_particle->SetRadius(radius);      
       double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
       spheric_p_particle->SetSqrtOfRealMass(sqrt(mass)); 
+      
+      if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION,true);
+      else              spheric_p_particle->Set(DEMFlags::HAS_ROTATION,false);
       
       p_particle->Initialize(); //////////////// STANDARD INITIALIZATION!!
       
@@ -652,6 +658,7 @@ public:
     bool mFirstTime;
     boost::numeric::ublas::vector<bool> mLayerRemoved;
     bool mBallsModelPartHasSphericity;
+    bool mBallsModelPartHasRotation;
     std::vector<PropertiesProxy>                 mFastProperties;
     
     /// Constructor:               
@@ -674,7 +681,8 @@ public:
         }                
         
         mFirstTime=true;
-        mBallsModelPartHasSphericity=false;
+        mBallsModelPartHasSphericity=false;  
+        mBallsModelPartHasRotation  =false;
         
         
     }
@@ -693,7 +701,8 @@ public:
         CreateInletPropertiesProxies(r_modelpart);
         
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
-        if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;
+        if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        
+        if(r_modelpart.GetProcessInfo()[ROTATION_OPTION] )              mBallsModelPartHasRotation   = true;
         
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
@@ -717,7 +726,7 @@ public:
             }   
             
             for (int i = 0; i < mesh_size; i++){                
-                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], InletModelPart.pGetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, true); 
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], InletModelPart.pGetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, mBallsModelPartHasRotation,true); 
 		max_Id++;
             }      
             
@@ -846,7 +855,7 @@ public:
                const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.pGetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, false);
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.pGetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, mBallsModelPartHasRotation, false);
                    inserting_nodes[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                    max_Id++;
                }                                                                   
