@@ -232,9 +232,9 @@ namespace Kratos
                                 SphericParticle* neighbour_iterator,
                                 double& distance);
       
-      virtual void NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation);
+      virtual void NormalForceCalculation(double& normal_force, double kn, double indentation);
 
-      virtual void TangentialForceCalculation(double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
+      virtual void TangentialForceCalculation(const double normal_force, double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
       virtual void DisplacementDueToRotation(double DeltDesp[3],
                                 //double OldNormalDir[3],
@@ -261,7 +261,9 @@ namespace Kratos
       
       virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo);
 
-      virtual void AddUpForcesAndProject(double LocalCoordSystem[3][3],
+      virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
+                                double LocalCoordSystem[3][3],
+                                double normal_force,
                                 double LocalContactForce[3],
                                 double LocalElasticContactForce[3],
                                 double GlobalContactForce[3],
