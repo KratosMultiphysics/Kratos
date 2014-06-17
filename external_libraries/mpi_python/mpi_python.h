@@ -236,16 +236,17 @@ public:
 	boost::python::list gather(PythonMPIComm& rComm,
 	        boost::python::list LocalValues, int Root)
 	{
-		int Size, Rank;
 		int RecvBlockSize = 1;
-		int SendSize = len(LocalValues);
-		int * RecvSize;
-		double * SendBuf, *RecvBuf;
+	        int Size, Rank, SendSize;
+		int * RecvSize, * Displs;
+		double * SendBuf, * RecvBuf;
 
 		MPI_Comm_size(rComm.GetMPIComm(), &Size);
 		MPI_Comm_rank(rComm.GetMPIComm(), &Rank);
+		SendSize = len(LocalValues);
 
 		RecvSize = new int[Size];
+		Displs = new int[Size];
 		MPI_Gather(&SendSize, 1, MPI_INT, RecvSize, 1, MPI_INT, Root,
 		        rComm.GetMPIComm());
 
@@ -253,11 +254,9 @@ public:
 		if (Rank == Root)
 		{
 			for (int i = 0; i < Size; i++)
-			{
-				RecvBlockSize =
-				        (RecvBlockSize < RecvSize[i]) ?
-				                RecvSize[i] : RecvBlockSize;
-			}
+				RecvBlockSize = (RecvBlockSize < RecvSize[i]) ? RecvSize[i] : RecvBlockSize;
+			for (int i = 0; i < Size; i++)
+			        Displs[i] = i * RecvBlockSize;
 		}
 
 		// take care for sending an empty list
@@ -271,16 +270,13 @@ public:
 		{
 			SendBuf = new double[SendSize];
 			for (int i = 0; i < SendSize; i++)
-			{
 				SendBuf[i] = boost::python::extract<double>(LocalValues[i]);
-			}
 		}
 
 		RecvBuf = new double[RecvBlockSize * Size];
 
 		// gather local arrays at root
-		MPI_Gather(SendBuf, SendSize, MPI_DOUBLE, RecvBuf, RecvBlockSize,
-		        MPI_DOUBLE, Root, rComm.GetMPIComm());
+		MPI_Gatherv(SendBuf, SendSize, MPI_DOUBLE, RecvBuf, RecvSize, Displs, MPI_DOUBLE, Root, rComm.GetMPIComm());
 
 		boost::python::list Out;
 
@@ -298,6 +294,7 @@ public:
 		}
 
 		delete[] RecvSize;
+		delete[] Displs;
 		delete[] SendBuf;
 		delete[] RecvBuf;
 
