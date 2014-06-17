@@ -387,7 +387,7 @@ namespace Kratos
                          }
                        
                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-                         
+
                          AngularVel[iterator] += RotaAcc * delta_t;
                          
                          Rota_Displace[iterator] +=  delta_rotation_displ[iterator];                         
