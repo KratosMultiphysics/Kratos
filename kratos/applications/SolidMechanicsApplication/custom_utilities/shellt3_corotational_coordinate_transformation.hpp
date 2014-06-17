@@ -332,7 +332,7 @@ namespace Kratos
 			                                                   const Vector& globalDisplacements,
 															   size_t nodeid)
 		{
-			if(nodeid<0 || nodeid>2) return IdentityMatrix(3,3);
+			if(nodeid>2) return IdentityMatrix(3,3);
 
 			QuaternionType Q = QuaternionType::FromRotationMatrix( LCS.Orientation() );
 
