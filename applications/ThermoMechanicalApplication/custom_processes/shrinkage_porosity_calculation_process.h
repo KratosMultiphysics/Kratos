@@ -147,10 +147,13 @@ public:
         WeakPointerVector<Node<3> >& r_neighbour_nodes = mNeighbourNodes[iNode->Id() - 1];
 		double cluster_shrinkage = 0.00;
 		const double shrinkage_factor = 0.07;
+		double min_solid_fraction = iNode->GetSolutionStepValue(SOLID_FRACTION);
+		double max_solid_fraction = iNode->GetSolutionStepValue(SOLID_FRACTION);
 
         for(WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbour_nodes.begin() ; i_neighbour_node != r_neighbour_nodes.end() ; i_neighbour_node++)
         {
-            if(i_neighbour_node->GetSolutionStepValue(SOLID_FRACTION, 1) < 1.00) // The neighbour was fluid
+			double solid_fraction = i_neighbour_node->GetSolutionStepValue(SOLID_FRACTION, 1);
+            if(solid_fraction < 1.00) // The neighbour was fluid
             {
 				if(i_neighbour_node->IsNot(VISITED))
 				{
@@ -187,7 +190,14 @@ public:
         int cluster_fluid_nodes = 0;
         for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
         {
-			if(i_node->GetSolutionStepValue(SOLID_FRACTION) < 1.00) // the node still is fluid
+			double old_solid_fraction = i_node->GetSolutionStepValue(SOLID_FRACTION,1);
+			if(min_solid_fraction > old_solid_fraction)
+				min_solid_fraction = old_solid_fraction;
+			if(max_solid_fraction < old_solid_fraction)
+				max_solid_fraction = old_solid_fraction;
+			
+
+			if(i_node->GetSolutionStepValue(SOLID_FRACTION) < 1.00) // the node is still fluid
 			{
 				cluster_fluid_nodes++;
 			}
@@ -204,16 +214,43 @@ public:
 
 			for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
 			{
-				if(i_node->GetSolutionStepValue(SOLID_FRACTION) < 1.00) // the node still is fluid
+				if(i_node->GetSolutionStepValue(SOLID_FRACTION) < 1.00) // the node is still fluid
 					mNodalShrinkage[i_node->Id() - 1] += cluster_shrinkage;
 			}
 		}
 		else
 		{
-			for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+			if(cluster_nodes.size() < 8)
 			{
-					i_node->GetSolutionStepValue(MACRO_POROSITY) = cluster_shrinkage;
+				for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+				{
+						i_node->GetSolutionStepValue(MACRO_POROSITY) = cluster_shrinkage;
+				}
 			}
+			else
+			{
+				int n_division = 4; // the division of solid fraction span
+				double threshold_increment = (max_solid_fraction - min_solid_fraction) / n_division;
+				int counter = 0;
+				for(int i = 1 ; i < n_division ; i++)
+				{
+					double solid_fraction_threshold = min_solid_fraction + i * threshold_increment;
+
+					for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
+					{
+						if(i_node->GetSolutionStepValue(SOLID_FRACTION, 1) < solid_fraction_threshold)
+						{
+							counter++;
+							i_node->GetSolutionStepValue(MACRO_POROSITY) = cluster_shrinkage;
+						}
+					}
+					if (counter > 6)
+						break;
+				}
+				KRATOS_WATCH(counter);
+			}
+
+
 			//cluster_shrinkage /= cluster_nodes.size();
 
 			//for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
