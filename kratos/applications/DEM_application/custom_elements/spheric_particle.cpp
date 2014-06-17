@@ -65,6 +65,12 @@ namespace Kratos
             double moment_of_inertia = 0.4 * mass * mRadius * mRadius;   
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }
+          else{
+            array_1d<double, 3>& angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            angular_velocity[0] = 0.0;
+            angular_velocity[1] = 0.0;
+            angular_velocity[2] = 0.0;
+          }
 
           if ( GetGeometry()[0].GetDof(VELOCITY_X).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,false);
@@ -169,7 +175,6 @@ namespace Kratos
           {
             ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo);
           }
-                                    
 
           KRATOS_CATCH( "" )
       }
@@ -178,19 +183,40 @@ namespace Kratos
       {
           KRATOS_TRY  
           
-          //LOOP OVER NEIGHBOURS BEGINS:
-          int i_neighbour_count=0;
-          
+          //LOOP OVER NEIGHBOURS BEGINS:          
           for( unsigned int i = 0; i < mNeighbourElements.size(); i++)           
           {
               SphericParticle* neighbour_iterator = mNeighbourElements[i];
 
               if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
+              if( this->Id() < neighbour_iterator->Id() ) continue;
               
+              for( unsigned int j = 0; j < neighbour_iterator->mNeighbourElements.size(); j++)  //loop to find the neighbour of the neighbours which is me
+              {
+                  SphericParticle* is_that_me = neighbour_iterator->mNeighbourElements[j];
+                  if ( is_that_me->Id() == this->Id() ){ 
+                    mOldNeighbourElasticContactForces[i][0] = -1.0 * neighbour_iterator->mOldNeighbourElasticContactForces[j][0];
+                    mOldNeighbourElasticContactForces[i][1] = -1.0 * neighbour_iterator->mOldNeighbourElasticContactForces[j][1];
+                    mOldNeighbourElasticContactForces[i][2] = -1.0 * neighbour_iterator->mOldNeighbourElasticContactForces[j][2];
+
+                    mOldNeighbourTotalContactForces[i][0] = -1.0 * neighbour_iterator->mOldNeighbourTotalContactForces[j][0];
+                    mOldNeighbourTotalContactForces[i][1] = -1.0 * neighbour_iterator->mOldNeighbourTotalContactForces[j][1];
+                    mOldNeighbourTotalContactForces[i][2] = -1.0 * neighbour_iterator->mOldNeighbourTotalContactForces[j][2];      
+
+                    mContactForce[0] += mOldNeighbourTotalContactForces[i][0];
+                    mContactForce[1] += mOldNeighbourTotalContactForces[i][1];
+                    mContactForce[2] += mOldNeighbourTotalContactForces[i][2];
+                    
+                    array_1d<double, 3>& rElasticForce = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+                    rElasticForce[0] += mOldNeighbourElasticContactForces[i][0];
+                    rElasticForce[1] += mOldNeighbourElasticContactForces[i][1];
+                    rElasticForce[2] += mOldNeighbourElasticContactForces[i][2];                            
+                    
+                    break;
+                  }
+                  //if(j == neighbour_iterator->mNeighbourElements.size()-1) KRATOS_WATCH("ERRORRRRRRRRRRRRRRRRR")
+              }              
               
-              
-              
-              i_neighbour_count++;
           }
           
 
@@ -201,41 +227,54 @@ namespace Kratos
       {
           KRATOS_TRY
           
-          array_1d<double, 3> initial_rotation_moment; 
-          initial_rotation_moment.clear();
           
-          //LOOP OVER NEIGHBOURS BEGINS:
-          int i_neighbour_count=0;
-          
-          for( unsigned int i = 0; i < mNeighbourElements.size(); i++)           
-          {
-              SphericParticle* neighbour_iterator = mNeighbourElements[i];
+          if( this->Is(DEMFlags::HAS_ROTATION) ) {      
+                          
+                //LOOP OVER NEIGHBOURS BEGINS:          
+                for( unsigned int i = 0; i < mNeighbourElements.size(); i++)           
+                {
+                    SphericParticle* neighbour_iterator = mNeighbourElements[i];
 
-              if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
-              
-              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-              double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-              double inv_distance                     = 1/distance;
-              double other_to_me_vect_unitary[3]      = {0.0};
-              other_to_me_vect_unitary[0]             = other_to_me_vect[0] * inv_distance;
-              other_to_me_vect_unitary[1]             = other_to_me_vect[1] * inv_distance;
-              other_to_me_vect_unitary[2]             = other_to_me_vect[2] * inv_distance;
-              
-              
-              double projection_to_local_axis2 = mOldNeighbourElasticContactForces[i_neighbour_count][0] * other_to_me_vect_unitary[0] 
-                                               + mOldNeighbourElasticContactForces[i_neighbour_count][1] * other_to_me_vect_unitary[1]
-                                               + mOldNeighbourElasticContactForces[i_neighbour_count][2] * other_to_me_vect_unitary[2];
+                    if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;                                            
                        
-              
-              ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i_neighbour_count], initial_rotation_moment, other_to_me_vect_unitary, neighbour_iterator);
+                          
+                    array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+                    double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+                    double inv_distance                     = 1/distance;
+                    double other_to_me_vect_unitary[3]      = {0.0};
+                    other_to_me_vect_unitary[0]             = other_to_me_vect[0] * inv_distance;
+                    other_to_me_vect_unitary[1]             = other_to_me_vect[1] * inv_distance;
+                    other_to_me_vect_unitary[2]             = other_to_me_vect[2] * inv_distance;
 
+
+                    double projection_to_local_axis2 = mOldNeighbourElasticContactForces[i][0] * other_to_me_vect_unitary[0] 
+                                                     + mOldNeighbourElasticContactForces[i][1] * other_to_me_vect_unitary[1]
+                                                     + mOldNeighbourElasticContactForces[i][2] * other_to_me_vect_unitary[2];
+                  
+                    
+                    double RotaAcc[3]                      = {0.0};
+                    const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    double dt = rCurrentProcessInfo[DELTA_TIME];
+                    double dt_i = 1 / dt;
+                    RotaAcc[0]                         = ang_vel[0] * dt_i;
+                    RotaAcc[1]                         = ang_vel[1] * dt_i;
+                    RotaAcc[2]                         = ang_vel[2] * dt_i;
+
+                    const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                    array_1d<double, 3> initial_rotation_moment; 
+                    initial_rotation_moment[0]               = RotaAcc[0] * moment_of_inertia;
+                    initial_rotation_moment[1]               = RotaAcc[1] * moment_of_inertia;
+                    initial_rotation_moment[2]               = RotaAcc[2] * moment_of_inertia;
+                    
+                    ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, neighbour_iterator);
               
-              i_neighbour_count++;
-          }
-          
+                }
+          } //if( this->Is(DEMFlags::HAS_ROTATION) ) 
 
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
+          additionally_applied_force.clear();
+          additionally_applied_moment.clear();
           
           ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
           
@@ -678,15 +717,14 @@ namespace Kratos
           const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
           const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
           const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          double RotaAcc[3]                      = {0.0};
-
-          //if (mRotationOption){
-          if (this->Is(DEMFlags::HAS_ROTATION) ){
+                    
+          if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS){
+              double RotaAcc[3]                      = {0.0};
               RotaAcc[0]                         = ang_vel[0] * dt_i;
               RotaAcc[1]                         = ang_vel[1] * dt_i;
               RotaAcc[2]                         = ang_vel[2] * dt_i;
 
+              const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
               rInitialRotaMoment[0]               = RotaAcc[0] * moment_of_inertia;
               rInitialRotaMoment[1]               = RotaAcc[1] * moment_of_inertia;
               rInitialRotaMoment[2]               = RotaAcc[2] * moment_of_inertia;
@@ -698,7 +736,6 @@ namespace Kratos
           double equiv_visco_damp_coeff_tangential;
           double equiv_tg_of_fri_ang;
           
-          size_t i_neighbour_count = 0;       
           double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
           double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
           double DeltDisp[3]                       = {0.0};
@@ -712,11 +749,19 @@ namespace Kratos
               SphericParticle* neighbour_iterator = mNeighbourElements[i];
 
               if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
+              if( multi_stage_RHS  &&  this->Id() > neighbour_iterator->Id()) continue;
+              
               
               // BASIC CALCULATIONS              
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
               const double &other_radius              = neighbour_iterator->GetRadius();
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+              /*double inv_distance                     = 1 / distance;
+              double unitary_other_to_me_vect [3] = {0.0};
+              unitary_other_to_me_vect[0] = other_to_me_vect[0] * inv_distance;
+              unitary_other_to_me_vect[1] = other_to_me_vect[1] * inv_distance;
+              unitary_other_to_me_vect[2] = other_to_me_vect[2] * inv_distance;*/
+              
               double radius_sum                       = mRadius + other_radius;
               double indentation                      = radius_sum - distance;
 	          
@@ -740,6 +785,7 @@ namespace Kratos
                   DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
               }
 
+              double normal_force                      = 0.0;
               double LocalContactForce[3]              = {0.0};
               double GlobalContactForce[3]             = {0.0};
               double LocalElasticContactForce[3]       = {0.0};
@@ -747,9 +793,9 @@ namespace Kratos
               double ViscoDampingLocalContactForce[3]  = {0.0};
               //double ViscoDampingGlobalContactForce[3] = {0.0};
 
-              GlobalElasticContactForce[0]             = mOldNeighbourElasticContactForces[i_neighbour_count][0];
-              GlobalElasticContactForce[1]             = mOldNeighbourElasticContactForces[i_neighbour_count][1];
-              GlobalElasticContactForce[2]             = mOldNeighbourElasticContactForces[i_neighbour_count][2];
+              GlobalElasticContactForce[0]             = mOldNeighbourElasticContactForces[i][0];
+              GlobalElasticContactForce[1]             = mOldNeighbourElasticContactForces[i][1];
+              GlobalElasticContactForce[2]             = mOldNeighbourElasticContactForces[i][2];
 
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
@@ -760,24 +806,23 @@ namespace Kratos
               bool sliding = false;
 
               if (indentation > 0.0){
-                  NormalForceCalculation(LocalElasticContactForce, kn, indentation);
+                  NormalForceCalculation(normal_force, kn, indentation);  //ERROR here! The normal force should be added to the local NEW axis!!
 
                   // TANGENTIAL FORCE. Incremental calculation. An "absolute method" could also be used (YADE?)
-                  TangentialForceCalculation(LocalElasticContactForce, LocalDeltDisp, kt, equiv_tg_of_fri_ang, sliding);
+                  LocalElasticContactForce[2] = 0.0;
+                  TangentialForceCalculation(normal_force, LocalElasticContactForce, LocalDeltDisp, kt, equiv_tg_of_fri_ang, sliding);
 
                   // VISCODAMPING (applyied locally)
                   CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding);
               }
               
               // Transforming to global forces and adding up
-              AddUpForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, /*ViscoDampingGlobalContactForce, rContactForce, */rElasticForce, i_neighbour_count);
+              AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, /*ViscoDampingGlobalContactForce, rContactForce, */rElasticForce, i);
 
               // ROTATION FORCES
               if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS){    
-                  ComputeMoments(LocalElasticContactForce[2], mOldNeighbourElasticContactForces[i_neighbour_count], rInitialRotaMoment, LocalCoordSystem[2], /*other_radius, rContactMoment,*/ neighbour_iterator);
-              }
-
-              i_neighbour_count++;
+                  ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], /*other_radius, rContactMoment,*/ neighbour_iterator);
+              }             
 
           }// for each neighbour
 
@@ -2288,7 +2333,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::AddUpForcesAndProject(double LocalCoordSystem[3][3],
+      void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
+                                                  double LocalCoordSystem[3][3], 
+                                                  double normal_force,
                                                   double LocalContactForce[3],
                                                   double LocalElasticContactForce[3],
                                                   double GlobalContactForce[3],
@@ -2304,9 +2351,21 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
               LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
           }
 
-          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+          GeometryFunctions::VectorLocal2Global(OldCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
           //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce); //is this line necessary?????
-          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+          GeometryFunctions::VectorLocal2Global(OldCoordSystem, LocalContactForce, GlobalContactForce);
+          
+          double vect_normal_force[3] = {0.0};
+          double global_normal_force[3] = {0.0};
+          vect_normal_force[2] = normal_force;
+          GeometryFunctions::VectorLocal2Global(LocalCoordSystem, vect_normal_force, global_normal_force);
+          
+          GlobalElasticContactForce[0] += global_normal_force[0];
+          GlobalElasticContactForce[1] += global_normal_force[1];
+          GlobalElasticContactForce[2] += global_normal_force[2];
+          GlobalContactForce[0]        += global_normal_force[0];
+          GlobalContactForce[1]        += global_normal_force[1];
+          GlobalContactForce[2]        += global_normal_force[2];
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)
           mOldNeighbourElasticContactForces[i_neighbour_count][0] = GlobalElasticContactForce[0];
@@ -2429,26 +2488,26 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
       
-      void SphericParticle::NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation)
+      void SphericParticle::NormalForceCalculation(double& normal_force, double kn, double indentation)
               
       {
 
          switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
               case 0:
-                  LocalElasticContactForce[2] = kn * indentation;
+                  normal_force = kn * indentation;
 
               break;
 
               case 1:
 
-                  LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
+                  normal_force = kn * pow(indentation, 1.5);
                   
                  
               break;
 
               default:
 
-                  LocalElasticContactForce[2] = kn * indentation;
+                  normal_force = kn * indentation;
 
               break;
 
@@ -2460,14 +2519,14 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::TangentialForceCalculation(double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding)
+      void SphericParticle::TangentialForceCalculation(const double normal_force, double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding)
       {
 
         LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
         LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-        double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+        double Frictional_ShearForceMax = equiv_tg_of_fri_ang * normal_force;
 
         if (Frictional_ShearForceMax < 0.0){
             Frictional_ShearForceMax = 0.0;

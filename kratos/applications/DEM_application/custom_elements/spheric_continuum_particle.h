@@ -202,7 +202,7 @@ namespace Kratos
       ///@name Friends
       ///@{
       std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
-      std::vector<int> mContinuumIniNeighbourIds;
+      //std::vector<int> mContinuumIniNeighbourIds;
       std::vector<Particle_Contact_Element*> mBondElements;
       
       //member variables DEM_CONTINUUM

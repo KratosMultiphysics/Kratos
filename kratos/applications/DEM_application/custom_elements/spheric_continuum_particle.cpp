@@ -86,7 +86,7 @@ namespace Kratos
             //r_continuum_ini_neighbours.clear();
             mContinuumIniNeighbourElements.clear(); ///////////////////////
             //r_continuum_ini_neighbours_ids.clear();
-            mContinuumIniNeighbourIds.clear();
+            //mContinuumIniNeighbourIds.clear();
                         
             size_t ini_size = 0;
             size_t continuum_ini_size =0;
@@ -159,7 +159,7 @@ namespace Kratos
 
                 //r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*neighbour_iterator).lock())->Id();
                 //r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = neighbour_iterator->Id();
-                mContinuumIniNeighbourIds.push_back( neighbour_iterator->Id() );
+                //mContinuumIniNeighbourIds.push_back( neighbour_iterator->Id() );
 
                 //if (mContactMeshOption) {
 
@@ -557,7 +557,7 @@ namespace Kratos
                 
                 if(mElasticityType < 2)
                 {
-                      NormalForceCalculation(LocalElasticContactForce,kn_el,indentation);
+                      NormalForceCalculation(LocalElasticContactForce[2],kn_el,indentation); //Error: should not be stored here (in LocalElasticContactForce)
 
                 }
                 
@@ -574,7 +574,7 @@ namespace Kratos
                     else
                     
                     {
-                      NormalForceCalculation(LocalElasticContactForce,kn_el,indentation);
+                      NormalForceCalculation(LocalElasticContactForce[2],kn_el,indentation);//Error: should not be stored here (in LocalElasticContactForce)
                       
                     }
                     
@@ -712,7 +712,7 @@ namespace Kratos
             double GlobalContactForce[3] =                {0.0};
             
               
-            AddUpForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
+            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce[2], LocalContactForce,LocalElasticContactForce,GlobalContactForce,
                                   GlobalElasticContactForce,ViscoDampingLocalContactForce/*,ViscoDampingGlobalContactForce,rContactForce*/,rElasticForce,
                                   i_neighbour_count);
             
