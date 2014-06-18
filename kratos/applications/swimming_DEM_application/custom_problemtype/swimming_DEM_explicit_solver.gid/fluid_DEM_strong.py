@@ -377,9 +377,12 @@ dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
 if (ProjectParameters.projection_module_option):
 
-    if (ProjectParameters.meso_scale_length <= 0.0):
+    if (ProjectParameters.meso_scale_length <= 0.0  and balls_model_part.NumberOfElements(0) > 0):
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(balls_model_part, RADIUS)
         ProjectParameters.meso_scale_length = 20 * biggest_size
+        
+    elif (balls_model_part.NumberOfElements(0) == 0):
+        ProjectParameters.meso_scale_length = 1.0
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters)
     projection_module.UpdateDatabase(h_min)
