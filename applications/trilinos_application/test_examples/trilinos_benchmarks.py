@@ -18,7 +18,7 @@ def Run():
     sys.path.append(os.getcwd())
 
     print("Running Trilinos -- Cantilever_Amesos...")
-    success, Msg = benchmarking.MPIParallelRunBenchmark("cantilever_amesos.py", "cantilever.txt")
+    successful, Msg = benchmarking.MPIParallelRunBenchmark("cantilever_amesos.py", "cantilever.txt")
 
     if(successful==True):
         Text += "OK\n"

@@ -402,7 +402,7 @@ def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
             " --benchmarking | grep \"" +
             Header +
             "\" > BenchTemp.txt")
-    if sys.version_info >= (3, 0):
+    elif sys.version_info >= (2, 6):
         os.system(
             "mpirun -np 2 python -3 " +
             ExamplePath +
