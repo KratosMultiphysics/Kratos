@@ -160,6 +160,7 @@ public:
 	this->ResizeAndInitializeComponents(r_model_part, pScheme);
 
         // assemble all elements
+
 #ifndef _OPENMP
 
 
@@ -220,9 +221,9 @@ public:
 
 	    if( LHS_Element_Components_Set ){
 		  
-	      for( unsigned int i=0; i<rLHS_GlobalComponents.size(); i++ )
+	      for( unsigned int i=0; i<rLHS_GlobalElementComponents.size(); i++ )
 		{	    
-		  this->AssembleLHS(rLHS_GlobalElementElementComponents[i], rLHS_LocalElementComponents[i], EquationId);
+		  this->AssembleLHS(rLHS_GlobalElementComponents[i], rLHS_LocalElementComponents[i], EquationId);
 		}
 
 	    }
@@ -264,7 +265,7 @@ public:
 
 	if( LHS_Condition_Components_Set ){
 
-	  if( ConditionLocalSystem.GetLHS_Element_Variables().size() != rLHS_ConditionComponents.size() )
+	  if( ConditionLocalSystem.GetLHS_Element_Variables().size() != rLHS_LocalConditionComponents.size() )
 	    rLHS_LocalConditionComponents.resize( ConditionLocalSystem.GetLHS_Condition_Variables().size() );
 
 	  for( unsigned int i=0; i<rLHS_LocalConditionComponents.size(); i++ )
@@ -279,7 +280,7 @@ public:
 
 	if( RHS_Condition_Components_Set ){
 
-	  if( ConditionLocalSystem.GetRHS_Element_Variables().size() != rRHS_ConditionComponents.size() )
+	  if( ConditionLocalSystem.GetRHS_Element_Variables().size() != rRHS_LocalConditionComponents.size() )
 	    rRHS_LocalConditionComponents.resize( ConditionLocalSystem.GetRHS_Condition_Variables().size() );
 
 	  for( unsigned int i=0; i<rRHS_LocalConditionComponents.size(); i++ )
@@ -300,7 +301,7 @@ public:
 
 	    if( LHS_Condition_Components_Set ){
 
-	      for( unsigned int i=0; i<rLHS_GlobalComponents.size(); i++ )
+	      for( unsigned int i=0; i<rLHS_GlobalConditionComponents.size(); i++ )
 		{	    
 		  this->AssembleLHS(rLHS_GlobalConditionComponents[i], rLHS_LocalConditionComponents[i], EquationId);
 		}
@@ -309,7 +310,7 @@ public:
 
 	    if( RHS_Condition_Components_Set ){
 
-	      for( unsigned int i=0; i<rRHS_GlobalComponents.size(); i++ )
+	      for( unsigned int i=0; i<rRHS_GlobalConditionComponents.size(); i++ )
 		{
 		  this->AssembleRHS(rRHS_GlobalConditionComponents[i], rRHS_LocalConditionComponents[i], EquationId);
 		}
