@@ -412,14 +412,13 @@ namespace Kratos
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
           rSerializer.save("mRadius",mRadius);
           rSerializer.save("mSqrtOfRealMass",mSqrtOfRealMass);
-          rSerializer.save("mFastProperties",mFastProperties);
+          //rSerializer.save("mFastProperties",mFastProperties);
 
           /*rSerializer.save("mRollingFriction",mRollingFriction);
           rSerializer.save("mYoung",mYoung);
           rSerializer.save("mPoisson",mPoisson);
           rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
           rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);  */
-          //rSerializer.save("mFastProperties",mFastProperties);
       }
 
       virtual void load(Serializer& rSerializer)
@@ -427,14 +426,13 @@ namespace Kratos
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
           rSerializer.load("mRadius",mRadius);
           rSerializer.load("mSqrtOfRealMass",mSqrtOfRealMass);
-          rSerializer.load("mFastProperties",mFastProperties);
+          //rSerializer.load("mFastProperties",mFastProperties);
 
           /*rSerializer.load("mRollingFriction",mRollingFriction);
           rSerializer.load("mYoung",mYoung);
           rSerializer.load("mPoisson",mPoisson);
           rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
           rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);  */
-          //rSerializer.load("mFastProperties",mFastProperties);
       }
 
       /*
