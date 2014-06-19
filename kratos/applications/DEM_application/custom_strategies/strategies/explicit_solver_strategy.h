@@ -187,7 +187,7 @@ namespace Kratos
                   
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+          
           
           int number_of_properties = r_model_part.NumberOfProperties();
           mFastProperties.resize(number_of_properties);
@@ -227,8 +227,20 @@ namespace Kratos
               mFastProperties[i] = aux_props;
               i++;
               
+          }
+          
+          RebuildPropertiesProxyPointers(pElements);
+          ElementsArrayType& pGhostElements        = r_model_part.GetCommunicator().GhostMesh().Elements();
+          RebuildPropertiesProxyPointers(pGhostElements);
+           
+          return;          
+          KRATOS_CATCH("")
       }
-
+      void RebuildPropertiesProxyPointers(ElementsArrayType& pElements){
+          
+          KRATOS_TRY          
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+          
           #pragma omp parallel for
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               
@@ -248,11 +260,11 @@ namespace Kratos
                     }
                 }                    
             }                                
-         }                  
+         }  
+          
          return;          
          KRATOS_CATCH("")
       }
-      
       
       virtual void Initialize()
       {
