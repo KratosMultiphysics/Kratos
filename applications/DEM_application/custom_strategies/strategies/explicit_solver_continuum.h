@@ -153,9 +153,14 @@ namespace Kratos
           BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
         
         }
-
-          //the search radius is modified for the next steps.
-          BaseType::SetSearchRadius(r_model_part, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
+        
+        ElementsArrayType& pElements             = r_model_part.GetCommunicator().LocalMesh().Elements();
+        BaseType::RebuildPropertiesProxyPointers(pElements);
+        ElementsArrayType& pGhostElements        = r_model_part.GetCommunicator().GhostMesh().Elements();
+        BaseType::RebuildPropertiesProxyPointers(pGhostElements);
+        
+        //the search radius is modified for the next steps.
+        BaseType::SetSearchRadius(r_model_part, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
 
         if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
           
@@ -245,7 +250,12 @@ namespace Kratos
                    BaseType::ComputeNewRigidFaceNeighboursHistoricalData();                   
               }
 
-          }          
+          }       
+          
+          ElementsArrayType& pElements             = r_model_part.GetCommunicator().LocalMesh().Elements();
+          BaseType::RebuildPropertiesProxyPointers(pElements);
+          ElementsArrayType& pGhostElements        = r_model_part.GetCommunicator().GhostMesh().Elements();
+          BaseType::RebuildPropertiesProxyPointers(pGhostElements);
 
           // 5. Finalize step   /////////////////////////////////            
           BaseType::FinalizeSolutionStep();
