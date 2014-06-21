@@ -259,19 +259,9 @@ public:
 			        Displs[i] = i * RecvBlockSize;
 		}
 
-		// take care for sending an empty list
-		if (SendSize == 0)
-		{
-			SendSize = 1;
-			SendBuf = new double[SendSize];
-			SendBuf[0] = 0.0;
-		}
-		else
-		{
-			SendBuf = new double[SendSize];
-			for (int i = 0; i < SendSize; i++)
-				SendBuf[i] = boost::python::extract<double>(LocalValues[i]);
-		}
+		SendBuf = new double[SendSize];
+		for (int i = 0; i < SendSize; i++)
+		  SendBuf[i] = boost::python::extract<double>(LocalValues[i]);
 
 		RecvBuf = new double[RecvBlockSize * Size];
 
