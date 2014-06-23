@@ -503,13 +503,18 @@ namespace Kratos
 
         double lump_area = referenceCoordinateSystem.Area() / 3.0;
 
-        // Gauss Loop
+        // Calculate avarage mass per unit area
+		double av_mass_per_unit_area = 0.0;
+		for(size_t i = 0; i < OPT_NUM_GP; i++)
+			av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
+		av_mass_per_unit_area /= double(OPT_NUM_GP);
 
-        for(size_t i = 0; i < OPT_NUM_GP; i++)
+		// loop on nodes
+        for(size_t i = 0; i < 3; i++)
         {
             size_t index = i * 6;
 
-            double nodal_mass = mSections[i]->CalculateMassPerUnitArea() * lump_area;
+            double nodal_mass = av_mass_per_unit_area * lump_area;
 
             // translational mass
             rMassMatrix(index, index)            = nodal_mass;
@@ -1089,7 +1094,7 @@ namespace Kratos
 	void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
 	{
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
-		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
+		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
 			data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid); 
 #else
@@ -1184,42 +1189,53 @@ namespace Kratos
 		}
 	}
 
-	void ShellThinElement3D3N::AddBodyForces(ShellT3_LocalCoordinateSystem& LCS, VectorType& rRightHandSideVector)
-	{
-		PropertiesType& props = GetProperties();	
+	void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector)
+	{	
+		const GeometryType& geom = GetGeometry();
 
-		if( props.Has(BODY_FORCE) )
-        {
-            const array_1d<double, 3>& bodyForces = props[BODY_FORCE];
-            double Bx = bodyForces(0);
-			double By = bodyForces(1);
-			double Bz = bodyForces(2);
+		// Get shape functions
+#ifdef OPT_USES_INTERIOR_GAUSS_POINTS
+		const Matrix & N = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+#else
+		Matrix N(3,3);
+		for(unsigned int igauss = 0; igauss < OPT_NUM_GP; igauss++)
+		{
+			const array_1d<double,3>& loc = data.gpLocations[igauss];
+			N(igauss,0) = 1.0 - loc[1] - loc[2];
+			N(igauss,1) = loc[1];
+			N(igauss,2) = loc[2];
+		}
+#endif // !OPT_USES_INTERIOR_GAUSS_POINTS
 
-			GeometryType& geom = GetGeometry();
-			const Matrix & N = geom.ShapeFunctionsValues();
+		// auxiliary
+		array_1d<double, 3> bf;
 
-			double dA = LCS.Area() / (double)OPT_NUM_GP;
-			
-			for(int i = 0; i < OPT_NUM_GP; i++)
+		// gauss loop to integrate the external force vector
+		for(unsigned int igauss = 0; igauss < OPT_NUM_GP; igauss++)
+		{
+			// get mass per unit area
+			double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea();
+
+			// interpolate nodal volume accelerations to this gauss point
+			// and obtain the body force vector
+			bf.clear();
+			for(unsigned int inode = 0; inode < 3; inode++)
 			{
-				double mass = mSections[i]->CalculateMassPerUnitArea() * dA;
-				double m1 = mass * N(i, 0);
-				double m2 = mass * N(i, 1);
-				double m3 = mass * N(i, 2);
-
-				rRightHandSideVector( 0) += Bx * m1;
-				rRightHandSideVector( 1) += By * m1;
-				rRightHandSideVector( 2) += Bz * m1;
-											
-				rRightHandSideVector( 6) += Bx * m2;
-				rRightHandSideVector( 7) += By * m2;
-				rRightHandSideVector( 8) += Bz * m2;
-									  		
-				rRightHandSideVector(12) += Bx * m3;
-				rRightHandSideVector(13) += By * m3;
-				rRightHandSideVector(14) += Bz * m3;
+				if( geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
+					bf += N(igauss,inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 			}
-        }
+			bf *= (mass_per_unit_area * data.dA);
+
+			// add it to the RHS vector
+			for(unsigned int inode = 0; inode < 3; inode++)
+			{
+				unsigned int index = inode*6;
+				double iN = N(igauss,inode);
+				rRightHandSideVector[index + 0] += iN * bf[0];
+				rRightHandSideVector[index + 1] += iN * bf[1];
+				rRightHandSideVector[index + 2] += iN * bf[2];
+			}
+		}
 	}
 
     void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -1273,7 +1289,7 @@ namespace Kratos
 
         // Add body forces contributions. This doesn't depend on the coordinate system
 
-        AddBodyForces(data.LCS0, rRightHandSideVector);
+        AddBodyForces(data, rRightHandSideVector);
     }
 
     bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,

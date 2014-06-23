@@ -1,4 +1,4 @@
-//
+﻿//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
 //   Date:                $Date: 2013-10-03 19:00:00 $
@@ -299,7 +299,7 @@ namespace Kratos
 
     void ApplyCorrectionToRHS(CalculationData& data, VectorType& RHS);
 
-    void AddBodyForces(ShellT3_LocalCoordinateSystem& LCS, VectorType& rRightHandSideVector);
+    void AddBodyForces(CalculationData& data, VectorType& rRightHandSideVector);
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
