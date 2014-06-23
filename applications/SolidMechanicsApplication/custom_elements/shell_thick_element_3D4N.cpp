@@ -1,3 +1,4 @@
+﻿//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
 //   Date:                $Date: 2013-10-03 19:00:00 $
@@ -734,7 +735,13 @@ namespace Kratos
 
 		// lumped area
 
-		double lump_area = referenceCoordinateSystem.Area() * 0.25;
+		double lump_area = referenceCoordinateSystem.Area() / 4.0;
+
+		// Calculate avarage mass per unit area
+		double av_mass_per_unit_area = 0.0;
+		for(size_t i = 0; i < 4; i++)
+			av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
+		av_mass_per_unit_area /= 4.0;
 
         // Gauss Loop
 
@@ -742,7 +749,7 @@ namespace Kratos
         {
             size_t index = i * 6;
 
-            double nodal_mass = mSections[i]->CalculateMassPerUnitArea() * lump_area;
+            double nodal_mass = av_mass_per_unit_area * lump_area;
 
             // translational mass
             rMassMatrix(index, index)            = nodal_mass;
@@ -1039,6 +1046,7 @@ namespace Kratos
         // coordinate system
 
         JacobianOperator jacOp;
+		array_1d<double, 4> dArea;
 
         // Instantiate all strain-displacement matrices.
 
@@ -1064,17 +1072,6 @@ namespace Kratos
 
         Vector localDisplacements( 
             mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements) );
-
-        // Get body forces
-
-        Vector bodyForces(3);
-        Vector bodyForcesContribution(24);
-        bool bHasBodyForces = props.Has(BODY_FORCE);
-        if(bHasBodyForces)
-        {
-            noalias( bodyForces ) = props[BODY_FORCE];
-            noalias( bodyForcesContribution ) = ZeroVector(24);
-        }
 
         // Instantiate the EAS Operator.
         // This will apply the Enhanced Assumed Strain Method for the calculation
@@ -1115,6 +1112,7 @@ namespace Kratos
             // compute the 'area' of the current integration point
 
             double dA = ip.Weight() * jacOp.Determinant();
+			dArea[i] = dA;
 
             // Compute all strain-displacement matrices
 
@@ -1160,17 +1158,6 @@ namespace Kratos
             // has been computed
 
             EASOp.GaussPointComputation_Step2(D, B, generalizedStresses, mEASStorage);
-
-            // Add body force contribution
-
-            if(bHasBodyForces)
-            {
-                double mass = dA * section->CalculateMassPerUnitArea();
-                project( bodyForcesContribution, range(0,   3) ) += bodyForces * iN[0] * mass;
-                project( bodyForcesContribution, range(6,   9) ) += bodyForces * iN[1] * mass;
-                project( bodyForcesContribution, range(12, 15) ) += bodyForces * iN[2] * mass;
-                project( bodyForcesContribution, range(18, 21) ) += bodyForces * iN[3] * mass;
-            }
         }
 
         // Now that the gauss integration is over, let the EAS operator modify
@@ -1193,9 +1180,46 @@ namespace Kratos
                                                          LHSrequired);
 
         // Add body forces contributions. This doesn't depend on the coordinate system
-        if(bHasBodyForces)
-            rRightHandSideVector += bodyForcesContribution;
+		AddBodyForces(dArea, rRightHandSideVector);
     }
+
+	void ShellThickElement3D4N::AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector)
+	{
+		const GeometryType& geom = GetGeometry();
+
+		// Get shape functions
+		const Matrix & N = geom.ShapeFunctionsValues();
+
+		// auxiliary
+		array_1d<double, 3> bf;
+
+		// gauss loop to integrate the external force vector
+		for(unsigned int igauss = 0; igauss < 4; igauss++)
+		{
+			// get mass per unit area
+			double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea();
+
+			// interpolate nodal volume accelerations to this gauss point
+			// and obtain the body force vector
+			bf.clear();
+			for(unsigned int inode = 0; inode < 4; inode++)
+			{
+				if( geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
+					bf += N(igauss,inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+			}
+			bf *= (mass_per_unit_area * dA[igauss]);
+
+			// add it to the RHS vector
+			for(unsigned int inode = 0; inode < 4; inode++)
+			{
+				unsigned int index = inode*6;
+				double iN = N(igauss,inode);
+				rRightHandSideVector[index + 0] += iN * bf[0];
+				rRightHandSideVector[index + 1] += iN * bf[1];
+				rRightHandSideVector[index + 2] += iN * bf[2];
+			}
+		}
+	}
 
     bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
 		                                                                           std::vector<array_1d<double,3> >& rValues, 

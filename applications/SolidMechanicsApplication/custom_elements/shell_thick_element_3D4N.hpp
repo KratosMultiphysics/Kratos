@@ -1,4 +1,4 @@
-//
+﻿//
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
 //   Date:                $Date: 2013-10-03 19:00:00 $
@@ -395,6 +395,8 @@ namespace Kratos
                       ProcessInfo& rCurrentProcessInfo,
                       const bool LHSrequired,
                       const bool RHSrequired);
+
+	void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
 
     bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
 							    std::vector<array_1d<double,3> >& rValues, 
