@@ -50,10 +50,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mSpalartAllmaras3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
     mWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mWernerWengleWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mWernerWengleWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mGeneralizedWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mGeneralizedWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mFSWernerWengleWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mFSWernerWengleWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mFSGeneralizedWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mFSGeneralizedWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mWallConditionDiscontinuous2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mWallConditionDiscontinuous3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mMonolithicWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -127,10 +127,10 @@ void KratosFluidDynamicsApplication::Register()
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D",mWallCondition2D);
     KRATOS_REGISTER_CONDITION("WallCondition3D",mWallCondition3D);
-    KRATOS_REGISTER_CONDITION("WernerWengleWallCondition2D",mWernerWengleWallCondition2D);
-    KRATOS_REGISTER_CONDITION("WernerWengleWallCondition3D",mWernerWengleWallCondition3D);
-    KRATOS_REGISTER_CONDITION("GeneralizedWallCondition2D",mGeneralizedWallCondition2D);
-    KRATOS_REGISTER_CONDITION("GeneralizedWallCondition3D",mGeneralizedWallCondition3D);
+    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D",mFSWernerWengleWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D",mFSWernerWengleWallCondition3D);
+    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D",mFSGeneralizedWallCondition2D);
+    KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition3D",mFSGeneralizedWallCondition3D);
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous2D",mWallConditionDiscontinuous2D);
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D",mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D",mMonolithicWallCondition2D);

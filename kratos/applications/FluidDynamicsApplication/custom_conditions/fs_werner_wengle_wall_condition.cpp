@@ -1,4 +1,4 @@
-#include "werner_wengle_wall_condition.h"
+#include "fs_werner_wengle_wall_condition.h"
 
 namespace Kratos {
 
@@ -6,10 +6,10 @@ namespace Kratos {
 ///@{
 
 /**
- * @see WernerWengleWallCondition::EquationIdVector
+ * @see FSWernerWengleWallCondition::EquationIdVector
  */
 template<>
-void WernerWengleWallCondition<2, 2>::EquationIdVector(
+void FSWernerWengleWallCondition<2, 2>::EquationIdVector(
 		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -51,10 +51,10 @@ void WernerWengleWallCondition<2, 2>::EquationIdVector(
 }
 
 /**
- * @see WernerWengleWallCondition::EquationIdVector
+ * @see FSWernerWengleWallCondition::EquationIdVector
  */
 template<>
-void WernerWengleWallCondition<3, 3>::EquationIdVector(
+void FSWernerWengleWallCondition<3, 3>::EquationIdVector(
 		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -98,10 +98,10 @@ void WernerWengleWallCondition<3, 3>::EquationIdVector(
 }
 
 /**
- * @see WernerWengleWallCondition::GetDofList
+ * @see FSWernerWengleWallCondition::GetDofList
  */
 template<>
-void WernerWengleWallCondition<2, 2>::GetDofList(
+void FSWernerWengleWallCondition<2, 2>::GetDofList(
 		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -145,10 +145,10 @@ void WernerWengleWallCondition<2, 2>::GetDofList(
 }
 
 /**
- * @see WernerWengleWallCondition::GetDofList
+ * @see FSWernerWengleWallCondition::GetDofList
  */
 template<>
-void WernerWengleWallCondition<3, 3>::GetDofList(
+void FSWernerWengleWallCondition<3, 3>::GetDofList(
 		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
         if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -194,10 +194,10 @@ void WernerWengleWallCondition<3, 3>::GetDofList(
 }
 
 /**
- * @see WernerWengleWallCondition::CalculateWallParameters
+ * @see FSWernerWengleWallCondition::CalculateWallParameters
  */
 template<>
-void WernerWengleWallCondition<2, 2>::CalculateWallParameters(
+void FSWernerWengleWallCondition<2, 2>::CalculateWallParameters(
 		double& rWallHeight, array_1d<double, 3>& rWallVel, double& rArea)
 {
 	KRATOS_TRY;
@@ -278,10 +278,10 @@ void WernerWengleWallCondition<2, 2>::CalculateWallParameters(
 }
 
 /**
- * @see WernerWengleWallCondition::CalculateWallParameters
+ * @see FSWernerWengleWallCondition::CalculateWallParameters
  */
 template<>
-void WernerWengleWallCondition<3, 3>::CalculateWallParameters(
+void FSWernerWengleWallCondition<3, 3>::CalculateWallParameters(
 		double& rWallHeight, array_1d<double, 3>& rWallVel, double& rArea)
 {
 	KRATOS_TRY;

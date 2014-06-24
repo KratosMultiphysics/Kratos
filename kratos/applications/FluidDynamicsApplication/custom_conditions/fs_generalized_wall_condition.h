@@ -37,8 +37,8 @@
  ==============================================================================
  */
 
-#ifndef KRATOS_WERNER_WENGLE_WALL_CONDITION_H
-#define KRATOS_WERNER_WENGLE_WALL_CONDITION_H
+#ifndef KRATOS_FS_GENERALIZED_WALL_CONDITION_H
+#define KRATOS_FS_GENERALIZED_WALL_CONDITION_H
 
 // System includes
 #include <iostream>
@@ -78,32 +78,29 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Implements a power-law wall model.
+/// Implements a generalized wall model accounting for pressure gradients.
 /**
- The Werner-Wengle wall layer model in "H. Werner and H. Wengle, Large-eddy simulation
- of turbulent flow over and around a cube in a plate channel, 8th Symp. on Turbulent
- Shear Flows 19-4, 1991" is used to calculate wall stress. Setting the flag SLIP to
- true prescribes zero wall stress. For distributed problems the
- MetisDivideHeterogeneousInputProcess must be used with SynchronizeConditions = true.
+ The generalized wall model in "T.-H. Shih, L.A. Povinelli, N.-S. Liu, M.G. Potapczuk
+ and J.L. Lumley, A generalized wall function, Tech. Report NASA/TM-1999-209398, 1999"
+ is used to calculate wall stress. For distributed problems the 
+ MetisDivideHeterogeneousInputProcess must be used with SynchronizeConditions = true. 
  This ensures the condition belongs to the same partition as its parent element.
 
- Artificial interface compressibility (AIC) is used on the fluid-structure interface
+ Interface artificial compressibility (IAC) is used on the fluid-structure interface
  to improve the stability of partitioned FSI coupling iterations. This is activated
  by setting the flag INTERFACE to true.
-
- This element is tested in 3D with and without MPI.
 
  @see FractionalStep2D, FractionalStep3D
  */
 template<unsigned int TDim, unsigned int TNumNodes = TDim>
-class WernerWengleWallCondition: public Condition
+class FSGeneralizedWallCondition: public Condition
 {
 public:
 	///@name Type Definitions
 	///@{
 
-	/// Pointer definition of WernerWengleWallCondition
-	KRATOS_CLASS_POINTER_DEFINITION(WernerWengleWallCondition);
+	/// Pointer definition of FSGeneralizedWallCondition
+	KRATOS_CLASS_POINTER_DEFINITION(FSGeneralizedWallCondition);
 
 	typedef Node < 3 > NodeType;
 
@@ -121,13 +118,6 @@ public:
 
 	typedef Element::Pointer ElementPointerType;
 
-	typedef Vector VectorType;
-
-	typedef Matrix MatrixType;
-
-	/// andre for consistent mass matrix
-	typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
-
 	typedef std::size_t IndexType;
 
 	typedef std::size_t SizeType;
@@ -136,7 +126,13 @@ public:
 
 	typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
-	typedef Kratos::Vector ShapeFunctionsType;
+	typedef Vector ShapeFunctionsType;
+
+	/// Type for a matrix containing the shape function gradients
+	typedef Matrix ShapeFunctionDerivativesType;
+
+	/// Type for an array of shape function gradient matrices
+	typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
 	///@}
 	///@name Life Cycle
@@ -146,7 +142,7 @@ public:
 	/** Admits an Id as a parameter.
 	 @param NewId Index of the new condition
 	 */
-	WernerWengleWallCondition(IndexType NewId = 0) : Condition(NewId), mInitializeWasPerformed(false), mpElement()
+	FSGeneralizedWallCondition(IndexType NewId = 0) : Condition(NewId), mInitializeWasPerformed(false), mpElement()
 	{
 	}
 
@@ -155,7 +151,7 @@ public:
 	 @param NewId Index of the new condition
 	 @param ThisNodes An array containing the nodes of the new condition
 	 */
-	WernerWengleWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
+	FSGeneralizedWallCondition(IndexType NewId, const NodesArrayType& ThisNodes)
 	: Condition(NewId, ThisNodes), mInitializeWasPerformed(false), mpElement()
 	{
 	}
@@ -165,7 +161,7 @@ public:
 	 @param NewId Index of the new condition
 	 @param pGeometry Pointer to a geometry object
 	 */
-	WernerWengleWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+	FSGeneralizedWallCondition(IndexType NewId, GeometryType::Pointer pGeometry)
 	: Condition(NewId, pGeometry), mInitializeWasPerformed(false), mpElement()
 	{
 	}
@@ -176,20 +172,20 @@ public:
 	 @param pGeometry Pointer to a geometry object
 	 @param pProperties Pointer to the condition's properties
 	 */
-	WernerWengleWallCondition(IndexType NewId, GeometryType::Pointer pGeometry,
+	FSGeneralizedWallCondition(IndexType NewId, GeometryType::Pointer pGeometry,
 			PropertiesType::Pointer pProperties)
 	: Condition(NewId, pGeometry, pProperties), mInitializeWasPerformed(false), mpElement()
 	{
 	}
 
 	/// Copy constructor.
-	WernerWengleWallCondition(WernerWengleWallCondition const& rOther) : Condition(rOther),
+	FSGeneralizedWallCondition(FSGeneralizedWallCondition const& rOther) : Condition(rOther),
 	mInitializeWasPerformed(rOther.mInitializeWasPerformed), mpElement(rOther.mpElement)
 	{
 	}
 
 	/// Destructor.
-	virtual ~WernerWengleWallCondition()
+	virtual ~FSGeneralizedWallCondition()
 	{}
 
 	///@}
@@ -197,7 +193,7 @@ public:
 	///@{
 
 	/// Copy constructor.
-	WernerWengleWallCondition& operator=(WernerWengleWallCondition const& rOther)
+	FSGeneralizedWallCondition& operator=(FSGeneralizedWallCondition const& rOther)
 	{
 		Condition::operator=(rOther);
 		mInitializeWasPerformed = rOther.mInitializeWasPerformed;
@@ -209,7 +205,7 @@ public:
 	///@name Operations
 	///@{
 
-	/// Create a new WernerWengleWallCondition object.
+	/// Create a new FSGeneralizedWallCondition object.
 	/**
 	 @param NewId Index of the new condition
 	 @param ThisNodes An array containing the nodes of the new condition
@@ -219,7 +215,7 @@ public:
 			NodesArrayType const& ThisNodes,
 			PropertiesType::Pointer pProperties) const
 	{
-		return Condition::Pointer(new WernerWengleWallCondition(NewId,
+		return Condition::Pointer(new FSGeneralizedWallCondition(NewId,
 						GetGeometry().Create(ThisNodes), pProperties));
 	}
 
@@ -229,7 +225,9 @@ public:
 		KRATOS_TRY;
 
 		if (mInitializeWasPerformed)
-		return;
+		{
+			return;
+		}
 
 		mInitializeWasPerformed = true;
 
@@ -237,11 +235,9 @@ public:
 		array_1d<double,3> Edge;
 		GeometryType& rGeom = this->GetGeometry();
 		WeakPointerVector<Element> ElementCandidates;
-
-		for (SizeType i = 0; i < TNumNodes; i++)
+		for (SizeType i = 0; i < TDim; i++)
 		{
 			WeakPointerVector<Element>& rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-
 			for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
 			{
 				ElementCandidates.push_back(rNodeElementCandidates(j));
@@ -282,7 +278,7 @@ public:
 
 				for (SizeType j=2; j < rElemGeom.PointsNumber(); j++)
 				{
-					for(SizeType k=0; k < j; k++)
+					for (SizeType k=0; k < j; k++)
 					{
 						Edge = rElemGeom[j].Coordinates() - rElemGeom[k].Coordinates();
 						EdgeLength = Edge[0]*Edge[0];
@@ -347,14 +343,11 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			if (this->Is(SLIP) == false)
-			{
-				this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
-			}
+			this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
 		}
 		else if (this->Is(INTERFACE) && rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
 		{
-			// add AIC penalty to local pressure system
+			// add IAC penalty to local pressure system
 			const SizeType LocalSize = TNumNodes;
 
 			if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -369,7 +362,7 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			this->ApplyAICPenalty(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+			this->ApplyIACPenalty(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 		}
 		else
 		{
@@ -500,13 +493,13 @@ public:
 	virtual std::string Info() const
 	{
 		std::stringstream buffer;
-		buffer << "WernerWengleWallCondition" << TDim << "D";
+		buffer << "FSGeneralizedWallCondition" << TDim << "D";
 		return buffer.str();
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream& rOStream) const
-	{	rOStream << "WernerWengleWallCondition";}
+	{	rOStream << "FSGeneralizedWallCondition";}
 
 	/// Print object's data.
 	virtual void PrintData(std::ostream& rOStream) const
@@ -554,13 +547,245 @@ protected:
 		}
 	}
 
+	/// Calculate the pressure gradient using nodal data from the last time step.
+	void EvaluateOldPressureGradientInElement(array_1d<double,TDim>& rResult)
+	{
+	  GeometryType& rElemGeom = pGetElement()->GetGeometry();
+	  const SizeType NumNodes = rElemGeom.PointsNumber();
+	  ShapeFunctionDerivativesArrayType DN_DX;
+	  Vector DetJ;
+	  rElemGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ,
+		          GeometryData::GI_GAUSS_1);
+	  ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
+
+	  const double& pres = rElemGeom[0].FastGetSolutionStepValue(PRESSURE,1);
+	  for (SizeType d = 0; d < TDim; ++d)
+	    {
+	      rResult[d] = rDN_DX(0,d) * pres;
+	    }
+
+	  for (SizeType i = 1; i < NumNodes; i++)
+	    {
+	      const double& pres = rElemGeom[i].FastGetSolutionStepValue(PRESSURE,1);
+	      for (SizeType d = 0; d < TDim; ++d)
+		{
+		  rResult[d] += rDN_DX(i,d) * pres;
+		}
+	    }
+	}
+
 	/// Calculate input parameters to wall model.
 	/**
-	 * @param rWallHeight The height of the measurement point above the wall
-	 * @param rWallVel The tangential velocity vector at the measurement point
-	 * @param rArea The condition's area
+	 * @param rWallHeight Height of the measurement point above the wall
+	 * @param rWallVel Tangential velocity vector at the measurement point
+	 * @param rWallGradP Wall pressure gradient in the direction of rWallVel
+	 * @param rArea Condition's area
 	 */
-	void CalculateWallParameters(double& rWallHeight, array_1d<double,3>& rWallVel, double& rArea);
+	void CalculateWallParameters(double& rWallHeight, array_1d<double,3>& rWallVel, double& rWallGradP, double& rArea);
+
+	/// Evaluate the residual of the generalized wall function.
+	/**
+	 * @param rWallHeight Height of the measurement point above the wall
+	 * @param rWallVel Tangential velocity at the measurement point
+	 * @param rWallStress Wall stress in direction of rWallVel
+	 * @param rWallGradP Wall pressure gradient in the direction of rWallVel
+	 */
+	double EvaluateWallFunctionResidual(const double& rWallHeight, const double& rWallVel, const double& rWallStress, const double& rWallGradP)
+	{
+		const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
+		double rho, nu, func1, func2, Vel1, Vel2, Vel12, YPlus1, YPlus2, sign1, sign2;
+		EvaluateInPoint(rho, DENSITY, N);
+		EvaluateInPoint(nu, VISCOSITY, N);
+		Vel1 = sqrt(fabs(rWallStress) / rho);
+		Vel2 = pow(nu * fabs(rWallGradP) / rho, 0.333333);
+		Vel12 = Vel1 + Vel2;
+
+		if (Vel12 == 0.0)
+		{
+			Vel12 = 1.0;
+		}
+
+		YPlus1 = Vel1 * rWallHeight / nu;
+		YPlus2 = Vel2 * rWallHeight / nu;
+
+		// evaluate func1(YPlus1)
+		func1 = 0.0;
+		if (YPlus1 <= 5)
+		{
+			func1 = (1.0 + (0.01 - 0.0029 * YPlus1) * YPlus1) * YPlus1;
+		}
+		else if (YPlus1 <= 30)
+		{
+			func1 = -0.872 + (1.465 + (-0.0702 + (0.00166 - 0.00001495 * YPlus1) * YPlus1) * YPlus1) * YPlus1;
+		}
+		else if (YPlus1 <= 140)
+		{
+			func1 = 8.6 + (0.1864 + (-0.002006 + (0.00001144 - 0.00000002551 * YPlus1) * YPlus1) * YPlus1) * YPlus1;
+		}
+		else
+		{
+			func1 = 2.439 * log(YPlus1) + 5.0;
+		}
+
+		// evaluate func2(YPlus2)
+		func2 = 0.0;
+		if (YPlus2 <= 4)
+		{
+			func2 = (0.5 - 0.00731 * YPlus2) * YPlus2 * YPlus2;
+		}
+		else if (YPlus2 <= 15)
+		{
+			func2 = -15.138 + (8.4688 + (-0.81976 + (0.037292 - 0.00063866 * YPlus2) * YPlus2) * YPlus2) * YPlus2;
+		}
+		else if (YPlus2 <= 30)
+		{
+			func2 = 11.925 + (0.934 + (-0.027805 + (0.00046262 - 0.0000031442 * YPlus2) * YPlus2) * YPlus2) * YPlus2;
+		}
+		else
+		{
+			func2 = 5.0 * log(YPlus2) + 8.0;
+		}
+
+		sign1 = (rWallStress >= 0.0) ? 1.0 : -1.0;
+		sign2 = (rWallGradP >= 0.0) ? 1.0 : -1.0;
+		return (rWallVel - sign1 * Vel1 * func1 - sign2 * Vel2 * func2) / Vel12;
+	}
+
+	/// Calculate the wall stress from the wall function
+	/**
+	 * @param rWallHeight Height of the measurement point above the wall
+	 * @param rWallVel Tangential velocity at the measurement point
+	 * @param rWallGradP Wall pressure gradient in the direction of rWallVel
+	 */
+	double CalculateWallStress(const double& rWallHeight, const double& rWallVel, const double& rWallGradP)
+	{
+		KRATOS_TRY;
+
+		const SizeType MaxIter = 50;
+		const double Eps = 1.0e-08;
+		double A =-0.1;
+		double B = 0.1;
+		double C, D, E, Xm, P, Q, R, S, Min1, Min2, ResA, ResB, ResC, Tol;
+
+		for (SizeType k=0; k < 10; ++k)
+		{
+			A *= 10.0;
+			B *= 10.0;
+			ResA = EvaluateWallFunctionResidual(rWallHeight,rWallVel,A,rWallGradP);
+			ResB = EvaluateWallFunctionResidual(rWallHeight,rWallVel,B,rWallGradP);
+
+			if (ResB * ResA <= 0.0)
+			{
+				break;
+			}
+		}
+
+		if (ResB * ResA > 0.0)
+		{
+			KRATOS_ERROR(std::logic_error, "Maximum wall stress search width exceeded","");
+		}
+
+		// root finding with Brent's algorithm
+		C = B;
+		ResC = ResB;
+
+		for (SizeType i=1; i <= MaxIter; ++i)
+		{
+			if (ResB * ResC > 0.0)
+			{
+				C = A;
+				ResC = ResA;
+				D = B - A;
+				E = D;
+			}
+
+			if (fabs(ResC) < fabs(ResB))
+			{
+				A = B;
+				B = C;
+				C = A;
+				ResA = ResB;
+				ResB = ResC;
+				ResC = ResA;
+			}
+
+			Tol = 2.0 * Eps * fabs(B) + 0.5e-10;
+			Xm = 0.5 * (C - B);
+
+			if (fabs(Xm) <= Tol || ResB == 0.0)
+			{
+				return B;
+			}
+
+			if (fabs(E) >= Tol && fabs(ResA) > fabs(ResB))
+			{
+				S = ResB / ResA;
+
+				if (A == C)
+				{
+					P = 2.0 * Xm * S;
+					Q = 1.0 - S;
+				}
+				else
+				{
+					Q = ResA / ResC;
+					R = ResB / ResC;
+					P = S * (2.0 * Xm * Q * (Q - R) - (B - A) * (R - 1.0));
+					Q = (Q - 1.0) * (R - 1.0) * (S - 1.0);
+				}
+
+				if (P > 0.0)
+				{
+					Q = -Q;
+				}
+
+				P = fabs(P);
+				Min1 = 3.0 * Xm * Q - fabs(Tol * Q);
+				Min2 = fabs(E * Q);
+
+				if (2.0 * P < fmin(Min1, Min2))
+				{
+					E = D;
+					D = P / Q;
+				}
+				else
+				{
+					D = Xm;
+					E = D;
+				}
+			}
+			else
+			{
+				D = Xm;
+				E = D;
+			}
+
+			A = B;
+			ResA = ResB;
+
+			if (fabs(D) > Tol)
+			{
+				B += D;
+			}
+			else
+			{
+				if (Xm >= 0.0)
+				{
+					B += fabs(Tol);
+				}
+				else
+				{
+					B -= fabs(Tol);
+				}
+			}
+
+			ResB = EvaluateWallFunctionResidual(rWallHeight,rWallVel,B,rWallGradP);
+		}
+
+		return 0.0;
+
+		KRATOS_CATCH("");
+	}
 
 	/// Compute the wall stress and add corresponding terms to the system contributions.
 	/**
@@ -569,39 +794,18 @@ protected:
 	 */
 	void ApplyWallLaw(MatrixType& rLocalMatrix, VectorType& rLocalVector)
 	{
-		const double A = 8.3;
-		const double Alpha = 1.0 / 7.0;
-		const double Small = 1.0e-12;
 		const unsigned int BlockSize = TDim;
-		double WallHeight, Area, rho, nu, WallVelMag, WallVelCut, tmp, WallStress, WallForce;
-
+		double WallHeight, Area, WallVelMag, tmp, WallStress, WallGradP, WallForce;
 		array_1d<double,3> WallVel;
 		GeometryType& rGeometry = this->GetGeometry();
-		CalculateWallParameters(WallHeight, WallVel, Area);
-		WallHeight = (WallHeight > Small * mMinEdgeLength) ? WallHeight : Small * mMinEdgeLength;
+
+		CalculateWallParameters(WallHeight, WallVel, WallGradP, Area);
 		WallVelMag = norm_2(WallVel);
 
-		if (WallVelMag > Small)
+		if (WallVelMag > 1.0e-12)
 		{
-			const ShapeFunctionsType& N = row(this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
-			EvaluateInPoint(rho, DENSITY, N);
-			EvaluateInPoint(nu, VISCOSITY, N);
-
-			WallVelCut = nu * pow(A, 2.0/(1.0-Alpha)) / (2.0 * WallHeight);
-
-			// linear region
-			if (WallVelMag <= WallVelCut)
-			{
-				WallStress = 2.0 * rho * nu * WallVelMag / WallHeight;
-			}
-			else
-			{ // log region
-				tmp = (1.0 - Alpha) / 2.0 * pow(A, (1.0 + Alpha) / (1.0 - Alpha)) * pow(nu / WallHeight, 1.0 + Alpha);
-				tmp += (1.0 + Alpha) / A * pow(nu / WallHeight, Alpha) * WallVelMag;
-				WallStress = rho * pow(tmp, 2.0 / (1.0 + Alpha));
-			}
-
-			WallForce = (Area / static_cast<double>(TNumNodes)) * WallStress;
+			WallStress = CalculateWallStress(WallHeight, WallVelMag, WallGradP);
+			WallForce = (Area / static_cast<double>(TDim)) * WallStress;
 
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
 			{
@@ -610,7 +814,7 @@ protected:
 				{
 					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
 					tmp = norm_2(WallVel);
-					WallVel /= (tmp > Small) ? tmp : 1.0;
+					WallVel /= (tmp != 0.0) ? tmp : 1.0;
 
 					for (unsigned int d=0; d < TDim; d++)
 					{
@@ -622,13 +826,13 @@ protected:
 		}
 	}
 
-	/// Apply an AIC penalty term
+	/// Apply an IAC penalty term
 	/**
 	 @param rLeftHandSideMatrix Left-hand side matrix
 	 @param rRightHandSideVector Right-hand side vector
 	 @param rCurrentProcessInfo ProcessInfo instance
 	 */
-	void ApplyAICPenalty(MatrixType& rLeftHandSideMatrix,
+	void ApplyIACPenalty(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo)
 	{
@@ -647,13 +851,17 @@ protected:
 	///@}
 	///@name Protected  Access
 	///@{
+
 	///@}
 	///@name Protected Inquiry
 	///@{
+
 	///@}
 	///@name Protected LifeCycle
 	///@{
+
 	///@}
+
 private:
 	///@name Static Member Variables
 	///@{
@@ -703,7 +911,7 @@ private:
 
 	///@}
 
-}; // Class WernerWengleWallCondition
+}; // Class FSGeneralizedWallCondition
 
 ///@}
 
@@ -717,7 +925,7 @@ private:
 /// input stream function
 template<unsigned int TDim, unsigned int TNumNodes>
 inline std::istream& operator >>(std::istream& rIStream,
-		WernerWengleWallCondition<TDim, TNumNodes>& rThis)
+		FSGeneralizedWallCondition<TDim, TNumNodes>& rThis)
 {
 	return rIStream;
 }
@@ -725,7 +933,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template<unsigned int TDim, unsigned int TNumNodes>
 inline std::ostream& operator <<(std::ostream& rOStream,
-		const WernerWengleWallCondition<TDim, TNumNodes>& rThis)
+		const FSGeneralizedWallCondition<TDim, TNumNodes>& rThis)
 {
 	rThis.PrintInfo(rOStream);
 	rOStream << std::endl;
@@ -740,4 +948,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 }// namespace Kratos.
 
-#endif // KRATOS_WERNER_WENGLE_WALL_CONDITION_H
+#endif // KRATOS_FS_GENERALIZED_WALL_CONDITION_H
