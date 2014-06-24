@@ -1,4 +1,4 @@
-#include "generalized_wall_condition.h"
+#include "fs_generalized_wall_condition.h"
 
 namespace Kratos {
 
@@ -6,10 +6,10 @@ namespace Kratos {
 ///@{
 
 /**
- * @see GeneralizedWallCondition::EquationIdVector
+ * @see FSGeneralizedWallCondition::EquationIdVector
  */
 template<>
-void GeneralizedWallCondition<2, 2>::EquationIdVector(
+void FSGeneralizedWallCondition<2, 2>::EquationIdVector(
 		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -51,10 +51,10 @@ void GeneralizedWallCondition<2, 2>::EquationIdVector(
 }
 
 /**
- * @see GeneralizedWallCondition::EquationIdVector
+ * @see FSGeneralizedWallCondition::EquationIdVector
  */
 template<>
-void GeneralizedWallCondition<3, 3>::EquationIdVector(
+void FSGeneralizedWallCondition<3, 3>::EquationIdVector(
 		EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -98,10 +98,10 @@ void GeneralizedWallCondition<3, 3>::EquationIdVector(
 }
 
 /**
- * @see GeneralizedWallCondition::GetDofList
+ * @see FSGeneralizedWallCondition::GetDofList
  */
 template<>
-void GeneralizedWallCondition<2, 2>::GetDofList(
+void FSGeneralizedWallCondition<2, 2>::GetDofList(
 		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -145,10 +145,10 @@ void GeneralizedWallCondition<2, 2>::GetDofList(
 }
 
 /**
- * @see GeneralizedWallCondition::GetDofList
+ * @see FSGeneralizedWallCondition::GetDofList
  */
 template<>
-void GeneralizedWallCondition<3, 3>::GetDofList(
+void FSGeneralizedWallCondition<3, 3>::GetDofList(
 		DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
 {
 	if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
@@ -194,10 +194,10 @@ void GeneralizedWallCondition<3, 3>::GetDofList(
 }
 
 /**
- * @see GeneralizedWallCondition::CalculateWallParameters
+ * @see FSGeneralizedWallCondition::CalculateWallParameters
  */
 template<>
-void GeneralizedWallCondition<2, 2>::CalculateWallParameters(
+void FSGeneralizedWallCondition<2, 2>::CalculateWallParameters(
 		double& rWallHeight, array_1d<double, 3>& rWallVel, double& rWallGradP,
 		double& rArea)
 {
@@ -272,15 +272,10 @@ void GeneralizedWallCondition<2, 2>::CalculateWallParameters(
 
 				// pressure gradient term
 				double WallVelMag = norm_2(rWallVel);
-				ShapeFunctionDerivativesArrayType DN_DX;
-				Vector DetJ;
-				rElemGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ,
-						GeometryData::GI_GAUSS_1);
-				ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 				array_1d<double, 2> PressureGradient;
-				this->EvaluatePressureGradientInPoint(PressureGradient, rDN_DX);
+				this->EvaluateOldPressureGradientInElement(PressureGradient);
 				rWallGradP = PressureGradient[0] * rWallVel[0] + PressureGradient[1] * rWallVel[1];
-				rWallGradP /= (WallVelMag > Small) ? WallVelMag : 1.0;
+				rWallGradP /= (WallVelMag != 0.0) ? WallVelMag : 1.0;
 
 				break;
 			}
@@ -291,10 +286,10 @@ void GeneralizedWallCondition<2, 2>::CalculateWallParameters(
 }
 
 /**
- * @see GeneralizedWallCondition::CalculateWallParameters
+ * @see FSGeneralizedWallCondition::CalculateWallParameters
  */
 template<>
-void GeneralizedWallCondition<3, 3>::CalculateWallParameters(
+void FSGeneralizedWallCondition<3, 3>::CalculateWallParameters(
 		double& rWallHeight, array_1d<double, 3>& rWallVel, double& rWallGradP,
 		double& rArea)
 {
@@ -370,19 +365,14 @@ void GeneralizedWallCondition<3, 3>::CalculateWallParameters(
 
 				// pressure gradient term
 				double WallVelMag = norm_2(rWallVel);
-				ShapeFunctionDerivativesArrayType DN_DX;
-				Vector DetJ;
-				rElemGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, DetJ,
-						GeometryData::GI_GAUSS_1);
-				ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
 				array_1d<double, 3> PressureGradient;
-				this->EvaluatePressureGradientInPoint(PressureGradient, rDN_DX);
+				this->EvaluateOldPressureGradientInElement(PressureGradient);
 				rWallGradP = PressureGradient[0] * rWallVel[0];
 				for (SizeType d = 1; d < 3; ++d)
 				{
 					rWallGradP += PressureGradient[d] * rWallVel[d];
 				}
-				rWallGradP /= (WallVelMag > Small) ? WallVelMag : 1.0;
+				rWallGradP /= (WallVelMag != 0.0) ? WallVelMag : 1.0;
 
 				break;
 			}

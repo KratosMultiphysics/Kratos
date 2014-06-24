@@ -83,8 +83,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
 #include "custom_conditions/wall_condition.h"
-#include "custom_conditions/werner_wengle_wall_condition.h"
-#include "custom_conditions/generalized_wall_condition.h"
+#include "custom_conditions/fs_werner_wengle_wall_condition.h"
+#include "custom_conditions/fs_generalized_wall_condition.h"
 #include "custom_conditions/wall_condition_discontinuous.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
@@ -288,13 +288,13 @@ private:
     const  WallCondition<3,3> mWallCondition3D;
 
     /// Wall model using Werner-Wengle power law (fractional step version)
-    const WernerWengleWallCondition<2,2> mWernerWengleWallCondition2D;
-    const WernerWengleWallCondition<3,3> mWernerWengleWallCondition3D;
+    const FSWernerWengleWallCondition<2,2> mFSWernerWengleWallCondition2D;
+    const FSWernerWengleWallCondition<3,3> mFSWernerWengleWallCondition3D;
 
     /// Wall model using generalized wall function (fractional step version)
-    const GeneralizedWallCondition<2,2> mGeneralizedWallCondition2D;
-    const GeneralizedWallCondition<3,3> mGeneralizedWallCondition3D;
-    
+    const FSGeneralizedWallCondition<2,2> mFSGeneralizedWallCondition2D;
+    const FSGeneralizedWallCondition<3,3> mFSGeneralizedWallCondition3D;
+
     /// Exact 2D slip condition using rotated coordinates (fractional step version) - suitable for continuity equation integrated by parts
     const  WallConditionDiscontinuous<2,2> mWallConditionDiscontinuous2D;
     /// Exact 3D slip condition using rotated coordinates (fractional step version) - suitable for continuity equation integrated by parts
