@@ -504,9 +504,9 @@ namespace Kratos
             else
             {
 
-                if( mapping_new_ini !=-1 )
+                if( mapping_new_cont !=-1 )
                 {
-                  calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
+                  calculation_area = mcont_ini_neigh_area[mapping_new_cont];
                 }
               
                 kn_el              = equiv_young * calculation_area * radius_sum_i; //0.9237*equiv_young * calculation_area; //MSIMSI 1: initial gap? we are only dividing by radius sum, it is not correct..
