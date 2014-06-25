@@ -219,6 +219,9 @@ namespace Kratos
       distance *= factor * pow(10,order);
     }
 
+    //beam reduction
+    PenaltyParameter *= 1e-8;
+
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
@@ -422,6 +425,8 @@ namespace Kratos
        VectorType ContactTorque = MathUtils<double>::CrossProduct( RadiusVector, rVariables.Surface.Tangent);
        ContactTorque *= TangentForceModulus;
 
+       //std::cout<<" [ContactTorque]: "<<ContactTorque<<" [TangentForceModulus]: "<<TangentForceModulus<<std::endl;
+
        //Contact torque due to contact tangent force on beam surface
        for (unsigned int i = dimension; i < (dimension * 2); ++i) {
 	 rRightHandSideVector[i] += ContactTorque[i];
@@ -444,6 +449,8 @@ namespace Kratos
   {
 
         rNormalForceModulus = (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
+
+	//std::cout<<" [NormalForceModulus]: "<<rNormalForceModulus<<" [Penalty:"<<rVariables.Penalty.Normal<<" Gap:"<<rVariables.Gap.Normal<<"]"<<std::endl;
 
 	return rNormalForceModulus;
 
