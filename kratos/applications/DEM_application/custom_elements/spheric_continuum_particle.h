@@ -339,7 +339,8 @@ namespace Kratos
         std::vector<int>                  mFemMappingNewIni;
         
         
-        std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        //std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        //std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
 
         
         //Non-linear
