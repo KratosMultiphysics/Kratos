@@ -95,11 +95,13 @@ public:
         const double  max_delta_time,
         const double  fraction_delta_time,
         const double  time_step_prediction_level,
-        const bool    mRayleighDamping
+        const bool    rayleigh_damping
     )
         : Scheme<TSparseSpace,TDenseSpace>()
     {
 
+
+        mRayleighDamping = rayleigh_damping;
         mtimestep                   = 0.00;
         mCalculateOldTime           = false;
         mTimeStepPredictionLevel    = time_step_prediction_level;
