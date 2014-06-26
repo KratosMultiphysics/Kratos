@@ -1457,7 +1457,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
   set EndTime [::xmlutils::setXml $cxpath $cproperty]
   #set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
   #puts $fileid "nsteps    = $NumberOfSteps"
-  puts $fileid "end_time    = $EndTime"
+  puts $fileid "end_time = $EndTime"
 
     } elseif {$SolutionType =="Quasi-Static"} {
 
