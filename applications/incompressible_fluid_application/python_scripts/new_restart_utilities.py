@@ -69,3 +69,14 @@ def PrintRestart_ScalarVariable(variable, varname, Nodes, outfile):
                         variable)) + "\n"
         outfile.write(outstring)
     outfile.write("End NodalData\n")
+
+def PrintRestart_Variable_On_Condition(variable, varname, Conditions, outfile):
+    outfile.write("\n")
+    outstring = "Begin ConditionalData " + varname + "\n"
+    outfile.write(outstring)
+    for cond in Conditions:
+        outstring = str(cond.Id) + " "  + str(cond.GetValue(variable)) + "\n"
+        outfile.write(outstring)
+    outfile.write("End ConditionalData\n")
+
+    
