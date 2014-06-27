@@ -172,6 +172,34 @@ namespace Kratos
 
           ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo, multi_stage_RHS );
 
+          
+          
+          ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+        
+          std::size_t iRigidFaceNeighbour = 0;
+
+          for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
+          {
+            Condition* p_neighbour_condition = &(*ineighbour);
+            RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
+
+              
+          
+              Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
+              Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
+              
+              neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 0] = 0.0;
+              neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 1] = 0.0;
+              neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 2] = 0.0;
+
+              neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + 0] = 0.0;
+              neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + 1] = 0.0;
+              neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + 2] = 0.0;
+              
+              iRigidFaceNeighbour++;
+          }
+          
+          
           //Cfeng,RigidFace
           if( mFemOldNeighbourIds.size() > 0)
           {
