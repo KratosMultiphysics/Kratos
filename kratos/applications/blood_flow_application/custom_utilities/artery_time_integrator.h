@@ -67,14 +67,39 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
+#include "spatial_containers/bins_dynamic.h"
 //#include "geometries/tetrahedra_3d_4.h"
 #include "blood_flow_application.h"
 
 namespace Kratos
 {
+  
 class ArteryTimeIntegrator
 {
 public:
+  
+    void SearchNearestPoint(ModelPart& ThisModelPart1D,ModelPart& ThisModelPart3D)
+    {
+        typedef Node<3>                                         NodeType;
+        typedef Node<3>::Pointer                                NodePointerType;
+        typedef ModelPart::NodesContainerType::ContainerType    NodesContainerType;
+
+        ModelPart::NodesContainerType& rNodes = ThisModelPart1D.Nodes();
+        int nodeSize = ThisModelPart1D.NodesArray().size();
+
+        std::vector<NodePointerType> results(nodeSize);
+        std::vector<double> distanceResults(nodeSize);
+
+        results.reserve(nodeSize);
+
+        BinsDynamic<3, NodeType, NodesContainerType> bins(ThisModelPart3D.NodesArray().begin(),ThisModelPart3D.NodesArray().end());
+
+        int i = 0;
+
+        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++){
+          bins.SearchNearestPoint(*in,results[i],distanceResults[i]);
+        }
+    }
 
     void Initialize(ModelPart& ThisModelPart)
     {
