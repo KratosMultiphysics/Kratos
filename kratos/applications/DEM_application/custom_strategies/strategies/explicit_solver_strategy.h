@@ -960,8 +960,8 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
-        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements(); //ERROR? Should these be all the elements??
+        //ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
         
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -970,13 +970,11 @@ namespace Kratos
         for (int k = 0; k < this->GetNumberOfThreads(); k++){
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            double dummy;
             
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-           
-                (it)->Calculate(CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA, dummy, rCurrentProcessInfo);
-
+                SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                spheric_particle.ComputeNewRigidFaceNeighboursHistoricalData();
+                //(it)->Calculate(CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA, dummy, rCurrentProcessInfo);
             }
 
         }
