@@ -163,6 +163,7 @@ namespace Kratos
 
 
       virtual void ComputeNewNeighboursHistoricalData();
+      virtual void ComputeNewRigidFaceNeighboursHistoricalData();
       
       std::vector<SphericParticle*> mNeighbourElements;
       std::vector<SphericParticle*> mTempNeighbourElements;
@@ -175,9 +176,7 @@ namespace Kratos
       SphericParticle();
 
       //void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo);
-	  
-      ///Cfeng,RigidFace
-      virtual void ComputeNewRigidFaceNeighboursHistoricalData();
+	        
       virtual void ComputeBallToRigidFaceContactForce(  //array_1d<double, 3>& rContactForce, 
                                                         //array_1d<double, 3>& rContactMoment, 
                                                         array_1d<double, 3>& rElasticForce, 

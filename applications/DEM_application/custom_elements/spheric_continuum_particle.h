@@ -106,6 +106,7 @@ namespace Kratos
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
       void ComputeNewNeighboursHistoricalData();
+      void ComputeNewRigidFaceNeighboursHistoricalData();
       
       virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) ;
 
@@ -255,9 +256,7 @@ namespace Kratos
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring();
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
-        void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
-        
-        virtual void ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo);
+        void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional                
                 
         //DEMPACK
         int mDempack;
