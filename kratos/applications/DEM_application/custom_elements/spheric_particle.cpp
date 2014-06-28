@@ -517,8 +517,7 @@ namespace Kratos
 
       }
 
-	//////Cfeng,RigidFace
-	void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
+     void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
      {
 
        ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
@@ -616,12 +615,10 @@ namespace Kratos
       }
 
       void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
-                                                      //double OldNormalDir[3],
                                                       double OldLocalCoordSystem[3][3],
                                                       const double& other_radius,
                                                       const double& dt,
                                                       const array_1d<double, 3>& ang_vel,
-                                                      //ParticleWeakIteratorType neighbour_iterator)
                                                       SphericParticle* neighbour_iterator)
       {
           array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -643,23 +640,15 @@ namespace Kratos
           DeltDisp[2] += dRotaDisp[2] * dt;
       }
 
-      void SphericParticle::ComputeMoments(//double LocalElasticContactForce[3],
-                                           double normalLocalElasticContactForce,
+      void SphericParticle::ComputeMoments(double normalLocalElasticContactForce,
                                            array_1d<double, 3>& GlobalElasticContactForce,
                                            array_1d<double, 3>& rInitialRotaMoment,
-                                           //double LocalCoordSystem[3][3],
                                            double LocalCoordSystem_2[3],
-                                           //const double& other_radius,
-                                           //array_1d<double, 3>& rContactMoment,
                                            SphericParticle* neighbour_iterator)
       {
           double MA[3]         = {0.0};      
 
           GeometryFunctions::CrossProduct(LocalCoordSystem_2, GlobalElasticContactForce, MA);
-
-          //rContactMoment[0] -= MA[0] * mRadius; 
-          //rContactMoment[1] -= MA[1] * mRadius;
-          //rContactMoment[2] -= MA[2] * mRadius;
           
           mContactMoment[0] -= MA[0] * mRadius; 
           mContactMoment[1] -= MA[1] * mRadius;
@@ -678,9 +667,6 @@ namespace Kratos
                   double CoordSystemMoment2[3] = {0.0};
                   double MR[3]                 = {0.0};
 
-                  /*MaxRotaMoment[0] = rInitialRotaMoment[0] + rContactMoment[0];
-                  MaxRotaMoment[1] = rInitialRotaMoment[1] + rContactMoment[1];
-                  MaxRotaMoment[2] = rInitialRotaMoment[2] + rContactMoment[2];*/
                   MaxRotaMoment[0] = rInitialRotaMoment[0] + mContactMoment[0];
                   MaxRotaMoment[1] = rInitialRotaMoment[1] + mContactMoment[1];
                   MaxRotaMoment[2] = rInitialRotaMoment[2] + mContactMoment[2];
@@ -708,18 +694,12 @@ namespace Kratos
                   double MR_max = sqrt(MaxRotaMoment[0] * MaxRotaMoment[0] + MaxRotaMoment[1] * MaxRotaMoment[1] + MaxRotaMoment[2] * MaxRotaMoment[2]);
 
                   if (MR_max > MR_now){
-                       //rContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
-                       //rContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
-                       //rContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
                        mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
                        mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
                        mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
                    }
 
                    else {
-                       //rContactMoment[0] = - rInitialRotaMoment[0];
-                       //rContactMoment[1] = - rInitialRotaMoment[1];
-                       //rContactMoment[2] = - rInitialRotaMoment[2];
                        mContactMoment[0] = - rInitialRotaMoment[0];
                        mContactMoment[1] = - rInitialRotaMoment[1];
                        mContactMoment[2] = - rInitialRotaMoment[2];
@@ -738,9 +718,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          //ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);          
           // KINEMATICS
-
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 

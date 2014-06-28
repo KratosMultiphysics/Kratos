@@ -1338,34 +1338,25 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      */
 
  
-    void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData(const ProcessInfo& rCurrentProcessInfo)
+      void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData()
       {
         
-      ConditionWeakVectorType& rFemTempNeighbours   = mFemTempNeighbours;
       ConditionWeakVectorType& rFemNeighbours       = this->GetValue(NEIGHBOUR_RIGID_FACES);
       
-      rFemTempNeighbours.swap(rFemNeighbours); 
+      mFemTempNeighbours.swap(rFemNeighbours); 
       
-      unsigned int fem_temp_size = rFemTempNeighbours.size();
+      unsigned int fem_temp_size = mFemTempNeighbours.size();
       
       //unsigned int new_size                = rFemNeighbours.size();
       
       rFemNeighbours.clear();        
       
       unsigned int fem_neighbour_counter       = 0;
-      
-      //vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
-      //vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);       
-      
+            
       std::vector<int>&                  fem_temp_neighbours_ids = mFemTempNeighboursIds;
       std::vector<double>&               fem_temp_neighbours_delta = mFemTempNeighboursDelta;
       std::vector<array_1d<double, 3> >& fem_temp_neighbours_contact_forces = mFemTempNeighboursContactForces;
-      std::vector<int>&                  fem_temp_neighbours_mapping = mFemTempNeighboursMapping;
-      
-    //       vector<int> mFemOldNeighbourIds;
-    //       vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
-    //       std::vector<int> mFemTempNeighboursIds;
-    //       std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
+      std::vector<int>&                  fem_temp_neighbours_mapping = mFemTempNeighboursMapping;      
       
       fem_temp_neighbours_ids.resize(fem_temp_size);
       fem_temp_neighbours_delta.resize(fem_temp_size);
@@ -1381,7 +1372,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
       Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
            
-      for (ConditionWeakIteratorType i = rFemTempNeighbours.begin(); i != rFemTempNeighbours.end(); i++)
+      for (ConditionWeakIteratorType i = mFemTempNeighbours.begin(); i != mFemTempNeighbours.end(); i++)
       {
         
           int ino1               = iTempFemNeighbour * 16;
@@ -1393,14 +1384,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
           for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) 
           {
-            if (  iNeighborID == mFemIniNeighbourIds[k]) //****
-            {                               
-             
-              
-              ini_delta  = mFemIniNeighbourDelta[k];
-     
-              
-         
+            if (  iNeighborID == mFemIniNeighbourIds[k]) 
+            {                                                          
+              ini_delta  = mFemIniNeighbourDelta[k];                            
               mapping_new_ini = k; 
               break;
             }
@@ -1416,11 +1402,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             }
           }
           
-          //Judge if its neighbour  
-                
-          double indentation = -(DistPToB - mRadius) - ini_delta;
-          
-          
+          //Judge if its neighbour                  
+          double indentation = -(DistPToB - mRadius) - ini_delta;                    
           
           if ( indentation > 0.0 )  
           {
@@ -1431,8 +1414,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
               fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
               
-              fem_neighbour_counter++;
-              
+              fem_neighbour_counter++;              
           }
           
           iTempFemNeighbour++;
@@ -1464,7 +1446,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         }
         ////////////////////////////////////////////////////////////////////////
         if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
-            ComputeNewRigidFaceNeighboursHistoricalData(rCurrentProcessInfo);
+            ComputeNewRigidFaceNeighboursHistoricalData();
             return;
         }
         ////////////////////////////////////////////////////////////////////////
