@@ -509,7 +509,7 @@ namespace Kratos
                 
                 if ( (*it)->GetGeometry()(0)->Id() < continuum_ini_neighbour_iterator->GetGeometry()(0)->Id() ) 
                 { 
-                    Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0);                   //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
+                    Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
                     Geometry<Node<3> >::PointsArrayType  NodeArray(2);
                                      
                     NodeArray.GetContainer()[0] = (*it)->GetGeometry()(0);
