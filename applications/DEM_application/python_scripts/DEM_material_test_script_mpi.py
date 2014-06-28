@@ -86,42 +86,42 @@ class MaterialTest:
         self.graph_export = open(self.parameters.problem_name +"_graph.grf", 'w')
         self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
 
-        if(self.parameters.PredefinedSkinOption == "ON" ):
-          print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
+       if(self.parameters.PredefinedSkinOption == "ON" ):
+         print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
-        (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
+       (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
 
-        xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
-        xbot_area_gath        = mpi.allgather(mpi.world, xbot_area) 
-        xlat_area_gath        = mpi.allgather(mpi.world, xlat_area) 
-        xtopcorner_area_gath  = mpi.allgather(mpi.world, xtopcorner_area) 
-        xbotcorner_area_gath  = mpi.allgather(mpi.world, xbotcorner_area) 
+       xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
+       xbot_area_gath        = mpi.allgather(mpi.world, xbot_area) 
+       xlat_area_gath        = mpi.allgather(mpi.world, xlat_area) 
+       xtopcorner_area_gath  = mpi.allgather(mpi.world, xtopcorner_area) 
+       xbotcorner_area_gath  = mpi.allgather(mpi.world, xbotcorner_area) 
 
-        xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
-        xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
-        xlat_area = reduce(lambda x, y: x + y, xlat_area_gath)
-        xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
-        xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
+       xtop_area = reduce(lambda x, y: x + y, xtop_area_gath)
+       xbot_area = reduce(lambda x, y: x + y, xbot_area_gath)
+       xlat_area = reduce(lambda x, y: x + y, xlat_area_gath)
+       xtopcorner_area = reduce(lambda x, y: x + y, xtopcorner_area_gath)
+       xbotcorner_area = reduce(lambda x, y: x + y, xbotcorner_area_gath)
 
-        weight_top_gath = mpi.allgather(mpi.world, weight_top)
-        weight_bot_gath = mpi.allgather(mpi.world, weight_bot)
-        y_top_total_gath = mpi.allgather(mpi.world, y_top_total)
-        y_bot_total_gath = mpi.allgather(mpi.world, y_bot_total)
-        
-        weight_top = reduce(lambda x, y: x + y, weight_top_gath)
-        weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
-        y_top_total = reduce(lambda x, y: x + y, y_top_total_gath)
-        y_bot_total = reduce(lambda x, y: x + y, y_bot_total_gath)
-    
-        initial_height_top = y_top_total/weight_top 
-        initial_height_bot = y_bot_total/weight_bot
-    
-        inner_initial_height = initial_height_top - initial_height_bot
+       weight_top_gath = mpi.allgather(mpi.world, weight_top)
+       weight_bot_gath = mpi.allgather(mpi.world, weight_bot)
+       y_top_total_gath = mpi.allgather(mpi.world, y_top_total)
+       y_bot_total_gath = mpi.allgather(mpi.world, y_bot_total)
 
-        specimen_length = self.parameters.SpecimenLength
-        extended_length = specimen_length + (specimen_length - inner_initial_height)
+       weight_top = reduce(lambda x, y: x + y, weight_top_gath)
+       weight_bot = reduce(lambda x, y: x + y, weight_bot_gath)
+       y_top_total = reduce(lambda x, y: x + y, y_top_total_gath)
+       y_bot_total = reduce(lambda x, y: x + y, y_bot_total_gath)
+
+       initial_height_top = y_top_total/weight_top 
+       initial_height_bot = y_bot_total/weight_bot
+
+       inner_initial_height = initial_height_top - initial_height_bot
+
+       specimen_length = self.parameters.SpecimenLength
+       extended_length = specimen_length + (specimen_length - inner_initial_height)
           
-        self.length_correction_factor = specimen_length/extended_length
+       self.length_correction_factor = specimen_length/extended_length
       
       ##Oedometric
 
@@ -299,7 +299,7 @@ class MaterialTest:
     
     prepare_check = [0,0,0,0]
     self.total_check = 0
-    
+
     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
       
       if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
@@ -324,13 +324,12 @@ class MaterialTest:
         self.bot_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
         prepare_check[3] = -1
 
+    prepare_check_gath[0] = mpi.gather(mpi.world,prepare_check[0],0)
+    prepare_check_gath[1] = mpi.gather(mpi.world,prepare_check[1],0)
+    prepare_check_gath[2] = mpi.gather(mpi.world,prepare_check[2],0)
+    prepare_check_gath[3] = mpi.gather(mpi.world,prepare_check[3],0)
+
     if(mpi.rank == 0 ):
-  
-      prepare_check_gath[0] = mpi.gather(mpi.world,prepare_check[0],0)
-      prepare_check_gath[1] = mpi.gather(mpi.world,prepare_check[1],0)
-      prepare_check_gath[2] = mpi.gather(mpi.world,prepare_check[2],0)
-      prepare_check_gath[3] = mpi.gather(mpi.world,prepare_check[3],0)
-  
       prepare_check[0] = reduce(lambda x,y: max(x,y), prepare_check_gath[0])
       prepare_check[1] = reduce(lambda x,y: max(x,y), prepare_check_gath[1])
       prepare_check[2] = reduce(lambda x,y: min(x,y), prepare_check_gath[2])
@@ -350,8 +349,8 @@ class MaterialTest:
     
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-    if(mpi.rank == 0 ):
-      self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
+    #if(mpi.rank == 0 ):
+    self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
     if( self.parameters.TestType =="BTS"):
 
@@ -362,12 +361,12 @@ class MaterialTest:
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1] 
         total_force_bts += force_node_y
       
-    if(mpi.rank == 0 ):
-      total_force_bts_gather = mpi.gather(mpi.world, total_force_bts, 0)
-      total_force_bts = reduce(lambda x, y: x + y, total_force_bts_gather)
+      if(mpi.rank == 0 ):
+        total_force_bts_gather = mpi.gather(mpi.world, total_force_bts, 0)
+        total_force_bts = reduce(lambda x, y: x + y, total_force_bts_gather)
       
-      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
-      self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
+        self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
+        self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
     
     else:
 
