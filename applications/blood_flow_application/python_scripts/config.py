@@ -11,15 +11,15 @@ outlets_1d=[[1001,23]]
 # Config_pressure_conditions
 #systolic_pressure = 15598.7
 #diastolic_pressure = 9065.9
-systolic_pressure = 10000
-diastolic_pressure = 10000
-time_period = 0.1
+systolic_pressure = 1
+diastolic_pressure = 1
+time_period = 0.01
 nro_cardiac_cycles = 1
 # Config_Hypermia_pressure
 #systolic_hypermia_pressure = 15598.7
 #diastolic_hypermia_pressure = 9065.9 #8666.0
-systolic_hypermia_pressure = 10000
-diastolic_hypermia_pressure = 10000 #8666.0
+systolic_hypermia_pressure = 1
+diastolic_hypermia_pressure = 1 #8666.0
 # Config_Hypermia_conditions
 hypermia_Condition_Variable = True
 hypermia_pressure_factor = 1

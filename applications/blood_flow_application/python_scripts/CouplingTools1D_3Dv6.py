@@ -768,7 +768,7 @@ class TransferTools:
                 self.fitters_1d[j].AddPout(node[0].GetSolutionStepValue(PRESSURE))
                 self.fitters_1d[j].AddQ(node[0].GetSolutionStepValue(FLOW))
 
-    def FitValues_3d(self, total_time, ffit_test, kkkkkk):
+    def FitValues_3d(self, total_time,time, ffit_test_3D,ffit_test_1D, kkkkkk):
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
             inlet_nodes_3d = self.inlets_3d[i]
@@ -787,7 +787,11 @@ class TransferTools:
                 # self.fitters_3d[i].AddPin(avg_press)
             # print "pressure", avg_press
 	    print ("flow 1D", inlet_nodes_1d[0].GetSolutionStepValue(FLOW))
-	  
+	    flow_1d=inlet_nodes_1d[0].GetSolutionStepValue(FLOW)
+	    ToWrite = str(time)+ "	" + str(flow_1d) + "\n"
+            ffit_test_1D[kkkkkk].write(ToWrite)
+	    print(kkkkkk)
+	    
         j = 0  # print inlet_nodes_1d[0]
         for j in range(0, len(self.outlets_1d)):
             outlet_nodes_1d = self.outlets_1d[j]
@@ -817,8 +821,8 @@ class TransferTools:
             # print "node outlet", outlet_nodes_1d[0]
             # print "flow", flow
             # print "pressure", outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
-            ToWrite = str(flow_3d) + "\n"
-            ffit_test[kkkkkk].write(ToWrite)
+            ToWrite = str(time)+ "	" + str(flow_3d) + "\n"
+            ffit_test_3D[kkkkkk].write(ToWrite)
 
             # for i in range(0, len(self.outlets_3d)):
             # outlet_nodes_1d = self.outlets_1d[i]
@@ -885,14 +889,14 @@ class TransferTools:
 	FFR_Value_Aortic=Mean_Pressure_OUT_TOTAL/Mean_total_aortic_pressure
 	result_FFR_3D = Mean_Pressure_OUT_TOTAL/Mean_Pressure_IN_TOTAL
 	#print(total_aortic_pressure)
-	print("FFR values in hypothic healthy situation")
+	#print("FFR values in hypothic healthy situation")
 	print("Mean Pressure in the Aortic Root: ", Mean_total_aortic_pressure)
 	print("Mean Pressure in the Inlet: ", Mean_Pressure_IN_TOTAL)	
 	print("Mean Pressure in the Outlet: ", Mean_Pressure_OUT_TOTAL)
 	print("FFR_Value taking the Aortic Root as reference:   ", FFR_Value_Aortic)
 	print("FFR_Value taking the Inlet-node as reference:    ", result_FFR_3D)
-	ToWriteIn_Summary= "FFR values in hypothic healthy situation" + "\n"
-	ToWriteIn_Summary+= "Mean Pressure in the Aortic Root: " + str(Mean_total_aortic_pressure) + "\n"
+	#ToWriteIn_Summary= "FFR values in hypothic healthy situation" + "\n"
+	ToWriteIn_Summary= "Mean Pressure in the Aortic Root: " + str(Mean_total_aortic_pressure) + "\n"
 	ToWriteIn_Summary+="Mean Pressure in the Inlet:  "+ str(Mean_Pressure_IN_TOTAL)	 + "\n"
 	ToWriteIn_Summary+="Mean Pressure in the Outlet:  "+ str(Mean_Pressure_OUT_TOTAL) + "\n"
 	ToWriteIn_Summary+="FFR_Value taking the Aortic Root as reference:   "+ str(FFR_Value_Aortic) + "\n"
@@ -1029,17 +1033,17 @@ class TransferTools:
         k = 0
         for fitter in self.fitters_3d:
             print("----------------------------------------------------------------------------------------------------------------")
-            ffit_3d_2.append(k)
-            results = str("Fitter_3D_2" + str(k) + "_.txt")
-            ffit_3d_2[k] = open(results, 'w')
-            ffit_3d_2[k].write("Node	Time	Pressure_Inlet_3D	Pressure_outlet_3d	PressureDrop	flow_3d) \n")
-            [node_id, A, B] = fitter.DoFitting_3D_2(k, ffit_3d_2)
-            print("node_id = ", node_id)
-            print("A = ", A)
-            print("B = ", B)
-            A = 0.0
-            B = 0.0
-            #raw_input()
+            #ffit_3d_2.append(k)
+            #results = str("Fitter_3D_2" + str(k) + "_.txt")
+            #ffit_3d_2[k] = open(results, 'w')
+            #ffit_3d_2[k].write("Node	Time	Pressure_Inlet_3D	Pressure_outlet_3d	PressureDrop	flow_3d) \n")
+            #[node_id, A, B] = fitter.DoFitting_3D_2(k, ffit_3d_2)
+            #print("node_id = ", node_id)
+            #print("A = ", A)
+            #print("B = ", B)
+            #A = 0.0
+            #B = 0.0
+            ##raw_input()
             print("----------------------------------------------------------------------------------------------------------------")
             # ffit_3d_3.append(k)
             # results = str("Fitter_3D_3" + str(k) + "_.txt")
@@ -1067,7 +1071,7 @@ class TransferTools:
             results = str("Fitter_3D_TO_BE_USED_" + str(k) + "_.txt")
             ffit_3d[k] = open(results, 'w')
             ffit_3d[k].write("Node	Time	Pressure_Inlet_3D	Pressure_outlet_3d	PressureDrop	flow_3d) \n")
-            [node_id, A, B] = fitter.DoFitting_3D(k, ffit_3d)
+            [node_id, A, B] = fitter.DoFitting_3D_2(k, ffit_3d)
             print("node_id = ", node_id)
             print("A = ", A)
             print("B = ", B)

@@ -8,6 +8,10 @@ import math
 
 def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, input_file_name, FFR_Inlet_NODES_Values, FFR_Outlet_NODES_Values,summary_file,mean_flow_1d_value,Aortic_inlet):
 
+    model_part_flow_3D=ModelPart("Flow_inlet_3D")
+    model_part_flow_1D=ModelPart("Flow_inlet_1D")
+    model_part_flow_Aortic_1D=ModelPart("Flow_inlet_Aortic_1D")
+    
     import time
     import CouplingTools1D_3Dv6
     # model_part1D: 1D.MDPA
@@ -16,9 +20,16 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # input_file_name: Name
     # FFR_Inlet_NODES_Values
     # FFR_Outlet_NODES_Values
-    Config_version="ONLY1D.PY:VERSION 05_June_2014_local"
+    Config_version="ONLY1D.PY:VERSION 28062014"
+    
+    #Change:
+    
+    
+    
     transfer_obj = CouplingTools1D_3Dv6.TransferTools(model_part1D, model_part3D)
     transfer_obj.Initialize()
+    
+    
     print(Config_version)    
     print("---------------------------------- FFR COMPUTATION ------------------------------------------")
     # Set initial_Radius
@@ -41,7 +52,8 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # total_time (last value of the Cardiac_cycle
     time_cardiac_cycle = config.time_period
     # True-->Sub_step_control (only for the Coupled_3d_1d)
-    #Sub_steping = simulation_config.Sub_steping
+    Sub_steping = simulation_config.Sub_steping
+    Coupled_Simulation = simulation_config.Coupled_Simulation
     sub_step = simulation_config.sub_step  #
     # True-->Activate	False-->fix (step_size)
     step_size_control = simulation_config.step_size_control
@@ -58,11 +70,19 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # Set_Results (# Aprox to save results)
     cardiac_cycle_to_3D = cardiac_cycle  # 3D cardiac_Cycle will be running
     nro_FFR_cardiac_cycles = config.nro_FFR_cardiac_cycles
-    final_time = total_time + (nro_FFR_cardiac_cycles * time_cardiac_cycle)
+    
     ascii = simulation_config.ascii_results
     save_results = simulation_config.save_results
-    nro_FFR_cardiac_cycles_counter=nro_FFR_cardiac_cycles
     nro_FFR_cardiac_cycles_counter=1
+    
+    # Set coupling condition
+    if(nro_FFR_cardiac_cycles == 1):
+	    # 3D cardiac_Cycle will be running
+	    nro_FFR_cardiac_cycles = nro_FFR_cardiac_cycles + 1
+    else:
+	    nro_FFR_cardiac_cycles = nro_FFR_cardiac_cycles	 # 3D cardiac_Cycle will be running
+    
+    final_time = total_time + (nro_FFR_cardiac_cycles * time_cardiac_cycle)
     # Set Aux_variables
     # This variable is only for doing test A-B with the 1D model.
     Fit_control = False
@@ -71,6 +91,16 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     hypermia_Resistence_factor = config.hypermia_Resistence_factor
     hypermia_Condition_Variable = config.hypermia_Condition_Variable
     hypermia_flow_factor=config.hypermia_flow_factor
+    
+    if(hypermia_Condition_Variable):
+	hypermia_pressure_factor = config.hypermia_pressure_factor
+	hypermia_Resistence_factor = config.hypermia_Resistence_factor	
+	hypermia_flow_factor=config.hypermia_flow_factor
+    else:
+	hypermia_pressure_factor = 1.0
+	hypermia_Resistence_factor = 1.0	
+	hypermia_flow_factor=1.0
+    
     
     nro_cardiac_cycle = 1.0
     diastolic_hypermia_pressure = hypermia_pressure_factor * diastolic_hypermia_pressure
@@ -86,6 +116,26 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     else:
         InletPressure = False
     
+    
+    if(hypermia_Condition_Variable):
+	print("Using Flow as inlet")
+	Flow_inlet_3D="Flow_inlet_3D"
+	Flow_inlet_Aortic_1D="Flow_inlet_Aortic_1D"
+	model_part_io_kk= ModelPartIO(Flow_inlet_3D)
+	model_part_io_flow_Aortic_1D=ModelPartIO(Flow_inlet_Aortic_1D)
+	model_part_io_kk.ReadModelPart(model_part_flow_3D)
+	model_part_io_flow_Aortic_1D.ReadModelPart(model_part_flow_Aortic_1D)
+	#Q_initial = hypermia_flow_factor*model_part_flow_3D.GetTable(0)
+	flowAortic1D_table = model_part_flow_Aortic_1D.GetTable(1)
+	flow3D_table = model_part_flow_3D.GetTable(1)
+	flow3Dtable = flow3D_table.GetValue(0)
+	flow1DAortictable=flowAortic1D_table.GetValue(0)
+	InletPressure = False
+    
+    
+    #raw_input()
+    #InletPressure = False
+    
     #ToWriteIn_Summary += "Diastolic_pressure  : " + str(diastolic_pressure) + "\n"
     #ToWriteIn_Summary += "Systolic_pressure  : " + str(systolic_pressure) + "\n"
     #ToWriteIn_Summary += "Initial Pressure  : " + str(P_initial) + "\n"
@@ -100,8 +150,19 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     #ToWriteIn_Summary += "Fit Radius: " + str(FitRadius) + "\n"
     #ToWriteIn_Summary += "Initial Flow: " + str(Q_initial) + "\n"
     #ToWriteIn_Summary += "Initial Pressure: " + str(P_initial) + "\n"
-
-        
+    ToWriteIn_Summary = "Cardiac_FFR cycle Time: " + 	str(time_cardiac_cycle) + " second/s" + "\n"
+    if (config.nro_FFR_cardiac_cycles == 1):
+	    ToWriteIn_Summary += "Cardiac_FFR_cycle defined by the user*: " + \
+		    str(config.nro_FFR_cardiac_cycles) + "\n"
+	    ToWriteIn_Summary += "*Due to 1D-3D Stabilization, the total number of FFR cardiac_cycle is: "	+ \
+		    str(nro_FFR_cardiac_cycles) + "\n"
+    else:
+	    ToWriteIn_Summary += "Number of FFR cardiac_cycle: " + \
+		    str(cardiac_cycle_to_3D) + "\n"
+		    
+		    
+    summary_file.write(ToWriteIn_Summary)
+    
     # Select FFR Nodes
     node_IN = FFR_Inlet_NODES_Values[0].Id
     print (node_IN)
@@ -146,16 +207,25 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
             gid_io.InitializeResults(mesh_name, (model_part1D).GetMesh())
             print("Writing 1D Mesh------------------------")
 
+    
     # Initial conditions for the 1D model HYPERMIA SITUATIONS
     integrator = ArteryTimeIntegrator()
     integrator.Initialize(model_part1D)
-    inletconditiontable = model_part1D.GetTable(1)
+    #inletconditiontable = model_part1D.GetTable(1)
     minlength = 1e+12
     minlength = integrator.Element_minLength(model_part1D)
     
+    
     ToWriteIn_Summary = "-----------------------------------------------" + "\n"
+    ToWriteIn_Summary += "Initial Flow: " + str(Q_initial) + "\n"
+    ToWriteIn_Summary += "Initial Pressure: " + str(P_initial) + "\n"
     ToWriteIn_Summary += "Setting Hypermenia Conditions"+ "\n"
     ToWriteIn_Summary +="Condition Variable to modify the TERMINAL_RESISTANCE: " + str(hypermia_Condition_Variable) + "\n"
+    ToWriteIn_Summary +="Condition Variable to modify the hypermia_pressure_factor: " + str(hypermia_pressure_factor) + "\n"
+    ToWriteIn_Summary +="Condition Variable to modify the hypermia_Resistence_factor: " + str(hypermia_Resistence_factor) + "\n"
+    ToWriteIn_Summary +="Condition Variable to modify the hypermia_flow_factor: " + str(hypermia_flow_factor) + "\n"
+
+    
     if(hypermia_Condition_Variable):	  
 	  #ToWriteIn_Summary+="Pressure imposed: " + str(PRESSURE_DT) + "\n"
 	  ToWriteIn_Summary+="Modify terminal resistence using factor of: " + str(hypermia_Resistence_factor) + "\n"
@@ -168,13 +238,15 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     # Initial Values. Set the intial pressure as reference for the 1D model
     # (all nodes take the systolic pressure and the initial flow)
     #raw_input()
+    venous_pressure=diastolic_hypermia_pressure*0.9
     ToWriteIn_Summary += "Sistolic_hypermia_pressure: "+ str(systolic_hypermia_pressure) + "\n"
     ToWriteIn_Summary += "Diastolic_hypermia_pressure: "+ str(diastolic_hypermia_pressure) + "\n"
+    print("Venous Pressure: ", venous_pressure)
+    ToWriteIn_Summary += "Venous_hypermia_Pressure: " + str(venous_pressure) + "\n"
     #summary_file.write(ToWriteIn_Summary)
 	
     # Initial Values. Set the intial pressure as reference for the 1D model
     # (all nodes take the systolic pressure and the initial flow)
-    venous_pressure=diastolic_hypermia_pressure*0.9
     if (InletPressure):
 	    if (InletProfileType == "parabolic"):
 		    print("Using Parabolic Pressure as input")
@@ -199,8 +271,14 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 			    node.SetSolutionStepValue(PRESSURE, 0, P_initial)
 			    node.SetSolutionStepValue(DYASTOLIC_PRESSURE, 0, diastolic_hypermia_pressure)
 			    node.SetSolutionStepValue(PRESSURE_VENOUS, 0, venous_pressure)
-    else:
-	    Q_initial = inletconditiontable.GetValue(0)
+    else:	    
+	    print("Using Flow Hypermia as input")
+	    ToWriteIn_Summary += "Using Flow Hypermia as input" + "\n"
+	    flow3Dtable = flow3D_table.GetValue(0)
+	    flow1DAortictable=flowAortic1D_table.GetValue(0)
+	    Q_initial = hypermia_flow_factor*flow1DAortictable
+	    print(Q_initial)
+	    print(P_initial)
 	    for node in model_part1D.Nodes:
 		    if(node.IsFixed(FLOW) == False):
 			    node.SetSolutionStepValue(FLOW, 0, Q_initial)
@@ -225,17 +303,24 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 
     fixed_flow_nodes = []
     fixed_pressure_nodes = []
+
     if (InletPressure == False):
 	    for node in model_part1D.Nodes:
-		    if(node.IsFixed(FLOW) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
+		    #if(node.IsFixed(FLOW) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
+		    if(node.IsFixed(PRESSURE) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
 			    fixed_flow_nodes.append(node)
-			    print(" NODE_fixed_FLOW (INLET) ", node.Id)
+			    #print(" NODE_fixed_FLOW (INLET) ", node.Id)
+			    #print("2")
+
     else:
 	    for node in model_part1D.Nodes:
 		    if(node.IsFixed(PRESSURE) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
 			    fixed_pressure_nodes.append(node)
-			    print(" NODE_fixed_PRESSURE (INLET)", node.Id)
-
+			    fixed_flow_nodes.append(node)
+			    #print(" NODE_fixed_PRESSURE (INLET)", node.Id)
+			    #print("3")
+	    
+			    
     total_time = total_time + step_size
     # Initial Delta Step
     # Initial Delta Step
@@ -263,6 +348,19 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     else:
 	    output_step = 1
     
+    #if(Sub_steping):
+	#control_sub_step = 1
+	## sub_step = 20
+	#if (output_step < sub_step):
+		#output_step = sub_step
+	## for each time step, ie: 1 save 1 Dt, 100 save 100 Dt
+    #else:
+	#Sub_steping = True
+	#control_sub_step = 1
+	## sub_step = 200
+	#if ((output_step < sub_step) and (Coupled_Simulation)):
+		#output_step = sub_step
+    
     print("1D_FFR Problem is running")
     ToWriteIn_Summary = "1D_FFR Problem is running"+ "\n"
     ToWriteIn_Summary += "... ... ... ... ... ... ... ... ... ... " + "\n"
@@ -278,6 +376,7 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     
     instant_pressure=0.0
     total_aortic_pressure=0.0
+    total_inlet_flow=0.0
     Pressure_IN_TOTAL=0.0
     FLOW_IN_FFR_TOTAL=0.0
     Pressure_OUT_TOTAL=0.0
@@ -291,7 +390,6 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     mean_pressure_1d_FFR=0.0
     counter_FFR=0.0
     
-    
     final_time=final_time+0.000001    
     while(total_time <= final_time):
         nro_FFR_cardiac_cycles_counter
@@ -301,14 +399,31 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 	if (InletPressure == False):
 		for node in fixed_flow_nodes:
 		# if (Coupled_Simulation == False):
-			if(node.IsFixed(FLOW) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
+			#if(node.IsFixed(FLOW) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
+			if(node.IsFixed(PRESSURE) and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
 				if (step > 1):
-					Q = inletconditiontable.GetValue(time)
+					flow3Dtable = flow3D_table.GetValue(time)
+					flow1DAortictable=flowAortic1D_table.GetValue(time)			    
+					Q = hypermia_flow_factor*flow1DAortictable	   					
 					Q = 2 * Q - node.GetSolutionStepValue(FLOW, 1)
 					node.SetSolutionStepValue(FLOW, 0, Q)
+					total_aortic_pressure=total_aortic_pressure+node.GetSolutionStepValue(PRESSURE)
+					total_inlet_flow=total_inlet_flow+node.GetSolutionStepValue(FLOW)					
+					print("Using Flow Profile as Inle: ", Q)
+					print(total_aortic_pressure)
+					print(node.Id)
+					#raw_input()
 				else:
-					Q = inletconditiontable.GetValue(time)
+					Q = hypermia_flow_factor*flowAortic1D_table.GetValue(time)		
 					node.SetSolutionStepValue(FLOW, 0, Q)
+					total_aortic_pressure=total_aortic_pressure+node.GetSolutionStepValue(PRESSURE)
+					total_inlet_flow=total_inlet_flow+node.GetSolutionStepValue(FLOW)
+					print("Using Flow Profile as Inlet: ", Q)
+					#print (Q)
+					print(total_aortic_pressure)
+					print(node.Id)
+					#raw_input()
+			#print("Q", str(Q))
 	else:
 		for node in fixed_pressure_nodes:
 			# if (Coupled_Simulation == False):
@@ -319,23 +434,23 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 						(pressure_parameter_1 * time) + \
 						pressure_parameter_3
 					total_aortic_pressure=total_aortic_pressure+instant_pressure
-					#print("Using Parabolic Pressure Profile as Inlet: ", instant_pressure)
+					print("Using Parabolic Pressure Profile as Inlet: ", instant_pressure)
 				elif (InletProfileType == "coseno"):
 					instant_pressure = (pressure_parameter_1) + ((pressure_parameter_2) * (math.cos(2 * math.pi * total_time / time_period)))
 					total_aortic_pressure=total_aortic_pressure+instant_pressure
-					#print("Using Coseno Pressure Profile as Inlet: ", instant_pressure)
+					print("Using Coseno Pressure Profile as Inlet: ", instant_pressure)
 				elif (InletProfileType == "table"):
 					instant_pressure = inletconditiontable.GetValue(time)
 					total_aortic_pressure=total_aortic_pressure+instant_pressure
-					#print("Using Table Pressure Profile(mdpa) as Inlet: ", instant_pressure)
+					print("Using Table Pressure Profile(mdpa) as Inlet: ", instant_pressure)
 				# Transfer pressure in Area & Flow
 				A0 = node.GetValue(NODAL_AREA)
 				A_aux = node.GetSolutionStepValue(NODAL_AREA, 1)
 				A = (math.sqrt(A0) + (((instant_pressure - diastolic_hypermia_pressure) * A0) / node.GetSolutionStepValue(BETA, 1))) ** 2
 				A2 = pow(2 * pow(A, 0.25) - pow(A_aux, 0.25), 4)
 				node.SetSolutionStepValue(NODAL_AREA, 0, A)
+				total_inlet_flow=total_inlet_flow+node.GetSolutionStepValue(FLOW)
 				# node.SetSolutionStepValue(FLOW,0,Q)
-
 	#ToWriteIn_Summary = " Instant pressure imposed in the inlet node:	"  + str(instant_pressure) + " Pa " + "\n"
 	#ToWriteIn_Summary += " Instant area imposed in the inlet node:	"  + str(A) + " mm " + "\n"	
 	#summary_file.write(ToWriteIn_Summary)
@@ -343,40 +458,47 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 	#ToWriteIn_summary_file_pressure_inlet1D=str(instant_pressure) + "\n"
 	#summary_file_pressure_inlet1D.write(ToWriteIn_summary_file_pressure_inlet1D)
 	#summary_file_pressure_Flow_Aortic(ToWriteIn_summary_file_pressure_Flow_Aortic)
-		    
+	#print(time)
+	#flow3Dtable = flow3D_table.GetValue(time)
+	#print("flow", flow3Dtable)
+	#raw_input()
+	#print(total_inlet_flow)
+	print("Solve FFR_1D ------------------------------> ", total_time, nro_FFR_cardiac_cycles_counter,nro_FFR_cardiac_cycles )
 	myTimer.Start("solver_1D.Solve()")
 	integrator.SolveStep(model_part1D)
 	myTimer.Stop("solver_1D.Solve()")
 
 	# if (total_time > (final_time)):
 	# NO VALIDO PARA BIFURCACIONES
-	###TESTTTTTSTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-	[mean_flow_1d_value,mean_pressure_1d_value,out_pressure_1d_value]=transfer_obj.Save_Values_For_different_situations(mean_flow_1d_value,mean_pressure_1d_value,out_pressure_1d_value)				
-	
-	i_FFR = 0
-	Pressure_IN=0.0
-	FLOW_IN_FFR=0.0
-	Pressure_OUT=0.0
-	for i_FFR in range(0, len(FFR_Inlet_NODES_Values)):
-	    # node=FFR_Nodes[i_FFR]
-	    node = FFR_Inlet_NODES_Values[i_FFR]
-	    Pressure_IN = node.GetSolutionStepValue(PRESSURE)
-	    Pressure_IN_TOTAL=Pressure_IN_TOTAL+Pressure_IN
-	    FLOW_IN_FFR=node.GetSolutionStepValue(FLOW)
-	    FLOW_IN_FFR_TOTAL=FLOW_IN_FFR_TOTAL+FLOW_IN_FFR
-	    #print(node)
-	    #print(Pressure_IN_TOTAL)
-	    #print(FLOW_IN_FFR_TOTAL)
-	    	    
-	for i_FFR in range(0, len(FFR_Outlet_NODES_Values)):
-	    node =FFR_Outlet_NODES_Values[i_FFR]
-	    Pressure_OUT = node.GetSolutionStepValue(PRESSURE)
-	    Pressure_OUT_TOTAL=Pressure_OUT_TOTAL+Pressure_OUT
-	    #print(node)
-	    #print(Pressure_OUT_TOTAL)
 
+	if(nro_FFR_cardiac_cycles_counter==nro_FFR_cardiac_cycles):
+		print(total_aortic_pressure)
+		[mean_flow_1d_value,mean_pressure_1d_value,out_pressure_1d_value]=transfer_obj.Save_Values_For_different_situations(mean_flow_1d_value,mean_pressure_1d_value,out_pressure_1d_value)				
+		print("save")
+		print(total_aortic_pressure)
+		i_FFR = 0
+		Pressure_IN=0.0
+		FLOW_IN_FFR=0.0
+		Pressure_OUT=0.0
+		for i_FFR in range(0, len(FFR_Inlet_NODES_Values)):
+		    # node=FFR_Nodes[i_FFR]
+		    node = FFR_Inlet_NODES_Values[i_FFR]
+		    Pressure_IN = node.GetSolutionStepValue(PRESSURE)
+		    Pressure_IN_TOTAL=Pressure_IN_TOTAL+Pressure_IN
+		    FLOW_IN_FFR=node.GetSolutionStepValue(FLOW)
+		    FLOW_IN_FFR_TOTAL=FLOW_IN_FFR_TOTAL+FLOW_IN_FFR
+		    #print(node)
+		    #print(Pressure_IN_TOTAL)
+		    #print(FLOW_IN_FFR_TOTAL)
+			    
+		for i_FFR in range(0, len(FFR_Outlet_NODES_Values)):
+		    node =FFR_Outlet_NODES_Values[i_FFR]
+		    Pressure_OUT = node.GetSolutionStepValue(PRESSURE)
+		    Pressure_OUT_TOTAL=Pressure_OUT_TOTAL+Pressure_OUT
+		    #print(node)
+		    #print(Pressure_OUT_TOTAL)
 	
-	if((math.fmod(step, output_step) == 0)):
+	if((math.fmod(step, output_step) == 0) and (nro_FFR_cardiac_cycles_counter==nro_FFR_cardiac_cycles)):
 		# removal_tool.ComputePressure(model_part1D)
 	    # Only when I saved the results.
 	    integrator.ComputePressure(model_part1D, diastolic_hypermia_pressure)
@@ -423,10 +545,21 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 	    ToWriteIn_Summary = "FFR_Cardiac_cycle: ------------------------> " + str(nro_FFR_cardiac_cycles_counter) + "\n"
 	    summary_file.write(ToWriteIn_Summary)
 	    total_aortic_pressure=0.0
+	    total_inlet_flow=0.0
 	    mean_pressure_1d_value=0.0
 	    out_pressure_1d_value=0.0
 	    mean_flow_1d_value=0.0
-	    counter_FFR=0	   
+	    counter_FFR=0
+	    mean_flow_1d_value=0.0
+	    mean_pressure_1d_value=0.0
+	    out_pressure_1d_value=0.0
+	    out_pressure_1d_value_FFR=0.0
+	    mean_flow_1d_inlet=0.0
+	    mean_flow_1d_FFR= 0.0
+	    mean_pressure_1d_FFR=0.0
+	    counter_FFR=0.0
+	    print(total_aortic_pressure)
+	    raw_input()
 
 	if (step_size_control):
 	    Dt = integrator.EstimateDeltaTime(model_part1D, 0.6, minlength)
@@ -462,7 +595,7 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     summary_file.write(ToWriteIn_Summary)
     
     #counter_FFR=counter_FFR/nro_FFR_cardiac_cycles
-    #print(total_aortic_pressure)
+    print(total_aortic_pressure)
     #print(mean_flow_1d_value)
     #print(mean_pressure_1d_value)
     #print(out_pressure_1d_value)
@@ -496,7 +629,7 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
     
     #print("---------------------------------------------FFR VALUES_2-------------------------------------------")
     #ToWriteIn_Summary = "---------------------------------------------FFR VALUES_2-------------------------------------------"+ "\n"
-    raw_input()
+    #raw_input()
     for i_FFR in range(1, len(FFR_Inlet_NODES_Values)):
 	node=FFR_Outlet_NODES_Values[i_FFR].Id
 	result_FFR = Mean_Pressure_OUT_TOTAL/Mean_Pressure_IN_TOTAL
@@ -561,7 +694,7 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 	#####summary_file.write(ToWriteIn_Summary)
 	#result_Flow = Q_VALUES[i_FFR]/mean_inlet_flow
 # print "FLOW_Index :::> ", FFR_Nodes[i_FFR], "--",  result_Flow
-
-        
+    
+    print(total_inlet_flow)
     return [mean_flow_1d_value]
     print("---------------------------------------------END-------------------------------------------")
