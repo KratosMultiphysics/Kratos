@@ -77,7 +77,7 @@ class Fitter:
         # print self.pins
         # print self.pouts
         # print range(0,len(self.pins))
-        begin = int(0.2 * len(self.pins))
+        begin = 0 #int(0.2 * len(self.pins))
         for i in range(begin, len(self.pins)):
             # print i
             total_time = self.Totaltimes[i]
@@ -119,7 +119,7 @@ class Fitter:
         # print self.pins
         # print self.pouts
         # print range(0,len(self.pins))
-        begin = int(0.2 * len(self.pins))
+        begin = 0 #int(0.2 * len(self.pins))
         for i in range(begin, len(self.pins)):
             # print i
             total_time = self.Totaltimes[i]
