@@ -382,7 +382,7 @@ if (DEM_parameters.Multifile == "single_file"):
 
 if ((DEM_parameters.TestType!= "None") and (mpi.rank == 0) ):
   
-  MaterialTest.FinalizeGraphs(DEM_parameters)
+  MaterialTest.FinalizeGraphs()
 
 multifile.close()
 multifile_5.close()
