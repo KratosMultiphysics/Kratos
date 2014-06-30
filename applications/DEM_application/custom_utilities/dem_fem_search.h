@@ -88,7 +88,8 @@ class DEM_FEM_Search : public SpatialSearch
 	  typedef RigidFaceGeometricalObjectConfigure<3>        RigidFaceGeometricalConfigureType;     	
       //Bin Types
 	  typedef BinsObjectDynamic<RigidFaceGeometricalConfigureType>   GeometricalBinsType;
-      typedef PointerVectorSet<GeometricalObject, IndexedObject>     GeometricalObjectType;
+    typedef PointerVectorSet<GeometricalObject, IndexedObject>     GeometricalObjectType;
+    //typedef PointerVector<GeometricalObject>     GeometricalObjectType;
 	  
 	  
      
@@ -107,18 +108,18 @@ class DEM_FEM_Search : public SpatialSearch
 	  
 	  
 	   void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
-          ElementsContainerType   const& rStructureElements,
-          ConditionsContainerType const& rElements,
+          ElementsContainerType   const& rElements,
+          ConditionsContainerType const& rConditions,
           const RadiusArrayType & Radius, 
           VectorResultConditionsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
           
-          int MaxNumberOfElements = rStructureElements.size();
+          int MaxNumberOfElements = rElements.size();
 
-          ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rStructureElements.GetContainer());
-          ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rElements.GetContainer());
+          ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rConditions.GetContainer());
 
           GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
           GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
@@ -131,8 +132,10 @@ class DEM_FEM_Search : public SpatialSearch
           
           for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
-          
-          
+                 
+          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);       
+
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
           
           #pragma omp parallel
