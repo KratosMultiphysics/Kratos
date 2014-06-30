@@ -826,8 +826,10 @@ namespace Kratos
 	y_etasp=etasp;
     }
 
-    static inline void CalQuadWeightCoefficient(double Coord[4][3], double LocalCoordSystem[3][3], double IntersectionCoord[3], double Weight[4])
+    static void CalQuadWeightCoefficient(double Coord[4][3], double LocalCoordSystem[3][3], double IntersectionCoord[3], double Weight[4])
     {
+      
+      
         int j;
 
         double FaceCenter[3] = {0.0};
@@ -838,57 +840,66 @@ namespace Kratos
             FaceCenter[2] += Coord[j][2] * 0.25;
         }
 
-	double TransCoord0[3],TransCoord1[3],TransCoord2[3],TransCoord3[3];
-	double xy[4][2];
-	double xy1[4][2]={{-1.0,-1.0},{1.0,-1.0},{1.0,1.0},{-1.0,1.0}};
+        double TransCoord0[3],TransCoord1[3],TransCoord2[3],TransCoord3[3];
+        double xy[4][2];
+        double xy1[4][2]={{-1.0,-1.0},{1.0,-1.0},{1.0,1.0},{-1.0,1.0}};
 
 
-	double TempLocalCoordSystem[3][3]={{0.0}, {0.0}, {0.0}};
-	double vx[3]={1.0,0,0},vy[3]={0,1.0,0},vz[3]={0, 0, 1.0};
+        double TempLocalCoordSystem[3][3]={{0.0}, {0.0}, {0.0}};
+        double vx[3]={1.0,0,0},vy[3]={0,1.0,0},vz[3]={0, 0, 1.0};
 
-	if( DotProduct(LocalCoordSystem[2],vx)<0 || DotProduct(LocalCoordSystem[2],vy)<0 || DotProduct(LocalCoordSystem[2],vz)<0 )
-	{
+        if( DotProduct(LocalCoordSystem[2],vx)<0 || DotProduct(LocalCoordSystem[2],vy)<0 || DotProduct(LocalCoordSystem[2],vz)<0 )
+        {
             for(j=0;j<3;j++)
             {
                 TempLocalCoordSystem[0][j] =  LocalCoordSystem[0][j];
                 TempLocalCoordSystem[1][j] =  LocalCoordSystem[1][j];
                 TempLocalCoordSystem[2][j] = -LocalCoordSystem[2][j];
             }
-	}
-	else
-	{
+        }
+        
+        
+        
+        else
+        {
             for(j=0;j<3;j++)
             {
                 TempLocalCoordSystem[0][j] = LocalCoordSystem[0][j];
                 TempLocalCoordSystem[1][j] = LocalCoordSystem[1][j];
                 TempLocalCoordSystem[2][j] = LocalCoordSystem[2][j];
             }
-	}
+        }
+        
+      
+        Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[0], TransCoord0);
+        Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[1], TransCoord1);
+        Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[2], TransCoord2);
+        Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[3], TransCoord3);
+        
 
-	Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[0], TransCoord0);
-	Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[1], TransCoord1);
-	Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[2], TransCoord2);
-	Coord_transform(FaceCenter, TempLocalCoordSystem, Coord[3], TransCoord3);
+        xy[0][0] = TransCoord0[0]; xy[0][1] = TransCoord0[1];
+        xy[1][0] = TransCoord1[0]; xy[1][1] = TransCoord1[1];
+        xy[2][0] = TransCoord2[0]; xy[2][1] = TransCoord2[1];
+        xy[3][0] = TransCoord3[0]; xy[3][1] = TransCoord3[1];
 
-	xy[0][0] = TransCoord0[0], xy[0][1] = TransCoord0[1];
-	xy[1][0] = TransCoord1[0], xy[1][1] = TransCoord1[1];
-	xy[2][0] = TransCoord2[0], xy[2][1] = TransCoord2[1];
-	xy[3][0] = TransCoord3[0], xy[3][1] = TransCoord3[1];
+        double in0=0.0, in1=0.0, in2=0.0, in3=0.0;
+        double TransCoordp[3];
+        double Coordp_iso[2];
+          
+       
+        Coord_transform(FaceCenter, TempLocalCoordSystem, IntersectionCoord, TransCoordp);
 
-	double in0=0.0, in1=0.0, in2=0.0, in3=0.0;
-	double TransCoordp[3];
-	double Coordp_iso[2];
+        gl_to_iso(TransCoordp[0],TransCoordp[1],xy,Coordp_iso[0],Coordp_iso[1]);
 
-	Coord_transform(FaceCenter, TempLocalCoordSystem, IntersectionCoord, TransCoordp);
+        N44(Coordp_iso[0],Coordp_iso[1], xy1, in0, in1, in2, in3);
 
-	gl_to_iso(TransCoordp[0],TransCoordp[1],xy,Coordp_iso[0],Coordp_iso[1]);
-
-	N44(Coordp_iso[0],Coordp_iso[1], xy1, in0, in1, in2, in3);
-
-	Weight[0]=in0;
-	Weight[1]=in1;
-	Weight[2]=in2;
-	Weight[3]=in3;
+        Weight[0]=in0;
+        Weight[1]=in1;
+        Weight[2]=in2;
+        Weight[3]=in3;
+        
+        
+        
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -922,6 +933,10 @@ namespace Kratos
 		 LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
 
          DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
+         
+         KRATOS_WATCH(DistPToB)
+         KRATOS_WATCH(LocalCoordSystem[1][0])
+         KRATOS_WATCH(If_Conact)
 
          if(DistPToB < rad )
          {
@@ -931,6 +946,7 @@ namespace Kratos
 
              if(FaceNodeTotal == 3)
              {
+               
                  double TriWeight[3] = {0.0};
                  TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
 
@@ -944,9 +960,13 @@ namespace Kratos
                  }
 
              }
+             
+             
              else if(FaceNodeTotal == 4)
              {
-                 double FaceArea;
+                
+               
+               double FaceArea;
                  double TempFace[2];
                  TriAngleArea(Coord[0], Coord[1], Coord[2], TempFace[0]);
                  TriAngleArea(Coord[2], Coord[3], Coord[0], TempFace[1]);
@@ -960,16 +980,25 @@ namespace Kratos
 
                  if(fabs( (AreaComponent[0] + AreaComponent[1] + AreaComponent[2] + AreaComponent[3] - FaceArea) / FaceArea) < 1.0e-3)
                  {
+                   
                      If_Conact = true;
 
                      CalQuadWeightCoefficient(Coord, LocalCoordSystem, IntersectionCoord, Weight);
+                     
+                     
                  }
+                 
              }
          }
 
          return If_Conact;
+          
      }
-    }
-}
+     
+    
+    } //namespace GeometryFunctions
+    
+} //namespace Kratos
+
 #endif	/* _GEOMETRYFUNCTIONS_H */
 
