@@ -180,11 +180,7 @@ namespace Kratos
 
           for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
           {
-            Condition* p_neighbour_condition = &(*ineighbour);
-            RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
-
-              
-          
+             
               Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
               Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
               
