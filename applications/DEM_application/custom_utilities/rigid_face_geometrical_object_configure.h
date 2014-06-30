@@ -146,240 +146,248 @@ public:
     //******************************************************************************************************************
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2,  const double& Radius)
-     {
-         //Cfeng: rObj_1 is particle,  and rObj_2 is block
+    {
+      //Cfeng: rObj_1 is particle,  and rObj_2 is condition
 
-         bool If_PB_Contact = false;
+      bool ContactExists = false;
 
-         int ContactType = -1;
-         //-1: No contact;
-         // 0: Plane;
-         // 1: Edge;
-         // 2: Point.
+      int ContactType = -1;
+      //-1: No contact;
+      // 0: Plane;
+      // 1: Edge;
+      // 2: Point.
 
-	     double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-		 double Weight[4]              = {0.0, 0.0, 0.0, 0.0};
-		 double DistPToB               = 0.0;
+      double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+      double Weight[4]              = {0.0, 0.0, 0.0, 0.0};
+      double DistPToB               = 0.0;
 
-        double Particle_Coord[3] = {0.0};
-        Particle_Coord[0] = rObj_1->GetGeometry()(0)->Coordinates()[0];
-        Particle_Coord[1] = rObj_1->GetGeometry()(0)->Coordinates()[1];
-        Particle_Coord[2] = rObj_1->GetGeometry()(0)->Coordinates()[2];
-		
-		
-       // double rad = rObj_1->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+      double Particle_Coord[3] = {0.0};
+      Particle_Coord[0] = rObj_1->GetGeometry()(0)->Coordinates()[0];
+      Particle_Coord[1] = rObj_1->GetGeometry()(0)->Coordinates()[1];
+      Particle_Coord[2] = rObj_1->GetGeometry()(0)->Coordinates()[2];
+
 	    double rad = Radius;
 
-        double Centroid[3] = {0.0};
-        for(std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++)
+      double Centroid[3] = {0.0};
+      for(std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++)
+      {
+          Centroid[0] += rObj_2->GetGeometry()(inode)->Coordinates()[0] / (double)rObj_2->GetGeometry().size();
+          Centroid[1] += rObj_2->GetGeometry()(inode)->Coordinates()[1] / (double)rObj_2->GetGeometry().size();
+          Centroid[2] += rObj_2->GetGeometry()(inode)->Coordinates()[2] / (double)rObj_2->GetGeometry().size();
+      }
+
+      
+      //CONTACT PARTICLE-LINE 2D
+      
+      if(rObj_2->GetGeometry().size() == 2)
+      {
+        double Coord1[3]     = {0.0};
+        double Coord2[3]     = {0.0};
+        double tempWeight[2] = {0.0};
+        
+        Coord1[0] = rObj_2->GetGeometry()(0)->Coordinates()[0];
+        Coord1[1] = rObj_2->GetGeometry()(0)->Coordinates()[1];
+        Coord1[2] = rObj_2->GetGeometry()(0)->Coordinates()[2];
+
+        Coord2[0] = rObj_2->GetGeometry()(1)->Coordinates()[0];
+        Coord2[1] = rObj_2->GetGeometry()(1)->Coordinates()[1];
+        Coord2[2] = rObj_2->GetGeometry()(1)->Coordinates()[2];
+
+        ContactExists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad,
+                                                                                  LocalCoordSystem,  tempWeight, DistPToB);
+        
+        if(ContactExists == true)
         {
-            Centroid[0] += rObj_2->GetGeometry()(inode)->Coordinates()[0] / (double)rObj_2->GetGeometry().size();
-            Centroid[1] += rObj_2->GetGeometry()(inode)->Coordinates()[1] / (double)rObj_2->GetGeometry().size();
-            Centroid[2] += rObj_2->GetGeometry()(inode)->Coordinates()[2] / (double)rObj_2->GetGeometry().size();
+            ContactType = 1;
+            Weight[0] = tempWeight[0];
+            Weight[1] = tempWeight[1];			
         }
-
-		 
-         if(rObj_2->GetGeometry().size() == 2)
-         {
-			double Coord1[3]     = {0.0};
-			double Coord2[3]     = {0.0};
-		    double tempWeight[2] = {0.0};
-			
-			Coord1[0] = rObj_2->GetGeometry()(0)->Coordinates()[0];
-			Coord1[1] = rObj_2->GetGeometry()(0)->Coordinates()[1];
-			Coord1[2] = rObj_2->GetGeometry()(0)->Coordinates()[2];
-
-			Coord2[0] = rObj_2->GetGeometry()(1)->Coordinates()[0];
-			Coord2[1] = rObj_2->GetGeometry()(1)->Coordinates()[1];
-			Coord2[2] = rObj_2->GetGeometry()(1)->Coordinates()[2];
-
-			//If_PB_Contact = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Particle_Coord, rad);
-			
-			If_PB_Contact = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad,
-		                                                                            LocalCoordSystem,  tempWeight, DistPToB);
-			
-			if(If_PB_Contact == true)
-			{
-                ContactType = 1;
-				Weight[0] = tempWeight[0];
-				Weight[1] = tempWeight[1];			
-			}
-			else /// particle point contact search
-			{
-				for(std::size_t inode1 = 0; inode1 < rObj_2->GetGeometry().size(); inode1++)
-				{
-					Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
-					Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
-					Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
-					
-					If_PB_Contact = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
-					if(If_PB_Contact == true)
-					{
-                        ContactType = 2;
-						Weight[inode1] = 1.0;						
-						break;
-					}
-				}				
-			}
-			
-			/////////////////////////////////////
+        
+        else /// particle point contact search
+        {
+            for(std::size_t inode1 = 0; inode1 < rObj_2->GetGeometry().size(); inode1++)
+            {
+                Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
+                Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
+                Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
+                
+                ContactExists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
+               
+                if(ContactExists == true)
+                {
+                    ContactType = 2;
+                    Weight[inode1] = 1.0;						
+                    break;
+                }
+                
+            }				
+        }
 			   
-         }        
-         else if(rObj_2->GetGeometry().size() > 2)
-         {
-            double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
+      }  //if(rObj_2->GetGeometry().size() == 2)
+      
+      
+      //CONTACT PARTICLE-TRIANGLE/QUADRILATERAL 3D
+      
+      else if(rObj_2->GetGeometry().size() > 2)
+      {
+        
+        double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
 
-			////Cfeng: Triangle
-			int FaceNodeTotal = 3;
+        ////Cfeng: Triangle
+        int FaceNodeTotal = 3;
 
-			Coord[0][0] = rObj_2->GetGeometry()(0)->Coordinates()[0];
-			Coord[0][1] = rObj_2->GetGeometry()(0)->Coordinates()[1];
-			Coord[0][2] = rObj_2->GetGeometry()(0)->Coordinates()[2];
+        Coord[0][0] = rObj_2->GetGeometry()(0)->Coordinates()[0];
+        Coord[0][1] = rObj_2->GetGeometry()(0)->Coordinates()[1];
+        Coord[0][2] = rObj_2->GetGeometry()(0)->Coordinates()[2];
 
-			Coord[1][0] = rObj_2->GetGeometry()(1)->Coordinates()[0];
-			Coord[1][1] = rObj_2->GetGeometry()(1)->Coordinates()[1];
-			Coord[1][2] = rObj_2->GetGeometry()(1)->Coordinates()[2];
+        Coord[1][0] = rObj_2->GetGeometry()(1)->Coordinates()[0];
+        Coord[1][1] = rObj_2->GetGeometry()(1)->Coordinates()[1];
+        Coord[1][2] = rObj_2->GetGeometry()(1)->Coordinates()[2];
 
-			Coord[2][0] = rObj_2->GetGeometry()(2)->Coordinates()[0];
-			Coord[2][1] = rObj_2->GetGeometry()(2)->Coordinates()[1];
-			Coord[2][2] = rObj_2->GetGeometry()(2)->Coordinates()[2];
+        Coord[2][0] = rObj_2->GetGeometry()(2)->Coordinates()[0];
+        Coord[2][1] = rObj_2->GetGeometry()(2)->Coordinates()[1];
+        Coord[2][2] = rObj_2->GetGeometry()(2)->Coordinates()[2];
 
-			if(rObj_2->GetGeometry().size() == 4)
-			{
-				Coord[3][0] = rObj_2->GetGeometry()(3)->Coordinates()[0];
-				Coord[3][1] = rObj_2->GetGeometry()(3)->Coordinates()[1];
-				Coord[3][2] = rObj_2->GetGeometry()(3)->Coordinates()[2];
+        if(rObj_2->GetGeometry().size() == 4)
+        {
+          Coord[3][0] = rObj_2->GetGeometry()(3)->Coordinates()[0];
+          Coord[3][1] = rObj_2->GetGeometry()(3)->Coordinates()[1];
+          Coord[3][2] = rObj_2->GetGeometry()(3)->Coordinates()[2];
 
-			  ////Cfeng: Quadral
-			  FaceNodeTotal = 4;
-			}
+          ////Cfeng: Quadrilateral
+          FaceNodeTotal = 4;
+        }
 		
+		
+        KRATOS_WATCH(Coord[2][1])
+        KRATOS_WATCH(FaceNodeTotal)
 	        /////Particle-Face contact
-		    If_PB_Contact = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal,Coord,  Centroid, Particle_Coord, rad,
+		    ContactExists = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal,Coord,  Centroid, Particle_Coord, rad,
 													                           LocalCoordSystem, Weight,  DistPToB);
 
-            if(If_PB_Contact == true)
-            {
+        if(ContactExists == true)
+        {
             ContactType = 0;
+        }
+
+        ///Particle-edge contact
+        if(ContactExists == false)
+        {
+          Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
+          
+          for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
+          {
+            int inode2 = (inode1 + 1) % FaceNodeTotal;
+            
+            double Coord1[3]     = {0.0};
+            double Coord2[3]     = {0.0};
+            double tempWeight[2] = {0.0};
+            
+            Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
+            Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
+            Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
+
+            Coord2[0] = rObj_2->GetGeometry()(inode2)->Coordinates()[0];
+            Coord2[1] = rObj_2->GetGeometry()(inode2)->Coordinates()[1];
+            Coord2[2] = rObj_2->GetGeometry()(inode2)->Coordinates()[2];
+            
+            ContactExists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad,
+                                                LocalCoordSystem,  tempWeight, DistPToB);
+            
+            if(ContactExists == true)
+            {
+              ContactType = 1;
+              int inode3 = (inode1 + 2) % FaceNodeTotal;
+              Weight[inode1] = tempWeight[0];
+              Weight[inode2] = tempWeight[1];
+              Weight[inode3] = 0.0;
+              
+              if(FaceNodeTotal == 4)
+              {
+                int inode4 = (inode1 + 3) % FaceNodeTotal;
+                Weight[inode4] = 0.0;
+              }
+
+              break;
             }
-
-            ///Particle-edge contact
-			if(If_PB_Contact == false)
-			{
-				Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
-				
-				for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
-				{
-					int inode2 = (inode1 + 1) % FaceNodeTotal;
-					
-					double Coord1[3]     = {0.0};
-					double Coord2[3]     = {0.0};
-					double tempWeight[2] = {0.0};
-					
-					Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
-					Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
-					Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
-
-					Coord2[0] = rObj_2->GetGeometry()(inode2)->Coordinates()[0];
-					Coord2[1] = rObj_2->GetGeometry()(inode2)->Coordinates()[1];
-					Coord2[2] = rObj_2->GetGeometry()(inode2)->Coordinates()[2];
-					
-					If_PB_Contact = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad,
-																							LocalCoordSystem,  tempWeight, DistPToB);
-					
-					if(If_PB_Contact == true)
-					{
-                        ContactType = 1;
-						int inode3 = (inode1 + 2) % FaceNodeTotal;
-						Weight[inode1] = tempWeight[0];
-						Weight[inode2] = tempWeight[1];
-						Weight[inode3] = 0.0;
-						
-						if(FaceNodeTotal == 4)
-						{
-							int inode4 = (inode1 + 3) % FaceNodeTotal;
-							Weight[inode4] = 0.0;
-						}
-
-						break;
-					}
-				}
-			}
-			///////////////////////////////////////////
+          }
+        }  //if(ContactExists == false)
+        
+        ///////////////////////////////////////////
 			
-			/////Particle-Point contact
-			if(If_PB_Contact == false)
-			{
-				Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
-				
-				for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
-				{
-					double Coord1[3] = {0.0};
-					Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
-					Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
-					Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
-					
-					If_PB_Contact = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
-					if(If_PB_Contact == true)
-					{
-                        ContactType = 2.0;
-						Weight[inode1] = 1.0;						
-						break;
-					}
-				}				
-			}
-			/////////////////////////////////////
-			
-
-         }
+        /////Particle-Point contact
+        if(ContactExists == false)
+        {
+          Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
+          
+          for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
+          {
+            double Coord1[3] = {0.0};
+            Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
+            Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
+            Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
+            
+            ContactExists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
+            if(ContactExists == true)
+            {
+              ContactType = 2.0;
+              Weight[inode1] = 1.0;						
+              break;
+            }
+          }				
+        }
+        
+      } //if(rObj_2->GetGeometry().size() > 2)
 		 
-		 ////Store the neighbour value, real contact rigidFace
-		 if(If_PB_Contact == true)
-		 {
-             // In geometrical level to search the neighbour, need pointer convert
-             Vector & RF_Pram= (boost::dynamic_pointer_cast<Element>(rObj_1))->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
-			  
-			 //Vector & RF_Pram= rObj_1->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
-			 std::size_t ino = RF_Pram.size();
+      ////Store the neighbour value, real contact rigidFace
+      if(ContactExists == true)
+      {
+          // In geometrical level to search the neighbour, need pointer convert
+          Vector & RF_Pram= (boost::dynamic_pointer_cast<Element>(rObj_1))->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
 
-             std::size_t TotalSize = ino / 16;
-			 
-			 std::size_t isize = 0;
-			 
-			 for(isize = 0; isize < TotalSize; isize++)
-			 {
-				 if( static_cast<int> (RF_Pram[isize + 14]) == static_cast<int>(rObj_2->Id()) )
-				 {
-					 break;
-				 }
-			 }
-			 
-			 if(isize == TotalSize)
-			 {
-                 RF_Pram.resize(ino + 16);
-				 RF_Pram[ino + 0]  = LocalCoordSystem[0][0];
-				 RF_Pram[ino + 1]  = LocalCoordSystem[0][1];
-				 RF_Pram[ino + 2]  = LocalCoordSystem[0][2];
-				 RF_Pram[ino + 3]  = LocalCoordSystem[1][0];
-				 RF_Pram[ino + 4]  = LocalCoordSystem[1][1];
-				 RF_Pram[ino + 5]  = LocalCoordSystem[1][2];
-				 RF_Pram[ino + 6]  = LocalCoordSystem[2][0];
-				 RF_Pram[ino + 7]  = LocalCoordSystem[2][1];
-				 RF_Pram[ino + 8]  = LocalCoordSystem[2][2];
-				 RF_Pram[ino + 9]  = DistPToB;
-				 RF_Pram[ino + 10] = Weight[0];
-				 RF_Pram[ino + 11] = Weight[1];
-				 RF_Pram[ino + 12] = Weight[2];
-				 RF_Pram[ino + 13] = Weight[3];	
-                 RF_Pram[ino + 14] = rObj_2->Id();
-                 RF_Pram[ino + 15] = ContactType;
+          //Vector & RF_Pram= rObj_1->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+          std::size_t ino = RF_Pram.size();
 
-			 }
-			
-		 }
-		 
-        return If_PB_Contact;
+          std::size_t TotalSize = ino / 16;
+        
+          std::size_t isize = 0;
+        
+          for(isize = 0; isize < TotalSize; isize++)
+          {
+              if( static_cast<int> (RF_Pram[isize + 14]) == static_cast<int>(rObj_2->Id()) )
+              {
+                  break;
+              }
+          }
+        
+          if(isize == TotalSize)
+          {
+            
+            RF_Pram.resize(ino + 16);
+            RF_Pram[ino + 0]  = LocalCoordSystem[0][0];
+            RF_Pram[ino + 1]  = LocalCoordSystem[0][1];
+            RF_Pram[ino + 2]  = LocalCoordSystem[0][2];
+            RF_Pram[ino + 3]  = LocalCoordSystem[1][0];
+            RF_Pram[ino + 4]  = LocalCoordSystem[1][1];
+            RF_Pram[ino + 5]  = LocalCoordSystem[1][2];
+            RF_Pram[ino + 6]  = LocalCoordSystem[2][0];
+            RF_Pram[ino + 7]  = LocalCoordSystem[2][1];
+            RF_Pram[ino + 8]  = LocalCoordSystem[2][2];
+            RF_Pram[ino + 9]  = DistPToB;
+            RF_Pram[ino + 10] = Weight[0];
+            RF_Pram[ino + 11] = Weight[1];
+            RF_Pram[ino + 12] = Weight[2];
+            RF_Pram[ino + 13] = Weight[3];	
+            RF_Pram[ino + 14] = rObj_2->Id();
+            RF_Pram[ino + 15] = ContactType;
+
+          }
+          
       }
+		 
+      return ContactExists;
+      
+    }
 
     //******************************************************************************************************************
       // it is really used, checked by Cfeng,131004
