@@ -1020,90 +1020,114 @@ namespace Kratos
                 }
             }
            
-
             moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
             
             #pragma omp parallel
             {
-            #pragma omp for
-            for (int k = 0; k < this->GetNumberOfThreads(); k++)
-            {
-                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-                typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-                size_t ResultCounter = this->GetElementPartition()[k];
-                
-                for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
+                #pragma omp for
+                for (int k = 0; k < this->GetNumberOfThreads(); k++)
                 {
-                    WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
-                                    
-                    for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
-                         neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
-                    {
-                        neighbour_rigid_faces.push_back(*neighbour_it); 
+                    typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+                    typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
+                    size_t ResultCounter = this->GetElementPartition()[k];
+                    
+                    for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
+                    {
+                        WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+                                        
+                        for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
+                            neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
+                        {
+                            neighbour_rigid_faces.push_back(*neighbour_it); 
+
+                        }
+
+                        this->GetRigidFaceResults()[ResultCounter].clear();
+                        this->GetRigidFaceResultsDistances()[ResultCounter].clear();
+                    
                     }
 
-                    this->GetRigidFaceResults()[ResultCounter].clear();
-                    this->GetRigidFaceResultsDistances()[ResultCounter].clear();
-                
                 }
 
-            }
-
-            //****************************************************************************
-            /////************Cfeng: Below for DEM FEM coupling********************
-            //*****************************************************************************
-            
-            //SpatialSearch::ElementsContainerType::iterator E_pointer_it;
-            
-            //Cfeng:resize the particle-rigidface contact forces for each particles 
-            
-            #pragma omp for
-            for (int k = 0; k < this->GetNumberOfThreads(); k++)
-            {
-                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-                typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+                //****************************************************************************
+                /////************Cfeng: Below for DEM FEM coupling********************
+                //*****************************************************************************
                 
-                for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = it_begin; E_pointer_it != it_end; ++E_pointer_it)
-                {               
-                    std::size_t totalno = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).size() * 3;
+                //SpatialSearch::ElementsContainerType::iterator E_pointer_it;
+                
+                //Cfeng:resize the particle-rigidface contact forces for each particles 
+                
+                #pragma omp for
+                for (int k = 0; k < this->GetNumberOfThreads(); k++)
+                {
+                    typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+                    typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
                     
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).resize(totalno);
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).resize(totalno);
-                    
+                    for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = it_begin; E_pointer_it != it_end; ++E_pointer_it)
+                    {               
+                        std::size_t totalno = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).size() * 3;
+                        
+                        E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).resize(totalno);
+                        E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).resize(totalno);
+                        
+                    }
                 }
-            }
             } //end of the parallel region
             
             typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             
-            //MSIMSI 3: parallelize these two loops
-            
-            ///Cfeng:clear  neighbours for rigidfaces
-            for (ConditionsArrayType::iterator ic = pTContitions.begin(); ic != pTContitions.end(); ic++)
+          ///Cfeng:clear  neighbours for rigidfaces
+
+          int ConditionSize = pTContitions.size();
+          int ElementSize = pElements.size();
+  
+          
+            #pragma omp parallel 
             {
-                WeakPointerVector<Element > tempP;
-                ic->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).swap(tempP);
-            }       
-            
-            ////Cfeng: Find The particle neighbours for each RigidFace, used for calculating FEM force
-            //This loop can not be parallelized easily, two threads could be writing on the same condition!!
-            for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
-            {                   
-                for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
-                     ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)
-                {
-                    ineighbour->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).push_back(*(E_pointer_it.base()));               
-                }
-            }   
-        }
-    
+              
+              #pragma omp for
+              for (int i = 0; i<ConditionSize; i++)
+              {
                 
+                  ConditionsArrayType::iterator ic = pTContitions.begin()+i;
+                  WeakPointerVector<Element > tempP;
+                  ic->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).swap(tempP);
+              }       
+              
+              ////Cfeng: Find The particle neighbours for each RigidFace, used for calculating FEM force
+              //This loop can not be parallelized easily, two threads could be writing on the same condition!!
+              
+              #pragma omp for
+              for (int i = 0; i<ElementSize; i++)
+              {   
+                
+                  SpatialSearch::ElementsContainerType::iterator E_pointer_it = pElements.begin()+i;
+                  
+                  for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
+                      ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)
+                  {
+                      
+                      #pragma omp critical
+                      {
+                      ineighbour->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).push_back(*(E_pointer_it.base()));               
+                      }
+                      
+                                          
+                  }
+              }
+              
+            }//end parallel
+            
+           
+          
+        }
+                    
         KRATOS_CATCH("")
     }
                    
-    void CalculateInitialMaxIndentations(){
+    void CalculateInitialMaxIndentations()
+    {
 
         KRATOS_TRY
 
@@ -1176,6 +1200,7 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
+    
     } // CalculateInitialMaxIndentations()
 
     void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
