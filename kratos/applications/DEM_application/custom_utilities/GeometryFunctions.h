@@ -907,91 +907,87 @@ namespace Kratos
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-     static inline bool JudgeIfThisFaceIsContactWithParticle(int FaceNodeTotal, double Coord[4][3], double Centroid[3], double Particle_Coord[3], double rad,
-                                                            double LocalCoordSystem[3][3], double Weight[4], double &DistPToB)
-     {
-         bool If_Conact = false;
-		 
-		 double TempPoint[3] = {0.0};
-		 TempPoint[0] = Particle_Coord[0];
-		 TempPoint[1] = Particle_Coord[1];
-		 TempPoint[2] = Particle_Coord[2];
+    static inline bool JudgeIfThisFaceIsContactWithParticle(int FaceNodeTotal, double Coord[4][3], double Centroid[3], double Particle_Coord[3], double rad,
+                                                          double LocalCoordSystem[3][3], double Weight[4], double &DistPToB)
+    {
+      bool If_Conact = false;
 
-         Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], TempPoint, LocalCoordSystem);
-		 
-		 ///Cfeng,131007,normal vector should point to particle
-		 LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-		 LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-		 LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-		 
-		 LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-		 LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-		 LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-		 
-		 LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-		 LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-		 LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
+      double TempPoint[3] = {0.0};
+      TempPoint[0] = Particle_Coord[0];
+      TempPoint[1] = Particle_Coord[1];
+      TempPoint[2] = Particle_Coord[2];
 
-         DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
-         
-         KRATOS_WATCH(DistPToB)
-         KRATOS_WATCH(LocalCoordSystem[1][0])
-         KRATOS_WATCH(If_Conact)
+          Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], TempPoint, LocalCoordSystem);
 
-         if(DistPToB < rad )
-         {
-             double IntersectionCoord[3];
-             CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
+      ///Cfeng,131007,normal vector should point to particle
+      LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
+      LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
+      LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
+
+      LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
+      LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
+      LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
+
+      LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
+      LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
+      LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
+
+      DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
+
+      if(DistPToB < rad )
+      {
+          double IntersectionCoord[3];
+          CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
 
 
-             if(FaceNodeTotal == 3)
-             {
-               
-                 double TriWeight[3] = {0.0};
-                 TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
+          if(FaceNodeTotal == 3)
+          {
+            
+              double TriWeight[3] = {0.0};
+              TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
 
-                 if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-3 )
-                 {
-                     Weight[0] = TriWeight[0];
-                     Weight[1] = TriWeight[1];
-                     Weight[2] = TriWeight[2];
+              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-3 )
+              {
+                  Weight[0] = TriWeight[0];
+                  Weight[1] = TriWeight[1];
+                  Weight[2] = TriWeight[2];
 
-                     If_Conact = true;
-                 }
+                  If_Conact = true;
+              }
 
-             }
-             
-             
-             else if(FaceNodeTotal == 4)
-             {
+          }
+          
+          
+          else if(FaceNodeTotal == 4)
+          {
+            
+            
+            double FaceArea;
+              double TempFace[2];
+              TriAngleArea(Coord[0], Coord[1], Coord[2], TempFace[0]);
+              TriAngleArea(Coord[2], Coord[3], Coord[0], TempFace[1]);
+              FaceArea = TempFace[0] + TempFace[1];
+
+              double AreaComponent[4] = {0.0};
+              TriAngleArea(IntersectionCoord, Coord[0], Coord[1], AreaComponent[0]);
+              TriAngleArea(IntersectionCoord, Coord[1], Coord[2], AreaComponent[1]);
+              TriAngleArea(IntersectionCoord, Coord[2], Coord[3], AreaComponent[2]);
+              TriAngleArea(IntersectionCoord, Coord[3], Coord[0], AreaComponent[3]);
+
+              if(fabs( (AreaComponent[0] + AreaComponent[1] + AreaComponent[2] + AreaComponent[3] - FaceArea) / FaceArea) < 1.0e-3)
+              {
                 
-               
-               double FaceArea;
-                 double TempFace[2];
-                 TriAngleArea(Coord[0], Coord[1], Coord[2], TempFace[0]);
-                 TriAngleArea(Coord[2], Coord[3], Coord[0], TempFace[1]);
-                 FaceArea = TempFace[0] + TempFace[1];
+                  If_Conact = true;
 
-                 double AreaComponent[4] = {0.0};
-                 TriAngleArea(IntersectionCoord, Coord[0], Coord[1], AreaComponent[0]);
-                 TriAngleArea(IntersectionCoord, Coord[1], Coord[2], AreaComponent[1]);
-                 TriAngleArea(IntersectionCoord, Coord[2], Coord[3], AreaComponent[2]);
-                 TriAngleArea(IntersectionCoord, Coord[3], Coord[0], AreaComponent[3]);
+                  CalQuadWeightCoefficient(Coord, LocalCoordSystem, IntersectionCoord, Weight);
+                  
+                  
+              }
+              
+            }
+        }
 
-                 if(fabs( (AreaComponent[0] + AreaComponent[1] + AreaComponent[2] + AreaComponent[3] - FaceArea) / FaceArea) < 1.0e-3)
-                 {
-                   
-                     If_Conact = true;
-
-                     CalQuadWeightCoefficient(Coord, LocalCoordSystem, IntersectionCoord, Weight);
-                     
-                     
-                 }
-                 
-             }
-         }
-
-         return If_Conact;
+        return If_Conact;
           
      }
      
