@@ -258,9 +258,6 @@ public:
           FaceNodeTotal = 4;
         }
 		
-		
-        KRATOS_WATCH(Coord[2][1])
-        KRATOS_WATCH(FaceNodeTotal)
 	        /////Particle-Face contact
 		    ContactExists = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal,Coord,  Centroid, Particle_Coord, rad,
 													                           LocalCoordSystem, Weight,  DistPToB);
