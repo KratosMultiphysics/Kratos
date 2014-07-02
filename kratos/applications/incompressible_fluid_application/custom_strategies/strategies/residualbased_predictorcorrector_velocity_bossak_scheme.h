@@ -549,7 +549,7 @@ public:
         ma3 = DeltaTime;
         ma4 = pow(DeltaTime, 2)*(-2.0 * mBetaNewmark + 1.0) / 2.0;
         ma5 = pow(DeltaTime, 2) * mBetaNewmark;
-        mam = 1.0 / (mGammaNewmark * DeltaTime);
+        mam = (1.0 - mAlphaBossak) / (mGammaNewmark * DeltaTime);
     }
     //*************************************************************************************
     //*************************************************************************************
