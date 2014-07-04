@@ -149,8 +149,8 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     variable ActiveAppList;    variable filechannel
     variable ConvectionDiffusionApplication; variable DEMApplication
     variable demfilechannel
-    variable property_number    
-    set property_number 1
+    variable meshgroupid    
+    set meshgroupid 1
 
     # For debug
     if {!$::wkcf::pflag} {

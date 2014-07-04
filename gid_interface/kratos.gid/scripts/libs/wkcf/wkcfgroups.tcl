@@ -76,7 +76,8 @@ proc ::wkcf::WriteAssignedElementGroupMesh {AppId} {
         set inittime [clock seconds]
     }
     # Write assigned group to the elements
-    set meshgroupid 0
+    #set meshgroupid 0
+    variable meshgroupid
 
     # Init the global mesh identifier list
     set dprops($AppId,AllMeshId) [list]
