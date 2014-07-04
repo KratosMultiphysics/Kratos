@@ -42,6 +42,7 @@
 
 // System includes
 #include <iostream>
+#include <algorithm>
 
 // External includes
 
@@ -684,7 +685,8 @@ protected:
 
 		if (ResB * ResA > 0.0)
 		{
-			KRATOS_ERROR(std::logic_error, "Maximum wall stress search width exceeded","");
+		  return 0.;
+		  //KRATOS_ERROR(std::logic_error, "Maximum wall stress search width exceeded","");
 		}
 
 		// root finding with Brent's algorithm
@@ -745,7 +747,7 @@ protected:
 				Min1 = 3.0 * Xm * Q - fabs(Tol * Q);
 				Min2 = fabs(E * Q);
 
-				if (2.0 * P < fmin(Min1, Min2))
+				if (2.0 * P < std::min(Min1, Min2))
 				{
 					E = D;
 					D = P / Q;
@@ -789,6 +791,25 @@ protected:
 		KRATOS_CATCH("");
 	}
 
+	/// Check angles between condition normal and node normals
+	/**
+	@param AngleCosine Cosine of minimum angle between two normals at a corner
+	 */
+	bool IsCorner(double AngleCosine)
+	{
+		GeometryType& rGeometry = this->GetGeometry();
+		const array_1d<double, 3>& rNormal = this->GetValue(NORMAL);
+		const double Area = norm_2(rNormal);
+
+		for (SizeType iNode = 0; iNode < rGeometry.PointsNumber(); ++iNode)
+		{
+			const array_1d<double, 3>& rNodeNormal = rGeometry[iNode].FastGetSolutionStepValue(NORMAL);
+			if (inner_prod(rNormal, rNodeNormal) < AngleCosine * Area * norm_2(rNodeNormal))
+				return true;
+		}
+		return false;
+	}
+
 	/// Compute the wall stress and add corresponding terms to the system contributions.
 	/**
 	 @param rLocalMatrix Local system matrix
@@ -804,7 +825,8 @@ protected:
 		CalculateWallParameters(WallHeight, WallVel, WallGradP, Area);
 		WallVelMag = norm_2(WallVel);
 
-		if (WallVelMag > 1.0e-12)
+
+		if (IsCorner(0.966) == false)
 		{
 			WallStress = CalculateWallStress(WallHeight, WallVelMag, WallGradP);
 			WallForce = (Area / static_cast<double>(TDim)) * WallStress;
@@ -812,7 +834,7 @@ protected:
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
 			{
 				const NodeType& rNode = rGeometry[i];
-				if(rNode.GetValue(IS_STRUCTURE) != 0.0)
+				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.GetValue(IS_STRUCTURE) != 0.0)
 				{
 					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
 					tmp = norm_2(WallVel);
