@@ -199,9 +199,14 @@ void ModelPartSetConditions2(ModelPart& rModelPart, ModelPart::ConditionsContain
     rModelPart.SetConditions(pOtherConditions, ThisIndex);
 }
 
-void ModelPartAddCondition(ModelPart& rModelPart, Condition::Pointer newCondition)
+void ModelPartAddCondition1(ModelPart& rModelPart, Condition::Pointer newCondition)
 {
     rModelPart.AddCondition( newCondition );
+}
+
+void ModelPartAddCondition2(ModelPart& rModelPart, Condition::Pointer newCondition, unsigned int ThisIndex)
+{
+    rModelPart.AddCondition( newCondition, ThisIndex );
 }
 
 ModelPart::MeshType& CommunicatorGetLocalMesh(Communicator& rCommunicator)
@@ -347,7 +352,8 @@ void AddModelPartToPython()
     .def("SetConditions", ModelPartSetConditions1)
     .def("GetConditions", ModelPartGetConditions2)
     .def("SetConditions", ModelPartSetConditions2)
-    .def("AddCondition", ModelPartAddCondition)
+    .def("AddCondition", ModelPartAddCondition1)
+    .def("AddCondition", ModelPartAddCondition2)
     .def("ConditionsArray", &ModelPart::ConditionsArray, return_internal_reference<>())
     .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<bool>)
     .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<int>)
