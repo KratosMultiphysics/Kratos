@@ -349,7 +349,7 @@ public:
 		}
 		else if (this->Is(INTERFACE) && rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
 		{
-			// add AIC penalty to local pressure system
+			// add IAC penalty to local pressure system
 			const SizeType LocalSize = TNumNodes;
 
 			if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -364,7 +364,7 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			this->ApplyAICPenalty(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+			this->ApplyIACPenalty(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 		}
 		else
 		{
@@ -601,7 +601,7 @@ protected:
 			for(SizeType i=0; i < rGeometry.PointsNumber(); ++i)
 			{
 				const NodeType& rNode = rGeometry[i];
-				if(rNode.GetValue(IS_STRUCTURE) != 0.0)
+				if(rNode.GetValue(Y_WALL) != 0.0 && rNode.GetValue(IS_STRUCTURE) != 0.0)
 				{
 					WallVel = rNode.FastGetSolutionStepValue(VELOCITY,1) - rNode.FastGetSolutionStepValue(MESH_VELOCITY,1);
 					tmp = norm_2(WallVel);
@@ -617,13 +617,13 @@ protected:
 		}
 	}
 
-	/// Apply an AIC penalty term
+	/// Apply an IAC penalty term
 	/**
 	 @param rLeftHandSideMatrix Left-hand side matrix
 	 @param rRightHandSideVector Right-hand side vector
 	 @param rCurrentProcessInfo ProcessInfo instance
 	 */
-	void ApplyAICPenalty(MatrixType& rLeftHandSideMatrix,
+	void ApplyIACPenalty(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo)
 	{
