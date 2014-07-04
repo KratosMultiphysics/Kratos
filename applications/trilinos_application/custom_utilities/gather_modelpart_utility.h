@@ -55,6 +55,7 @@ public:
 
         //*********************************************************************************
         //copy the mesh of interest to destination_model_part (on each mpi processor)
+
         for(ModelPart::NodesContainerType::iterator it = origin_model_part.GetMesh(mesh_id).NodesBegin();
                 it != origin_model_part.GetMesh(mesh_id).NodesEnd(); it++)
         {
@@ -93,6 +94,8 @@ public:
             for(ModelPart::NodesContainerType::iterator it = RecvNodes[i].begin(); it != RecvNodes[i].end(); it++)
                 destination_model_part.Nodes().push_back(*it);
         }
+        if (mpi_rank == gather_rank)
+        	destination_model_part.Nodes().Unique();
         SendNodes.clear();
         RecvNodes.clear();
 
@@ -106,11 +109,13 @@ public:
             SendElements[gather_rank].push_back(*it.base());
         }
         destination_model_part.GetCommunicator().TransferObjects(SendElements,RecvElements);
-        for(unsigned int i=0; i<RecvNodes.size(); i++)
+        for(unsigned int i=0; i<RecvElements.size(); i++)
         {
             for(ModelPart::ElementsContainerType::iterator it = RecvElements[i].begin(); it != RecvElements[i].end(); it++)
                 destination_model_part.Elements().push_back(*it);
         }
+        if (mpi_rank == gather_rank)
+        	destination_model_part.Elements().Unique();
         SendElements.clear();
         RecvElements.clear();
 
@@ -124,11 +129,13 @@ public:
             SendConditions[gather_rank].push_back(*it.base());
         }
         destination_model_part.GetCommunicator().TransferObjects(SendConditions,RecvConditions);
-        for(unsigned int i=0; i<RecvNodes.size(); i++)
+        for(unsigned int i=0; i<RecvConditions.size(); i++)
         {
             for(ModelPart::ConditionsContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); it++)
                 destination_model_part.Conditions().push_back(*it);
         }
+        if (mpi_rank == gather_rank)
+        	destination_model_part.Conditions().Unique();
         SendConditions.clear();
         RecvConditions.clear();
 
