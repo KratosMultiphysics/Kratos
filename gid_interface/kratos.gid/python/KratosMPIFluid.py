@@ -150,7 +150,7 @@ if(mpi.rank == 0):
         drag_file_output_list.append(f)
         tmp = "#Drag for group " + it[1] + "\n"
         f.write(tmp)
-        tmp = "time RX RY RZ"
+        tmp = "#time RX RY RZ\n"
         f.write(tmp)
         f.flush()
 
@@ -160,7 +160,6 @@ print(drag_file_output_list)
 def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
     i = 0
     for it in drag_list:
-        print(it[0])
         nodes = fluid_model_part.GetNodes(it[0])
         dx = 0.0
         dy = 0.0
@@ -176,7 +175,6 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
         auxx = mpi.gather(mpi.world, dx, 0)
         auxy = mpi.gather(mpi.world, dy, 0)
         auxz = mpi.gather(mpi.world, dz, 0)
-        print(auxx)
 
         rx = 0.0
         ry = 0.0
@@ -201,7 +199,7 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
 
         i = i + 1
 
-# 33
+#
 # preparing output of point graphs
 import point_graph_printer
 
