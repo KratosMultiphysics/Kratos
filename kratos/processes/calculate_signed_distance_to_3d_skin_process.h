@@ -668,7 +668,7 @@ public:
 
     void DistanceFluidStructure()
     {
-        std::cout << "Start calculating Elemental distances..." << std::endl;
+      //std::cout << "Start calculating Elemental distances..." << std::endl;
 
         // Initialize Elemental distances in the domain
         Initialize();
@@ -708,7 +708,7 @@ public:
         // --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
         AssignMinimalNodalDistance();
 
-        std::cout << "Finished calculating Elemental distances..." << std::endl;
+        //std::cout << "Finished calculating Elemental distances..." << std::endl;
     }
 
     ///******************************************************************************************************************
@@ -1570,7 +1570,7 @@ public:
     void GenerateOctree()
     {
         Timer::Start("Generating Octree");
-        std::cout << "Generating the Octree..." << std::endl;
+        //std::cout << "Generating the Octree..." << std::endl;
         
         double low[3];
         double high[3];
@@ -1640,7 +1640,7 @@ public:
 //        mOctree.PrintGiDMesh(myfile);
 //        myfile.close();
 
-        std::cout << "Generating the Octree finished" << std::endl;
+        //std::cout << "Generating the Octree finished" << std::endl;
     }
 
     ///******************************************************************************************************************

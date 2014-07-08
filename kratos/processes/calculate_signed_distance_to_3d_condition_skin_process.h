@@ -372,9 +372,9 @@ private:
 	*/
 
 
-            std::cout << "Generating the Octree..." << std::endl;
+            //std::cout << "Generating the Octree..." << std::endl;
             GenerateOctree();
-            std::cout << "Generating the Octree finished" << std::endl;
+	  //std::cout << "Generating the Octree finished" << std::endl;
 
           DistanceFluidStructure();
 
@@ -1239,7 +1239,7 @@ private:
 	void GenerateOctree()
     {
         Timer::Start("Generating Octree");
-        std::cout << "Generating the Octree..." << std::endl;
+        //std::cout << "Generating the Octree..." << std::endl;
         
         double low[3];
         double high[3];
@@ -1306,7 +1306,7 @@ private:
 //        mOctree.PrintGiDMesh(myfile);
 //        myfile.close();
 
-        std::cout << "Generating the Octree finished" << std::endl;
+        //std::cout << "Generating the Octree finished" << std::endl;
     }
 
 
