@@ -56,6 +56,10 @@ KRATOS_CREATE_VARIABLE(double, VOLUME_FRACTION )
 KRATOS_CREATE_VARIABLE(double, KAPPA ) 
 KRATOS_CREATE_VARIABLE(double, EPSILON ) 
 
+Kratos::Variable<double> SHRINKAGE_POROSITY_US( "SHRINKAGE_POROSITY (in^3)" );
+Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS (in)" );
+Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES (F)" );
+
 KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
 // 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 /*		mMonolithic2DNeumann(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),*/
@@ -104,7 +108,12 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_VARIABLE(IS_GRAVITY_FILLING)
     KRATOS_REGISTER_VARIABLE(VOLUME_FRACTION ) 
     KRATOS_REGISTER_VARIABLE(KAPPA ) 
-    KRATOS_REGISTER_VARIABLE(EPSILON )     
+    KRATOS_REGISTER_VARIABLE(EPSILON )    
+
+	KRATOS_REGISTER_VARIABLE(SHRINKAGE_POROSITY_US)
+    KRATOS_REGISTER_VARIABLE(SOLIDIF_MODULUS_US)
+    KRATOS_REGISTER_VARIABLE(TEMPERATURES_US)
+
 
 // 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
