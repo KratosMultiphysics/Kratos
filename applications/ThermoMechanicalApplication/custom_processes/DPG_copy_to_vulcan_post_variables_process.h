@@ -68,10 +68,9 @@ namespace Kratos
 	 {
 	   public:
 
-	      DPGCopyToVulcanPostVariablesProcess(ModelPart& rThisModelPart, const int filling, const int solidification )
-			:Process(), mrModelPart(rThisModelPart), mrfilling(filling), mrsolidificaion(solidification)
+	      DPGCopyToVulcanPostVariablesProcess(ModelPart& rThisModelPart, const int filling, const int solidification, const int SI )
+			:Process(), mrModelPart(rThisModelPart), mrfilling(filling), mrsolidificaion(solidification),mrUnits(SI)
 		{
-			KRATOS_WATCH("<<<<<<<<<<<<<<<<<<<<<<<<< inside DPGCopyToVulcanPostVariablesProcess >>>>>>>>>>>>>>>>>>>>>>>>");
 		}
 
 	      /// Destructor.
@@ -206,9 +205,70 @@ namespace Kratos
 				}
 				//min_wet_temp = 0.998*min_wet_temp + 0.00*max_wet_temp;
 //			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+
+
+
+			(mrUnits == 1) ? SIUnitsOutput(distance_norm_inverse, min_wet_temp) : USUnitsOutput(distance_norm_inverse, min_wet_temp);
+
+
+
+		   }
+
+		   if(mrsolidificaion == 1)
+			   CopySolidificationVariables(mrModelPart);
+		 }
+
+		private:
+			ModelPart& mrModelPart;
+			const int mrfilling;
+			const int mrsolidificaion;
+			const int mrUnits;
+
+			void CopySolidificationVariables(ModelPart& rThisModelPart)
+			{
+
+			if(mrUnits == 1){
 			 #pragma omp parallel for
-		        for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
-		        {
+		     for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		      {
+			    ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+
+				i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
+				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+
+			  }
+			}
+			else
+			{
+			 #pragma omp parallel for
+		     for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		      {
+			    ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+
+				i_node->FastGetSolutionStepValue(TEMPERATURES_US) = (1.8 * i_node->FastGetSolutionStepValue(TEMPERATURE) + 32.0);
+				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+
+				 // SOLIDIF_MODULUS is already written en CM take care to convert it to inch
+				 double si_sdf_mod = i_node->FastGetSolutionStepValue(SOLIDIF_MODULUS); 
+				 i_node->FastGetSolutionStepValue(SOLIDIF_MODULUS_US) = si_sdf_mod / 2.54 ; 
+
+				 //shrinkage_porosity
+				 double si_shrinkage = i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY); 
+				 i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY_US) = 16387064.0  * si_shrinkage; //m^3 -> in^3
+
+ 
+			  }
+
+			}
+
+			}
+           /////////////////////////////////////////
+			void SIUnitsOutput(double distance_norm_inverse, double min_wet_temp)
+			{
+
+			 #pragma omp parallel for
+		      for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		       {
 				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
 			 	 double distance = i_node->GetSolutionStepValue(DISTANCE) * distance_norm_inverse;
 				 double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
@@ -248,32 +308,53 @@ namespace Kratos
 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
 				 }
 
-			 }
-		   }
+			  }
 
-		   if(mrsolidificaion == 1)
-			   CopySolidificationVariables(mrModelPart);
-		 }
 
-		private:
-			ModelPart& mrModelPart;
-			const int mrfilling;
-			const int mrsolidificaion;
-
-			void CopySolidificationVariables(ModelPart& rThisModelPart)
+			}
+         ////////////////////////////////////////////////////
+			void USUnitsOutput(double distance_norm_inverse, double min_wet_temp)
 			{
+				min_wet_temp = min_wet_temp* 1.8 + 32.0;
 
 			 #pragma omp parallel for
-		     for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
-		     {
-			    ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+		      for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		       {
+				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+			 	 double distance = i_node->GetSolutionStepValue(DISTANCE) * distance_norm_inverse;
+				 double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
+				 i_node->FastGetSolutionStepValue(MATERIAL) = (1.00 - distance) * 0.5;
+				 
 
-				i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
-				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+				 if(distance <= 0)
+				 {
+					 i_node->FastGetSolutionStepValue(VELOCITIES) = i_node->FastGetSolutionStepValue(VELOCITY);
+					 i_node->FastGetSolutionStepValue(PRESSURES) = i_node->FastGetSolutionStepValue(PRESSURE);
 
- 
+					 double& temp = i_node->FastGetSolutionStepValue(TEMPERATURES_US);
+					 temp = (1.8 * i_node->FastGetSolutionStepValue(TEMPERATURE) + 32.0);
+					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
+
+					 if(temp<min_wet_temp)
+							 temp = min_wet_temp;
+
+
+				 }
+				 else
+				 {
+					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
+					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES_US) = 0.998 * min_wet_temp ;
+					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
+				 }
+
+			  }
+
+
 			}
-			}
+
+
+
 	      ///@}
 
 	};
