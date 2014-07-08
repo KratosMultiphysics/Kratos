@@ -331,9 +331,9 @@ private:
       {
           KRATOS_TRY
 
-          std::cout << "Generating the Octree..." << std::endl;
+	    //std::cout << "Generating the Octree..." << std::endl;
           GenerateOctree();
-          std::cout << "Generating the Octree finished" << std::endl;
+          //std::cout << "Generating the Octree finished" << std::endl;
 
           GenerateCellNodalData();
 
