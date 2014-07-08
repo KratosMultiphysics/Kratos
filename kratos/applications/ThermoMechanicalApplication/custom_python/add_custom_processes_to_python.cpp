@@ -89,7 +89,7 @@ void  AddCustomProcessesToPython()
     class_<SolidificationProcess, bases<Process> >("SolidificationProcess", init<ModelPart& ,const double  >())
     .def("Execute", &SolidificationProcess::Execute)
     ;
-   class_<DPGCopyToVulcanPostVariablesProcess, bases<Process>  >("DPGCopyToVulcanPostVariablesProcess",init<ModelPart&, const int, const int  >())    
+   class_<DPGCopyToVulcanPostVariablesProcess, bases<Process>  >("DPGCopyToVulcanPostVariablesProcess",init<ModelPart&, const int, const int, const int  >())    
     ;
     
    class_<ShrinkagePorosityCalculationProcess, bases<Process> >("ShrinkagePorosityCalculationProcess", init<ModelPart& >())
