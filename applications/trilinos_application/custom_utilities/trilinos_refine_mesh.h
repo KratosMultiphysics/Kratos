@@ -152,19 +152,19 @@ public:
             }
         }
 
-        if (mrComm.MyPID() == 0) cout << "beginning the refinement" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "beginning the refinement" << std::endl;
 
         CSR_Row_Matrix(mr_model_part, p_edge_ids);
-        if (mrComm.MyPID() == 0) cout << "index matrix constructed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "index matrix constructed" << std::endl;
 
         Search_Edge_To_Be_Refined(mr_model_part, p_edge_ids, p_partition_ids);
-        if (mrComm.MyPID() == 0) cout << "Search_Edge_To_Be_Refined completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Search_Edge_To_Be_Refined completed" << std::endl;
 
         Create_List_Of_New_Nodes(mr_model_part, p_edge_ids, p_partition_ids, List_New_Nodes, partition_new_nodes, father_node_ids);
-        if (mrComm.MyPID() == 0) cout << "Create_List_Of_New_Nodes completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Create_List_Of_New_Nodes completed" << std::endl;
 
         Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, father_node_ids, List_New_Nodes, partition_new_nodes);
-        if (mrComm.MyPID() == 0) cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << std::endl;
 
         if (domain_size == 2)
             Erase_Old_Element_And_Create_New_Triangle_Element(mr_model_part, p_edge_ids, New_Elements, interpolate_internal_variables);
@@ -177,12 +177,12 @@ public:
             KRATOS_ERROR(std::logic_error, "domain size can be either 2 or 3!", "");
 
 
-        if (mrComm.MyPID() == 0) cout << "Erase_Old_Element_And_Create_New completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Erase_Old_Element_And_Create_New completed" << std::endl;
 
 
         Renumbering_Elements(mr_model_part, New_Elements);
         Renumbering_Conditions(mr_model_part, New_Conditions);
-        if (mrComm.MyPID() == 0) cout << "Renumbering completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Renumbering completed" << std::endl;
 
 
 
@@ -202,7 +202,7 @@ public:
 
         //fill the communicator
         ParallelFillCommunicator(mr_model_part).Execute();
-        if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data
         Clear();
@@ -219,11 +219,11 @@ public:
         KRATOS_TRY
 
         //print ghost mesh
-        cout << "proc = " << mrComm.MyPID() << "ghost mesh nodes" << endl;
+	  std::cout << "proc = " << mrComm.MyPID() << "ghost mesh nodes" << std::endl;
         for (ModelPart::NodesContainerType::iterator it = mr_model_part.GetCommunicator().GhostMesh().NodesBegin();
                 it != mr_model_part.GetCommunicator().GhostMesh().NodesEnd();
                 it++)
-            cout << it->Id() << " " << it->Coordinates() << endl;
+	  std::cout << it->Id() << " " << it->Coordinates() << std::endl;
 
         KRATOS_CATCH("");
 
@@ -613,8 +613,8 @@ public:
         for (ModelPart::NodesContainerType::iterator it = this_model_part.NodesBegin(); it != this_model_part.NodesEnd(); it++)
             if ((it->GetDofs()).size() != reference_dofs.size())
             {
-                cout << "reference_dof_list" << *(this_model_part.NodesBegin()) << endl;
-                cout << "inconsistent dof list found" << *it << endl;
+	      std::cout << "reference_dof_list" << *(this_model_part.NodesBegin()) << std::endl;
+	      std::cout << "inconsistent dof list found" << *it << std::endl;
                 KRATOS_ERROR(std::logic_error, "list of dofs is not the same on all of the nodes!", "")
             }
 
@@ -630,7 +630,7 @@ public:
             ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
             if (it_node1 == this_model_part.NodesEnd())
             {
-                cout << "- father node 1 - looking for Id " << node_i << " " << node_j << endl;
+	      std::cout << "- father node 1 - looking for Id " << node_i << " " << node_j << std::endl;
                 KRATOS_ERROR(std::logic_error, "error inexisting node", "")
             }
             std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
@@ -640,7 +640,7 @@ public:
             ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
             if (it_node2 == this_model_part.NodesEnd())
             {
-                cout << "- father node 2 - looking for Id " << node_i << " " << node_j << endl;
+	      std::cout << "- father node 2 - looking for Id " << node_i << " " << node_j << std::endl;
                 KRATOS_ERROR(std::logic_error, "error inexisting node", "")
             }
             std::size_t pos2 = it_node2 - this_model_part.NodesBegin();

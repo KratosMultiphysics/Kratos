@@ -226,22 +226,22 @@ Epetra_FEVector& GetVecRef(TrilinosSparseSpaceType::VectorPointerType& dummy)
 //************************************************************************************************
 //teuchos paramter list
 
-void SetDoubleValue(Teuchos::ParameterList& dummy, const string &name, double value)
+  void SetDoubleValue(Teuchos::ParameterList& dummy, const std::string &name, double value)
 {
     dummy.set(name, value);
 }
 
-void SetIntValue(Teuchos::ParameterList& dummy, const string &name, int value)
+  void SetIntValue(Teuchos::ParameterList& dummy, const std::string &name, int value)
 {
     dummy.set(name, value);
 }
 
-void SetCharValue(Teuchos::ParameterList& dummy, const string &name, const char value[])
+  void SetCharValue(Teuchos::ParameterList& dummy, const std::string &name, const char value[])
 {
     dummy.set(name, value);
 }
 
-void SetBoolValue(Teuchos::ParameterList& dummy, const string &name, int value)
+  void SetBoolValue(Teuchos::ParameterList& dummy, const std::string &name, int value)
 {
     if(value == 0)
         dummy.set(name, false);
@@ -249,22 +249,22 @@ void SetBoolValue(Teuchos::ParameterList& dummy, const string &name, int value)
         dummy.set(name, true);
 }
 
-void SetSublistIntValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, int value)
+  void SetSublistIntValue(Teuchos::ParameterList& dummy, const std::string &sublist_name, const std::string &name, int value)
 {
     dummy.sublist(sublist_name).set(name, value);
 }
 
-void SetSublistDoubleValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, double value)
+  void SetSublistDoubleValue(Teuchos::ParameterList& dummy, const std::string &sublist_name, const std::string &name, double value)
 {
     dummy.sublist(sublist_name).set(name, value);
 }
 
-void SetSublistCharValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, const char value[])
+  void SetSublistCharValue(Teuchos::ParameterList& dummy, const std::string &sublist_name, const std::string &name, const char value[])
 {
     dummy.sublist(sublist_name).set(name, value);
 }
 
-void SetSublistBoolValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, double value)
+  void SetSublistBoolValue(Teuchos::ParameterList& dummy, const std::string &sublist_name, const std::string &name, double value)
 {
     dummy.sublist(sublist_name).set(name, value);
 }

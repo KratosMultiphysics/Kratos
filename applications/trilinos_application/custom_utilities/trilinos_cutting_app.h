@@ -184,7 +184,7 @@ public:
         
         if (mrComm.MyPID() == 0)
         {
-            cout <<"Adding Skin Conditions to the new model part, added in layer:"<<endl;
+	  std::cout <<"Adding Skin Conditions to the new model part, added in layer:"<<std::endl;
             KRATOS_WATCH(plane_number);
         }
         KRATOS_TRY
@@ -434,7 +434,7 @@ public:
 		ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
         ParallelFillCommunicator(new_model_part).PrintDebugInfo(); //changed from PrintDebugInfo to Execute
         
-        if (mrComm.MyPID() == 0) cout << "copyng conditions and recalculation plan have been completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "copyng conditions and recalculation plan have been completed" << std::endl;
         KRATOS_CATCH("")
     }
 
@@ -467,7 +467,7 @@ public:
         
         if (mrComm.MyPID() == 0)
         {
-            cout <<"Generating Cutting plane with the following data:"<<endl;
+	  std::cout <<"Generating Cutting plane with the following data:"<<std::endl;
             KRATOS_WATCH(versor);
             KRATOS_WATCH(Xp);
         }
@@ -493,29 +493,29 @@ public:
 
         CSR_Row_Matrix(mr_model_part, p_edge_ids, used_nodes_matrix);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) cout << "index matrix constructed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "index matrix constructed" << std::endl;
 
         FirstLoop(mr_model_part, p_edge_ids, p_partition_ids, versor, Xp, number_of_triangles, Elems_In_Plane, tolerance, used_nodes_matrix);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) cout << "Search_Edge_To_Be_Refined completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Search_Edge_To_Be_Refined completed" << std::endl;
 
         Create_List_Of_New_Nodes(mr_model_part, mr_new_model_part, p_edge_ids, p_partition_ids, List_New_Nodes, partition_new_nodes, father_node_ids, used_nodes_matrix);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) cout << "Create_List_Of_New_Nodes completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Create_List_Of_New_Nodes completed" << std::endl;
 
         Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, mr_new_model_part, father_node_ids, List_New_Nodes, partition_new_nodes, versor, Xp, tolerance);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << std::endl;
 
         GenerateElements(mr_model_part, mr_new_model_part, Elems_In_Plane, p_edge_ids, versor, plane_number, number_of_triangles);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) cout << "finished generating elements" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "finished generating elements" << std::endl;
 
 
 
         //fill the communicator
         ParallelFillCommunicator(mr_new_model_part).Execute();
-        if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
+        if (mrComm.MyPID() == 0) std::cout << "recalculation of communication plan completed" << std::endl;
 
         //clean up the data
         Clear();
@@ -1040,7 +1040,7 @@ public:
                     ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
                     if (it_node1 == this_model_part.NodesEnd())
                     {
-                        cout << "- father node 1 - looking for Id " << node_i << " " << node_j << endl;
+		      std::cout << "- father node 1 - looking for Id " << node_i << " " << node_j << std::endl;
                         KRATOS_ERROR(std::logic_error, "error inexisting node", "")
                     }
                     noalias(Coord_Node_1) = it_node1->Coordinates();
@@ -1049,7 +1049,7 @@ public:
                     ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
                     if (it_node2 == this_model_part.NodesEnd())
                     {
-                        cout << "- father node 2 - looking for Id " << node_i << " " << node_j << endl;
+		      std::cout << "- father node 2 - looking for Id " << node_i << " " << node_j << std::endl;
                         KRATOS_ERROR(std::logic_error, "error inexisting node", "")
                     }
                     noalias(Coord_Node_2) = it_node2->Coordinates();
@@ -1395,7 +1395,7 @@ public:
 
     void UpdateCutData(ModelPart& new_model_part, ModelPart& old_model_part)
     {
-        if (mrComm.MyPID() == 0) cout <<"Updating cut data:"<<endl;
+      if (mrComm.MyPID() == 0) std::cout <<"Updating cut data:"<<std::endl;
         int step_data_size = old_model_part.GetNodalSolutionStepDataSize();
 
         //looping the nodes, no data is assigned to elements
