@@ -31,26 +31,59 @@
 
 namespace Kratos
 {
-    
-struct deflation_space {
-    int mblock_size;
+
+enum AMGCLSmoother
+{
+    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL
+};
+
+enum AMGCLIterativeSolverType
+{
+    GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
+};
+
+struct deflation_space
+{
     std::vector<bool> mdirichlet;
-    
+    int mblock_size;
+    int mdim;
+    std::vector<double> mxx;
+    std::vector<double> myy;
+    std::vector<double> mzz;
+
     //n is the size of the chunk
     //block_size is the size of the block
-    deflation_space(int n, int block_size)
-        : mdirichlet(n, 0), mblock_size(block_size)
+    deflation_space(int n, int block_size, int dim)
+        : mdirichlet(n, 0), mblock_size(block_size), mdim(dim), mxx(n/block_size) , myy(n/block_size), mzz(n/block_size)
     {}
 
-    int dim() const { return mblock_size; }
+    int dim() const
+    {
+        return mblock_size*(mdim+1);
+    }
 
-    double operator()(int idx, int k) const {
+    double operator()(int idx, int k) const
+    {
         if (mdirichlet[idx]) return 0.0;
 
-        if(idx%mblock_size == k)
-            return 1.0;
-        else
-            return 0.0;
+        int j = idx/mblock_size;
+        int m = idx%mblock_size;
+        int l = k/(mdim+1);
+        int n = k%(mdim+1);
+
+        if(m == l)
+        {
+            if( n == 0) //constant deflation
+                return 1.0;
+            else if( n == 1) //x coordinate
+                return mxx[j];
+            else if( n == 2) //y coordinate
+                return myy[j];
+            else if( n == 3) //z coordinate
+                return mzz[j];
+        }
+        return 0.0;
+
     }
 };
 
@@ -99,66 +132,58 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_TRY
-  //      Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
-        if (rA.Comm().MyPID() == 0) {
-            std::cout
-                << "entered amgcl mpi *******************************" << std::endl;
-        }
-
-        
-		//do scaling
-// 		Epetra_Vector scaling_vect(rA.RowMap());
-//         rA.InvColSums(scaling_vect);
-//         AztecProblem.LeftScale(scaling_vect);
-				
-		//mMLParameterList.set("PDE equations", mndof);
+//         if (rA.Comm().MyPID() == 0) {
+//             std::cout
+//                 << "entered amgcl mpi *******************************" << std::endl;
+//         }
 
         int chunk = rA.NumMyRows();
         boost::iterator_range<double*> xrange(rX.Values(), rX.Values() + chunk);
         boost::iterator_range<double*> frange(rB.Values(), rB.Values() + chunk);
-        
+
         typedef amgcl::coarsening::smoothed_aggregation<  amgcl::coarsening::pointwise_aggregates > Coarsening;
 
         typedef amgcl::mpi::subdomain_deflation<
-            amgcl::backend::builtin<double>,
-            Coarsening,
-            amgcl::relaxation::ilu0,
-            amgcl::solver::bicgstabl
-            > Solver;
+        amgcl::backend::builtin<double>,
+              Coarsening,
+              amgcl::relaxation::ilu0,
+              amgcl::solver::bicgstabl
+              > Solver;
 
         typename Solver::AMG_params aprm;
         aprm.coarse_enough = 500;
         aprm.coarsening.aggr.block_size = mndof;
         aprm.coarsening.aggr.eps_strong = 0;
-        
 
-        
+
+
         typename Solver::Solver_params sprm(2, mmax_iter, mtol);
 
-        
+
         Solver solve(MPI_COMM_WORLD, amgcl::backend::map(rA), *mpdef_space, aprm, sprm);
         //Solver solve(MPI_COMM_WORLD, amgcl::backend::map(rA), amgcl::mpi::constant_deflation(), aprm, sprm);
 
-        if (rA.Comm().MyPID() == 0) {
-            std::cout
-                << "constructed amgcl mpi *******************************" << std::endl;
-                //<< prof                      << std::endl;
-        }
+//         if (rA.Comm().MyPID() == 0) {
+//             std::cout
+//                 << "constructed amgcl mpi *******************************" << std::endl;
+//                 //<< prof                      << std::endl;
+//         }
         size_t iters;
         double resid;
         boost::tie(iters, resid) = solve(frange, xrange);
-        if (rA.Comm().MyPID() == 0) {
-            std::cout
-                << "solved using amgcl mpi *******************************" << std::endl;
-                //<< prof                      << std::endl;
-        }
+//         if (rA.Comm().MyPID() == 0) {
+//             std::cout
+//                 << "solved using amgcl mpi *******************************" << std::endl;
+//                 //<< prof                      << std::endl;
+//         }
 
-        if (rA.Comm().MyPID() == 0) {
+        if (rA.Comm().MyPID() == 0)
+        {
             std::cout
-                << "------- AMGCL -------\n" << std::endl
-                << "Iterations: " << iters   << std::endl
-                << "Error:      " << resid   << std::endl;
-                //<< prof                      << std::endl;
+                    << "------- AMGCL -------\n" << std::endl
+                    << "Iterations: " << iters   << std::endl
+                    << "Error:      " << resid   << std::endl;
+            //<< prof                      << std::endl;
         }
 
 
@@ -180,13 +205,13 @@ public:
 
         return false;
     }
-    
-    	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function tells if the solver requires such data
-     */
+
+    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+    * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+    * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+    * which require knowledge on the spatial position of the nodes associated to a given dof.
+    * This function tells if the solver requires such data
+    */
     virtual bool AdditionalPhysicalDataIsNeeded()
     {
         return true;
@@ -208,47 +233,44 @@ public:
     {
         int my_pid = rA.Comm().MyPID();
         int old_ndof = -1;
-		unsigned int old_node_id = rdof_set.begin()->Id();
-		int ndof=0;
+        unsigned int old_node_id = rdof_set.begin()->Id();
+        int ndof=0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-		{
-			
-//			if(it->EquationId() < rdof_set.size() )
-//			{
-				unsigned int id = it->Id();
-				if(id != old_node_id)
-				{
-					old_node_id = id;
-					if(old_ndof == -1) old_ndof = ndof;
-					else if(old_ndof != ndof) //if it is different than the block size is 1
-					{
-						old_ndof = -1;
-						break;
-					}
-					
-					ndof=1;
-				}
-				else
-				{
-					ndof++;
-				}
-//			}
-		}
-		
-		r_model_part.GetCommunicator().MinAll(old_ndof);
-		
-		if(old_ndof == -1) 
-			mndof = 1;
-		else
-			mndof = ndof;
-        
+        {
+            unsigned int id = it->Id();
+            if(id != old_node_id)
+            {
+                old_node_id = id;
+                if(old_ndof == -1) old_ndof = ndof;
+                else if(old_ndof != ndof) //if it is different than the block size is 1
+                {
+                    old_ndof = -1;
+                    break;
+                }
+
+                ndof=1;
+            }
+            else
+            {
+                ndof++;
+            }
+        }
+
+        r_model_part.GetCommunicator().MinAll(old_ndof);
+
+        if(old_ndof == -1)
+            mndof = 1;
+        else
+            mndof = ndof;
+
         if(my_pid == 0)
             std::cout << "number of dofs = "<< mndof << std::endl;
-			
+
         //fill deflation space
         std::size_t chunk = rA.NumMyRows();
-        mpdef_space = boost::make_shared<deflation_space>(chunk, mndof);
-        
+        int dim = 3; //we will change it later on if we detect that we are in 2D
+        mpdef_space = boost::make_shared<deflation_space>(chunk, mndof,dim);
+
         //define constant deflation space
         unsigned int i=0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
@@ -259,11 +281,69 @@ public:
                 i++;
             }
         }
-        
-        
-        //if needed define linear deflation space
-        
-        
+
+
+        //add linear deflation space
+        double xg = 0.0;
+        double yg = 0.0;
+        double zg = 0.0;
+        i=0;
+
+        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
+        {
+            if (it->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
+            {
+
+                ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
+
+                double xx = inode->X();
+                double yy = inode->Y();
+                double zz = inode->Z();
+
+                xg += xx;
+                yg += yy;
+                zg += zz;
+
+                mpdef_space->mxx[i] = xx;
+                mpdef_space->myy[i] = yy;
+                mpdef_space->mzz[i] = zz;
+
+                i++;
+            }
+        }
+        int nn = mpdef_space->mxx.size();
+        xg /= static_cast<double>(nn);
+        yg /= static_cast<double>(nn);
+        zg /= static_cast<double>(nn);
+
+        double zgmax = fabs(zg);
+        r_model_part.GetCommunicator().MaxAll(zgmax);
+        if(zgmax <1e-20) //2d problem!! - change the dimension of the space
+        {
+            mpdef_space->mdim = 2;
+        }
+
+        #pragma omp parallel for
+        for(int i=0; i<nn; i++)
+        {
+            mpdef_space->mxx[i] -= xg;
+            mpdef_space->myy[i] -= yg;
+            mpdef_space->mzz[i] -= zg;
+        }
+
+
+        //test
+//         KRATOS_WATCH(mpdef_space->mdim)
+//         KRATOS_WATCH(mpdef_space->mblock_size)
+//         for(unsigned int i=0; i<mpdef_space->mdirichlet.size(); i++)
+//         {
+//             for(unsigned int k=0; k<mpdef_space->dim(); k++)
+//
+//                 std::cout << (*mpdef_space)(i,k) << " ";
+//             std::cout << std::endl;
+//
+//         }
+
 
     }
 
