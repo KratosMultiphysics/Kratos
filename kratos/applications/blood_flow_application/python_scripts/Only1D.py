@@ -559,7 +559,8 @@ def Only1D(model_part1D, model_part3D, total_time, config, simulation_config, in
 	    mean_pressure_1d_FFR=0.0
 	    counter_FFR=0.0
 	    print(total_aortic_pressure)
-	    raw_input()
+	    #raw_input()
+	    #raw_input()
 
 	if (step_size_control):
 	    Dt = integrator.EstimateDeltaTime(model_part1D, 0.6, minlength)

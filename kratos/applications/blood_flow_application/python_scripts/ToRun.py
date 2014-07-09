@@ -926,8 +926,8 @@ if(only1Dtest == False):
 				myTimer.Start("solver3D.Solve()")
 				print ("Checking_Pressure")
 				transfer_obj.CheckPressure(model_part3D)
-				###solver3D.Solve()
-				FitValues=False
+				solver3D.Solve()
+				#FitValues=False
 				myTimer.Stop("solver3D.Solve()")
 				print(myTimer)
 				print("----------------------------Transfer 3d to 1d----------------------------")
