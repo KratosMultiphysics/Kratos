@@ -73,6 +73,10 @@
 #include "external_includes/amesos_solver.h"
 #include "external_includes/ml_solver.h"
 
+#ifdef AMGCL_INCLUDED
+    #include "external_includes/amgcl_solver.h"
+#endif
+
 //configuration files
 // #include "../../incompressible_fluid_application/custom_strategies/strategies/solver_configuration.h"
 // #include "custom_strategies/strategies/trilinos_fractionalstep_configuration.h"
@@ -118,6 +122,13 @@ void  AddLinearSolvers()
     ("MultiLevelSolver",
      init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >());
 
+    #ifdef AMGCL_INCLUDED
+        typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
+        class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
+        ("AmgclMPISolver",
+        init<double, int >());
+    #endif
+    
     enum_<AztecScalingType>("AztecScalingType")
     .value("NoScaling", NoScaling)
     .value("LeftScaling", LeftScaling)

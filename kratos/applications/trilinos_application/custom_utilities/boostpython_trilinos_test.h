@@ -82,7 +82,7 @@ public:
         int NumProc = Comm.NumProc();
 
         // output some information to std output
-        cout << Comm << endl;
+	std::cout << Comm << std::endl;
 
         // ======================== //
         // now some basic MPI calls //
@@ -136,7 +136,7 @@ public:
 
         Comm.ScanSum(&dvalue, &dvalue2, 1);
 
-        cout << "On proc " << MyPID << " dvalue2  = " << dvalue2 << endl;
+	std::cout << "On proc " << MyPID << " dvalue2  = " << dvalue2 << std::endl;
 
         delete[] dvalues;
         delete[] dvalues2;

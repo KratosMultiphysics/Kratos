@@ -12,10 +12,22 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/ALEapplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
  
 
-#find mkl solver package -- this is our own find package!!
+#find trilinos solver package -- this is our own find package!!
 find_package(TRILINOS REQUIRED)
 include_directories(${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
+
+if(TRILINOS_USE_AMGCL MATCHES ON)
+    add_definitions(-DAMGCL_INCLUDED)
+    ##including the amgcl, which is header only
+    set(AMGCL_ROOT $ENV{AMGCL_ROOT} CACHE STRING "AMGCL root")
+    message(STATUS "Found AMGCL at ${AMGCL_ROOT}")
+    include_directories(${AMGCL_ROOT})
+    
+    ##including extra boost libraries 
+    
+endif(TRILINOS_USE_AMGCL MATCHES ON)
+
 
 ##add definitions needed
 
