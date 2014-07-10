@@ -105,12 +105,14 @@ namespace Kratos
 
        mTangentialVariables.Sign = 1;
        
-       mTangentialVariables.FrictionCoefficient = 0.0;//0.3;
-       mTangentialVariables.DynamicFrictionCoefficient = 0.0;//0.2;
-       mTangentialVariables.StaticFrictionCoefficient  = 0.0;//0.3;
+       mTangentialVariables.FrictionCoefficient        =  GetProperties()[FRICTION_COEFFICIENT];//0.3;
+       mTangentialVariables.DynamicFrictionCoefficient =  GetProperties()[MU_DYNAMIC];//0.2;
+       mTangentialVariables.StaticFrictionCoefficient  =  GetProperties()[MU_STATIC];//0.3;
 
+       //std::cout<<" Friction Coef "<<mTangentialVariables.FrictionCoefficient<<" dynamic "<<mTangentialVariables.DynamicFrictionCoefficient<<" static "<<mTangentialVariables.StaticFrictionCoefficient<<std::endl;
 
        ClearNodalForces();
+
 
     KRATOS_CATCH( "" )
 

@@ -272,6 +272,9 @@ main_step_solver.SetRestart(load_restart) #calls strategy initialize if no resta
 # initial contact search
 modeler.InitialContactSearch()
 
+#define time steps and loop range of steps
+time_step = model_part.ProcessInfo[DELTA_TIME]
+
 if(load_restart == True):  
 
   buffer_size  = 0
