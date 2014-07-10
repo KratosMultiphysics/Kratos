@@ -33,32 +33,10 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         BeamProperties.SetValue(CROSS_AREA, cross_area)
         mean_radius =  size_profile*0.5
         BeamProperties.SetValue(MEAN_RADIUS, radius)
+        sides = 4
+        BeamProperties.SetValue(SECTION_SIDES, sides)
         return BeamProperties
 
-    if(SectionType == "Circular"):
-        if (len(SectionData) < 1):
-            print("Error, Section needs at least the size of section to be given in SectionData")
-            raise
-
-        radius = SectionData[0]*0.5
-
-        shape = 'Circular'
-
-        circular_area = 3.14 * (radius ** 2)
-        circular_inertia = (3.14 * (radius ** 4)) / 4
-        circular_inertia_polar = (3.14 * (radius ** 4)) / 4
-        circular_module = (3.14 * (radius ** 3)) / 4
-        circular_turning_radius = (((3.14 * (radius ** 4)) / 4.0) / (3.14 *(radius**2)))**(1.0/2.0)
-        inertia = Matrix(2, 2)
-        inertia[0, 0] = circular_inertia
-        inertia[0, 1] = circular_inertia_polar
-        inertia[1, 0] = circular_inertia_polar
-        inertia[1, 1] = circular_inertia
-        print(("inertia", inertia))
-        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
-        BeamProperties.SetValue(CROSS_AREA, circular_area)
-        BeamProperties.SetValue(MEAN_RADIUS, radius)
-        return BeamProperties
 
     if(SectionType == "Rectangular"):
         if (len(SectionData) < 1):
@@ -88,6 +66,72 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         BeamProperties.SetValue(CROSS_AREA, square_area)
         mean_radius = sqrt(square_area)
         BeamProperties.SetValue(MEAN_RADIUS, mean_radius)
+        sides = 4
+        BeamProperties.SetValue(SECTION_SIDES, sides)
+        return BeamProperties
+
+    if(SectionType == "Circular"):
+        if (len(SectionData) < 1):
+            print("Error, Section needs at least the size of section to be given in SectionData")
+            raise
+
+        radius = SectionData[0]*0.5
+
+        shape = 'Circular'
+
+        circular_area = 3.14 * (radius ** 2)
+        circular_inertia = (3.14 * (radius ** 4)) / 4
+        circular_inertia_polar = (3.14 * (radius ** 4)) / 4
+        circular_module = (3.14 * (radius ** 3)) / 4
+        circular_turning_radius = (((3.14 * (radius ** 4)) / 4.0) / (3.14 *(radius**2)))**(1.0/2.0)
+        inertia = Matrix(2, 2)
+        inertia[0, 0] = circular_inertia
+        inertia[0, 1] = circular_inertia_polar
+        inertia[1, 0] = circular_inertia_polar
+        inertia[1, 1] = circular_inertia
+        print(("inertia", inertia))
+        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(CROSS_AREA, circular_area)
+        BeamProperties.SetValue(MEAN_RADIUS, radius)
+        sides = 25
+        BeamProperties.SetValue(SECTION_SIDES, sides)
+
+        return BeamProperties
+
+    if(SectionType == "Tubular"):
+        if (len(SectionData) < 1):
+            print("Error, Section needs at least the size of section to be given in SectionData")
+            raise
+
+        radius = SectionData[0]*0.5
+        diameter_D = SectionData[0]
+        thickness  = SectionData[1]
+        diameter_d = diameter_D - 2*thickness
+
+        shape = 'Tubular'
+
+        distance_a = (diameter_D ** 2) - (diameter_d ** 2)
+        distance_b = (diameter_D ** 2) + (diameter_d ** 2)
+
+        circular_area = 3.14 * (distance_a ** 2) * 0.25
+
+        circular_inertia = (3.14 * (diameter_D ** 3) * thickness) * 0.25
+        circular_inertia_polar = (3.14 * (diameter_D ** 3) * thickness) * 0.25
+
+        circular_module = (3.14 * (diameter_D ** 2) * thickness) * 0.25
+        circular_turning_radius = sqrt(distance_b) * 0.25
+
+        inertia = Matrix(2, 2)
+        inertia[0, 0] = circular_inertia
+        inertia[0, 1] = circular_inertia_polar
+        inertia[1, 0] = circular_inertia_polar
+        inertia[1, 1] = circular_inertia
+        print(("inertia", inertia))
+        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(CROSS_AREA, circular_area)
+        BeamProperties.SetValue(MEAN_RADIUS, radius)
+        sides = 25
+        BeamProperties.SetValue(SECTION_SIDES, sides)
         return BeamProperties
 
 

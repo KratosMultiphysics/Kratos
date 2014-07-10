@@ -109,7 +109,7 @@ class ResidualStrategy:
             # self.model_part.ProcessInfo[NL_ITERATION_NUMBER] = it
             converged = self.convergence_criteria.PreCriteria(self.model_part, self.builder_and_solver.GetDofSet(), self.A, self.Dx, self.b)
 
-            # print " [ ELEMENTS: ",self.model_part.NumberOfElements(), " CONDICIONS :",self.model_part.NumberOfConditions()," ]"
+            # print " [ ELEMENTS: ",self.model_part.NumberOfElements(0), " CONDICIONS :",self.model_part.NumberOfConditions(0)," ]"
 
             # calculate iteration
             # - system is built and solved
