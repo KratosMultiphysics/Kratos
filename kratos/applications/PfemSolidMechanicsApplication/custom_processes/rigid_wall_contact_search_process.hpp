@@ -21,6 +21,7 @@
 
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
 
 #include "pfem_solid_mechanics_application.h"
 
@@ -195,7 +196,9 @@ public:
 
 		//p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 
-		p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		//p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		
+		p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 
 		//std::cout<<" Set Contact 3D condition "<<std::endl;
 	      }
