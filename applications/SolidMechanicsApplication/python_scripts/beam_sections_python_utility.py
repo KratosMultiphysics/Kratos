@@ -28,7 +28,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[0, 1] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
         inertia[1, 0] = float(SectionProperties["Iz(m4)"])  # we have to set this correctly
         inertia[1, 1] = float(SectionProperties["Iy(m4)"])  #y is the vertical axis of the section
-        print(("inertia", inertia))
+
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, cross_area)
         mean_radius =  size_profile*0.5
@@ -61,7 +61,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[0, 1] = square_inertia_polar
         inertia[1, 0] = square_inertia_polar
         inertia[1, 1] = square_inertia_y
-        print(("inertia", inertia))
+
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, square_area)
         mean_radius = sqrt(square_area)
@@ -89,7 +89,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[0, 1] = circular_inertia_polar
         inertia[1, 0] = circular_inertia_polar
         inertia[1, 1] = circular_inertia
-        print(("inertia", inertia))
+
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, circular_area)
         BeamProperties.SetValue(MEAN_RADIUS, radius)
@@ -126,7 +126,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[0, 1] = circular_inertia_polar
         inertia[1, 0] = circular_inertia_polar
         inertia[1, 1] = circular_inertia
-        print(("inertia", inertia))
+
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
         BeamProperties.SetValue(CROSS_AREA, circular_area)
         BeamProperties.SetValue(MEAN_RADIUS, radius)
