@@ -15,6 +15,7 @@ void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
+
     
     unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
@@ -229,6 +230,10 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
 
             array_1d<double,3> AdvVel;
             this->GetAdvectiveVel(AdvVel,N);
+//G
+            double AdvVelDiv;
+            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
+//Z
 
             double Density,KinViscosity,Viscosity;
             this->EvaluateInPoint(Density,DENSITY,N);
@@ -247,7 +252,10 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
             }
             else
             {
-                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+//G
+                this->ASGSMomResidual(AdvVel,AdvVelDiv,Density,MomError,N,DN_DX,1.0);
+              //this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+//Z
             }
             MomError *= TauOne;
             array_1d<double,3>& rSubscale = rOutput[0];
@@ -318,6 +326,10 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
 
             array_1d<double,3> AdvVel;
             this->GetAdvectiveVel(AdvVel,N);
+//G
+            double AdvVelDiv;
+            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
+//Z
 
             double Density,KinViscosity,Viscosity;
             this->EvaluateInPoint(Density,DENSITY,N);
@@ -336,7 +348,10 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
             }
             else
             {
-                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+//G
+                this->ASGSMomResidual(AdvVel,AdvVelDiv,Density,MomError,N,DN_DX,1.0);
+              //this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+//Z
             }
             MomError *= TauOne;
             array_1d<double,3>& rSubscale = rOutput[0];
@@ -359,6 +374,30 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
     }
 }
 
+//GG
+template <>
+void MonolithicDEMCoupled<2,3>::CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX,
+        Matrix& rNContainer,
+        Vector& rGaussWeights){}
+
+
+template <>
+void MonolithicDEMCoupled<3,4>::CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX,
+        Matrix& rNContainer,
+        Vector& rGaussWeights)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    Vector DetJ;
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
+    rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+        rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+}
+//ZZ
 /**
  * The size of the 2D element is estimated as the diameter of a circle of the same area.
  * Area = Pi * (h/2)^2
@@ -567,7 +606,7 @@ void MonolithicDEMCoupled<3,4>::CalculateC(boost::numeric::ublas::bounded_matrix
  * @see MonolithicDEMCoupled::AddViscousTerm
  */
 template <>
-void MonolithicDEMCoupled<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
+void MonolithicDEMCoupled<2,3>::AddViscousTerm(MatrixType& rDampMatrix,
                               const boost::numeric::ublas::bounded_matrix<double,3,2>& rShapeDeriv,
                               const double Weight)
 {
@@ -583,12 +622,12 @@ void MonolithicDEMCoupled<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
             // First Row
-            rDampingMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+            rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
+            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
 
             // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
 
             // Update Counter
             FirstRow += 3;
@@ -602,7 +641,7 @@ void MonolithicDEMCoupled<2,3>::AddViscousTerm(MatrixType& rDampingMatrix,
  * @see MonolithicDEMCoupled::AddViscousTerm
  */
 template <>
-void MonolithicDEMCoupled<3,4>::AddViscousTerm(MatrixType& rDampingMatrix,
+void MonolithicDEMCoupled<3,4>::AddViscousTerm(MatrixType& rDampMatrix,
                               const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
                               const double Weight)
 {
@@ -621,19 +660,19 @@ void MonolithicDEMCoupled<3,4>::AddViscousTerm(MatrixType& rDampingMatrix,
             const double Diag =  rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,2) * rShapeDeriv(j,2);
 
             // First Row
-            rDampingMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rShapeDeriv(i,0) * rShapeDeriv(j,0) + Diag );
-            rDampingMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
-            rDampingMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
+            rDampMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rShapeDeriv(i,0) * rShapeDeriv(j,0) + Diag );
+            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+            rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
 
             // Second Row
-            rDampingMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-            rDampingMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rShapeDeriv(i,1) * rShapeDeriv(j,1) + Diag );
-            rDampingMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
+            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rShapeDeriv(i,1) * rShapeDeriv(j,1) + Diag );
+            rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
 
             // Third Row
-            rDampingMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
-            rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
-            rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rShapeDeriv(i,2) * rShapeDeriv(j,2) + Diag );
+            rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
+            rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
+            rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rShapeDeriv(i,2) * rShapeDeriv(j,2) + Diag );
 
             // Update Counter
             FirstRow += 4;
