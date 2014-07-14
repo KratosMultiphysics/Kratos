@@ -465,10 +465,17 @@ namespace Kratos
       
       MatrixType Kuug = ZeroMatrix(dimension*2+1);
 
-      for( unsigned int i=0; i<dimension+1; i++ ){
-	Kuug(i,dimension*2) = -rVariables.Surface.Normal[i];
-	Kuug(dimension*2,i) = -rVariables.Surface.Normal[i];
-      }
+      for( unsigned int i = 0; i<dimension+1; i++ )
+	{
+	  Kuug(i,dimension*2) = -rVariables.Surface.Normal[i];
+	  Kuug(dimension*2,i) = -rVariables.Surface.Normal[i];
+	}
+
+      //Stabilization term
+      double penalty = 1;
+      double stab_LM = -rVariables.Gap.Normal * rVariables.Gap.Normal * penalty; 
+
+      Kuug(dimension*2, dimension*2) = stab_LM;
 
       //Building the Local Stiffness Matrix
       MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kuug, 0, 0 );
@@ -553,15 +560,17 @@ namespace Kratos
       
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+      double& NormalLM = GetGeometry()[0].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_NORMAL);
       
-      rRightHandSideVector[dimension*2] = rVariables.Gap.Normal;
+      double penalty = 1;
+
+      rRightHandSideVector[dimension*2] = rVariables.Gap.Normal * (1.0 + NormalLM * rVariables.Gap.Normal * penalty);
 
 
       GetGeometry()[0].SetLock();
 
       array_1d<double, 3 >& ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
-      double& NormalLM = GetGeometry()[0].FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_NORMAL);
       
       for(unsigned int j = 0; j < dimension; j++)
 	{
