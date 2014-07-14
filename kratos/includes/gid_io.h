@@ -545,8 +545,13 @@ public:
                         break;
                 }
             }
-                    
-                    
+
+        // Writing gauss points definitions
+        for ( typename std::vector<TGaussPointContainer>::iterator it = mGidGaussPointContainers.begin();
+              it != mGidGaussPointContainers.end(); it++ )
+        {
+            it->WriteGaussPoints(mResultFile);
+        }
     }
 
     /**
