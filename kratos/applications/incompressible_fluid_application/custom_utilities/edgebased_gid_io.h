@@ -276,36 +276,39 @@ public:
         mMeshConditions.clear();
     }
 
-protected:
+public:
     void WriteGaussPoints(GiD_FILE ResultFile)
     {
-        //setting up gauss points
-        if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
+        if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            GiD_fBeginGaussPoint( ResultFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
-            GiD_fWriteGaussPoint3D( ResultFile, 1.0/6.0, 1.0/6.0, 1.0/6.0 );
-            GiD_fWriteGaussPoint3D( ResultFile, 1.0/2.0, 1.0/6.0, 1.0/6.0 );
-            GiD_fWriteGaussPoint3D( ResultFile,1.0/6.0, 1.0/2.0, 1.0/6.0 );
-            GiD_fWriteGaussPoint3D( ResultFile,1.0/6.0, 1.0/6.0, 1.0/2.0 );
-            GiD_fEndGaussPoint(ResultFile);
-        }
-        else if( mGidElementFamily == GiD_Tetrahedra && mSize == 10 )
-        {
-            GiD_fBeginGaussPoint(ResultFile,"tet10_element_gp", GiD_Tetrahedra, NULL, 4, 0, 0);
-            GiD_fWriteGaussPoint3D( ResultFile,1.0/14.0, 1.0/14.0, 1.0/14.0 );
-            GiD_fWriteGaussPoint3D( ResultFile,11.0/14.0, 1.0/14.0, 1.0/14.0 );
-            GiD_fWriteGaussPoint3D( ResultFile,1.0/14.0, 11.0/14.0, 1.0/14.0 );
-            GiD_fWriteGaussPoint3D( ResultFile,1.0/14.0, 1.0/14.0, 11.0/14.0 );
-            GiD_fEndGaussPoint(ResultFile);
-        }
-        else
-        {
-            GiD_fBeginGaussPoint(ResultFile, mGPTitle, mGidElementFamily, NULL,
-                                mSize, 0, 1);
-            GiD_fEndGaussPoint(ResultFile);
+            //setting up gauss points
+            if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
+            {
+                GiD_fBeginGaussPoint( ResultFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
+                GiD_fWriteGaussPoint3D( ResultFile, 1.0/6.0, 1.0/6.0, 1.0/6.0 );
+                GiD_fWriteGaussPoint3D( ResultFile, 1.0/2.0, 1.0/6.0, 1.0/6.0 );
+                GiD_fWriteGaussPoint3D( ResultFile,1.0/6.0, 1.0/2.0, 1.0/6.0 );
+                GiD_fWriteGaussPoint3D( ResultFile,1.0/6.0, 1.0/6.0, 1.0/2.0 );
+                GiD_fEndGaussPoint(ResultFile);
+            }
+            else if( mGidElementFamily == GiD_Tetrahedra && mSize == 10 )
+            {
+                GiD_fBeginGaussPoint(ResultFile,"tet10_element_gp", GiD_Tetrahedra, NULL, 4, 0, 0);
+                GiD_fWriteGaussPoint3D( ResultFile,1.0/14.0, 1.0/14.0, 1.0/14.0 );
+                GiD_fWriteGaussPoint3D( ResultFile,11.0/14.0, 1.0/14.0, 1.0/14.0 );
+                GiD_fWriteGaussPoint3D( ResultFile,1.0/14.0, 11.0/14.0, 1.0/14.0 );
+                GiD_fWriteGaussPoint3D( ResultFile,1.0/14.0, 1.0/14.0, 11.0/14.0 );
+                GiD_fEndGaussPoint(ResultFile);
+            }
+            else
+            {
+                GiD_fBeginGaussPoint(ResultFile, mGPTitle, mGidElementFamily, NULL,
+                                     mSize, 0, 1);
+                GiD_fEndGaussPoint(ResultFile);
+            }
         }
     }
-
+protected:
     ///member variables
     const char* mGPTitle;
     KratosGeometryFamily mKratosElementFamily;
