@@ -268,13 +268,6 @@ public:
     {
     }
 
-    void Reset()
-    {
-        mMeshElements.clear();
-        mMeshConditions.clear();
-    }
-
-protected:
     void WriteGaussPoints(GiD_FILE ResultFile)
     {
         //setting up gauss points
@@ -304,8 +297,14 @@ protected:
         }
     }
 
-    ///member variables
+    void Reset()
+    {
+        mMeshElements.clear();
+        mMeshConditions.clear();
+    }
 
+protected:
+    ///member variables
     const char* mGPTitle;
     KratosGeometryFamily mKratosElementFamily;
     GiD_ElementType mGidElementFamily;
