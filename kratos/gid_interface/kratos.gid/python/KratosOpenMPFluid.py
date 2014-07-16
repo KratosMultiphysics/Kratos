@@ -59,6 +59,11 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
 
+# Check tetrahedral mesh for wrong orientation
+throw_errors = False
+orientation_check = TetrahedralMeshOrientationCheck(fluid_model_part,throw_errors)
+orientation_check.Execute()
+
 solver_module.AddDofs(fluid_model_part, SolverSettings)
 
 # If Lalplacian form = 2, free all pressure Dofs
@@ -132,7 +137,7 @@ for it in drag_list:
     drag_file_output_list.append(f)
     tmp = "#Drag for group " + it[1] + "\n"
     f.write(tmp)
-    tmp = "time RX RY RZ"
+    tmp = "#time RX RY RZ\n"
     f.write(tmp)
     f.flush()
 
