@@ -81,6 +81,10 @@ Comm = CreateCommunicator()
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
 
+# Check tetrahedral mesh for wrong orientation
+throw_errors = False
+orientation_check = TetrahedralMeshOrientationCheck(fluid_model_part,throw_errors)
+orientation_check.Execute()
 
 # adding dofs
 solver_module.AddDofs(fluid_model_part, SolverSettings)
