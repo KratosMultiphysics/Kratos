@@ -681,6 +681,8 @@ namespace Kratos {
             }
 
             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
+
+            Scheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, A, Dx, b);
         }
 
         //************************************************************************************************
