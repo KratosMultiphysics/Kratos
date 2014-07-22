@@ -452,16 +452,16 @@ namespace Kratos
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
           rSerializer.save("mContinuumGroup",mContinuumGroup);
-          rSerializer.save("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
-          rSerializer.save("mBondElements",mBondElements);                              
+          //rSerializer.save("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
+          //rSerializer.save("mBondElements",mBondElements);                              
       }
 
       virtual void load(Serializer& rSerializer)
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
           rSerializer.load("mContinuumGroup",mContinuumGroup);
-          rSerializer.load("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
-          rSerializer.load("mBondElements",mBondElements);
+          //rSerializer.load("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
+          //rSerializer.load("mBondElements",mBondElements);
       }
       
       
