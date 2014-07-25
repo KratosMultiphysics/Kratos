@@ -67,6 +67,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <omp.h>
 #endif
 
+#define CUSTOMTIMER 1  // ACTIVATES AND DISABLES ::TIMER:::::
+
+/* Timer defines */
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
+
 namespace Kratos
 {
 
@@ -232,13 +243,7 @@ public:
 
     /// Destructor.
     virtual ~BinsObjectDynamicMpi() {
-        if(mpi_rank == 0)
-        {
-        char msg[12] = {'b','i','n','s','_','X','.','t','i','m','e','\0'};
-        msg[5] = '0' + mpi_rank;
-        Timer::SetOuputFile(msg);
-        Timer::PrintTimingInformation();
-        }
+
     }
 
 
@@ -309,6 +314,7 @@ public:
     void SearchObjectsMpi(const ElementsContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
           std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator& Communicator)
     {  
+        KRATOS_TIMER_START("BMS-CALC")
         std::vector<ElementsContainerType> remoteResults(mpi_size);
         std::vector<ElementsContainerType> SearchPetitions(mpi_size);
         std::vector<ElementsContainerType> SearchResults(mpi_size);
@@ -388,11 +394,15 @@ public:
                 }
             }
         }
+        KRATOS_TIMER_STOP("BMS-CALC")
 
+        KRATOS_TIMER_START("BMS-COMM1")
         TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
-        //TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
+//         TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
+        KRATOS_TIMER_STOP("BMS-COMM1")
 
+        KRATOS_TIMER_START("BMS-CALC")
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
 
         //Calculate remote points
@@ -452,11 +462,15 @@ public:
                 NumberOfSendPoints[i] = accum_results;
             }
         }
+        KRATOS_TIMER_STOP("BMS-CALC")
 
+        KRATOS_TIMER_START("BMS-COMM2")
         TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
-        //TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
+//         TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
+        KRATOS_TIMER_STOP("BMS-COMM2")
 
+        KRATOS_TIMER_START("BMS-CALC")
         for(int i = 0; i < mpi_size; i++) //for all ranks
         {
             int NumberOfRanks = Communicator.GetNumberOfColors();
@@ -505,6 +519,7 @@ public:
                 }
             }
         }
+        KRATOS_TIMER_STOP("BMS-CALC")
     }
 
 //************************************************************************
