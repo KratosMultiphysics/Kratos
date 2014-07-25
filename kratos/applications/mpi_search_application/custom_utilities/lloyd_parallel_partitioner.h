@@ -167,11 +167,6 @@ public:
 
     /// Destructor.
     virtual ~LloydParallelPartitioner() {
-
-        char msg[12] = {'b','i','n','s','_','X','.','t','i','m','e','\0'};
-        msg[5] = '0' + mpi_rank;
-        Timer::SetOuputFile(msg);
-        Timer::PrintTimingInformation();
     }
 
     Vector MeanPoint;
