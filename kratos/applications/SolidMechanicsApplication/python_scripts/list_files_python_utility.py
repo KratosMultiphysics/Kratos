@@ -70,7 +70,7 @@ class ListFilesUtility:
 
         self.RemoveListFiles()
 
-        # Rebuld List Files from existing problem build
+        # Rebuild List Files from existing problem build
         if(self.print_lists):
 
             file_id   = []
@@ -130,10 +130,11 @@ class ListFilesUtility:
         else:
             filelist = [f for f in os.listdir(self.problem_path) if f.endswith(".lst")]
             for f in filelist:
-                try:
-                    os.remove(f)
-                except WindowsError:
-                    pass
+                if(os.path.exists(f)):
+                    try:
+                        os.remove(f)
+                    except WindowsError:
+                        pass
 
     #
     def PrintListFiles(self, current_id):
