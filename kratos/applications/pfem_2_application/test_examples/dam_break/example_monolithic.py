@@ -139,11 +139,10 @@ for step in range(1,nsteps):
    	  out=0
 	  print "printing a step"		
    	  
-   	  gid_io.WriteNodalResults(G_VALUE,model_part.Nodes,time,0)
 	  gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
 	  gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
 	  gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
-	  gid_io.WriteNodalResults(YP,model_part.Nodes,time,0)
+	  gid_io.Flush()
 
     
 t2=timer.time()
