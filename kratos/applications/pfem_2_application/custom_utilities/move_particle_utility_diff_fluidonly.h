@@ -2232,7 +2232,7 @@ namespace Kratos
 		array_1d<double,3> press_proj_value_without_other_phase_nodes=ZeroVector(3);
 		*/
 		///*****
-		double particle_distance = pparticle.GetDistance();
+		const double particle_distance = pparticle.GetDistance();
 		array_1d<double,3> particle_velocity = pparticle.GetVelocity();
 		double distance=0.0;
 		array_1d<double,3> last_useful_vel;
@@ -2382,12 +2382,13 @@ namespace Kratos
 					{
 						double yp_total=0.0;
 						vel_without_other_phase_nodes = ZeroVector(3);
+						vel = ZeroVector(3);
 						//press_proj_value=ZeroVector(3);
 						viscosity_value=ZeroVector(3);
 						
 						for(unsigned int j=0; j<(TDim+1); j++)
 						{
-							if ((geom[j].FastGetSolutionStepValue(YP))>1e-12)
+							if ((geom[j].FastGetSolutionStepValue(YP))>1e-12 && (geom[j].FastGetSolutionStepValue(DISTANCE)*particle_distance)>0.0)
 							{
 								noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j] ;
 								g_value += geom[j].FastGetSolutionStepValue(G_VALUE)*N[j];
@@ -2397,12 +2398,13 @@ namespace Kratos
 								distance+=N[j]*geom[j].FastGetSolutionStepValue(DISTANCE);
 								sum_Ns_without_other_phase_nodes += N[j];
 							}
+							noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
 							///*****	
 						}
-						//if (sum_Ns_without_other_phase_nodes>1e-12)
-						if(true)
+						if (sum_Ns_without_other_phase_nodes>1e-12)
+						//if(true)
 						{
-							vel=vel_without_other_phase_nodes/sum_Ns_without_other_phase_nodes;
+							//vel=vel_without_other_phase_nodes/sum_Ns_without_other_phase_nodes;
 						}
 						else
 						{
@@ -2428,7 +2430,7 @@ namespace Kratos
 							//else
 								//have_air_node=true;
 							
-							//noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]*node_weight; 
+							noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
 							//noalias(viscosity_value) += geom[j].GetSolutionStepValue(RHS,0)*N[j]; 
 							//noalias(press_proj_value) += geom[j].GetSolutionStepValue(PRESS_PROJ_NO_RO,0)*N[j]; 
 							g_value += geom[j].FastGetSolutionStepValue(G_VALUE)*N[j];
@@ -2447,8 +2449,10 @@ namespace Kratos
 						}
 						else
 						{
-							//vel  += substep_dt * gravity ;
+							particle_velocity += substep_dt * gravity;
+							
 							//warning! no parabolic trajectory!
+							//vel  = particle_velocity;
 						}
 					}
 					
@@ -2544,6 +2548,7 @@ namespace Kratos
 		
 		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 		double delta_t = CurrentProcessInfo[DELTA_TIME];
+		array_1d<double,3> gravity = CurrentProcessInfo[GRAVITY];
 		
 		
 		//we start with the first position, then it will enter the loop.
@@ -2603,10 +2608,10 @@ namespace Kratos
 				}
 				
 				//if (distance>0.0)
-				//if (sum_Ns_without_water_nodes>0.05)
-				if(false)
+				if (sum_Ns_without_water_nodes>0.01)
+				//if(false)
 				{
-					delta_velocity = delta_velocity_without_water/sum_Ns_without_water_nodes ;
+					//delta_velocity = delta_velocity_without_water/sum_Ns_without_water_nodes ;
 					//delta_temperature = delta_temperature_without_water/sum_Ns_without_water_nodes ;
 					//temperature = temperature_without_water/sum_Ns_without_water_nodes ;
 				}
@@ -2636,12 +2641,19 @@ namespace Kratos
 				}
 				
 				
-				if (false)
-				//if (sum_Ns_without_air_nodes>0.05)
+				//if (false)
+				if (sum_Ns_without_air_nodes>0.01)
 				{
 					delta_velocity = delta_velocity_without_air/sum_Ns_without_air_nodes ;
 					//delta_temperature = delta_temperature_without_air/sum_Ns_without_air_nodes ;
 					//temperature = temperature_without_air/sum_Ns_without_air_nodes ;
+				}
+				else
+				{
+					if (mDENSITY_WATER>(10.0*mDENSITY_AIR))
+					{
+						delta_velocity=gravity*(1.0-mDENSITY_AIR/mDENSITY_WATER)*delta_t;
+					}
 				}
 
 			}
