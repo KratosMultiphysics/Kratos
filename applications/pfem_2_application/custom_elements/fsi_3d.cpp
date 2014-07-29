@@ -456,7 +456,7 @@ namespace Kratos
 				}
 				for (unsigned int i = 0; i < 6; i++)
 					gauss_gradients[i].resize(2, 3, false);  //2 values for the 2 shape functions, and derivates in (xy) direction).
-				unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions2(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+				unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
 				
 				
 				double distance_based_solid_area=0.0;

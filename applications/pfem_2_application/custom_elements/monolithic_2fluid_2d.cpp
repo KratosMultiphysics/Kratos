@@ -217,12 +217,19 @@ namespace Kratos
 
 				
 			//mass matrix:
+			/*
 			double density;
+			
 			if (distances(0)<0.0)
 				density=density_water;
 			else
 				density=density_air;
-				
+			*/
+			double element_mean_distance=(distances[0]+distances[1]+distances[2])*0.333333333;
+			//const double water_fraction = -( element_mean_distance - 1.0) *0.5; 
+			const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
+			double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
+							
 			double fourier=0.0;
 			if (distances(0)<0.0) fourier = viscosity_water/density_water *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
 			else fourier = viscosity_air/density_air *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
@@ -321,7 +328,21 @@ namespace Kratos
 			{
 				mean_velocity += GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)*one_third/delta_t;
 				divergence_n += one_third*Area*(DN_DX(i,0)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X)+DN_DX(i,1)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
-			}	
+			}
+			
+			
+			array_1d<double, 2 > vel_gauss = ZeroVector(2);
+				//Vector pressure_rhs_stab(3);
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				array_1d<double,3>& node_press_proj = GetGeometry()[i].FastGetSolutionStepValue(PRESS_PROJ);
+				vel_gauss[0] += node_press_proj(0)*one_third;
+				vel_gauss[1] += node_press_proj(1)*one_third;
+			}
+				
+			const bool use_press_proj=true;
+			
+				
 			for (unsigned int i = 0; i < 3; i++)
 			{
 				rRightHandSideVector(i*3+0) += one_third*Area*gravity(0)*density;
@@ -330,7 +351,10 @@ namespace Kratos
 				//rRightHandSideVector(i*3+2) -= delta_t*DN_DX(i,1)*gravity(1)*Area*one_third*0.5;
 				//rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0)+previous_vel_and_press(3*i+0)/delta_t)+DN_DX(i,1)*(gravity(1)+previous_vel_and_press(3*i+1)/delta_t))*Area;
 				//rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0)-mean_velocity(0))+DN_DX(i,1)*(gravity(1)-mean_velocity(1)))*Area;
-				rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0))+DN_DX(i,1)*(gravity(1)))*Area;
+				if (use_press_proj)
+						rRightHandSideVector(i*3+2) -= TauOne*Area*(DN_DX(i,0)*vel_gauss(0)+DN_DX(i,1)*vel_gauss(1));
+				else
+					rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0))+DN_DX(i,1)*(gravity(1)))*Area;
 				//for (unsigned int j = 0; j < 3; j++)
 				//	rRightHandSideVector(i*3+2) -= Laplacian_matrix(i,j)*GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 				//rRightHandSideVector(i*3+2) -= 10.0*Area*one_third*(DN_DX(i,0)*gravity(0)+DN_DX(i,1)*gravity(1));
@@ -436,26 +460,14 @@ namespace Kratos
 			
 			for (unsigned int i = 0; i < 3; i++)
 				gauss_gradients[i].resize(4, 2, false);  //3 values of the 3 shape functions, and derivates in (xy) direction).
-			//for (unsigned int i = 0; i < 3; i++)
-			//	gauss_gradients_in_local_axis[i].resize(2, 2, false);  //3 values of the 3 shape functions, and derivates in (xy) direction).
-			//unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,number_of_extended_partitions,Nextendedgauss);
-			
-			
-			//unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions4(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-			unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions4(rRotatedPoints, DN_DX_in_local_axis, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-			//unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions2(rRotatedPoints, DN_DX_in_local_axis, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
 
+			unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncionsExtended(rRotatedPoints, DN_DX_in_local_axis, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
 
 			//interface info:
 			double interface_area=0.0;
 			array_1d<double,2>  normal=ZeroVector(2);
 			array_1d<double,3>  Ninterface=ZeroVector(3);
 			this->CalculateInterfaceNormal(coords, distances, normal,interface_area, Ninterface);
-
-
-			//KRATOS_WATCH(gauss_gradients[0]);KRATOS_WATCH(gauss_gradients[1]);KRATOS_WATCH(gauss_gradients[2]);
-			//ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions2InLocalAxis(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients_in_local_axis, Nenriched, RotationMatrix, DN_DX_in_local_axis);
-			
 			
 			//we start by calculating the non-enriched functions.
 			for (unsigned int i = 0; i < 3; i++)
@@ -1707,6 +1719,7 @@ namespace Kratos
 					boost::numeric::ublas::bounded_matrix<double,3, 3 > coords; //coordinates of the nodes
 					bool has_negative_node=false;
 					bool has_positive_node=false;
+					double element_mean_distance=0.0;
 					
 					for(unsigned int iii = 0; iii<3; iii++)
 					{
@@ -1722,18 +1735,20 @@ namespace Kratos
 							has_negative_node=true;
 						else
 							has_positive_node=true;		
+							
+						element_mean_distance+=  this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE)*0.3333333333;
 					}
 		
 					bool split_element=false;
 					if (has_positive_node && has_negative_node)
 						split_element=true;
 			
-					if (has_negative_node==false) //we only calculate if we have a pure solid/fluid element to make things easier
+					if (split_element==false) //we only calculate if we have a pure solid/fluid element to make things easier
 					{
 
-						double density = mDENSITY_AIR;
-						if (has_negative_node==true)
-							density= mDENSITY_WATER;
+						//const double water_fraction = -( element_mean_distance - 1.0) *0.5; 
+						const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
+						double density = mDENSITY_WATER*(water_fraction)+mDENSITY_AIR*(1.0-water_fraction);
 						
 						boost::numeric::ublas::bounded_matrix<double, (2+1), (2-1)*6 > G_matrix; //(gradient)
 						noalias(G_matrix) = ZeroMatrix((2+1), (2-1)*6);	
@@ -1775,7 +1790,7 @@ namespace Kratos
 					{
 						for (unsigned int i=0; i!=(2+1); i++) //loop around the nodes of the element to add contribution to node i
 						{
-							geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*mass_factor*0.00000001;							
+							geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*mass_factor*0.000000000001;							
 						}
 					}
 					
@@ -1784,7 +1799,7 @@ namespace Kratos
 		{
 			for (unsigned int i=0; i!=(2+1); i++) //loop around the nodes of the element to add contribution to node i
 			{
-				geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*mass_factor*0.00000001;							
+				geom[i].FastGetSolutionStepValue(NODAL_AREA) += Area*mass_factor*0.000000000001;							
 			}
 		}
 		
