@@ -223,254 +223,16 @@ namespace Kratos
 	void PFEM23D::CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
-		array_1d<double,3> gravity= rCurrentProcessInfo[GRAVITY];
-		double x_force= gravity(0);
-		double y_force= gravity(1);
-		//WE MUST CALCULATE Mass and G(or D) matrixes
-
-	    double delta_t = rCurrentProcessInfo[DELTA_TIME];	
-		array_1d<double,3> old_pressures;
-		for (unsigned int i=0; i<3;i++)
-			old_pressures(i) = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-
-		double input_jump_value = this->GetValue(PRESS_DISCONTINUITY);
-		double jump_value=-input_jump_value*0.5;
-		double gradient_discontinuity = - this->GetValue(ENRICH_RHS);
-		array_1d<double,4> enrich_lhs = this->GetValue(ENRICH_LHS_ROW);
-		//KRATOS_WATCH(gradient_discontinuity);
-
-		KRATOS_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
 	
-	
-		//array_1d<double,3> pressures;
-
-		
-		boost::numeric::ublas::bounded_matrix<double, 6, 1 > previous_vel;
-        for(unsigned int iii = 0; iii<3; iii++)
-        {
-			previous_vel(iii*2,0) = GetGeometry()[iii].GetSolutionStepValue(MESH_VELOCITY_X,0);
-			previous_vel(iii*2+1,0) = GetGeometry()[iii].GetSolutionStepValue(MESH_VELOCITY_Y,0);
-		}
-		
-		//boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-		//boost::numeric::ublas::bounded_matrix<double,2,2> msD;
-		const double one_third = 1.0/3.0;
-		array_1d<double,3> msN; //dimension = number of nodes
-		array_1d<double,3> ms_temp; //dimension = number of nodes
-
-
-		const unsigned int LocalSize = GetGeometry().size()*2;
-		unsigned int TNumNodes = GetGeometry().size();
-		boost::numeric::ublas::bounded_matrix<double, 3,1 > enrich_rhs;
-
-		//getting data for the given geometry
-//        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-
-		array_1d<double, 3> N;
-        // Check sizes and initialize
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-        if(rLeftHandSideMatrix.size1() != LocalSize)
-			rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);	
-        // Calculate this element's geometric parameters
-        double Area;
-        
-        boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
-        boost::numeric::ublas::bounded_matrix<double, 3, 6 > D_matrix; //(gradient)
-        noalias(D_matrix) = ZeroMatrix(3,6);	
-        
-        //new (upper) part of D, corresponding the first enrichment function (gradient discontinuity
-        boost::numeric::ublas::bounded_matrix<double, 1, 6 > D_matrix_mixed;
-        noalias(D_matrix_mixed) = ZeroMatrix(1,6);	
-		//lower part of D, the one corresponding to the second enrichmend function (jump)
-		boost::numeric::ublas::bounded_matrix<double, 1, 6 > D_matrix_mixed_jump;
-		noalias(D_matrix_mixed_jump) = ZeroMatrix(1,6);	
-        boost::numeric::ublas::bounded_matrix<double, 3*2, 3*2 > Mass_matrix;
-        noalias(Mass_matrix) = ZeroMatrix(LocalSize,LocalSize);	
-        //boost::numeric::ublas::bounded_matrix<double, TNumNodes*2, TDim> N_vel_matrix; //useless to calculate it, it's simply the DN_DX matrix multiplied by 1/3, arranged in a different shape.
-        
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-         
-		//const double ViscousCoeff = Density * Viscosity * 2.0*Area;
-		const double ViscousCoeff = rCurrentProcessInfo[VISCOSITY] * 2.0*Area; //para clindro en rey 100:  0.0005 * 2.0*Area;
-		this->AddViscousTerm(rLeftHandSideMatrix,DN_DX,ViscousCoeff);
-        
-        
-        
-        //TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
-        //get position of the cut surface
-        Vector distances(3);
-        Matrix Nenriched(3, 2);
-        Vector volumes(4);
-        Vector densities(3);
-        Matrix coords(3, 2);
-        Matrix Ngauss(3, 3);
-        Vector signs(3);
-        //Vector face_gauss_N(3);
-        //Vector face_gauss_Nenriched(2);
-        //double face_Area;
-        //Vector face_n(2); 
-        std::vector< Matrix > gauss_gradients(3);
-        //fill coordinates
-       
-        unsigned int single_triangle_node;
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-            volumes[i] = 0.0;
-            distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-            //KRATOS_WATCH(distances(i));
-            for (unsigned int j = 0; j < 2; j++)
-                coords(i, j) = xyz[j];
-        }
-
-        for (unsigned int i = 0; i < 3; i++)
-            gauss_gradients[i].resize(2, 2, false);  //2 values of the 2 shape functions, and derivates in (xy) direction).
-        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched); // , face_gauss_N, face_gauss_Nenriched, face_Area, face_n  ,single_triangle_node);
-
-        //in case we've changed the distance function:
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)=distances[i];
-            if (signs[i]>0)
-				densities(i)=rCurrentProcessInfo[DENSITY_AIR];
-			else
-				densities(i)=rCurrentProcessInfo[DENSITY_WATER];
-		}
-
-        
-        jump_value*=signs((single_triangle_node-1));
-
-        //densities(0) = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-		//densities(1) = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-		//densities(2) = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-        
-        
-        //we start by calculating the non-enriched functions.
-        for (unsigned int i = 0; i < 3; i++)
-		{
-			for (unsigned int j = 0; j < 3; j++)
-			{
-				D_matrix(i, (j*2) ) = DN_DX(i,0)*Area*one_third;
-				D_matrix(i, (j*2+1) ) = DN_DX(i,1)*Area*one_third;
-			}
-		}
-		
-		
-		//const SizeType NumNodes = this->GetGeometry().PointsNumber();
-		
-        if (ndivisions==1) //then we need the traditional LUMPED mass matrix
-        {
-			const double Weight = one_third * Area * densities(0);
-			for (unsigned int i = 0; i < 6; i++)
-				Mass_matrix(i,i)=Weight;
-		}
-        else
-        {
-			
-
-			
-			for (unsigned int i = 0; i < 3; i++)  // local node (or shape function)
-			{
-				//KRATOS_WATCH(enrich_lhs(i));
-				for (unsigned int j = 0; j < 3; j++) //partitions
-				{
-					Mass_matrix(2*i,2*i) +=  volumes(j)*Ngauss(j,i)*densities(j);	 
-				}
-				Mass_matrix(2*i+1,2*i+1) = Mass_matrix(2*i,2*i);
-			}
-			
-			for (unsigned int i=0; i<3;i++)
-			{
-				gradient_discontinuity -= old_pressures(i)*enrich_lhs(i);
-			}
-			//KRATOS_WATCH(gradient_discontinuity);
-			gradient_discontinuity *=  this->GetValue(INV_LAPLACIAN_ENRICH);	
-			//KRATOS_WATCH(gradient_discontinuity);
-
-
-			//To calculate D* =int (N*DN_DX_enrich).  we must use the N at the gauss point of the partition (returned by the enrichment util) and multiply by the area. 
-			//notice that this first row is only the upper part of the mixed D. we also need the lower one for the jump 
-			
-			for (unsigned int i = 0; i < 3; i++)  //we go through the 3 partitions of the domain
-			{
-				//the 'D matrixes' (standard shape functions * enrichments)
-				for (unsigned int j = 0; j < 3; j++) //we go through the 3 standard shape functions
-				{
-					D_matrix_mixed(0,j*2) += gauss_gradients[i](0,0) *volumes(i)*Ngauss(i,j);
-					D_matrix_mixed(0,j*2+1) += gauss_gradients[i](0,1) *volumes(i)*Ngauss(i,j);
-					D_matrix_mixed_jump(0,j*2) += gauss_gradients[i](1,0) *volumes(i)*Ngauss(i,j);
-					D_matrix_mixed_jump(0,j*2+1) += gauss_gradients[i](1,1) *volumes(i)*Ngauss(i,j);
-				}
-				
-				
-			}
-						
-		}
-				
-        
-        for (unsigned int i = 0; i < 6 ; i++)
-		{
-			/* WE AVOD THESE PRESSURE TERMS COS NOW gamma=0
-			//the one due to the standard D matrix
-			for (unsigned int j = 0; j < 3 ; j++)
-				rRightHandSideVector(i) -= D_matrix(j,i)*pressures(j);
-			//and, if present, the ones from the enrichment
-			if (ndivisions>1)
-			{
-				//KRATOS_WATCH(this->GetValue(ENRICH_RHS));
-				//KRATOS_WATCH(gradient_discontinuity);
-				//KRATOS_WATCH(this->GetValue(INV_LAPLACIAN_ENRICH));	
-				
-				rRightHandSideVector(i) -= D_matrix_mixed(0,i)*gradient_discontinuity;
-				rRightHandSideVector(i) -= D_matrix_mixed_jump(0,i)*jump_value;
-			}
-			*/
-			
-
-			//and add the term belonging to the fract velocity (from the first step of the fractional step)	
-			
-			rRightHandSideVector(i) += previous_vel(i,0)*Mass_matrix(i,i)/delta_t; 			//since now we only add the CHANGE in velocity, for the moment we leave it here, then we substract it
-			
-			//gamma=1, so adding the previous pressure.
-			for (unsigned int j = 0; j < 3 ; j++)
-			{
-				rRightHandSideVector(i) -= D_matrix(j,i)*(old_pressures(j));
-			}
-			rRightHandSideVector(i)-= D_matrix_mixed(0,i)*gradient_discontinuity;
-			rRightHandSideVector(i)-= D_matrix_mixed_jump(0,i)*jump_value;
-		}
-		
-		for (unsigned int i = 0; i < 3 ; i++)
-		{
-			rRightHandSideVector(2*i+0) += Mass_matrix(2*i+0,2*i+0)*x_force;
-			rRightHandSideVector(2*i+1) += Mass_matrix(2*i+1,2*i+1)*y_force;
-		}
-        
-        //done, now we save it into the 
-		noalias(rLeftHandSideMatrix) += Mass_matrix/delta_t;  // Bt D B
-
-		//subtracting the dirichlet term
-		// RHS -= LHS*DUMMY_UNKNOWNs
-		
-		for(unsigned int iii = 0; iii<3; iii++)
-		{
-			ms_temp[iii*2] = GetGeometry()[iii].FastGetSolutionStepValue(FRACT_VEL_X);        
-			ms_temp[iii*2+1] = GetGeometry()[iii].FastGetSolutionStepValue(FRACT_VEL_Y);
-		}
-		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp);
+		KRATOS_ERROR(std::logic_error, "USE LOCALFINALVELOCITY. SAME PROCEDURE, ONLY ADDING THE VISCOUS TERM", "");
 		
 		KRATOS_CATCH("");
 	}
 	
-	
-	
 	//************************************************************************************
 	//************************************************************************************
 	
-	// LAPLACIANO CON DENSIDAD ABAJO! conserva volumen pero no garantiza masa
+	// LAPLACIAN with 1/density for volume conservation
 	
 	void PFEM23D::CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
@@ -608,18 +370,16 @@ namespace Kratos
 			
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
-			Vector distances(4);
-			Matrix Nenriched(6, 2); ///WARNING. ITS SIZE IS CURRENTLY only ONE, no JUMP!! write 2 instead of 1
-			Vector volumes(6);
-			Matrix coords(4, 3);
-			Matrix Ngauss(6, 4);
-			Vector signs(6);
-			//array_1d<double,3>  face_gauss_N(3);
-			//array_1d<double,3>  face_gauss_Nenriched(3);
-			//double face_Area;
-			//array_1d<double,3>  face_n(3); 
+			array_1d<double,(4)> distances;
+			boost::numeric::ublas::bounded_matrix<double,6, 2> Nenriched;
+			array_1d<double,(6)> volumes;
+			array_1d<double,(6)> densities;
+			array_1d<double,(6)> inv_densities;
+			array_1d<double,(6)> viscosities;
+			boost::numeric::ublas::bounded_matrix<double,(4), 3 > coords;
+			boost::numeric::ublas::bounded_matrix<double, 6, 4 > Ngauss;
+			array_1d<double,(6)> signs;
 			std::vector< Matrix > gauss_gradients(6);
-			//fill coordinates
 		   
 
 			
@@ -636,15 +396,13 @@ namespace Kratos
 
 			for (unsigned int i = 0; i < 6; i++)
 				gauss_gradients[i].resize(2, 3, false);  ///WARNING. ITS SIZE IS CURRENTLY only ONE, no JUMP!! //2 values of the 2 shape functions, and derivates in (xyz) directions).
-			unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched ); // ,face_gauss_N, face_gauss_Nenriched, face_Area, face_n  ,single_triangle_node);
+			unsigned int ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched ); // ,face_gauss_N, face_gauss_Nenriched, face_Area, face_n  ,single_triangle_node);
 			//KRATOS_WATCH(ndivisions)
 			//in case we've changed the distance function:CANNOT: (PARALLEL)
 			//for (unsigned int i = 0; i < TNumNodes; i++)
 			//	this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)=distances[i];
 			//KRATOS_WATCH(volumes)
 			
-			
-			Vector inv_densities(6);
 			Density=0.0; //resetting to zero
 			for (unsigned int i = 0; i!=ndivisions; i++) //the 6 partitions of the thetraedron
 			{

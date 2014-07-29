@@ -152,7 +152,11 @@ namespace Kratos
 		{
 			//viscous term:
 			//double element_temperature=0.0;
-			double density=0.0;
+			//double density=0.0;
+			double element_mean_distance = 0.25*(distances(0)+distances(1)+distances(2)+distances(3));
+			const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
+			double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
+			
 			double viscosity=0.0;
 			/*
 			for (unsigned int j = 0; j < 4; j++) //we go through the 3 standard shape functions
@@ -1155,11 +1159,15 @@ namespace Kratos
 		
 		if( (number_of_particles_in_elem>0))
 		{
+			
+					const double density_air = CurrentProcessInfo[DENSITY_AIR]; //para clindro en rey 100:  0.0005 * 2.0*Area;
+					const double density_water = CurrentProcessInfo[DENSITY_WATER];
+			
 					array_1d<double,4>  pressures = ZeroVector(4); //to calculate the deformation Gradient F. Dimension = velocity dofs
 					boost::numeric::ublas::bounded_matrix<double,4, 3 > coords; //coordinates of the nodes
 					bool has_negative_node=false;
 					bool has_positive_node=false;
-					
+					double element_mean_distance=0.0;
 					for(unsigned int iii = 0; iii<4; iii++)
 					{
 						//saving everything
@@ -1174,6 +1182,8 @@ namespace Kratos
 							has_negative_node=true;
 						else
 							has_positive_node=true;		
+							
+						element_mean_distance+=0.25*this->GetGeometry()[iii].FastGetSolutionStepValue(DISTANCE);
 					}
 		
 					bool split_element=false;
@@ -1187,9 +1197,9 @@ namespace Kratos
 						boost::numeric::ublas::bounded_matrix<double, (3+1), (3-1)*6 > G_matrix; //(gradient)
 						noalias(G_matrix) = ZeroMatrix((3+1), (3-1)*6);	
 						
-						double density = CurrentProcessInfo[DENSITY_AIR];
-						if (has_negative_node==true)
-							density=CurrentProcessInfo[DENSITY_WATER];
+						//const double water_fraction = -( element_mean_distance - 1.0) *0.5; 
+						const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
+						double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
 
 						for (unsigned int i = 0; i < (3+1); i++) //loop in shape functions (row)
 						{
