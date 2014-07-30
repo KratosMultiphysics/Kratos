@@ -117,8 +117,8 @@ typedef array_1d<double,6> Vector6;
 
 //Define Variables
 
-//For explicit schemes
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MID_POS_VELOCITY)
+//for explicit schemes
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MIDDLE_VELOCITY)
 
 //solution
 KRATOS_DEFINE_VARIABLE(bool, COMPUTE_DYNAMIC_TANGENT )

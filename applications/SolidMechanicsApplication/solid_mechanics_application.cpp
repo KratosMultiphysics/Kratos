@@ -57,8 +57,8 @@ namespace Kratos
 //Create Variables
 
 
-//For explicit schemes
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MID_POS_VELOCITY)
+//explicit schemes
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
 //solution
 KRATOS_CREATE_VARIABLE(bool, COMPUTE_DYNAMIC_TANGENT )
@@ -432,8 +432,8 @@ void KratosSolidMechanicsApplication::Register()
 
     //Register Variables
 
-    //For explicit schemes
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MID_POS_VELOCITY)
+    //explicit schemes
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
     
