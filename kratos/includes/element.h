@@ -688,7 +688,7 @@ public:
         KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
         
-    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
          KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
