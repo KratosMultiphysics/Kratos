@@ -1,7 +1,7 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
+//   Last modified by:    $Author:           MSantasusana $
+//   Date:                $Date:               April 2014 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -172,22 +172,22 @@ public:
              {
                  Matrix MassMatrix;
 
-                 Element::GeometryType& geom = itElem->GetGeometry(); // Nodos del elemento
+                 Element::GeometryType& geometry = itElem->GetGeometry(); // Nodos del elemento
 
                  (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
-                 const unsigned int dim   = geom.WorkingSpaceDimension();
+                 const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
                  index = 0;
-                 for (unsigned int i = 0; i <geom.size(); i++)
+                 for (unsigned int i = 0; i <geometry.size(); i++)
                  {
-                     double& mass = geom(i)->FastGetSolutionStepValue(NODAL_MASS);
+                     index = i*dimension;
 
-                     geom(i)->SetLock();
-                     index = i*dim;
+                     double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
+                     geometry(i)->SetLock();
                      mass += MassMatrix(index,index);
-                     geom(i)->UnSetLock();
+                     geometry(i)->UnSetLock();
                  }
              }
          }
@@ -206,13 +206,13 @@ public:
     {
         KRATOS_TRY
         
-          /// Set to zero de RHS
-        SetToZeroRHS(pScheme, r_model_part);
+        /// Set to zero de RHS
+        InitializeRHS(pScheme, r_model_part);
 
         /// Compute the global external nodal force. //Damping included
         CalculateAndAddConditionsRHS(pScheme, r_model_part);
 
-        /// Compute the stress and body force of the element. ( No lineal analysis) //Damping included
+        /// Compute the stress and body force of the element. ( Non-linear analysis) //Damping included
         CalculateAndAddElementsRHS(pScheme, r_model_part);
 
         
@@ -224,7 +224,7 @@ public:
     //**************************************************************************
     //**************************************************************************
     
-    void SetToZeroRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
+    void InitializeRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
 
     {
         KRATOS_TRY
@@ -248,9 +248,8 @@ public:
 
             for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
             {
-                array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(RHS));
-                noalias(node_rhs)             = ZeroVector(3);
-
+	      array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(RHS));  // use the ACCELERATION buffer to store the RHS
+	      noalias(node_rhs)             = ZeroVector(3);
             }
         }
 
@@ -259,8 +258,8 @@ public:
 
     
     
-//***************************************************************************
-//***************************************************************************
+    //***************************************************************************
+    //***************************************************************************
 
    
     void CalculateAndAddConditionsRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
@@ -290,24 +289,26 @@ public:
        for (typename ConditionsArrayType::ptr_iterator it= it_begin; it!=it_end; ++it)
        {
 
-           Condition::GeometryType& geom = (*it)->GetGeometry();
+           Condition::GeometryType& geometry = (*it)->GetGeometry();
 
-           const unsigned int& dim = (*it)->GetGeometry().WorkingSpaceDimension();
+           const unsigned int& dimension = (*it)->GetGeometry().WorkingSpaceDimension();
 
            LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
+
            Element::EquationIdVectorType EquationId; //Dummy
 
            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Condition_Contribution, EquationId, rCurrentProcessInfo);
 
-           for (unsigned int i = 0; i <geom.size(); i++)
+           for (unsigned int i = 0; i <geometry.size(); i++)
            {
-               index = i*dim;
-               array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(RHS);
-               for(unsigned int kk=0; kk<dim; kk++)
+               index = i*dimension;
+               array_1d<double,3>& node_rhs = geometry(i)->FastGetSolutionStepValue(RHS); // use the ACCELERATION buffer to store the RHS
+
+               for(unsigned int j=0; j<dimension; j++)
                {
-                   geom(i)->SetLock();
-                   node_rhs[kk] += RHS_Condition_Contribution[index+kk];
-                   geom(i)->UnSetLock();
+                   geometry(i)->SetLock();
+		   node_rhs[j] += RHS_Condition_Contribution[index+j];
+                   geometry(i)->UnSetLock();
                }
 
            }
@@ -348,27 +349,23 @@ public:
             for (typename ElementsArrayType::ptr_iterator it= it_begin; it!=it_end; ++it)
             {
 
-                Element::GeometryType& geom = (*it)->GetGeometry();
-                const unsigned int& dim = (*it)->GetGeometry().WorkingSpaceDimension();
+                Element::GeometryType& geometry = (*it)->GetGeometry();
+                const unsigned int& dimension = (*it)->GetGeometry().WorkingSpaceDimension();
 
                 LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
                 Element::EquationIdVectorType EquationId; //Dummy
 
                 pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, rCurrentProcessInfo);
 
-                for (unsigned int i = 0; i <geom.size(); i++)
+                for (unsigned int i = 0; i <geometry.size(); i++)
                 {
-                    index = i*dim;
-                    array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(RHS);
-                    for(unsigned int kk=0; kk<dim; kk++)
+                    index = i*dimension;
+                    array_1d<double,3>& node_rhs = geometry(i)->FastGetSolutionStepValue(RHS);  // use the ACCELERATION buffer to store the RHS
+                    for(unsigned int j=0; j<dimension; j++)
                     {
-                        geom(i)->SetLock();
-
-
-                        node_rhs[kk] += RHS_Contribution[index+kk];
-
-
-                        geom(i)->UnSetLock();
+                        geometry(i)->SetLock();
+                        node_rhs[j] += RHS_Contribution[index+j];
+                        geometry(i)->UnSetLock();
                     }
 
                 }

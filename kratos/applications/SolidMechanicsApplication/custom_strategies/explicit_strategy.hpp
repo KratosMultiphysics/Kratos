@@ -1,7 +1,7 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication  $
-//   Last modified by:    $Author:            MSantasusana $
-//   Date:                $Date:                April 2014 $
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:           MSantasusana $
+//   Date:                $Date:               April 2014 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -99,8 +99,7 @@ public:
         mCalculateReactionsFlag = CalculateReactions;
         mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-        
-        //saving the scheme
+	//saving the scheme
         mpScheme = pScheme;
 
         //saving the linear solver
@@ -113,9 +112,8 @@ public:
                              );
 
         //set flags to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
-        mCalculateInitialConditions = true;
+        mSolutionStepIsInitialized  = false;
+        mInitializeWasPerformed     = false;
 
         //set EchoLevel to the default value (only time is displayed)
         SetEchoLevel(1);
@@ -258,10 +256,8 @@ public:
 
         if(BaseType::mRebuildLevel > 0)
         {
-
-            pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
-
-        }
+	  pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+	}
 
         mSolutionStepIsInitialized = true;
 
@@ -282,9 +278,9 @@ public:
         KRATOS_TRY
         
         DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
-        TSystemMatrixType mA = TSystemMatrixType();
+        TSystemMatrixType mA  = TSystemMatrixType();
         TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb = TSystemVectorType();
+        TSystemVectorType mb  = TSystemVectorType();
 
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
@@ -292,7 +288,7 @@ public:
         
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
-        if (mInitializeWasPerformed == false)
+        if(mInitializeWasPerformed == false)
             Initialize();
             
         //prints informations about the current time
@@ -303,15 +299,9 @@ public:
         }
 
         //initialize solution step
-        if (mSolutionStepIsInitialized == false)
-            InitializeSolutionStep();
+        if(mSolutionStepIsInitialized == false)
+	  InitializeSolutionStep();
 
-        if(mCalculateInitialConditions==true)
-        {
-           pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // 1st time we do initial conditions
-
-           mCalculateInitialConditions = false;
-        }
         
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
 
@@ -475,8 +465,6 @@ protected:
     
     bool mComputeTime; 
     
-    bool mCalculateInitialConditions;
-
 
     /*@} */
     /**@name Private Operators*/
