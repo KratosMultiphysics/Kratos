@@ -6,12 +6,14 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES)
-#define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES
+#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME)
+#define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME
 
 
 /* System includes */
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
@@ -146,6 +148,7 @@ namespace Kratos
       KRATOS_CATCH("");
     }
 
+
     virtual void Initialize(ModelPart& r_model_part)
     {
       KRATOS_TRY
@@ -185,13 +188,49 @@ namespace Kratos
 	{
 	  CalculateDeltaTime(r_model_part);
 	}
+
+
+      InitializeResidual(r_model_part);
        
 	
       KRATOS_CATCH("")
     }
 
-    //***************************************************************************
+    //**************************************************************************
+    
+    void InitializeResidual( ModelPart& r_model_part )
 
+    {
+        KRATOS_TRY
+
+        NodesArrayType& pNodes   = r_model_part.Nodes();
+
+#ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+#else
+        int number_of_threads = 1;
+#endif
+
+        vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        for(int k=0; k<number_of_threads; k++)
+        {
+            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+            typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+            {
+	      array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(FORCE_RESIDUAL));  
+	      noalias(node_rhs)             = ZeroVector(3);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    //***************************************************************************
 
     void CalculateDeltaTime(ModelPart& r_model_part)
     {
@@ -298,14 +337,14 @@ namespace Kratos
 	    {
 	      array_1d<double,3>& middle_velocity       = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
 	      array_1d<double,3>& current_velocity      = i->FastGetSolutionStepValue(VELOCITY);
-	      array_1d<double,3>& current_rhs           = i->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& current_residual      = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
 	      array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT);
 
 	      for (unsigned int j =0; j<3; j++)
 		{
 		  middle_velocity[j]      = 0.0;
 		  current_velocity[j]     = 0.0;
-		  current_rhs[j]          = 0.0;
+		  current_residual[j]     = 0.0;
 		  current_displacement[j] = 0.0;
 		}
 	    }
@@ -359,7 +398,7 @@ namespace Kratos
 	      //Current step information "N+1" (before step update).
 
 	      const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
-	      array_1d<double,3>& current_rhs             = i->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& current_residual        = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
 	      array_1d<double,3>& current_velocity        = i->FastGetSolutionStepValue(VELOCITY);
 	      array_1d<double,3>& current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
@@ -368,7 +407,7 @@ namespace Kratos
 	      array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
 
 	      //Solution of the explicit equation:
-	      current_acceleration = current_rhs/nodal_mass;
+	      current_acceleration = current_residual/nodal_mass;
                 
 	      if( (i->pGetDof(DISPLACEMENT_X))->IsFree() ){
                 
@@ -447,6 +486,7 @@ namespace Kratos
       //basic operations for the element considered
       (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
+
       if(mRayleighDamping)
         {
 	  (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
@@ -454,6 +494,10 @@ namespace Kratos
 	  AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread],/* mMatrix.M[thread],*/ rCurrentProcessInfo);
 
         }
+
+
+      //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
+      (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 
 
       KRATOS_CATCH( "" )
@@ -572,18 +616,21 @@ namespace Kratos
     {
       KRATOS_TRY
 
-	//       int thread = OpenMPUtils::ThisThread();
+      //int thread = OpenMPUtils::ThisThread();
 
-        //basic operations for the element considered
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+      //basic operations for the element considered
+      (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+            
+      //if(mRayleighDamping)
+      //    {
+      //         (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
+
+      //         AddDynamicsToRHS (rCurrentCondition, RHS_Contribution, mMatrix.D[thread],/* mMatrix.M[thread],*/ rCurrentProcessInfo);
+      //    }
 
 
-      //        if(mRayleighDamping)
-      //        {
-      //            (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
-
-      //            AddDynamicsToRHS (rCurrentCondition, RHS_Contribution, mMatrix.D[thread],/* mMatrix.M[thread],*/ rCurrentProcessInfo);
-      //        }
+      //add explicit contribution of the Condition Residual (RHS) to nodal Force Residual (nodal RHS)
+      (rCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
 
 
       KRATOS_CATCH( "" )
@@ -732,5 +779,5 @@ namespace Kratos
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_EXPLICIT_CENTRAL_DIFFERENCES  defined */
+#endif /* KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME  defined */
 

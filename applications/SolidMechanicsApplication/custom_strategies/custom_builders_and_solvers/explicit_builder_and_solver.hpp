@@ -206,13 +206,10 @@ public:
     {
         KRATOS_TRY
         
-        /// Set to zero de RHS
-        InitializeRHS(pScheme, r_model_part);
-
-        /// Compute the global external nodal force. //Damping included
+        // Compute condition contributions to RHS.
         CalculateAndAddConditionsRHS(pScheme, r_model_part);
 
-        /// Compute the stress and body force of the element. ( Non-linear analysis) //Damping included
+        // Compute element contributions to RHS.
         CalculateAndAddElementsRHS(pScheme, r_model_part);
 
         
@@ -220,41 +217,6 @@ public:
 
     }
 
-
-    //**************************************************************************
-    //**************************************************************************
-    
-    void InitializeRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
-
-    {
-        KRATOS_TRY
-
-        NodesArrayType& pNodes   = r_model_part.Nodes();
-
-#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-#else
-        int number_of_threads = 1;
-#endif
-
-        vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
-        #pragma omp parallel for
-        for(int k=0; k<number_of_threads; k++)
-        {
-            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-            typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-
-            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-            {
-	      array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(RHS));  // use the ACCELERATION buffer to store the RHS
-	      noalias(node_rhs)             = ZeroVector(3);
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
 
     
     
@@ -279,8 +241,8 @@ public:
     vector<unsigned int> condition_partition;
     OpenMPUtils::CreatePartition(number_of_threads, pConditions.size(), condition_partition);
 
-    unsigned int index;
-    #pragma omp parallel for private (index)
+
+    #pragma omp parallel for 
     for(int k=0; k<number_of_threads; k++)
     {
        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
@@ -289,29 +251,13 @@ public:
        for (typename ConditionsArrayType::ptr_iterator it= it_begin; it!=it_end; ++it)
        {
 
-           Condition::GeometryType& geometry = (*it)->GetGeometry();
-
-           const unsigned int& dimension = (*it)->GetGeometry().WorkingSpaceDimension();
-
            LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
 
            Element::EquationIdVectorType EquationId; //Dummy
 
            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Condition_Contribution, EquationId, rCurrentProcessInfo);
 
-           for (unsigned int i = 0; i <geometry.size(); i++)
-           {
-               index = i*dimension;
-               array_1d<double,3>& node_rhs = geometry(i)->FastGetSolutionStepValue(RHS); // use the ACCELERATION buffer to store the RHS
 
-               for(unsigned int j=0; j<dimension; j++)
-               {
-                   geometry(i)->SetLock();
-		   node_rhs[j] += RHS_Condition_Contribution[index+j];
-                   geometry(i)->UnSetLock();
-               }
-
-           }
        }
     }
 
@@ -319,8 +265,8 @@ public:
     }
 
     
-//***************************************************************************
-//***************************************************************************
+    //***************************************************************************
+    //***************************************************************************
 
 
     void CalculateAndAddElementsRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
@@ -340,8 +286,7 @@ public:
         vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-        unsigned int index;
-        #pragma omp parallel for private (index)
+        #pragma omp parallel for 
         for(int k=0; k<number_of_threads; k++)
         {
             typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -349,26 +294,11 @@ public:
             for (typename ElementsArrayType::ptr_iterator it= it_begin; it!=it_end; ++it)
             {
 
-                Element::GeometryType& geometry = (*it)->GetGeometry();
-                const unsigned int& dimension = (*it)->GetGeometry().WorkingSpaceDimension();
-
                 LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
                 Element::EquationIdVectorType EquationId; //Dummy
 
                 pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, rCurrentProcessInfo);
 
-                for (unsigned int i = 0; i <geometry.size(); i++)
-                {
-                    index = i*dimension;
-                    array_1d<double,3>& node_rhs = geometry(i)->FastGetSolutionStepValue(RHS);  // use the ACCELERATION buffer to store the RHS
-                    for(unsigned int j=0; j<dimension; j++)
-                    {
-                        geometry(i)->SetLock();
-                        node_rhs[j] += RHS_Contribution[index+j];
-                        geometry(i)->UnSetLock();
-                    }
-
-                }
             }
         }
 
@@ -387,7 +317,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_CATCH( "" )
+	KRATOS_CATCH( "" )
     }
 
     //**************************************************************************

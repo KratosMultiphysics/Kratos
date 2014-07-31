@@ -280,6 +280,25 @@ void ForceLoadCondition::AddExplicitContribution(const VectorType& rRHS,
 	  }
       }
 
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ForceResidual[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
     KRATOS_CATCH( "" )
 }
 

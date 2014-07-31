@@ -46,7 +46,7 @@ def AddVariables(model_part, config=None):
         if hasattr(config, "time_integration_method"):
             if config.time_integration_method == "Explicit" :
                 model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-                model_part.AddNodalSolutionStepVariable(RHS)
+                model_part.AddNodalSolutionStepVariable(FORCE_RESIDUAL)
                 model_part.AddNodalSolutionStepVariable(MIDDLE_VELOCITY)
                 
     print("variables for the structural solver added correctly")

@@ -367,7 +367,8 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
       * @param rCurrentProcessInfo: the current process info instance
      */      
-    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, 
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, 
+					 const Variable<VectorType>& rRHSVariable, 
 					 Variable<array_1d<double,3> >& rDestinationVariable, 
 					 const ProcessInfo& rCurrentProcessInfo);
 
