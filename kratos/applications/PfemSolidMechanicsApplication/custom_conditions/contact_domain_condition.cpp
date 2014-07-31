@@ -501,7 +501,7 @@ void ContactDomainCondition::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHS, 
+void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHSVector, 
 						     const Variable<VectorType>& rRHSVariable, 
 						     Variable<array_1d<double,3> >& rDestinationVariable, 
 						     const ProcessInfo& rCurrentProcessInfo)
@@ -523,7 +523,27 @@ void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHS,
 	    array_1d<double, 3 > &ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	    for(unsigned int j=0; j<dimension; j++)
 	      {
-		ContactForce[j] += rRHS[index + j];
+		ContactForce[j] += rRHSVector[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ForceResidual[j] += rRHSVector[index + j];
 	      }
 
 	    GetGeometry()[i].UnSetLock();
