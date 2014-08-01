@@ -33,6 +33,7 @@
 #include "custom_elements/spheric_continuum_particle.h"
 #include "custom_elements/DEM_FEM_Particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
+#include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
 
@@ -530,10 +531,9 @@ private:
     const Particle_Contact_Element mParticleContactElement;
     const VariablesList mVariablesList;
 	
-	
-	const RigidFace3D  mRigidFace3D3N;
+    const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
-	const RigidEdge3D  mRigidEdge3D2N;
+    const RigidEdge3D  mRigidEdge3D2N;
 
     //       static const ApplicationCondition  msApplicationCondition;
 

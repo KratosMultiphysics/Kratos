@@ -340,13 +340,14 @@ public:
       if(ContactExists == true)
       {
           // In geometrical level to search the neighbour, need pointer convert
-          Vector & RF_Pram= (boost::dynamic_pointer_cast<Element>(rObj_1))->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+          Element::Pointer sp_element = boost::dynamic_pointer_cast<Element>(rObj_1);
+          SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*sp_element) );
+          //Vector & RF_Pram= (boost::dynamic_pointer_cast<Element>(rObj_1))->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+          std::vector<double>& RF_Pram = spheric_particle->mNeighbourRigidFacesPram;
 
           //Vector & RF_Pram= rObj_1->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
           std::size_t ino = RF_Pram.size();
-
-          std::size_t TotalSize = ino / 16;
-        
+          std::size_t TotalSize = ino / 16;        
           std::size_t isize = 0;
         
           for(isize = 0; isize < TotalSize; isize++)

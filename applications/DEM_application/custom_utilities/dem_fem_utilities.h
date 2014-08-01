@@ -91,6 +91,7 @@ class DEMFEMUtilities
                 array_1d<double, 3 >& angular_velocity = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY];
                 double                angular_period   = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_PERIOD];
                 array_1d<double, 3 >& initial_center   = r_model_part.GetMesh(mesh_number)[ROTATION_CENTER];
+                bool                  fixed_mesh       = r_model_part.GetMesh(mesh_number)[FIXED_MESH_OPTION];
 
                 array_1d<double, 3 > center_position;
                 array_1d<double, 3 > linear_velocity_changed;
@@ -179,12 +180,18 @@ class DEMFEMUtilities
                             
                             local_coordinates = node->GetInitialPosition().Coordinates() - initial_center;
                             relative_position = new_axes1 * local_coordinates[0] + new_axes2 * local_coordinates[1] + new_axes3 * local_coordinates[2];                            
+                            
+                            array_1d<double, 3 > displacement;
+                            if(!fixed_mesh){
+                                // NEW POSITION
+                                node->Coordinates() = center_position + relative_position;
 
-                            // NEW POSITION
-                            node->Coordinates() = center_position + relative_position;
-
-                            // DISPLACEMENT
-                            array_1d<double, 3 > displacement = node->Coordinates() - node->GetInitialPosition().Coordinates();                            
+                                // DISPLACEMENT
+                                displacement = node->Coordinates() - node->GetInitialPosition().Coordinates();                            
+                            }
+                            else{
+                                displacement[0]=0.0; displacement[1]=0.0; displacement[2]=0.0;
+                            }
 
                             array_1d<double, 3 > velocity_due_to_rotation;  
                             CrossProduct(angular_velocity_changed , relative_position, velocity_due_to_rotation);
@@ -198,8 +205,9 @@ class DEMFEMUtilities
                             //update VELOCITY
                             node->FastGetSolutionStepValue(VELOCITY) = vel;
 
-                            //update DISPLACEMENT
-                            node->FastGetSolutionStepValue(DISPLACEMENT) = displacement;
+                            //update DISPLACEMENT                            
+                             node->FastGetSolutionStepValue(DISPLACEMENT) = displacement;
+                            
                                                                                       
                         }
                         

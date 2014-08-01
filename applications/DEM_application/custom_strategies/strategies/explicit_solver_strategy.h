@@ -869,9 +869,6 @@ namespace Kratos
         if(!number_of_elements) return;
         
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); particle_pointer_it++){
-
-            //WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
-            //neighbour_elements.clear();
                 
             SphericParticle* spheric_central_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
             spheric_central_particle->mNeighbourElements.clear();            
@@ -1006,17 +1003,22 @@ namespace Kratos
                 
                 for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = it_begin; E_pointer_it != it_end; ++E_pointer_it)
                 {
-                    WeakPointerVector<Condition > tempP;
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).swap(tempP);
+                    SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*E_pointer_it) );
+                    //WeakPointerVector<Condition > tempP;
+                    //E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).swap(tempP);
+                    spheric_particle->mNeighbourRigidFaces.resize(0);
                     
-                    Vector tempV;
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_PRAM).swap(tempV);
+                    //Vector tempV;
+                    //E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_PRAM).swap(tempV);
+                    spheric_particle->mNeighbourRigidFacesPram.resize(0);
                     
-                    Vector tempV1;
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).swap(tempV1);
+                    //Vector tempV1;
+                    //E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).swap(tempV1);
+                    spheric_particle->mNeighbourRigidFacesTotalContactForce.resize(0);
                     
-                    Vector tempV2;
-                    E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).swap(tempV2);
+                    //Vector tempV2;
+                    //E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).swap(tempV2);
+                    spheric_particle->mNeighbourRigidFacesElasticContactForce.resize(0);
                 }
             }
            
@@ -1034,12 +1036,17 @@ namespace Kratos
                     
                     for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
                     {
-                        WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+                        SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
+                        
+                        //WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+                        std::vector<DEMWall*>& neighbour_rigid_faces = spheric_particle->mNeighbourRigidFaces;
                                         
                         for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
                             neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
-                        {
-                            neighbour_rigid_faces.push_back(*neighbour_it); 
+                        {                            
+                            Condition* p_neighbour_condition = (*neighbour_it).get();
+                            DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
+                            neighbour_rigid_faces.push_back(p_wall); 
 
                         }
 
@@ -1065,11 +1072,14 @@ namespace Kratos
                     typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
                     
                     for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = it_begin; E_pointer_it != it_end; ++E_pointer_it)
-                    {               
-                        std::size_t totalno = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).size() * 3;
-                        
-                        E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).resize(totalno);
-                        E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).resize(totalno);
+                    {            
+                        SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*E_pointer_it) );
+                        //std::size_t totalno = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).size() * 3;                        
+                        //E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE).resize(totalno);
+                        //E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE).resize(totalno);
+                        std::size_t totalno = spheric_particle->mNeighbourRigidFaces.size() * 3;
+                        spheric_particle->mNeighbourRigidFacesTotalContactForce.resize(totalno);
+                        spheric_particle->mNeighbourRigidFacesElasticContactForce.resize(totalno);
                         
                     }
                 }
@@ -1091,8 +1101,10 @@ namespace Kratos
               {
                 
                   ConditionsArrayType::iterator ic = pTContitions.begin()+i;
-                  WeakPointerVector<Element > tempP;
-                  ic->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).swap(tempP);
+                  //WeakPointerVector<Element > tempP;
+                  DEMWall* wall = dynamic_cast<Kratos::DEMWall*>( &(*ic) );
+                  //ic->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).swap(tempP);
+                  wall->mNeighbourSphericParticles.resize(0);
               }       
               
               ////Cfeng: Find The particle neighbours for each RigidFace, used for calculating FEM force
@@ -1103,17 +1115,21 @@ namespace Kratos
               {   
                 
                   SpatialSearch::ElementsContainerType::iterator E_pointer_it = pElements.begin()+i;
+                  SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*E_pointer_it) );
                   
-                  for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
-                      ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)
+                  //for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
+                  //ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)                  
+                  //for(ConditionWeakIteratorType ineighbour = spheric_particle->mNeighbourRigidFaces.begin(); 
+                  //    ineighbour != spheric_particle->mNeighbourRigidFaces.end(); ineighbour++)                  
+                  for(unsigned int i=0; i<spheric_particle->mNeighbourRigidFaces.size(); i++) 
                   {
-                      
+                      DEMWall* p_wall = spheric_particle->mNeighbourRigidFaces[i];
                       #pragma omp critical
+                      //#pragma omp atomic                      
                       {
-                      ineighbour->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).push_back(*(E_pointer_it.base()));               
+                      //ineighbour->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).push_back(*(E_pointer_it.base())); 
+                      p_wall->mNeighbourSphericParticles.push_back(spheric_particle);                                                                                      
                       }
-                      
-                                          
                   }
               }
               

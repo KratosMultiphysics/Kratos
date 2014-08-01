@@ -331,7 +331,8 @@ namespace Kratos
         //fem neighbour information
         std::vector<double>               mFemNeighbourDelta;
         
-        ConditionWeakVectorType           mFemTempNeighbours;
+        //ConditionWeakVectorType           mFemTempNeighbours;
+        std::vector<DEMWall*>            mFemTempNeighbours;
         
         std::vector<int>                  mFemIniNeighbourIds;
         Vector                            mFemIniNeighbourDelta;

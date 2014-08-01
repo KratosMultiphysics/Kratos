@@ -754,7 +754,7 @@ public:
           }
           
           if(!still_touching){ 
-	    if(node_it->IsNot(BLOCKED)){//The ball must be free'd
+	    if(node_it->IsNot(BLOCKED)){//The ball must be freed
               node_it->Set(DEMFlags::FIXED_VEL_X,false);
               node_it->Set(DEMFlags::FIXED_VEL_Y,false);
               node_it->Set(DEMFlags::FIXED_VEL_Z,false);
