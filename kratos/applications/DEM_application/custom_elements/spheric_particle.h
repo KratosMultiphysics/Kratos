@@ -26,6 +26,8 @@
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "../custom_conditions/RigidFace.h"
+#include "../custom_conditions/dem_wall.h"
 
 
 
@@ -56,6 +58,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
+  class DEMWall;
   class SphericParticle : public DiscreteElement
     {
     public:
@@ -167,6 +170,12 @@ namespace Kratos
       
       std::vector<SphericParticle*> mNeighbourElements;
       std::vector<SphericParticle*> mTempNeighbourElements;
+      
+      std::vector<DEMWall*>       mNeighbourRigidFaces;
+      std::vector<double>           mNeighbourRigidFacesPram;
+      std::vector<double>           mNeighbourRigidFacesTotalContactForce;
+      std::vector<double>           mNeighbourRigidFacesElasticContactForce;
+      
       ///@}
       ///@name Friends
       ///@{
@@ -182,7 +191,7 @@ namespace Kratos
                                                         array_1d<double, 3>& rElasticForce, 
                                                         array_1d<double, 3>& InitialRotaMoment, 
                                                         ProcessInfo& rCurrentProcessInfo);
-      virtual void ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
+      virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
       //////
       
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);

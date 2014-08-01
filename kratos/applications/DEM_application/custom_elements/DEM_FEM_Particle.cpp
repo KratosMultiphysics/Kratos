@@ -134,33 +134,30 @@ namespace Kratos
     }
 	
 	
-	
-     //////RigidFace
-	void DEM_FEM_Particle::SetInitialRigidFaceNeighbor()
-     {
 
-       ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
-       unsigned int new_size                = rNeighbours.size();
-	   
-		maInitialRigidFaceNeighborID.resize(new_size);
-		maInitialRigidFaceNeighborFailureType.resize(new_size);
-		
-		
-		unsigned int neighbour_counter = 0;
-       
-       for (ConditionWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++)
-		{
+    //////RigidFace
 
-           maInitialRigidFaceNeighborID[neighbour_counter] = static_cast<int>(i->Id());
-           maInitialRigidFaceNeighborFailureType[neighbour_counter] = 0;
+    void DEM_FEM_Particle::SetInitialRigidFaceNeighbor() {
 
-		   neighbour_counter++;
+        //ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
+        std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
+        unsigned int new_size = rNeighbours.size();
+
+        maInitialRigidFaceNeighborID.resize(new_size);
+        maInitialRigidFaceNeighborFailureType.resize(new_size);
+
+        //for (ConditionWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++) {
+        for (unsigned int i=0; i<rNeighbours.size(); i++) { 
+
+            maInitialRigidFaceNeighborID[i] = static_cast<int> (rNeighbours[i]->Id());
+            maInitialRigidFaceNeighborFailureType[i] = 0;
+
         }
-      }
-	
-	
-	
-	
+    }
+
+
+
+    
 	
 
 
@@ -465,52 +462,51 @@ namespace Kratos
                                                           array_1d<double, 3>& rContactMoment,
                                                           array_1d<double, 3>& rElasticForce,
                                                           array_1d<double, 3>& rInitialRotaMoment,
-                                                          ProcessInfo& rCurrentProcessInfo)
-	{
-		  
-		  KRATOS_TRY
-		  
+                                                          ProcessInfo& rCurrentProcessInfo) {
 
-          ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
-          
-		
-		double mTimeStep    = rCurrentProcessInfo[DELTA_TIME];
-		/////int CalRotateOption = rCurrentProcessInfo[RIGID_FACE_FLAG];
+        KRATOS_TRY
 
-		double Friction       = GetTgOfFrictionAngle();
-		double young          = GetYoung();
-		double poisson        = GetPoisson();
-		double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-		double area           = KRATOS_M_PI * radius * radius;
-		double kn             = young * area / (2.0 * radius);
-		double ks             = kn / (2.0 * (1.0 + poisson));
-		
-		double equiv_cohesion = mfcohesion;
-	    double equiv_tension  = mftension;
-		
-        std::size_t iRigidFaceNeighbour = 0;
 
-        for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
-        {
-			
-            double LocalContactForce[3]  = {0.0};
+        //ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+        std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
+
+        double mTimeStep = rCurrentProcessInfo[DELTA_TIME];
+        /////int CalRotateOption = rCurrentProcessInfo[RIGID_FACE_FLAG];
+
+        double Friction = GetTgOfFrictionAngle();
+        double young = GetYoung();
+        double poisson = GetPoisson();
+        double radius = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        double area = KRATOS_M_PI * radius * radius;
+        double kn = young * area / (2.0 * radius);
+        double ks = kn / (2.0 * (1.0 + poisson));
+
+        double equiv_cohesion = mfcohesion;
+        double equiv_tension = mftension;
+
+        //for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
+        for (unsigned int i = 0; i < rNeighbours.size(); i++) {
+
+            double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
             double GlobalContactForceOld[3] = {0.0};
-			
 
             array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
 
             array_1d<double, 3 > other_to_me_vel;
             noalias(other_to_me_vel) = ZeroVector(3);
 
-            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-			
-			double DistPToB = 0.0;
+            double LocalCoordSystem[3][3] = {
+                {0.0},
+                {0.0},
+                {0.0}};
 
-      int  ContactType;
-      
-			ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);			
-			
+            double DistPToB = 0.0;
+
+            int ContactType;
+
+            ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
+
 
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
@@ -526,13 +522,12 @@ namespace Kratos
 
 
             //if (mRotationOption)
-            if (this->Is(DEMFlags::HAS_ROTATION) )                
-            {
-                double velA[3]   = {0.0};
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                double velA[3] = {0.0};
                 double dRotaDisp[3] = {0.0};
 
-                array_1d<double, 3 > AngularVel= GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                double Vel_Temp[3] = { AngularVel[0], AngularVel[1], AngularVel[2]};
+                array_1d<double, 3 > AngularVel = GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                double Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
                 GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
                 dRotaDisp[0] = -velA[0] * radius;
@@ -548,109 +543,99 @@ namespace Kratos
 
             double LocalDeltDisp[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
-			
-			
+
+
 
             //////120323,for global storage
-			
-		    GlobalContactForceOld[0] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][0];
-		    GlobalContactForceOld[1] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][1];
-		    GlobalContactForceOld[2] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][2];
-			
-			
+
+            GlobalContactForceOld[0] = mFemOldNeighbourContactForces[i][0];
+            GlobalContactForceOld[1] = mFemOldNeighbourContactForces[i][1];
+            GlobalContactForceOld[2] = mFemOldNeighbourContactForces[i][2];
+
+
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
-            LocalContactForce[0] +=  - ks * LocalDeltDisp[0];
-            LocalContactForce[1] +=  - ks * LocalDeltDisp[1];
-            LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
-			
-		
-		    ////Check if_initial_neighbor
-			unsigned int inb;
-			for(inb = 0; inb < maInitialRigidFaceNeighborID.size(); inb++)
-			{
-				if( maInitialRigidFaceNeighborID[inb] == static_cast<int>(ineighbour->Id()) )
-				{
-					if(maInitialRigidFaceNeighborFailureType[inb] > 0)
-					{
-					  equiv_cohesion = 0.0;
-					  equiv_tension  = 0.0;
-					}
-					break;
-				}
-				  
-			}
-			// Not the initial contact 
-			if(inb == maInitialRigidFaceNeighborID.size())
-			{
-				equiv_cohesion = 0.0;
-				equiv_tension  = 0.0;		
-			}
-			
-			
-			
-			int failure_type= 0;
-			
-            if (-LocalContactForce[2] > area * equiv_tension)
-            {
-                LocalContactForce[0] = 0.0;
-                LocalContactForce[1]  = 0.0;
-                LocalContactForce[2]  = 0.0;
-				
-				failure_type = 1;
+            LocalContactForce[0] += -ks * LocalDeltDisp[0];
+            LocalContactForce[1] += -ks * LocalDeltDisp[1];
+            LocalContactForce[2] += -kn * LocalDeltDisp[2];
+
+
+            ////Check if_initial_neighbor
+            unsigned int inb;
+            for (inb = 0; inb < maInitialRigidFaceNeighborID.size(); inb++) {
+                if (maInitialRigidFaceNeighborID[inb] == static_cast<int> (rNeighbours[i]->Id())) {
+                    if (maInitialRigidFaceNeighborFailureType[inb] > 0) {
+                        equiv_cohesion = 0.0;
+                        equiv_tension = 0.0;
+                    }
+                    break;
+                }
+
             }
-            else
-            {
+            // Not the initial contact 
+            if (inb == maInitialRigidFaceNeighborID.size()) {
+                equiv_cohesion = 0.0;
+                equiv_tension = 0.0;
+            }
+
+
+
+            int failure_type = 0;
+
+            if (-LocalContactForce[2] > area * equiv_tension) {
+                LocalContactForce[0] = 0.0;
+                LocalContactForce[1] = 0.0;
+                LocalContactForce[2] = 0.0;
+
+                failure_type = 1;
+            } else {
 
                 double ShearForceMax = LocalContactForce[2] * Friction + area * equiv_cohesion;
-				
+
                 double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
-                                     +      LocalContactForce[1] * LocalContactForce[1]);
+                        + LocalContactForce[1] * LocalContactForce[1]);
 
 
                 //Cfeng: for shear failure
-                if(ShearForceMax <= 0.0)
-                {
+                if (ShearForceMax <= 0.0) {
                     LocalContactForce[0] = 0.0;
                     LocalContactForce[1] = 0.0;
-                }
-                else if(ShearForceNow > ShearForceMax)
-                {
+                } else if (ShearForceNow > ShearForceMax) {
                     LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
                     LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
-				
-					
-					failure_type = 2;
+
+
+                    failure_type = 2;
                 }
             }
-			
-			
-			
-			
+
+
+
+
 
             GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
-            mFemOldNeighbourContactForces[iRigidFaceNeighbour][0] = GlobalContactForce[0];
-            mFemOldNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
-            mFemOldNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
-			
+            mFemOldNeighbourContactForces[i][0] = GlobalContactForce[0];
+            mFemOldNeighbourContactForces[i][1] = GlobalContactForce[1];
+            mFemOldNeighbourContactForces[i][2] = GlobalContactForce[2];
+
             ///Global stored contact force between rigid face and particle, used by fem elements
-            
-            Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
-            neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 0] = GlobalContactForce[0];
-            neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 1] = GlobalContactForce[1];
-            neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 2] = GlobalContactForce[2];
-			
+
+            //Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
+            std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
+            neighbour_rigid_faces_elastic_contact_force[3 * i + 0] = GlobalContactForce[0];
+            neighbour_rigid_faces_elastic_contact_force[3 * i + 1] = GlobalContactForce[1];
+            neighbour_rigid_faces_elastic_contact_force[3 * i + 2] = GlobalContactForce[2];
+
 
             rContactForce[0] += GlobalContactForce[0];
             rContactForce[1] += GlobalContactForce[1];
             rContactForce[2] += GlobalContactForce[2];
-		
-			
-			/////////////////////////////////////////////////////////////////////////////
+
+
+            /////////////////////////////////////////////////////////////////////////////
 
             //if ( mRotationOption)
-            if (this->Is(DEMFlags::HAS_ROTATION) )
-            {
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
                 double MA[3] = {0.0};
                 GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
                 rContactMoment[0] -= MA[0] * radius;
@@ -658,23 +643,17 @@ namespace Kratos
                 rContactMoment[2] -= MA[2] * radius;
             }
 
-
-            iRigidFaceNeighbour++;
-			
-			
-			  if(inb < maInitialRigidFaceNeighborID.size())
-			  {
-				  if(maInitialRigidFaceNeighborFailureType[inb] == 0)
-				  {
-					  maInitialRigidFaceNeighborFailureType[inb] = failure_type;
-				  }
-			  }
+            if (inb < maInitialRigidFaceNeighborID.size()) {
+                if (maInitialRigidFaceNeighborFailureType[inb] == 0) {
+                    maInitialRigidFaceNeighborFailureType[inb] = failure_type;
+                }
+            }
 
         }
-		  
-          KRATOS_CATCH("")
-		  
-      }// ComputeBallToRigidFaceContactForce
+
+        KRATOS_CATCH("")
+
+    }// ComputeBallToRigidFaceContactForce
 	  
 	  
 	  

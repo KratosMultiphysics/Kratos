@@ -174,25 +174,24 @@ namespace Kratos
 
           
           
-          ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+          //ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+          std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
         
-          std::size_t iRigidFaceNeighbour = 0;
-
-          for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
-          {
-             
-              Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
-              Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
+          //for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
+          for (unsigned int i=0; i<rNeighbours.size(); i++) 
+          {             
+              //Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
+              //Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
+              std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
+              std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
               
-              neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 0] = 0.0;
-              neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 1] = 0.0;
-              neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 2] = 0.0;
+              neighbour_rigid_faces_elastic_contact_force[3 * i + 0] = 0.0;
+              neighbour_rigid_faces_elastic_contact_force[3 * i + 1] = 0.0;
+              neighbour_rigid_faces_elastic_contact_force[3 * i + 2] = 0.0;
 
-              neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + 0] = 0.0;
-              neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + 1] = 0.0;
-              neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + 2] = 0.0;
-              
-              iRigidFaceNeighbour++;
+              neighbour_rigid_faces_total_contact_force[3 * i + 0] = 0.0;
+              neighbour_rigid_faces_total_contact_force[3 * i + 1] = 0.0;
+              neighbour_rigid_faces_total_contact_force[3 * i + 2] = 0.0;              
           }
           
           
@@ -516,9 +515,9 @@ namespace Kratos
      void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
      {
 
-       ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
+       //ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
+       std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
        unsigned int new_size                = rNeighbours.size();
-       unsigned int neighbour_counter       = 0;
        std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
        std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);       
        
@@ -527,23 +526,19 @@ namespace Kratos
        vector_of_zeros[1]                   = 0.0;
        vector_of_zeros[2]                   = 0.0;
 
-       for (ConditionWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+       //for (ConditionWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+       for (unsigned int i=0; i<rNeighbours.size(); i++){    
 
-           temp_neighbours_ids[neighbour_counter] = static_cast<int>(i->Id());
-           temp_neighbours_contact_forces[neighbour_counter] = vector_of_zeros;
+           temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());
+           temp_neighbours_contact_forces[i] = vector_of_zeros;
 
-           for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++)
-			{
+           for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
 
-               if (static_cast<int>(i->Id()) == mFemOldNeighbourIds[j])
-			   {
-                   temp_neighbours_contact_forces[neighbour_counter] = mFemOldNeighbourContactForces[j];
+               if (static_cast<int>(rNeighbours[i]->Id()) == mFemOldNeighbourIds[j]) {
+                   temp_neighbours_contact_forces[i] = mFemOldNeighbourContactForces[j];
                    break;
                }
-
             }
-
-            neighbour_counter++;
         }
 
         mFemOldNeighbourIds.swap(temp_neighbours_ids);
@@ -841,7 +836,7 @@ namespace Kratos
 //////////*******************************************************07,Oct,2013*******************************////////////
 
 
-void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rObj_2, std::size_t ino, 
+void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, 
                              double LocalCoordSystem[3][3], double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType)
 {
 	 KRATOS_TRY
@@ -849,7 +844,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 	
 	 double Weight[4] = {0.0};
 	 
-	 Vector & RF_Pram= this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+	 //Vector & RF_Pram= this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+         std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 	 
 	
      int ino1 = ino * 16;
@@ -891,7 +887,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         
       KRATOS_TRY
           
-      ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+      //ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+      std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
 
       double mTimeStep        = rCurrentProcessInfo[DELTA_TIME];
       double myYoung          = GetYoung();
@@ -900,12 +897,12 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
       array_1d<double, 3 > vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
-      std::size_t iRigidFaceNeighbour = 0;
-
-      for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
+      //for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
+      for (unsigned int i=0; i<rNeighbours.size(); i++)    
       {
-        Condition* p_neighbour_condition = &(*ineighbour);
-        RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
+        //Condition* p_neighbour_condition = &(*ineighbour);        
+        //RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
+        DEMWall* cast_neighbour = rNeighbours[i];
 
         double WallBallFriction = cast_neighbour->mTgOfFrictionAngle;
         
@@ -925,7 +922,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         node_coor[1]=node_coor_array[1];
         node_coor[2]=node_coor_array[2];
         
-        double ini_delta = GetInitialDelta(iRigidFaceNeighbour);
+        double ini_delta = GetInitialDelta(i);
         double kn_el;
 
 
@@ -951,7 +948,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         int ContactType = -1;
 
-        ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
+        ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
 
         //MSI: Renew Distance for steps in between searches.
         // The flag ContactType takes value 0 for a plane contact, 1 for line and 2 for point. The optimized function is created for Plane contact, not for other cases yet.
@@ -963,23 +960,23 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
           // Triangle
           
-          Coord[0][0] = ineighbour->GetGeometry()[0].Coordinates()[0];    //MSIMSI 1 can be optimized with vector access.
-          Coord[0][1] = ineighbour->GetGeometry()[0].Coordinates()[1];
-          Coord[0][2] = ineighbour->GetGeometry()[0].Coordinates()[2];
+          Coord[0][0] = rNeighbours[i]->GetGeometry()[0].Coordinates()[0];    //MSIMSI 1 can be optimized with vector access.
+          Coord[0][1] = rNeighbours[i]->GetGeometry()[0].Coordinates()[1];
+          Coord[0][2] = rNeighbours[i]->GetGeometry()[0].Coordinates()[2];
 
-          Coord[1][0] = ineighbour->GetGeometry()[1].Coordinates()[0];
-          Coord[1][1] = ineighbour->GetGeometry()[1].Coordinates()[1];
-          Coord[1][2] = ineighbour->GetGeometry()[1].Coordinates()[2];
+          Coord[1][0] = rNeighbours[i]->GetGeometry()[1].Coordinates()[0];
+          Coord[1][1] = rNeighbours[i]->GetGeometry()[1].Coordinates()[1];
+          Coord[1][2] = rNeighbours[i]->GetGeometry()[1].Coordinates()[2];
 
-          Coord[2][0] = ineighbour->GetGeometry()[2].Coordinates()[0];
-          Coord[2][1] = ineighbour->GetGeometry()[2].Coordinates()[1];
-          Coord[2][2] = ineighbour->GetGeometry()[2].Coordinates()[2];
+          Coord[2][0] = rNeighbours[i]->GetGeometry()[2].Coordinates()[0];
+          Coord[2][1] = rNeighbours[i]->GetGeometry()[2].Coordinates()[1];
+          Coord[2][2] = rNeighbours[i]->GetGeometry()[2].Coordinates()[2];
 
-          if(ineighbour->GetGeometry().size() == 4)
+          if(rNeighbours[i]->GetGeometry().size() == 4)
           {
-            Coord[3][0] = ineighbour->GetGeometry()[3].Coordinates()[0];
-            Coord[3][1] = ineighbour->GetGeometry()[3].Coordinates()[1];
-            Coord[3][2] = ineighbour->GetGeometry()[3].Coordinates()[2];
+            Coord[3][0] = rNeighbours[i]->GetGeometry()[3].Coordinates()[0];
+            Coord[3][1] = rNeighbours[i]->GetGeometry()[3].Coordinates()[1];
+            Coord[3][2] = rNeighbours[i]->GetGeometry()[3].Coordinates()[2];
           }
             
             GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
@@ -1024,9 +1021,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         //////120323,for global storage
 
-        GlobalElasticContactForce[0] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][0];
-        GlobalElasticContactForce[1] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][1];
-        GlobalElasticContactForce[2] = mFemOldNeighbourContactForces[iRigidFaceNeighbour][2];
+        GlobalElasticContactForce[0] = mFemOldNeighbourContactForces[i][0];
+        GlobalElasticContactForce[1] = mFemOldNeighbourContactForces[i][1];
+        GlobalElasticContactForce[2] = mFemOldNeighbourContactForces[i][2];
 
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
         LocalElasticContactForce[0] +=  - ks_el * LocalDeltDisp[0];
@@ -1121,7 +1118,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         
          AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
                                   GlobalElasticContactForce,ViscoDampingLocalContactForce,/*ViscoDampingGlobalContactForce,rContactForce,*/rElasticForce,
-                                  iRigidFaceNeighbour);
+                                  i);
         
  
         //if (mRotationOption)
@@ -1214,7 +1211,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         } //if (mRotationOption)
 
-        iRigidFaceNeighbour++;
 
       }
 
@@ -2437,8 +2433,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
           ///Global stored contact force between rigid face and particle, used by fem elements
         
-          Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
-          Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
+          //Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
+          //Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
+          std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
+          std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
           
           neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 0] = GlobalElasticContactForce[0];
           neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + 1] = GlobalElasticContactForce[1];

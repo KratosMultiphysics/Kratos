@@ -69,12 +69,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
+#include "dem_wall.h"
 
 namespace Kratos
 {
 
-class RigidFace3D
-    : public Condition
+class RigidFace3D : public DEMWall
 {
 public:
 
@@ -82,12 +82,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( RigidFace3D );
 	
 	
-	typedef WeakPointerVector<Element> ParticleWeakVectorType; 
-	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-	
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
-	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+    typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+
+    typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+    typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 
 
     // Constructor void
@@ -119,7 +119,8 @@ public:
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
-    double mTgOfFrictionAngle;
+    //double mTgOfFrictionAngle;
+    //std::vector<SphericParticle*> mNeighbourSphericParticles;
     
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -155,12 +156,12 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DEMWall );
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DEMWall );
     }
 
 

@@ -63,11 +63,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
+#include "dem_wall.h"
 
 namespace Kratos
 {
 
-class RigidEdge3D : public Condition
+class RigidEdge3D : public DEMWall
 {
 public:
     // Counted pointer of RigidEdge3D
@@ -120,6 +121,8 @@ public:
                                  ProcessInfo& rCurrentProcessInfo);
 
    void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+   void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
 
     /**
      * Turn back information as a string.
@@ -154,12 +157,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMWall );
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMWall );
     }
 
 }; // Class ContactLink3DExplicit

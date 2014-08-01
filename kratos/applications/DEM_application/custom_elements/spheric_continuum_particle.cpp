@@ -214,38 +214,29 @@ namespace Kratos
     void SphericContinuumParticle::SetInitialFemContacts() 
     {   
         
-        Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
-        ConditionWeakVectorType& rFemNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+        //Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+        //ConditionWeakVectorType& rFemNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+        std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
+        std::vector<DEMWall*>& rFemNeighbours = this->mNeighbourRigidFaces;
         
         unsigned int fem_neighbours_size = rFemNeighbours.size();
-        
-        std::size_t iRigidFaceNeighbour = 0;
-        
+                
         mFemIniNeighbourIds.resize(fem_neighbours_size);
         mFemMappingNewIni.resize(fem_neighbours_size);
         mFemIniNeighbourDelta.resize(fem_neighbours_size);
         
-        for(ConditionWeakIteratorType ineighbour = rFemNeighbours.begin(); ineighbour != rFemNeighbours.end(); ineighbour++)
-        { 
-          
-          //double Weight[4] = {0.0};
-          
-          int ino1               = iRigidFaceNeighbour * 16;
-          
+        //for(ConditionWeakIteratorType ineighbour = rFemNeighbours.begin(); ineighbour != rFemNeighbours.end(); ineighbour++)
+        //{           
+        for(unsigned int i=0; i<rFemNeighbours.size(); i++) 
+        {            
+          int ino1               = i * 16;          
           double DistPToB        = RF_Pram[ino1 + 9];
-
-          int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
-     
+          int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);     
           double initial_delta = - ( DistPToB - mRadius);
 
-          mFemIniNeighbourIds[iRigidFaceNeighbour] = iNeighborID;
-          //((*ineighbour).lock())->Id();
-
-          mFemMappingNewIni[iRigidFaceNeighbour] = iRigidFaceNeighbour;
-          mFemIniNeighbourDelta[iRigidFaceNeighbour] = initial_delta;
-
-          iRigidFaceNeighbour++;
-       
+          mFemIniNeighbourIds[i] = iNeighborID;
+          mFemMappingNewIni[i] = i;
+          mFemIniNeighbourDelta[i] = initial_delta;
         }
       
     }//SetInitialFemContacts
@@ -1341,7 +1332,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData()
       {
         
-      ConditionWeakVectorType& rFemNeighbours       = this->GetValue(NEIGHBOUR_RIGID_FACES);
+      //ConditionWeakVectorType& rFemNeighbours       = this->GetValue(NEIGHBOUR_RIGID_FACES);
+      std::vector<DEMWall*>& rFemNeighbours = this->mNeighbourRigidFaces;
       
       mFemTempNeighbours.swap(rFemNeighbours); 
       
@@ -1367,15 +1359,15 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       vector_of_zeros[0]                   = 0.0;
       vector_of_zeros[1]                   = 0.0;
       vector_of_zeros[2]                   = 0.0;
-
-      unsigned int iTempFemNeighbour = 0;
       
-      Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+      //Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+      std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
            
-      for (ConditionWeakIteratorType i = mFemTempNeighbours.begin(); i != mFemTempNeighbours.end(); i++)
+      //for (ConditionWeakIteratorType i = mFemTempNeighbours.begin(); i != mFemTempNeighbours.end(); i++)
+      for (unsigned int i=0; i<mFemTempNeighbours.size(); i++)    
       {
         
-          int ino1               = iTempFemNeighbour * 16;
+          int ino1               = i * 16;
           double DistPToB        = RF_Pram[ino1 + 9];
           int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
           double                ini_delta           = 0.0;
@@ -1395,7 +1387,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++)  
           {
             
-            if ( static_cast<int>((i)->Id()) == mFemOldNeighbourIds[j])
+            if ( static_cast<int>((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j])
             {
               neigh_forces = mFemOldNeighbourContactForces[j];
               break;
@@ -1407,9 +1399,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
           if ( indentation > 0.0 )  
           {
-              rFemNeighbours.push_back(*(i.base()));                
+              //rFemNeighbours.push_back(*(i.base())); 
+              rFemNeighbours.push_back(mFemTempNeighbours[i]);
               
-              fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((i)->Id());
+              fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((mFemTempNeighbours[i])->Id());
               fem_temp_neighbours_mapping[fem_neighbour_counter]          = mapping_new_ini;
               fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
               fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
@@ -1417,8 +1410,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               fem_neighbour_counter++;              
           }
           
-          iTempFemNeighbour++;
-
       }//for ConditionWeakIteratorType i
       
       int final_size = rFemNeighbours.size();
@@ -1482,24 +1473,22 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         {
             int my_id = this->Id();
             bool im_skin = bool(this->GetValue(SKIN_SPHERE));
-            ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-            
-            size_t cont_neigh_index = 0; 
-            
-            for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-              ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-              
-            {
-                
+            //ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+            std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = this->mContinuumIniNeighbourElements;
+                        
+            //for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+              //ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+            for (unsigned int i=0; i<r_continuum_ini_neighbours.size(); i++)              
+            {                
                   //Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(cont_neigh_index)).lock();
-                  Particle_Contact_Element* lock_p_weak = mBondElements[cont_neigh_index];
+                  Particle_Contact_Element* lock_p_weak = mBondElements[i];
 
                   if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
                   {
                   
-                    bool neigh_is_skin = bool(ini_cont_neighbour_iterator->GetValue(SKIN_SPHERE));
+                    bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetValue(SKIN_SPHERE));
                     
-                    int neigh_id = ini_cont_neighbour_iterator->Id();
+                    int neigh_id = r_continuum_ini_neighbours[i]->Id();
                                         
                     if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) )
                     {
@@ -1507,16 +1496,16 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                       if( my_id < neigh_id )
                         {
 
-                          //lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[cont_neigh_index];
-                          lock_p_weak->mLocalContactAreaLow = mcont_ini_neigh_area[cont_neigh_index];
+                          //lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[i];
+                          lock_p_weak->mLocalContactAreaLow = mcont_ini_neigh_area[i];
                                                     
                         } // if my id < neigh id
                         
                         else
                         {
 
-                          //lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[cont_neigh_index];
-                          lock_p_weak->mLocalContactAreaHigh = mcont_ini_neigh_area[cont_neigh_index];
+                          //lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[i];
+                          lock_p_weak->mLocalContactAreaHigh = mcont_ini_neigh_area[i];
                           
                         }
                         
@@ -1527,8 +1516,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                     {
                       
                 
-                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[cont_neigh_index];
-                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[cont_neigh_index];
+                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[i];
+                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[i];
                       
                                           
                     } //neigh skin
@@ -1540,12 +1529,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                 {
                   
                   //mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
-                   mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->mMeanContactArea;   
+                   mcont_ini_neigh_area[i] = lock_p_weak->mMeanContactArea;   
                 
                 }
-                
-                cont_neigh_index++;
-            
+                            
             }//loop neigh.
           
             return;
