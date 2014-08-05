@@ -582,7 +582,7 @@ if (Coupled_Simulation == True):
 	check_process.Execute()
 
 	
-	
+raw_input()
 New_method = True
 if (Coupled_Simulation == True):
   	solver3D = solver.IncompressibleFluidSolver(model_part3D, 3)
@@ -615,6 +615,9 @@ if (Coupled_Simulation == True):
 	solver3D.compute_reactions = False
 	solver3D.activate_smagorinsky(0.2)
 	solver3D.Initialize()	
+	###########################################boundary_windkessel_model = WindkesselModel(model_part3D)
+	###########################################solver3D.solver.AddIterationStep(boundary_windkessel_model)
+	###########################################
 	#transfer_obj.Velocity_Initial_Contitions()	# Setting the velocity
 	#transfer_obj.Initial_Contitions(diastolic_pressure)
 	print("Coupled Simulation Algorithm sets with: ", Coupled_Simulation,"P:", solver3D.max_press_its, "V:", solver3D.max_vel_its)
@@ -826,9 +829,9 @@ print("Cardiac_cycle: ------------------------>", nro_cardiac_cycle)
 ToWriteIn_Summary = "Cardiac_cycle: ------------------------> " + str(nro_cardiac_cycle) + "\n"
 summary_file.write(ToWriteIn_Summary)
 
-
-#cycle_to_couple = True 
-#Coupled_Simulation = True
+raw_input()
+cycle_to_couple = True 
+Coupled_Simulation = True
 
 total_aortic_flow=0.0
 total_aortic_pressure=0.0
@@ -913,19 +916,19 @@ if(only1Dtest == False):
 		# cardiac_cycle_to_3D)):
 		if ((Coupled_Simulation) and (control_sub_step == sub_step) and (cycle_to_couple == True)):
 			if(step >= 3):
-				print("...............................Solve 3D..................................", step)
-				integrator.SolveStep(model_part1D)
+				print("...............................Solve 3D..................................", step)				
+				############integrator.SolveStep(model_part1D)
 				# integrator.ComputePressure(model_part1D)
-				integrator.ComputePressure(model_part1D, diastolic_pressure)
+				############integrator.ComputePressure(model_part1D, diastolic_pressure)
 				model_part3D.CloneTimeStep(total_time)
 				print("Total_time 3d:", total_time)
 				print("----------------------------Transfer 1d(tn) to 3d(tn+1)------------------")
-				#transfer_obj.Transfer1D_to_3D(diastolic_pressure, summary_file_pressure_outlet3D,summary_file_pressure_Flow_1D)
-				transfer_obj.Transfer1D_to_3D(diastolic_pressure, summary_file_pressure_outlet3D)
+				########################transfer_obj.Transfer1D_to_3D(diastolic_pressure, summary_file_pressure_outlet3D,summary_file_pressure_Flow_1D)
+				transfer_obj.Transfer1D_to_3D_aux(diastolic_pressure, summary_file_pressure_outlet3D)
 				print("Solve 3D para ", total_time)
 				myTimer.Start("solver3D.Solve()")
 				print ("Checking_Pressure")
-				transfer_obj.CheckPressure(model_part3D)
+				###############dtransfer_obj.CheckPressure(model_part3D)
 				solver3D.Solve()
 				#FitValues=False
 				myTimer.Stop("solver3D.Solve()")
@@ -941,8 +944,7 @@ if(only1Dtest == False):
 		else:
 			if ((var_aux) and (Sub_steping)):
 				print("Solve 1D ------------------------------> ", total_time)
-				print("Sub_step-->", sub_step)
-				
+				print("Sub_step-->", sub_step)		
 				var_aux = False
 			else:
 				print("Solve 1D ------------------------------> ", total_time)

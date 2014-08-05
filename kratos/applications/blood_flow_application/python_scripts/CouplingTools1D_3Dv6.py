@@ -435,8 +435,8 @@ class TransferTools:
 		skin_node = self.skin_3d[i]		
 		for node in skin_node:
 		  pressure_skin = node.GetSolutionStepValue(PRESSURE)
-		  if (pressure_skin > (5*(config.systolic_pressure))):
-			  max_pressure = 5*config.systolic_pressure
+		  if (pressure_skin > (10*(config.systolic_pressure))):
+			  max_pressure = 10*config.systolic_pressure
 			  print ("Err: Please check your model. Pressure is higher than " ,str(max_pressure), " Pa. In node: ",str(node.Id), " pressure is: ", str(pressure_skin))
 			  sys.exit("Proccess Kill")
 			  break
@@ -448,7 +448,44 @@ class TransferTools:
 		#print (str(node.GetSolutionStepValue(VELOCITY_Z)))
 		
 
-    def Transfer1D_to_3D(self, dyastolic_pressure,summary_file_pressure):
+    def Transfer1D_to_3D_aux(self, dyastolic_pressure,summary_file_pressure):
+	print("Transfer Conditions_AUXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+	print(self.Velocity_Sig)	
+	#raw_input()
+	for i in range(0, len(self.inlets_1d)):
+		    inlet_nodes_1d = self.inlets_1d[i]
+		    print ("NODO 1D-3D:: inlet 1D coupled with the 3D inlet>>>> ",inlet_nodes_1d[0].Id, "FLOW::: ",inlet_nodes_1d[0].GetSolutionStepValue(FLOW) )
+		    # print "--"
+		    for i in range(0, len(self.inlets_3d)):
+			    #print (i)
+			    inlet_nodes_3d = self.inlets_3d[i]
+			    area3d = self.inlet_areas_3d[i]
+			    directions = self.inlet_velocity_directions[i]
+			    radio3d = math.sqrt(area3d * 3.1416)
+			    vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d			    			    
+			    k = 0
+			    vel1d =1.0
+			    for node in inlet_nodes_3d:
+				    #n = node.GetSolutionStepValue(NORMAL)
+				    #a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2)
+				    orientation = directions[k]
+				    #print (str(orientation))
+				    #print (str(directions[k] * (self.Velocity_Sig) *vel1d))
+				    node.SetSolutionStepValue(VELOCITY, 0, directions[k] * (self.Velocity_Sig) *vel1d)
+				    print("Velocity", str(directions[k] * vel1d))
+				    k = k + 1		
+				    
+        for i in range(0, len(self.outlets_1d)):
+            press=0.0
+	    outlet_nodes_3d = self.outlets_3d[i]
+            for node in outlet_nodes_3d:
+                node.SetSolutionStepValue(PRESSURE, 0, press)
+	    ToWriteIn_Summary= "Instant pressure in the outlet node:  "  +  str(press) + " Pa " + "\n"       
+	    summary_file_pressure.write(ToWriteIn_Summary)
+
+		
+		
+    def Transfer1D_to_3D_original(self, dyastolic_pressure,summary_file_pressure):
 	# Write Conditions Used
 	# ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
 	# import config_full
@@ -458,7 +495,7 @@ class TransferTools:
 	#raw_input()
 	for i in range(0, len(self.inlets_1d)):
 		    inlet_nodes_1d = self.inlets_1d[i]
-		    #print ("NODO 1D-3D:: inlet_nodes_1d[0].Id::::::inlet 1D coupled with the 3D inlet>>>> ",inlet_nodes_1d[0].Id)
+		    print ("NODO 1D-3D:: inlet 1D coupled with the 3D inlet>>>> ",inlet_nodes_1d[0].Id, "FLOW::: ",inlet_nodes_1d[0].GetSolutionStepValue(FLOW) )
 		    # print "--"
 		    for i in range(0, len(self.inlets_3d)):
 			    #print (i)
@@ -525,6 +562,55 @@ class TransferTools:
 	    ToWriteIn_Summary= "Instant pressure in the outlet node:  "  +  str(press) + " Pa " + "\n"       
 	    summary_file_pressure.write(ToWriteIn_Summary)
 
+    #def Windkessel_model_3D(self, resistence,summary_file_pressure):
+	##Resistence Model P = RQ
+	#for i in range(0, len(self.outlets_3d)):
+	    #flow_total=0.0
+	    #flow_node=0.0
+	    #outlet_nodes_3d = self.outlets_3d[i]
+            #area3d = self.outlet_areas_3d[i]
+	    #for node in outlet_nodes_3d:
+		#flow_node= node.GetSolutionStepValue(FLOW)
+		#flow_total = flow_total + flow_node	
+	    
+	    #Update_pressure = flow_total / Resistence
+	    
+	    #for node in outlet_nodes_3d:
+                #node.SetSolutionStepValue(PRESSURE, 0, Update_pressure)
+	    
+            #print ("Set terminal Pressure with Resistece::",Update_pressure, "  in 3D Outlet")
+	    #ToWriteIn_Summary= "Instant pressure in the 3D outlet:  "  +  str(Update_pressure) + " Pa " + "\n"       
+	    #summary_file_pressure.write(ToWriteIn_Summary)
+	    
+     #def Windkessel_model_RCR_3D(self,R1,R2,C,delta_t,summary_file_pressure)
+	##RCR Windkessel: P + R2*C*Pt = (R1+R2)Q + (R1*R2)*C*Qt
+	#for i in range(0, len(self.outlets_3d)):
+	    #flow_total=0.0
+	    #pressure_node=0.0
+	    #pressure_node_previous_step=0.0
+	    #flow_total_previous_step=0.0
+	    #flow_node=0.0
+	    #delta_Q=0.0
+	    #delta_P=0.0
+	    #outlet_nodes_3d = self.outlets_3d[i]
+            #area3d = self.outlet_areas_3d[i]
+	    #for node in outlet_nodes_3d:
+		#flow_node= node.GetSolutionStepValue(FLOW)
+		#flow_node_previous_step=node.GetSolutionStepValue(FLOW,1)
+		#pressure_node= node.GetSolutionStepValue(PRESSURE)
+		#pressure_node_previous_step=node.GetSolutionStepValue(PRESSURE,1)		
+		#flow_total = flow_total + flow_node
+		#delta_Q=delta_Q+((flow_node - flow_node_previous_step)/delta_t)
+		#delta_P=delta_P+((pressure_node - pressure_node_previous_step)/delta_t)
+		
+	    #Update_pressure = ((R1+R2)*flow_total)+ (R1*R2*C*delta_Q)- (R2*C*delta_P)
+	    	    
+	    #for node in outlet_nodes_3d:
+                #node.SetSolutionStepValue(PRESSURE, 0, Update_pressure)
+	    
+            #print ("Set terminal Pressure with Resistece::",Update_pressure, "  in 3D Outlet")
+	    #ToWriteIn_Summary= "Instant pressure in the 3D outlet:  "  +  str(Update_pressure) + " Pa " + "\n"       
+	    #summary_file_pressure.write(ToWriteIn_Summary)
 	
     def Transfer3D_to_1D(self, dyastolic_pressure):
         inlet_flow = (self.inlets_1d[0])[0].GetSolutionStepValue(FLOW)
