@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
+#include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "spaces/ublas_space.h"
 
@@ -93,6 +94,11 @@ void AddCustomProcessesToPython()
     class_< StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>, bases<Process>, boost::noncopyable >
             ("StokesInitializationProcess",init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
             .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions);
+
+    class_<WindkesselModel, bases<Process>, boost::noncopyable >
+    ("WindkesselModel", init < ModelPart&>())
+    ;
+
 }
 
 

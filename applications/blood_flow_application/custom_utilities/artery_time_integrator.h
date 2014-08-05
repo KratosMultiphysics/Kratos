@@ -320,12 +320,10 @@ public:
         //KRATOS_WATCH(fabs((time_cardiac_cycle/3)-t));
         //KRATOS_WATCH (dt/2);
 
-        if (fabs((time_cardiac_cycle/3)-t) < (dt/2))
-
-        {
+        if (fabs((time_cardiac_cycle/3)-t) < (dt/2)){
         //PRINT*, "Analisys de Convergencia para el tiempo"
-            for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
-            {
+            ModelPart::NodesContainerType rNodes = ThisModelPart.Nodes();
+            for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++){
                 //double pressure=initial_pressure+(beta/original_area)*(sqrt(nodal_area)-sqrt(original_area));
                 double pressure = in->FastGetSolutionStepValue(PRESSURE);
                 double pressureold = in->FastGetSolutionStepValue(PRESSURE,1);

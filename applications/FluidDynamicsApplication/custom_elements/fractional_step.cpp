@@ -861,7 +861,6 @@ double FractionalStep<TDim>::EffectiveViscosity(const ShapeFunctionsType &rN,
                                                 const ProcessInfo &rCurrentProcessInfo)
 {
     double Csmag = this->GetValue(C_SMAGORINSKY);
-
     double Viscosity = 0.0;
     this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
 
