@@ -311,7 +311,8 @@ class IncompressibleFluidSolver:
         while self.divergence_clearance_steps > 0:
             if self.divergence_clearance_steps > 1:
                 for node in self.model_part.Nodes:
-                    node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+                    if (not node.IsFixed(PRESSURE)):
+                        node.SetSolutionStepValue(PRESSURE, 0, 0.0)
                     vel = node.GetSolutionStepValue(VELOCITY, 0)
                     node.SetSolutionStepValue(VELOCITY, 1, vel)
                     node.SetSolutionStepValue(VELOCITY, 2, vel)
