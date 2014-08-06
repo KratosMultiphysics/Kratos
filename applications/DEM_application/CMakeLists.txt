@@ -27,6 +27,15 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
+GENERATE_EXPORT_HEADER( KratosDEMApplication
+             BASE_NAME KratosDEMApplication
+             EXPORT_MACRO_NAME KRATOS_DEMAPPLICATION_EXPORT_DLL
+             EXPORT_FILE_NAME ../../../applications/DEM_application/kratos_DEMApplication_export_dll.h
+             STATIC_DEFINE KratosDemApplication_BUILT_AS_STATIC
+)
+endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
+ADD_COMPILER_EXPORT_FLAGS()
 target_link_libraries(KratosDEMApplication KratosCore )
 set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosDEMApplication DESTINATION libs )
