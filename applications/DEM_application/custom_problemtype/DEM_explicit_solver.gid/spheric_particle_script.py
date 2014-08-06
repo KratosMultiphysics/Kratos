@@ -249,121 +249,135 @@ sys.stdout.flush()
 
 mesh_motion = DEMFEMUtilities()
 
-while (time < DEM_parameters.FinalTime):
+c_while_option = False
 
-    dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)  # Possible modifications of DELTA_TIME
-    time = time + dt
-    # balls_model_part.CloneTimeStep(time)
-    balls_model_part.ProcessInfo[TIME] = time
-    balls_model_part.ProcessInfo[DELTA_TIME] = dt
-    balls_model_part.ProcessInfo[TIME_STEPS] = step
+if ( c_while_option ):
+    time1 = timer.time()
+    solver.DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, DEM_parameters.FinalTime, DEM_parameters.OutputTimeStep, total_steps_expected, DEM_parameters.ControlTime, main_path)
+    print('\n C++ while takes ' + str(timer.time()-time1) + '\n')
+    sys.stdout.flush()
     
-    #walls movement:
-    mesh_motion.MoveAllMeshes(RigidFace_model_part, time)
+else:
+    time1 = timer.time()
+
+    while (time < DEM_parameters.FinalTime):
+
+        dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)  # Possible modifications of DELTA_TIME
+        time = time + dt
+        # balls_model_part.CloneTimeStep(time)
+        balls_model_part.ProcessInfo[TIME] = time
+        balls_model_part.ProcessInfo[DELTA_TIME] = dt
+        balls_model_part.ProcessInfo[TIME_STEPS] = step
+        
+        #walls movement:
+        mesh_motion.MoveAllMeshes(RigidFace_model_part, time)
+        
+        # _SOLVE_###########################################
+        os.chdir(main_path)
+        solver.Solve()
+        # TIME CONTROL######################################
+            
+        # adding DEM elements by the inlet:
+        if (inlet_option):
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
+
+        incremental_time = (timer.time() - initial_real_time) - prev_time
+
+        if (incremental_time > DEM_parameters.ControlTime):
+            percentage = 100.0 * (float(step) / total_steps_expected)
+            
+            print("%s %.2f %s" % ("Real time calculation: ", timer.time() - initial_real_time,"s"))      
+            print('Simulation time: ' + str(time))
+            print("%s %.5f %s" % ("Percentage Completed: ", percentage,"%"))        
+            print("Time Step: " + str(step) + '\n')
+
+            sys.stdout.flush()
+
+            prev_time = (timer.time() - initial_real_time)
+        
+        if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):
+            first_print = False
+            estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
+
+            print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
+            print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+            print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+            print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
+            sys.stdout.flush()
+
+            if (estimated_sim_duration / 86400 > 2.0):
+
+                print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
+
+        # CONCRETE_TEST_STUFF#########################################4
+
+        os.chdir(list_path)
+        multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
+        os.chdir(main_path)
+
+        # ___GiD IO____#########################################4
+
+        time_to_print = time - time_old_print
+
+        if (time_to_print >= DEM_parameters.OutputTimeStep):
+            
+            print("")
+            print("*******************  PRINTING RESULTS FOR GID  ***************************")
+            print("                        (", balls_model_part.NumberOfElements(0), " elements)")
+            sys.stdout.flush()
+            
+            # BENCHMARK ###
+            os.chdir(data_and_results)
+
+            # properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
+
+            if (index_5 == 5):
+                multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
+                index_5 = 0
+
+            if (index_10 == 10):
+                multifile_10.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
+                index_10 = 0
+
+            if (index_50 == 50):
+                multifile_50.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
+                index_50 = 0
+
+            index_5 += 1
+            index_10 += 1
+            index_50 += 1
+
+            if (DEM_parameters.Multifile == "multiple_files"):
+                gid_io.FinalizeResults()
+
+            os.chdir(post_path)
+
+            if (DEM_parameters.Multifile == "multiple_files"):
+                mixed_model_part.Elements.clear()
+                mixed_model_part.Nodes.clear()
+
+                post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+                post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
+
+                gid_io.InitializeMesh(time)
+                gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+                gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+                gid_io.FinalizeMesh()
+
+                gid_io.InitializeResults(time, mixed_model_part.GetMesh())
+
+            proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
+            proc.PrintingBallsVariables(gid_io, balls_model_part, time)
+
+            if (DEM_parameters.Multifile == "multiple_files"):
+                gid_io.FinalizeResults()
+
+            time_old_print = time
+
+        step += 1
     
-    # _SOLVE_###########################################
-    os.chdir(main_path)
-    solver.Solve()
-    # TIME CONTROL######################################
-        
-    # adding DEM elements by the inlet:
-    if (inlet_option):
-        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
-
-    incremental_time = (timer.time() - initial_real_time) - prev_time
-
-    if (incremental_time > DEM_parameters.ControlTime):
-        percentage = 100.0 * (float(step) / total_steps_expected)
-        
-        print("%s %.2f %s" % ("Real time calculation: ", timer.time() - initial_real_time,"s"))      
-        print('Simulation time: ' + str(time))
-        print("%s %.5f %s" % ("Percentage Completed: ", percentage,"%"))        
-        print("Time Step: " + str(step) + '\n')
-
-        sys.stdout.flush()
-
-        prev_time = (timer.time() - initial_real_time)
-    
-    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):
-        first_print = False
-        estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
-
-        print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
-        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
-        sys.stdout.flush()
-
-        if (estimated_sim_duration / 86400 > 2.0):
-
-          print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
-
-    # CONCRETE_TEST_STUFF#########################################4
-
-    os.chdir(list_path)
-    multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-    os.chdir(main_path)
-
-    # ___GiD IO____#########################################4
-
-    time_to_print = time - time_old_print
-
-    if (time_to_print >= DEM_parameters.OutputTimeStep):
-        
-        print("")
-        print("*******************  PRINTING RESULTS FOR GID  ***************************")
-        print("                        (", balls_model_part.NumberOfElements(0), " elements)")
-        sys.stdout.flush()
-        
-        # BENCHMARK ###
-        os.chdir(data_and_results)
-
-        # properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
-
-        if (index_5 == 5):
-            multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-            index_5 = 0
-
-        if (index_10 == 10):
-            multifile_10.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-            index_10 = 0
-
-        if (index_50 == 50):
-            multifile_50.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
-            index_50 = 0
-
-        index_5 += 1
-        index_10 += 1
-        index_50 += 1
-
-        if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.FinalizeResults()
-
-        os.chdir(post_path)
-
-        if (DEM_parameters.Multifile == "multiple_files"):
-            mixed_model_part.Elements.clear()
-            mixed_model_part.Nodes.clear()
-
-            post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-            post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
-
-            gid_io.InitializeMesh(time)
-            gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-            gid_io.WriteMesh(RigidFace_model_part.GetMesh())
-            gid_io.FinalizeMesh()
-
-            gid_io.InitializeResults(time, mixed_model_part.GetMesh())
-
-        proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
-        proc.PrintingBallsVariables(gid_io, balls_model_part, time)
-
-        if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.FinalizeResults()
-
-        time_old_print = time
-
-    step += 1
+    print('\n Python while takes ' + str(timer.time()-time1) + '\n')
+    sys.stdout.flush()
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 

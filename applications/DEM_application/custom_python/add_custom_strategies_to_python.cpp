@@ -149,6 +149,7 @@ namespace Kratos
           "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
+                  .def("DoAllOperations", &ExplicitSolverStrategyType::DoAllOperations)
           ;
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>

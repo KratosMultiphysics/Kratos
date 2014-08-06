@@ -57,7 +57,8 @@ namespace Kratos
           double density            = GetDensity();          
           double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);          
           
-          double mass               = 4.0 / 3.0 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
+          //double mass               = 4.0 / 3.0 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
+          double mass               = 1.33333333333333333 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);          
           mSqrtOfRealMass           = sqrt_of_mass;
 
@@ -265,7 +266,7 @@ namespace Kratos
                           
                     array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
                     double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-                    double inv_distance                     = 1/distance;
+                    double inv_distance                     = 1.0/distance;
                     double other_to_me_vect_unitary[3]      = {0.0};
                     other_to_me_vect_unitary[0]             = other_to_me_vect[0] * inv_distance;
                     other_to_me_vect_unitary[1]             = other_to_me_vect[1] * inv_distance;
@@ -280,7 +281,7 @@ namespace Kratos
                     double RotaAcc[3]                      = {0.0};
                     const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
                     double dt = rCurrentProcessInfo[DELTA_TIME];
-                    double dt_i = 1 / dt;
+                    double dt_i = 1.0 / dt;
                     RotaAcc[0]                         = ang_vel[0] * dt_i;
                     RotaAcc[1]                         = ang_vel[1] * dt_i;
                     RotaAcc[2]                         = ang_vel[2] * dt_i;
@@ -290,8 +291,9 @@ namespace Kratos
                     initial_rotation_moment[0]               = RotaAcc[0] * moment_of_inertia;
                     initial_rotation_moment[1]               = RotaAcc[1] * moment_of_inertia;
                     initial_rotation_moment[2]               = RotaAcc[2] * moment_of_inertia;
-                    
-                    ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, neighbour_iterator);
+                    if (this->Is(DEMFlags::HAS_ROTATION) ) {
+                        ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, neighbour_iterator);
+                    }
               
                 }
           } //if( this->Is(DEMFlags::HAS_ROTATION) ) 
@@ -377,7 +379,11 @@ namespace Kratos
           double myYoung = GetYoung();
           double myPoisson = GetPoisson();
 
-          ComputeNewNeighboursHistoricalData();
+          
+          std::vector<int> mTempNeighboursIds;
+          std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
+          std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
+          ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces, mTempNeighbourTotalContactForces);
 
           //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
           for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
@@ -386,10 +392,9 @@ namespace Kratos
               //const double &other_radius              = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
               const double &other_radius              = neighbour_iterator->GetRadius();
               double radius_sum                       = mRadius + other_radius;
-              double radius_sum_i                     = 1 / radius_sum;
-              double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
+              double radius_sum_i                     = 1.0 / radius_sum;
+              double equiv_radius                     = 2.0 * mRadius * other_radius * radius_sum_i;
               double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-              double corrected_area                   = equiv_area;
               double equiv_young;
               double equiv_poisson;
               double kn;
@@ -402,12 +407,12 @@ namespace Kratos
               const double other_young           = neighbour_iterator->GetYoung();
               const double other_poisson         = neighbour_iterator->GetPoisson();
 
-              equiv_young                         = 2 * myYoung * other_young / (myYoung + other_young);
-              equiv_poisson                       = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
+              equiv_young                         = 2.0 * myYoung * other_young / (myYoung + other_young);
+              equiv_poisson                       = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
           
 
        
-              kn                                  = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+              kn                                  = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
               kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
            
 
@@ -424,8 +429,8 @@ namespace Kratos
                    break;
 
                    case 1:
-                        aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourElasticContactForces[i_neighbour_count][2]), 5 / 3);
-                        added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3);
+                        aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourElasticContactForces[i_neighbour_count][2]), 5 / 3); //error: substitute divisions by known result!!!
+                        added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3); //error: substitute divisions by known result!!!
 
                    break;
 
@@ -472,11 +477,11 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-     void SphericParticle::ComputeNewNeighboursHistoricalData()
+     void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+                                                       std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces)
      {
        unsigned int new_size                = mNeighbourElements.size();
        
-       unsigned int neighbour_counter       = 0;
        mTempNeighboursIds.resize(new_size);       
        
        mTempNeighbourElasticContactForces.resize(new_size);
@@ -486,24 +491,23 @@ namespace Kratos
        vector_of_zeros[1]                   = 0.0;
        vector_of_zeros[2]                   = 0.0;
 
-       for (unsigned int j = 0; j < mNeighbourElements.size(); j++) {
-           SphericParticle* i = mNeighbourElements[j];
+       for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+           SphericParticle* i_neighbour = mNeighbourElements[i];
 
-           mTempNeighboursIds[neighbour_counter] = static_cast<int>(i->Id());
-           mTempNeighbourElasticContactForces[neighbour_counter] = vector_of_zeros;
-           mTempNeighbourTotalContactForces[neighbour_counter] = vector_of_zeros;
+           mTempNeighboursIds[i] = static_cast<int>(i_neighbour->Id());
+           mTempNeighbourElasticContactForces[i] = vector_of_zeros;
+           mTempNeighbourTotalContactForces[i] = vector_of_zeros;
 
            for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++){
 
-               if (static_cast<int>(i->Id()) == mOldNeighbourIds[j]){
-                   mTempNeighbourElasticContactForces[neighbour_counter] = mOldNeighbourElasticContactForces[j];
-                   mTempNeighbourTotalContactForces[neighbour_counter]   = mOldNeighbourTotalContactForces[j];
+               if (static_cast<int>(i_neighbour->Id()) == mOldNeighbourIds[j]){
+                   mTempNeighbourElasticContactForces[i] = mOldNeighbourElasticContactForces[j];
+                   mTempNeighbourTotalContactForces[i]   = mOldNeighbourTotalContactForces[j];
                    break;
                }
 
             }
 
-            neighbour_counter++;
         }
 
         mOldNeighbourIds.swap(mTempNeighboursIds);
@@ -755,11 +759,6 @@ namespace Kratos
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
               const double &other_radius              = neighbour_iterator->GetRadius();
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-              /*double inv_distance                     = 1 / distance;
-              double unitary_other_to_me_vect [3] = {0.0};
-              unitary_other_to_me_vect[0] = other_to_me_vect[0] * inv_distance;
-              unitary_other_to_me_vect[1] = other_to_me_vect[1] * inv_distance;
-              unitary_other_to_me_vect[2] = other_to_me_vect[2] * inv_distance;*/
               
               double radius_sum                       = mRadius + other_radius;
               double indentation                      = radius_sum - distance;
@@ -1063,8 +1062,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
           }
           else if(ShearForceNow > ShearForceMax)
           {
-            LocalElasticContactForce[0] = ShearForceMax / ShearForceNow * LocalElasticContactForce[0];
-            LocalElasticContactForce[1] = ShearForceMax / ShearForceNow * LocalElasticContactForce[1];
+            double inv_ShearForceNow = 1.0 / ShearForceNow;
+            LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
+            LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
 
             If_sliding = true;
           }
@@ -1113,23 +1113,19 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
         
 
          double LocalContactForce[3] =                 {0.0};
-         //double ViscoDampingGlobalContactForce[3] =    {0.0}; 
          double GlobalContactForce[3] =                {0.0};
         
          AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                  GlobalElasticContactForce,ViscoDampingLocalContactForce,/*ViscoDampingGlobalContactForce,rContactForce,*/rElasticForce,
-                                  i);
+                                  GlobalElasticContactForce,ViscoDampingLocalContactForce,rElasticForce, i);
         
- 
-        //if (mRotationOption)
-        if (this->Is(DEMFlags::HAS_ROTATION) )
+        if ( this->Is(DEMFlags::HAS_ROTATION) ){    
+                  ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbour!!
+        }  
+        /*if (this->Is(DEMFlags::HAS_ROTATION) )
         {
           double MA[3]                     = {0.0};
           double RotaMoment[3]             = {0.0};
 
-          //RotaMoment[0] = rContactMoment[0];
-          //RotaMoment[1] = rContactMoment[1];
-          //RotaMoment[2] = rContactMoment[2];
           RotaMoment[0] = mContactMoment[0];
           RotaMoment[1] = mContactMoment[1];
           RotaMoment[2] = mContactMoment[2];
@@ -1140,11 +1136,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
           RotaMoment[1] -= MA[1] * mRadius;
           RotaMoment[2] -= MA[2] * mRadius;
 
-          //if (mRollingFrictionOption)
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
-          {  // Rolling friction type
-            //double rolling_friction             = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_FRICTION);
-              
+          {  // Rolling friction type              
             
             double rolling_friction_coeff       = GetRollingFriction() * mRadius;
 
@@ -1202,14 +1195,11 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
           } // if (mRollingFrictionOption)
 
-          //rContactMoment[0] = RotaMoment[0];
-          //rContactMoment[1] = RotaMoment[1];
-          //rContactMoment[2] = RotaMoment[2];
           mContactMoment[0] = RotaMoment[0];
           mContactMoment[1] = RotaMoment[1];
           mContactMoment[2] = RotaMoment[2];
 
-        } //if (mRotationOption)
+        } //if (mRotationOption)*/
 
 
       }
@@ -1330,7 +1320,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
                          case 1:
                              equiv_young = myYoung / (1- myPoisson * myPoisson);
-                             kn                 = (4/3) * equiv_young * sqrt(mRadius);
+                             kn                 = 1.3333333333 * equiv_young * sqrt(mRadius);
                              kt                 = 2.0 * kn * (1 - myPoisson * myPoisson) / ((2.0 - myPoisson) * (1 + myPoisson));               
                  
                          break;
@@ -1825,7 +1815,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
                          case 1:
                              equiv_young      = myYoung / (1- myPoisson * myPoisson);
                              effective_radius = mRadius * CylinderRadius / (CylinderRadius - mRadius);
-                             kn                      = (4/3) * equiv_young * sqrt(effective_radius);
+                             kn                      = 1.3333333333 * equiv_young * sqrt(effective_radius);
                              kt                      = 2.0 * kn * (1 - myPoisson * myPoisson) / ((2.0 - myPoisson) * (1 + myPoisson));               
                  
                          break;
@@ -2195,92 +2185,89 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
                                                                       double& equiv_visco_damp_coeff_normal,
                                                                       double& equiv_visco_damp_coeff_tangential,
                                                                       double& equiv_tg_of_fri_ang,
-                                                                      //ParticleWeakIteratorType neighbour_iterator)
                                                                       SphericParticle* neighbour_iterator)
       {
-          double myYoung = GetYoung();
-          double myPoisson = GetPoisson();
-          double myLnOfRestitCoeff = GetLnOfRestitCoeff();
-          double myTgOfFrictionAngle = GetTgOfFrictionAngle();
-        //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-        double other_sqrt_of_mass               = neighbour_iterator->GetSqrtOfRealMass();
-        //const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-        //const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_FRICTION);
-        const double other_ln_of_restit_coeff     = neighbour_iterator->GetLnOfRestitCoeff();
-        const double other_tg_of_fri_angle        = neighbour_iterator->GetTgOfFrictionAngle();
-        //const double &mLnOfRestitCoeff          = this->GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-
-        double radius_sum_i                     = 1 / radius_sum;
-        double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
-        double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-        double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
-        double equiv_ln_of_restit_coeff;
-        double aux_norm_to_tang;
-
-        // Globally defined parameters
-
+          
+        double other_sqrt_of_mass = neighbour_iterator->GetSqrtOfRealMass();        
+        double radius_sum_i = 1 / radius_sum;
+        double equiv_radius = 2 * mRadius * other_radius * radius_sum_i;
+        double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+        double equiv_mass = mSqrtOfRealMass * other_sqrt_of_mass;
+         
+        double myYoung = GetYoung();
+        double myPoisson = GetPoisson();
+        double myLnOfRestitCoeff = GetLnOfRestitCoeff();  
+        double myTgOfFrictionAngle = GetTgOfFrictionAngle();
         
+        double other_young;
+        double other_poisson;
+        double equiv_ln_of_restit_coeff;  
         double equiv_young;
         double equiv_poisson;
-        double corrected_area               = equiv_area;
-
-        //const double &other_young       = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
-        //const double &other_poisson     = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
-        const double other_young       = neighbour_iterator->GetYoung();
-        const double other_poisson     = neighbour_iterator->GetPoisson();
-        
-        double effective_radius         = 0.5 * equiv_radius;
-
+        double other_ln_of_restit_coeff;
+          
+        if( mFastProperties == neighbour_iterator->GetFastProperties() ) {
+            other_young = myYoung;
+            
+            other_poisson = myPoisson;
+            equiv_poisson = myPoisson;
+            
+            other_ln_of_restit_coeff = myLnOfRestitCoeff;
+            equiv_ln_of_restit_coeff = myLnOfRestitCoeff;
+            
+            equiv_tg_of_fri_ang = myTgOfFrictionAngle;
+            
+        }
+        else{
+            other_young = neighbour_iterator->GetYoung();            
+            
+            other_poisson = neighbour_iterator->GetPoisson();
+            equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson); 
+            
+            other_ln_of_restit_coeff = neighbour_iterator->GetLnOfRestitCoeff();
+            equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+            
+            const double other_tg_of_fri_angle = neighbour_iterator->GetTgOfFrictionAngle();                        
+            equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);                        
+        }   
+                
+                
         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
         
             case 0:
-                equiv_young                     = 2 * myYoung * other_young / (myYoung + other_young);
-                equiv_poisson                   = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
-
-                kn                              = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
-                aux_norm_to_tang                = sqrt(kt / kn);
+                equiv_young                     = 2.0 * myYoung * other_young / (myYoung + other_young);                
+                kn                              = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);                
                 
             break;
 
             case 1:
-                equiv_young                     = myYoung * other_young / (other_young * (1- myPoisson * myPoisson) + myYoung * (1- other_poisson * other_poisson));
-                equiv_poisson                   = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
-
-                kn                              = (4/3) * equiv_young * sqrt(effective_radius);
-                kt                              = 2.0 * kn * (1 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1 + equiv_poisson));
-                aux_norm_to_tang                = sqrt(kt / kn); 
+                equiv_young                     = myYoung * other_young / (other_young * (1.0 - myPoisson * myPoisson) + myYoung * (1.0 - other_poisson * other_poisson));
+                kn                              = 1.3333333333333 * equiv_young * sqrt(0.5 * equiv_radius);
+                kt                              = 2.0 * kn * (1.0 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1.0 + equiv_poisson));
           
             break;
 
             default:
-                equiv_young                     = 2 * myYoung * other_young / (myYoung + other_young);
-                equiv_poisson                   = 2 * myPoisson * other_poisson / (myPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
-
-                kn                              = equiv_young * corrected_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                equiv_young                     = 2.0 * myYoung * other_young / (myYoung + other_young);
+                kn                              = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
-                aux_norm_to_tang                = sqrt(kt / kn);
             break;
 
         }//switch
 
 
         if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
-            equiv_visco_damp_coeff_normal = 2 * sqrt(equiv_mass * kn);
+            equiv_visco_damp_coeff_normal = 2.0 * sqrt(equiv_mass * kn);
 
         }
 
         else {
 
-            equiv_visco_damp_coeff_normal = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
+            equiv_visco_damp_coeff_normal = - 2.0 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
         }
-
+        
+        double aux_norm_to_tang = sqrt(kt / kn);
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
 		
 
@@ -2418,9 +2405,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
           mFemOldNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalElasticContactForce[1];
           mFemOldNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalElasticContactForce[2];
 
-          //rContactForce[0] += GlobalContactForce[0];
-          //rContactForce[1] += GlobalContactForce[1];
-          //rContactForce[2] += GlobalContactForce[2];
           mContactForce[0] += GlobalContactForce[0];
           mContactForce[1] += GlobalContactForce[1];
           mContactForce[2] += GlobalContactForce[2];
@@ -2432,9 +2416,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
           //----------------------------------------------------------------------------------------------------------------------------------//
 
           ///Global stored contact force between rigid face and particle, used by fem elements
-        
-          //Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
-          //Vector& neighbour_rigid_faces_total_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE);
           std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
           std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
           
@@ -2475,12 +2456,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
               else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
               if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME,true);
               else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME,false);
-                                                           this->Set(DEMFlags::HAS_ROTATION_SPRING,false);
-              
-              /*if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
-              //    SetRollingFriction(???) this should be in other part
-                  mRollingFriction           = this->GetGeometry()[0].FastGetSolutionStepValue(ROLLING_FRICTION);
-              }*/
+                                                           this->Set(DEMFlags::HAS_ROTATION_SPRING,false);              
 
               AdditionalMemberDeclarationFirstStep(r_process_info);
           }
@@ -2615,12 +2591,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
           if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
               CalculateElasticEnergyOfContacts(Output);
               return;
-          }
-          
-          if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
-             ComputeNewNeighboursHistoricalData();
-             return;              
-          }
+          }                   
           
           if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
               ComputeNewRigidFaceNeighboursHistoricalData();

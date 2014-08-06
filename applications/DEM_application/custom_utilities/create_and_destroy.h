@@ -35,8 +35,33 @@
 #
 //SALVA_ENDING
 //const double prox_tol = 0.00000000001;
-namespace Kratos
-{
+namespace Kratos {
+
+    static double rand_normal(double mean, double stddev, double max_radius, double min_radius) {
+        
+        if(!stddev) return mean;
+        
+        double return_value;
+        
+        do {
+        
+            double x, y, r;
+
+            do {
+                x = 2.0 * rand() / RAND_MAX - 1;
+                y = 2.0 * rand() / RAND_MAX - 1;
+                r = x * x + y*y;
+            } while (r == 0.0 || r > 1.0);
+
+            double d = sqrt(-2.0 * log(r) / r);
+            return_value = x*d * stddev + mean;
+            
+        } while (return_value < min_radius || return_value > max_radius);
+        
+        return return_value;
+    }        
+    
+    
 class ParticleCreatorDestructor
 {
 public:
@@ -85,7 +110,7 @@ public:
 
     }
     
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool has_sphericity, bool has_rotation, bool initial)
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node ,double radius, Properties& params, bool has_sphericity, bool has_rotation, bool initial)
     {
         
       double bx= reference_node->X();
@@ -115,7 +140,7 @@ public:
         pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)        = params[PARTICLE_SPHERICITY];
       }      
       
-      pnew_node->FastGetSolutionStepValue(RADIUS)                       = params[RADIUS];
+      pnew_node->FastGetSolutionStepValue(RADIUS)                       = radius;
       array_1d<double, 3 > null_vector(3,0.0);                              
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
@@ -165,8 +190,21 @@ public:
                                               Properties::Pointer r_params, const Element& r_reference_element, PropertiesProxy* p_fast_properties, bool has_sphericity, bool has_rotation, bool initial) {          
         
       Node < 3 > ::Pointer pnew_node;
+      
+      double radius = (*r_params)[RADIUS];   
+      double max_radius = 1.5 * radius;
+      if(initial){
+          radius = max_radius;          
+      } else {
+        double std_deviation = (*r_params)[STANDARD_DEVIATION]; 
+
+        
+        double min_radius = 0.5 * radius;      
+
+        radius = rand_normal(radius, std_deviation, max_radius, min_radius);                      
+      }
             
-      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, *r_params, has_sphericity, has_rotation, initial); 
+      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
@@ -186,10 +224,8 @@ public:
       
       p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());      
       
-      Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());
-      
-      double radius = (*r_params)[RADIUS];      
-      
+      Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());       
+          
       spheric_p_particle->SetFastProperties(p_fast_properties) ;
             
       double density = spheric_p_particle->GetDensity();

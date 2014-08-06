@@ -169,29 +169,35 @@ public:
 	    double rad = Radius;
 
       double Centroid[3] = {0.0};
-      for(std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++)
+      int i_size = rObj_2->GetGeometry().size();
+      double d_size = (double) i_size;
+      double inv_d_size = 1 / d_size;
+      array_1d<double, 3>& coordinates_obj2_0 = rObj_2->GetGeometry()(0)->Coordinates();
+      array_1d<double, 3>& coordinates_obj2_1 = rObj_2->GetGeometry()(1)->Coordinates();
+      
+      for(int inode = 0; inode < i_size; inode++)
       {
-          Centroid[0] += rObj_2->GetGeometry()(inode)->Coordinates()[0] / (double)rObj_2->GetGeometry().size();
-          Centroid[1] += rObj_2->GetGeometry()(inode)->Coordinates()[1] / (double)rObj_2->GetGeometry().size();
-          Centroid[2] += rObj_2->GetGeometry()(inode)->Coordinates()[2] / (double)rObj_2->GetGeometry().size();
+          
+          Centroid[0] += rObj_2->GetGeometry()(inode)->Coordinates()[0] * inv_d_size;
+          Centroid[1] += rObj_2->GetGeometry()(inode)->Coordinates()[1] * inv_d_size;
+          Centroid[2] += rObj_2->GetGeometry()(inode)->Coordinates()[2] * inv_d_size;
       }
 
       
-      //CONTACT PARTICLE-LINE 2D
-      
-      if(rObj_2->GetGeometry().size() == 2)
+      //CONTACT PARTICLE-LINE 2D      
+      if(i_size == 2)
       {
         double Coord1[3]     = {0.0};
         double Coord2[3]     = {0.0};
         double tempWeight[2] = {0.0};
         
-        Coord1[0] = rObj_2->GetGeometry()(0)->Coordinates()[0];
-        Coord1[1] = rObj_2->GetGeometry()(0)->Coordinates()[1];
-        Coord1[2] = rObj_2->GetGeometry()(0)->Coordinates()[2];
+        Coord1[0] = coordinates_obj2_0[0];
+        Coord1[1] = coordinates_obj2_0[1];
+        Coord1[2] = coordinates_obj2_0[2];
 
-        Coord2[0] = rObj_2->GetGeometry()(1)->Coordinates()[0];
-        Coord2[1] = rObj_2->GetGeometry()(1)->Coordinates()[1];
-        Coord2[2] = rObj_2->GetGeometry()(1)->Coordinates()[2];
+        Coord2[0] = coordinates_obj2_1[0];
+        Coord2[1] = coordinates_obj2_1[1];
+        Coord2[2] = coordinates_obj2_1[2];
 
         ContactExists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad,
                                                                                   LocalCoordSystem,  tempWeight, DistPToB);
@@ -236,13 +242,13 @@ public:
         ////Cfeng: Triangle
         int FaceNodeTotal = 3;
 
-        Coord[0][0] = rObj_2->GetGeometry()(0)->Coordinates()[0];
-        Coord[0][1] = rObj_2->GetGeometry()(0)->Coordinates()[1];
-        Coord[0][2] = rObj_2->GetGeometry()(0)->Coordinates()[2];
+        Coord[0][0] = coordinates_obj2_0[0];
+        Coord[0][1] = coordinates_obj2_0[1];
+        Coord[0][2] = coordinates_obj2_0[2];
 
-        Coord[1][0] = rObj_2->GetGeometry()(1)->Coordinates()[0];
-        Coord[1][1] = rObj_2->GetGeometry()(1)->Coordinates()[1];
-        Coord[1][2] = rObj_2->GetGeometry()(1)->Coordinates()[2];
+        Coord[1][0] = coordinates_obj2_1[0];
+        Coord[1][1] = coordinates_obj2_1[1];
+        Coord[1][2] = coordinates_obj2_1[2];
 
         Coord[2][0] = rObj_2->GetGeometry()(2)->Coordinates()[0];
         Coord[2][1] = rObj_2->GetGeometry()(2)->Coordinates()[1];

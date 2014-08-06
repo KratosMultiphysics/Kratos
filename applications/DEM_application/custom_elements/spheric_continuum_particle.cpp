@@ -1083,7 +1083,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
   
   //VELL:
    
-  void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() 
+  void SphericContinuumParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+                                                       std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces) 
   {
     mTempNeighbourElements.swap(mNeighbourElements);//////////////////////////////////
 
@@ -1107,8 +1108,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     
     unsigned int neighbour_counter       = 0; //Not increased at every iteration!! only if found as a real neighbour.
 
-    for (unsigned int j = 0; j < mTempNeighbourElements.size(); j++) {
-      SphericParticle* i = mTempNeighbourElements[j];
+    for (unsigned int i = 0; i < mTempNeighbourElements.size(); i++) {
+      SphericParticle* i_neighbour = mTempNeighbourElements[i];
 
       double                ini_delta           = 0.0;
       int                   failure_id          = 1;
@@ -1121,7 +1122,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
       for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
       {
-        if (  static_cast<int>((i)->Id()) == mIniNeighbourIds[k]) //****
+        if (  static_cast<int>((i_neighbour)->Id()) == mIniNeighbourIds[k]) //****
         {                               
           ini_delta  = mIniNeighbourDelta[k];
           failure_id = mIniNeighbourFailureId[k];
@@ -1133,27 +1134,27 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                   
       //Loop Over Last time-step Neighbours
         for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
-        {
-          if ( static_cast<int>((i)->Id()) == mOldNeighbourIds[j])
+      {
+          if ( static_cast<int>((i_neighbour)->Id()) == mOldNeighbourIds[j])
           {
             neigh_elastic_forces = mOldNeighbourElasticContactForces[j];
             neigh_total_forces   = mOldNeighbourTotalContactForces[j];
             break;
           }
-        }
+      }
         
         //Judge if its neighbour            
-        double other_radius                 = i->GetRadius();
+        double other_radius                 = i_neighbour->GetRadius();
         double radius_sum                   = mRadius + other_radius;
-        array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
+        array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i_neighbour->GetGeometry()(0)->Coordinates();
         double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
         double indentation                  = radius_sum - distance - ini_delta;
         
         if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
         {        
-            mNeighbourElements.push_back(i);  ///////////////////////////////*/
+            mNeighbourElements.push_back(i_neighbour);  ///////////////////////////////*/
             
-            mTempNeighboursIds[neighbour_counter]              = static_cast<int>((i)->Id());
+            mTempNeighboursIds[neighbour_counter]              = static_cast<int>((i_neighbour)->Id());
             mTempNeighboursMapping[neighbour_counter]          = mapping_new_ini;
             mTempContNeighboursMapping[neighbour_counter]     = mapping_new_cont;                
             mTempNeighboursDelta[neighbour_counter]            = ini_delta;
@@ -1430,11 +1431,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       {
 
         KRATOS_TRY
-        
-        if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
-            ComputeNewNeighboursHistoricalData();
-            return;            
-        }
+               
         ////////////////////////////////////////////////////////////////////////
         if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
             ComputeNewRigidFaceNeighboursHistoricalData();
