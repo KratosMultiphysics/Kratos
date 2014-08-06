@@ -400,6 +400,10 @@ class ExplicitStrategy:
     def Solve(self):
         (self.solver).Solve()
 
+    def DoAllOperations(self,DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path):
+        (self.solver).DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path)
+        
+
     def Compute_RigidFace_Movement(self):
         (self.solver).Compute_RigidFace_Movement()
 

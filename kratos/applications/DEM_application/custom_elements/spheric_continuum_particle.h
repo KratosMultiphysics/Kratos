@@ -105,7 +105,8 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
-      void ComputeNewNeighboursHistoricalData();
+      void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+                                                       std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
       void ComputeNewRigidFaceNeighboursHistoricalData();
       
       virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) ;
@@ -330,13 +331,16 @@ namespace Kratos
         
         //fem neighbour information
         std::vector<double>               mFemNeighbourDelta;
+        std::vector<double>               mFemTempNeighboursDelta;
         
-        //ConditionWeakVectorType           mFemTempNeighbours;
         std::vector<DEMWall*>            mFemTempNeighbours;
         
         std::vector<int>                  mFemIniNeighbourIds;
         Vector                            mFemIniNeighbourDelta;
         std::vector<int>                  mFemMappingNewIni;
+        std::vector<int>                  mFemTempNeighboursMapping;
+        std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
+        std::vector<int> mFemTempNeighboursIds;
         
         
         //std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;

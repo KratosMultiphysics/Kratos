@@ -145,16 +145,7 @@ namespace Kratos
         double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
         NormalDirection[0] *= inv_distance;
         NormalDirection[1] *= inv_distance;
-        NormalDirection[2] *= inv_distance;
-        
-        /*int i = (fabs(NormalDirection[0])>=0.577);
-        i = (fabs(NormalDirection[1])>=0.577) ? 2 : i;
-        int j = (i+1) % 3;
-        int k = (i+2) % 3;
-            
-        LocalCoordSystem[0][k]= - NormalDirection[i];
-        LocalCoordSystem[0][i]= NormalDirection[k];
-        LocalCoordSystem[0][j]=0.0;*/                
+        NormalDirection[2] *= inv_distance;                      
        
       if(fabs(NormalDirection[0])>=0.577)
         {
