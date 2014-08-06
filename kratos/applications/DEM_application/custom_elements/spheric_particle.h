@@ -28,6 +28,7 @@
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "../custom_conditions/RigidFace.h"
 #include "../custom_conditions/dem_wall.h"
+#include "kratos_DEMApplication_export_dll.h"
 
 
 
@@ -59,7 +60,7 @@ namespace Kratos
   /** Detail class definition.
   */
   class DEMWall;
-  class SphericParticle : public DiscreteElement
+  class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericParticle : public DiscreteElement
     {
     public:
 
@@ -165,7 +166,10 @@ namespace Kratos
       virtual void PrintData(std::ostream& rOStream) const {}
 
 
-      virtual void ComputeNewNeighboursHistoricalData();
+      //virtual void ComputeNewNeighboursHistoricalData();
+      virtual void ComputeNewNeighboursHistoricalData( std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+                                                       std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
+            
       virtual void ComputeNewRigidFaceNeighboursHistoricalData();
       
       std::vector<SphericParticle*> mNeighbourElements;
@@ -321,19 +325,19 @@ namespace Kratos
       PropertiesProxy *mFastProperties;
       
       std::vector<int> mOldNeighbourIds;
-      std::vector<int> mTempNeighboursIds;
+      //std::vector<int> mTempNeighboursIds;
       std::vector< array_1d<double, 3> > mOldNeighbourElasticContactForces;            
-      std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
+      //std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
       std::vector< array_1d<double, 3> > mOldNeighbourTotalContactForces;
-      std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;      
+      //std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;      
 	  
       std::vector<int> mFemOldNeighbourIds;
       std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
-      std::vector<int> mFemTempNeighboursIds;
-      std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
+     
+      
 
-      std::vector<double>               mFemTempNeighboursDelta;
-      std::vector<int>                  mFemTempNeighboursMapping;
+      
+      
        
       ///@name Protected static Member Variables
       ///@{
