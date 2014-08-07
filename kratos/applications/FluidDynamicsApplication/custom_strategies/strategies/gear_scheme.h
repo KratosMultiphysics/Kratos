@@ -544,8 +544,8 @@ protected:
      * @param rDofSet Container for the Degrees of freedom in the system
      * @param Dx Solution of the linear system
      */
-    void UpdateDofs(DofsArrayType& rDofSet,
-                    TSystemVectorType& Dx)
+    virtual void UpdateDofs(DofsArrayType& rDofSet,
+                            TSystemVectorType& Dx)
     {
         KRATOS_TRY
 

@@ -274,11 +274,13 @@ public:
      * @param Dx Vector of nodal unknowns (increments to be added to each unknown value).
      * @param b System right hand side vector (unused).
      */
-    virtual void BasicUpdateOperations(ModelPart& r_model_part,
-                                       DofsArrayType& rDofSet,
-                                       TSystemMatrixType& A,
-                                       TSystemVectorType& Dx,
-                                       TSystemVectorType& b)
+//    virtual void BasicUpdateOperations(ModelPart& r_model_part,
+//                                       DofsArrayType& rDofSet,
+//                                       TSystemMatrixType& A,
+//                                       TSystemVectorType& Dx,
+//                                       TSystemVectorType& b)
+    virtual void UpdateDofs(DofsArrayType& rDofSet,
+                            TSystemVectorType& Dx)
     {
         KRATOS_TRY;
 

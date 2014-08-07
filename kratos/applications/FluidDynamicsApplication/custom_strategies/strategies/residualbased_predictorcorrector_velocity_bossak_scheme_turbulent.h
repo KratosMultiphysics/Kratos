@@ -682,6 +682,7 @@ namespace Kratos {
 
             rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
 
+            // Base scheme calls FinalizeSolutionStep method of elements and conditions
             Scheme<TSparseSpace, TDenseSpace>::FinalizeSolutionStep(rModelPart, A, Dx, b);
         }
 
