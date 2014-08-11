@@ -563,7 +563,7 @@ public:
 
 
     /**
-    function to be called when it is needed to initialize an iteration.
+    function to be called when it is needed to finalize an iteration.
     it is designed to be called at the end of each non linear iteration
      */
     virtual void FinalizeNonLinIteration(
