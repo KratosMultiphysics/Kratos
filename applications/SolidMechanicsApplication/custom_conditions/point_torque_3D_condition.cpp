@@ -132,6 +132,42 @@ void PointTorque3DCondition::GetDofList(DofsVectorType& ConditionalDofList,Proce
 //***********************************************************************************
 //***********************************************************************************
 
+void PointTorque3DCondition::AddExplicitContribution(const VectorType& rRHS, 
+						     const Variable<VectorType>& rRHSVariable, 
+						     Variable<array_1d<double,3> >& rDestinationVariable, 
+						     const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ForceResidual[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
 void PointTorque3DCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
