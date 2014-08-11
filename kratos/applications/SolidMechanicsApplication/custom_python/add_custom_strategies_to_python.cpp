@@ -97,9 +97,10 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
     typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;     
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
-  typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-  //custom scheme types - modified
-  typedef ResidualBasedStaticScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType_V2;
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+
+    //custom scheme types - modified
+    typedef ResidualBasedStaticScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType_V2;
     typedef ResidualBasedNewmarkScheme_V2< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType_V2;
     typedef ResidualBasedBossakScheme_V2< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType_V2;
 
@@ -260,67 +261,63 @@ void  AddCustomStrategiesToPython()
 
     // Solid Mechanics Explicit Strategy
     class_< ExplicitStrategyType, 
-      bases< BaseSolvingStrategyType >, boost::noncopyable >
-            (
+	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+      (
        "ExplicitStrategy",
-       init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool
-       >())
+       init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
       
-           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
-           .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
-           .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+         .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+      .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
+      .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
       ;
 
-
+    
     // Residual Based Newton-Raphson Strategy
     class_< ResidualBasedNewtonRaphsonStrategyType, 
-      bases< BaseSolvingStrategyType >, boost::noncopyable >
-            (
+	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+      (
        "ResidualBasedNewtonRaphsonStrategy",
-       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
-       >())
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
       
-           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-           .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
-           .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
-           .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
-           .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
-           .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
-           .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+      .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+      .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+      .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+      .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+      .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+      .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
       ;
-
+    
     // Component Wise Newton-Raphson Strategy
     class_< ComponentWiseNewtonRaphsonStrategyType, 
-      bases< BaseSolvingStrategyType >, boost::noncopyable >
-            (
+	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+      (
        "ComponentWiseNewtonRaphsonStrategy",
-       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
-       >())
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
       
-           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-           .def("SetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::SetMaxIterationNumber)
-           .def("GetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::GetMaxIterationNumber)
-           .def("SetInitializePerformedFlag", &ComponentWiseNewtonRaphsonStrategyType::SetInitializePerformedFlag)
-           .def("GetInitializePerformedFlag", &ComponentWiseNewtonRaphsonStrategyType::GetInitializePerformedFlag)
-           .def("SetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
-           .def("GetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+      .def("SetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::SetMaxIterationNumber)
+      .def("GetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::GetMaxIterationNumber)
+      .def("SetInitializePerformedFlag", &ComponentWiseNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+      .def("GetInitializePerformedFlag", &ComponentWiseNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+      .def("SetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+      .def("GetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
       ;
   
     // Residual Based Newton-Raphson Line Search Strategy
     class_< ResidualBasedNewtonRaphsonLineSearchStrategyType, 
       bases< BaseSolvingStrategyType >, boost::noncopyable >
-            (
+      (
        "ResidualBasedNewtonRaphsonLineSearchStrategy",
-       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
-       >())
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
       
-           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-           .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetMaxIterationNumber)
-           .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetMaxIterationNumber)
-           .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetInitializePerformedFlag)
-           .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetInitializePerformedFlag)
-           .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
-           .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
+      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+      .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetMaxIterationNumber)
+      .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetMaxIterationNumber)
+      .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetInitializePerformedFlag)
+      .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetInitializePerformedFlag)
+      .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
+      .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
       ;
      
 
