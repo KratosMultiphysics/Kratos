@@ -678,12 +678,14 @@ DatafileIO::DatafileIO(const std::string& rDatafile)
 
     Timer::SetOuputFile(rDatafile + ".time");
 
-    std::cout << rDatafile << " opened for io" << std::endl;
-    std::cout << node_filename << " opened for io" << std::endl;
-    std::cout << properties_filename << " opened for io" << std::endl;
-    std::cout << element_filename << " opened for io" << std::endl;
-    std::cout << condition_filename << " opened for io" << std::endl;
-    std::cout << init_filename << " opened for io" << std::endl;
+    // std::cout << rDatafile << " opened for io" << std::endl;
+    // std::cout << node_filename << " opened for io" << std::endl;
+    // std::cout << properties_filename << " opened for io" << std::endl;
+    // std::cout << element_filename << " opened for io" << std::endl;
+    // std::cout << condition_filename << " opened for io" << std::endl;
+    // std::cout << init_filename << " opened for io" << std::endl;
+    std::cout << "[ \"" <<rDatafile << "\" ] "<< std::endl;
+    std::cout << "[ Opened for IO: .node, .prop, .elem, .cond, .init  ]" << std::endl;
 
     mNodeDatafileStream.open(node_filename.c_str(), std::ios::out | std::ios::app);
     mPropertiesDatafileStream.open(properties_filename.c_str(), std::ios::out | std::ios::app);

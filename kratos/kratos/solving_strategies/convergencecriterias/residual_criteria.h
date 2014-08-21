@@ -149,7 +149,7 @@ public:
         mAlwaysConvergedNorm  = AlwaysConvergedNorm;
         mInitialResidualIsSet = false;
 
-        //mActualizeRHSIsNeeded = false;
+	//mActualizeRHSIsNeeded = false;
     }
 
     /** Destructor.
@@ -191,7 +191,11 @@ public:
             else ratio = mCurrentResidualNorm/mInitialResidualNorm;
 
             if (r_model_part.GetCommunicator().MyPID() == 0)
+	      if (this->GetEchoLevel() == 1)
                 std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+
+	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = mCurrentResidualNorm/b_size;
 
             if (
                 ratio <= mRatioTolerance
@@ -200,6 +204,7 @@ public:
             )
             {
                 if (r_model_part.GetCommunicator().MyPID() == 0)
+		  if (this->GetEchoLevel() == 1)
                     std::cout << "Convergence is achieved." << std::endl;
                 return true;
             }
