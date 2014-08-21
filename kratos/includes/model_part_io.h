@@ -452,9 +452,9 @@ public:
                 ReadMeshBlock(rThisModelPart);
 
         }
-        std::cout << "lines read : " << mNumberOfLines;
+        std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
         std::cout << std::endl;
-        Timer::Stop("Reading Input");
+	Timer::Stop("Reading Input");
         KRATOS_CATCH("")
     }
 
@@ -590,7 +590,7 @@ public:
         WritePartitionIndices(output_files, NodesPartitions, NodesAllPartitions);
 
         WriteCommunicatorData(output_files, NumberOfPartitions, DomainsColoredGraph, NodesPartitions, ElementsPartitions, ConditionsPartitions, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
-        std::cout << "lines read : " << mNumberOfLines;
+        std::cout << "  [Total Lines Read : " << mNumberOfLines<<"]";
         std::cout << std::endl;
 
         for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
@@ -880,7 +880,7 @@ protected:
 
         SizeType number_of_nodes_read = 0;
 
-        std::cout << "Reading Nodes : ";
+        std::cout << "  [Reading Nodes    : ";
 
         while(!mInput.eof())
         {
@@ -905,7 +905,7 @@ protected:
             rThisNodes.push_back(temp_node);
             number_of_nodes_read++;
         }
-        std::cout << number_of_nodes_read << " nodes read" << std::endl;
+        std::cout << number_of_nodes_read << " nodes read]" << std::endl;
 
         unsigned int numer_of_nodes_read = rThisNodes.size();
         rThisNodes.Unique();
@@ -932,7 +932,7 @@ protected:
 
         SizeType number_of_nodes_read = 0;
 
-        std::cout << "Reading Nodes : ";
+        std::cout << "  [Reading Nodes    : ";
 
         while(!mInput.eof())
         {
@@ -957,7 +957,7 @@ protected:
             rModelPart.Nodes().push_back(temp_node);
             number_of_nodes_read++;
         }
-        std::cout << number_of_nodes_read << " nodes read" << std::endl;
+        std::cout << number_of_nodes_read << " nodes read]" << std::endl;
 
         unsigned int numer_of_nodes_read = rModelPart.Nodes().size();
         rModelPart.Nodes().Unique();
@@ -973,7 +973,7 @@ protected:
 //
 //	SizeType number_of_nodes_read = 0;
 //
-//	std::cout << "Reading Nodes : ";
+//      std::cout << "  [Reading Nodes    : ";
 //
 //        std::vector< unsigned int > id_vector;
 //        std::vector< array_1d<double,3> > coordinates_vector;
@@ -1028,7 +1028,7 @@ protected:
 //
 //
 //
-//        std::cout << number_of_nodes_read << " nodes read" << std::endl;
+//        std::cout << number_of_nodes_read << " nodes read]" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -1045,7 +1045,7 @@ protected:
 
         SizeType number_of_nodes_read = 0;
 
-        //std::cout << "Reading Nodes : ";
+	//std::cout << "  [Reading Nodes    : ";
 
         while(!mInput.eof())
         {
@@ -1062,7 +1062,7 @@ protected:
 
             number_of_nodes_read++;
         }
-        //std::cout << number_of_nodes_read << " nodes read" << std::endl;
+        //std::cout << number_of_nodes_read << " nodes read]" << std::endl;
 
         // Error check: look for duplicate nodes
         std::sort(found_ids.begin(),found_ids.end());
@@ -1186,7 +1186,7 @@ protected:
         std::string element_name;
 
         ReadWord(element_name);
-        std::cout << "Reading Elements : ";
+        std::cout << "  [Reading Elements : ";
 
         if(!KratosComponents<Element>::Has(element_name))
         {
@@ -1224,7 +1224,7 @@ protected:
             number_of_read_elements++;
 
         }
-        std::cout << number_of_read_elements << " " << element_name << " read" << std::endl;
+        std::cout << number_of_read_elements << " elements read] [Type: " <<element_name << "]" << std::endl;
         rThisElements.Unique();
 
         KRATOS_CATCH("")

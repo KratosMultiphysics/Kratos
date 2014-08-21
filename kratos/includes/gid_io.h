@@ -452,7 +452,7 @@ public:
      */
     void InitializeResultFile( std::string const& rResultFileName )
     {
-        std::cout << "initializing result files" << std::endl;
+        //std::cout << "initializing result files" << std::endl;
         mResultFileName = rResultFileName;
     }
 
