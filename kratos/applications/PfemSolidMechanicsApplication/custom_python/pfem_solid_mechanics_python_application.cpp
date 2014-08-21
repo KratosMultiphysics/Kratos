@@ -35,7 +35,8 @@ namespace Kratos
 
       class_<KratosPfemSolidMechanicsApplication, 
 	     KratosPfemSolidMechanicsApplication::Pointer, 
-	     bases<KratosSolidMechanicsApplication>, boost::noncopyable >("KratosPfemSolidMechanicsApplication")
+	     bases<KratosApplication>, boost::noncopyable >("KratosPfemSolidMechanicsApplication")
+	     //bases<KratosSolidMechanicsApplication>, boost::noncopyable >("KratosPfemSolidMechanicsApplication")
 	  ;
 
       AddCustomProcessesToPython();

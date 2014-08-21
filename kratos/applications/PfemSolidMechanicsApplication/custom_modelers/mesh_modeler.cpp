@@ -67,7 +67,8 @@ namespace Kratos
   {
     KRATOS_TRY
     
-    std::cout<<" INITIALIZE MESH DATA: [ number of domains = "<<NumberOfDomains<<" ]"<<std::endl;
+    if( mEchoLevel > 1 )
+      std::cout<<" INITIALIZE MESH DATA: [ number of domains = "<<NumberOfDomains<<" ]"<<std::endl;
     
     MeshingVariables Variables;
     Variables.Initialize();
@@ -128,7 +129,8 @@ namespace Kratos
 
     mMeshingVariables[MeshId].BoundingBox.IsSetFlag = false;
 
-    std::cout<<" SetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
+    if( mEchoLevel > 1 )
+      std::cout<<" SetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -167,10 +169,11 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.ReferenceError      = Error;  //2;
 
-
-    std::cout<<" CRITICAL RADIUS      : "<<mMeshingVariables[MeshId].Refine.CriticalRadius<<std::endl;
-    std::cout<<" CRITICAL SIDE        : "<<mMeshingVariables[MeshId].Refine.CriticalSide<<std::endl;
-    std::cout<<" CRITICAL DISSIPATION : "<<mMeshingVariables[MeshId].Refine.CriticalDissipation<<std::endl;
+    if( mEchoLevel > 0 ){
+      std::cout<<" CRITICAL RADIUS      : "<<mMeshingVariables[MeshId].Refine.CriticalRadius<<std::endl;
+      std::cout<<" CRITICAL SIDE        : "<<mMeshingVariables[MeshId].Refine.CriticalSide<<std::endl;
+      std::cout<<" CRITICAL DISSIPATION : "<<mMeshingVariables[MeshId].Refine.CriticalDissipation<<std::endl;
+    }
 
     KRATOS_CATCH(" ")
   }
@@ -209,7 +212,8 @@ namespace Kratos
 	mMeshingVariables[i].BoundingBox.Center    = Center;
 	mMeshingVariables[i].BoundingBox.Velocity  = Velocity;
 
-	std::cout<<" Bounding Box [ Radius: "<<Radius<<" Center: "<<Center<<" Velocity: "<<Velocity<<" ] "<<std::endl;
+	if( mEchoLevel > 1 )
+	  std::cout<<" Bounding Box [ Radius: "<<Radius<<" Center: "<<Center<<" Velocity: "<<Velocity<<" ] "<<std::endl;
 
       }
 
@@ -230,9 +234,21 @@ namespace Kratos
     if(NumberOfMeshes>1) 
       start=1;
 
+    bool out_buffer_active = true;
+    std::streambuf* buffer = NULL;
+    if( mEchoLevel == 0 ){
+      //std::cout<<" Deactivate cout "<<std::endl;
+      buffer = std::cout.rdbuf();
+      std::ofstream fout("/dev/null");
+      std::cout.rdbuf(fout.rdbuf());
+      //std::cout<<output(off,buffer);
+      out_buffer_active = false;
+    }
+
     //By the way: set meshes options from bools
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
+	
 	std::cout<<" GetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
 
 	if(mMeshingVariables[MeshId].RemeshFlag)
@@ -245,13 +261,25 @@ namespace Kratos
 	
 	if(mMeshingVariables[MeshId].ConstrainedFlag){
 	  rModelPart.GetMesh(MeshId).Set( CONSTRAINED_MESH );
-
+	  
 	  //Update Boundary Normals before Constrained Meshing
 	  // BoundaryNormalsCalculationUtilities BoundaryComputation;
 	  // BoundaryComputation.CalculateBoundaryNormals(rModelPart,2);
 	}
+	
+	// check mesh size introduced :: warning must be shown
+	if(!out_buffer_active)
+	  std::cout.rdbuf(buffer);
+	
+	mModelerUtilities.CheckCriticalRadius(rModelPart, mMeshingVariables[MeshId].Refine.CriticalRadius, MeshId);
+		
+	if(!out_buffer_active){
+	  buffer = std::cout.rdbuf();
+	  std::ofstream fout("/dev/null");
+	  std::cout.rdbuf(fout.rdbuf());
+	}
+	// check mesh size introduced :: warning must be shown
 
-	    
       }
 
     //Sort Conditions
@@ -434,7 +462,7 @@ namespace Kratos
       //BOUNDARY NORMALS SEARCH // SHRINKAGE FACTOR
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateBoundaryNormals(rModelPart,2);
+      BoundaryComputation.CalculateBoundaryNormals(rModelPart, 2, mEchoLevel);
 
       //LAPLACIAN SMOOTHING
       for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
@@ -470,6 +498,10 @@ namespace Kratos
 	}
 
     }
+
+    if(!out_buffer_active)
+      std::cout.rdbuf(buffer);
+
 
     KRATOS_CATCH(" ")
   }

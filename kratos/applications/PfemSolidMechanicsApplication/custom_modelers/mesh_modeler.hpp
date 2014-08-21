@@ -153,7 +153,7 @@ protected:
 	CriticalElements = 0;
       
 	InsertedNodes = 0;
-	RemovedNodes = 0 ;
+	RemovedNodes  = 0;
 	
 	InsertedBoundaryNodes = 0;
 	InsertedConditions = 0;
@@ -382,6 +382,19 @@ public:
   
     
     /**
+     * level of echo for the mesh modeler
+     */
+    virtual void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
+
+    int GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
+
+    /**
      * Remesh information is given to the modeler
      */
     void SetRemeshData (Element   const& rReferenceElement,
@@ -489,7 +502,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-  
+    int mEchoLevel;
+
     std::vector<MeshingVariables> mMeshingVariables;
     
     ModelerUtilities              mModelerUtilities;
@@ -509,6 +523,8 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    
 
    /**
      * Mesh Modeler :: Variables Transfer without remeshing

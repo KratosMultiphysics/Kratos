@@ -70,12 +70,13 @@ public:
     /// avg_elems ------ expected number of neighbour elements per node.,
     /// avg_nodes ------ expected number of neighbour Nodes
     /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    NodalNeighboursSearchProcess(ModelPart& model_part, unsigned int avg_elems = 10, unsigned int avg_nodes = 10, unsigned int method=0)
+  NodalNeighboursSearchProcess(ModelPart& model_part, unsigned int avg_elems = 10, unsigned int avg_nodes = 10, unsigned int method=0, int echo_level = 0)
         : mr_model_part(model_part)
     {
         mavg_elems = avg_elems;
         mavg_nodes = avg_nodes;
         m_method = method;
+	mEchoLevel = echo_level;
     }
 
     /// Destructor.
@@ -229,6 +230,7 @@ private:
     unsigned int mavg_elems;
     unsigned int mavg_nodes;
     unsigned int m_method;
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators

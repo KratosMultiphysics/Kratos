@@ -86,12 +86,14 @@ namespace Kratos
   
 		//second constructor
 		BoundarySkinBuildProcess(ModelPart& model_part,
-				     unsigned int dim = 2,
-				     unsigned int preserve = 1)
+					 unsigned int dim = 2,
+					 unsigned int preserve = 1,
+					 int echo_level = 0)
 			: mr_model_part(model_part)
 		{ 
 			m_preserve = preserve;
 			mdim=dim;
+			mEchoLevel = echo_level;
 		}
 
 		/// Destructor.
@@ -138,7 +140,8 @@ namespace Kratos
 			      }
 			    else
 			      {
-				std::cout<<"    [ Skin Search on Mesh["<<MeshId<<"] performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+				if( mEchoLevel > 1 )
+				  std::cout<<"    [ Skin Search on Mesh["<<MeshId<<"] performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
 				//PrintSkin(MeshId);
 			      }
 			  }
@@ -148,9 +151,10 @@ namespace Kratos
 
 			//ComputeBoundaryNormals BoundUtils;
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
-			BoundaryComputation.CalculateBoundaryNormals(mr_model_part,2);
+			BoundaryComputation.CalculateBoundaryNormals(mr_model_part, 2, mEchoLevel);
 			
-			std::cout<<" Boundary Normals Computed "<<std::endl;
+			if( mEchoLevel > 1 )
+			  std::cout<<" Boundary Normals Computed "<<std::endl;
 
 		};
 
@@ -158,8 +162,8 @@ namespace Kratos
 		void SetGlobalConditions()
 		{
 
-		  
-		  std::cout<<" [ OLD TOTAL CONDITIONS: "<<mr_model_part.NumberOfConditions()<<"] "<<std::endl;
+		  if( mEchoLevel > 1 )
+		    std::cout<<" [ OLD TOTAL CONDITIONS: "<<mr_model_part.NumberOfConditions()<<"] "<<std::endl;
 
 		  //contact conditions are located on Mesh_0
 		  ModelPart::ConditionsContainerType KeepConditions;
@@ -205,14 +209,16 @@ namespace Kratos
       
 		  mr_model_part.Conditions().swap(KeepConditions);
 
-		  std::cout<<" [ NEW TOTAL CONDITIONS: "<<mr_model_part.NumberOfConditions()<<"] "<<std::endl;
+		  if( mEchoLevel > 1 )
+		    std::cout<<" [ NEW TOTAL CONDITIONS: "<<mr_model_part.NumberOfConditions()<<"] "<<std::endl;
 
 		}
 
 		void ClearConditions(ModelPart::IndexType MeshId=0)
 		{
 		  
-		  std::cout<<" [ PREVIOUS CONDITONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
+		  if( mEchoLevel > 1 )
+		    std::cout<<" [ PREVIOUS CONDITONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
 		  //clone previous conditions
 		  //m_conditions = mr_model_part.Conditions(MeshId);
 		  
@@ -324,11 +330,13 @@ namespace Kratos
 			  
 
 			if(counter == totalcond){
-			  std::cout<<"   Condition Masters (mesh "<<MeshId<<"): LOCATED ["<<counter<<"]"<<std::endl;
+			  if( mEchoLevel > 1 )
+			    std::cout<<"   Condition Masters (mesh "<<MeshId<<"): LOCATED ["<<counter<<"]"<<std::endl;
 			  found=true;
 			}
 			else{
-			  std::cout<<"   Condition Masters (mesh "<<MeshId<<"): not LOCATED ["<<counter-totalcond<<"]"<<std::endl;
+			  if( mEchoLevel > 1 )
+			    std::cout<<"   Condition Masters (mesh "<<MeshId<<"): not LOCATED ["<<counter-totalcond<<"]"<<std::endl;
 			  found=false;
 			}
 			
@@ -425,7 +433,7 @@ namespace Kratos
 		ConditionsContainerType m_conditions;
 		unsigned int m_preserve;
 		unsigned int mdim;
-
+		int mEchoLevel;
 
 		///@}
 		///@name Private Operators
@@ -439,7 +447,7 @@ namespace Kratos
 
 		void PrintSkin (ModelPart::IndexType MeshId=0)
 		{
-			//PRINT SKIN:
+			//PRINT SKIN:		
 			std::cout<<" CONDITIONS: geometry nodes ("<<mr_model_part.Conditions(MeshId).size()<<")"<<std::endl;
 
 			ConditionsContainerType& rCond = mr_model_part.Conditions(MeshId);
@@ -705,13 +713,15 @@ namespace Kratos
 				all_assigned = false;
 			}
 
-			std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
+			if( mEchoLevel > 1 ){
 
-			if(all_assigned == true)
+			  std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
+
+			  if(all_assigned == true)
 			    std::cout<<"    Boundary Conditions RELOCATED "<<std::endl;
-			else
+			  else
 			    std::cout<<"    Boundary Conditions NOT relocated "<<std::endl;
-
+			}
 	
 			return true;
 		}
@@ -892,13 +902,14 @@ namespace Kratos
 				all_assigned = false;
 			}
 
-			std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
+			if( mEchoLevel > 1 ){
+			  std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
 
-			if(all_assigned == true)
+			  if(all_assigned == true)
 			    std::cout<<"Boundary Conditions RELOCATED "<<std::endl;
-			else
+			  else
 			    std::cout<<"Boundary Conditions NOT relocated "<<std::endl;
-
+			}
 	
 			return true;
 		};

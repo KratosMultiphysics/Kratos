@@ -19,6 +19,7 @@
 namespace Kratos
 {
 
+
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -1248,6 +1249,33 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double ModelerUtilities::CheckCriticalRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId)
+  {
+    KRATOS_TRY
+
+    double minimum_h = rCriticalRadius;
+    
+    for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+      {
+      
+	double nodal_h = i_node->FastGetSolutionStepValue(NODAL_H);
+	if( nodal_h < rCriticalRadius )
+	  minimum_h = nodal_h; 
+  
+      }
+
+    if( minimum_h < rCriticalRadius )
+      std::cout<<"   [ FAULT :: CRITICAL MESH SIZE :: supplied size is bigger than initial mesh size ] "<<std::endl;
+
+    return minimum_h;
+    
+    KRATOS_CATCH( "" )
+
+  }
 
 } // Namespace Kratos
 

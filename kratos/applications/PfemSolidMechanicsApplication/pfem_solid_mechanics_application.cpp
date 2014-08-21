@@ -102,8 +102,12 @@ namespace Kratos
   void KratosPfemSolidMechanicsApplication::Register()
   {
     // calling base class register to register Kratos components
-    //KratosApplication::Register();
-    KratosSolidMechanicsApplication::Register();
+    KratosApplication::Register();
+    //KratosSolidMechanicsApplication::Register();
+
+    std::cout << "      KRATOS' _ |  __|  __| \\   |                  " << std::endl;
+    std::cout << "             '__| |_   |_   |\\ /|                  " << std::endl;
+    std::cout << "            _|   _|    |__ _|  _|SOLID MECHANICS    " << std::endl;
     std::cout << "Initializing KratosPfemSolidMechanicsApplication... " << std::endl;
     
     //Register Elements

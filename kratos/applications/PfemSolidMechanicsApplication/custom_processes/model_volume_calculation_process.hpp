@@ -49,10 +49,11 @@ public:
     ///@{
 
     /// Default constructor.
-    ModelVolumeCalculationProcess(ModelPart& rModelPart, bool Axisymmetric) 
+    ModelVolumeCalculationProcess(ModelPart& rModelPart, bool Axisymmetric, int EchoLevel) 
       : mrModelPart(rModelPart)
     {
       mAxisymmetric = Axisymmetric;
+      mEchoLevel = EchoLevel;
     }
 
     ModelVolumeCalculationProcess(ModelPart& rModelPart) 
@@ -105,7 +106,8 @@ public:
 
       mModelVolume = ComputeModelVolume(mMeshVolume);
       
-      std::cout<<" [ Model Volume : "<<mModelVolume<<" ]"<<std::endl;
+      if( mEchoLevel > 0 )
+	std::cout<<"  [ Model Volume : "<<mModelVolume<<" ]"<<std::endl;
 
 
       // unsigned int start=0;
@@ -129,7 +131,8 @@ public:
       std::vector<double> MeshVolume;
       double ModelVolume = ComputeModelVolume(MeshVolume);
       
-      std::cout<<" [ Model Volume : "<<ModelVolume<<" ] [ Step increment : "<<ModelVolume-mModelVolume<<" ] "<<std::endl;
+      if( mEchoLevel > 0 )
+	std::cout<<"  [ Model Volume : "<<ModelVolume<<" ] [ Step increment : "<<ModelVolume-mModelVolume<<" ] "<<std::endl;
 
       // unsigned int start=0;
       // unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
@@ -219,6 +222,7 @@ private:
   
     std::vector<double> mMeshVolume;
   
+    int mEchoLevel;
 
     ///@}
     ///@name Un accessible methods

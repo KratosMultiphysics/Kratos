@@ -1055,7 +1055,7 @@ namespace Kratos
 	  {
 	    if( MeshingOptions.Is(MeshModeler::CONSTRAINED_MESH) )
 	      {
-		strcpy (meshing_options, "pYJq1.4arnC");  //"YYJaqrn" "YJq1.4arn" "Jq1.4arn"
+		strcpy (meshing_options, "pYJq1.4arnCQ");  //"YYJaqrn" "YJq1.4arn" "Jq1.4arn"
 		meshing_info = "Adaptive constrained remeshing executed";
 	      }
 	    else
@@ -3062,7 +3062,8 @@ namespace Kratos
 			
 		    if(NodalError[nodes_ids[in->Id()]] < rMeshingVariables.Refine.ReferenceError && mean_node_radius < size_for_criterion_error)
 		      {
-			// std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
+			//std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
+			//std::cout<<"   mean_node_radius "<<mean_node_radius<<" < "<<size_for_criterion_error<<" size_for_criterion_error"<<std::endl;
 			in->Set(TO_ERASE);
 			any_node_removed = true;
 			error_remove++;
@@ -3359,7 +3360,7 @@ namespace Kratos
 
     // number of removed nodes:
     rMeshingVariables.RemeshInfo.RemovedNodes = NumberOfNodes - rModelPart.NumberOfNodes(MeshId);
-    distance_remove =  inside_nodes_removed+ boundary_nodes_removed;
+    distance_remove =  inside_nodes_removed + boundary_nodes_removed;
 
     RemovedConditions -= rModelPart.NumberOfConditions(MeshId);
 
@@ -3485,9 +3486,15 @@ namespace Kratos
 		S1[0] = rConditionGeom1[1].X() - rConditionGeom1[0].X();
 		S1[1] = rConditionGeom1[1].Y() - rConditionGeom1[0].Y();
 	      
+		if(norm_2(S1)!=0)
+		  S1/=norm_2(S1);
+
 		//segment condition [2]
 		S2[0] = rConditionGeom2[1].X() - rConditionGeom2[0].X();
 		S2[1] = rConditionGeom2[1].Y() - rConditionGeom2[0].Y();
+
+		if(norm_2(S2)!=0)
+		  S2/=norm_2(S2);
 		  
 		// std::cout<<"     S1 "<<S1<<std::endl;
 		// std::cout<<"     S2 "<<S2<<std::endl;
@@ -3550,15 +3557,16 @@ namespace Kratos
 		  if(projection_normals!=0)
 		    relative_angle = projection_sides/projection_normals;
 		  
-		  condition_angle = (180.0/3.14159) * std::acos(relative_angle);
+		  if(relative_angle<=1 && relative_angle>=-1 )
+		    condition_angle = (180.0/3.14159) * std::acos(relative_angle);
 
 		  if(inner_prod(S1,N2)<0) 
 		    condition_angle *=(-1);
 
-		  // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
-		  // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
-		  // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
-		  // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
+		   // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
+		   // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
+		   // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
+		   // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
 
 		  if(condition_angle<critical_angle){
 		
@@ -3677,7 +3685,7 @@ namespace Kratos
       }
 	      
     
-    RemovedConditions -= rModelPart.Conditions(MeshId).size();
+    RemovedConditions = rModelPart.Conditions(MeshId).size() - RemovedConditions;
 
     std::cout<<"     [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
     std::cout<<"     [ NODES      ( removed : "<<RemovedNodes<<" ) ]"<<std::endl;

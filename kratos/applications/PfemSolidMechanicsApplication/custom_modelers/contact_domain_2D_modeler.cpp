@@ -92,7 +92,7 @@ namespace Kratos
 	
     //Update Boundary Normals before Contact Search
     BoundaryNormalsCalculationUtilities BoundaryComputation;
-    BoundaryComputation.CalculateBoundaryNormals(rModelPart,2);
+    BoundaryComputation.CalculateBoundaryNormals(rModelPart, 2, mEchoLevel);
 
     rModelPart.Conditions().Sort();
     rModelPart.Conditions().Unique();

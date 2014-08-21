@@ -13,6 +13,10 @@ class RigidWallUtility:
         self.model_part = model_part
         self.domain_size = domain_size
 
+        # definition of the echo level
+        if(hasattr(wall_configuration, "echo_level")):
+            self.echo_level = wall_configuration.echo_level
+
         # wall parameters
         self.rigid_wall_active = wall_configuration.rigid_wall
         self.number_of_walls = wall_configuration.number_of_walls
@@ -88,7 +92,7 @@ class RigidWallUtility:
                     self.rigid_wall_bbox[sizei].SetDimension(3)             
 
                 # rigid wall contact search process
-                self.contact_search_process.append(RigidWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part))
+                self.contact_search_process.append(RigidWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
     #
     def ExecuteContactSearch(self):
