@@ -14,7 +14,7 @@ print(ctime())
 # measure process time
 t0p = clock()
 # measure wall time
-# t0w = time()
+t0w = time()
 
 # ----------------------------------------------------------------#
 # --CONFIGURATIONS START--####################
@@ -366,7 +366,7 @@ solving_info.info_check()
 # measure process time
 tfp = clock()
 # measure wall time
-# tfw = time()
+tfw = time()
 
 print("::[KSM Simulation]:: [Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
 
