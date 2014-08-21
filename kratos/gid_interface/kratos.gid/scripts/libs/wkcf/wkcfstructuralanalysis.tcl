@@ -1522,12 +1522,12 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "${trailing_spaces}time_integration_method = \"$TimeIntegrationMethod\""
     puts $fileid "${trailing_spaces}explicit_integration_scheme = \"CentralDifferences\""
     puts $fileid "${trailing_spaces}time_step_prediction_level  = $TimeStepPredictionLevel"
-  puts $fileid ""
+    puts $fileid ""
   
     if {($useshells eq "Yes")||($usebeams eq "Yes")} {
-  puts $fileid "${trailing_spaces}RotationDofs = True"
+	puts $fileid "${trailing_spaces}RotationDofs = True"
     } else {
-  puts $fileid "${trailing_spaces}RotationDofs = False"
+	puts $fileid "${trailing_spaces}RotationDofs = False"
     }
     puts $fileid "${trailing_spaces}PressureDofs = False"
 
@@ -1542,13 +1542,13 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set SolutionType [::xmlutils::setXml $cxpath $cproperty]
     # WarnWinText "SolverType:$SolutionType"
     if {$SolutionType =="Dynamic"} {
-  puts $fileid "${trailing_spaces}scheme_type = \"DynamicSolver\""
+	puts $fileid "${trailing_spaces}scheme_type = \"DynamicSolver\""
     } elseif {$SolutionType =="Quasi-Static"} {
-  puts $fileid "${trailing_spaces}scheme_type = \"QuasiStaticSolver\""
+	puts $fileid "${trailing_spaces}scheme_type = \"QuasiStaticSolver\""
     } elseif {$SolutionType =="Pseudo-Dynamic"} {
-  puts $fileid "${trailing_spaces}scheme_type = \"PseudoDynamicSolver\""
+	puts $fileid "${trailing_spaces}scheme_type = \"PseudoDynamicSolver\""
     } elseif {$SolutionType =="Static"} {
-  puts $fileid "${trailing_spaces}scheme_type = \"StaticSolver\""
+	puts $fileid "${trailing_spaces}scheme_type = \"StaticSolver\""
     }
     # Analysis type
     set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
@@ -1707,7 +1707,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     }
     
     puts $fileid "WriteResults = \"PreMeshing\""
-    puts $fileid "echo_level = 1"
+    puts $fileid "echo_level = 0"
     puts $fileid ""
     puts $fileid "# graph_options"
     puts $fileid "PlotGraphs = \"False\"" 
