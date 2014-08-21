@@ -122,6 +122,7 @@ namespace Python
       .def("SetRigidWall",SetRigidWall)
       .def("SetRefiningBox",SetRefiningBox)
       .def("GenerateMesh",GenerateTriangleMesh)
+      .def("SetEchoLevel",&TriangularMesh2DModeler::SetEchoLevel)
       
       ;
 
@@ -130,6 +131,7 @@ namespace Python
 				    init< >())
       .def("GenerateContactMesh",GenerateTriangleContactMesh)
       .def("TransferContactData",TransferContactBoundaryData)
+      .def("SetEchoLevel",&ContactDomain2DModeler::SetEchoLevel)
       ;
 
 

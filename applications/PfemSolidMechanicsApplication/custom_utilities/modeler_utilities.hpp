@@ -207,6 +207,8 @@ public:
     
     bool CheckNodeCloseWallTip (std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
 
+    double CheckCriticalRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId = 0);
+
     ///@}
     ///@name Access
     ///@{

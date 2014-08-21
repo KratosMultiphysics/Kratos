@@ -94,9 +94,10 @@ public:
 
 	/// Calculates the area normal (unitary vector oriented as the normal).
 
-	void CalculateBoundaryNormals(ModelPart& rModelPart, int dimension)
+        void CalculateBoundaryNormals(ModelPart& rModelPart, int dimension, int EchoLevel = 0)
 	{
 
+	  mEchoLevel = EchoLevel;
 	  unsigned int start=0;
 	  unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
 	  if(NumberOfMeshes>1) 
@@ -105,7 +106,7 @@ public:
 	  //By the way: set meshes options from bools
 	  for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	    {
-	      
+	      	      
 	        //Reset Body Normal Variables:
  	        this->ResetBodyNormals(rModelPart,MeshId);
 
@@ -116,8 +117,11 @@ public:
 			
 		//solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
 		AddNormalsAndShrink(rModelPart,dimension,MeshId);
-			
+
+		if(mEchoLevel > 1) 
+		  std::cout<<"   Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
 	    }
+
 
 	  // For MPI: correct values on partition boundaries
 	  rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
@@ -129,7 +133,7 @@ public:
 
 	/// Calculates the normals of the BOUNDARY nodes using a consistent way: SOTO & CODINA
 	// fails in sharp edges angle<90
-       void CalculateBoundaryNormals(ModelPart& rModelPart)
+       void CalculateBoundaryNormals(ModelPart& rModelPart, int EchoLevel = 0)
 	{
 		KRATOS_TRY
 
@@ -291,6 +295,18 @@ private:
 	/*@} */
 	/**@name Member Variables */
 	/*@{ */
+        int mEchoLevel;
+  
+  	/*@} */
+	/**@name Private Operators*/
+	/*@{ */
+
+
+	/*@} */
+	/**@name Private Operations*/
+	/*@{ */
+
+
 	//this function adds the Contribution of one of the geometries
 	//to the corresponding nodes
 	static void CalculateUnityNormal2D(ConditionsArrayType::iterator it, array_1d<double,3>& An)
@@ -446,9 +462,11 @@ private:
 
 		      for(unsigned int i = 0; i < pGeom.size(); i++)
 			{
-			  //std::cout<<" Condition ID "<<ic->Id()<<" id "<<id<<std::endl;
-			  // if(Ids.size()<=pGeom[i].Id())
-			  //   std::cout<<" Shrink node in geom "<<pGeom[i].Id()<<" number of nodes "<<Ids.size()<<std::endl;
+			  if( mEchoLevel == 2 ){
+			    std::cout<<" Condition ID "<<ic->Id()<<" id "<<id<<std::endl;
+			    if(Ids.size()<=pGeom[i].Id())
+			      std::cout<<" Shrink node in geom "<<pGeom[i].Id()<<" number of nodes "<<Ids.size()<<std::endl;
+			  }
 			  
 			  if(Ids[pGeom[i].Id()]==0){
 			    Ids[pGeom[i].Id()]=id;
@@ -511,7 +529,8 @@ private:
 
 		    unsigned int normals_size = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]].size();
 				
-		    //std::cout<<" Id "<<Ids[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<std::endl;
+		    if( mEchoLevel == 2 )
+		      std::cout<<" Id "<<Ids[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<std::endl;
 
 		    storenorm.resize(normals_size);
 		    std::fill(storenorm.begin(), storenorm.end(), 0 );
@@ -759,16 +778,19 @@ private:
 		    }
 		    else{
 
-	  					
-		      Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
+		      //std::cout<<" Normal "<<Normal<<std::endl;
+
+		      if(norm_2(Normal)!=0)
+			Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
 	  
 		      for(unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neigbour faces
 			{    
 			  if (storenorm[esnod]!=1){
 		
 			    array_1d<double,3> AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-								
-			    AuxVector/=norm_2(AuxVector);
+							
+			    if(norm_2(AuxVector))
+			      AuxVector/=norm_2(AuxVector);
 		
 			    directiontol=inner_prod(AuxVector,Normal);
 		
@@ -806,10 +828,15 @@ private:
 
 		    if(shrink_factor!=0)
 		      {
-			//std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<std::endl;
+			if( mEchoLevel == 2 )
+			  std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<std::endl;
 			Normal/=shrink_factor;
 		      }
 		    else{
+
+		      if( mEchoLevel == 2 )
+			std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
+			
 		      shrink_factor=1;
 		      std::cout<<" ERROR: normal shrinkage calculation failed "<<std::endl;
 		    }
@@ -817,15 +844,6 @@ private:
 		    
 	      }
 	}
-
-	/*@} */
-	/**@name Private Operators*/
-	/*@{ */
-
-
-	/*@} */
-	/**@name Private Operations*/
-	/*@{ */
 
 
 	/*@} */

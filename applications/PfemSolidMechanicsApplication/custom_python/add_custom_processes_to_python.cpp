@@ -47,14 +47,14 @@ namespace Kratos
       
       class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "NodalNeighboursSearch", init<ModelPart&, unsigned int, unsigned int, unsigned int>()
+	 "NodalNeighboursSearch", init<ModelPart&, unsigned int, unsigned int, unsigned int, int>()
 	 )
 	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
 	;
       
       class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ElementalNeighboursSearch", init<ModelPart&, unsigned  int, unsigned int, unsigned int>()
+	 "ElementalNeighboursSearch", init<ModelPart&, unsigned  int, unsigned int, unsigned int, int>()
 	 )
 	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
 	;
@@ -64,7 +64,7 @@ namespace Kratos
 
       class_<BoundarySkinBuildProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "BuildBoundarySkin", init<ModelPart&, unsigned int, unsigned int>()
+	 "BuildBoundarySkin", init<ModelPart&, unsigned int, unsigned int, int>()
 	 )
 	;
 
@@ -73,7 +73,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "RigidWallContactSearch", init<RigidWallBoundingBox::Pointer, ModelPart&>()
+	 "RigidWallContactSearch", init<RigidWallBoundingBox::Pointer, ModelPart&, int>()
 	 )
 	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
 	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
@@ -84,7 +84,7 @@ namespace Kratos
 
       class_<ModelVolumeCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ModelVolumeCalculation", init<ModelPart&, int>()
+	 "ModelVolumeCalculation", init<ModelPart&, int, int>()
 	 )
 	 .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
 	 .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)

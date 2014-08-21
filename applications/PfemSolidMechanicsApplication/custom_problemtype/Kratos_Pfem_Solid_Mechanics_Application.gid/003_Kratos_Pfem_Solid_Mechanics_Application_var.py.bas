@@ -9,14 +9,25 @@ Solution_method = "Newton-Raphson"
 SolverType  = "*GenData(Solver_Type)"
 time_step = *GenData(Time_Step)
 nsteps = *GenData(Number_of_steps,INT)
+echo_level = *GenData(Echo_Level)
 
 #Solver Data
 #####################################
 
 class SolverSettings:
+    echo_level   = *GenData(Echo_Level)
     solver_type  = "mechanical_solver"
     domain_size  = *GenData(DOMAIN_SIZE,INT)
     scheme_type = "*GenData(Solver_Type)"
+*if(strcmp(GenData(Solver_Type),"Dynamic")==0)
+    time_integration_method = "*GenData(Time_Integration_Method)"
+*else
+    time_integration_method = "Implicit"
+*endif
+*if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
+    explicit_integration_scheme = "*GenData(Explicit_Scheme_Type)"
+    max_delta_time = time_step
+*endif
 *if(strcmp(GenData(Axisymmetric),"True")==0)
     model_type = "Axisymmetric"	    
 *else
@@ -91,6 +102,7 @@ MeshConditions.append(Conditions*ndomains)
 
 #set mesh modeler configuration
 class mesh_modeler_config:
+    echo_level = *GenData(Echo_Level)
     number_domains = *ndomains
     size_scale = 1
     critical_mesh_size = *GenData(Critical_Mesh_Size)
@@ -119,6 +131,7 @@ FindContacts = *GenData(FindContacts)
 FindRigidWallContacts = *GenData(Rigid_Wall_Contact)
 
 class contact_modeler_config:
+    echo_level               = *GenData(Echo_Level)
     contact_condition        = "*GenData(ContactCondition)"
     constrained_contact      = *GenData(Constrained_Contact)
     friction_active          = *GenData(Friction_Active)
@@ -131,6 +144,7 @@ class contact_modeler_config:
 
 #set rigid wall configuration
 class rigid_wall_config:
+    echo_level         = *GenData(Echo_Level)	
     rigid_wall         = *GenData(Rigid_Wall_Contact)
     size_scale         = 1
     contact_condition  = "*GenData(Contact_Condition)"
@@ -205,7 +219,6 @@ class GidOutputConfiguration:
 
 GiDWriteFrequency = *GenData(Write_Frequency)
 WriteResults = "*GenData(Write_Results)"
-echo_level = *GenData(Echo_Level)
 
 # graph_options
 PlotGraphs = "*GenData(Plot_Graphs)"

@@ -76,14 +76,16 @@ public:
     /// A better guess for the quantities above -> less memory occupied and faster algorithm
 
     ElementalNeighboursSearchProcess(ModelPart& model_part,
-                              unsigned int dim,
-                              unsigned int avg_elems = 10,
-                              unsigned int method=0)
+				     unsigned int dim,
+				     unsigned int avg_elems = 10,
+				     unsigned int method=0,
+				     int echo_level = 0)
         : mr_model_part(model_part)
     {
         mavg_elems = avg_elems;
         mdim=dim;
         m_method=method;
+	mEchoLevel = echo_level;
     }
 
     /// Destructor.
@@ -127,9 +129,10 @@ public:
         }
         else
         {
-            //print out the mesh generation time
-            std::cout<<"Neighbour Elements Search time = "<<auxiliary.elapsed()<<std::endl;
-            //PrintElementNeighbours();
+	  //print out the mesh generation time
+	  if( mEchoLevel > 1 )
+            std::cout<<"  Neighbour Elements Search time = "<<auxiliary.elapsed()<<std::endl;
+	  //PrintElementNeighbours();
         }
 
     };
@@ -239,7 +242,7 @@ private:
     unsigned int mavg_elems;
     unsigned int m_method;
     unsigned int mdim;
-
+    int mEchoLevel;
 
     ///@}
     ///@name Private Operators

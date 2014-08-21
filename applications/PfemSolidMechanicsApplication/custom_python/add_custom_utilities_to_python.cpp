@@ -60,8 +60,8 @@ namespace Kratos
       //***************NORMALS**************//
 
       // This is required to recognize the different overloads 
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalcBoundShrinkage)(ModelPart&,int);
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalcBoundClassical)(ModelPart&); 
+      typedef  void (BoundaryNormalsCalculationUtilities::*CalcBoundShrinkage)(ModelPart&, int, int);
+      typedef  void (BoundaryNormalsCalculationUtilities::*CalcBoundClassical)(ModelPart&, int); 
 
       CalcBoundShrinkage      CalcBoundNormals_Shrinkage     = &BoundaryNormalsCalculationUtilities::CalculateBoundaryNormals;
       CalcBoundClassical      CalcBoundNormals_Classical     = &BoundaryNormalsCalculationUtilities::CalculateBoundaryNormals;

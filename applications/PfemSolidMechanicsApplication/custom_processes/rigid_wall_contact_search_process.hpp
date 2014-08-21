@@ -63,10 +63,11 @@ public:
     RigidWallContactSearchProcess(ModelPart& rModelPart): mrModelPart(rModelPart) {}
 
 
-    RigidWallContactSearchProcess(SpatialBoundingBox::Pointer pRigidWall, ModelPart& rModelPart) 
+    RigidWallContactSearchProcess(SpatialBoundingBox::Pointer pRigidWall, ModelPart& rModelPart, int EchoLevel) 
       : mrModelPart(rModelPart)
     {
       mpRigidWall = pRigidWall;
+      mEchoLevel = EchoLevel;
     } 
 
     /// Destructor.
@@ -163,7 +164,7 @@ public:
 	  Point[2] = (*nd)->Z();
 
 	  // if( (*nd)->Is(BOUNDARY) )
-	  //   std::cout<<" Node "<<(*nd)->Id()<<" Is boundary "<<std::endl;
+	  //std::cout<<" Node "<<(*nd)->Id()<<" Is boundary "<<std::endl;
 
 	  //if( (*nd)->Is(BOUNDARY) ){
 	  //if( (*nd)->IsNot(RIGID) ){
@@ -212,7 +213,8 @@ public:
 	  }
 	}
       
-      std::cout<<" [ rigid contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
+      if( mEchoLevel >= 0 )
+	std::cout<<"  [ Rigid Contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
 
       KRATOS_CATCH( "" )
 	
@@ -244,8 +246,8 @@ public:
 	  }
 	}
 
-
-      std::cout<<" EXECUTE FINALIZE CONTACT : wall velocity:"<< mpRigidWall->Velocity()<<" wall nodes : "<<counter<<std::endl;
+      if( mEchoLevel >= 1 )
+	std::cout<<"  [ Finalize Wall Contact : wall velocity:"<< mpRigidWall->Velocity()<<" wall nodes : "<<counter<<std::endl;
 
       //Clean Rigid Contact Conditions
       ModelPart::ConditionsContainerType NonRigidContactConditions;
@@ -346,6 +348,7 @@ private:
 
     unsigned int mConditionsNumber;
 
+    int mEchoLevel;
     ///@}
     ///@name Un accessible methods
     ///@{

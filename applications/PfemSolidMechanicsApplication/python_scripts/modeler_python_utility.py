@@ -10,6 +10,7 @@ class ModelerUtility:
 
     def __init__(self, model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search):
 
+        self.echo_level = 1
         self.model_part = model_part
         self.domain_size = domain_size
 
@@ -30,6 +31,7 @@ class ModelerUtility:
             self.contact_modeler = ContactDomain2DModeler()
         # else:
             # self.contact_modeler = ContactDomain3DModeler()
+            
 
         # mesh modeler parameters
         self.alpha_shape = 2.4
@@ -61,8 +63,8 @@ class ModelerUtility:
         # time step meshing control parameters
 
         self.remesh_executed = False
-        self.contact_transfer_done = False
-         
+        self.contact_transfer_done = False             
+
     #
     def Initialize(self):
 
@@ -71,6 +73,8 @@ class ModelerUtility:
         
     #
     def InitializeDomains(self):
+
+        print("::[Modeler_Utility]:: Initialize Domains ")
 
         # set active search
         self.search_active = False
@@ -101,12 +105,12 @@ class ModelerUtility:
         method = 0
 
         # define search utility
-        nodal_neighbour_search = NodalNeighboursSearch(self.model_part, number_of_avg_elems, number_of_avg_nodes, method)
+        nodal_neighbour_search = NodalNeighboursSearch(self.model_part, number_of_avg_elems, number_of_avg_nodes, method, self.echo_level)
 
         # execute search:
         nodal_neighbour_search.Execute()
 
-        print(" Nodal Search executed ")
+        print("::[Modeler_Utility]:: Nodal Search executed ")
 
     #
     def SearchElementNeighbours(self):
@@ -116,12 +120,12 @@ class ModelerUtility:
         method = 0
 
         # define search utility
-        elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, number_of_avg_elems, method)
+        elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, number_of_avg_elems, method, self.echo_level)
 
         # execute search:
         elemental_neighbour_search.Execute()
 
-        print(" Elemental Search executed ")
+        print("::[Modeler_Utility]:: Elemental Search executed ")
 
     #
     def ComputeBoundaryNormals(self):
@@ -130,10 +134,10 @@ class ModelerUtility:
         normals_calculation = BoundaryNormalsCalculation()
 
         # execute calculation:
-        normals_calculation.CalculateBoundaryNormals(self.model_part, self.domain_size)
-        # normals_calculation.CalculateBoundaryUnitNormals(model_part)
+        normals_calculation.CalculateBoundaryNormals(self.model_part, self.domain_size, self.echo_level)
+        # normals_calculation.CalculateBoundaryUnitNormals(model_part, self.echo_level)
 
-        print(" Boundary Normals computed ")
+        print("::[Modeler_Utility]:: Boundary Normals computed ")
 
     #
     def BuildBoundarySkin(self):
@@ -142,12 +146,12 @@ class ModelerUtility:
         preserve = 1
 
         # define building utility
-        skin_build = BuildBoundarySkin(self.model_part, self.domain_size, preserve)
+        skin_build = BuildBoundarySkin(self.model_part, self.domain_size, preserve, self.echo_level)
 
         # execute building:
         skin_build.Execute()
 
-        print(" Boundary Skin Build executed ")
+        print("::[Modeler_Utility]:: Boundary Skin Build executed ")
 
     #
     def SearchNodalH(self):
@@ -162,18 +166,24 @@ class ModelerUtility:
                 # nodal_h  = node.GetSolutionStepValue(NODAL_H);
                 # print "nodal_h:",nodal_h
 
-            print(" Nodal H Search executed ")
+            print("::[Modeler_Utility]:: Nodal H Search executed ")
 
     #
     def BuildMeshModeler(self, configuration):
 
+        # definition of the echo level
+        if(hasattr(configuration, "echo_level")):
+            self.echo_level = configuration.echo_level
+
+        self.mesh_modeler.SetEchoLevel(self.echo_level)
+            
          # check domain consistency
         if(configuration.number_domains != len(configuration.mesh_conditions)):
-            print(" Number of Domain Meshing Conditions do not match ")
+            print("::[Modeler_Utility]:: Number of Domain Meshing Conditions do not match ")
 
         # check mesh consistency
         # if(configuration.number_domains != self.model_part.NumberOfMeshes):
-            # print " Number of Domain Meshing Conditions and Meshes in model_part do not match "
+            # print("::[Modeler_Utility]:: Number of Domain Meshing Conditions and Meshes in model_part do not match " )
 
         # set the domains number to mesh modeler
         self.mesh_modeler.SetInitialMeshData(configuration.number_domains)
@@ -230,11 +240,11 @@ class ModelerUtility:
             if(configuration.number_domains != 1):
                 domain = int(conditions["Subdomain"])
 
-            print("SET MESH DOMAIN DATA")
-            print(" --> Domain Remesh [", conditions["Subdomain"], "] ", conditions["MeshElement"], " Remesh: ", conditions["Remesh"])
+            print("::[Modeler_Utility]:: SET MESH DOMAIN DATA")
+            print("::[Modeler_Utility]:: DOMAIN [", conditions["Subdomain"],"] Remesh: ", conditions["Remesh"]," (Type:",conditions["MeshElement"],")" )
             # self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"Condition2D",,self.remesh,,self.constrained,,self.laplacian_smoothing,,self.jacobi_smoothing,,self.avoid_tip_elements,,self.alpha_shape,domain);
             self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", self.remesh, self.constrained, self.laplacian_smoothing, self.jacobi_smoothing, self.avoid_tip_elements, self.alpha_shape, self.offset_factor, domain)
-            print(" --> Domain Refine [", conditions["Subdomain"], "] ", "Refine: ", conditions["Refine"])
+            print("::[Modeler_Utility]:: DOMAIN [", conditions["Subdomain"],"] Refing: ", conditions["Refine"] )
 
             self.mesh_modeler.SetRefineData(self.refine, self.h_factor, configuration.critical_dissipation, critical_mesh_size, configuration.reference_error, domain)
 
@@ -260,6 +270,12 @@ class ModelerUtility:
         # if restart file is not loaded geometric searches are needed previously
         # find neighbours,find model skin, find nodal_h
 
+        # definition of the echo level
+        if(hasattr(contact_config, "echo_level")):
+            self.echo_level = contact_config.echo_level
+
+        self.contact_modeler.SetEchoLevel(self.echo_level)
+
         self.contact_condition = contact_config.contact_condition
 
         self.constrained_contact = contact_config.constrained_contact
@@ -281,7 +297,7 @@ class ModelerUtility:
     def InitialContactSearch(self):
 
         if(self.contact_search):
-            print(" CONTACT SEARCH START: ", self.contact_condition)
+            print("::[Modeler_Utility]:: CONTACT SEARCH START: ", self.contact_condition)
             self.ContactTransfer()
             self.contact_modeler.GenerateContactMesh(self.model_part, "Element2D", self.contact_condition, self.constrained_contact, self.alpha_shape, self.h_factor, self.contact_offset_factor, self.penalty_parameter, self.stability_parameter, self.friction_active, self.mu_static, self.mu_dynamic);
 
@@ -298,7 +314,7 @@ class ModelerUtility:
     def ContactTransfer(self):
 
         if(self.contact_transfer_done == False):
-            print(" TRANSFER CONTACTS")
+            print("::[Modeler_Utility]:: TRANSFER CONTACTS")
             self.contact_modeler.TransferContactData(self.model_part, self.initial_transfer);
             self.contact_transfer_done = True
 
@@ -306,7 +322,7 @@ class ModelerUtility:
     def ContactSearch(self):
 
         if(self.contact_search):
-            print(" CONTACT SEARCH : ", self.contact_condition)
+            print("::[Modeler_Utility]:: CONTACT SEARCH : ", self.contact_condition)
 
             self.ContactTransfer()
             self.contact_modeler.GenerateContactMesh(self.model_part, "Element2D", self.contact_condition, self.constrained_contact, self.alpha_shape, self.h_factor, self.contact_offset_factor, self.penalty_parameter, self.stability_parameter, self.friction_active, self.mu_static, self.mu_dynamic);
@@ -318,7 +334,7 @@ class ModelerUtility:
             if(self.contact_search):
                 self.ContactTransfer()
 
-            print("MESH DOMAIN")
+            print("::[Modeler_Utility]:: MESH DOMAIN...")
             self.mesh_modeler.GenerateMesh(self.model_part);
             self.remesh_executed = True
  
