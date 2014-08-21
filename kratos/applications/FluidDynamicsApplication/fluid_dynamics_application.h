@@ -76,7 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/bingham_vms.h"
-#include "custom_elements/dynamic_vms.h"
+//#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/stationary_stokes.h"
 #include "custom_elements/fractional_step.h"
@@ -92,6 +92,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/linear_wall_condition.h"
 #include "custom_elements/fractional_step_bingham.h"
 #include "custom_elements/fractional_step_discontinuous_bingham.h"
+
+#include "custom_elements/bingham_fluid.h"
+
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication
@@ -254,16 +257,16 @@ private:
     const VMS<2> mVMS2D;
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
-    /// 2D instance of the BinghamVMS element
-    const BinghamVMS<2> mBinghamVMS2D;
-    /// 3D instance of the BinghamVMS element
-    const BinghamVMS<3> mBinghamVMS3D;
-    /// 2D instance of the Dynamic Subscale element
-    const DynamicVMS<2> mDynamicVMS2D;
-    /// 3D instance of the Dynamic Subscale element
-    const DynamicVMS<3> mDynamicVMS3D;
-    const DynamicVMS<2> mDynamicVMS2D4N;
-    const DynamicVMS<3> mDynamicVMS3D8N;
+//    /// 2D instance of the BinghamVMS element
+//    const BinghamVMS<2> mBinghamVMS2D;
+//    /// 3D instance of the BinghamVMS element
+//    const BinghamVMS<3> mBinghamVMS3D;
+//    /// 2D instance of the Dynamic Subscale element
+//    const DynamicVMS<2> mDynamicVMS2D;
+//    /// 3D instance of the Dynamic Subscale element
+//    const DynamicVMS<3> mDynamicVMS3D;
+//    const DynamicVMS<2> mDynamicVMS2D4N;
+//    const DynamicVMS<3> mDynamicVMS3D8N;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
 
@@ -327,6 +330,21 @@ private:
     const FractionalStepDiscontinuousBingham<2> mFractionalStepDiscontinuousBingham2D;
     /// 3D instance of the fractional step discontinuous element non-Newtonian
     const FractionalStepDiscontinuousBingham<3> mFractionalStepDiscontinuousBingham3D;    
+
+    // Non-Newtonian variants
+
+    /// 2D Monolithic incompressible flow element with Bingham constitutive equation.
+    const BinghamFluid< VMS<2> > mBinghamVMS2D;
+    /// 3D Monolithic incompressible flow element with Bingham constitutive equation.
+    const BinghamFluid< VMS<3> > mBinghamVMS3D;
+    /// 2D Fractional step incompressible flow element with Bingham constitutive equation.
+    const BinghamFluid< FractionalStep<2> > mBinghamFractionalStep2D;
+    /// 3D Fractional step incompressible flow element with Bingham constitutive equation.
+    const BinghamFluid< FractionalStep<3> > mBinghamFractionalStep3D;
+
+    const BinghamFluid< FractionalStepDiscontinuous<2> > mBinghamFractionalStepDiscontinuous2D;
+    const BinghamFluid< FractionalStepDiscontinuous<3> > mBinghamFractionalStepDiscontinuous3D;
+
     ///@}
     ///@name Private Operators
     ///@{

@@ -33,12 +33,12 @@ namespace Kratos
 KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mDynamicVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))),GeometryData::GI_GAUSS_2),
-    mDynamicVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
-    mDynamicVMS2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
-    mDynamicVMS3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>()))),GeometryData::GI_GAUSS_2),
+//    mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+//    mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+//    mDynamicVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))),GeometryData::GI_GAUSS_2),
+//    mDynamicVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
+//    mDynamicVMS2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
+//    mDynamicVMS3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>()))),GeometryData::GI_GAUSS_2),
     mTwoFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mStationaryStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mStationaryStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -68,7 +68,13 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mFractionalStepBingham2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mFractionalStepBingham3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))), 
     mFractionalStepDiscontinuousBingham2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFractionalStepDiscontinuousBingham3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))) 
+    mFractionalStepDiscontinuousBingham3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mBinghamFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mBinghamFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mBinghamFractionalStepDiscontinuous2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mBinghamFractionalStepDiscontinuous3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {}
 
 void KratosFluidDynamicsApplication::Register()
@@ -79,7 +85,6 @@ void KratosFluidDynamicsApplication::Register()
 
     // Register Variables (defined in fluid_dynamics_application_variables.h)
     KRATOS_REGISTER_VARIABLE(PATCH_INDEX);
-    KRATOS_REGISTER_VARIABLE(TRACK_SUBSCALES);
     KRATOS_REGISTER_VARIABLE(TAUONE);
     KRATOS_REGISTER_VARIABLE(TAUTWO);
 //    KRATOS_REGISTER_VARIABLE(Y_WALL);
@@ -90,7 +95,10 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(VORTICITY);
     KRATOS_REGISTER_VARIABLE(COARSE_VELOCITY);
     
-    KRATOS_REGISTER_VARIABLE(BINGHAM_SMOOTHER)
+    // Non-Newtonian constitutive relations
+    KRATOS_REGISTER_VARIABLE(REGULARIZATION_COEFFICIENT);
+
+    KRATOS_REGISTER_VARIABLE(BINGHAM_SMOOTHER);
 
 
     // Register Elements
@@ -98,10 +106,10 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("VMS3D",mVMS3D);
     KRATOS_REGISTER_ELEMENT("BinghamVMS2D",mBinghamVMS2D);
     KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D);
-    KRATOS_REGISTER_ELEMENT("DynamicVMS2D",mDynamicVMS2D);
-    KRATOS_REGISTER_ELEMENT("DynamicVMS3D",mDynamicVMS3D);
-    KRATOS_REGISTER_ELEMENT("DynamicVMS2D4N",mDynamicVMS2D4N);
-    KRATOS_REGISTER_ELEMENT("DynamicVMS3D8N",mDynamicVMS3D8N);
+//    KRATOS_REGISTER_ELEMENT("DynamicVMS2D",mDynamicVMS2D);
+//    KRATOS_REGISTER_ELEMENT("DynamicVMS3D",mDynamicVMS3D);
+//    KRATOS_REGISTER_ELEMENT("DynamicVMS2D4N",mDynamicVMS2D4N);
+//    KRATOS_REGISTER_ELEMENT("DynamicVMS3D8N",mDynamicVMS3D8N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
 
     KRATOS_REGISTER_ELEMENT("StationaryStokes2D",mStationaryStokes2D);
@@ -116,13 +124,19 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("SpalartAllmaras3D",mSpalartAllmaras3D);
     
     KRATOS_REGISTER_ELEMENT("DPGVMS2D",mDPGVMS2D);
-    KRATOS_REGISTER_ELEMENT("DPGVMS3D",mDPGVMS3D);  
+    KRATOS_REGISTER_ELEMENT("DPGVMS3D",mDPGVMS3D);
     
     KRATOS_REGISTER_ELEMENT("FractionalStepBingham2D",mFractionalStepBingham2D);
     KRATOS_REGISTER_ELEMENT("FractionalStepBingham3D",mFractionalStepBingham3D);  
     KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuousBingham2D",mFractionalStepDiscontinuousBingham2D);
     KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuousBingham3D",mFractionalStepDiscontinuousBingham3D); 
-    
+
+    KRATOS_REGISTER_ELEMENT("BinghamVMS2D",mBinghamVMS2D);
+    KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D);
+    KRATOS_REGISTER_ELEMENT("BinghamFractionalStep2D",mBinghamFractionalStep2D);
+    KRATOS_REGISTER_ELEMENT("BinghamFractionalStep3D",mBinghamFractionalStep3D);
+    KRATOS_REGISTER_ELEMENT("BinghamFractionalStepDiscontinuous2D",mBinghamFractionalStepDiscontinuous2D);
+    KRATOS_REGISTER_ELEMENT("BinghamFractionalStepDiscontinuous3D",mBinghamFractionalStepDiscontinuous3D);
 
     // Register Conditions
     KRATOS_REGISTER_CONDITION("WallCondition2D",mWallCondition2D);

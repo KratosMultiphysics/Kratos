@@ -428,16 +428,16 @@ public:
              */
             if (rCurrentProcessInfo[OSS_SWITCH] != 1)
             {
-                double KinViscosity;
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+                double ElemSize = this->ElementSize(Area);
+                double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize, rCurrentProcessInfo);
+
                 // Get Advective velocity
                 array_1d<double, 3 > AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
+
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
+                this->CalculateTau(TauOne, TauTwo, AdvVel, ElemSize, Density, Viscosity, rCurrentProcessInfo);
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
                 this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss,gauss_gradients[igauss]);
@@ -526,7 +526,7 @@ public:
 // 		}
 // 		++LocalIndex;
 // 	    }
-	    AddBoundaryTerm(boundary_damp_matrix, DN_DX, N, face_normal, face_area, rCurrentProcessInfo);
+        AddBoundaryTerm(boundary_damp_matrix, DN_DX, N, face_normal, face_area, Volume, rCurrentProcessInfo);
 
 	    VectorType U = ZeroVector(16);
 	    int LocalIndex = 0;
@@ -602,23 +602,19 @@ public:
             else
                 negative_volume += wGauss;
             // Calculate this element's fluid properties
-            double Density, KinViscosity;
+            double Density;
             this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-            this->EvaluateInPoint(bf,BODY_FORCE,N);
 
-            double Viscosity;
-            this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-			
+            double ElemSize = this->ElementSize(Area);
+            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize, rCurrentProcessInfo);
+
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
+
             // Calculate stabilization parameters
             double TauOne, TauTwo;
-
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
-
-           // double Dt =  rCurrentProcessInfo[DELTA_TIME];
+            this->CalculateTau(TauOne, TauTwo, AdvVel, ElemSize, Density, Viscosity, rCurrentProcessInfo);
     
             this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss,Nenriched(igauss, 0),gauss_gradients[igauss]);
 //             if (ndivisions > 1)
@@ -868,11 +864,9 @@ public:
                     N[k] = Ngauss(igauss, k);
                 double wGauss = volumes[igauss];
                 // Calculate this element's fluid properties
-                double Density, KinViscosity;
+                double Density;;
                 this->EvaluateInPoint(Density, DENSITY, N);
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
                 // Get Advective velocity
                 array_1d<double, 3 > AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
@@ -937,14 +931,13 @@ public:
                     N[k] = Ngauss(igauss, k);
                 double wGauss = volumes[igauss];
                 // Calculate this element's fluid properties
-                double Density, KinViscosity;
+                double Density;
                 this->EvaluateInPoint(Density, DENSITY, N);
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
                 // Get Advective velocity
                 array_1d<double, 3 > AdvVel;
                 this->GetAdvectiveVel(AdvVel, N);
+
                 // Output containers
                 ElementalMomRes = ZeroVector(3);
                 ElementalMassRes = 0.0;
@@ -1013,16 +1006,13 @@ public:
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-            double Density,KinViscosity;
-            ElementBaseType::EvaluateInPoint(Density, DENSITY, N);
-            ElementBaseType::EvaluateInPoint(KinViscosity, VISCOSITY, N);
-
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            double Density;
+            this->EvaluateInPoint(Density, DENSITY, N);
+            double ElemSize = this->ElementSize(Area);
 
             rValues.resize(1, false);
 
-            rValues[0] = Viscosity;	    
+            rValues[0] = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 	  }
 
       }    
@@ -1398,7 +1388,7 @@ protected:
                 for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                 {
                     // Velocity block
-//                        K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+//                        K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
@@ -1446,8 +1436,8 @@ protected:
             FirstCol += BlockSize;
         }
 
-//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
-        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Density*Weight);
+//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
+        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
 	
 	
 	//add enrichment terms
@@ -1492,15 +1482,6 @@ protected:
 	  
     }    
     
-    /// Return an estimate for the element size h, used to calculate the stabilization parameters
-    /**
-     * Estimate the element size from its area or volume, required to calculate stabilization parameters.
-     * Note that its implementation is different for 2D or 3D elements.
-     * @see DPGVMS2D, DPGVMS3D for actual implementation
-     * @param Volume (in 3D) or Area (in 2D) of the element
-     * @return Element size h
-     */
-    double ElementSize(const double);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1541,17 +1522,16 @@ void AddBoundaryTerm(boost::numeric::ublas::bounded_matrix<double, 16, 16 >& rDa
 		              const array_1d<double, 4>& N_shape,
 			      const array_1d<double,3>& nn,
                               const double& Weight,
+                     const double ElementVolume,
 			      ProcessInfo& rCurrentProcessInfo)
 {
   
     const double OneThird = 1.0 / 3.0;     
     
-    double Density, KinViscosity;
+    double Density,Viscosity;
     ElementBaseType::EvaluateInPoint(Density, DENSITY, N_shape);
-    ElementBaseType::EvaluateInPoint(KinViscosity, VISCOSITY, N_shape);
-
-    double Viscosity;
-    this->GetEffectiveViscosity(Density,KinViscosity, N_shape, rShapeDeriv, Viscosity, rCurrentProcessInfo);
+    // NODAL viscosity (no Smagorinsky/non-newtonian behaviour)
+    ElementBaseType::EvaluateInPoint(Viscosity,VISCOSITY,N_shape);
     
     double viscos_weight = Weight *  OneThird * Viscosity * Density;
 

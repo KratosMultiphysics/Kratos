@@ -216,7 +216,7 @@ namespace Kratos
         /// Initializes the element and all geometric information required for the problem.
         virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 
-        /// Initialize viscosity, adding Smagorinsky eddy viscosity if it is active.
+
         virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
 
         /// Calculate the element's local contribution to the system for the current step.
@@ -280,37 +280,31 @@ namespace Kratos
         virtual void GetDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
 
+    
+        virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
+
         /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
         /**
-         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
          * @param rVariable Kratos vector variable to get
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
         virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                 std::vector<array_1d<double, 3 > >& rValues,
-                const ProcessInfo& rCurrentProcessInfo)
-        {
-            this->GetElementalValueForOutput< array_1d<double,3> >(rVariable,rValues);
-        }
+                const ProcessInfo& rCurrentProcessInfo);
 
         /// Obtain a double elemental variable, evaluated on gauss points.
         /**
-         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
          * @param rVariable Kratos vector variable to compute
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
          */
         virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                 std::vector<double>& rValues,
-                const ProcessInfo& rCurrentProcessInfo)
-        {
-            this->GetElementalValueForOutput<double>(rVariable,rValues);
-        }
+                const ProcessInfo& rCurrentProcessInfo);
 
-        /// Obtain a double elemental variable, evaluated on gauss points.
+        /// Obtain an array_1d<double,6> elemental variable, evaluated on gauss points.
         /**
-         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
          * @param rVariable Kratos vector variable to compute
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
@@ -322,9 +316,8 @@ namespace Kratos
             this->GetElementalValueForOutput< array_1d<double,6> >(rVariable,rValues);
         }
 
-        /// Obtain a double elemental variable, evaluated on gauss points.
+        /// Obtain a Vector elemental variable, evaluated on gauss points.
         /**
-         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
          * @param rVariable Kratos vector variable to compute
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
@@ -336,9 +329,8 @@ namespace Kratos
             this->GetElementalValueForOutput< Vector >(rVariable,rValues);
         }
 
-        /// Obtain a double elemental variable, evaluated on gauss points.
+        /// Obtain a Matrix elemental variable, evaluated on gauss points.
         /**
-         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
          * @param rVariable Kratos vector variable to compute
          * @param Output Will be filled with the values of the variable on integrartion points
          * @param rCurrentProcessInfo Process info instance
@@ -454,10 +446,39 @@ namespace Kratos
 
         double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
-       virtual  double EffectiveViscosity(const ShapeFunctionsType &rN,
-                                  const ShapeFunctionDerivativesType &rDN_DX,
-                                  double ElemSize,
-                                  const ProcessInfo &rCurrentProcessInfo);
+
+        /**
+         * @brief EffectiveViscosity Calculate the viscosity at given integration point, using Smagorinsky if enabled.
+         *
+         * The Smagorinsky model is used only if the C_SMAGORINSKY is defined on the elemental data container.
+         *
+         * @note: This function is redefined when using Non-Newtonian constitutive models. It is important to keep its
+         * signature, otherwise non-Newtonian models will stop working.
+         *
+         * @param Density The fluid's density at the integration point.
+         * @param rN Nodal shape functions evaluated at the integration points (area coordinates for the point).
+         * @param rDN_DX Shape function derivatives at the integration point.
+         * @param ElemSize Representative length of the element (used only for Smagorinsky).
+         * @param rProcessInfo ProcessInfo instance passed from the ModelPart.
+         * @return Effective viscosity, in dynamic units (Pa*s or equivalent).
+         */
+        virtual double EffectiveViscosity(double Density,
+                                          const ShapeFunctionsType &rN,
+                                          const ShapeFunctionDerivativesType &rDN_DX,
+                                          double ElemSize,
+                                          const ProcessInfo &rProcessInfo);
+
+        /**
+         * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5.
+         *
+         * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being
+         * defined on all fluid elements.
+         *
+         * @param rDN_DX Shape function derivatives at the integration point.
+         * @return GammaDot = (2SijSij)^0.5.
+         */
+        double EquivalentStrainRate(const ShapeFunctionDerivativesType &rDN_DX) const;
+
 
         /// Add integration point contribution to the mass matrix.
         /**
@@ -505,7 +526,7 @@ namespace Kratos
          * @param rAdvVel advection velocity
          * @param Area Elemental area
          * @param Density Density on integrartion point
-         * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+         * @param Viscosity Dynamic viscosity (mu) on integrartion point
          * @param rCurrentProcessInfo Process info instance
          */
         virtual void CalculateTau(double& TauOne,
@@ -635,14 +656,14 @@ namespace Kratos
             const SizeType NumNodes = rGeom.PointsNumber();
 
             rResult = 0.0;
-	    for(SizeType i = 0; i < NumNodes; i++)
-	    {
-	      const array_1d<double,3>& var = rGeom[i].FastGetSolutionStepValue(Var);
-	      for (SizeType d = 0; d < TDim; ++d)
-	      {
-		  rResult += rDN_DX(i,d) * var[d];
-	      }
-	    }
+            for(SizeType i = 0; i < NumNodes; i++)
+            {
+                const array_1d<double,3>& var = rGeom[i].FastGetSolutionStepValue(Var);
+                for (SizeType d = 0; d < TDim; ++d)
+                {
+                    rResult += rDN_DX(i,d) * var[d];
+                }
+            }
         }
 
         /// Helper function to print results on gauss points
@@ -654,7 +675,8 @@ namespace Kratos
         void GetElementalValueForOutput(const Kratos::Variable<TValueType>& rVariable,
                                         std::vector<TValueType>& rOutput)
         {
-            rOutput.resize(1);
+            unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+            rOutput.resize(NumValues);
             /*
              The cast is done to avoid modification of the element's data. Data modification
              would happen if rVariable is not stored now (would initialize a pointer to &rVariable
@@ -662,7 +684,10 @@ namespace Kratos
              goes out of scope.
              */
             const FractionalStep<TDim>* const_this = static_cast<const FractionalStep<TDim>*> (this);
-            rOutput[0] = const_this->GetValue(rVariable);
+            const TValueType& Val = const_this->GetValue(rVariable);
+
+            for (unsigned int i = 0; i < NumValues; i++)
+                rOutput[i] = Val;
         }
 
         ///@}

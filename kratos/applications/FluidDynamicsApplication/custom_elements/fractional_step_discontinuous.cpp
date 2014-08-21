@@ -160,14 +160,12 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
 
         // Evaluate required variables at the integration point
         double Density;
-        //        double Viscosity;
         //        array_1d<double,3> Velocity(3,0.0);
         //        array_1d<double,3> MeshVelocity(3,0.0);
         array_1d<double, 3 > BodyForce(3, 0.0);
         array_1d<double, 3 > MomentumProjection(3, 0.0);
 
         this->EvaluateInPoint(Density, DENSITY, N);
-        //        this->EvaluateInPoint(Viscosity,VISCOSITY,N);
         //        this->EvaluateInPoint(Velocity,VELOCITY,N);
         //        this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
         this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
@@ -187,7 +185,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         // Stabilization parameters
         array_1d<double, 3 > ConvVel(3, 0.0);
         this->EvaluateConvVelocity(ConvVel, N);
-        double Viscosity = this->EffectiveViscosity(N, rDN_DX, ElemSize, rCurrentProcessInfo);
+        double Viscosity = this->EffectiveViscosity(Density,N, rDN_DX, ElemSize, rCurrentProcessInfo);
         this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
         //TauOne = 0.0;
 
@@ -632,11 +630,11 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
 
                 const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
 
-                double ElemSize = this->ElementSize();
-                const double Viscosity = this->EffectiveViscosity(Ncontinuous, DN_DXcontinuous, ElemSize, rCurrentProcessInfo);
-
                 double Density;
                 this->EvaluateInPoint(Density, DENSITY, Ncontinuous);
+                double ElemSize = this->ElementSize();
+                const double Viscosity = this->EffectiveViscosity(Density, Ncontinuous, DN_DXcontinuous, ElemSize, rCurrentProcessInfo);
+
 
                 const double min_dist_in_viscous_term = 0.001 * ElemSize; //the 0.001 it is arbitrary. This terms is only to avoid divisions by zero
 
@@ -665,14 +663,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
 
                     const double di = std::max(min_dist_in_viscous_term, fabs(distances[i])); //avoid divisions by zero
 
-                    const double coeff_i = Density * Viscosity / di;
+                    const double coeff_i = Viscosity / di;
 
                     for (unsigned int j = i + 1; j < TDim + 1; j++)
                     {
                         array_1d<double, 3 > tangent_vj = prod(block, this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY));
 
                         const double dj = std::max(min_dist_in_viscous_term, fabs(distances[j])); //avoid divisions by zero
-                        const double coeff_j = Density * Viscosity / dj;
+                        const double coeff_j = Viscosity / dj;
 
                         unsigned int base_j = j * (TDim);
 

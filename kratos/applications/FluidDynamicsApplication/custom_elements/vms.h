@@ -175,6 +175,9 @@ public:
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
+    typedef array_1d<double, TNumNodes> ShapeFunctionsType;
+    typedef boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -327,57 +330,15 @@ public:
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-            double KinViscosity;
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            double ElemSize = this->ElementSize(Area);
+            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-
-            // Calculate stabilization parameters
+            // stabilization parameters
             double TauOne, TauTwo;
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area,Density, Viscosity, rCurrentProcessInfo);
+            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
 
             this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, Area,rCurrentProcessInfo[DELTA_TIME]);
         }
-//             else if (this->GetValue(TRACK_SUBSCALES) == 1)// Experimental: Dynamic tracking of ASGS subscales (see Codina 2002 Stabilized finite element ... using orthogonal subscales)
-//             {
-//                 /* We want to evaluate v * d(u_subscale)/dt. This term is zero in OSS, due the orthogonality of the two terms. in ASGS, we approximate it as
-//                  * d(u_s)/dt = u_s(last iteration) - u_s(previous time step) / DeltaTime where u_s(last iteration) = TauOne(MomResidual(last_iteration) + u_s(previous step)/DeltaTime)
-//                  */
-//                 array_1d<double, 3 > AdvVel;
-//                 this->GetAdvectiveVel(AdvVel, N);
-//
-//                 double KinViscosity;
-//                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-//
-//                 double Viscosity;
-//                 this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-//
-//                 double StaticTauOne;
-//                 this->CalculateStaticTau(StaticTauOne,AdvVel,Area,Viscosity);
-//
-//                 double TauOne,TauTwo;
-//                 this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Density,Viscosity,rCurrentProcessInfo);
-//
-//                 array_1d<double,3> ElemMomRes(3,0.0);
-//                 this->ASGSMomResidual(AdvVel,Density,ElemMomRes,N,DN_DX,1.0);
-//
-//                 const array_1d<double,3>& rOldSubscale = this->GetValue(SUBSCALE_VELOCITY);
-//                 const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-//
-// //                array_1d<double,3> Subscale = TauOne * (ElemMomRes + Density * rOldSubscale / DeltaTime);
-//                 const double C1 = 1.0 - TauOne/StaticTauOne;
-//                 const double C2 = TauOne / (StaticTauOne*DeltaTime);
-//
-//                 unsigned int LocalIndex = 0;
-//                 for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-//                 {
-//                     for(unsigned int d = 0; d < TDim; d++)
-//                         rRightHandSideVector[LocalIndex++] -= N[iNode] * Area * ( C1 * ElemMomRes[d] - C2 * rOldSubscale[d] );
-// //                        rRightHandSideVector[LocalIndex++] -= N[iNode] * Area * ( Subscale[d] - rOldSubscale[d] ) / DeltaTime;
-//                     LocalIndex++; // Pressure Dof
-//                 }
-//             }
     }
 
     /// Computes local contributions to the mass matrix
@@ -390,7 +351,6 @@ public:
      */
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
-//        rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
         // Resize and set to zero
@@ -419,19 +379,16 @@ public:
          */
         if (rCurrentProcessInfo[OSS_SWITCH] != 1)
         {
-            double KinViscosity;
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            double ElemSize = this->ElementSize(Area);
+            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-            // Calculate stabilization parameters
+            // stabilization parameters
             double TauOne, TauTwo;
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
+            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
             this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
@@ -467,32 +424,21 @@ public:
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
         // Calculate this element's fluid properties
-        double Density, KinViscosity;
+        double Density;
         this->EvaluateInPoint(Density, DENSITY, N);
-        this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
-        double Viscosity;
-        this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+        double ElemSize = this->ElementSize(Area);
+        double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 
         // Get Advective velocity
         array_1d<double, 3 > AdvVel;
         this->GetAdvectiveVel(AdvVel, N);
 
-        // Calculate stabilization parameters
+        // stabilization parameters
         double TauOne, TauTwo;
-        this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
+        this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
 
-        /*            if(this->GetValue(TRACK_SUBSCALES)==1)
-                    {
-                        const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-                        this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area,DeltaTime);
-                    }
-                    else
-                    {*/
         this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
-
-//        this->ModulatedGradientDiffusion(rDampingMatrix,DN_DX,Density*Area);
-//             }
 
         // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);
@@ -515,47 +461,6 @@ public:
 
     virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
-//             if(this->GetValue(TRACK_SUBSCALES) == 1)
-//             {
-//                 // Get this element's geometric properties
-//                 double Area;
-//                 array_1d<double, TNumNodes> N;
-//                 boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-//                 GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-//
-//                 // Calculate this element's fluid properties
-//                 double Density, KinViscosity;
-//                 this->EvaluateInPoint(Density, DENSITY, N);
-//                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-//
-//                 double Viscosity;
-//                 this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-//
-//                 // Get Advective velocity
-//                 array_1d<double, 3 > AdvVel;
-//                 this->GetAdvectiveVel(AdvVel, N);
-//
-//                 // Calculate stabilization parameters
-//                 double StaticTauOne;
-//                 this->CalculateStaticTau(StaticTauOne,AdvVel,Area,Viscosity);
-//
-//                 array_1d<double,3> ElementalMomRes(3,0.0);
-//
-//                 if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
-//                 {
-//                     this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
-//                 }
-//                 else // OSS
-//                 {
-//                     this->OSSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);;
-//                 }
-//
-//                 // Update subscale term
-//                 const double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
-//                 array_1d<double,3>& OldSubscaleVel = this->GetValue(SUBSCALE_VELOCITY);
-//                 array_1d<double,3> Tmp = ( 1.0/( 1.0/DeltaTime + 1.0/StaticTauOne)) * (Density*OldSubscaleVel/DeltaTime + ElementalMomRes);
-//                 OldSubscaleVel = Tmp;
-//             }
     }
 
     /// Implementation of Calculate to compute an error estimate.
@@ -584,12 +489,11 @@ public:
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
             // Calculate this element's fluid properties
-            double Density, KinViscosity;
+            double Density;
             this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            double ElemSize = this->ElementSize(Area);
+            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
@@ -600,7 +504,7 @@ public:
 
             // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
             double TauOne;
-            this->CalculateStaticTau(TauOne, AdvVel, Area,Density, Viscosity);
+            this->CalculateStaticTau(TauOne,AdvVel,ElemSize,Density,Viscosity);
 
             if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
             {
@@ -830,9 +734,8 @@ public:
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU)
+        if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
         {
-            double TauOne, TauTwo;
             double Area;
             array_1d<double, TNumNodes> N;
             boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
@@ -841,14 +744,16 @@ public:
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-            double Density,KinViscosity;
-            this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            double Density;
+            this->EvaluateInPoint(Density,DENSITY,N);
 
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            double ElemSize = this->ElementSize(Area);
+            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
+            // stabilization parameters
+            double TauOne, TauTwo;
+            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+
 
             rValues.resize(1, false);
             if (rVariable == TAUONE)
@@ -861,12 +766,26 @@ public:
             }
             else if (rVariable == MU)
             {
-                rValues[0] = Density * Viscosity;
+                rValues[0] = Viscosity;
             }
+            else if (rVariable == TAU)
+            {
+                double NormS = this->EquivalentStrainRate(DN_DX);
+                rValues[0] = Viscosity*NormS;
+            }
+        }
+        else if (rVariable == EQ_STRAIN_RATE)
+        {
+            double Area;
+            array_1d<double, TNumNodes> N;
+            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+            rValues.resize(1, false);
+            rValues[0] = this->EquivalentStrainRate(DN_DX);
         }
         else if(rVariable == SUBSCALE_PRESSURE)
         {
-            double TauOne, TauTwo;
             double Area;
             array_1d<double, TNumNodes> N;
             boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
@@ -875,14 +794,15 @@ public:
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-            double Density,KinViscosity;
-            this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            double Density;
+            this->EvaluateInPoint(Density,DENSITY,N);
 
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            double ElemSize = this->ElementSize(Area);
+            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
 
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
+            // stabilization parameters
+            double TauOne, TauTwo;
+            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
 
             double DivU = 0.0;
             for(unsigned int i=0; i < TNumNodes; i++)
@@ -892,7 +812,7 @@ public:
             }
 
             rValues.resize(1, false);
-            rValues[0] = TauTwo * DivU;// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
+            rValues[0] = TauTwo * DivU;
             if(rCurrentProcessInfo[OSS_SWITCH]==1)
             {
                 double Proj = 0.0;
@@ -1111,17 +1031,17 @@ protected:
      * @param TauOne First stabilization parameter (momentum equation)
      * @param TauTwo Second stabilization parameter (mass equation)
      * @param rAdvVel advection velocity
-     * @param Area Elemental area
+     * @param ElemSize Characteristic element length
      * @param Density Density on integrartion point
-     * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+     * @param Viscosity Dynamic viscosity (mu) on integrartion point
      * @param rCurrentProcessInfo Process info instance
      */
     virtual void CalculateTau(double& TauOne,
                               double& TauTwo,
                               const array_1d< double, 3 > & rAdvVel,
-                              const double Area,
+                              const double ElemSize,
                               const double Density,
-                              const double KinViscosity,
+                              const double Viscosity,
                               const ProcessInfo& rCurrentProcessInfo)
     {
         // Compute mean advective velocity norm
@@ -1131,13 +1051,9 @@ protected:
 
         AdvVelNorm = sqrt(AdvVelNorm);
 
-        const double Element_Size = this->ElementSize(Area);
-
-        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
-        //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 12.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        //TauTwo = Density * (KinViscosity + Element_Size * AdvVelNorm / 6.0);
-
+        double InvTau = Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 2.0*AdvVelNorm / ElemSize ) + 4.0*Viscosity/ (ElemSize * ElemSize);
+        TauOne = 1.0 / InvTau;
+        TauTwo = Viscosity + 0.5 * Density * ElemSize * AdvVelNorm;
     }
 
     /// Calculate momentum stabilization parameter (without time term).
@@ -1147,15 +1063,15 @@ protected:
      * is intended for error estimation only. In other cases use CalculateTau
      * @param TauOne First stabilization parameter (momentum equation)
      * @param rAdvVel advection velocity
-     * @param Area Elemental area
+     * @param ElemSize Characteristic element length
      * @param Density Density on integrartion point
-     * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+     * @param Viscosity Dynamic viscosity (mu) on integrartion point
      */
     virtual void CalculateStaticTau(double& TauOne,
                                     const array_1d< double, 3 > & rAdvVel,
-                                    const double Area,
+                                    const double ElemSize,
                                     const double Density,
-                                    const double KinViscosity)
+                                    const double Viscosity)
     {
         // Compute mean advective velocity norm
         double AdvVelNorm = 0.0;
@@ -1164,9 +1080,8 @@ protected:
 
         AdvVelNorm = sqrt(AdvVelNorm);
 
-        const double Element_Size = this->ElementSize(Area);
-
-        TauOne = 1.0 / (Density*(4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size));
+        double InvTau = 2.0*Density*AdvVelNorm / ElemSize + 4.0*Viscosity/ (ElemSize * ElemSize);
+        TauOne = 1.0 / InvTau;
     }
 
     /// Add the momentum equation contribution to the RHS (body forces)
@@ -1385,7 +1300,7 @@ protected:
                 for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                 {
                     // Velocity block
-                    //K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+                    //K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
@@ -1433,112 +1348,10 @@ protected:
             FirstCol = 0;
         }
 
-//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
-        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Density*Weight);
+//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
+        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
     }
 
-    /// Add a the contribution from a single integration point to the velocity contribution
-//         void AddIntegrationPointVelocityContribution(MatrixType& rDampingMatrix,
-//                                                      VectorType& rDampRHS,
-//                                                      const double Density,
-//                                                      const double Viscosity,
-//                                                      const array_1d< double, 3 > & rAdvVel,
-//                                                      const double TauOne,
-//                                                      const double TauTwo,
-//                                                      const array_1d< double, TNumNodes >& rShapeFunc,
-//                                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-//                                                      const double Weight,
-//                                                      const double DeltaTime)
-//         {
-//             const unsigned int BlockSize = TDim + 1;
-//
-//             const double TauCoef = TauOne*TauTwo / DeltaTime;
-//
-//             // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-//             array_1d<double, TNumNodes> AGradN;
-//             this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-//
-//             // Build the local matrix and RHS
-//             unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-//             double K, G, PDivV, L; // Temporary results
-//             double Coef = Density * Weight;
-//
-//             // Note that we iterate first over columns, then over rows to read the Body Force only once per node
-//             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
-//             {
-//                 // Get Body Force
-//                 const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);
-//
-//                 const array_1d<double,3>& OldVelocity = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
-//
-//                 for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
-//                 {
-//                     // Calculate the part of the contributions that is constant for each node combination
-//
-//                     // Velocity block
-//                     K = rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-//                     K += TauOne * AGradN[i] * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
-//
-//                     // q-p stabilization block (reset result)
-//                     L = 0;
-//
-//                     for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
-//                     {
-//                         // Velocity block
-// //                        K += Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
-//                         // Note that we are usig kinematic viscosity, as we will multiply it by density later
-//
-//                         // v * Grad(p) block
-//                         G = TauOne * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-//                         PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
-//
-//                         // Write v * Grad(p) component
-//                         rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
-//                         // Use symmetry to write the q * rho * Div(u) component
-//                         rDampingMatrix(FirstCol + TDim, FirstRow + m) += Coef * (G + PDivV);
-//
-//                         // q-p stabilization block
-//                         L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
-//
-//                         for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
-//                         {
-//                             // Velocity block
-//                             rDampingMatrix(FirstRow + m, FirstCol + n) += Coef * (TauTwo + TauCoef) * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo *( 1+TauOne/Dt) * Div(u)
-//                             rDampRHS[FirstRow + m] -= Coef * TauCoef * rShapeDeriv(i, m) * rShapeDeriv(j, n) * OldVelocity[n]; // Stabilization: Div(v) * TauTwo*TauOne/Dt * Div(u_old)
-//                         }
-//
-//                     }
-//
-//                     // Write remaining terms to velocity block
-//                     K *= Coef; // Weight by nodal area and density
-//                     for (unsigned int d = 0; d < TDim; ++d)
-//                         rDampingMatrix(FirstRow + d, FirstCol + d) += K;
-//
-//                     // Write q-p stabilization block
-//                     rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
-//
-//                     // Operate on RHS
-//                     L = 0; // We reuse one of the temporary variables for the pressure RHS
-//
-//                     for (unsigned int d = 0; d < TDim; ++d)
-//                     {
-//                         rDampRHS[FirstRow + d] += Coef * TauOne * AGradN[i] * rShapeFunc[j] * rBodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-//                         L += rShapeDeriv(i, d) * rShapeFunc[j] * rBodyForce[d];
-//                     }
-//                     rDampRHS[FirstRow + TDim] += Coef * TauOne * L; // Grad(q) * TauOne * (Density * BodyForce)
-//
-//                     // Update reference row index for next iteration
-//                     FirstRow += BlockSize;
-//                 }
-//
-//                 // Update reference indices
-//                 FirstRow = 0;
-//                 FirstCol += BlockSize;
-//             }
-//
-// //            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
-//             this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Coef);
-//         }
 
     /// Assemble the contribution from an integration point to the element's residual.
     /** Note that the dynamic term is not included in the momentum equation.
@@ -1655,36 +1468,107 @@ protected:
     }
 
 
-    /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
     /**
-     * @param Denstity Density evaluated at the integration point (unused)
-     * @param MolecularViscosity Viscosity of the fluid, in kinematic units (m2/s)
-     * @param rShapeFunc Elemental shape functions, evaluated on the integration point
-     * @param rShapeDeriv Shape function derivatives, evaluated on the integration point
-     * @param TotalViscosity Effective viscosity (output)
-     * @param rCurrentProcessInfo ProcessInfo instance (unused)
+     * @brief EffectiveViscosity Calculate the viscosity at given integration point, using Smagorinsky if enabled.
+     *
+     * The Smagorinsky model is used only if the C_SMAGORINSKY is defined on the elemental data container.
+     *
+     * @note: This function is redefined when using Non-Newtonian constitutive models. It is important to keep its
+     * signature, otherwise non-Newtonian models will stop working.
+     *
+     * @param Density The fluid's density at the integration point.
+     * @param rN Nodal shape functions evaluated at the integration points (area coordinates for the point).
+     * @param rDN_DX Shape function derivatives at the integration point.
+     * @param ElemSize Representative length of the element (used only for Smagorinsky).
+     * @param rProcessInfo ProcessInfo instance passed from the ModelPart.
+     * @return Effective viscosity, in dynamic units (Pa*s or equivalent).
      */
-    virtual void GetEffectiveViscosity(const double Density,
-                                       const double MolecularViscosity,
-                                       const array_1d<double, TNumNodes>& rShapeFunc,
-                                       const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                       double& TotalViscosity,
-                                       const ProcessInfo& rCurrentProcessInfo)
+    virtual double EffectiveViscosity(double Density,
+                                      const array_1d< double, TNumNodes > &rN,
+                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX,
+                                      double ElemSize,
+                                      const ProcessInfo &rProcessInfo)
     {
-        const double C = this->GetValue(C_SMAGORINSKY);
+        double Csmag = this->GetValue(C_SMAGORINSKY);
+        double Viscosity = 0.0;
+        this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
 
-        TotalViscosity = MolecularViscosity;
-        if (C != 0.0 )
+        if (Csmag > 0.0)
         {
-            // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
-            const double FilterWidth = this->FilterWidth(rShapeDeriv);
-
-            const double NormS = this->SymmetricGradientNorm(rShapeDeriv);
-
-            // Total Viscosity
-            TotalViscosity += 2.0 * C * C * FilterWidth * NormS;
+            double StrainRate = this->EquivalentStrainRate(rDN_DX); // (2SijSij)^0.5
+            double LengthScale = Csmag*ElemSize;
+            LengthScale *= LengthScale; // square
+            Viscosity += 2.0*LengthScale*StrainRate;
         }
+
+        return Density*Viscosity;
     }
+
+
+
+    /**
+     * @brief EquivalentStrainRate Calculate the second invariant of the strain rate tensor GammaDot = (2SijSij)^0.5.
+     *
+     * @note Our implementation of non-Newtonian consitutive models such as Bingham relies on this funcition being
+     * defined on all fluid elements.
+     *
+     * @param rDN_DX Shape function derivatives at the integration point.
+     * @return GammaDot = (2SijSij)^0.5.
+     */
+    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX) const
+    {
+        const GeometryType& rGeom = this->GetGeometry();
+
+        // Calculate Symetric gradient
+        MatrixType S = ZeroMatrix(TDim,TDim);
+        for (unsigned int n = 0; n < TNumNodes; ++n)
+        {
+            const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int i = 0; i < TDim; ++i)
+                for (unsigned int j = 0; j < TDim; ++j)
+                    S(i,j) += 0.5 * ( rDN_DX(n,j) * rVel[i] + rDN_DX(n,i) * rVel[j] );
+        }
+
+        // Norm of symetric gradient
+        double NormS = 0.0;
+        for (unsigned int i = 0; i < TDim; ++i)
+            for (unsigned int j = 0; j < TDim; ++j)
+                NormS += S(i,j) * S(i,j);
+
+        return std::sqrt(2.0*NormS);
+    }
+
+
+//    /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
+//    /**
+//     * @param Denstity Density evaluated at the integration point (unused)
+//     * @param MolecularViscosity Viscosity of the fluid, in kinematic units (m2/s)
+//     * @param rShapeFunc Elemental shape functions, evaluated on the integration point
+//     * @param rShapeDeriv Shape function derivatives, evaluated on the integration point
+//     * @param TotalViscosity Effective viscosity (output)
+//     * @param rCurrentProcessInfo ProcessInfo instance (unused)
+//     */
+//    virtual void GetEffectiveViscosity(const double Density,
+//                                       const double MolecularViscosity,
+//                                       const array_1d<double, TNumNodes>& rShapeFunc,
+//                                       const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+//                                       double& TotalViscosity,
+//                                       const ProcessInfo& rCurrentProcessInfo)
+//    {
+//        const double C = this->GetValue(C_SMAGORINSKY);
+
+//        TotalViscosity = MolecularViscosity;
+//        if (C != 0.0 )
+//        {
+//            // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
+//            const double FilterWidth = this->FilterWidth(rShapeDeriv);
+
+//            const double NormS = this->SymmetricGradientNorm(rShapeDeriv);
+
+//            // Total Viscosity
+//            TotalViscosity += 2.0 * C * C * FilterWidth * NormS;
+//        }
+//    }
 
     /// Write the advective velocity evaluated at this point to an array
     /**
@@ -1834,53 +1718,48 @@ protected:
      */
     double ElementSize(const double);
 
-    /// Return the filter width for the smagorinsky model (Delta squared)
-    double FilterWidth();
+//    /// Return the filter width for the smagorinsky model (Delta squared)
+//    double FilterWidth();
 
-    /// Return the filter width for the smagorinsky model (Delta squared)
-    double FilterWidth(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& DN_DX);
+//    /// Return the filter width for the smagorinsky model (Delta squared)
+//    double FilterWidth(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& DN_DX);
 
-    /// Compute the norm of the symmetric gradient of velocity
-    /**
-     * @param rShapeDeriv derivatives of the shape functions
-     * @return Norm of the symmetric gradient
-     */
-    double SymmetricGradientNorm(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
-    {
-        const unsigned int GradientSize = (TDim*(TDim+1))/2; // Number of different terms in the symmetric gradient matrix
-        array_1d<double,GradientSize> GradientVector( GradientSize, 0.0 );
-        unsigned int Index;
+//    /// Compute the norm of the symmetric gradient of velocity
+//    /**
+//     * @param rShapeDeriv derivatives of the shape functions
+//     * @return Norm of the symmetric gradient
+//     */
+//    double SymmetricGradientNorm(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
+//    {
+//        const unsigned int StrainSize = (TDim*(TDim+1))/2;
+//        const unsigned int NodalVelSize = TDim*TNumNodes;
+//        double SGradNorm = 0.0;
 
-        // Compute Symmetric Grad(u). Note that only the lower half of the matrix is calculated
-        for (unsigned int k = 0; k < TNumNodes; ++k)
-        {
-            const array_1d< double, 3 > & rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
-            Index = 0;
-            for (unsigned int i = 0; i < TDim; ++i)
-            {
-                for (unsigned int j = 0; j < i; ++j) // Off-diagonal
-                    GradientVector[Index++] += 0.5 * (rShapeDeriv(k, j) * rNodeVel[i] + rShapeDeriv(k, i) * rNodeVel[j]);
-                GradientVector[Index++] += rShapeDeriv(k, i) * rNodeVel[i]; // Diagonal
-            }
-        }
+//        boost::numeric::ublas::bounded_matrix<double,StrainSize,NodalVelSize> B;
+//        this->CalculateB(B,rShapeDeriv);
 
-        // Norm[ Symmetric Grad(u) ] = ( 2 * Sij * Sij )^(1/2)
-        Index = 0;
-        double NormS(0.0);
-        for (unsigned int i = 0; i < TDim; ++i)
-        {
-            for (unsigned int j = 0; j < i; ++j)
-            {
-                NormS += 2.0 * GradientVector[Index] * GradientVector[Index]; // Using symmetry, lower half terms of the matrix are added twice
-                ++Index;
-            }
-            NormS += GradientVector[Index] * GradientVector[Index]; // Diagonal terms
-            ++Index; // Diagonal terms
-        }
+//        boost::numeric::ublas::vector<double> U = ZeroVector(NodalVelSize);
+//        for (unsigned int i = 0; i < TNumNodes; i++)
+//        {
+//            const array_1d<double,3>& rVel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+//            for (unsigned int d = 0; d < TDim; d++)
+//                U[i*TDim+d] = rVel[d];
+//        }
 
-        NormS = sqrt( 2.0 * NormS );
-        return NormS;
-    }
+//        boost::numeric::ublas::vector<double> StrainRate = prod(B,U);
+
+//        // Two loops are used due to different coefficients affecting diagonal and off-diagonal terms
+//        // In 2D: 2*{ du/dx^2 + dv/dy^2 + [ 0.5*( du/dy + dv/dx ) ]^2 } = 2*(du/dx^2 + dv/dy^2) + ( du/dy + dv/dx )^2
+//        for (unsigned int i = 0; i < TDim; i++)
+//            SGradNorm += 2.0*StrainRate[i]*StrainRate[i];
+
+//        for (unsigned int i = TDim; i < StrainSize; i++)
+//            SGradNorm += StrainRate[i]*StrainRate[i];
+
+//        // Eps = 0.5 * ( grad(u) + grad(u)^T )
+//        // Norm(Eps) = (2*Eps:Eps)^0.5
+//        return sqrt(SGradNorm);
+//    }
 
     /// Adds the contribution of the viscous term to the momentum equation.
     /**
