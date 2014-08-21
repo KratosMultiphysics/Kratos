@@ -33,21 +33,21 @@ class RestartUtility:
         self.load_restart_flag = True
         restart_path = os.path.join(self.problem_path, self.problem_name + "_" + str(restart_step))
 
-        if(os.path.exists(restart_path) == False):
-            print(" RESTART file do not exists , check the RestartStep selected ")
+        if(os.path.exists(restart_path+".rest") == False):
+            print("::Restart Utility:: RESTART file do not exists , check the RestartStep selected ")
 
         kratos_serializer_variable = globals()[self.serializer_flag]
         serializer = Serializer(restart_path, kratos_serializer_variable)
 
         serializer.Load("ModelPart", self.model_part)
 
-        print(" RESTART LOADED : [STEP: ", restart_step, "]")
+        print(" ::[Restart Utility]:: RESTART LOADED : [STEP: ", restart_step, "]")
 
     #
     def CleanPreviousFileType(self, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print(" Problem Path do not exists , check the Problem Path selected ")
+            print("::Restart Utility:: Problem Path do not exists , check the Problem Path selected ")
         else:
             filelist = [f for f in os.listdir(self.problem_path) if f.endswith(file_ending_type)]
 
@@ -61,7 +61,7 @@ class RestartUtility:
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print(" Problem Path do not exists , check the Problem Path selected ")
+            print(" ::[Restart Utility]:: Problem Path do not exists , check the Problem Path selected ")
         else:
             filelist = []
             for f in os.listdir(self.problem_path):
@@ -85,7 +85,7 @@ class RestartUtility:
     #
     def CleanPreviousFiles(self):
 
-        print("Start: -remove previous problem files-")
+        #print(" ::[Restart Utility]:: Remove Previous Files")
 
         # remove previous results:
         file_ending_type = ".post.bin"
@@ -108,7 +108,7 @@ class RestartUtility:
     #
     def CleanPosteriorFiles(self, restart_step):
 
-        print("Restart: -remove restart step posterior problem files-")
+        #print(" ::[Restart Utility]:: Clean Post Restart Files)")
 
         # remove previous results after restart:
         file_ending_type = ".post.bin"
@@ -140,6 +140,6 @@ class RestartUtility:
         serializer = Serializer(restart_path, kratos_serializer_variable)
 
         serializer.Save("ModelPart", self.model_part)
-        print(" RESTART PRINTED: [ID: ", label, "] [STEP: ", current_step, "] [TIME: ", current_time, "]")
+        #print(" ::[Restart Utility]:: RESTART PRINTED: [ID: ", label, "] [STEP: ", current_step, "] [TIME: ", current_time, "]")
 
     #

@@ -160,12 +160,18 @@ public:
 
             //std::cout <<" residual_norm = " << residual_norm << ";  ratio_norm = " << ratio_norm  << std::endl;
 
-            std::cout <<" RESIDUAL FORCES :: ratio = --"<< ratio <<"-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << residual_norm <<")"<< std::endl;
+	    if (this->GetEchoLevel() == 1)
+	      std::cout <<" RESIDUAL FORCES :: ratio = --"<< ratio <<"-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << residual_norm <<")"<< std::endl;
+
+	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = residual_norm;
+
 
             if (ratio <= mRatioTolerance  ||  residual_norm<= mAlwaysConvergedNorm )
             {
+	      if (this->GetEchoLevel() == 1)
                 std::cout <<" Convergence is achieved." << std::endl;
-                return true;
+	      return true;
             }
             else
             {

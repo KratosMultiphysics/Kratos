@@ -81,7 +81,7 @@ public:
       :DerivedBaseType(rAlpham,rDynamic)
     {
       mLocalSystem.Initialize();
-      std::cout<<" component wise bossak scheme selected "<<std::endl;
+      //std::cout<<" component wise bossak scheme selected "<<std::endl;
     }
 
 

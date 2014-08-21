@@ -135,24 +135,30 @@ public:
 
             TDataType absolute_norm = (delta_disp_norm/sqrt(Dx_size));
 
-            std::cout << "DISPLACEMENT CRITERION :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << absolute_norm <<")"<< std::endl;
+	    if (this->GetEchoLevel() == 1)
+	      std::cout << "DISPLACEMENT CRITERION :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << absolute_norm <<")"<< std::endl;
+
+	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
+	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = absolute_norm;
 
 
             if ( ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm )
             {
+	      if (this->GetEchoLevel() == 1)
                 KRATOS_WATCH( "convergence is achieved" )
 		  
   	        // if(r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] == 1)
 		//   return false;
-
-                return true;
+	      return true;
             }
             else
             {
                 if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1 &&  disp_norm <= mRatioTolerance * 1e-2)
                 {
+		  if (this->GetEchoLevel() == 1)
                     KRATOS_WATCH( "convergence is achieved : - no movement - " )
-                    return true;
+		  
+		  return true;
                 }
                 else
                 {
