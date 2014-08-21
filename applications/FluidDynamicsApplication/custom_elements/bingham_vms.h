@@ -225,115 +225,6 @@ public:
         return Element::Pointer(new BinghamVMS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
-    /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
-    /**
-     * If the variable is VORTICITY, computes the vorticity (rotational of the velocity)
-     * based on the current velocity values. Otherwise, it assumes that the input
-     * variable is an elemental value and retrieves it. Implemented for a
-     * single gauss point only.
-     * @param rVariable Kratos vector variable to get
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
-     */
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector<array_1d<double, 3 > >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo)
-    {
-        BaseElementType::GetValueOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
-    }
-
-    /// Obtain a double elemental variable, evaluated on gauss points.
-    /**
-     * If the variable is TAUONE or TAUTWO, calculates the corresponding stabilization
-     * parameter for the element, based on rCurrentProcessInfo's DELTA_TIME and
-     * DYNAMIC_TAU. Otherwise, it assumes that the input variable is an
-     * elemental value and retrieves it.
-     * For MU and TAU, returns the elemental values of viscosity and stress, as
-     * given by the Bingham model. Implemented for a single gauss point only.
-     * @param rVariable Kratos vector variable to compute
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
-     */
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable==TAU || rVariable==EQ_STRAIN_RATE)
-        {
-            double TauOne, TauTwo;
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            double Density, KinViscosity;
-            this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
-
-            rValues.resize(1, false);
-            if (rVariable == TAUONE)
-            {
-                rValues[0] = TauOne;
-            }
-            else if (rVariable == TAUTWO)
-            {
-                rValues[0] = TauTwo;
-            }
-            else if (rVariable == MU)
-            {
-                rValues[0] = Viscosity;
-            }
-            else if (rVariable == TAU)
-            {
-                double NormS = this->SymmetricGradientNorm(DN_DX);
-                rValues[0] = Density*Viscosity*NormS;
-            }
-            else if (rVariable == EQ_STRAIN_RATE)
-            {
-                rValues[0] = this->SymmetricGradientNorm(DN_DX);
-            }
-
-        }
-        else // Default behaviour (returns elemental data)
-        {
-            rValues.resize(1, false);
-            /*
-             The cast is done to avoid modification of the element's data. Data modification
-             would happen if rVariable is not stored now (would initialize a pointer to &rVariable
-             with associated value of 0.0). This is catastrophic if the variable referenced
-             goes out of scope.
-             */
-            const VMS<TDim, TNumNodes>* const_this = static_cast<const VMS<TDim, TNumNodes>*> (this);
-            rValues[0] = const_this->GetValue(rVariable);
-        }
-    }
-
-    /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-            std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
-    {}
-
-    /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
-    {}
-
-    /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
-    {}
-
     ///@}
     ///@name Access
     ///@{
@@ -401,35 +292,51 @@ protected:
      * @param TotalViscosity Effective viscosity (output)
      * @param rCurrentProcessInfo ProcessInfo instance (Checked for YIELD_STRESS)
      */
-    virtual void GetEffectiveViscosity(const double Density,
-                                       const double MolecularViscosity,
-                                       const array_1d<double, TNumNodes>& rShapeFunc,
-                                       const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                       double& TotalViscosity,
-                                       const ProcessInfo& rCurrentProcessInfo)
+    virtual double EffectiveViscosity(double Density,
+                                      const array_1d< double, TNumNodes > &rN,
+                                      const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX,
+                                      double ElemSize,
+                                      const ProcessInfo &rProcessInfo)
     {
-        //const double yield = rCurrentProcessInfo.GetValue(YIELD_STRESS);
+        // Bingham yield stress
         double yield;
-        this->EvaluateInPoint(yield,YIELD_STRESS,rShapeFunc);
+        this->EvaluateInPoint(yield,YIELD_STRESS,rN);
 
-        TotalViscosity = MolecularViscosity;
-        if ( yield != 0)
+        // Bingham regularization coefficient
+        const double m = rProcessInfo[BINGHAM_SMOOTHER];
+
+        double MolecularViscosity;
+        this->EvaluateInPoint(MolecularViscosity,VISCOSITY,rN);
+
+        double TotalViscosity = Density*MolecularViscosity;
+        if ( yield > 0.0)
         {
-            const double NormS = this->SymmetricGradientNorm(rShapeDeriv);
-
-            //non newtonian case
-            //const double mcoef = rCurrentProcessInfo.GetValue(BINGHAM_SMOOTHER);
-            double mcoef;
-            this->EvaluateInPoint(mcoef,BINGHAM_SMOOTHER,rShapeFunc);
+            const double GammaDot = this->EquivalentStrainRate(rDN_DX);
+            double extra_visc;
             
-            double aux_1 = 1.0 - exp(-(mcoef * NormS));
-            if(NormS < 1.0/(1000.0*mcoef))
-                TotalViscosity += yield*mcoef;
+            if (GammaDot > 1e-10)
+            {
+                double aux_1 = 1.0 - exp(-(m * GammaDot));
+                extra_visc = (yield / GammaDot) * aux_1;
+            }
             else
-                TotalViscosity += (yield / NormS) * aux_1;
+            {
+                extra_visc = yield*m;
+            }
+//            if(GammaDot*m < 1e-3) // GammaDot < 1 / (m*1e3)
+//            {
+//                extra_visc = yield*m;
+//            }
+//            else
+//            {
+//                double aux_1 = 1.0 - exp(-(m * GammaDot));
+//                extra_visc = (yield / GammaDot) * aux_1;
+//            }
 
-            TotalViscosity/=Density;
+            TotalViscosity += extra_visc;
         }
+
+        return TotalViscosity;
     }
 
     ///@}

@@ -183,6 +183,29 @@ void VMS<3>::GetSecondDerivativesVector(Vector& Values, int Step)
 }
 
 /**
+ * The size of the 2D element is estimated as the diameter of a circle of the same area.
+ * Area = Pi * (h/2)^2
+ * @see VMS::ElementSize
+ */
+template <>
+double VMS<2,3>::ElementSize(const double Area)
+{
+    return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
+}
+
+/**
+ * The size of the 3D element is estimated as the diameter of the sphere
+ * circumscribed to a regular tetrahedron with the same volume.
+ * @see VMS::ElementSize
+ */
+template <>
+double VMS<3,4>::ElementSize(const double Volume)
+{
+    return 0.60046878 * pow(Volume,0.333333333333333333333);
+}
+
+
+/**
  * @see VMS::GetValueOnIntegrationPoints
  */
 template <>
@@ -213,47 +236,40 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     }
     else if (rVariable == SUBSCALE_VELOCITY)
     {
-        if( this->GetValue(TRACK_SUBSCALES) == 1 )
+        double Area;
+        array_1d<double, NumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        array_1d<double,3> AdvVel;
+        this->GetAdvectiveVel(AdvVel,N);
+
+        double Density;
+        this->EvaluateInPoint(Density,DENSITY,N);
+
+        double ElemSize = this->ElementSize(Area);
+        double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
+
+        // stabilization parameters
+        double TauOne, TauTwo;
+        this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+
+        // Set output vector (for a single integration point)
+        rOutput.resize(1);
+        array_1d<double,3> MomError(3,0.0);
+        if (rCurrentProcessInfo[OSS_SWITCH]==1)
         {
-            rOutput.resize(1);
-            const VMS<Dim,NumNodes>* const_this = static_cast< const VMS<Dim,NumNodes>* >(this);
-            rOutput[0] = const_this->GetValue(rVariable);
+            this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
         }
         else
         {
-            double Area;
-            array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double,3> AdvVel;
-            this->GetAdvectiveVel(AdvVel,N);
-
-            double Density,KinViscosity,Viscosity;
-            this->EvaluateInPoint(Density,DENSITY,N);
-            this->EvaluateInPoint(KinViscosity,VISCOSITY,N);
-            this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
-
-            double TauOne,TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Density,Viscosity,rCurrentProcessInfo);
-
-            // Set output vector (for a single integration point)
-            rOutput.resize(1);
-            array_1d<double,3> MomError(3,0.0);
-            if (rCurrentProcessInfo[OSS_SWITCH]==1)
-            {
-                this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
-            }
-            else
-            {
-                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
-            }
-            MomError *= TauOne;
-            array_1d<double,3>& rSubscale = rOutput[0];
-            rSubscale[0] = MomError[0];
-            rSubscale[1] = MomError[1];
-            rSubscale[2] = 0.0;
+            this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
         }
+        MomError *= TauOne;
+        array_1d<double,3>& rSubscale = rOutput[0];
+        rSubscale[0] = MomError[0];
+        rSubscale[1] = MomError[1];
+        rSubscale[2] = 0.0;
     }
     else // Default behaviour (returns elemental data)
     {
@@ -302,47 +318,40 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     }
     else if(rVariable == SUBSCALE_VELOCITY)
     {
-        if( this->GetValue(TRACK_SUBSCALES) == 1 )
+        double Area;
+        array_1d<double, NumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        array_1d<double,3> AdvVel;
+        this->GetAdvectiveVel(AdvVel,N);
+
+        double Density;
+        this->EvaluateInPoint(Density,DENSITY,N);
+
+        double ElemSize = this->ElementSize(Area);
+        double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
+
+        // stabilization parameters
+        double TauOne, TauTwo;
+        this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+
+        // Set output vector (for a single integration point)
+        rOutput.resize(1);
+        array_1d<double,3> MomError(3,0.0);
+        if (rCurrentProcessInfo[OSS_SWITCH]==1)
         {
-            rOutput.resize(1);
-            const VMS<Dim,NumNodes>* const_this = static_cast< const VMS<Dim,NumNodes>* >(this);
-            rOutput[0] = const_this->GetValue(rVariable);
+            this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
         }
         else
         {
-            double Area;
-            array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double,3> AdvVel;
-            this->GetAdvectiveVel(AdvVel,N);
-
-            double Density,KinViscosity,Viscosity;
-            this->EvaluateInPoint(Density,DENSITY,N);
-            this->EvaluateInPoint(KinViscosity,VISCOSITY,N);
-            this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
-
-            double TauOne,TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Density,Viscosity,rCurrentProcessInfo);
-
-            // Set output vector (for a single integration point)
-            rOutput.resize(1);
-            array_1d<double,3> MomError(3,0.0);
-            if (rCurrentProcessInfo[OSS_SWITCH]==1)
-            {
-                this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
-            }
-            else
-            {
-                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
-            }
-            MomError *= TauOne;
-            array_1d<double,3>& rSubscale = rOutput[0];
-            rSubscale[0] = MomError[0];
-            rSubscale[1] = MomError[1];
-            rSubscale[2] = MomError[2];
+            this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
         }
+        MomError *= TauOne;
+        array_1d<double,3>& rSubscale = rOutput[0];
+        rSubscale[0] = MomError[0];
+        rSubscale[1] = MomError[1];
+        rSubscale[2] = MomError[2];
     }
     else // Default behaviour (returns elemental data)
     {
@@ -358,95 +367,6 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
     }
 }
 
-/**
- * The size of the 2D element is estimated as the diameter of a circle of the same area.
- * Area = Pi * (h/2)^2
- * @see VMS::ElementSize
- */
-template <>
-double VMS<2,3>::ElementSize(const double Area)
-{
-    return 1.128379167 * sqrt(Area); //Diameter of circumference of given Area
-}
-
-/**
- * The size of the 3D element is estimated as the diameter of the sphere
- * circumscribed to a regular tetrahedron with the same volume.
- * @see VMS::ElementSize
- */
-template <>
-double VMS<3,4>::ElementSize(const double Volume)
-{
-    return 0.60046878 * pow(Volume,0.333333333333333333333);
-}
-
-/**
- * Returns the squared element size, estimated as h^2 = 2*Area
- * @see VMS::FilterWidth
- */
-template <>
-double VMS<2,3>::FilterWidth()
-{
-    double FilterWidth = GeometryUtils::CalculateVolume2D(this->GetGeometry());
-    return 2.0 * FilterWidth;
-}
-
-/**
- * Returns the squared element size, estimated from the assumption V = (1/6) * h^3
- * @see VMS::FilterWidth
- */
-template <>
-double VMS<3,4>::FilterWidth()
-{
-    const double TwoThirds = 2.0 / 3.0;
-    double FilterWidth = GeometryUtils::CalculateVolume3D(this->GetGeometry());
-    FilterWidth *= 6.0;
-    return pow(FilterWidth, TwoThirds);
-}
-
-/**
- * Returns the square of the minimum element height, to be used as filter width in the Smagorinsky model
- * @see VMS::FilterWidth
- */
-template <>
-double VMS<2,3>::FilterWidth(const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
-{
-    double inv_h_max = 0.0;
-    for(unsigned int i=0; i<3; i++)
-    {
-        double inv_h = 0.0;
-        for(unsigned int d=0; d<2; d++)
-            inv_h += DN_DX(i,d)*DN_DX(i,d);
-
-        if(inv_h > inv_h_max) inv_h_max = inv_h;
-    }
-
-    double DeltaSquared = 1.0/inv_h_max;
-
-    return DeltaSquared ;
-}
-
-/**
- * Returns the square of the minimum element height, to be used as filter width in the Smagorinsky model
- * @see VMS::FilterWidth
- */
-template <>
-double VMS<3,4>::FilterWidth(const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX)
-{
-    double inv_h_max = 0.0;
-    for(unsigned int i=0; i<4; i++)
-    {
-        double inv_h = 0.0;
-        for(unsigned int d=0; d<3; d++)
-            inv_h += DN_DX(i,d)*DN_DX(i,d);
-
-        if(inv_h > inv_h_max) inv_h_max = inv_h;
-    }
-
-    double DeltaSquared = 1.0/inv_h_max;
-
-    return DeltaSquared ;
-}
 
 /**
  * See VMS::CalculateB
@@ -455,8 +375,6 @@ template <>
 void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >& rB,
                            const boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rShapeDeriv)
 {
-    KRATOS_TRY
-
     for (unsigned int i = 0; i < 3; i++)
     {
         unsigned int index = 2 * i;
@@ -468,7 +386,6 @@ void VMS<2,3>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 3, 6 >&
         rB(2, index) = rShapeDeriv(i, 1);
         rB(2, index + 1) = rShapeDeriv(i, 0);
     }
-    KRATOS_CATCH("")
 }
 
 /**
@@ -478,8 +395,6 @@ template <>
 void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >& rB,
                            const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv)
 {
-    KRATOS_TRY
-
     const unsigned int Dim = 3;
     const unsigned int NumNodes = 4;
 
@@ -506,8 +421,6 @@ void VMS<3,4>::CalculateB( boost::numeric::ublas::bounded_matrix<double, 6, 12 >
         rB(5, index + 1) = 0.0;
         rB(5, index + 2) = rShapeDeriv(i, 0);
     }
-
-    KRATOS_CATCH("")
 }
 
 /**
