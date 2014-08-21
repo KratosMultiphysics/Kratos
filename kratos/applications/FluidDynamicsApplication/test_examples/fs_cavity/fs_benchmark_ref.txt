@@ -1,5 +1,5 @@
 KRATOS_BENCHMARK | Float | Time | 4.000000000000E-01 | 1e-07 | None
-KRATOS_BENCHMARK | Float | minimum pressure | -6.375345579823E-01 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -6.375345579822E-01 | 1e-05 | None
 KRATOS_BENCHMARK | Float | maximum pressure | 7.686930110366E-01 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 8.829200000000E-01 | 0.0 | None
