@@ -225,7 +225,9 @@ namespace Kratos
 
             class_<OpenMPUtils > ("OpenMPUtils", init<>())
                     .def("SetNumThreads", &OpenMPUtils::SetNumThreads)
-                    .staticmethod("SetNumThreads")
+	            .staticmethod("SetNumThreads")
+	            .def("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
+  	            .staticmethod("PrintOMPInfo")
                     ;
 
             class_< BinBasedFastPointLocator < 2 > > ("BinBasedFastPointLocator2D", init<ModelPart& >())

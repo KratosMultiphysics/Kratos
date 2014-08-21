@@ -143,6 +143,7 @@ public:
     {
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
+	SetEchoLevel(1);
     }
 
     /** Destructor.
@@ -189,6 +190,24 @@ public:
     { 
       KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
     } 
+
+
+    //*********************************************************************************
+
+    /**level of echo for the convergence criterion
+    0 -> mute... no echo at all
+    1 -> print basic informations
+    2 -> print extra informations
+     */
+    virtual void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
+
+    int GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
 
 
     void SetActualizeRHSFlag(bool flag)
@@ -271,7 +290,7 @@ public:
 
     bool mActualizeRHSIsNeeded;
     bool mConvergenceCriteriaIsInitialized;
-
+    int  mEchoLevel;
 
     /*@} */
     /**@name Operations */

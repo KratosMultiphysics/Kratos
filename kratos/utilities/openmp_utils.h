@@ -198,14 +198,33 @@ public:
     static inline void SetNumThreads(int NumThreads = 1)
     {
 #ifdef _OPENMP
+      
+      int procs    = omp_get_num_procs();
+      if( procs < NumThreads ){
+	std::cout<<" WARNING: Maximimun number of threads is EXCEEDED "<<std::endl;
+	/* Set thread number */  
+	omp_set_num_threads(procs);
+	std::cout<<" Number of Threads Set To : "<<procs<<std::endl;
+      }
+      else{
+	/* Set thread number */  
+	omp_set_num_threads(NumThreads);
+      }
+
+#endif
+    }
+
+    /**
+     A method to print the OMP information
+     */
+    static inline void PrintOMPInfo()
+    {
+#ifdef _OPENMP
 
       int nthreads,tid, procs, maxt, inpar, dynamic, nested;
   
       /* Start parallel region */
   
-      /* Set thread number */  
-      omp_set_num_threads(NumThreads);
-
 #pragma omp parallel private(nthreads, tid)
       {
 	/* Obtain thread number */
@@ -214,7 +233,7 @@ public:
 	/* Only master thread does this */
 	if (tid == 0)
 	  {
-	    printf("Thread %d getting environment info...\n", tid);
+	    printf("  Thread %d getting environment info...\n", tid);
 	
 	    /* Get environment information */
 	    procs    = omp_get_num_procs();
@@ -239,16 +258,14 @@ public:
 	    
 	    if( procs < nthreads )
 	      std::cout<<" ( WARNING: Maximimun number of threads is EXCEEDED )"<<std::endl;
-	    
-	    std::cout<<std::endl;
-
-	    
+	    	    
 	  }
     
       }
       
 #endif
     }
+
 
     static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
     {

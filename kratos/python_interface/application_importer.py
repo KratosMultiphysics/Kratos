@@ -19,7 +19,7 @@ def ImportApplication(application, application_name, application_folder, caller)
         # print main_caller
         raise RuntimeError(msg)
     elif application_name not in Globals.RequestedApplications:  # This check is possibly redundant, as Python won't import the same module twice
-        print("Importing " + application_name)
+        print("Importing    " + application_name)
         # Add application to dictionary of registered applications
         Globals.RequestedApplications[application_name] = application
         # Add python scrips folder to path
@@ -31,5 +31,5 @@ def ImportApplication(application, application_name, application_folder, caller)
         # Dynamic renumbering of variables to ensure consistency
         Kernel.Initialize()
         for iterName, iterApplication in list(Globals.RequestedApplications.items()):
-            print("Initializing ", iterName)
+            # print("Initializing",iterName)
             Kernel.InitializeApplication(iterApplication)
