@@ -321,7 +321,7 @@ public:
 
 
         double stop_build = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
+        if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "build time: " << stop_build - start_build << std::endl;
 
         for (int i = 0; i < A_size; i++)
@@ -572,7 +572,7 @@ public:
 
         Timer::Stop("Solve");
         double stop_solve = OpenMPUtils::GetCurrentTime();
-        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
+        if (this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "system solve time: " << stop_solve - start_solve << std::endl;
 
         if (this->GetEchoLevel() == 3)
@@ -666,7 +666,7 @@ public:
     {
         KRATOS_TRY;
 
-        if( this->GetEchoLevel() > 0 && r_model_part.GetCommunicator().MyPID() == 0)
+        if( this->GetEchoLevel() > 1 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             std::cout << "Setting up the dofs" << std::endl;
         }
@@ -961,7 +961,7 @@ public:
 
         this->mpLinearSystemSolver->Clear();
 
-        if (this->GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 1)
         {
             std::cout << "BlockResidualBasedBuilderAndSolver Clear Function called" << std::endl;
         }

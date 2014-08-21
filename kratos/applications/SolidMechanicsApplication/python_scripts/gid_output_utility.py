@@ -108,7 +108,7 @@ class GidOutputUtility(object):
         # set multi-file label
         label = current_id
 
-        print(" WRITING RESULTS: [ID: ", label, "] [STEP: ", current_step, "] [TIME: ", current_time, "]")
+        #print("::[GID Output Utility]:: WRITING RESULTS: [ID: ", label, "] [STEP: ", current_step, "] [TIME: %.8e" % current_time, "]")
 
         # update cut data if necessary
         if self.multi_file == MultiFileFlag.MultipleFiles:
@@ -129,7 +129,7 @@ class GidOutputUtility(object):
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()
 
-        print(" -Run_GID_for_viewing_the_results_of_the_analysis-")
+        # print("::GID Outuput Utility:: -Run_GID_for_viewing_the_results_of_the_analysis-")
 
     #
     def finalize_results(self):

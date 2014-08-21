@@ -206,7 +206,7 @@ public:
     {
         KRATOS_TRY
 
-	  std::cout<<" STRATEGY: ResidualBasedNewtonRaphsonStrategy " <<std::endl;
+	//std::cout<<" STRATEGY: ResidualBasedNewtonRaphsonStrategy " <<std::endl;
 
         mKeepSystemConstantDuringIterations = false;
 
@@ -334,6 +334,7 @@ public:
     {
         BaseType::mEchoLevel = Level;
         GetBuilderAndSolver()->SetEchoLevel(Level);
+	mpConvergenceCriteria->SetEchoLevel(Level);
     }
 
     //*********************************************************************************
@@ -445,7 +446,7 @@ public:
         }
 
         //prints informations about the current time
-        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << " " << std::endl;
             std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
@@ -611,8 +612,10 @@ public:
 
 
         //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0){
+	  if (this->GetEchoLevel() > 1) 
             MaxIterationsExceeded();
+	}
 
         //recalculate residual if needed
         // (note that some convergence criteria need it to be recalculated)
@@ -713,7 +716,9 @@ public:
     void Clear()
     {
         KRATOS_TRY
-        std::cout << "Newton Raphson strategy Clear function used" << std::endl;
+
+	if (this->GetEchoLevel() > 1) //if it is needed to print info
+	  std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;

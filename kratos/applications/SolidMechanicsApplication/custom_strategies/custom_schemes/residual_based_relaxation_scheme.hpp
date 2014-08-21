@@ -174,7 +174,7 @@ public:
         mDamp.resize(NumThreads);
         mvel.resize(NumThreads);
 
-        std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
+        //std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
     }
 
     /** Destructor.

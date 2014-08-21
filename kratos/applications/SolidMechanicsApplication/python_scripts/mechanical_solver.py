@@ -49,7 +49,7 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(FORCE_RESIDUAL)
                 model_part.AddNodalSolutionStepVariable(MIDDLE_VELOCITY)
                 
-    print("variables for the structural solver added correctly")
+    print("::[Mechanical Solver]:: Variables ADDED")
 
 
 def AddDofs(model_part, config=None):
@@ -71,10 +71,10 @@ def AddDofs(model_part, config=None):
                 for node in model_part.Nodes:
                     node.AddDof(PRESSURE, PRESSURE_REACTION);
 
-    print("dofs for the structural solver added correctly")
+    print("::[Mechanical Solver]:: DOF's ADDED")
 
 
-class StructuralSolver:
+class MechanicalSolver:
     #
 
     def __init__(self, model_part, domain_size):
@@ -131,7 +131,7 @@ class StructuralSolver:
         self.time_step_prediction_level = 0
         self.rayleigh_damping = True
 
-        print("Construction structural solver finished")
+        print("::[Mechanical Solver]:: -START-")
 
     #
     def Initialize(self):
@@ -169,13 +169,11 @@ class StructuralSolver:
         # check if everything is assigned correctly
         self.Check();
 
-        print(" [Assignation of the  mechanical solver finished] ")
+        print("::[Mechanical Solver]:: -END- ")
 
     #
     def Solve(self):
-        #print(" MECHANICAL SOLUTION START ")
         (self.mechanical_solver).Solve()
-        #print(" MECHANICAL SOLUTION PERFORMED ")
 
     #
     def SetEchoLevel(self, level):
@@ -294,7 +292,8 @@ class StructuralSolver:
 
         else:
 
-            print(" CONVERGENCE CRITERION (solid) : ", self.convergence_criterion_type)
+            if(self.echo_level > 1):
+                print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", self.convergence_criterion_type)
 
             if(self.convergence_criterion_type == "Displacement_criteria"):
                 self.mechanical_convergence_criterion = DisplacementConvergenceCriterion(D_RT, D_AT)
@@ -327,7 +326,7 @@ class StructuralSolver:
 #
 def CreateSolver(model_part, config):
 
-    structural_solver = StructuralSolver(model_part, config.domain_size)
+    structural_solver = MechanicalSolver(model_part, config.domain_size)
 
     #Explicit scheme parameters
     if(hasattr(config, "max_delta_time")):
@@ -383,7 +382,8 @@ def CreateSolver(model_part, config):
     # definition of the linear solver
     import linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
-        print("Linear Solver Set", config.linear_solver_config.solver_type)
+        if(config.echo_level > 1):
+            print("::[Mechanical Solver]:: LINEAR SOLVER : ", config.linear_solver_config.solver_type)
         structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
 
         if(config.linear_solver_config.solver_type == "AMGCL"):

@@ -209,7 +209,7 @@ public:
     {
         KRATOS_TRY
 	  
-	  std::cout<<" STRATEGY: ComponentWiseNewtonRaphsonStrategy "<<std::endl;
+	// std::cout<<" STRATEGY: ComponentWiseNewtonRaphsonStrategy "<<std::endl;
        
 	//component-wise options
 	GlobalSystemComponentsType& rGlobalSystem = this->mpBuilderAndSolver->GetGlobalSystemComponents();

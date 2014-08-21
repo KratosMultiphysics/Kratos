@@ -142,7 +142,7 @@ public:
 
         mNewmark.static_dynamic= rDynamic;
 
-        std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= "<<mAlpha.m<<" beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
+	//std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= "<<mAlpha.m<<" beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
 
 
         //Allocate auxiliary memory
@@ -377,7 +377,8 @@ public:
         }
 
         this->mElementsAreInitialized = true;
-        std::cout<<" mechanical elements are initialized "<<std::endl;
+
+        //std::cout<<" mechanical elements are initialized "<<std::endl;
 
         KRATOS_CATCH( "" )
     }

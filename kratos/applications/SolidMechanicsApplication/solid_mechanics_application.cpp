@@ -272,7 +272,11 @@ void KratosSolidMechanicsApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosSolidMechanicsApplication... " << std::endl;
+
+    std::cout << "     KRATOS  __|  _ \\  |   |  _ \\              " << std::endl;
+    std::cout << "           \\__ \\ (   | |   | | , )             " << std::endl;
+    std::cout << "           ____/\\___/ ___|_| ___/ MECHANICS     " << std::endl;
+    std::cout << "Initializing KratosSolidMechanicsApplication..." << std::endl;
 
     //Register Elements
 
