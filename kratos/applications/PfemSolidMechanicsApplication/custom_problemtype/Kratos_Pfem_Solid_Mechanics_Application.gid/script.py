@@ -496,7 +496,7 @@ tfp = clock()
 # measure wall time
 tfw = time()
 
-print("::[KPFEM Simulation]:: [Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
+print("::[KPFEM Simulation]:: [ Computing Time = (%.2f" % (tfp - t0p)," seconds process time) ( %.2f" % (tfw - t0w)," seconds wall time) ]")
 
 print(ctime())
 

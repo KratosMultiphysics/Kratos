@@ -241,10 +241,10 @@ class ModelerUtility:
                 domain = int(conditions["Subdomain"])
 
             print("::[Modeler_Utility]:: SET MESH DOMAIN DATA")
-            print("::[Modeler_Utility]:: DOMAIN [", conditions["Subdomain"],"] Remesh: ", conditions["Remesh"]," (Type:",conditions["MeshElement"],")" )
-            # self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"Condition2D",,self.remesh,,self.constrained,,self.laplacian_smoothing,,self.jacobi_smoothing,,self.avoid_tip_elements,,self.alpha_shape,domain);
+            print("::[Modeler_Utility]:: DOMAIN(",conditions["Subdomain"],") Remesh:",conditions["Remesh"],"(Type:",conditions["MeshElement"],")" )
+            # self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"Condition2D",self.remesh,,self.constrained,,self.laplacian_smoothing,,self.jacobi_smoothing,,self.avoid_tip_elements,,self.alpha_shape,domain);
             self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", self.remesh, self.constrained, self.laplacian_smoothing, self.jacobi_smoothing, self.avoid_tip_elements, self.alpha_shape, self.offset_factor, domain)
-            print("::[Modeler_Utility]:: DOMAIN [", conditions["Subdomain"],"] Refing: ", conditions["Refine"] )
+            print("::[Modeler_Utility]:: DOMAIN(", conditions["Subdomain"],") Refine:",conditions["Refine"] )
 
             self.mesh_modeler.SetRefineData(self.refine, self.h_factor, configuration.critical_dissipation, critical_mesh_size, configuration.reference_error, domain)
 

@@ -30,10 +30,11 @@ namespace Kratos
 
     KRATOS_TRY
 
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    std::cout<<" [ Trigen PFEM Transfer Only ]"<<std::endl;
-    std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
-
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+      std::cout<<" [ Trigen PFEM Transfer Only ]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    }
 
     //*********************************************************************
     struct triangulateio in;
@@ -113,11 +114,11 @@ namespace Kratos
     DeletePointsList(in);
     //delete [] in.trianglelist;
 
-
-    std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
-    std::cout<<" [ Finished Remeshing ] "<<std::endl;
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
+      std::cout<<" [ Finished Remeshing ] "<<std::endl;
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -133,10 +134,12 @@ namespace Kratos
 
     KRATOS_TRY
  
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    std::cout<<" [ Trigen PFEM DT Mesher ]"<<std::endl;
-    std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
-		  
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+      std::cout<<" [ Trigen PFEM DT Mesher ]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    }
+
     //int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
 
     if(rMeshingVariables.RefineFlag){
@@ -176,7 +179,8 @@ namespace Kratos
     rMeshingVariables.MeshingOptions.Reset(MeshModeler::NEIGHBOURS_SEARCH);
 
     //print out the mesh generation time
-    std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
     ////////////////////////////////////////////////////////////
 
     if(rMeshingVariables.RefineFlag){
@@ -282,9 +286,11 @@ namespace Kratos
     delete [] in.trianglelist;
     DeleteTrianglesList(out);
 
-    std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
-    std::cout<<" [ Finished Remeshing ] "<<std::endl;
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
+      std::cout<<" [ Finished Remeshing ] "<<std::endl;
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -299,10 +305,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    std::cout<<" [ Trigen PFEM Conforming Constrained Delaunay Mesher ]"<<std::endl;
-    std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
-
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+      std::cout<<" [ Trigen PFEM Conforming Constrained Delaunay Mesher ]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    }
 
     //*********************************************************************
     struct triangulateio in;
@@ -399,11 +406,11 @@ namespace Kratos
     //DeleteTrianglesList(out);
     ClearTrianglesList(out);
 	
-
-    std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
-    std::cout<<" [ Finished Remeshing ] "<<std::endl;
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
+      std::cout<<" [ Finished Remeshing ] "<<std::endl;
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -418,10 +425,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    std::cout<<" [ Trigen PFEM DT Refine Mesher ]"<<std::endl;
-    std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
-
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+      std::cout<<" [ Trigen PFEM DT Refine Mesher ]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    }
 		    
     //*********************************************************************
 
@@ -497,7 +505,8 @@ namespace Kratos
     }
 
     //print out the mesh generation time
-    std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
     ////////////////////////////////////////////////////////////
 
 
@@ -581,9 +590,11 @@ namespace Kratos
     delete [] in.trianglelist;
     DeleteTrianglesList(out);
 
-    std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
-    std::cout<<" [ Finished Remeshing ] "<<std::endl;
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
+      std::cout<<" [ Finished Remeshing ] "<<std::endl;
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -598,9 +609,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    std::cout<<" [ Trigen PFEM CDT Refine Mesher ]"<<std::endl;
-    std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+      std::cout<<" [ Trigen PFEM CDT Refine Mesher ]"<<std::endl;
+      std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
+    }
 
     //*********************************************************************
 
@@ -684,7 +697,8 @@ namespace Kratos
       RecoverBoundaryPosition(rModelPart,rMeshingVariables,in,out,MeshId);
 
     //print out the mesh generation time
-    std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ MESH GENERATION (TIME = "<<auxiliary.elapsed()<<") ] "<<std::endl;
     ////////////////////////////////////////////////////////////
 
 
@@ -787,10 +801,11 @@ namespace Kratos
     delete [] in.trianglelist;
     DeleteTrianglesList(out);
 
-
-    std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
-    std::cout<<" [ Finished Remeshing ] "<<std::endl;
-    std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
+      std::cout<<" [ Finished Remeshing ] "<<std::endl;
+      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -1089,7 +1104,8 @@ namespace Kratos
       }
     }
 
-    std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
 
     //perform the meshing
     try {
@@ -1108,7 +1124,8 @@ namespace Kratos
 	  break;
 	default:                       fail=0;
 	  //create new connections
-	  std::cout<<" triangulation done "<<std::endl;
+	  if( this->GetEchoLevel() > 0 )
+	    std::cout<<" triangulation done "<<std::endl;
 	  break;
 	}
     }
@@ -1118,9 +1135,11 @@ namespace Kratos
       std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
     }
     
-    std::cout<<"  -( "<<meshing_info<<" )- "<<std::endl;
-    std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
-    std::cout<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"  -( "<<meshing_info<<" )- "<<std::endl;
+      std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
+      std::cout<<std::endl;
+    }
 
     return fail;
    
@@ -1159,12 +1178,14 @@ namespace Kratos
     //*******************************************************************
     //All nodes in boundary element change
     if(rMeshingVariables.AvoidTipElementsFlag){ //is not working correctly some dispositions not considered
-      std::cout<<"[   AVOID TIP ELEMENTS START ]"<<std::endl;
+      if( this->GetEchoLevel() > 0 )
+	std::cout<<"[   AVOID TIP ELEMENTS START ]"<<std::endl;
 
       ChangeTipElementsUtilities TipElements;
       //TipElements.SwapDiagonals(rModelPart,out,rMeshingVariables.PreservedElements,MeshId);
 
-      std::cout<<"[   AVOID TIP ELEMENTS END ]"<<std::endl;
+      if( this->GetEchoLevel() > 0 )
+	std::cout<<"[   AVOID TIP ELEMENTS END ]"<<std::endl;
     }
     //*******************************************************************
 
@@ -1207,7 +1228,7 @@ namespace Kratos
 		//vertices.push_back(rModelPart.pGetNode(out.trianglelist[el*3+pn],MeshId));
 		   
 		if(vertices.back().Is(TO_ERASE))
-		  std::cout<<" Problem, vertex RELEASED "<<vertices.back().Id()<<std::endl;
+		  std::cout<<" WARNING:: mesh vertex RELEASED "<<vertices.back().Id()<<std::endl;
 		  
 		//std::cout<<" out.neighborlist "<<out.neighborlist[el*3+pn]<<std::endl;
 		  		 
@@ -1295,7 +1316,8 @@ namespace Kratos
 		
       }
 
-    std::cout<<" [ FACES "<<faces<<"]"<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ FACES "<<faces<<"]"<<std::endl;
 	
     //*******************************************************************
     //5) Laplacian Smoothing
@@ -1306,6 +1328,7 @@ namespace Kratos
     //if(rMeshingVariables.smoothing && rMeshingVariables.remesh && rMeshingVariables.RemeshInfo.GeometricalSmoothingRequired ){
     if( rMeshingVariables.MeshSmoothingFlag && rMeshingVariables.RemeshInfo.GeometricalSmoothingRequired ){
       LaplacianSmoothing  MeshGeometricSmoothing(rModelPart);
+      MeshGeometricSmoothing.SetEchoLevel(this->GetEchoLevel());
       MeshGeometricSmoothing.ApplyMeshSmoothing(rModelPart,rMeshingVariables.PreservedElements,out,list_of_element_vertices,MeshId);
     }
     //*******************************************************************
@@ -1352,7 +1375,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ SELECT MESH ELEMENTS: ("<<(out.numberoftriangles)<<") "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ SELECT MESH ELEMENTS: ("<<(out.numberoftriangles)<<") "<<std::endl;
 
     rMeshingVariables.PreservedElements.clear();
     rMeshingVariables.PreservedElements.resize(out.numberoftriangles);
@@ -1373,7 +1397,8 @@ namespace Kratos
       }
     else
       {
-	std::cout<<" Start Element Selection "<<out.numberoftriangles<<std::endl;
+	if( this->GetEchoLevel() > 0 )
+	  std::cout<<" Start Element Selection "<<out.numberoftriangles<<std::endl;
 	int el;
 	int number=0;
 	//#pragma omp parallel for reduction(+:number) private(el)
@@ -1405,7 +1430,7 @@ namespace Kratos
 
 		if( (unsigned int)out.trianglelist[el*3+pn] > rMeshingVariables.NodalPreIds.size() ){
 		  wrong_added_node = true;
-		  std::cout<<" something is wrong: node out of bounds "<<std::endl;
+		  std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
 		  break;
 		}
 
@@ -1566,23 +1591,27 @@ namespace Kratos
 	{
 	  if( i_node->IsNot(MeshModeler::ENGAGED_NODES)  ){
 	    i_node->Set(TO_ERASE);
-	    std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
+	    if( this->GetEchoLevel() > 0 )
+	      std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
 	    if( i_node->IsNot(MeshModeler::ENGAGED_NODES) )
-	      std::cout<<" ---//*******PROBLEMS : "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
+	      std::cout<<" ERROR: node "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
 	    count_release++;
 	  }
 	      
 	  i_node->Reset(MeshModeler::ENGAGED_NODES);
 	}
 	  
-      std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
+      if( this->GetEchoLevel() > 0 )
+	std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
 
     }
 
-    std::cout<<"   Generated_Elements :"<<out.numberoftriangles<<std::endl;
-    std::cout<<"   Passed_AlphaShape  :"<<rMeshingVariables.Refine.NumberOfElements<<std::endl;
-    std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
- 
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   Generated_Elements :"<<out.numberoftriangles<<std::endl;
+      std::cout<<"   Passed_AlphaShape  :"<<rMeshingVariables.Refine.NumberOfElements<<std::endl;
+      std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
+    }
+
     KRATOS_CATCH( "" )
 
   }
@@ -1596,9 +1625,11 @@ namespace Kratos
 						     ModelPart::IndexType MeshId)
   {
     KRATOS_TRY
-    
-    std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
-    std::cout<<"   Initial Faces : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
+      std::cout<<"   Initial Faces : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    }
 
     ModelPart::ElementsContainerType::const_iterator el_begin = rModelPart.ElementsBegin(MeshId);
 	
@@ -1638,8 +1669,10 @@ namespace Kratos
 	  }
       }
 	
-    std::cout<<"   Final Faces : "<<facecounter<<std::endl;
-    std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   Final Faces : "<<facecounter<<std::endl;
+      std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
 
@@ -1655,8 +1688,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
-    std::cout<<"   Initial Conditions : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ SET BOUNDARY CONDITIONS : "<<std::endl;
+      std::cout<<"   Initial Conditions : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    }
 
     //properties to be used in the generation
     int number_properties = rModelPart.NumberOfProperties();
@@ -1875,7 +1910,8 @@ namespace Kratos
 		}
 		else{
 		  
-		  std::cout<<"   NOT FOUND CONDITION :: CREATED-> "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
+		  if( this->GetEchoLevel() > 0 )
+		    std::cout<<"   NOT FOUND CONDITION :: CREATED-> "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
 		  p_cond = rReferenceCondition.Create(id, face, properties);
 		      
 		  //if a condition is created new nodes must be labeled TO_REFINE
@@ -1908,7 +1944,8 @@ namespace Kratos
     //   }
     // std::cout<<" ) "<<std::endl;
 
-    std::cout<<"   Boundary Conditions LOCATED ["<<rModelPart.Conditions(MeshId).size()<<"]"<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<"   Boundary Conditions LOCATED ["<<rModelPart.Conditions(MeshId).size()<<"]"<<std::endl;
     //all previous conditions have to be added
     for(ModelPart::ConditionsContainerType::iterator ic = temporal_conditions.begin(); ic!= temporal_conditions.end(); ic++)
       {
@@ -1948,10 +1985,11 @@ namespace Kratos
 	  rModelPart.Conditions(MeshId).push_back(ic->Clone(id,face));
 
 	  rModelPart.Conditions(MeshId).back().Data() = ic->Data();
-	  std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;
 
-	  std::cout<<" Push Back Not Set Conditions "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
-
+	  if( this->GetEchoLevel() > 0 ){
+	    std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;
+	    std::cout<<" Push Back Not Set Conditions "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
+	  }
 	}
       }
 
@@ -1963,13 +2001,15 @@ namespace Kratos
 	  all_assigned ++;
       }
 
-    if(all_assigned == 0)
-      std::cout<<"   Boundary Conditions RELOCATED ["<<all_assigned<<"]"<<std::endl;
-    else
-      std::cout<<"   Boundary Conditions NOT relocated ["<<all_assigned<<"]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      if(all_assigned == 0)
+	std::cout<<"   Boundary Conditions RELOCATED ["<<all_assigned<<"]"<<std::endl;
+      else
+	std::cout<<"   Boundary Conditions NOT relocated ["<<all_assigned<<"]"<<std::endl;
 	
-    std::cout<<"   Final Conditions: "<<rModelPart.Conditions(MeshId).size()<<std::endl;
-    std::cout<<"   SET BOUNDARY CONDITIONS ]; "<<std::endl;
+      std::cout<<"   Final Conditions: "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+      std::cout<<"   SET BOUNDARY CONDITIONS ]; "<<std::endl;
+    }
     //rModelPart.Conditions(MeshId).Sort();
     //rModelPart.Conditions(MeshId).Unique();
 	
@@ -2033,8 +2073,10 @@ namespace Kratos
 
     KRATOS_TRY
 
-    std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
-    //std::cout<<"   Nodes and Conditions : "<<rModelPart.Nodes(MeshId).size()<<", "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
+      //std::cout<<"   Nodes and Conditions : "<<rModelPart.Nodes(MeshId).size()<<", "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    }
 
     rMeshingVariables.RemeshInfo.InsertedConditions     = rModelPart.NumberOfConditions(MeshId);
     rMeshingVariables.RemeshInfo.InsertedBoundaryNodes = rModelPart.NumberOfNodes(MeshId);
@@ -2089,7 +2131,8 @@ namespace Kratos
 
       }
 
-    std::cout <<"   [ NODES ON WALL TIP: ( " <<nodes_on_wall_tip <<" ) ]"<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout <<"   [ NODES ON WALL TIP: ( " <<nodes_on_wall_tip <<" ) ]"<<std::endl;
 
     //*********************************************************************************
     // DETECTION OF NODES ON TIP CONTACTS END
@@ -2666,8 +2709,8 @@ namespace Kratos
 		    new_point.Y() = 0.5*( rConditionGeom[1].Y() + rConditionGeom[0].Y() );
 		    new_point.Z() = 0.5*( rConditionGeom[1].Z() + rConditionGeom[0].Z() );
 		      
-
-		    std::cout<<"   NEW NODE  "<<new_point<<std::endl;
+		    if( this->GetEchoLevel() > 0 )
+		      std::cout<<"   NEW NODE  "<<new_point<<std::endl;
 
 		    new_point.SetId(ic->Id()); //set condition Id
 		      
@@ -2741,7 +2784,8 @@ namespace Kratos
 
 			}
 			
-			std::cout<<"   TOOL PROJECT::on radius  "<<new_point<<std::endl;
+			if( this->GetEchoLevel() > 0 )
+			  std::cout<<"   TOOL PROJECT::on radius  "<<new_point<<std::endl;
 
 		      }
 
@@ -2757,7 +2801,8 @@ namespace Kratos
 
 		    ic->Set(TO_ERASE);
 
-		    std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
+		    if( this->GetEchoLevel() > 0 )
+		      std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
 
 		    list_of_nodes.push_back(new_point);
 		    list_of_conditions.push_back(*(ic.base()));
@@ -2780,7 +2825,8 @@ namespace Kratos
 
 	      }
 	      else{
-		std::cout<<" Condition "<<ic->Id()<<" Released "<<std::endl;
+		if( this->GetEchoLevel() > 0 )
+		  std::cout<<" Condition "<<ic->Id()<<" Released "<<std::endl;
 	      }
 	    
 	    }
@@ -2978,12 +3024,14 @@ namespace Kratos
     rMeshingVariables.RemeshInfo.InsertedConditions     = rModelPart.NumberOfConditions(MeshId)-rMeshingVariables.RemeshInfo.InsertedConditions;
     rMeshingVariables.RemeshInfo.InsertedBoundaryNodes = rModelPart.NumberOfNodes(MeshId)-rMeshingVariables.RemeshInfo.InsertedBoundaryNodes;
 
-    std::cout<<"   [ CONDITIONS ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedConditions<<" ) ]"<<std::endl;
-    std::cout<<"   [ NODES      ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedBoundaryNodes<<" ) ]"<<std::endl;
-    std::cout<<"   [ contact(TIP: "<<contact_tip<<", SIZE: "<<contact_size<<") -  bound(TIP: "<<tip_bound<<", SIZE: "<<exterior_bound<<")]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   [ CONDITIONS ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedConditions<<" ) ]"<<std::endl;
+      std::cout<<"   [ NODES      ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedBoundaryNodes<<" ) ]"<<std::endl;
+      std::cout<<"   [ contact(TIP: "<<contact_tip<<", SIZE: "<<contact_size<<") -  bound(TIP: "<<tip_bound<<", SIZE: "<<exterior_bound<<")]"<<std::endl;
     
     
-    std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
+      std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
+    }
 
     KRATOS_CATCH(" ")
   }
@@ -2998,8 +3046,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
-    //std::cout<<"   Nodes before erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
+      //std::cout<<"   Nodes before erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
+    }
 
     double RemovedConditions = rModelPart.NumberOfConditions(MeshId);
     double NumberOfNodes = rModelPart.NumberOfNodes(MeshId);
@@ -3223,9 +3273,11 @@ namespace Kratos
 		    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 		    for(unsigned int i=0; i<rConditionGeom.size(); i++){
 		      //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
-		      if(rConditionGeom[i].Is(TO_ERASE))
-			std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
-		      
+		      if(rConditionGeom[i].Is(TO_ERASE)){
+			if( this->GetEchoLevel() > 0 )
+			  std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
+		      }
+
 		      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
 		    }
 		  }
@@ -3364,13 +3416,15 @@ namespace Kratos
 
     RemovedConditions -= rModelPart.NumberOfConditions(MeshId);
 
-    std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
-    std::cout<<"   [ NODES      ( removed : "<<rMeshingVariables.RemeshInfo.RemovedNodes<<" ) ]"<<std::endl;
-    std::cout<<"   [ Error(removed: "<<error_remove<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
+      std::cout<<"   [ NODES      ( removed : "<<rMeshingVariables.RemeshInfo.RemovedNodes<<" ) ]"<<std::endl;
+      std::cout<<"   [ Error(removed: "<<error_remove<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
 	
 
-    //std::cout<<"   Nodes after  erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
-    std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
+      //std::cout<<"   Nodes after  erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
+      std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
+    }
 
     KRATOS_CATCH(" ")
   }
@@ -3384,8 +3438,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<"   [ REMOVE NON CONVEX BOUNDARY : "<<std::endl;
-    //std::cout<<"     Starting Conditions : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"   [ REMOVE NON CONVEX BOUNDARY : "<<std::endl;
+      //std::cout<<"     Starting Conditions : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    }
 
     double RemovedConditions = rModelPart.NumberOfConditions(MeshId);
 
@@ -3405,7 +3461,7 @@ namespace Kratos
 	  for(unsigned int i=0; i<rConditionGeom.size(); i++){
 	    //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
 	    if(rConditionGeom[i].Is(TO_ERASE))
-	      std::cout<<"     Released node condition: WARNING "<<std::endl;
+	      std::cout<<"     WARNING: Released node condition "<<std::endl;
 
 	    node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
 	  }
@@ -3687,11 +3743,13 @@ namespace Kratos
     
     RemovedConditions = rModelPart.Conditions(MeshId).size() - RemovedConditions;
 
-    std::cout<<"     [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
-    std::cout<<"     [ NODES      ( removed : "<<RemovedNodes<<" ) ]"<<std::endl;
-
-    std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions(MeshId).size()<<"  (Removed nodes: "<< RemovedNodes<<" ) "<<std::endl;
-    std::cout<<"     REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<"     [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
+      std::cout<<"     [ NODES      ( removed : "<<RemovedNodes<<" ) ]"<<std::endl;
+    
+      std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions(MeshId).size()<<"  (Removed nodes: "<< RemovedNodes<<" ) "<<std::endl;
+      std::cout<<"     REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
+    }
 
     if(RemovedNodes)
       return true;
@@ -3714,8 +3772,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ SELECT ELEMENTS TO REFINE : "<<std::endl;
-    //std::cout<<"   refine selection "<<std::endl;
+    if( this->GetEchoLevel() > 0 ){
+      std::cout<<" [ SELECT ELEMENTS TO REFINE : "<<std::endl;
+      //std::cout<<"   refine selection "<<std::endl;
+    }
 
     //***SIZES :::: parameters do define the tolerance in mesh size: 
     double size_for_inside_elements   = 0.75 * rMeshingVariables.Refine.CriticalRadius;
@@ -3969,7 +4029,8 @@ namespace Kratos
     //WriteTriangles(in);
     //WritePoints(in);
 
-    std::cout<<"   SELECT ELEMENTS TO REFINE ]; "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<"   SELECT ELEMENTS TO REFINE ]; "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -3986,7 +4047,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    std::cout<<" [ GENERATE NEW NODES: "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<" [ GENERATE NEW NODES: "<<std::endl;
 
     //Find out where the new nodes belong to:
 
@@ -4049,7 +4111,8 @@ namespace Kratos
     //Inserted nodes
     rMeshingVariables.RemeshInfo.InsertedNodes = out.numberofpoints-in.numberofpoints;
 
-    std::cout <<"   [ GENERATED NODES: ( added: " << rMeshingVariables.RemeshInfo.InsertedNodes <<" ) ]"<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout <<"   [ GENERATED NODES: ( added: " << rMeshingVariables.RemeshInfo.InsertedNodes <<" ) ]"<<std::endl;
 		
     //Set new NodalPreIds in the rMeshingVariables.NodalPreIds
     // j=0;
@@ -4157,7 +4220,8 @@ namespace Kratos
 
       }
 
-    std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
+    if( this->GetEchoLevel() > 0 )
+      std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
