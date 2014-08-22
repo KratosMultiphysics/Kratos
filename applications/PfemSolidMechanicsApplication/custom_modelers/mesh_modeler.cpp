@@ -234,22 +234,23 @@ namespace Kratos
     if(NumberOfMeshes>1) 
       start=1;
 
-    bool out_buffer_active = true;
-    std::streambuf* buffer = NULL;
-    if( mEchoLevel == 0 ){
-      //std::cout<<" Deactivate cout "<<std::endl;
-      buffer = std::cout.rdbuf();
-      std::ofstream fout("/dev/null");
-      std::cout.rdbuf(fout.rdbuf());
-      //std::cout<<output(off,buffer);
-      out_buffer_active = false;
-    }
+    // bool out_buffer_active = true;
+    // std::streambuf* buffer = NULL;
+    // if( mEchoLevel == 0 ){
+    //   //std::cout<<" Deactivate cout "<<std::endl;
+    //   buffer = std::cout.rdbuf();
+    //   std::ofstream fout("/dev/null");
+    //   std::cout.rdbuf(fout.rdbuf());
+    //   //std::cout<<output(off,buffer);
+    //   out_buffer_active = false;
+    // }
 
     //By the way: set meshes options from bools
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
-	
-	std::cout<<" GetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
+	if( GetEchoLevel() > 0 ){
+	  std::cout<<" GetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
+	}
 
 	if(mMeshingVariables[MeshId].RemeshFlag)
 	  rModelPart.GetMesh(MeshId).Set( REMESH );
@@ -268,16 +269,16 @@ namespace Kratos
 	}
 	
 	// check mesh size introduced :: warning must be shown
-	if(!out_buffer_active)
-	  std::cout.rdbuf(buffer);
+	// if(!out_buffer_active)
+	//   std::cout.rdbuf(buffer);
 	
 	mModelerUtilities.CheckCriticalRadius(rModelPart, mMeshingVariables[MeshId].Refine.CriticalRadius, MeshId);
 		
-	if(!out_buffer_active){
-	  buffer = std::cout.rdbuf();
-	  std::ofstream fout("/dev/null");
-	  std::cout.rdbuf(fout.rdbuf());
-	}
+	// if(!out_buffer_active){
+	//   buffer = std::cout.rdbuf();
+	//   std::ofstream fout("/dev/null");
+	//   std::cout.rdbuf(fout.rdbuf());
+	// }
 	// check mesh size introduced :: warning must be shown
 
       }
@@ -316,14 +317,16 @@ namespace Kratos
 
 
     MeshDataTransferUtilities    MeshDataTransfer;
+    MeshDataTransfer.SetEchoLevel(GetEchoLevel());
     LaplacianSmoothing   MeshGeometricSmoothing(rModelPart);
-
+    MeshGeometricSmoothing.SetEchoLevel(GetEchoLevel());
 	
     bool remesh_performed=false;
 	
-    std::cout<<" --------------                     -------------- "<<std::endl;
-    std::cout<<" --------------       DOMAIN        -------------- "<<std::endl;
-	
+    if( GetEchoLevel() > 0 ){
+      std::cout<<" --------------                     -------------- "<<std::endl;
+      std::cout<<" --------------       DOMAIN        -------------- "<<std::endl;
+    }
 	
     ModelPart::MeshesContainerType Meshes = rModelPart.GetMeshes();
 	  	  
@@ -353,36 +356,46 @@ namespace Kratos
 	    {
 	      if(Meshes[MeshId].Is( REFINE_MESH )){
 		//Constrained Delaunay Triangulation
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT START]:"<<std::endl;
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT START]:"<<std::endl;
 		this->GenerateRCDT(rModelPart,mMeshingVariables[MeshId],MeshId);	
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT END]"<<std::endl;	  
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT END]"<<std::endl;	  
 	      }
 	      else{ 	
 		//Generate Constrained Delaunay Triangulation
-		std::cout<<" [ MESH: "<<MeshId<<" REMESH CDT ]:"<<std::endl;
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REMESH CDT ]:"<<std::endl;
 		this->GenerateCDT(rModelPart,mMeshingVariables[MeshId],MeshId);		
-		std::cout<<" [ MESH: "<<MeshId<<" REMESH END ]"<<std::endl;    		    
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REMESH END ]"<<std::endl;    		    
 	      }
 	    }
 	  else
 	    {
 	      if(Meshes[MeshId].Is( REFINE_MESH )){ 
 		//Constrained Delaunay Triangulation
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT START]:"<<std::endl;
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT START]:"<<std::endl;
 		this->GenerateRDT(rModelPart,mMeshingVariables[MeshId],MeshId);	
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT END]"<<std::endl;	  
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT END]"<<std::endl;	  
 	      }
 	      else{
 		//Generate Delaunay Triangulation
-		std::cout<<" [ MESH: "<<MeshId<<" REMESH DT START ]:"<<std::endl;
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REMESH DT START ]:"<<std::endl;
 		this->GenerateDT(rModelPart,mMeshingVariables[MeshId],MeshId);
-		std::cout<<" [ MESH: "<<MeshId<<" REMESH DT END ]"<<std::endl;
+		if( GetEchoLevel() > 0 )
+		  std::cout<<" [ MESH: "<<MeshId<<" REMESH DT END ]"<<std::endl;
 	      }
 	    }
 		
-	  std::cout<<" --------------                     -------------- "<<std::endl;
-	  std::cout<<" --------------  REMESH PERFORMED   -------------- "<<std::endl;
-	  std::cout<<" --------------                     -------------- "<<std::endl;
+	  if( GetEchoLevel() > 0 ){
+	    std::cout<<" --------------                     -------------- "<<std::endl;
+	    std::cout<<" --------------  REMESH PERFORMED   -------------- "<<std::endl;
+	    std::cout<<" --------------                     -------------- "<<std::endl;
+	  }
 
 	  remesh_performed=true;
 	}
@@ -390,7 +403,8 @@ namespace Kratos
 
 	  if(mMeshingVariables[MeshId].MeshSmoothingFlag){
 
-	    std::cout<<" [ MESH: "<<MeshId<<" TRANSFER START ]:"<<std::endl;
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ MESH: "<<MeshId<<" TRANSFER START ]:"<<std::endl;
 
 	    //transfer only is done if the remesh option is active
 	    rModelPart.GetMesh(MeshId).Set( REMESH );  
@@ -401,10 +415,12 @@ namespace Kratos
 
 	    remesh_performed=true;
 
-	    std::cout<<" [ MESH: "<<MeshId<<" TRANSFER END ]"<<std::endl;
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ MESH: "<<MeshId<<" TRANSFER END ]"<<std::endl;
 	  }
 	  else{
-	    std::cout<<" [ MESH: "<<MeshId<<" NO REMESH ]"<<std::endl;
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ MESH: "<<MeshId<<" NO REMESH ]"<<std::endl;
 	  }
 
 	}
@@ -499,8 +515,8 @@ namespace Kratos
 
     }
 
-    if(!out_buffer_active)
-      std::cout.rdbuf(buffer);
+    // if(!out_buffer_active)
+    //   std::cout.rdbuf(buffer);
 
 
     KRATOS_CATCH(" ")

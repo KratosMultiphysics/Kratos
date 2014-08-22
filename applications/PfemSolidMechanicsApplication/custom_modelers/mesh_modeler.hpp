@@ -387,6 +387,7 @@ public:
     virtual void SetEchoLevel(int Level)
     {
         mEchoLevel = Level;
+	mDataTransferUtilities.SetEchoLevel(Level);
     }
 
     int GetEchoLevel()

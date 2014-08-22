@@ -20,9 +20,14 @@ class SolvingInfoUtility(object):
 
         self.model_part.ProcessInfo[NL_ITERATION_NUMBER] = 0 
         self.step_iters=[]
-        for i in range(0,self.max_iters+1):
+        
+        self.step_iters.append(0.5) #zero iters maximum at the begining
+                    
+        for i in range(0,2*self.max_iters): #solving can be segragated (2 iteration steps)
             self.step_iters.append(0)
-
+            
+        self.simulated_time  = 0
+        self.max_iter_number = 0
 
         self.execute_write = True
         self.write_id      = 0
@@ -31,7 +36,13 @@ class SolvingInfoUtility(object):
         self.restart_id    = 0
 
         self.write_perfomed = False
+        self.number_of_result_files = 0;
+
+        self.restart_performed = False
+        self.number_of_restart_files = 0;
+
         self.convergence_warning = False
+        self.number_of_non_converged_steps = 0;
        
     #
     def set_convergence_criterion(self, convergence_criterion):
@@ -44,29 +55,37 @@ class SolvingInfoUtility(object):
     #
     def print_step_info(self, current_time, current_step):
         self.model_part.ProcessInfo[TIME_STEPS] = current_step
+        self.simulated_time = current_time
         print("  [ TIME=%.8e" % current_time,"]: STEP=",current_step," [-----------------] ")
 
     #
     def update_solving_info(self):
         if(self.time_integration_method != "Explicit"):
             num_iters = self.model_part.ProcessInfo[NL_ITERATION_NUMBER]
-            self.step_iters[num_iters] += 1
-            self.total_iters += num_iters
  
-            if( num_iters < self.max_iters ):
-                convergence_warning = True
+            if( num_iters >= self.max_iters ):
+                self.number_of_non_converged_steps += 1
+                self.convergence_warning = True
+            else:
+                self.step_iters[num_iters] += 1
+                self.total_iters += num_iters
+ 
+                if( self.max_iter_number < num_iters ):
+                    self.max_iter_number = num_iters
 
     #
     def set_print_info(self, execute_write, write_id):
         self.execute_write = execute_write
         self.write_id      = write_id
+        self.number_of_result_files += 1
         self.write_performed = True
 
     #
     def set_restart_info(self, execute_save, restart_id):
         self.execute_save = execute_save
         self.restart_id   = restart_id
-
+        self.number_of_restart_files += 1
+        self.restart_performed = True
     #
     def print_solving_info(self):
 
@@ -75,7 +94,7 @@ class SolvingInfoUtility(object):
         convergence_ratio = self.model_part.ProcessInfo[CONVERGENCE_RATIO]
         residual_norm     = self.model_part.ProcessInfo[RESIDUAL_NORM]
 
-        #average_iters     = self.total_iters/current_step
+        #average_iters    = self.total_iters/current_step
         average_iters     = self.step_iters.index(max(self.step_iters))
 
         if(self.time_integration_method != "Explicit"):
@@ -98,13 +117,41 @@ class SolvingInfoUtility(object):
           
         self.execute_write = False
         self.execute_save  = False
+
     #
     def info_check(self):
+            
+        current_step = self.model_part.ProcessInfo[TIME_STEPS] 
+        total_info = "::[Solving Info]:: [ SIMULATED-TIME=%.4e" % self.simulated_time
+        total_info = total_info+" seconds | STEPS-NUMBER="+str(current_step)
+        total_info = total_info+" ]"
+
+        print(total_info)
+
+        average_iters = self.step_iters.index(max(self.step_iters))
+        
+        total_info = "::[Solving Info]:: [ AVG-ITERS:"+str(average_iters)
+        total_info = total_info+"|MAX-ITERS="+str(self.max_iter_number) 
+        
+        if(self.write_performed):
+            total_info = total_info+"|RESULTS-FILES="+str(self.number_of_result_files)
+        else:
+            total_info = total_info+"|WARNING: NO RESULTS WRITTEN"
+            
+        if( self.restart_performed ):
+            total_info = total_info+"|RESTART-FILES="+str(self.number_of_restart_files)                
+
+        total_info = total_info+" ]"
+
+        print(total_info)
 
         if(self.convergence_warning):
-            print( "::[Solving Info]:: Some steps did not converge: RESULTS ARE NOT ACCURATE ")
-        else:
-            if(self.write_performed):
-                print( "::[Solving Info]:: -NOTE: run_GID_for_viewing_results-")
-            else:
-                print( "::[Solving Info]:: -WARNING: no results written-")
+            total_info = "::[Solving Info]:: [ NON-CONVERGED-STEPS="+str(self.number_of_non_converged_steps)
+            total_info = total_info+" (WARNING::RESULTS WILL NOT BE ACCURATE)"
+            total_info = total_info+" ]"
+            print(total_info)
+
+        if(self.write_performed):
+            print( "::[Solving Info]:: -NOTE: run_GID_for_viewing_results-")
+                    
+        print("")

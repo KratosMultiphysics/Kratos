@@ -179,7 +179,8 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<std::endl;
+            if( GetEchoLevel() > 0 )
+	      std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<std::endl;
 
 	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
 
@@ -211,8 +212,8 @@ namespace Kratos
 		
 	      }
 
-		    
-            std::cout<<" [ Finished NODE to ELEMENT Transfer ]"<<std::endl;
+	    if( GetEchoLevel() > 0 )		    
+	      std::cout<<" [ Finished NODE to ELEMENT Transfer ]"<<std::endl;
 	    
 	    KRATOS_CATCH( "" )
 	}
@@ -232,7 +233,8 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-            std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<" based on critical values of "<<rCriticalVariable<<std::endl;
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<" based on critical values of "<<rCriticalVariable<<std::endl;
 
 	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
 
@@ -298,7 +300,8 @@ namespace Kratos
 		in->Reset(TO_REFINE);
 	      }
 
-            std::cout<<" [ Finished NODE to ELEMENT Transfer ] : ( Performed "<<counter<<" transfers of "<<rModelPart.NumberOfElements(MeshId)<<" possible )"<<std::endl;
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ Finished NODE to ELEMENT Transfer ] : ( Performed "<<counter<<" transfers of "<<rModelPart.NumberOfElements(MeshId)<<" possible )"<<std::endl;
 	    
 	    KRATOS_CATCH( "" )
 	}
@@ -314,6 +317,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 	     
+	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ Data Transfer ELEMENT to NODE ] :"<<rVariable<<std::endl;
 
 	    std::vector<double> Jacobians(1);					
@@ -343,19 +347,20 @@ namespace Kratos
 		  if(Area!=0 || Jacobian<=0)
 		    Jacobian /= Area;
 		  else
-		    std::cout<<" Something Wrong in node ["<<in->Id()<<"] : Area = 0 (neighbours: "<<neighb_elems.size()<<") "<<std::endl;
+		    std::cout<<" ERROR TR: Something Wrong in node ["<<in->Id()<<"] : Area = 0 (neighbours: "<<neighb_elems.size()<<") "<<std::endl;
 
 		  if( in->SolutionStepsDataHas(rVariable))
 		    in->FastGetSolutionStepValue(rVariable) = Jacobian;
 		  else
-		    std::cout<<" Something Wrong in node ["<<in->Id()<<"] : variable "<<rVariable<<" was not defined "<<std::endl;
+		    std::cout<<" ERROR TR: Something Wrong in node ["<<in->Id()<<"] : variable "<<rVariable<<" was not defined "<<std::endl;
 		    
 		}
 
 	      }
     
 
-	    std::cout<<" [ Finished ELEMENT to NODE Transfer ]"<<std::endl;
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ Finished ELEMENT to NODE Transfer ]"<<std::endl;
 		   
 	    KRATOS_CATCH( "" )
         }
@@ -373,8 +378,11 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-            std::cout<<" [ Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET ]"<<std::endl;
-            std::cout<<" [ Finished NODE to ELEMENT Transfer: NOT IMPLEMENTED YET ]"<<std::endl;
+	    if( GetEchoLevel() > 0 ){
+	      std::cout<<" [ Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET ]"<<std::endl;
+	      std::cout<<" [ Finished NODE to ELEMENT Transfer: NOT IMPLEMENTED YET ]"<<std::endl;
+	    }
+
 	    KRATOS_CATCH( "" )
 
 	}
@@ -390,9 +398,12 @@ namespace Kratos
 	{
 
 	    KRATOS_TRY
-		    
-            std::cout<<" [ Data Transfer ELEMENT to NODE: NOT IMPLEMENTED YET ]"<<std::endl;
-            std::cout<<" [ Finished ELEMENT to NODE Transfer: NOT IMPLEMENTED YET ]"<<std::endl;
+
+	    if( GetEchoLevel() > 0 ){   
+	      std::cout<<" [ Data Transfer ELEMENT to NODE: NOT IMPLEMENTED YET ]"<<std::endl;
+	      std::cout<<" [ Finished ELEMENT to NODE Transfer: NOT IMPLEMENTED YET ]"<<std::endl;
+	    }
+
     	    KRATOS_CATCH( "" )
 
 	}
@@ -408,8 +419,9 @@ namespace Kratos
 	{
 
 	    KRATOS_TRY
-		    
-            std::cout<<" [ Data Transfer ELEMENT to ELEMENT ]"<<std::endl;
+
+	    if( GetEchoLevel() > 0 )
+	      std::cout<<" [ Data Transfer ELEMENT to ELEMENT ]"<<std::endl;
 
 	    //definitions for spatial search
   	    typedef Node<3>                                  PointType;
@@ -536,9 +548,10 @@ namespace Kratos
 	    }
 
 
-	    std::cout<<" [ MOVED TRANSFERS: "<<moved_transfers<<" ]"<<std::endl;
-
-	    std::cout<<" [ Finished ELEMENT to ELEMENT Transfer ]"<<std::endl;
+	    if( GetEchoLevel() > 0 ){
+	      std::cout<<" [ MOVED TRANSFERS: "<<moved_transfers<<" ]"<<std::endl;
+	      std::cout<<" [ Finished ELEMENT to ELEMENT Transfer ]"<<std::endl;
+	    }
 
 	    KRATOS_CATCH( "" )
 	}
