@@ -27,6 +27,7 @@ namespace Kratos
 {
         
   KRATOS_CREATE_VARIABLE(double, AUX_DOUBLE_VAR)
+  KRATOS_CREATE_VARIABLE(int, TRACK_SUBSCALES)
   
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -44,6 +45,7 @@ void KratosSwimmingDEMApplication::Register()
                 
 
   KRATOS_REGISTER_VARIABLE(AUX_DOUBLE_VAR)
+  KRATOS_REGISTER_VARIABLE(TRACK_SUBSCALES)
 
   /* Define In Global variables.cpp */
 

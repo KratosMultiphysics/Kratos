@@ -29,6 +29,8 @@
 namespace Kratos
 {
   KRATOS_DEFINE_VARIABLE(double, AUX_DOUBLE_VAR)
+  KRATOS_DEFINE_VARIABLE(int,TRACK_SUBSCALES)
+
 
 class KratosSwimmingDEMApplication : public KratosApplication
 {
