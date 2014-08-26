@@ -1,5 +1,6 @@
 
 #include "monolithic_dem_coupled_weak.h"
+#include "swimming_DEM_application.h"
 
 namespace Kratos
 {
