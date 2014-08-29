@@ -123,10 +123,25 @@ void  AddLinearSolvers()
      init<Teuchos::ParameterList&, Teuchos::ParameterList&, double, int >());
 
     #ifdef AMGCL_INCLUDED
+         enum_<AMGCLSmoother>("AMGCLSmoother")
+            .value("SPAI0", SPAI0)
+            .value("ILU0", ILU0)
+            .value("DAMPED_JACOBI",DAMPED_JACOBI)
+            .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
+            ;
+        
+        enum_<AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
+            .value("GMRES", GMRES)
+            .value("BICGSTAB", BICGSTAB)
+            .value("CG",CG)
+            .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
+            ;
+    
         typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
         class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
-        ("AmgclMPISolver",
-        init<double, int >());
+            ("AmgclMPISolver",init<double, int >())
+            .def(init<AMGCLSmoother,AMGCLIterativeSolverType,double,int>())
+            ;
     #endif
     
     enum_<AztecScalingType>("AztecScalingType")
