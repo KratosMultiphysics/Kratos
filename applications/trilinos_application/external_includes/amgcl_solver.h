@@ -41,14 +41,15 @@ ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIB
 
 #include <amgcl/amgcl.hpp>
 #include <amgcl/adapter/epetra.hpp>
-#include <amgcl/coarsening/plain_aggregates.hpp>
-#include <amgcl/coarsening/pointwise_aggregates.hpp>
-#include <amgcl/coarsening/smoothed_aggregation.hpp>
-#include <amgcl/coarsening/ruge_stuben.hpp>
-//#include <amgcl/relaxation/spai0.hpp>
-#include <amgcl/relaxation/ilu0.hpp>
-#include <amgcl/solver/bicgstabl.hpp>
-#include <amgcl/mpi/deflation.hpp>
+// #include <amgcl/coarsening/plain_aggregates.hpp>
+// #include <amgcl/coarsening/pointwise_aggregates.hpp>
+// #include <amgcl/coarsening/smoothed_aggregation.hpp>
+// #include <amgcl/coarsening/ruge_stuben.hpp>
+// //#include <amgcl/relaxation/spai0.hpp>
+// #include <amgcl/relaxation/ilu0.hpp>
+// #include <amgcl/solver/bicgstabl.hpp>
+#include <amgcl/mpi/subdomain_deflation.hpp>
+#include <amgcl/mpi/runtime.hpp>
 
 
 namespace Kratos
@@ -56,13 +57,16 @@ namespace Kratos
 
 enum AMGCLSmoother
 {
-    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL
+    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
 };
 
 enum AMGCLIterativeSolverType
 {
     GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
 };
+
+
+
 
 struct deflation_space
 {
@@ -136,8 +140,77 @@ public:
     {
         mtol = tol;
         mmax_iter = nit_max;
+        
+
+        mprm.put("coarse_enough",500);
+        mprm.put("coarsening.aggr.eps_strong",0);      
+        mprm.put("tol", 1e-6);
+        mprm.put("maxiter", nit_max);
+               
+        //setting default options - for non symm system
+        mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+        mrelaxation = amgcl::runtime::relaxation::ilu0;
+        miterative_solver = amgcl::runtime::solver::bicgstabl;
+        mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
     }
 
+    AmgclMPISolver( AMGCLSmoother smoother,
+                    AMGCLIterativeSolverType solver,
+                    double tol, 
+                    int nit_max)
+    {
+        mtol = tol;
+        mmax_iter = nit_max;
+          
+        mprm.put("coarse_enough",500);
+        mprm.put("coarsening.aggr.eps_strong",0);      
+        mprm.put("tol", 1e-6);
+        mprm.put("maxiter", nit_max);
+        
+        //choose smoother
+        switch(smoother)
+        {
+            case SPAI0:
+                mrelaxation = amgcl::runtime::relaxation::spai0;
+            case ILU0:
+                mrelaxation = amgcl::runtime::relaxation::ilu0;
+            case DAMPED_JACOBI:
+                mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+            case GAUSS_SEIDEL:
+                mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+            case CHEBYSHEV:
+                mrelaxation = amgcl::runtime::relaxation::chebyshev;
+        };
+        
+        switch(solver)
+        {
+            case GMRES:
+                miterative_solver = amgcl::runtime::solver::gmres;
+            case BICGSTAB:
+                miterative_solver = amgcl::runtime::solver::bicgstab;
+            case CG:
+                miterative_solver = amgcl::runtime::solver::cg;
+            case BICGSTAB2:
+                miterative_solver = amgcl::runtime::solver::bicgstabl;
+            case BICGSTAB_WITH_GMRES_FALLBACK:
+                KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+        };      
+        
+        //setting default options - for non symm system
+        mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+        mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
+    }
+    
+    void SetDoubleParameter(std::string param_name, const double value)
+    {
+        mprm.put(param_name,value);
+    }
+    
+    void SetIntParameter(std::string param_name, const double value)
+    {
+        mprm.put(param_name,value);
+    }
+    
     /**
      * Destructor
      */
@@ -154,50 +227,30 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_TRY
-//         if (rA.Comm().MyPID() == 0) {
-//             std::cout
-//                 << "entered amgcl mpi *******************************" << std::endl;
-//         }
-
+        
+        amgcl::mpi::communicator world(MPI_COMM_WORLD);
+        if (world.rank == 0) std::cout << "World size: " << world.size << std::endl;
+                  
         int chunk = rA.NumMyRows();
         boost::iterator_range<double*> xrange(rX.Values(), rX.Values() + chunk);
         boost::iterator_range<double*> frange(rB.Values(), rB.Values() + chunk);
+        
+        //set block size
+        mprm.put("coarsening.aggr.block_size",mndof);
 
-        typedef amgcl::coarsening::smoothed_aggregation<  amgcl::coarsening::pointwise_aggregates > Coarsening;
+//         prof.tic("setup");
+        typedef
+        amgcl::runtime::mpi::subdomain_deflation< amgcl::backend::builtin<double>  > SDD;
+        SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mpdef_space, mprm );
+//         double tm_setup = prof.toc("setup");
 
-        typedef amgcl::mpi::subdomain_deflation<
-        amgcl::backend::builtin<double>,
-              Coarsening,
-              amgcl::relaxation::ilu0,
-              amgcl::solver::bicgstabl
-              > Solver;
-
-        typename Solver::AMG_params aprm;
-        aprm.coarse_enough = 500;
-        aprm.coarsening.aggr.block_size = mndof;
-        aprm.coarsening.aggr.eps_strong = 0;
-
-
-
-        typename Solver::Solver_params sprm(2, mmax_iter, mtol);
-
-
-        Solver solve(MPI_COMM_WORLD, amgcl::backend::map(rA), *mpdef_space, aprm, sprm);
-        //Solver solve(MPI_COMM_WORLD, amgcl::backend::map(rA), amgcl::mpi::constant_deflation(), aprm, sprm);
-
-//         if (rA.Comm().MyPID() == 0) {
-//             std::cout
-//                 << "constructed amgcl mpi *******************************" << std::endl;
-//                 //<< prof                      << std::endl;
-//         }
+//         prof.tic("Solve");
         size_t iters;
         double resid;
         boost::tie(iters, resid) = solve(frange, xrange);
-//         if (rA.Comm().MyPID() == 0) {
-//             std::cout
-//                 << "solved using amgcl mpi *******************************" << std::endl;
-//                 //<< prof                      << std::endl;
-//         }
+//         double solve_tm = prof.toc("Solve");
+
+
 
         if (rA.Comm().MyPID() == 0)
         {
@@ -390,7 +443,14 @@ private:
     int mmax_iter;
     int mndof;
     boost::shared_ptr< deflation_space    > mpdef_space;
+    amgcl::runtime::coarsening::type mcoarsening;
+    amgcl::runtime::relaxation::type mrelaxation;
+    amgcl::runtime::solver::type miterative_solver;
+    amgcl::runtime::direct_solver::type mdirect_solver;
+        
+    boost::property_tree::ptree mprm;
 
+        
     /**
      * Assignment operator.
      */
