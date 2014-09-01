@@ -1416,8 +1416,9 @@ private:
         
         int msgSendSize[mpi_size];
         int msgRecvSize[mpi_size];
-
-        std::vector<std::string> buffer(mpi_size);
+        
+        char * message[mpi_size];
+        char * mpi_send_buffer[mpi_size];
         
         for(int i = 0; i < mpi_size; i++)
         {
@@ -1430,24 +1431,24 @@ private:
             if(mpi_rank != i)
             {
                 Kratos::Serializer particleSerializer;
-                std::stringstream * serializer_buffer;
 
                 particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("Object",SendObjects[i].GetContainer());
                 
-                serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
-                buffer[i] = std::string(serializer_buffer->str());
-                msgSendSize[i] = buffer[i].size()+1;
+                std::stringstream * stream = (std::stringstream *)particleSerializer.pGetBuffer();
+                const std::string & stream_str = stream->str();
+                const char * cstr = stream_str.c_str();
+               
+                msgSendSize[i] = sizeof(char) * (stream_str.size()+1);
+                mpi_send_buffer[i] = (char *)malloc(msgSendSize[i]);
+                memcpy(mpi_send_buffer[i],cstr,msgSendSize[i]);
             }
         }
 
         MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
         
-        int NumberOfCommunicationEvents = 0;
+        int NumberOfCommunicationEvents      = 0;
         int NumberOfCommunicationEventsIndex = 0;
-        
-        char * message[mpi_size];
-        char * mpi_send_buffer[mpi_size];
         
         for(int j = 0; j < mpi_size; j++)
         {
@@ -1470,9 +1471,6 @@ private:
 
             if(i != mpi_rank && msgSendSize[i])
             {
-                mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
-                
-                memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
                 MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
             }
         }
