@@ -77,6 +77,8 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
 if (HAVE_PASTIX)
         target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
+        install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
+
         message("linking PASTIX in the AMGCL lib")
 #         target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
 else()

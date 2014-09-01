@@ -151,7 +151,13 @@ public:
         mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
         mrelaxation = amgcl::runtime::relaxation::ilu0;
         miterative_solver = amgcl::runtime::solver::bicgstabl;
+        
+#ifdef AMGCL_HAVE_PASTIX
+        mdirect_solver = amgcl::runtime::direct_solver::pastix;
+#else
         mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
+#endif
+        
     }
 
     AmgclMPISolver( AMGCLSmoother smoother,
@@ -198,7 +204,12 @@ public:
         
         //setting default options - for non symm system
         mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
-        mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
+
+        #ifdef AMGCL_HAVE_PASTIX
+            mdirect_solver = amgcl::runtime::direct_solver::pastix;
+        #else
+            mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
+        #endif
     }
     
     void SetDoubleParameter(std::string param_name, const double value)
