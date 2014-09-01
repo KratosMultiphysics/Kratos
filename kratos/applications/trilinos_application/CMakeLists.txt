@@ -19,6 +19,20 @@ link_directories(${TRILINOS_LIBRARIES})
 
 if(TRILINOS_USE_AMGCL MATCHES ON)
     add_definitions(-DAMGCL_INCLUDED)
+
+    find_package(Pastix QUIET)
+     
+#     find_package(BLAS   QUIET)
+
+#     if (PASTIX_INCLUDES AND SCOTCH_INCLUDES AND BLAS_FOUND)
+    if (PASTIX_INCLUDES)
+        set(HAVE_PASTIX ON)
+        find_package(Scotch REQUIRED)
+        #include_directories(${PASTIX_INCLUDES} ${SCOTCH_INCLUDES})
+        include_directories(${PASTIX_INCLUDES})
+        add_definitions(-DAMGCL_HAVE_PASTIX)
+    endif()
+
     ##including the amgcl, which is header only
     set(AMGCL_ROOT $ENV{AMGCL_ROOT} CACHE STRING "AMGCL root")
     message(STATUS "Found AMGCL at ${AMGCL_ROOT}")
@@ -61,7 +75,14 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 
 # ###############################################################
 add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
-target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+if (HAVE_PASTIX)
+        target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
+        message("linking PASTIX in the AMGCL lib")
+#         target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
+else()
+        target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+endif()
+
 set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 

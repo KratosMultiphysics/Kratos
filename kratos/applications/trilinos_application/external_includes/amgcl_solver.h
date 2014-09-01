@@ -164,7 +164,7 @@ public:
           
         mprm.put("coarse_enough",500);
         mprm.put("coarsening.aggr.eps_strong",0);      
-        mprm.put("tol", 1e-6);
+        mprm.put("tol", tol);
         mprm.put("maxiter", nit_max);
         
         //choose smoother
