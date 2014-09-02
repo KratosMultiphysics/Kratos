@@ -7,17 +7,17 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
     Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or 
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or
     other materials provided with the distribution.
     All advertising materials mentioning features or use of this software must display the following acknowledgement:
     This product includes Kratos Multi-Physics technology.
     Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) 
-ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 
@@ -49,6 +49,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIB
 // #include <amgcl/relaxation/ilu0.hpp>
 // #include <amgcl/solver/bicgstabl.hpp>
 #include <amgcl/mpi/subdomain_deflation.hpp>
+
 #include <amgcl/mpi/runtime.hpp>
 
 
@@ -63,6 +64,11 @@ enum AMGCLSmoother
 enum AMGCLIterativeSolverType
 {
     GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
+};
+
+enum AMGCLCoarseningType
+{
+    RUBE_STUBEN,AGGREGATION,SA,SA_EMIN
 };
 
 
@@ -113,6 +119,36 @@ struct deflation_space
     }
 };
 
+struct constant_deflation_space
+{
+    std::vector<bool> mdirichlet;
+    int mblock_size;
+    int mdim;
+
+
+    //n is the size of the chunk
+    //block_size is the size of the block
+    //dim is the dimension of the working space
+    constant_deflation_space(int n, int block_size, int dim)
+        : mdirichlet(n, 0), mblock_size(block_size), mdim(dim)
+    {}
+
+    int dim() const
+    {
+        return mblock_size;
+    }
+
+    double operator()(int idx, int k) const
+    {
+        if (mdirichlet[idx]) return 0.0;
+
+        if(k == (idx%mblock_size) ) return 1.0;
+        return 0.0;
+
+    }
+};
+
+
 
 template< class TSparseSpaceType, class TDenseSpaceType,
           class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
@@ -136,92 +172,111 @@ public:
     /**
      * Default constructor
      */
-    AmgclMPISolver( double tol, int nit_max)
+    AmgclMPISolver( double tol, int nit_max, int verbosity=0, bool use_linear_deflation=true)
     {
         mtol = tol;
         mmax_iter = nit_max;
-        
+        mverbosity = verbosity;
+        muse_linear_deflation = use_linear_deflation;
+
 
         mprm.put("coarse_enough",500);
-        mprm.put("coarsening.aggr.eps_strong",0);      
+        mprm.put("coarsening.aggr.eps_strong",0);
         mprm.put("tol", 1e-6);
         mprm.put("maxiter", nit_max);
-               
+
         //setting default options - for non symm system
         mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
         mrelaxation = amgcl::runtime::relaxation::ilu0;
         miterative_solver = amgcl::runtime::solver::bicgstabl;
-        
+
 #ifdef AMGCL_HAVE_PASTIX
         mdirect_solver = amgcl::runtime::direct_solver::pastix;
 #else
         mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
 #endif
-        
+
     }
 
     AmgclMPISolver( AMGCLSmoother smoother,
                     AMGCLIterativeSolverType solver,
-                    double tol, 
-                    int nit_max)
+                    AMGCLCoarseningType coarsening,
+                    double tol,
+                    int nit_max,
+                    int verbosity=0,
+                    bool use_linear_deflation=true
+                  )
     {
         mtol = tol;
         mmax_iter = nit_max;
-          
+
         mprm.put("coarse_enough",500);
-        mprm.put("coarsening.aggr.eps_strong",0);      
+        mprm.put("coarsening.aggr.eps_strong",0);
         mprm.put("tol", tol);
         mprm.put("maxiter", nit_max);
-        
+
         //choose smoother
         switch(smoother)
         {
-            case SPAI0:
-                mrelaxation = amgcl::runtime::relaxation::spai0;
-            case ILU0:
-                mrelaxation = amgcl::runtime::relaxation::ilu0;
-            case DAMPED_JACOBI:
-                mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
-            case GAUSS_SEIDEL:
-                mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
-            case CHEBYSHEV:
-                mrelaxation = amgcl::runtime::relaxation::chebyshev;
+        case SPAI0:
+            mrelaxation = amgcl::runtime::relaxation::spai0;
+        case ILU0:
+            mrelaxation = amgcl::runtime::relaxation::ilu0;
+        case DAMPED_JACOBI:
+            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+        case GAUSS_SEIDEL:
+            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+        case CHEBYSHEV:
+            mrelaxation = amgcl::runtime::relaxation::chebyshev;
         };
-        
+
         switch(solver)
         {
-            case GMRES:
-                miterative_solver = amgcl::runtime::solver::gmres;
-            case BICGSTAB:
-                miterative_solver = amgcl::runtime::solver::bicgstab;
-            case CG:
-                miterative_solver = amgcl::runtime::solver::cg;
-            case BICGSTAB2:
-                miterative_solver = amgcl::runtime::solver::bicgstabl;
-            case BICGSTAB_WITH_GMRES_FALLBACK:
-                KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
-        };      
-        
-        //setting default options - for non symm system
-        mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+        case GMRES:
+            miterative_solver = amgcl::runtime::solver::gmres;
+        case BICGSTAB:
+            miterative_solver = amgcl::runtime::solver::bicgstab;
+        case CG:
+            miterative_solver = amgcl::runtime::solver::cg;
+        case BICGSTAB2:
+            miterative_solver = amgcl::runtime::solver::bicgstabl;
+        case BICGSTAB_WITH_GMRES_FALLBACK:
+            KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+        };
 
-        #ifdef AMGCL_HAVE_PASTIX
-            mdirect_solver = amgcl::runtime::direct_solver::pastix;
-        #else
-            mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
-        #endif
+        switch(coarsening)
+        {
+        case RUBE_STUBEN:
+            mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
+        case AGGREGATION:
+            mcoarsening = amgcl::runtime::coarsening::aggregation;
+        case SA:
+            mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+        case SA_EMIN:
+            mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
+        };
+
+
+        //setting default options - for non symm system
+//         mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+
+#ifdef AMGCL_HAVE_PASTIX
+        mdirect_solver = amgcl::runtime::direct_solver::pastix;
+#else
+        mdirect_solver = amgcl::runtime::direct_solver::skyline_lu;
+#endif
     }
-    
+
     void SetDoubleParameter(std::string param_name, const double value)
     {
         mprm.put(param_name,value);
     }
-    
+
     void SetIntParameter(std::string param_name, const double value)
     {
         mprm.put(param_name,value);
     }
-    
+
     /**
      * Destructor
      */
@@ -238,43 +293,81 @@ public:
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_TRY
-        
+
         amgcl::mpi::communicator world(MPI_COMM_WORLD);
         if (world.rank == 0) std::cout << "World size: " << world.size << std::endl;
-                  
+
         int chunk = rA.NumMyRows();
         boost::iterator_range<double*> xrange(rX.Values(), rX.Values() + chunk);
         boost::iterator_range<double*> frange(rB.Values(), rB.Values() + chunk);
-        
+
         //set block size
         mprm.put("coarsening.aggr.block_size",mndof);
 
 //         prof.tic("setup");
         typedef
         amgcl::runtime::mpi::subdomain_deflation< amgcl::backend::builtin<double>  > SDD;
-        SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mpdef_space, mprm );
+
+        if(muse_linear_deflation == true)
+        {
+            SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mplinear_def_space, mprm );
+
 //         double tm_setup = prof.toc("setup");
 
 //         prof.tic("Solve");
-        size_t iters;
-        double resid;
-        boost::tie(iters, resid) = solve(frange, xrange);
+            size_t iters;
+            double resid;
+            boost::tie(iters, resid) = solve(frange, xrange);
 //         double solve_tm = prof.toc("Solve");
 
 
 
-        if (rA.Comm().MyPID() == 0)
+            if (rA.Comm().MyPID() == 0)
+            {
+                std::cout
+                        << "------- AMGCL -------\n" << std::endl
+                        << "Iterations: " << iters   << std::endl
+                        << "Error:      " << resid   << std::endl;
+                //<< prof                      << std::endl;
+            }
+
+
+
+            return true;
+
+
+        }
+        else //use constant deflation
         {
-            std::cout
-                    << "------- AMGCL -------\n" << std::endl
-                    << "Iterations: " << iters   << std::endl
-                    << "Error:      " << resid   << std::endl;
-            //<< prof                      << std::endl;
+            SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mpconstant_def_space, mprm );
+
+            //         double tm_setup = prof.toc("setup");
+
+//         prof.tic("Solve");
+            size_t iters;
+            double resid;
+            boost::tie(iters, resid) = solve(frange, xrange);
+//         double solve_tm = prof.toc("Solve");
+
+
+
+            if (rA.Comm().MyPID() == 0)
+            {
+                std::cout
+                        << "------- AMGCL -------\n" << std::endl
+                        << "Iterations: " << iters   << std::endl
+                        << "Error:      " << resid   << std::endl;
+                //<< prof                      << std::endl;
+            }
+
+
+
+            return true;
+
         }
 
 
 
-        return true;
         KRATOS_CATCH("");
     }
 
@@ -355,80 +448,88 @@ public:
         //fill deflation space
         std::size_t chunk = rA.NumMyRows();
         int dim = 3; //we will change it later on if we detect that we are in 2D
-        mpdef_space = boost::make_shared<deflation_space>(chunk, mndof,dim);
 
-        //define constant deflation space
-        unsigned int i=0;
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+        if(muse_linear_deflation == true)
         {
-            if(it->GetSolutionStepValue(PARTITION_INDEX)== my_pid)
+            mplinear_def_space = boost::make_shared<deflation_space>(chunk, mndof,dim);
+
+            unsigned int i=0;
+            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
             {
-                mpdef_space->mdirichlet[i] = it->IsFixed();
-                i++;
+                if(it->GetSolutionStepValue(PARTITION_INDEX)== my_pid)
+                {
+                    mplinear_def_space->mdirichlet[i] = it->IsFixed();
+                    i++;
+                }
+            }
+
+
+            //add linear deflation space
+            double xg = 0.0;
+            double yg = 0.0;
+            double zg = 0.0;
+            i=0;
+
+            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
+            {
+                if (it->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
+                {
+
+                    ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
+
+                    double xx = inode->X();
+                    double yy = inode->Y();
+                    double zz = inode->Z();
+
+                    xg += xx;
+                    yg += yy;
+                    zg += zz;
+
+                    mplinear_def_space->mxx[i] = xx;
+                    mplinear_def_space->myy[i] = yy;
+                    mplinear_def_space->mzz[i] = zz;
+
+                    i++;
+                }
+            }
+            int nn = mplinear_def_space->mxx.size();
+            xg /= static_cast<double>(nn);
+            yg /= static_cast<double>(nn);
+            zg /= static_cast<double>(nn);
+
+            double zgmax = fabs(zg);
+            r_model_part.GetCommunicator().MaxAll(zgmax);
+            if(zgmax <1e-20) //2d problem!! - change the dimension of the space
+            {
+                mplinear_def_space->mdim = 2;
+            }
+
+            #pragma omp parallel for
+            for(int i=0; i<nn; i++)
+            {
+                mplinear_def_space->mxx[i] -= xg;
+                mplinear_def_space->myy[i] -= yg;
+                mplinear_def_space->mzz[i] -= zg;
+            }
+
+
+        }
+        else
+        {
+            mpconstant_def_space = boost::make_shared<constant_deflation_space>(chunk, mndof,dim);
+
+            unsigned int i=0;
+            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+            {
+                if(it->GetSolutionStepValue(PARTITION_INDEX)== my_pid)
+                {
+                    mpconstant_def_space->mdirichlet[i] = it->IsFixed();
+                    i++;
+                }
             }
         }
 
 
-        //add linear deflation space
-        double xg = 0.0;
-        double yg = 0.0;
-        double zg = 0.0;
-        i=0;
-
-        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
-        {
-            if (it->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
-            {
-
-                ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
-
-                double xx = inode->X();
-                double yy = inode->Y();
-                double zz = inode->Z();
-
-                xg += xx;
-                yg += yy;
-                zg += zz;
-
-                mpdef_space->mxx[i] = xx;
-                mpdef_space->myy[i] = yy;
-                mpdef_space->mzz[i] = zz;
-
-                i++;
-            }
-        }
-        int nn = mpdef_space->mxx.size();
-        xg /= static_cast<double>(nn);
-        yg /= static_cast<double>(nn);
-        zg /= static_cast<double>(nn);
-
-        double zgmax = fabs(zg);
-        r_model_part.GetCommunicator().MaxAll(zgmax);
-        if(zgmax <1e-20) //2d problem!! - change the dimension of the space
-        {
-            mpdef_space->mdim = 2;
-        }
-
-        #pragma omp parallel for
-        for(int i=0; i<nn; i++)
-        {
-            mpdef_space->mxx[i] -= xg;
-            mpdef_space->myy[i] -= yg;
-            mpdef_space->mzz[i] -= zg;
-        }
-
-
-        //test
-//         KRATOS_WATCH(mpdef_space->mdim)
-//         KRATOS_WATCH(mpdef_space->mblock_size)
-//         for(unsigned int i=0; i<mpdef_space->mdirichlet.size(); i++)
-//         {
-//             for(unsigned int k=0; k<mpdef_space->dim(); k++)
-//
-//                 std::cout << (*mpdef_space)(i,k) << " ";
-//             std::cout << std::endl;
-//
-//         }
 
 
     }
@@ -453,15 +554,20 @@ private:
     double mtol;
     int mmax_iter;
     int mndof;
-    boost::shared_ptr< deflation_space    > mpdef_space;
+    int mverbosity;
+    bool muse_linear_deflation;
+
+    boost::shared_ptr< deflation_space    > mplinear_def_space;
+    boost::shared_ptr< constant_deflation_space    > mpconstant_def_space;
+
     amgcl::runtime::coarsening::type mcoarsening;
     amgcl::runtime::relaxation::type mrelaxation;
     amgcl::runtime::solver::type miterative_solver;
     amgcl::runtime::direct_solver::type mdirect_solver;
-        
+
     boost::property_tree::ptree mprm;
 
-        
+
     /**
      * Assignment operator.
      */
