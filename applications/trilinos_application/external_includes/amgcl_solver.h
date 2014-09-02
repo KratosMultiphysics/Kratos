@@ -180,10 +180,10 @@ public:
         muse_linear_deflation = use_linear_deflation;
 
 
-        mprm.put("coarse_enough",500);
-        mprm.put("coarsening.aggr.eps_strong",0);
-        mprm.put("tol", 1e-6);
-        mprm.put("maxiter", nit_max);
+        mprm.put("amg.coarse_enough",500);
+//         mprm.put("amg.coarsening.aggr.eps_strong",0);
+        mprm.put("solver.tol", tol);
+        mprm.put("solver.maxiter", nit_max);
 
         //setting default options - for non symm system
         mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
@@ -210,10 +210,10 @@ public:
         mtol = tol;
         mmax_iter = nit_max;
 
-        mprm.put("coarse_enough",500);
-        mprm.put("coarsening.aggr.eps_strong",0);
-        mprm.put("tol", tol);
-        mprm.put("maxiter", nit_max);
+        mprm.put("amg.coarse_enough",500);
+//         mprm.put("amg.coarsening.aggr.eps_strong",0);
+        mprm.put("solver.tol", tol);
+        mprm.put("solver.maxiter", nit_max);
 
         //choose smoother
         switch(smoother)
@@ -302,7 +302,7 @@ public:
         boost::iterator_range<double*> frange(rB.Values(), rB.Values() + chunk);
 
         //set block size
-        mprm.put("coarsening.aggr.block_size",mndof);
+        mprm.put("amg.coarsening.aggr.block_size",mndof);
 
 //         prof.tic("setup");
         typedef
@@ -578,7 +578,7 @@ private:
      */
     AmgclMPISolver(const AmgclMPISolver& Other);
 
-}; // Class SkylineLUFactorizationSolver
+}; 
 
 
 /**
