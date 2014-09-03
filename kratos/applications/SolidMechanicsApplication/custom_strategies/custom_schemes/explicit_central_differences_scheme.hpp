@@ -301,8 +301,7 @@ namespace Kratos
           
 	rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;
 
-	std::cout<< "  New computed stable Time step = "<< stable_delta_time <<"         "<< std::endl;
-	std::cout<< "   " << std::endl;
+	std::cout<< "  [EXPLICIT PREDICTION LEVEL 1]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
       }
         
       KRATOS_CATCH("")
