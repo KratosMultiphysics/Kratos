@@ -113,7 +113,14 @@ class SolvingInfoUtility(object):
                 total_info = total_info + "[ RESTART_ID="+str(self.restart_id)+" ]" 
             print(total_info)   
         else:
-            print("  [ STABLE= yes|NORM=",residual_norm,"]")    
+            total_info = "  [ EXPLICIT_STABLE=yes"
+            #total_info = total_info+"|NORM=%.4e" % residual_norm
+            total_info = total_info+" ]"
+            if(self.execute_write):
+                total_info = total_info + "[ WRITE_ID="+str(self.write_id)+" ]"
+            if(self.execute_save):
+                total_info = total_info + "[ RESTART_ID="+str(self.restart_id)+" ]" 
+            print(total_info)   
           
         self.execute_write = False
         self.execute_save  = False
