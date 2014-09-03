@@ -181,7 +181,7 @@ public:
 
 
         mprm.put("amg.coarse_enough",500);
-//         mprm.put("amg.coarsening.aggr.eps_strong",0);
+        mprm.put("amg.coarsening.aggr.eps_strong",0);
         mprm.put("solver.tol", tol);
         mprm.put("solver.maxiter", nit_max);
 
@@ -211,7 +211,7 @@ public:
         mmax_iter = nit_max;
 
         mprm.put("amg.coarse_enough",500);
-//         mprm.put("amg.coarsening.aggr.eps_strong",0);
+        mprm.put("amg.coarsening.aggr.eps_strong",0);
         mprm.put("solver.tol", tol);
         mprm.put("solver.maxiter", nit_max);
 
@@ -220,28 +220,40 @@ public:
         {
         case SPAI0:
             mrelaxation = amgcl::runtime::relaxation::spai0;
+            break;
         case ILU0:
             mrelaxation = amgcl::runtime::relaxation::ilu0;
+            break;
         case DAMPED_JACOBI:
             mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+            break;
         case GAUSS_SEIDEL:
             mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+            break;
         case CHEBYSHEV:
             mrelaxation = amgcl::runtime::relaxation::chebyshev;
+            break;
         };
 
         switch(solver)
         {
-        case GMRES:
-            miterative_solver = amgcl::runtime::solver::gmres;
-        case BICGSTAB:
-            miterative_solver = amgcl::runtime::solver::bicgstab;
-        case CG:
-            miterative_solver = amgcl::runtime::solver::cg;
-        case BICGSTAB2:
-            miterative_solver = amgcl::runtime::solver::bicgstabl;
-        case BICGSTAB_WITH_GMRES_FALLBACK:
-            KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+            case GMRES:
+                miterative_solver = amgcl::runtime::solver::gmres;
+                break;
+            case BICGSTAB:
+                miterative_solver = amgcl::runtime::solver::bicgstab;
+                break;
+            case CG:
+                miterative_solver = amgcl::runtime::solver::cg;
+                break;
+            case BICGSTAB2:
+                miterative_solver = amgcl::runtime::solver::bicgstabl;
+                break;
+            case BICGSTAB_WITH_GMRES_FALLBACK:
+            {
+                KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+                break;
+            }
         };
 
         switch(coarsening)
@@ -468,6 +480,8 @@ public:
             double xg = 0.0;
             double yg = 0.0;
             double zg = 0.0;
+            double zmin = 0.0;
+            double zmax = 0.0;
             i=0;
 
             for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
@@ -484,6 +498,9 @@ public:
                     xg += xx;
                     yg += yy;
                     zg += zz;
+                    
+                    if(zz > zmax) zmax = zz;
+                    if(zz < zmin) zmin = zz;
 
                     mplinear_def_space->mxx[i] = xx;
                     mplinear_def_space->myy[i] = yy;
@@ -497,10 +514,11 @@ public:
             yg /= static_cast<double>(nn);
             zg /= static_cast<double>(nn);
 
-            double zgmax = fabs(zg);
+            double zgmax = fabs(zmax-zmin);
             r_model_part.GetCommunicator().MaxAll(zgmax);
             if(zgmax <1e-20) //2d problem!! - change the dimension of the space
             {
+                std::cout << " switching to 2D deflation " <<std::endl;
                 mplinear_def_space->mdim = 2;
             }
 
