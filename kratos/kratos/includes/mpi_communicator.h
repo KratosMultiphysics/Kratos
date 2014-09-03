@@ -1487,13 +1487,21 @@ private:
         { 
             if (i != mpi_rank && msgRecvSize[i])
             {
+                int msgRecvElems = msgRecvSize[i] / sizeof(TObjectType);
+              
                 Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
                 
-                particleSerializer.load("VariableList",mpVariables_list);
+                VariablesList* tmp_mpVariables_list;
+                
+                particleSerializer.load("VariableList",tmp_mpVariables_list);
+                
+                delete tmp_mpVariables_list;
+                tmp_mpVariables_list = mpVariables_list;
+                
                 particleSerializer.load("Object",RecvObjects[i].GetContainer());
             }
 
