@@ -1487,8 +1487,6 @@ private:
         { 
             if (i != mpi_rank && msgRecvSize[i])
             {
-                int msgRecvElems = msgRecvSize[i] / sizeof(TObjectType);
-              
                 Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
                 
