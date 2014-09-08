@@ -57,7 +57,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 #include <algorithm>
-
 // External includes
 
 
@@ -213,14 +212,14 @@ public:
             }
 
             //filling time
-            double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
-            if(is_visited == 0.0 && dist<=0.0)
-            {
-                it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+            //double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+            //if(is_visited == 0.0 && dist<=0.0)
+            //{
+            //    it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
 
-                double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
-                it->FastGetSolutionStepValue(FILLTIME) = filling_time;
-            }
+            //    double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+            //    it->FastGetSolutionStepValue(FILLTIME) = filling_time;
+            //}
 
 
         }
@@ -237,7 +236,7 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    double ComputeFillPercentage(ModelPart& ThisModelPart)
+    double ComputeFillPercentage(ModelPart& ThisModelPart, const double corrected_time )
     {
         KRATOS_TRY
 
@@ -262,8 +261,9 @@ public:
             {
                 it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
 
-                double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
-                it->FastGetSolutionStepValue(FILLTIME) = filling_time;
+                //double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+                //it->FastGetSolutionStepValue(FILLTIME) = filling_time*time_correction_factor;
+				it->FastGetSolutionStepValue(FILLTIME) =corrected_time;
             }
         }
 
@@ -329,7 +329,7 @@ public:
     //**********************************************************************************************
     void VolumeCorrection(ModelPart& ThisModelPart, const double Net_volume, const double max_correction)
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
         double wet_volume = 0.0;
         double cutted_area = 0.0;
@@ -361,6 +361,12 @@ public:
         //volume loss is just corrected
          if(volume_difference > 0.0)
          {
+
+         //Thermal extrapolation is necessary to avoid hot front (attention: extrapolation is checked and does not help!
+	     //Find the minimum temp of the wet part and put it as the TEMPERATURE of the part added by the voluem correction
+          // CorrectTemperatureInAddedVolume(ThisModelPart, correction);
+		
+
 //             TODO: this is not correct in MPI parallel
             #pragma omp parallel for firstprivate(node_size)
             for (int ii = 0; ii < node_size; ii++)
@@ -373,8 +379,10 @@ public:
 		  
 		  it->FastGetSolutionStepValue(DISTANCE) -= (1.0-alpha)*correction;
 		  
-		}
-	}
+		   }
+         
+
+	    }
 
         std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
@@ -557,7 +565,7 @@ public:
 	}
 	//**********************************************************************************************
 	//**********************************************************************************************
-	void LastStepExtrapolations(ModelPart& ThisModelPart)
+	void LastStepExtrapolations(ModelPart& ThisModelPart, const double corrected_time )
 	{
 	  KRATOS_TRY;
       //Check if there is any dry node
@@ -598,8 +606,9 @@ public:
             {
                 it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
 
-                double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
-                it->FastGetSolutionStepValue(FILLTIME) = filling_time;
+                //double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+                //it->FastGetSolutionStepValue(FILLTIME) = filling_time * time_correction_factor;
+				it->FastGetSolutionStepValue(FILLTIME) =corrected_time;
             }		 
 		 }
 		}
@@ -633,7 +642,7 @@ public:
 	}
 	//**********************************************************************************************
 	//**********************************************************************************************
-	void MacroPorosityToShrinkageComputation(ModelPart& ThisModelPart, ModelPart::NodesContainerType& visited_nodes, const unsigned int division_number)
+	void MacroPorosityToShrinkageComputation(ModelPart& ThisModelPart, ModelPart::NodesContainerType& visited_nodes, unsigned int division_number)
 	{
 	  KRATOS_TRY;
 
@@ -644,21 +653,22 @@ public:
 	  {
 		i_node->Set(NOT_VISITED);
 		const double mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
-		if(max_porosity < mcp)
+		if(max_porosity <= mcp)
 			max_porosity = mcp;
-		if(min_porosity > mcp && mcp != 0.0)
+		if(min_porosity >= mcp && mcp != 0.0)
 			min_porosity = mcp;
 	  }
 
 	 // double min_porosity = 0.01*max_porosity;
-	  double step_length = (max_porosity - min_porosity)/double(division_number);
+	/*	  double step_length = (max_porosity - min_porosity)/double(division_number);
 
 	  double floor_mp =  min_porosity;// + step_length;
 
-	  for(unsigned int cnt = 1; cnt <= division_number; cnt++)
+  for(unsigned int cnt = 1; cnt <= division_number; cnt++)
 	  {
-		  double cnt_val = min_porosity + cnt * step_length;
+		  double cnt_val = min_porosity + double(cnt) * step_length;
 
+ 
  		  for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
 		   {
              const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
@@ -672,7 +682,21 @@ public:
 				}
 			 }
 		   }
-	  }
+	  
+	  }*/
+    
+	double floor_mp =  min_porosity;// + step_length;
+ 	for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+      {
+        const double nd_mcp = i_node->FastGetSolutionStepValue(MACRO_POROSITY);
+		if( nd_mcp >= floor_mp )
+			 {
+					i_node->FastGetSolutionStepValue(SHRINKAGE_POROSITY) = nd_mcp;
+					visited_nodes.push_back(*(i_node.base()));
+
+			 }
+
+	   }
 
 	/*for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
 	{
@@ -763,6 +787,61 @@ public:
 
         KRATOS_CATCH("")
     }
+        //**********************************************************************************************
+    //**********************************************************************************************
+    /**This function correct temperature in case that temperature at a node is maximum than 
+     * FLUID_TEMPERATURE which is the inlet temperature. It simply replaces the temperature of the  
+     * previous step in this case. 
+     */
+    void ApplyTemperatureLimitation(ModelPart& ThisModelPart, const double fluid_temp)
+    {
+        KRATOS_TRY;
+        int node_size = ThisModelPart.Nodes().size();
+
+	  int cnt =0;
+        #pragma omp parallel for firstprivate(node_size) 
+        for (int ii = 0; ii < node_size; ii++)
+        {
+            ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+			double& current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+			
+			if( current_temp > fluid_temp )//1.05*fluid_temp
+			{
+				double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);
+				current_temp = old_temp;
+				cnt++;
+			}
+            
+        }
+KRATOS_WATCH(cnt);
+        KRATOS_CATCH("")
+    }
+    //**********************************************************************************************
+    //**********************************************************************************************
+    double CheckIfAllNodesAreWet(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
+        int node_size = ThisModelPart.Nodes().size();
+
+        // if there is no dry node
+        double is_dry_node = 0.0;
+        #pragma omp parallel for firstprivate(node_size)
+        for (int ii = 0; ii < node_size; ii++)
+        {
+            ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+            double dist = it->FastGetSolutionStepValue(DISTANCE);
+
+            if(dist > 0.0)
+                is_dry_node = 1.0;
+
+        }
+        //syncronoze
+        ThisModelPart.GetCommunicator().MaxAll(is_dry_node);
+
+        return is_dry_node;
+
+        KRATOS_CATCH("")
+    }
 	//**********************************************************************************************
 	//**********************************************************************************************	
 private:
@@ -819,13 +898,26 @@ private:
 		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 		double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
 
-		if(alpha > 0.9){
+		if(alpha >= 0.9){
 			it->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
 			it->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
 			it->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
 			it->Fix(VELOCITY_X);
 			it->Fix(VELOCITY_Y);
 			it->Fix(VELOCITY_Z);
+		}
+		else if(alpha<= 0.9 && alpha > 0.1)
+		{
+		  double& Vx = it->FastGetSolutionStepValue(VELOCITY_X);
+		  double& Vy = it->FastGetSolutionStepValue(VELOCITY_Y);
+		  double& Vz = it->FastGetSolutionStepValue(VELOCITY_Z);
+		  Vx *= (1.0-alpha);
+		  Vy *= (1.0-alpha);
+		  Vz *= (1.0-alpha);
+
+		  it->Fix(VELOCITY_X);
+		  it->Fix(VELOCITY_Y);
+		  it->Fix(VELOCITY_Z);
 		}
 	  }
 	  KRATOS_CATCH("")
@@ -1096,7 +1188,44 @@ private:
         return is_divided;
     }
 
+	void CorrectTemperatureInAddedVolume(ModelPart& ThisModelPart, const double correction)
+	{
 
+	  //compute min temp in wet part ( edge and corners are excluded)
+	  double min_wet_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];
+
+	  #pragma omp parallel for
+      for (int k = 0; k< static_cast<int> (ThisModelPart.Nodes().size()); k++)
+		 {
+			ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() + k;
+			double distance = i_node->GetSolutionStepValue(DISTANCE);
+			double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
+			if(distance <=0.0 && slip_falg!=20.0 && slip_falg!=30.0)
+				 {
+				  double temp_node = i_node->FastGetSolutionStepValue(TEMPERATURE);
+				  if (temp_node < min_wet_temp)
+						 min_wet_temp = temp_node;
+				 }
+
+		 }
+
+	   //assign to TEMPERATURE in the added zone
+       #pragma omp parallel for
+	   for (int k = 0; k< static_cast<int> (ThisModelPart.Nodes().size()); k++)
+		  {
+			ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() + k;
+			double distance = i_node->GetSolutionStepValue(DISTANCE);
+
+			if(distance >= 0.0 && distance <= 5.0 * correction)
+			{
+				i_node->FastGetSolutionStepValue(TEMPERATURE) = min_wet_temp;
+				i_node->FastGetSolutionStepValue(TEMPERATURE,1) = min_wet_temp;
+
+			}
+
+	      }
+
+	}
 };
 
 }  // namespace Kratos.
