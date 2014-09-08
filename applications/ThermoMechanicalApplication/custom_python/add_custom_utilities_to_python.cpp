@@ -131,6 +131,8 @@ void  AddCustomUtilitiesToPython()
 	.def("MacroPorosityToShrinkageComputation", &BiphasicFillingUtilities::MacroPorosityToShrinkageComputation) 
 	.def("ComputePosetiveVolume", &BiphasicFillingUtilities::ComputePosetiveVolume)
 	.def("PosetiveVolumeCorrection", &BiphasicFillingUtilities::PosetiveVolumeCorrection)
+	.def("ApplyTemperatureLimitation", &BiphasicFillingUtilities::ApplyTemperatureLimitation) 
+	.def("CheckIfAllNodesAreWet", &BiphasicFillingUtilities::CheckIfAllNodesAreWet) 
 	
     ; 
 
