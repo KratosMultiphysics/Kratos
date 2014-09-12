@@ -28,16 +28,28 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       SphericParticle::SphericParticle()
-        : DiscreteElement(), mParticleId(-1)/*, mInitializedVariablesFlag(0)*/{}
+        : DiscreteElement(), mParticleId(-1), mSqrtOfRealMass(0)/*, mInitializedVariablesFlag(0)*/ {
+          mRadius = 0;
+          mSqrtOfRealMass = 0;
+        }
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-        : DiscreteElement(NewId, pGeometry), mParticleId(NewId)/*, mInitializedVariablesFlag(0)*/{}
+        : DiscreteElement(NewId, pGeometry), mParticleId(NewId), mSqrtOfRealMass(0)/*, mInitializedVariablesFlag(0)*/ {
+          mRadius = 0;
+          mSqrtOfRealMass = 0;          
+        }
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties), mParticleId(NewId)/*, mInitializedVariablesFlag(0)*/{}
+      : DiscreteElement(NewId, pGeometry, pProperties), mParticleId(NewId), mSqrtOfRealMass(0)/*, mInitializedVariablesFlag(0)*/ {
+          mRadius = 0;
+          mSqrtOfRealMass = 0;             
+      }
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes), mParticleId(NewId)/*, mInitializedVariablesFlag(0)*/{}
+      : DiscreteElement(NewId, ThisNodes), mParticleId(NewId), mSqrtOfRealMass(0)/*, mInitializedVariablesFlag(0)*/ {
+          mRadius = 0;
+          mSqrtOfRealMass = 0;             
+      }
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -50,7 +62,7 @@ namespace Kratos
 
       void SphericParticle::Initialize()
       {
-          KRATOS_TRY
+          KRATOS_TRY 
 
           mDimension                = 3;
           mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
