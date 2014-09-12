@@ -222,7 +222,7 @@ public:
             }
             else
             {
-                const double cv1_3 = 7.1*7.1*71;
+                const double cv1_3 = 7.1*7.1*7.1;
 
                 double xi = turbulent_viscosity / molecular_viscosity;
                 double xi_3 = xi*xi*xi;
@@ -426,16 +426,16 @@ private:
             double rho = dt_old / Dt;
             double coeff = 1.0 / (Dt * rho * rho + Dt * rho);
 
-            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+            BDFcoeffs.resize(3);
             BDFcoeffs[0] = coeff * (rho * rho + 2.0 * rho); //coefficient for step n+1
             BDFcoeffs[1] = -coeff * (rho * rho + 2.0 * rho + 1.0); //coefficient for step n
             BDFcoeffs[2] = coeff;
         }
         else
         {
-            rCurrentProcessInfo[BDF_COEFFICIENTS].resize(2);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+            BDFcoeffs.resize(2);
             BDFcoeffs[0] = 1.0 / Dt; //coefficient for step n+1
             BDFcoeffs[1] = -1.0 / Dt; //coefficient for step n
         }
