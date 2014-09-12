@@ -1430,10 +1430,10 @@ private:
         {
             if(mpi_rank != i)
             {
-                Kratos::Serializer particleSerializer;
+                Kratos::Serializer particleSerializer(Kratos::Serializer::SERIALIZER_TRACE_ERROR);
 
                 particleSerializer.save("VariableList",mpVariables_list);
-                particleSerializer.save("Object",SendObjects[i].GetContainer());
+                particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
                 
                 std::stringstream * stream = (std::stringstream *)particleSerializer.pGetBuffer();
                 const std::string & stream_str = stream->str();
@@ -1478,7 +1478,7 @@ private:
         //wait untill all communications finish
         int err = MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
 
-        if(err != MPI_SUCCESS)
+        if(err != MPI_SUCCESS) 
             KRATOS_ERROR(std::runtime_error,"Error in mpi_communicator","")
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -1487,20 +1487,21 @@ private:
         { 
             if (i != mpi_rank && msgRecvSize[i])
             {
-                Kratos::Serializer particleSerializer;
+                Kratos::Serializer particleSerializer(Kratos::Serializer::SERIALIZER_TRACE_ERROR);
                 std::stringstream * serializer_buffer;
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
                 
-                VariablesList* tmp_mpVariables_list;
+                VariablesList* tmp_mpVariables_list = NULL;
                 
                 particleSerializer.load("VariableList",tmp_mpVariables_list);
-                
-                delete tmp_mpVariables_list;
+               
+                if(tmp_mpVariables_list != NULL)
+                  delete tmp_mpVariables_list;
                 tmp_mpVariables_list = mpVariables_list;
                 
-                particleSerializer.load("Object",RecvObjects[i].GetContainer());
+                particleSerializer.load("ObjectList",RecvObjects[i].GetContainer());
             }
 
             MPI_Barrier(MPI_COMM_WORLD);
