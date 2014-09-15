@@ -237,6 +237,8 @@ private:
     double ComputeModelVolume(std::vector<double> & rMeshVolume)
     {
 
+      KRATOS_TRY
+
       unsigned int start=0;
       unsigned int NumberOfMeshes=mrModelPart.NumberOfMeshes();
       if(NumberOfMeshes>1) 
@@ -308,6 +310,8 @@ private:
       }
 
       return ModelVolume;
+
+      KRATOS_CATCH( "" )
 
     }
 
