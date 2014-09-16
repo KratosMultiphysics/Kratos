@@ -208,8 +208,8 @@ namespace Kratos
 
           else {
               const double delta_t_inv                = 1 / rCurrentProcessInfo[DELTA_TIME];
-              array_1d<double, 3> fluid_acc           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-              const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 0) - GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 1));
+              array_1d<double, 3> fluid_acc           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+              const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY) - GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 1));
               const double fluid_fraction             = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
               array_1d<double, 3> slip_acc;
 
@@ -221,9 +221,13 @@ namespace Kratos
                   noalias(slip_acc) = fluid_acc - particle_acc;
               }
 
-              double virtual_mass_coeff = 1.0; // inviscid case
+              double virtual_mass_coeff = 0.5; // inviscid case
 
-              noalias(virtual_mass_force) = 0.5 * (1 - fluid_fraction) * fluid_density * virtual_mass_coeff * slip_acc;
+              if (mVirtualMassForceType == 2) { // Zuber (1964) (moderate values of solid fraction)
+                  virtual_mass_coeff = 0.5 + 1.5 * (1 - fluid_fraction);
+              }
+
+              noalias(virtual_mass_force) = virtual_mass_coeff * fluid_density * slip_acc;
           }
 
       }
