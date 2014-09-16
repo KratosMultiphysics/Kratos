@@ -339,16 +339,16 @@ public:
         this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
         const SizeType NumGauss = NContainer.size1();
 
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->AddMomentumRHS(rRightHandSideVector, Density, Ng, GaussWeight);
-          }
+//        for (SizeType g = 0; g < NumGauss; g++){
+//            const double GaussWeight = GaussWeights[g];
+//            const ShapeFunctionsType& Ng = row(NContainer, g);
+//            this->AddMomentumRHS(rRightHandSideVector, Density, Ng, GaussWeight);
+//          }
         const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-        static const double arr[] = {0.5,0.5};
+        static const double arr[] = {1.0,-1.0};
         std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
 
-        this->AddOtherContributionsRHS(rRightHandSideVector, N, SchemeWeights, DeltaTime);
+        this->AddMassRHS(rRightHandSideVector, Density, N, Area, SchemeWeights, DeltaTime);
 //Z
 
         // For OSS: Add projection of residuals to RHS
@@ -444,18 +444,18 @@ public:
         // Add 'classical' mass matrix (lumped)
         double Coeff = Density * Area / TNumNodes; //Optimize!
 //G
-        //this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
+        this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
         MatrixType NContainer;
         ShapeFunctionDerivativesArrayType DN_DXContainer;
         VectorType GaussWeights;
         this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
         const SizeType NumGauss = NContainer.size1();
 
-        for (SizeType g = 0; g < NumGauss; g++){
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, Density, Coeff * GaussWeight);
-          }
+//        for (SizeType g = 0; g < NumGauss; g++){
+//            const double GaussWeight = GaussWeights[g];
+//            const ShapeFunctionsType& Ng = row(NContainer, g);
+//            this->AddConsistentMassMatrixContribution(rMassMatrix, Ng, Density, Coeff * GaussWeight);
+//          }
 //Z
         /* For ASGS: add dynamic stabilization terms.
          These terms are not used in OSS, as they belong to the finite element
@@ -479,20 +479,18 @@ public:
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
 //G
-            double AdvVelDiv;
-            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
             MatrixType NContainer;
             ShapeFunctionDerivativesArrayType DN_DXContainer;
             VectorType GaussWeights;
 
-            for (SizeType g = 0; g < NumGauss; g++){
-                const double GaussWeight = GaussWeights[g];
-                const ShapeFunctionsType& Ng = row(NContainer, g);
-                this->GetAdvectiveVel(AdvVel, Ng);
-                this->AddMassStabTerms(rMassMatrix, Density, AdvVel, AdvVelDiv, TauOne, Ng, DN_DX, Area * GaussWeight);
-              }
+//           for (SizeType g = 0; g < NumGauss; g++){
+//               const double GaussWeight = GaussWeights[g];
+//                const ShapeFunctionsType& Ng = row(NContainer, g);
+//                this->GetAdvectiveVel(AdvVel, Ng);
+//                this->AddMassStabTerms(rMassMatrix, Density, TauOne, Ng, DN_DX, Area * GaussWeight);
+//              }
 
-          //this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
+            this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
 
 //Z
         }
@@ -537,10 +535,6 @@ public:
         // Get Advective velocity
         array_1d<double, 3 > AdvVel;
         this->GetAdvectiveVel(AdvVel, N);
-//G
-        double AdvVelDiv;
-        this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
-//Z
 
         // Calculate stabilization parameters
         double TauOne, TauTwo;
@@ -560,14 +554,14 @@ public:
         this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
         const SizeType NumGauss = NContainer.size1();
 
-        for (SizeType g = 0; g < NumGauss; g++)
-        {
-            const double GaussWeight = GaussWeights[g];
-            const ShapeFunctionsType& Ng = row(NContainer, g);
-            this->GetAdvectiveVel(AdvVel, Ng);
-            this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, AdvVelDiv, TauOne, TauTwo, Ng, DN_DX, GaussWeight * Area);
-        }
-        //this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+//        for (SizeType g = 0; g < NumGauss; g++)
+//        {
+//            const double GaussWeight = GaussWeights[g];
+//            const ShapeFunctionsType& Ng = row(NContainer, g);
+//            this->GetAdvectiveVel(AdvVel, Ng);
+//            this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, Ng, DN_DX, GaussWeight * Area);
+//        }
+        this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
 //Z
 
 //        this->ModulatedGradientDiffusion(rDampingMatrix,DN_DX,Density*Area);
@@ -684,8 +678,6 @@ public:
             if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
             {
 //G
-                double AdvVelDiv;
-                this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
                 MatrixType NContainer;
                 ShapeFunctionDerivativesArrayType DN_DXContainer;
                 VectorType GaussWeights;
@@ -696,7 +688,7 @@ public:
                     const double GaussWeight = GaussWeights[g];
                     const ShapeFunctionsType& Ng = row(NContainer, g);
                     this->GetAdvectiveVel(AdvVel, Ng);
-                    this->ASGSMomResidual(AdvVel,AdvVelDiv,Density,ElementalMomRes,Ng,DN_DX,GaussWeight);
+                    this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,Ng,DN_DX,GaussWeight);
                   }
               //this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
 //Z
@@ -773,18 +765,11 @@ public:
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-//G
-            double AdvVelDiv;
-            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
-//Z
             // Output containers
             array_1d< double, 3 > ElementalMomRes(3, 0.0);
             double ElementalMassRes(0);
 
-//G
-          //this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
-            this->AddProjectionResidualContribution(AdvVel, AdvVelDiv, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
-//Z
+            this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
 
             if (rCurrentProcessInfo[OSS_SWITCH] == 1)
             {
@@ -821,18 +806,11 @@ public:
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
 
-//G
-            double AdvVelDiv;
-            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
-//Z
             // Output containers
             array_1d< double, 3 > ElementalMomRes(3,0.0);
             double ElementalMassRes(0.0);
 
-//G
-          //this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
-            this->AddProjectionResidualContribution(AdvVel, AdvVelDiv, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
-//Z
+            this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
 
             if (rCurrentProcessInfo[OSS_SWITCH] == 1)
             {
@@ -1311,26 +1289,22 @@ protected:
         }
     }
 //G
-    virtual void AddOtherContributionsRHS(VectorType& F,
+    virtual void AddMassRHS(VectorType& F,
+    const double Density,
     const array_1d<double, TNumNodes>& rShapeFunc,
+    const double Weight,
     const std::vector<double>& TimeSchemeWeights,
     const double& DeltaTime)
     {
-
       double FluidFractionRate = 0.0;
       this->EvaluateTimeDerivativeInPoint(FluidFractionRate, FLUID_FRACTION_RATE, rShapeFunc, DeltaTime, TimeSchemeWeights);
-
-      // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
-      int LocalIndex = 0;
+      this->EvaluateInPoint(FluidFractionRate, FLUID_FRACTION_RATE, rShapeFunc);
+      // Add the results to the pressure components (Local Dofs are vx, vy, [vz,] p for each node)
+      int LocalIndex = TDim;
 
       for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
-
-          for (unsigned int d = 0; d < TDim; ++d){
-
-              F[LocalIndex++] -= FluidFractionRate;
-          }
-
-          ++LocalIndex; // Skip pressure Dof
+          F[LocalIndex] -= Weight * rShapeFunc[iNode] * FluidFractionRate;
+          LocalIndex += TDim + 1;
       }
 
     }
@@ -1455,9 +1429,6 @@ protected:
     void AddMassStabTerms(MatrixType& rLHSMatrix,
                           const double Density,
                           const array_1d<double, 3 > & rAdvVel,
-//G
-                          const double& rAdvVelDiv,
-//Z
                           const double TauOne,
                           const array_1d<double, TNumNodes>& rShapeFunc,
                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
@@ -1471,9 +1442,8 @@ protected:
 
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 //G
-        //this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-        this->GetCompleteConvectionOperator(AGradN, rAdvVel, rAdvVelDiv, rShapeFunc, rShapeDeriv); // Get a * grad(Ni) + div(a) * Ni
         double FluidFraction;
         array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
@@ -1499,7 +1469,7 @@ protected:
                     // Delta(u) * TauOne * Grad(q) in q * Div(u) block
 //G
     //              rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
-                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * rShapeFunc[j];
+                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * (FluidFraction * rShapeDeriv(i, d) - FluidFractionGradient[d] * rShapeFunc[i]) * rShapeFunc[j];
 //Z
                 }
                 // Update column index
@@ -1517,9 +1487,6 @@ protected:
             const double Density,
             const double Viscosity,
             const array_1d< double, 3 > & rAdvVel,
-//G
-            const double& rAdvVelDiv,
-//Z
             const double TauOne,
             const double TauTwo,
             const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1530,10 +1497,7 @@ protected:
 
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
-//G
-        //this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-        this->GetCompleteConvectionOperator(AGradN, rAdvVel, rAdvVelDiv, rShapeFunc, rShapeDeriv); // Get a * grad(Ni) + div(a) * Ni
-//Z
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
         // Build the local matrix and RHS
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
@@ -1543,10 +1507,11 @@ protected:
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 //G
-        double DivPEpsilon, GEps, FluidFraction;
+        double DivPEpsilon, GEps, FluidFraction, FluidFractionRate, MassBFDiV;
         array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
         this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
+        this->EvaluateInPoint(FluidFractionRate,FLUID_FRACTION_RATE,rShapeFunc);
 //Z
 
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
@@ -1573,7 +1538,7 @@ protected:
 
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
 //G
-                    GEps = TauOne * Density * AGradN[i] * (FluidFraction * rShapeDeriv(j, m) + FluidFractionGradient[m] * rShapeFunc[j]); // Stabilization: (a * Grad(u)) * TauOne * (eps * Grad(q) - q * Grad(eps))
+                    GEps = TauOne * Density * AGradN[i] * (FluidFraction * rShapeDeriv(j, m) - FluidFractionGradient[m] * rShapeFunc[j]); // Stabilization: (a * Grad(u)) * TauOne * (eps * Grad(q) - q * Grad(eps))
                     DivPEpsilon = (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeFunc[j]; // eps * q * Div(v) + q * Grad(eps) * u
 //Z
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
@@ -1616,9 +1581,11 @@ protected:
             for (unsigned int d = 0; d < TDim; ++d)
             {
 //G
-                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+    //          rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                rDampRHS[FirstRow + d] += Weight * (TauOne * Density * AGradN[i] * BodyForce[d] - TauTwo * rShapeDeriv(i, d) * FluidFractionRate); // ( a * Grad(v) ) * TauOne * (Density * BodyForce) + Div(v) * TauTwo * (- DEpsDt)
+
     //          qF += rShapeDeriv(i, d) * BodyForce[d];
-                qF += (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * BodyForce[d];
+                qF += (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * BodyForce[d];                
 //Z
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
@@ -1743,7 +1710,6 @@ protected:
      *  terms, as it they belong to the finite element space.
      */
     void AddProjectionResidualContribution(const array_1d< double, 3 > & rAdvVel,
-                                           const double& rAdvVelDiv,
                                            const double Density,
                                            array_1d< double, 3 > & rElementalMomRes,
                                            double& rElementalMassRes,
@@ -1753,13 +1719,13 @@ protected:
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 //G
-        //this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-        this->GetCompleteConvectionOperator(AGradN, rAdvVel, rAdvVelDiv, rShapeFunc, rShapeDeriv); // Get a * grad(Ni) + div(a) * Ni
-        double FluidFraction;
+        double FluidFraction, FluidFractionRate;
         array_1d<double,3> FluidFractionGradient(3,0.0);       
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
         this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
+        this->EvaluateInPoint(FluidFractionRate,FLUID_FRACTION_RATE,rShapeFunc);
 //Z
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
@@ -1778,10 +1744,12 @@ protected:
 //G
     //          rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
                 rElementalMassRes -= Weight * (FluidFraction * rShapeDeriv(i, d) * rVelocity[d] + FluidFractionGradient[d] * rVelocity[d]);
-            }
-//Z
+            }            
 
         }
+
+        rElementalMassRes -= Weight * FluidFractionRate;
+//Z
     }
 
     /// Assemble the contribution from an integration point to the element's residual.
@@ -1795,9 +1763,6 @@ protected:
      * @param Weight Integration point weight (as a fraction of area or volume)
      */
     void ASGSMomResidual(const array_1d< double, 3 > & rAdvVel,
-//G
-                         const double& rAdvVelDiv,
-//Z
                          const double Density,
                          array_1d< double, 3 > & rElementalMomRes,
                          const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1806,10 +1771,7 @@ protected:
     {
         // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
         array_1d<double, TNumNodes> AGradN;
-//G
-        //this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-        this->GetCompleteConvectionOperator(AGradN, rAdvVel, rAdvVelDiv, rShapeFunc, rShapeDeriv); // Get a * grad(Ni) + div(a) * Ni
-//Z
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
         for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
         {
@@ -1933,50 +1895,6 @@ protected:
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
             rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step));
     }
-//G
-    /// Write the divergence of the advective velocity evaluated at this point to an array
-    /**
-     * Writes the value of the divergence of the advective velocity evaluated at a point inside
-     * the element to a double
-     * @param rAdvVelDiv: Output array
-     * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
-     * @param Step: The time Step
-     */
-    virtual void GetAdvectiveVelDivergence(double & rAdvVelDiv,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
-    {
-        rAdvVelDiv = 0.0;
-
-        for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode){ // loop over nodes
-            array_1d< double, 3 > vel_at_nodes = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY);
-
-            for (unsigned int d = 1; d < TDim; ++d){
-                // loop over components
-                rAdvVelDiv += vel_at_nodes[d] * rShapeDeriv(iNode, d);
-              }
-
-          }
-
-    }
-
-    virtual void GetAdvectiveVelDivergence(double & rAdvVelDiv,
-                                           const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                           const std::size_t Step)
-    {
-        rAdvVelDiv = 0.0;
-
-        for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode){ // loop over nodes
-            array_1d< double, 3 > vel_at_nodes = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step);
-
-            for (unsigned int d = 1; d < TDim; ++d){
-                // loop over components
-                rAdvVelDiv += vel_at_nodes[d] * rShapeDeriv(iNode, d);
-              }
-
-          }
-
-    }
-//Z
 
     /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
     /**
@@ -2000,32 +1918,6 @@ protected:
         }
     }
 
-    /// Write the complete convective operator (divergence term included) evaluated at this point (for each nodal funciton) to an array
-    /**
-     * Evaluate the convective operator for each node's shape function at an arbitrary point
-     * @param rResult: Output vector
-     * @param rVelocity: Velocity evaluated at the integration point
-     * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
-     * @see GetAdvectiveVel provides rVelocity
-     */
-    void GetCompleteConvectionOperator(array_1d< double, TNumNodes >& rResult,
-                               const array_1d< double, 3 > & rVelocity,
-                               const double & rVelocityDiv,
-                               const array_1d< double, TNumNodes >& rShapeFunc,
-                               const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv)
-    {
-        // Evaluate (and weight) the a * Grad(Ni) + div(a) * Ni operator in the integration point, for each node i
-
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){ // Loop over nodes{
-            // Initialize result
-            rResult[iNode] = rVelocityDiv * rShapeFunc[iNode];
-
-            for (unsigned int d = 0; d < TDim; ++d){ // loop over components
-                rResult[iNode] += rVelocity[d] * rShapeDeriv(iNode, d);
-              }
-
-        }
-    }
     /// Add the weighted value of a variable at a point inside the element to a double
     /**
      * Evaluate a scalar variable in the point where the form functions take the
@@ -2094,18 +1986,29 @@ protected:
 
       if (rVariable == FLUID_FRACTION_RATE){
           rResult = 0.0;
+//          int index = 0;
+          double delta_time_inv = 1 / DeltaTime;
 
-          for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
+//          for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
 
-              for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
+//              for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
 
-                  rResult += rSchemeWeigths[iWeight] * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_RATE, iWeight);
-              }
+//                  rResult += rSchemeWeigths[iWeight] * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION, index);
+//              }
 
-          }          
+//              ++index;
 
-          rResult /= DeltaTime;
-        }
+//          }
+
+
+           for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
+                  double rate = delta_time_inv * (this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION) - this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION, 1));
+                  this->GetGeometry()[iNode].FastGetSolutionStepValue(FLUID_FRACTION_RATE) = rate;
+                  rResult += rShapeFunc[iNode] * rate;
+             }
+
+          }
+
     }
 //Z
 
