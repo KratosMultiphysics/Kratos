@@ -16,7 +16,6 @@ void MonolithicDEMCoupled<2>::EquationIdVector(EquationIdVectorType& rResult,
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
-
     
     unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
     unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
@@ -231,10 +230,6 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
 
             array_1d<double,3> AdvVel;
             this->GetAdvectiveVel(AdvVel,N);
-//G
-            double AdvVelDiv;
-            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
-//Z
 
             double Density,KinViscosity,Viscosity;
             this->EvaluateInPoint(Density,DENSITY,N);
@@ -253,10 +248,7 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
             }
             else
             {
-//G
-                this->ASGSMomResidual(AdvVel,AdvVelDiv,Density,MomError,N,DN_DX,1.0);
-              //this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
-//Z
+                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
             }
             MomError *= TauOne;
             array_1d<double,3>& rSubscale = rOutput[0];
@@ -327,10 +319,6 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
 
             array_1d<double,3> AdvVel;
             this->GetAdvectiveVel(AdvVel,N);
-//G
-            double AdvVelDiv;
-            this->GetAdvectiveVelDivergence(AdvVelDiv, DN_DX);
-//Z
 
             double Density,KinViscosity,Viscosity;
             this->EvaluateInPoint(Density,DENSITY,N);
@@ -349,10 +337,7 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
             }
             else
             {
-//G
-                this->ASGSMomResidual(AdvVel,AdvVelDiv,Density,MomError,N,DN_DX,1.0);
-              //this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
-//Z
+                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
             }
             MomError *= TauOne;
             array_1d<double,3>& rSubscale = rOutput[0];
