@@ -124,7 +124,7 @@ public:
 
       mConditionsNumber =  mrModelPart.Conditions(MeshId).size();
       
-      //Check if elements are beams or two nodes and set BOUNDARY flag two nodes
+      //Check if elements are beams or two nodes and set BOUNDARY flag to nodes
       for(ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie!=mrModelPart.ElementsEnd(); ie++){
 
 	if( ie->GetGeometry().size() == 2 ){
