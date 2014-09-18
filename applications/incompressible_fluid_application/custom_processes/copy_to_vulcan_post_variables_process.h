@@ -171,7 +171,7 @@ namespace Kratos
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
-					 i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
+					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
 				 }
 
 			 }
