@@ -261,7 +261,9 @@ private:
     ///@name Private Inquiry
     ///@{
 
+	double ERFC( const double etta);
 
+	double CalcTempSemiInfiniteWall(ProcessInfo& rCurrentProcessInfo, const double T_0);
     ///@}
     ///@name Un accessible methods
     ///@{
