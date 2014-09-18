@@ -204,6 +204,9 @@ public:
 		      ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(rho*cc);	*/
 			  double specific_heat_var =C_table.GetValue(unknown_val);
 			  double htc_var = HTC_table.GetValue(unknown_val);
+			  //NEW HTC IS COMPUTED BY CONSIDERING
+			  //A FILM WITH HTC=900 IN SERIE
+			  //htc_var = (htc_var * 900.0)/(htc_var + 900.0);
 			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 		      
 		    if(dist < 0){			      
@@ -230,19 +233,30 @@ public:
 		      ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
 		      ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;	
 
-			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
+			//  ind->FastGetSolutionStepValue(rTransferCoef) = *htc_var;
 			  	 
 
 		    }
 		    else
 		    {
 		      ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
-		      ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1000.0;
-		      ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
-		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
-		      ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;	
+		      //ind->FastGetSolutionStepValue(rDensityVar,1) = 1.0;
 
-			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var*1000.0/(density_var*specific_heat_var);
+		      ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1000.0;
+		      //ind->FastGetSolutionStepValue(SPECIFIC_HEAT,1) = 1000.0;
+
+		      ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
+		     // ind->FastGetSolutionStepValue(SOLID_FRACTION,1) = 0.0;
+
+		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
+		      //ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE,1) = 0.0;	
+
+		      ind->FastGetSolutionStepValue(rDiffusionVar) = 0.024;	
+		     // ind->FastGetSolutionStepValue(rDiffusionVar,1) = 0.024;	
+
+			 // ind->FastGetSolutionStepValue(rTransferCoef) = htc_var*1000.0/(density_var*specific_heat_var);
+			 // ind->FastGetSolutionStepValue(rTransferCoef,1) = htc_var*1000.0/(density_var*specific_heat_var);
+	          ind->FastGetSolutionStepValue(rTransferCoef) = 4.9;//---> This is the HTCCV for air
 			 // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		    }
 			
@@ -302,6 +316,9 @@ public:
 
 		double specific_heat_var =C_table.GetValue(unknown_val);
 		double htc_var = HTC_table.GetValue(unknown_val);
+		//NEW HTC IS COMPUTED BY CONSIDERING
+	    //A FILM WITH HTC=900.0 IN SERIE
+	    //htc_var = (htc_var * 900.0)/(htc_var + 900.0);
 		ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
 		if(dist < 0){		
@@ -323,8 +340,9 @@ public:
 		ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1000.0;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
-		ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
-	    ind->FastGetSolutionStepValue(rTransferCoef) = htc_var*1000.0/(density_var*specific_heat_var);
+		ind->FastGetSolutionStepValue(rDiffusionVar) = 0.024;
+	   // ind->FastGetSolutionStepValue(rTransferCoef) =  htc_var*1000.0/(density_var*specific_heat_var);
+	    ind->FastGetSolutionStepValue(rTransferCoef) = 4.9;//---> This is the HTCCV for air
 	    //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		}
 			
