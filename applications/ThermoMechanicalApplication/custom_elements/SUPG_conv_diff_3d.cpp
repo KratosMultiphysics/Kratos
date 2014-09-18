@@ -157,7 +157,14 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     for (unsigned int iii = 0; iii < nodes_number; iii++)
 	step_unknown[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, 1);
     
-    
+	//Phase change parameters
+    double LL = rCurrentProcessInfo[LATENT_HEAT];
+	double solid_T = rCurrentProcessInfo[SOLID_TEMPERATURE];
+	double fluid_T = rCurrentProcessInfo[FLUID_TEMPERATURE];
+	array_1d<double, 4 > phase_change_vec = ZeroVector(4);
+	boost::numeric::ublas::bounded_matrix<double, 4, 4 > tan_phase_change =ZeroMatrix(matsize, matsize);
+	double mid_T = 0.5*(solid_T + fluid_T);
+
     //4GP integration rule
     for(unsigned int gp = 0; gp<4; ++gp)
     {
@@ -169,7 +176,13 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	double heat_source = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
 	const array_1d<double, 3 > & v = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
 	const array_1d<double, 3 > & w = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
+	double gp_dist = N[0]*GetGeometry()[0].FastGetSolutionStepValue(DISTANCE);
 
+	double FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLID_FRACTION);
+	double old_FF = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLID_FRACTION,1);	
+    double DF_DT = N[0]*GetGeometry()[0].FastGetSolutionStepValue(SOLID_FRACTION_RATE);
+	double old_T = N[0]*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar, 1);
+	double T =  N[0]*GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
 
 	for (unsigned int j = 0; j < dim; j++)
 	    ms_vel_gauss[j] = v[j] - w[j];
@@ -181,12 +194,22 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	    specific_heat += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
 	    heat_source += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
+	    FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
+	    old_FF += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION,1);
+	    DF_DT += N[i]*GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE);
+	    old_T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar, 1);	    
+	    T += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+		gp_dist += N[i]*GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+
 	    const array_1d<double, 3 > & v = N[i]*GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
 	    const array_1d<double, 3 > & w = N[i]*GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
 	    for (unsigned int j = 0; j < dim; j++)
 		ms_vel_gauss[j] += v[j] - w[j];
 
 	}
+
+
+
 // 	conductivity *= lumping_factor;
 // 	density *= lumping_factor;
 // 	specific_heat *= lumping_factor;
@@ -199,10 +222,11 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	double tau;
 	double conductivity_scaled = conductivity/(density*specific_heat);    
 	CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
+	//tau = 0.0;
     //        tau *= density * specific_heat;
 
 	//Crank-Nicholson factor
-	double cr_nk = 0.5;
+	double cr_nk = 0.0;
 	double dt_inv = 1.0/ delta_t;
 
 	//INERTIA CONTRIBUTION
@@ -247,18 +271,53 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	noalias(rRightHandSideVector) +=  tau * a_dot_grad * old_res;
 	
 	//add shock capturing 
-	double art_visc = 0.0;
-	//CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
-	//noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	    
+	double art_visc = 0.0;	    
 	CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
 	noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;	 
+
+	//solidification terms RHS
+	if( gp_dist <= 0.0)
+	 {
+		double const_fac = dt_inv * LL ;
+		if(T <= fluid_T)
+		 {
+	       for (unsigned int bb = 1; bb < nodes_number; bb++)
+			 phase_change_vec[bb] =  N[bb]*(FF - old_FF) * const_fac * density;
+		 }
+		else
+		 {
+	       for (unsigned int bb = 1; bb < nodes_number; bb++)
+			 phase_change_vec[bb] = 0.0;
+		 }
+
+		//solidification terms LHS
+		double tangent_DF_DT = 0.0;
+		if(T <= fluid_T)
+		{
+			tangent_DF_DT = DF_DT;
+			/*if( !(solid_T <= T && T <= fluid_T) ) //if not in the range of phase change
+			{
+				double aux_denom = T - mid_T;
+				if(fabs(aux_denom) < 1e-6)
+				 {
+				   if(aux_denom >= 0) aux_denom = 1e-6;
+				   else aux_denom = -1e-6;
+				 }
+			   tangent_DF_DT = (FF - old_FF)/aux_denom;
+			}*/
+		}
+	 	tan_phase_change += const_fac * density * tangent_DF_DT * msMassFactors;
+	  }
     }
     //subtracting the dirichlet term
     // RHS -= LHS*temperatures
     for (unsigned int iii = 0; iii < nodes_number; iii++)
 	step_unknown[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, step_unknown);
-    
+
+	//phase chaneg term
+	noalias(rRightHandSideVector) += phase_change_vec;
+    noalias(rLeftHandSideMatrix) -= tan_phase_change;
 
     rRightHandSideVector *= (wgauss * Volume);
     rLeftHandSideMatrix *= (wgauss * Volume);
@@ -358,6 +417,32 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 						      const double scaled_K)
 {
 	KRATOS_TRY
+    art_visc = 0.0;
+	int not_cutted = 1;
+	int negative = 0;
+	double pos_dist_max = -1000.0;
+	double neg_dist_max = +1000.0;
+	
+	double ele_length = pow(12.0*volume,0.333333333333333333333);
+	ele_length = 0.666666667 * ele_length * 1.732;
+ 
+	for( int ii = 0; ii<4; ++ii)
+	{
+	 double nd_dist = this->GetGeometry()[ii].FastGetSolutionStepValue(DISTANCE);
+     if( nd_dist < 0.0)
+ 	   negative++;
+
+     if( nd_dist > 0.0 && nd_dist > pos_dist_max)
+		 pos_dist_max = nd_dist;
+
+	 if( nd_dist < 0.0 && nd_dist < neg_dist_max)
+		 neg_dist_max = nd_dist;
+    }
+	
+ if( negative != 4 && negative != 0)
+ 	  not_cutted = 0;
+
+
 	
 	 array_1d<double, 3 > grad_t;
          unsigned int number_of_nodes = GetGeometry().PointsNumber();	 
@@ -375,14 +460,14 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	}
 	
 	double norm_grad_t = MathUtils<double>::Norm3(grad_t);
-	if(norm_grad_t < 0.000001)
+	if(norm_grad_t < 0.000001){
 	  art_visc = 0.0;
+	}
 	else
 	{
 	  double a_parallel = (ms_vel_gauss[0]*grad_t[0] + ms_vel_gauss[1]*grad_t[1] + ms_vel_gauss[2]*grad_t[2]) / norm_grad_t;
 	  a_parallel = abs(a_parallel);
-	  double ele_length = pow(12.0*volume,0.333333333333333333333);
-	  ele_length = 0.666666667 * ele_length * 1.732;	  
+	  
 	  
 	  double Effective_K = scaled_K;
 	  if(scaled_K < 0.00000000001)
@@ -399,12 +484,21 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	       alpha = 0.0;
 	  
 	  //art_visc = 100.0*0.5 * alpha * ele_length * a_parallel;
-	  art_visc =  20.0 *  alpha * ele_length * a_parallel;
+	  art_visc =  1.0 *  alpha * ele_length * a_parallel;
 	  
 	}
-	
-        this->GetValue(PR_ART_VISC) = art_visc;
 
+   // for cut elements apply higher art_visc
+	//if(not_cutted == 0)
+      //  art_visc*=1.0;//25.0
+
+	if( (pos_dist_max <= 1.0*ele_length && pos_dist_max > 0.0) || not_cutted == 0 )//(neg_dist_max < 0.0 && fabs(neg_dist_max) < 1.0*ele_length)
+	{
+		art_visc*=25.0;
+	}
+
+	this->GetValue(PR_ART_VISC) = art_visc;
+   
 	KRATOS_CATCH("")  
   
 }
