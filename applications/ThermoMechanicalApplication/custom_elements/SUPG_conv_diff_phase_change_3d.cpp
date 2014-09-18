@@ -112,8 +112,8 @@ SUPGConvDiffPhaseChange3D::~SUPGConvDiffPhaseChange3D() {
             rRightHandSideVector.resize(matsize,false); //false says not to preserve existing storage!!
 
 
-//         noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
-//         noalias(rRightHandSideVector) = ZeroVector(matsize);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
+        noalias(rRightHandSideVector) = ZeroVector(matsize);
 
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
