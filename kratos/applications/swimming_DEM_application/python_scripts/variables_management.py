@@ -68,19 +68,19 @@ def ConstructListsOfVariables(pp):
     pp.dem_vars += pp.coupling_dem_vars
 
     if (pp.buoyancy_force_type > 0):
-       pp.dem_vars += [BUOYANCY]
+        pp.dem_vars += [BUOYANCY]
 
     if (pp.drag_force_type > 0 and  pp.add_each_hydro_force_option):
-       pp.dem_vars += [DRAG_FORCE]
+        pp.dem_vars += [DRAG_FORCE]
 
     if (pp.drag_force_type == 2 or pp.drag_force_type == 3 and pp.add_each_hydro_force_option):
-       pp.dem_vars += [PARTICLE_SPHERICITY]
+        pp.dem_vars += [PARTICLE_SPHERICITY]
 
     if (pp.lift_force_type > 0 and  pp.add_each_hydro_force_option):
-       pp.dem_vars += [LIFT_FORCE]
+        pp.dem_vars += [LIFT_FORCE]
 
     if (pp.virtual_mass_force_type > 0 and  pp.add_each_hydro_force_option):
-       pp.dem_vars += [VIRTUAL_FORCE]
+        pp.dem_vars += [VIRTUAL_MASS_FORCE]
 
     # fem-dem variables
     pp.fem_dem_vars = [VELOCITY, DISPLACEMENT]
@@ -117,15 +117,21 @@ def ConstructListsOfResultsToPrint(pp):
         if (pp.print_FLUID_VEL_PROJECTED_option):
             pp.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
 
+        if (pp.print_FLUID_ACCEL_PROJECTED_option):
+            pp.dem_nodal_results += ["FLUID_ACCEL_PROJECTED"]            
+
+        if (pp.print_FLUID_FRACTION_PROJECTED_option):
+            pp.dem_nodal_results += ["FLUID_FRACTION_PROJECTED"]
+
         if (pp.print_BUOYANCY_option > 0):
             pp.dem_nodal_results += ["BUOYANCY"]
 
     if (pp.add_each_hydro_force_option):
 
-        if (pp.drag_force_type > 0 and pp.print_DRAG_FORCE_option):
+        if (pp.print_DRAG_FORCE_option):
             pp.dem_nodal_results += ["DRAG_FORCE"]
 
-        if (pp.virtual_mass_force_type > 0 and pp.print_VIRTUAL_MASS_FORCE_option):
+        if (pp.print_VIRTUAL_MASS_FORCE_option):
             pp.dem_nodal_results += ["VIRTUAL_MASS_FORCE"]
 
         if (pp.print_LIFT_FORCE_option):
@@ -203,23 +209,23 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
 
     if (pp.coupling_level_type == 1 or pp.fluid_model_type == 0):
-       pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
+        pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
 
     if (pp.lift_force_type == 1):
-       pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
-       pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
+        pp.coupling_dem_vars += [FLUID_VORTICITY_PROJECTED]
+        pp.coupling_dem_vars += [SHEAR_RATE_PROJECTED]
 
-    if (pp.virtual_mass_force_type == 1):
-       pp.coupling_dem_vars += [FLUID_ACC_PROJECTED]
+    if (pp.virtual_mass_force_type >= 1):
+        pp.coupling_dem_vars += [FLUID_ACCEL_PROJECTED]
 
     if (pp.embedded_option):
-       pp.coupling_dem_vars += [DISTANCE]
+        pp.coupling_dem_vars += [DISTANCE]
 
     if (pp.drag_force_type >= 2):
-       pp.coupling_dem_vars += [POWER_LAW_N]
-       pp.coupling_dem_vars += [POWER_LAW_K]
-       pp.coupling_dem_vars += [GEL_STRENGTH]
-       pp.coupling_dem_vars += [YIELD_STRESS]
+        pp.coupling_dem_vars += [POWER_LAW_N]
+        pp.coupling_dem_vars += [POWER_LAW_K]
+        pp.coupling_dem_vars += [GEL_STRENGTH]
+        pp.coupling_dem_vars += [YIELD_STRESS]
 
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
