@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "thermo_mechanical_application.h"
 #include "includes/convection_diffusion_settings.h"
+//#include "math.h"
 
 namespace Kratos
 {
@@ -125,19 +126,26 @@ void EnvironmentContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     array_1d<double,3> NN;
     double amb_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
+	//Just for gravity filling amb_T is raised to 09*SOLID_TEMPERATURE
+	double mold_temp = amb_T;//0.7 * rCurrentProcessInfo[SOLID_TEMPERATURE];//;
+	mold_temp =  CalcTempSemiInfiniteWall(rCurrentProcessInfo, mold_temp);
 	
     //3 Gauss points coordinates
     bounded_matrix<double, 3, 3 > GaussCrd = ZeroMatrix(3, 3);
     GaussCrd(0,0) = 2.0/3.0; GaussCrd(0,1) = 1.0/6.0; GaussCrd(0,2) = 1.0/6.0; 
     GaussCrd(1,0) = 1.0/6.0; GaussCrd(1,1) = 2.0/3.0; GaussCrd(1,2) = 1.0/6.0; 	
     GaussCrd(2,0) = 1.0/6.0; GaussCrd(2,1) = 1.0/6.0; GaussCrd(2,2) = 2.0/3.0; 
-    
+
+	//Parameters necessary to compute infinite wall temp
+
+
+
     double wgauss = 0.33333333333333333333333333333333333333333;    
     for(unsigned int gp = 0; gp<3; gp++)
     {
       NN[0] = GaussCrd(gp,0); NN[1] = GaussCrd(gp,1); NN[2] = GaussCrd(gp,2);
       
-      double HTC_Alpha = NN[0] * GetGeometry()[0].FastGetSolutionStepValue(rTransferCoefficientVar);
+ 	  double HTC_Alpha = NN[0] * GetGeometry()[0].FastGetSolutionStepValue(rTransferCoefficientVar);     
       HTC_Alpha += NN[1] * GetGeometry()[1].FastGetSolutionStepValue(rTransferCoefficientVar);
       HTC_Alpha += NN[2] * GetGeometry()[2].FastGetSolutionStepValue(rTransferCoefficientVar);      
       
@@ -149,7 +157,7 @@ void EnvironmentContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
     array_1d<double, 3 > unknown_vec; 
     for(unsigned int kk = 0; kk<nodes_number; kk++)
-      unknown_vec[kk] = GetGeometry()[kk].FastGetSolutionStepValue(rUnknownVar) - amb_T;
+      unknown_vec[kk] = GetGeometry()[kk].FastGetSolutionStepValue(rUnknownVar) - mold_temp;
 
      noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, unknown_vec);
     
@@ -231,8 +239,82 @@ void EnvironmentContact3D::GetDofList(DofsVectorType& ElementalDofList,ProcessIn
     }
     KRATOS_CATCH("");
 }
+//************************************************************************************
+//************************************************************************************
+double EnvironmentContact3D::CalcTempSemiInfiniteWall(ProcessInfo& rCurrentProcessInfo, const double T_0)
+{
+	// This function comutes the new mold temperature T(0,t) from the 
+	// formulation presented in "BASIC HEAT and MASS TRANSFER" second edition page 170 for 
+	// Convection heat transfer to the surface. In this formulation position, X, is put zero to 
+	// obtain temperature on the wall at each time and ALPHA is compuated as k/ro*C
+	//ERFC function is implemented as explained in Appendix B4.
+    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
+    const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
+    const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
+    const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
+	const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
+    double wgauss = 0.33333333333333333333333333333333333333333;    
+
+	double ro =  GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
+ 	double KK =  GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
+	double CC =  GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
+	double H = GetGeometry()[0].FastGetSolutionStepValue(rTransferCoefficientVar);
+	double T_e = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
+
+	for (unsigned int i=1; i<3; i++)
+      {
+		  ro += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
+          KK +=  GetGeometry()[i].FastGetSolutionStepValue(rDiffusionVar);
+		  CC +=  GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
+		  H += GetGeometry()[i].FastGetSolutionStepValue(rTransferCoefficientVar);
+		  T_e += GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+	  }
+
+	ro *= wgauss;
+	KK *= wgauss;
+	CC *= wgauss;
+	H *= wgauss;
+	T_e *= wgauss;
+
+	double time = rCurrentProcessInfo[TIME];
+	double aa = H/KK;
+	double alpha = KK/(ro*CC);
+
+	double AA = exp(aa * aa * alpha * time);
+
+	double bb = aa * sqrt(alpha * time);
+	double BB = ERFC(bb);
+
+	//T_e = rCurrentProcessInfo[FLUID_TEMPERATURE];
+
+	//(T-T_0)/(T_e-T_0) = 1 - AA * BB
+	double new_T =  T_0;
+	if( (AA * BB) >= 0.0 && (AA * BB) < 1.0)
+	  new_T =  T_0 + (1.0 - AA * BB) * (T_e - T_0);
+
+	return new_T;
+
+}
+
+//************************************************************************************
+//************************************************************************************
+double EnvironmentContact3D::ERFC( const double etta)
+{
+
+	double a_1 = 0.3480242;
+	double a_2 = -0.0958798;
+	double a_3 = 0.7478556;
+	double p = 0.47047;
+
+	double t = 1.0/(1.0 + p*etta);
+
+	double erfc = (a_1 * t + a_2 * t*t + a_3 * t*t*t) * exp(-etta*etta);
+
+	return erfc;
+
+}
 
 
 } // Namespace Kratos
