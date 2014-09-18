@@ -86,6 +86,7 @@ class MonolithicSolver:
             # self.alpha, self.move_mesh_strategy, self.domain_size)
 
         self.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulent(self.domain_size)
+        self.time_scheme.Check(self.model_part)
 
         # self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         # definition of the solvers
@@ -121,7 +122,7 @@ class MonolithicSolver:
         self.abs_pres_tol = 1e-7
 
         self.dynamic_tau_levelset = 0.01
-        self.dynamic_tau_fluid = 0.0
+        self.dynamic_tau_fluid = 1.0
         self.oss_switch = 0
 
         # non newtonian setting
@@ -348,7 +349,8 @@ class MonolithicSolver:
                 self.model_part, net_volume, self.max_edge_size)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
-        BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,1000.0)        
+        BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,10000.0)
+        #self.IncreaseCSmagToSOlidify(50.0)
         Timer.Stop("ApplyFluidProperties")
         # Recompute normals if necessary
 # if(self.ReformDofSetAtEachStep == True):
@@ -368,3 +370,13 @@ class MonolithicSolver:
         (self.solver).SetEchoLevel(level)
 
     #
+##    def IncreaseCSmagToSOlidify(self,val):
+##        for elem in self.model_part.Elements:
+##            max_alpha = 0.0
+##            for node in elem.GetNodes():
+##                alpha = node.GetSolutionStepValue(DP_ALPHA1)
+##                if(alpha > max_alpha):
+##                    max_alpha = alpha
+##            if(max_alpha > 0.0):
+##                new_csmag = 0.45 + max_alpha*val #0.45 is default CSmag of the calculation
+##                elem.SetValue(C_SMAGORINSKY, new_csmag )
