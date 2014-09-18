@@ -54,18 +54,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 
-//#include "includes/model_part.h" -S
-//#include "custom_python/add_custom_utilities_to_python.h" -S
-#include "add_custom_utilities_to_python.h" //+S
-//#include "custom_python/add_custom_utilities_to_python.h" -S
-//#include "custom_utilities/create_and_destroy.h"
-
-//#include "custom_utilities/vector_field.h"
+#include "add_custom_utilities_to_python.h"
 #include "custom_utilities/custom_functions.h"
-#include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h" //S
+#include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h"
 #include "custom_utilities/volume_averaging_tool.h"
 #include "custom_utilities/embedded_volume_tool.h"
-
+#include "custom_utilities/real_functions.h"
+#include "custom_utilities/real_field.h"
+#include "custom_utilities/real_field_linear_time_dependant_coeff.h"
+#include "custom_utilities/time_dependant_porosity_field.h"
+#include "custom_utilities/space_time_rule.h"
+#include "custom_utilities/space_time_set.h"
+#include "custom_utilities/field_utility.h"
 
 namespace Kratos{
 
@@ -97,11 +97,126 @@ void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionM
 void  AddCustomUtilitiesToPython(){
 using namespace boost::python;
 
-/*class_<VectorField<3>, boost::noncopyable >
-        ("VectorField", init<>())
-        .def("CalculateVector", &VectorField<3>::CalculateVector)
-        .def("CalculateGradient", &VectorField<3>::CalculateGradient)
-        ;*/
+
+    class_<RealFunction> ("RealFunction", init<const double, const double>())
+        .def("Evaluate", &RealFunction::Evaluate)
+        .def("CalculateDerivative", &RealFunction::CalculateDerivative)
+        .def("CalculateSecondDerivative", &RealFunction::CalculateSecondDerivative)
+        ;
+
+    class_<LinearFunction, bases<RealFunction> > ("LinearFunction", init<const double, const double>())
+        .def("Evaluate", &LinearFunction::Evaluate)
+        .def("CalculateDerivative", &LinearFunction::CalculateDerivative)
+        .def("CalculateSecondDerivative", &LinearFunction::CalculateSecondDerivative)
+        ;
+
+    class_<PowerFunction, bases<RealFunction> > ("PowerFunction", init<const double, const double, const double>())
+        .def("Evaluate", &PowerFunction::Evaluate)
+        .def("CalculateDerivative", &PowerFunction::CalculateDerivative)
+        .def("CalculateSecondDerivative", &PowerFunction::CalculateSecondDerivative)
+        ;
+
+    class_<AdditionFunction, bases<RealFunction> > ("AdditionFunction", init<const double, RealFunction&, RealFunction&>())
+        .def("Evaluate", &AdditionFunction::Evaluate)
+        .def("CalculateDerivative", &AdditionFunction::CalculateDerivative)
+        .def("CalculateSecondDerivative", &AdditionFunction::CalculateSecondDerivative)
+        ;
+
+    class_<CompositionFunction, bases<RealFunction> > ("CompositionFunction", init<const double, RealFunction&, RealFunction&>())
+        .def("Evaluate", &CompositionFunction::Evaluate)
+        .def("CalculateDerivative", &CompositionFunction::CalculateDerivative)
+        .def("CalculateSecondDerivative", &CompositionFunction::CalculateSecondDerivative)
+        ;
+
+    class_<RealField > ("RealField", boost::python::no_init)
+        ;
+
+    class_<VectorField<2> > ("VectorField2D", boost::python::no_init)
+        ;
+
+    class_<VectorField<3> > ("VectorField3D", boost::python::no_init)
+        ;
+
+    class_<LinearRealField, bases<RealField> > ("LinearRealField", init<const double&, const double&, const double&, RealFunction&, RealFunction&, RealFunction&>())
+        .def("Evaluate", &LinearRealField::Evaluate)
+        .def("CalculateTimeDerivative", &LinearRealField::CalculateTimeDerivative)
+        ;
+
+    class_<TimeDependantPorosityField, bases<RealField> > ("TimeDependantPorosityField", init<const double&>())
+        .def("Evaluate", &TimeDependantPorosityField::Evaluate)
+        .def("CalculateTimeDerivative", &TimeDependantPorosityField::CalculateTimeDerivative)
+        .def("CalculateGradient", &TimeDependantPorosityField::CalculateGradient)
+        .def("CalculateLaplacian", &TimeDependantPorosityField::CalculateLaplacian)
+        ;
+
+    class_<TimeDependantForceField, bases<VectorField<3> > > ("TimeDependantForceField", init<const double&>())
+        .def("Evaluate", &TimeDependantForceField::Evaluate)
+        .def("GetPorosityField", &TimeDependantForceField::GetPorosityField)
+        ;
+
+    class_<SpaceTimeRule> ("SpaceTimeRule", boost::python::no_init)
+        ;
+
+    class_<BoundingBoxRule, bases<SpaceTimeRule> > ("BoundingBoxRule", init<>())
+        .def("SetTimeBoundingInterval", &BoundingBoxRule::SetTimeBoundingInterval)
+        .def("SetXBoundingInterval", &BoundingBoxRule::SetXBoundingInterval)
+        .def("SetYBoundingInterval", &BoundingBoxRule::SetYBoundingInterval)
+        .def("SetZBoundingInterval", &BoundingBoxRule::SetZBoundingInterval)
+        .def("SetSpaceTimeBoundingBox", &BoundingBoxRule::SetSpaceTimeBoundingBox)
+        .def("CheckIfRuleIsMet", &BoundingBoxRule::CheckIfRuleIsMet)
+        ;
+
+    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRuleFieldValue", init<RealField::Pointer, const double>())
+        .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
+        ;
+
+    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRuleValueField", init<const double, RealField::Pointer>())
+        .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
+        ;
+
+    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRuleFieldField", init<RealField::Pointer, RealField::Pointer>())
+        .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
+        ;
+
+    class_<SpaceTimeSet> ("SpaceTimeSet", init<>())
+        .def("AddAndRule", &SpaceTimeSet::AddAndRule)
+        .def("AddOrRule", &SpaceTimeSet::AddOrRule)
+        .def("AddAndRules", &SpaceTimeSet::AddAndRules)
+        .def("AddOrRules", &SpaceTimeSet::AddOrRules)
+        .def("GetLowTime", &SpaceTimeSet::GetLowTime)
+        .def("GetHighTime", &SpaceTimeSet::GetHighTime)
+        .def("GetLowX", &SpaceTimeSet::GetLowX)
+        .def("GetHighX", &SpaceTimeSet::GetHighX)
+        .def("GetLowY", &SpaceTimeSet::GetLowY)
+        .def("GetHighY", &SpaceTimeSet::GetHighY)
+        .def("GetLowZ", &SpaceTimeSet::GetLowZ)
+        .def("GetHighZ", &SpaceTimeSet::GetHighZ)
+        .def("GetRules", &SpaceTimeSet::GetRules)
+        ;
+
+    // next we do what is needed to define the overloaded function 'FieldUtility::ImposeFieldOnNodes'
+
+    typedef double (FieldUtility::*EvaluateDoubleFieldAtPoint)(const double&, const array_1d<double, 3>&, RealField::Pointer);
+    typedef array_1d<double, 3> (FieldUtility::*EvaluateVectorFieldAtPoint)(const double&, const array_1d<double, 3>&, VectorField<3>::Pointer);
+
+    EvaluateDoubleFieldAtPoint EvaluateDoubleField = &FieldUtility::EvaluateFieldAtPoint;
+    EvaluateVectorFieldAtPoint EvaluateVectorField = &FieldUtility::EvaluateFieldAtPoint;
+
+    // next we do what is needed to define the overloaded function 'FieldUtility::EvaluateFieldAtPoint'
+
+    typedef void (FieldUtility::*ImposeDoubleFieldOnNodes)(Variable<double>&, const double, RealField::Pointer, ModelPart&, const ProcessInfo&, const bool);
+    typedef void (FieldUtility::*ImposeVectorFieldOnNodes)(Variable<array_1d<double, 3> >&, const array_1d<double, 3>, VectorField<3>::Pointer, ModelPart&, const ProcessInfo&, const bool);
+
+    ImposeDoubleFieldOnNodes ImposeDoubleField = &FieldUtility::ImposeFieldOnNodes;
+    ImposeVectorFieldOnNodes ImposeVectorField = &FieldUtility::ImposeFieldOnNodes;
+
+    class_<FieldUtility> ("FieldUtility", init<SpaceTimeSet::Pointer>())
+        .def("MarkNodesInside", &FieldUtility::MarkNodesInside)
+        .def("EvaluateFieldAtPoint", EvaluateDoubleField)
+        .def("EvaluateFieldAtPoint", EvaluateVectorField)
+        .def("ImposeFieldOnNodes", ImposeDoubleField)
+        .def("ImposeFieldOnNodes", ImposeVectorField)
+        ;
 
     class_<CustomFunctionsCalculator, boost::noncopyable >
         ("CustomFunctionsCalculator", init<>())
@@ -134,9 +249,7 @@ using namespace boost::python;
         .def("CalculateNegativeDistanceVolume", &EmbeddedVolumeTool < 3 > ::CalculateNegativeDistanceVolume)
         ;
 
-}
-
-
+    }
 
 
 }  // namespace Python.
