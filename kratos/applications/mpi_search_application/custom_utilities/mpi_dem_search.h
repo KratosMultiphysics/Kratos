@@ -100,7 +100,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          KRATOS_TIMER_START("MPI_SEARCH_STUFF")
+
           Clean_Modelpart();
 
           // Get the data
@@ -118,42 +118,41 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           // Perform the search
           std::vector<std::size_t> NumberOfResults(NumberOfModelPElements);
           
-           for (IteratorType particle_pointer_it = elements_array.begin();
-                 particle_pointer_it != elements_array.end(); ++particle_pointer_it)
-           {                   
-               rResults[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
-               rResultsDistance[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
-           }
-           KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
+          for (IteratorType particle_pointer_it = elements_array.begin();
+                particle_pointer_it != elements_array.end(); ++particle_pointer_it)
+          {                   
+              rResults[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
+              rResultsDistance[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
+          }
+
+          bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,MaxNumberOfElements,mCommunicator);
+
+          for(int i = 0; i < NumberOfSearchElements; i++)
+          {
+              rResults[i].resize(NumberOfResults[i]);
+              rResultsDistance[i].resize(NumberOfResults[i]);
+          }
+
+          //Update the modelpart interface and keep the coherence between domains
+          int ResultCounter = 0;
+
+          for (IteratorType particle_pointer_it = elements_array.begin();
+              particle_pointer_it != elements_array.end(); ++particle_pointer_it, ++ResultCounter)
+          {                   
+              unsigned int neighbour_counter = 0;
+
+              for (ResultIteratorType neighbour_it = rResults[ResultCounter].begin(); neighbour_counter < NumberOfResults[ResultCounter]; ++neighbour_it, ++neighbour_counter)
+              {         
+                  Add_To_Modelpart(neighbour_it);
+              }
+          }
           
-           KRATOS_TIMER_START("MPI_SEARCH_KERNEL")
-           bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,MaxNumberOfElements,mCommunicator);
-           KRATOS_TIMER_STOP("MPI_SEARCH_KERNEL")
+          mCommunicator.SynchronizeNodalSolutionStepsData();
            
-           KRATOS_TIMER_START("MPI_SEARCH_STUFF")
-           for(int i = 0; i < NumberOfSearchElements; i++)
-           {
-               rResults[i].resize(NumberOfResults[i]);
-               rResultsDistance[i].resize(NumberOfResults[i]);
-           }
- 
-           // Update the modelpart interface and keep the coherence between domains
-           int ResultCounter = 0;
- 
-           for (IteratorType particle_pointer_it = elements_array.begin();
-                particle_pointer_it != elements_array.end(); ++particle_pointer_it, ++ResultCounter)
-           {                   
-               unsigned int neighbour_counter = 0;
- 
-               for (ResultIteratorType neighbour_it = rResults[ResultCounter].begin(); neighbour_counter < NumberOfResults[ResultCounter]; ++neighbour_it, ++neighbour_counter)
-               {         
-                   Add_To_Modelpart(neighbour_it);
-               }
-           }
-           
-           // Finally sort model for correct sync
-           Sort_Modelpart();
-          KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
+          // Finally sort model for correct sync
+          Sort_Modelpart();
+          
+          mCommunicator.SynchronizeNodalSolutionStepsData();
           
           KRATOS_CATCH(" ")
       }
@@ -451,6 +450,8 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
 
           for (unsigned int i = 0; i < mCommunicator.LocalMeshes().size(); i++)
               mCommunicator.LocalMesh(i).Nodes().Unique();
+          
+          mCommunicator.GhostMesh().Nodes().Unique();
           
           for (unsigned int i = 0; i < mCommunicator.GhostMeshes().size(); i++)
               mCommunicator.GhostMesh(i).Nodes().Unique();
