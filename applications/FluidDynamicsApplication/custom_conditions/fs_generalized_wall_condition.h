@@ -221,7 +221,7 @@ public:
 	}
 
 	/// Find the condition's parent element.
-	virtual void Initialize()
+	void Initialize()
 	{
 		KRATOS_TRY;
 
@@ -323,8 +323,7 @@ public:
 
 		if (mInitializeWasPerformed == false)
 		{
-			std::cout << "error in condition -> " << this->Id() << std::endl;
-			KRATOS_ERROR(std::logic_error, "Condition was not initialized","");
+		        Initialize();
 		}
 
 		if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
