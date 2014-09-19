@@ -348,7 +348,10 @@ private:
         {
             this->PreconditionedMult(rA,p,q);
 // KRATOS_WATCH("ln344");
-            alpha = roh0 / TSparseSpaceType::Dot(rs,q);
+	    alpha = TSparseSpaceType::Dot(rs,q);
+	    if (fabs(alpha) <= 1.0e-40)
+	      break;
+            alpha = roh0 / alpha;
 
             TSparseSpaceType::ScaleAndAdd(1.00, r, -alpha, q, s);
 // KRATOS_WATCH("ln348");
