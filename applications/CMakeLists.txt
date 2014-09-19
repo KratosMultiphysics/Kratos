@@ -74,6 +74,10 @@ if(${FSI_APPLICATION} MATCHES ON)
   add_subdirectory(FSIapplication)
 endif(${FSI_APPLICATION} MATCHES ON)
 
+if(${EMPIRE_APPLICATION} MATCHES ON)
+  add_subdirectory(empire_application)
+endif(${EMPIRE_APPLICATION} MATCHES ON)
+
 if(${OPENCL_APPLICATION} MATCHES ON)
   add_subdirectory(OpenCLapplication)
 endif(${OPENCL_APPLICATION} MATCHES ON)

@@ -40,7 +40,7 @@ KratosALEApplication::KratosALEApplication():
     mStructuralMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mLaplacianComponentwiseMeshMovingElem2DStrainbased(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mStructuralMeshMovingElem2DNonlin(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mStructuralMeshMovingElem3DNonlin(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+    mStructuralMeshMovingElem3DNonlin(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {}
 
 
