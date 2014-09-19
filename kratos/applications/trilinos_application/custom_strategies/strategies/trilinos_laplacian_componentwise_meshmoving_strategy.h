@@ -165,13 +165,13 @@ public:
         BuilderSolverTypePointer var_z_build = BuilderSolverTypePointer(new	TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm, guess_row_size,pNewLinearSolver) );
 
         mstrategy_x = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(*mpMeshModelPart,pscheme,pNewLinearSolver,var_x_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-        mstrategy_x->SetEchoLevel(2);
+        mstrategy_x->SetEchoLevel(0);
 
         mstrategy_y = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(*mpMeshModelPart,pscheme,pNewLinearSolver,var_y_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-        mstrategy_y->SetEchoLevel(2);
+        mstrategy_y->SetEchoLevel(0);
 
         mstrategy_z = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(*mpMeshModelPart,pscheme,pNewLinearSolver,var_z_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-        mstrategy_z->SetEchoLevel(2);
+        mstrategy_z->SetEchoLevel(0);
 
         for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
                 i != (*mpMeshModelPart).NodesEnd() ; ++i)

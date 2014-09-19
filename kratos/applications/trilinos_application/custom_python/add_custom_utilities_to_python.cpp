@@ -178,9 +178,10 @@ void  AddCustomUtilitiesToPython()
     class_<GatherModelPartUtility, boost::noncopyable >
     ("GatherModelPartUtility",
      init<int, ModelPart&, int , ModelPart&>() )
-     .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster)
-    .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
-     .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
+      .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
+      .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
+      .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
+      .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
    ;
 
 

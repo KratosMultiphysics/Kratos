@@ -155,7 +155,13 @@ public:
         KRATOS_CATCH("")
     }
 
-
+    template< class TDataType >
+    void GatherOnMaster(Variable<TDataType>& ThisVariable)
+    {
+      KRATOS_TRY
+	mr_model_part.GetCommunicator().SynchronizeVariable(ThisVariable);
+      KRATOS_CATCH("")
+    }
 
     template< class TDataType >
     void ScatterFromMaster(Variable<TDataType>& ThisVariable)

@@ -445,8 +445,7 @@ protected:
             int max_color = 2 * num_processors;
             GraphColoringProcess coloring_process(num_processors, dense_graph, dense_colored_graph, max_color);
             coloring_process.Execute();
-            KRATOS_WATCH(dense_colored_graph);
-
+            //KRATOS_WATCH(dense_colored_graph);
             //count max colors
 
             for (int i = 0; i< static_cast<int> (num_processors); i++)
@@ -494,7 +493,7 @@ protected:
 
         //here send an array of size max_color_found
         MPI_Scatter(aux, 1, MPI_INT, &max_color_found, 1, MPI_INT, root_id, MPI_COMM_WORLD);
-        KRATOS_WATCH(max_color_found);
+        //KRATOS_WATCH(max_color_found);
         if (my_rank == root_id)
             delete [] aux;
 

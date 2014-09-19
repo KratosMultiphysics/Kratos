@@ -36,7 +36,7 @@ class TrilinosMeshSolverComponentwise:
         self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
 
-        AddDofs(model_part)
+        #AddDofs(model_part)
 
         # assignation of parameters to be used
         self.time_order = 1
@@ -47,7 +47,7 @@ class TrilinosMeshSolverComponentwise:
         # Define solver
         import PressureMultiLevelSolver
         pressure_nit_max = 1000
-        pressure_linear_tol = 1
+        pressure_linear_tol = 1e-6
         self.linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol, pressure_nit_max)
 
     def Initialize(self):
