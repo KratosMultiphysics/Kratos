@@ -37,6 +37,10 @@ Begin Properties *MatNum
  POISSON_RATIO *MatProp(POISSON_RATIO,real)
 *format "%10.5e"
  THICKNESS *MatProp(THICKNESS,real)
+*format "%10.5e"
+ PERMEABILITY *MatProp(PERMEABILITY,real)
+*format "%10.5e"
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
 *if(strcmp(MatProp(HARDENING_MODEL),"SIMO")==0)
 *format "%10.5e"
  YIELD_STRESS *MatProp(YIELD_STRESS,real)
@@ -66,6 +70,38 @@ End Properties
 
 *endif
 *end materials
+*loop materials
+*if(strcmp(MatProp(Type),"CriticalStatePlasticity")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ INITIAL_SHEAR_MODULUS *MatProp(INITIAL_SHEAR_MODULUS,real)
+*format "%10.5e"
+ ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
+*format "%10.5e"
+ PRE_CONSOLIDATION_STRESS *MatProp(PRE_CONSOLIDATION_STRESS,real)
+*format "%10.5e"
+ OVER_CONSOLIDATION_RATIO *MatProp(OVER_CONSOLIDATION_RATIO,real)
+*format "%10.5e"
+ NORMAL_COMPRESSION_SLOPE *MatProp(NORMAL_COMPRESSION_SLOPE,real)
+*format "%10.5e"
+ SWELLING_SLOPE *MatProp(SWELLING_SLOPE,real)
+*format "%10.5e"
+ CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
+*format "%10.5e"
+ PERMEABILITY *MatProp(PERMEABILITY,real)
+*format "%10.5e"
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+End Properties
+
+*endif
+*end materials
 *# Property blocks
 
 Begin Nodes
@@ -80,6 +116,24 @@ End Nodes
 *Set cond surface_SpatialLagrangianElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements SpatialLagrangianElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+	*ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond surface_SpatialLagrangianUwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements SpatialLagrangianUwPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -179,24 +233,7 @@ Begin Conditions LineLoadAxisymCondition2D2N
 End Conditions
 
 *endif
-*Set cond line_WallCondition2D *elems
-*if(CondNumEntities > 0)
-Begin Conditions WallCondition2D
-*#// id prop_id	 n1	n2	n3	...
-*loop elems *OnlyInCond
-*set var icond=operation(icond+1)
-*set var i=0
-*set var j=ElemsNnode
-*format "%i%i%i%i"
-*icond *ElemsMat *\
-*for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
-*end
 
-*end elems
-End Conditions
-
-*endif
 
 *# Point Condition Blocks
 
@@ -222,7 +259,24 @@ Begin Conditions PointLoadAxisym2DCondition
 End Conditions
 
 *endif
+*Set cond line_WallCondition2D *elems
+*if(CondNumEntities > 0)
+Begin Conditions WallCondition2D
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var icond=operation(icond+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i"
+*icond *ElemsMat *\
+*for(i=1;i<=j;i=i+1)*\
+	*ElemsConec(*i)*\
+*end
 
+*end elems
+End Conditions
+
+*endif
 *# Variable Blocks
 
 *Set cond volume_DISPLACEMENT *nodes
@@ -593,6 +647,17 @@ Begin NodalData POSITIVE_FACE_PRESSURE
 *loop nodes *OnlyInCond
 *format "%i%i%10.5e"
 *NodesNum *cond(Fixed) *cond(POSITIVE_FACE_PRESSURE)
+*end nodes
+End NodalData
+
+*endif
+*Set cond surface_WATER_PRESSURE *nodes
+*Add cond line_WATER_PRESSURE *nodes
+*if(CondNumEntities > 0)
+Begin NodalData WATER_PRESSURE
+*loop nodes *OnlyInCond
+*format "%i%i%10.5e"
+*NodesNum *cond(Fixed) *cond(WATER_PRESSURE)
 *end nodes
 End NodalData
 

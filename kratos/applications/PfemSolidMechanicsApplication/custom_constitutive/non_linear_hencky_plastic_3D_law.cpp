@@ -152,7 +152,9 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
+         this->CalculateOnlyDeviatoricPart( IncrementalDeformationGradient );
          mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+         this->CorrectDomainPressure( StressMatrix, ElasticVariables);
 
     }
     //OPTION 1:
@@ -183,7 +185,8 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
         Matrix ElastoPlasticTangentMatrix;
         double rAlpha = ReturnMappingVariables.DeltaGamma;
         
-        mpFlowRule->ComputeElastoPlasticTangentMatrix( ReturnMappingVariables,  NewElasticLeftCauchyGreen, rAlpha, ElastoPlasticTangentMatrix);
+
+        this->CalculateElastoPlasticTangentMatrix( ReturnMappingVariables, NewElasticLeftCauchyGreen, rAlpha, ElastoPlasticTangentMatrix, ElasticVariables);
 
 
 
@@ -221,12 +224,15 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
 {
 
    /* POST-PROCESS LOTS OF VARIABLES. ONLY IF DEFINED IN THE APPROPIATE FILE
-   if ( (rThisVariable==PLASTIC_VOL) || (rThisVariable==PLASTIC_SHEAR) )
+   if ( (rThisVariable==PLASTIC_VOL) || (rThisVariable==PLASTIC_SHEAR) || (rThisVariable==PLASTIC_STRAIN) )
    {
 
        const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
        if ( rThisVariable==PLASTIC_VOL) {
              rValue = InternalVariables.EquivalentPlasticStrain; 
+       }
+       else if (rThisVariable==PLASTIC_STRAIN) {
+            rValue = InternalVariables.DeltaPlasticStrain;
        }
        else {
             rValue = InternalVariables.EquivalentPlasticStrainOld;
@@ -235,7 +241,7 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
        return rValue;
    }
 
-   if ( (rThisVariable==STRESS_P) || (rThisVariable==STRESS_Q) || (rThisVariable==STRESS_THETA) || (rThisVariable==STRESS_RATIO ) ) 
+   else if ( (rThisVariable==STRESS_P) || (rThisVariable==STRESS_Q) || (rThisVariable==STRESS_THETA) || (rThisVariable==STRESS_RATIO ) ) 
    {
          Matrix StressMatrix;
          Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
@@ -297,31 +303,20 @@ double& NonLinearHenckyElasticPlastic3DLaw::GetValue(const Variable<double>& rTh
 
    }
 
-   if (rThisVariable==PRECONSOLIDATION) 
+   else if (rThisVariable==PRECONSOLIDATION) 
    {
+       rValue = 0.0;
        const FlowRule::InternalVariables& InternalVariables=mpFlowRule->GetInternalVariables();
        double Alpha = InternalVariables.EquivalentPlasticStrain;
        rValue = mpHardeningLaw->CalculateHardening(rValue, Alpha);
    } 
-  if (rThisVariable==PLASTIC_STRAIN)
-    {
-      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-      rValue=InternalVariables.EquivalentPlasticStrain;
+   else {
+       rValue = HyperElasticPlastic3DLaw::GetValue( rThisVariable, rValue);
     }
-  
-  if (rThisVariable==DELTA_PLASTIC_STRAIN)
-    {
-      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-      rValue=InternalVariables.EquivalentPlasticStrain;
-    }
-  if (rThisVariable==PLASTIC_DISSIPATION)
-    {
-      const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
-      rValue =  InternalVariables.EquivalentPlasticStrain;
-      rValue = fabs( rValue) +1.0;
-    }
-   */
+   */ // THING ABOUT ALL THE VARIABLES.
+   rValue = HyperElasticPlastic3DLaw::GetValue( rThisVariable, rValue);
    return (rValue);
+
 }
 
 
@@ -330,4 +325,24 @@ Matrix NonLinearHenckyElasticPlastic3DLaw::SetConstitutiveMatrixToAppropiateDime
      return rElastoPlasticTangentMatrix;
 
 }
+
+void NonLinearHenckyElasticPlastic3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables & rElasticVariables)
+{
+
+}
+
+
+void NonLinearHenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
+{
+
+     mpFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
+
+}
+    
+void NonLinearHenckyElasticPlastic3DLaw::CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient)
+{
+
+}
+
+
 } // namespace Kratos

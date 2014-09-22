@@ -1,0 +1,191 @@
+// System includes
+#include <iostream>
+
+// External includes
+#include<cmath>
+
+// Project includes
+#include "includes/properties.h"
+#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+
+#include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
+
+#include "solid_mechanics_application.h"
+
+namespace Kratos
+{
+
+
+
+// CONSTRUCTORS
+NonLinearHenckyElasticPlasticUP3DLaw::NonLinearHenckyElasticPlasticUP3DLaw()
+   : NonLinearHenckyElasticPlastic3DLaw()
+{
+
+}
+
+NonLinearHenckyElasticPlasticUP3DLaw::NonLinearHenckyElasticPlasticUP3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+   : NonLinearHenckyElasticPlastic3DLaw()
+{
+
+}
+
+// ************* COPY CONSTRUCTOR ******************
+NonLinearHenckyElasticPlasticUP3DLaw::NonLinearHenckyElasticPlasticUP3DLaw(const NonLinearHenckyElasticPlasticUP3DLaw&  rOther)
+  : NonLinearHenckyElasticPlastic3DLaw(rOther)
+{
+
+}
+
+ 
+NonLinearHenckyElasticPlasticUP3DLaw::~NonLinearHenckyElasticPlasticUP3DLaw()
+{
+}
+
+
+
+
+void NonLinearHenckyElasticPlasticUP3DLaw::CorrectDomainPressure(Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables)
+{
+
+    double MeanPressure = 0.0;
+    for (unsigned int i = 0; i < 3; ++i)
+        MeanPressure += rStressMatrix(i,i);
+ 
+    MeanPressure /=3.0;
+    for (unsigned int i = 0; i < 3; ++i)
+        rStressMatrix(i,i) -= MeanPressure;
+
+
+    double Pressure = 0;
+    GetDomainPressure( Pressure, rElasticVariables);
+   
+    for (unsigned int i = 0; i < 3; ++i)
+        rStressMatrix(i,i) += Pressure; 
+
+}
+
+void NonLinearHenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables)
+{
+
+    rPressure = 0.0;
+    const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues  =  rElasticVariables.GetShapeFunctionsValues();
+
+    const unsigned int number_of_nodes  =  DomainGeometry.size();
+
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(PRESSURE);
+    }
+
+}
+
+
+
+void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables)
+{
+
+     mpFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
+     // HO SACO K A SACO O ALGO
+
+     // ADDING THE K TERMS
+     double Pressure;
+     //GetDomainPressure( Pressure, rElasticVariables);
+     GetDomainPressure( Pressure, rElasticVariables);
+     
+     Pressure *= rElasticVariables.DeterminantF0;
+
+     double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+     double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+
+     double K = Young / 3.0 / (1.0 - 2.0*Nu);
+
+     for (unsigned int i = 0; i < 3; ++i) {
+        for (unsigned int j = 0; j < 3 ; ++j) {
+           rElastoPlasticTangentMatrix(i,j)  -= K;
+         }
+     }
+
+     Matrix FourthOrderIdentity = ZeroMatrix(6);
+     for (unsigned int i = 0; i<3; ++i)
+        FourthOrderIdentity(i,i) = 1.0;
+
+     for (unsigned int i = 3; i<6; ++i)
+        FourthOrderIdentity(i,i) = 0.50;
+        // VOIGT NOTATION AND NOT KELVIN
+
+     Matrix IdentityCross = ZeroMatrix(6);
+     for (unsigned int i = 0; i<3; ++i) {
+          for (unsigned int j = 0; j<3; ++j) {
+             IdentityCross(i,j) = 1.0;
+          }
+     }
+
+     rElastoPlasticTangentMatrix += Pressure* ( IdentityCross - 2.0 * FourthOrderIdentity);
+
+}
+
+
+
+// I HAVE TO DELETE THE DEFINITION FROM THE HPP IN ORDER TO REMOVE THE TO FOLLOWING FUNCTIONS; THAT ARE COPY PASTE; THEY ARE ALREADY DEFINED BY INHERITANCE !!!!
+void NonLinearHenckyElasticPlasticUP3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+        Vector& rStrainVector )
+{
+
+    //E= 0.5*(FT*F-1)
+    rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
+    rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
+    rStrainVector[2] = 0.5 * ( rRightCauchyGreen( 2, 2 ) - 1.00 );
+    rStrainVector[3] = rRightCauchyGreen( 0, 1 ); // xy
+    rStrainVector[4] = rRightCauchyGreen( 1, 2 ); // yz
+    rStrainVector[5] = rRightCauchyGreen( 0, 2 ); // xz
+
+}
+
+
+
+//***********************COMPUTE TOTAL STRAIN*****************************************
+//************************************************************************************
+void NonLinearHenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+        Vector& rStrainVector )
+{
+
+    // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
+
+    //Calculating the inverse of the jacobian
+    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+
+    rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
+    rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
+    rStrainVector[2] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 2, 2 ) );
+    rStrainVector[3] = - InverseLeftCauchyGreen( 0, 1 ); // xy
+    rStrainVector[4] = - InverseLeftCauchyGreen( 1, 2 ); // yz
+    rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
+}
+
+
+void NonLinearHenckyElasticPlasticUP3DLaw::CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient)
+{
+     Matrix Aux = rIncrementalDeformationGradient;
+
+     double det = 0.0;
+     det  = Aux(0,0) * Aux(1,1) * Aux(2,2);
+     det += Aux(1,0) * Aux(2,1) * Aux(0,2);
+     det += Aux(2,0) * Aux(0,1) * Aux(1,2);
+     det -= Aux(0,2) * Aux(1,1) * Aux(2,0);
+     det -= Aux(1,2) * Aux(2,1) * Aux(0,0);
+     det -= Aux(2,2) * Aux(0,1) * Aux(1,0);
+
+     det = pow( det, 1.0/3.0);
+
+     rIncrementalDeformationGradient /= det;
+
+}
+
+
+
+} //end namespace kratos
+

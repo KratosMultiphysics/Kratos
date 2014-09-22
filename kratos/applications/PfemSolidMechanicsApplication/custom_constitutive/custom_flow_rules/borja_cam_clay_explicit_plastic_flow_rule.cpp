@@ -95,21 +95,22 @@ void BorjaCamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolu
     ReferencePressure /= OCR;    
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
     double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
-    double ConstantShearModulus = 23.50*50;
+    double ConstantShearModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[INITIAL_SHEAR_MODULUS];
 
 
     rDeviatoricStress = rDeviatoricStrainVector;
     double ShearModulus = AlphaShear*ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope);
     rDeviatoricStress *= 2.0*( ShearModulus + ConstantShearModulus);
     
-    for (unsigned int i = 3; i<6; ++i)
+    for (unsigned int i = 3; i<6; ++i){
          rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
-
+   }
 }
 
 
 void BorjaCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix )
 {
+
     Matrix FourthOrderIdentity = ZeroMatrix(6);
     for (unsigned int i = 0; i<3; ++i)
        FourthOrderIdentity(i,i) = 1.0;
@@ -146,16 +147,30 @@ void BorjaCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticSt
    double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
    double AlphaShear = mpYieldCriterion->GetHardeningLaw().GetProperties()[ALPHA_SHEAR];
 
+   double ConstantShearModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[INITIAL_SHEAR_MODULUS];
+
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
    rElasticMatrix += 2.0*AlphaShear*ReferencePressure*std::exp(-VolumetricStrain/SwellingSlope)*(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
 
 
+
+   StressVector = rElasticStrainVector;
+   for (unsigned int i = 0; i < 3; ++i)
+       StressVector(i) -= VolumetricStrain / 3.0;
+       
+
+   StressVector = StressVector * 2.0*ReferencePressure * exp(-VolumetricStrain/SwellingSlope) * AlphaShear;
+
+   for (unsigned int i = 3; i < 6 ; ++i)
+         StressVector(i) /= 2.0;
+
+
    // PARTE ASQUEROSA
    for (unsigned int i = 0; i<3; ++i) {
       for (unsigned int j = 0; j<3; ++j) {
-         rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(i)-MeanStress);
-         rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(j)-MeanStress);
+         rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(i) ); //-MeanStress);
+         rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(j) ); //-MeanStress);
        }
    }
 
@@ -172,7 +187,7 @@ void BorjaCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticSt
    }
 
   // AND THE PART DUE TO THE INITIAL SHEAR MODULUS
-  double ConstantShearModulus = 23.50*50.0;
+
   rElasticMatrix +=  2.0*ConstantShearModulus * ( FourthOrderIdentity - (1.0/3.0)*IdentityCross );
 
 }

@@ -30,7 +30,8 @@
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
-
+//schemes
+#include "custom_strategies/custom_schemes/residual_based_U_wP_static_scheme.hpp"
 
 namespace Kratos
 {
@@ -52,6 +53,7 @@ namespace Kratos
       typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
       //custom types
+      typedef ResidualBasedUwPStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedUwPStaticSchemeType;
 
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
@@ -68,6 +70,15 @@ namespace Kratos
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
+      // Static Scheme Type
+      class_< ResidualBasedUwPStaticSchemeType,
+        bases< BaseSchemeType >, boost::noncopyable >
+              (
+             "ResidualBasedUwPStaticScheme", init< >() )
+        
+              .def("Initialize", &ResidualBasedUwPStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+              ;
+
 
 
 

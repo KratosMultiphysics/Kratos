@@ -81,6 +81,12 @@ void CamClayExplicitFlowRule::CalculateKirchhoffStressVector(const Vector& rHenc
 
     this->CalculateDeviatoricStress( VolumetricStrain, DeviatoricStrainVector, rKirchhoffStressVector);
 
+/*    std::cout << " COMPUTING STRESS " << rHenckyStrainVector << std::endl;
+    std::cout << " DeviatoricStrainVector " << DeviatoricStrainVector << std::endl;
+    std::cout << " Dev Stress " << rKirchhoffStressVector << std::endl;
+    std::cout << " VOL STRAIN " << VolumetricStrain << std::endl;
+    std::cout << " VOL STRESS " << MeanStress << std::endl;
+    std::cout << " " << std::endl;*/
     rKirchhoffStressVector += MeanStress*IdentityVector;
 
 }
@@ -121,12 +127,15 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
     rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
 
 
-/*   std::cout << " VOLUMETRICMOD " << -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * ( 1.0 + AlphaShear*DeviatoricStrain2Norm / SwellingSlope) << std::endl;
+/*   std::cout << " -------" << std::endl;
+   std::cout << " VOLUMETRICMOD " << -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * ( 1.0 + AlphaShear*DeviatoricStrain2Norm / SwellingSlope) << std::endl;
    std::cout << "      ShearNor " << DeviatoricStrain2Norm << std::endl;
    std::cout << "      ShearTer " << AlphaShear*DeviatoricStrain2Norm/SwellingSlope << std::endl;
    std::cout << "      VolStrain" << rVolumetricStrain << std::endl;
    std::cout << "      MeanStres" << rMeanStress << std::endl; 
+   std::cout << " -------" << std::endl;
 */
+
 }
 
 

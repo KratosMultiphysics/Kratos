@@ -122,7 +122,7 @@ void LinearCamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVol
     double PoissonCoef  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     double ShearModulus = YoungModulus / 2.0 / (1.0 + PoissonCoef);
     //ShearModulus = 1200.0;
-    //ShearModulus = 23.5*50.0;
+    ShearModulus = 23.5*50.0;
 
     rDeviatoricStress = rDeviatoricStrainVector;
     rDeviatoricStress *= 2.0*ShearModulus;
@@ -143,7 +143,7 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
     double YoungModulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     double PoissonCoef  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     double ShearModulus = YoungModulus / 2.0 / (1.0 + PoissonCoef);
-    //ShearModulus = 23.50*50.0;
+    ShearModulus = 23.50*50.0;
     double SwellingSlope = mpYieldCriterion->GetHardeningLaw().GetProperties()[SWELLING_SLOPE];
 
     Matrix FourthOrderIdentity = ZeroMatrix(6);

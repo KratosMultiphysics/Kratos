@@ -1,8 +1,8 @@
 // Clase HenckyElasticPlastic3DLaw, que es derivada de HyperelasticPlastic3DLaw, de tal manera que només cal canviar CalculateMaterialResponesKirchoff (i totes les funcions que van amb ella)
 
 
-#if !defined (KRATOS_NON_LINEAR_HENCKY_PLASTIC_3D_LAW_H_INCLUDED)
-#define KRATOS_NON_LINEAR_HENCKY_PLASTIC_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_NON_LINEAR_HENCKY_PLASTIC_AXISYM_U_P_2D_LAW_H_INCLUDED)
+#define       KRATOS_NON_LINEAR_HENCKY_PLASTIC_AXISYM_U_P_2D_LAW_H_INCLUDED
 
 
 // System includes
@@ -10,7 +10,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
 #include "includes/ublas_interface.h"
 
 
@@ -22,7 +22,7 @@ namespace Kratos
  */
 
 
-class NonLinearHenckyElasticPlastic3DLaw: public HyperElasticPlastic3DLaw
+class NonLinearHenckyElasticPlasticUPAxisym2DLaw: public NonLinearHenckyElasticPlasticUP3DLaw
 {
 
 public:
@@ -42,7 +42,7 @@ public:
      * Counted pointer of HyperElasticPlastic3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( NonLinearHenckyElasticPlastic3DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION(NonLinearHenckyElasticPlasticUPAxisym2DLaw);
 
     /**
      * Life Cycle
@@ -51,15 +51,15 @@ public:
     /**
      * Default constructor.
      */
-    NonLinearHenckyElasticPlastic3DLaw();
+    NonLinearHenckyElasticPlasticUPAxisym2DLaw();
 
 
-    NonLinearHenckyElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    NonLinearHenckyElasticPlasticUPAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
      */
-    NonLinearHenckyElasticPlastic3DLaw (const NonLinearHenckyElasticPlastic3DLaw& rOther)  ;
+    NonLinearHenckyElasticPlasticUPAxisym2DLaw (const NonLinearHenckyElasticPlasticUPAxisym2DLaw& rOther)  ;
 
 
     /**
@@ -77,7 +77,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~NonLinearHenckyElasticPlastic3DLaw();
+    virtual ~NonLinearHenckyElasticPlasticUPAxisym2DLaw();
 
     /**
      * Operators
@@ -92,7 +92,7 @@ public:
      */
     SizeType WorkingSpaceDimension()
     {
-        return 3;
+        return 2;
     };
 
     /**
@@ -100,10 +100,9 @@ public:
      */
     SizeType GetStrainSize()
     {
-        return 6;
+        return 4;
     };
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -126,9 +125,9 @@ public:
 */    /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial( const Properties& rProps,
-                             const GeometryType& rGeom,
-                             const Vector& rShapeFunctionsValues );
+//    void InitializeMaterial( const Properties& rProps,
+//                             const GeometryType& rGeom,
+//                             const Vector& rShapeFunctionsValues );
 
 
 /*    void InitializeSolutionStep( const Properties& props,
@@ -165,7 +164,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+//    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
 
 
     /**
@@ -263,12 +262,6 @@ protected:
     virtual Matrix SetConstitutiveMatrixToAppropiateDimension(const Matrix& rElastoPlasticTangentMatrix);
 
 
-    virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
-
-    virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
-
-    virtual void CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient );
-
     /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
      */
@@ -279,8 +272,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-//    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-//            Vector& rStrainVector );
+    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+            Vector& rStrainVector );
 
 
     /**
@@ -288,8 +281,8 @@ protected:
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-//    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-//                                         Vector& rStrainVector );
+    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+                                         Vector& rStrainVector );
     /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
         in a pullback fashion
     */
@@ -526,12 +519,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticUP3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticUP3DLaw )
     }
 
 

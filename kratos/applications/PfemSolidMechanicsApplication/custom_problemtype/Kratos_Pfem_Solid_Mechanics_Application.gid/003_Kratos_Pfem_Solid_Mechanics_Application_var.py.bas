@@ -16,7 +16,7 @@ echo_level = *GenData(Echo_Level)
 
 class SolverSettings:
     echo_level   = *GenData(Echo_Level)
-    solver_type  = "mechanical_solver"
+    solver_type  = "pfem_mechanical_solver"
     domain_size  = *GenData(DOMAIN_SIZE,INT)
     scheme_type = "*GenData(Solver_Type)"
 *if(strcmp(GenData(Solver_Type),"Dynamic")==0)
@@ -50,6 +50,7 @@ class SolverSettings:
     ComputeContactForces = *GenData(Write_Contact_Forces)
     LineSearch = *GenData(LineSearch)
     Implex = *GenData(Implex)
+    WaterPressureDofs = *GenData(WaterPressureDofs)
     ComponentWise = *GenData(Component_Wise_Criterion)
     convergence_criterion = "*GenData(Convergence_Criteria)"
 *format "%10.5e"
@@ -197,12 +198,19 @@ nodal_results.append("REACTION")
 nodal_results.append("NORMAL")
 nodal_results.append("CONTACT_FORCE")
 *endif
+*if(strcmp(GenData(WaterPressureDofs),"True")==0)
+nodal_results.append("WATER_PRESSURE")
+*endif
 
 gauss_points_results = []
 *if(strcmp(GenData(Problem_Type),"mechanical")==0)
 gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
 gauss_points_results.append("CAUCHY_STRESS_TENSOR")
 gauss_points_results.append("PLASTIC_STRAIN")
+*endif
+*if(strcmp(GenData(WaterPressureDofs),"True")==0)
+gauss_points_results.append("TOTAL_CAUCHY_STRESS")
+gauss_points_results.append("DARCY_FLOW")
 *endif
 
 # GiD output configuration

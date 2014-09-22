@@ -18,6 +18,8 @@ QUESTION: Number_of_steps
 VALUE: 5
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
+QUESTION: WaterPressureDofs#CB#(True,False)
+VALUE: False
 QUESTION: Implex#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)

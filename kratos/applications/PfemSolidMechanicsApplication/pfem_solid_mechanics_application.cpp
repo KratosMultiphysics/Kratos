@@ -41,18 +41,24 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, NUMBER_OF_STICK_CONTACTS )
   KRATOS_CREATE_VARIABLE(int, NUMBER_OF_SLIP_CONTACTS )
   
+  KRATOS_CREATE_VARIABLE(double, IMPOSED_WATER_PRESSURE )
   //constitutive law	
   KRATOS_CREATE_VARIABLE(double, MEAN_ERROR )
 
   //material
   KRATOS_CREATE_VARIABLE(double, PRE_CONSOLIDATION_STRESS )
   KRATOS_CREATE_VARIABLE(double, OVER_CONSOLIDATION_RATIO )
+  KRATOS_CREATE_VARIABLE(double, INITIAL_SHEAR_MODULUS )
+  KRATOS_CREATE_VARIABLE(double, WATER_BULK_MODULUS )
+  KRATOS_CREATE_VARIABLE(double, PERMEABILITY )
   KRATOS_CREATE_VARIABLE(double, NORMAL_COMPRESSION_SLOPE )
   KRATOS_CREATE_VARIABLE(double, SWELLING_SLOPE )
   KRATOS_CREATE_VARIABLE(double, CRITICAL_STATE_LINE )
   KRATOS_CREATE_VARIABLE(double, ALPHA_SHEAR )
 
   //element
+  KRATOS_CREATE_VARIABLE(Vector, DARCY_FLOW )
+  KRATOS_CREATE_VARIABLE(Matrix, TOTAL_CAUCHY_STRESS)
 
   //thermal
 
@@ -85,6 +91,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, MU_DYNAMIC )
 
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
+    mSpatialLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCondition3D( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mCompositeCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -111,6 +118,7 @@ namespace Kratos
     std::cout << "Initializing KratosPfemSolidMechanicsApplication... " << std::endl;
     
     //Register Elements
+    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUwPElement2D3N", mSpatialLagrangianUwPElement2D3N )
 
     //Register Conditions
 
@@ -133,11 +141,17 @@ namespace Kratos
     Serializer::Register("NonLinearHenckyCamClayPlasticPlaneStrain2DLaw", mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw);
     Serializer::Register("NonLinearHenckyCamClayPlasticAxisym2DLaw", mNonLinearHenckyCamClayPlasticAxisym2DLaw);
     Serializer::Register("LinearHenckyCamClayPlasticPlaneStrain2DLaw", mLinearHenckyCamClayPlasticPlaneStrain2DLaw);
-    Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
     Serializer::Register("LinearHenckyCamClayPlasticAxisym2DLaw", mLinearHenckyCamClayPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCamClayPlasticAxisym2DLaw", mBorjaHenckyCamClayPlasticAxisym2DLaw);
+    Serializer::Register("BorjaHenckyCamClayPlasticPlaneStrain2DLaw", mBorjaHenckyCamClayPlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticPlaneStrain2DLaw", mHenckyJ2PlasticPlaneStrain2DLaw);
     Serializer::Register("HenckyJ2PlasticAxisym2DLaw", mHenckyJ2PlasticAxisym2DLaw);
     Serializer::Register("HenckyTrescaPlasticAxisym2DLaw", mHenckyTrescaPlasticAxisym2DLaw);
+    Serializer::Register("HenckyTrescaPlasticPlaneStrain2DLaw", mHenckyTrescaPlasticPlaneStrain2DLaw);
+
+    Serializer::Register("HenckyPlasticUPJ2Axisym2DLaw", mHenckyPlasticUPJ2Axisym2DLaw);
+    Serializer::Register("HenckyPlasticUPTrescaAxisym2DLaw", mHenckyPlasticUPTrescaAxisym2DLaw);
+    Serializer::Register("HenckyPlasticUPTrescaPlaneStrain2DLaw", mHenckyPlasticUPTrescaPlaneStrain2DLaw);
 
     //Register Flow Rules
     Serializer::Register("TrescaExplicitFlowRule", mTrescaExplicitFlowRule);
@@ -160,6 +174,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_ACTIVE_CONTACTS )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_STICK_CONTACTS )
     KRATOS_REGISTER_VARIABLE( NUMBER_OF_SLIP_CONTACTS )
+    KRATOS_REGISTER_VARIABLE( IMPOSED_WATER_PRESSURE )
     
     //constitutive law	
     KRATOS_REGISTER_VARIABLE( MEAN_ERROR )
@@ -167,12 +182,17 @@ namespace Kratos
     //material
     KRATOS_REGISTER_VARIABLE( PRE_CONSOLIDATION_STRESS )
     KRATOS_REGISTER_VARIABLE( OVER_CONSOLIDATION_RATIO )
+    KRATOS_REGISTER_VARIABLE( INITIAL_SHEAR_MODULUS )
+    KRATOS_REGISTER_VARIABLE( WATER_BULK_MODULUS )
+    KRATOS_REGISTER_VARIABLE( PERMEABILITY )
     KRATOS_REGISTER_VARIABLE( NORMAL_COMPRESSION_SLOPE )
     KRATOS_REGISTER_VARIABLE( SWELLING_SLOPE )
     KRATOS_REGISTER_VARIABLE( CRITICAL_STATE_LINE )
     KRATOS_REGISTER_VARIABLE( ALPHA_SHEAR )
 
     //element
+    KRATOS_REGISTER_VARIABLE( DARCY_FLOW )
+    KRATOS_REGISTER_VARIABLE( TOTAL_CAUCHY_STRESS ) 
 
     //thermal
 

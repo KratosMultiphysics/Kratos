@@ -2,10 +2,11 @@
 # Importing the Kratos Library
 from KratosMultiphysics import **
 from KratosMultiphysics.SolidMechanicsApplication import **
+from KratosMultiphysics.PfemSolidMechanicsApplication import **
 from beam_sections_python_utility import SetProperties
 
-*loop materials
 def AssignMaterial(Properties):
+*loop materials
 # GUI property identifier: Property1
 # GUI material identifier: Steel_AISI1059
 *format "%i"

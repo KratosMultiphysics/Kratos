@@ -75,20 +75,13 @@ double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, c
    double PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
 
    rStateFunction = pow(DeviatoricQ/ShearM, 2.0);
-//   rStateFunction += pow(1/Beta, 2.0)*(MeanStress*(MeanStress-PreconsolidationStress) - pow(PreconsolidationStress, 2.0)*( 1.0-pow(Beta,2.0)));
-//   rStateFunction += pow(1.0/Beta, 2.0)*(MeanStress*(MeanStress-2.0*PreconsolidationStress)); // - pow(PreconsolidationStress, 2.0)*(1.0-pow(Beta, 2.0)));
    rStateFunction += (MeanStress * (MeanStress - PreconsolidationStress) );
 
 
-//if (MeanStress > -10.0)
-//    rStateFunction = -1.0;
    rStateFunction /= 1000.0;
 
 //   std::cout << "P " << MeanStress << " Q " << DeviatoricQ << " PC " << PreconsolidationStress << " st " << rStateFunction << std::endl;
 //   std::cout << " SV " << rStressVector << std::endl;
-
-
-//   rStateFunction = -1.0;
 
 
    return rStateFunction; 
