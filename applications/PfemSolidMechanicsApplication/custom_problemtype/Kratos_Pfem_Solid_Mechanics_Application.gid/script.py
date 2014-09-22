@@ -37,7 +37,7 @@ from KratosMultiphysics.PfemSolidMechanicsApplication import *
 import restart_utility           as restart_utils
 import gid_output_utility        as gid_utils
 
-import conditions_python_utility as condition_utils
+import pfem_conditions_python_utility as condition_utils
 import list_files_python_utility as files_utils
 
 import modeler_python_utility    as modeler_utils

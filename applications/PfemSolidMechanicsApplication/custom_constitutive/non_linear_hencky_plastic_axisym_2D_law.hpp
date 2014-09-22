@@ -100,7 +100,7 @@ public:
      */
     SizeType GetStrainSize()
     {
-        return 3;
+        return 4;
     };
 
 

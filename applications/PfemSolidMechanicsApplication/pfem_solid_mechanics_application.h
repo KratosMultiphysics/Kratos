@@ -35,6 +35,7 @@
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
 //elements
+#include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -59,13 +60,18 @@
 
 //constitutive laws
 #include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
-#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.hpp"
 
 namespace Kratos
 {
@@ -83,6 +89,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_STICK_CONTACTS )
   KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_SLIP_CONTACTS )
 
+  KRATOS_DEFINE_VARIABLE(double, IMPOSED_WATER_PRESSURE )
   //geometrical
 
   //constitutive law   
@@ -91,12 +98,19 @@ namespace Kratos
   //material
   KRATOS_DEFINE_VARIABLE(double, PRE_CONSOLIDATION_STRESS )
   KRATOS_DEFINE_VARIABLE(double, OVER_CONSOLIDATION_RATIO )
+  KRATOS_DEFINE_VARIABLE(double, INITIAL_SHEAR_MODULUS )
+  KRATOS_DEFINE_VARIABLE(double, WATER_BULK_MODULUS )
+  KRATOS_DEFINE_VARIABLE(double, PERMEABILITY )
   KRATOS_DEFINE_VARIABLE(double, NORMAL_COMPRESSION_SLOPE )
   KRATOS_DEFINE_VARIABLE(double, SWELLING_SLOPE )
   KRATOS_DEFINE_VARIABLE(double, CRITICAL_STATE_LINE )
   KRATOS_DEFINE_VARIABLE(double, ALPHA_SHEAR )
+  KRATOS_DEFINE_VARIABLE(Vector, DARCY_FLOW )
+
+
 
   //element
+  KRATOS_DEFINE_VARIABLE( Matrix, TOTAL_CAUCHY_STRESS )
 
   //thermal
 
@@ -300,13 +314,19 @@ namespace Kratos
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
 
     const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw     mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    const LinearHenckyCamClayPlasticPlaneStrain2DLaw        mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     const NonLinearHenckyCamClayPlasticAxisym2DLaw          mNonLinearHenckyCamClayPlasticAxisym2DLaw;
+    const LinearHenckyCamClayPlasticPlaneStrain2DLaw        mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
     const LinearHenckyCamClayPlasticAxisym2DLaw                mLinearHenckyCamClayPlasticAxisym2DLaw;
     const BorjaHenckyCamClayPlasticAxisym2DLaw                  mBorjaHenckyCamClayPlasticAxisym2DLaw;
+    const BorjaHenckyCamClayPlasticPlaneStrain2DLaw             mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticPlaneStrain2DLaw                   mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                        mHenckyJ2PlasticAxisym2DLaw;
     const HenckyTrescaPlasticAxisym2DLaw                        mHenckyTrescaPlasticAxisym2DLaw;
+    const HenckyTrescaPlasticPlaneStrain2DLaw                   mHenckyTrescaPlasticPlaneStrain2DLaw;
+
+    const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
+    const HenckyPlasticUPTrescaAxisym2DLaw                        mHenckyPlasticUPTrescaAxisym2DLaw;
+    const HenckyPlasticUPTrescaPlaneStrain2DLaw                        mHenckyPlasticUPTrescaPlaneStrain2DLaw;
 
 
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
@@ -322,6 +342,8 @@ namespace Kratos
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;
+
+    const SpatialLagrangianUwPElement       mSpatialLagrangianUwPElement2D3N;
 
     ///@} 
     ///@name Private Operators

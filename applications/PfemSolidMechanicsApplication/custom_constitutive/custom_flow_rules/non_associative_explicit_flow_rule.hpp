@@ -96,6 +96,11 @@ namespace Kratos
     ///@name Operations
     ///@{
     
+    virtual bool CalculateReturnMappingImpl( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
+
+    //virtual bool CalculateReturnMappingImpl2( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);   TAKE ME OUT
+
+    virtual bool CalculateReturnMappingExpl( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix &rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
@@ -218,6 +223,8 @@ namespace Kratos
 
 
     void ReturnStressToYieldSurface( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance);
+
+    //void ReturnStressToYieldSurface2( RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticLeftCauchyGreen, Vector& rStressVector, double& rDrift, const double& rTolerance); TAKE ME OUT
 
     void ReturnStressToYieldSurface(Vector& rElasticHenckyStrainVector, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance);
 
