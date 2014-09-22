@@ -83,6 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/air_entrapment_recognition_process.h"
 #include "custom_processes/front_meeting_recognition_process.h"
 #include "custom_processes/tilt_pouring_process.h"
+#include "custom_processes/save_external_surface_embedded.h"
 
 #include "includes/node.h"
 
@@ -96,9 +97,14 @@ void  AddCustomProcessesToPython()
     using namespace boost::python;
 
 
+    class_<SaveExternalSurfaceProcess, bases<Process> >("SaveExternalSurfaceProcess", init<>())
+    .def("SaveExternal", &SaveExternalSurfaceProcess::SaveExternal)
+    ;
+
     class_<SaveConditionsProcess, bases<Process> >("SaveConditionsProcess", init<>())
     .def("SaveConditions", &SaveConditionsProcess::SaveStructureConditions)
     ;
+
     class_<SaveShellModelPartProcess, bases<Process> >("SaveShellModelPartProcess", init<>())
     .def("SaveShellModelPart", &SaveShellModelPartProcess::SaveStructure)
     ;
