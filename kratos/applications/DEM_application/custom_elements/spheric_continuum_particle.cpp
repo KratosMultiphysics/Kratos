@@ -383,6 +383,7 @@ namespace Kratos
        void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce, 
                                                         array_1d<double, 3>& rInitialRotaMoment, 
                                                         ProcessInfo& rCurrentProcessInfo, 
+                                                        double dt,
                                                         const bool multi_stage_RHS)
         {                                                                                                                             
         KRATOS_TRY
@@ -1633,9 +1634,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
 
          
-     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
+     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity)
     {
-          const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
+          //const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
 
 
           if(mTriaxialOption && *mSkinSphere) //could be applified to selected particles.

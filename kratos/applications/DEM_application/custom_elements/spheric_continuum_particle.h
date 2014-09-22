@@ -233,12 +233,13 @@ namespace Kratos
 	
         virtual double GetInitialDelta(int index);
       
-        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
+        void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
         void ComputeBallToBallContactForce(   //array_1d<double, 3>& rContactForce, 
                                                     //array_1d<double, 3>& rContactMoment, 
                                                     array_1d<double, 3>& rElasticForce, 
                                                     array_1d<double, 3>& InitialRotaMoment, 
                                                     ProcessInfo& rCurrentProcessInfo, 
+                                                    double dt,
                                                     const bool multi_stage_RHS);         
         //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?

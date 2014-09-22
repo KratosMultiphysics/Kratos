@@ -147,9 +147,9 @@ namespace Kratos
         void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
         void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, 
-               array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+               array_1d<double, 3>& InitialRotaMoment, double dt, ProcessInfo& rCurrentProcessInfo); 
 			   
-		void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+		void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
 		
 		
 		void ComputeBallToRigidFaceContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
