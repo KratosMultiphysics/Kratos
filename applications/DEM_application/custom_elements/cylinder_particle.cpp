@@ -83,7 +83,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void CylinderParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+      void CylinderParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
 
@@ -101,7 +101,7 @@ namespace Kratos
 
           bool multi_stage_RHS = false;
 
-          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, multi_stage_RHS );
+          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
 
           //Cfeng,RigidFace
           if( mFemOldNeighbourIds.size() > 0)
@@ -109,7 +109,7 @@ namespace Kratos
             ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo);
           }
               
-          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
+          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);
 
           
           rRightHandSideVector[0] = mContactForce[0]  + additionally_applied_force[0];

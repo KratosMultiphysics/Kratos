@@ -111,7 +111,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
 
@@ -133,7 +133,7 @@ namespace Kratos
 
           bool multi_stage_RHS = false;
 
-          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, multi_stage_RHS );
+          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
 
           //Cfeng,RigidFace
           if( mFemOldNeighbourIds.size() > 0)
@@ -141,7 +141,7 @@ namespace Kratos
             ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo);
           }
               
-          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
+          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);
 
           /*rRightHandSideVector[0] = contact_force[0]  + additionally_applied_force[0];
           rRightHandSideVector[1] = contact_force[1]  + additionally_applied_force[1];
@@ -169,7 +169,7 @@ namespace Kratos
       }
 
       
-      void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt)
       {
           KRATOS_TRY
 
@@ -183,7 +183,7 @@ namespace Kratos
           
           bool multi_stage_RHS = true;
 
-          ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo, multi_stage_RHS );
+          ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
 
           
           
@@ -261,7 +261,7 @@ namespace Kratos
           KRATOS_CATCH( "" )
       }
       
-      void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
           
@@ -292,7 +292,7 @@ namespace Kratos
                     
                     double RotaAcc[3]                      = {0.0};
                     const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                    double dt = rCurrentProcessInfo[DELTA_TIME];
+                    //double dt = rCurrentProcessInfo[DELTA_TIME];
                     double dt_i = 1.0 / dt;
                     RotaAcc[0]                         = ang_vel[0] * dt_i;
                     RotaAcc[1]                         = ang_vel[1] * dt_i;
@@ -315,7 +315,7 @@ namespace Kratos
           additionally_applied_force.clear();
           additionally_applied_moment.clear();
           
-          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
+          ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);
           
           array_1d<double,3>& total_forces  = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
           array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);  
@@ -721,12 +721,13 @@ namespace Kratos
       void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                                           array_1d<double, 3>& rInitialRotaMoment,
                                                           ProcessInfo& rCurrentProcessInfo,
+                                                          double dt,
                                                           const bool multi_stage_RHS)
       {
           KRATOS_TRY
 
           // KINEMATICS
-          double dt = rCurrentProcessInfo[DELTA_TIME];
+          //double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 
           const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
@@ -901,7 +902,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
       //ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
       std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
 
-      double mTimeStep        = rCurrentProcessInfo[DELTA_TIME];
+      double mTimeStep        = rCurrentProcessInfo[DELTA_TIME]; //TODO: to be removed and sent as an argument
       double myYoung          = GetYoung();
       double myPoisson        = GetPoisson();
       double area             = KRATOS_M_PI * mRadius * mRadius;
@@ -1234,7 +1235,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
           // CONTACT WITH A PLANE
 
-          double dt                            = rCurrentProcessInfo[DELTA_TIME];
+          double dt                            = rCurrentProcessInfo[DELTA_TIME];//TODO: to be removed and sent as an argument
 
           // INITIALIZATIONS
 
@@ -2289,10 +2290,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity)
       {
 
-        const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
+        //const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
         double mass = mSqrtOfRealMass * mSqrtOfRealMass;
 
         externally_applied_force[0] = mass * gravity[0];

@@ -100,10 +100,10 @@ namespace Kratos
       ///@name Operations
       ///@{
       void Initialize();
-      void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
-      void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);
+      void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
+      void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt);
       void CollectCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);
-      void FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);
+      void FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
       void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
       void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
@@ -210,6 +210,7 @@ namespace Kratos
                                                     array_1d<double, 3>& rElasticForce, 
                                                     array_1d<double, 3>& InitialRotaMoment, 
                                                     ProcessInfo& rCurrentProcessInfo, 
+                                                    double dt,
                                                     const bool multi_stage_RHS); 
       void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, 
                                             array_1d<double, 3>& rContactMoment, 
@@ -270,7 +271,7 @@ namespace Kratos
       
       virtual double GetInitialDelta(int index);
       
-      virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
       virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 double LocalCoordSystem[3][3],

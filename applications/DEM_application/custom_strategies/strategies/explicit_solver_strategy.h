@@ -429,7 +429,8 @@ namespace Kratos
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-          
+          double dt = rCurrentProcessInfo[DELTA_TIME];
+          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -446,8 +447,8 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end     = pElements.ptr_begin() + this->GetElementPartition()[k+1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-
-                  (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);                  
+                  SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                  spheric_particle.CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);                  
 
               } //loop over particles
 
@@ -462,7 +463,8 @@ namespace Kratos
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-          
+          double dt = rCurrentProcessInfo[DELTA_TIME];
+          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -474,7 +476,7 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
-                  spheric_particle.FirstCalculateRightHandSide(rCurrentProcessInfo);                  
+                  spheric_particle.FirstCalculateRightHandSide(rCurrentProcessInfo, dt);                  
               } //loop over particles
               
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
@@ -484,7 +486,7 @@ namespace Kratos
               
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
-                  spheric_particle.FinalCalculateRightHandSide(rCurrentProcessInfo);                  
+                  spheric_particle.FinalCalculateRightHandSide(rCurrentProcessInfo, dt, gravity);                  
               } //loop over particles
 
           } // loop threads OpenMP

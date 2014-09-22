@@ -774,7 +774,7 @@ public:
         for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
           Kratos::SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*elem_it);
           
-          Node < 3 > ::Pointer node_it = elem_it->GetGeometry()(0);                  
+          Node < 3 > ::Pointer& node_it = elem_it->GetGeometry()(0);                  
                                
           if( node_it->IsNot(NEW_ENTITY) ) continue;
                     
@@ -782,7 +782,7 @@ public:
 
           for (unsigned int i = 0; i < spheric_particle.mNeighbourElements.size(); i++) {
               SphericParticle* neighbour_iterator = spheric_particle.mNeighbourElements[i];
-              Node < 3 > ::Pointer neighbour_node = neighbour_iterator->GetGeometry()(0); 
+              Node < 3 > ::Pointer& neighbour_node = neighbour_iterator->GetGeometry()(0); 
               if( (node_it->IsNot(BLOCKED) && neighbour_node->Is(BLOCKED)) || (neighbour_node->IsNot(BLOCKED) && node_it->Is(BLOCKED)) ) {
                   still_touching=true;
                   break;

@@ -203,6 +203,7 @@ namespace Kratos
                                                           array_1d<double, 3>& rContactMoment,
                                                           array_1d<double, 3>& rElasticForce,
                                                           array_1d<double, 3>& rInitialRotaMoment,
+                                                          double dt,
                                                           ProcessInfo& rCurrentProcessInfo)
       {
 		  
@@ -662,11 +663,11 @@ namespace Kratos
 
 
 
-void DEM_FEM_Particle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void DEM_FEM_Particle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
 
-          SphericParticle::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+          SphericParticle::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo, dt, gravity);
 		  
 		  
 		  
