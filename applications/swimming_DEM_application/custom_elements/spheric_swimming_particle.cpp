@@ -49,11 +49,12 @@ namespace Kratos
 
       void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
                                                             array_1d<double, 3>& additionally_applied_moment,
-                                                            ProcessInfo& rCurrentProcessInfo)
+                                                            ProcessInfo& rCurrentProcessInfo,
+                                                            const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
 
-          const array_1d<double, 3>& gravity = rCurrentProcessInfo[GRAVITY];
+          //const array_1d<double, 3>& gravity = rCurrentProcessInfo[GRAVITY];
           const double& fluid_density        = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
           const double mass                  = mSqrtOfRealMass * mSqrtOfRealMass;
           
