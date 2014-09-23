@@ -92,10 +92,13 @@ public:
         for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
             for(ModelPart::NodesContainerType::iterator it = RecvNodes[i].begin(); it != RecvNodes[i].end(); it++)
+	      if (destination_model_part.Nodes().find((*it).Id()) == destination_model_part.Nodes().end())
                 destination_model_part.Nodes().push_back(*it);
         }
-        if (mpi_rank == gather_rank)
-        	destination_model_part.Nodes().Unique();
+	int temp = destination_model_part.Nodes().size();
+	destination_model_part.Nodes().Unique();
+	if(temp != static_cast<int>(destination_model_part.Nodes().size()))
+	  KRATOS_ERROR(std::logic_error,"the destination_model_part has repeated nodes","");
         SendNodes.clear();
         RecvNodes.clear();
 
@@ -114,8 +117,6 @@ public:
             for(ModelPart::ElementsContainerType::iterator it = RecvElements[i].begin(); it != RecvElements[i].end(); it++)
                 destination_model_part.Elements().push_back(*it);
         }
-        if (mpi_rank == gather_rank)
-        	destination_model_part.Elements().Unique();
         SendElements.clear();
         RecvElements.clear();
 
@@ -134,12 +135,8 @@ public:
             for(ModelPart::ConditionsContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); it++)
                 destination_model_part.Conditions().push_back(*it);
         }
-        if (mpi_rank == gather_rank)
-        	destination_model_part.Conditions().Unique();
         SendConditions.clear();
         RecvConditions.clear();
-
-
 
 
         ParallelFillCommunicator(destination_model_part).Execute();
