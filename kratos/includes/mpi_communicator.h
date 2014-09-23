@@ -1430,7 +1430,7 @@ private:
         {
             if(mpi_rank != i)
             {
-                Kratos::Serializer particleSerializer(Kratos::Serializer::SERIALIZER_TRACE_ERROR);
+                Kratos::Serializer particleSerializer;
 
                 particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("ObjectList",SendObjects[i].GetContainer());
@@ -1487,7 +1487,7 @@ private:
         { 
             if (i != mpi_rank && msgRecvSize[i])
             {
-                Kratos::Serializer particleSerializer(Kratos::Serializer::SERIALIZER_TRACE_ERROR);
+                Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
