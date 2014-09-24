@@ -298,6 +298,9 @@ namespace Kratos
     ///@} 
     ///@name Member Variables 
     ///@{ 
+
+    const SpatialLagrangianUwPElement       mSpatialLagrangianUwPElement2D3N;
+
     const Condition mCondition2D;
     const Condition mCondition3D;
 
@@ -343,7 +346,6 @@ namespace Kratos
 
     const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;
 
-    const SpatialLagrangianUwPElement       mSpatialLagrangianUwPElement2D3N;
 
     ///@} 
     ///@name Private Operators
