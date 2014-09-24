@@ -57,8 +57,9 @@ SpatialLagrangianUwPElement::SpatialLagrangianUwPElement( IndexType NewId, Geome
 
 SpatialLagrangianUwPElement::SpatialLagrangianUwPElement( SpatialLagrangianUwPElement const& rOther)
     :LargeDisplacementElement(rOther)
-    ,mDeterminantF0(rOther.mDeterminantF0)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
+    ,mDeterminantF0(rOther.mDeterminantF0)
+    ,mTimeStep(rOther.mTimeStep)
 {
 }
 
@@ -394,7 +395,7 @@ void SpatialLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Ve
       rValues.resize( integration_points_number );
     
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int NumberOfNodes = rGeom.PointsNumber(); 
+    //const unsigned int NumberOfNodes = rGeom.PointsNumber(); 
 
     GeometryType::ShapeFunctionsGradientsType DN_DX;
     Vector GaussWeights;

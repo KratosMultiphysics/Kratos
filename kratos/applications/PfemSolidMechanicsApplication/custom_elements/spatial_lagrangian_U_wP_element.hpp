@@ -219,14 +219,16 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /***
-       container for don't know what 
-    ***/
+
+    /**
+     * Container for historical total elastic deformation measure F0 = dx/dX
+     */
     std::vector< Matrix > mDeformationGradientF0;
 
-    /***
-       container for don't know what 
-    ***/
+
+    /**
+     * Container for the total deformation gradient determinants
+     */
     Vector mDeterminantF0;
 
 
@@ -438,5 +440,5 @@ private:
 
 
 } // namespace Kratos
-#endif // KRATOS_____
+#endif // KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
 
