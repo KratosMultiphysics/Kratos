@@ -543,11 +543,13 @@ public:
 
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
+            rResult.resize(  this->IntegrationPointsNumber( ThisMethod )  );
+//             // KLUDGE: While there is a bug in ublas
+//             // vector resize, I have to put this beside resizing!!
+//             JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
+//             rResult.swap( temp );
         }
+        
 
         //loop over all integration points
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
@@ -605,10 +607,11 @@ public:
         //workaround by riccardo...
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
+            rResult.resize( this->IntegrationPointsNumber( ThisMethod ) );
+//             // KLUDGE: While there is a bug in ublas
+//             // vector resize, I have to put this beside resizing!!
+//             JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
+//             rResult.swap( temp );
         }
 
         //loop over all integration points
@@ -847,10 +850,11 @@ public:
         //workaround by riccardo
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
+            rResult.resize(  this->IntegrationPointsNumber( ThisMethod )  );
             // KLUDGE: While there is a bug in ublas
             // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
+//             JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
+//             rResult.swap( temp );
         }
 
         //loop over all integration points
@@ -1175,10 +1179,11 @@ public:
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
         {
+            rResult.resize(  this->IntegrationPointsNumber( ThisMethod )  );
             // KLUDGE: While there is a bug in ublas
             // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( integration_points_number );
-            rResult.swap( temp );
+//             ShapeFunctionsGradientsType temp( integration_points_number );
+//             rResult.swap( temp );
         }
 
         //calculating the local gradients
@@ -1224,10 +1229,11 @@ public:
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
         {
+            rResult.resize(  this->IntegrationPointsNumber( ThisMethod )  );
             // KLUDGE: While there is a bug in ublas
             // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( integration_points_number );
-            rResult.swap( temp );
+//             ShapeFunctionsGradientsType temp( integration_points_number );
+//             rResult.swap( temp );
         }
 
         if ( determinants_of_jacobian.size() != integration_points_number)
