@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "new_elements/laplacian_element.h"
+#include "custom_elements/laplacian_element.h"
 
 #include "utilities/math_utils.h"
 
@@ -92,8 +92,8 @@ LaplacianElement::~LaplacianElement()
 void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    unsigned int number_of_points = GetGeometry().size();
-    unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_points = GetGeometry().size();
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != number_of_points)
@@ -111,17 +111,17 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients();
     
     Element::GeometryType::JacobiansType J0;
-    Matrix DN_DX;
-    Matrix InvJ0;
-    Vector temp;
+    Matrix DN_DX(number_of_points,dim);
+    Matrix InvJ0(dim,dim);
+    Vector temp(number_of_points);
 
     GetGeometry().Jacobian(J0);
-
     double DetJ0;
     for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
     {
         //calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J[PointNumber],InvJ0,DetJ0);
+        MathUtils<double>::InvertMatrix(J0[PointNumber],InvJ0,DetJ0);
+        
 
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[PointNumber],InvJ0);
@@ -129,7 +129,6 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
     }
-
     //calculating external forces
     noalias(rRightHandSideVector) = ZeroVector(number_of_points); //case of zero ext forces
 

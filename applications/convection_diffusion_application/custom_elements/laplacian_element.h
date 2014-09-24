@@ -47,8 +47,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_BASE_TEMPERATURE_ELEMENT_H_INCLUDED )
-#define  KRATOS_BASE_TEMPERATURE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_LAPLACIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_LAPLACIAN_ELEMENT_H_INCLUDED
 
 
 
@@ -127,7 +127,6 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
@@ -146,16 +145,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
 
     ///@}
     ///@name Friends
@@ -211,7 +200,26 @@ private:
     ///@{
 
 
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
+    // A private default constructor necessary for serialization
+    LaplacianElement() : Element()
+    {
+    }
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    }
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -276,6 +284,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BASE_TEMPERATURE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LAPLACIAN_ELEMENT_H_INCLUDED  defined 
 
 

@@ -26,7 +26,7 @@
 
 #include "custom_elements/conv_diff_2d.h"
 #include "custom_elements/conv_diff_3d.h"
-
+#include "custom_elements/laplacian_element.h"
 #include "custom_conditions/thermal_face2D.h"
 #include "custom_conditions/thermal_face3D.h"
 
@@ -41,23 +41,8 @@ namespace Kratos
 ///@{
 
 // Variables definition
-//	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
-//KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-//	KRATOS_DEFINE_VARIABLE(int, AUX_INDEX)
-//	KRATOS_DEFINE_VARIABLE(double,  CONDUCTIVITY)
-//	KRATOS_DEFINE_VARIABLE(double,  SPECIFIC_HEAT)
-//	KRATOS_DEFINE_VARIABLE(double,  HEAT_FLUX)
-//	KRATOS_DEFINE_VARIABLE(double,  TEMP_CONV_PROJ)
-
-//Added by Pavel and Annelie
-//	KRATOS_DEFINE_VARIABLE(double,  ENTHALPY)
-//KRATOS_DEFINE_VARIABLE(double,  LATENT_HEAT)
 KRATOS_DEFINE_VARIABLE(double,  MELT_TEMPERATURE_1)
 KRATOS_DEFINE_VARIABLE(double,  MELT_TEMPERATURE_2)
-
-//KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)
-//	KRATOS_DEFINE_VARIABLE(double,  EMISSIVITY)
-//	KRATOS_DEFINE_VARIABLE(double,  FACE_HEAT_FLUX)
 
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
@@ -206,20 +191,14 @@ private:
     ///@name Static Member Variables
     ///@{
 
-//		static const ConvDiff2D  msConvDiff2D;
-//		static const ConvDiff3D  msConvDiff3D;
-//		static const ConvDiff2DChangeOfPhase  msCConvDiff2DChangeOfPhase;
-//		static const ThermalFace2D  msThermalFace2D;
-//		static const ThermalFace3D  msThermalFace3D;
-
-
-    //       static const ApplicationCondition  msApplicationCondition;
-
     ///@}
     ///@name Member Variables
     ///@{
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
+    const LaplacianElement mLaplacian3D4N;
+    const LaplacianElement mLaplacian3D8N;
+    const LaplacianElement mLaplacian3D27N;
     const ThermalFace2D  mThermalFace2D;
     const ThermalFace3D  mThermalFace3D;
 
