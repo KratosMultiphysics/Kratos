@@ -601,7 +601,6 @@ private:
     /// Computa los boxes de cada uno de los elementos del model part
     void CalculateBoundingBox()
     {
-
         PointType Low, High;
         TConfigure::CalculateBoundingBox(*mObjectsBegin,mMinPoint,mMaxPoint);
 
@@ -623,44 +622,26 @@ private:
             Min[k] = mMinPoint;
         }
 
-        //#pragma omp parallel for  private(High, Low)
-        //for(int k=0; k<static_cast<int>(number_of_threads); k++)
-        //{
-            //IteratorType i_begin = mObjectsBegin + node_partition[k];
-            //IteratorType i_end   = mObjectsBegin + node_partition[k+1];
-            IteratorType i_begin = mObjectsBegin;
-            IteratorType i_end   = mObjectsEnd;
-/*
-            for (IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
-            {
-                TConfigure::CalculateBoundingBox(*i_object, Low, High);
-                for(SizeType i = 0 ; i < Dimension ; i++)
-                {
-                    Max[k][i] = (Max[k][i]  < High[i]) ? High[i] : Max[k][i];
-                    Min[k][i] = (Min[k][i]  > Low[i])  ? Low[i]  : Min[k][i];
-                }
-            }
-            */
-            for (IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
-            {
-                TConfigure::CalculateBoundingBox(*i_object, Low, High);
-                for(SizeType i = 0 ; i < Dimension ; i++)
-                {
-                    mMaxPoint[i] = (mMaxPoint[i]  < High[i]) ? High[i] : mMaxPoint[i];
-                    mMinPoint[i] = (mMinPoint[i]  > Low[i])  ? Low[i]  : mMinPoint[i];
-                }
-            }
-        //}
-/*
-        for(SizeType k=0; k<number_of_threads; k++)
+        IteratorType i_begin = mObjectsBegin;
+        IteratorType i_end   = mObjectsEnd;
+
+        for (IteratorType i_object  = i_begin ; i_object != i_end ; i_object++ )
         {
+            TConfigure::CalculateBoundingBox(*i_object, Low, High);
             for(SizeType i = 0 ; i < Dimension ; i++)
             {
-                mMaxPoint[i]  = (mMaxPoint[i]  < Max[k][i]) ? Max[k][i] : mMaxPoint[i];
-                mMinPoint[i]  = (mMinPoint[i]  > Min[k][i]) ? Min[k][i] : mMinPoint[i];
+                mMaxPoint[i] = (mMaxPoint[i]  < High[i]) ? High[i] : mMaxPoint[i];
+                mMinPoint[i] = (mMinPoint[i]  > Low[i])  ? Low[i]  : mMinPoint[i];
             }
         }
- */
+        
+        PointType Epsilon = mMaxPoint - mMinPoint;
+      
+        for(SizeType i = 0 ; i < Dimension ; i++) 
+        {
+            mMaxPoint[i] += Epsilon[i] * 0.01;
+            mMinPoint[i] -= Epsilon[i] * 0.01;
+        }
     }
 
 
