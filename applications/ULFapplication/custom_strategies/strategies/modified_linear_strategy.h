@@ -23,6 +23,7 @@
 #include "includes/model_part.h"
 
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "ULF_application.h"
 
 
