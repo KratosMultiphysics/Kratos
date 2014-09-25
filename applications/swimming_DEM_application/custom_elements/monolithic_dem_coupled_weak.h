@@ -174,7 +174,7 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-//GG
+//G
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
 
@@ -183,7 +183,7 @@ public:
 
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
-//ZZ
+//Z
     ///@}
     ///@name Life Cycle
     ///@{
@@ -330,7 +330,7 @@ public:
         this->EvaluateInPoint(Density, DENSITY, N);
 
         // Calculate Momentum RHS contribution
-//GG
+//G
         // Shape functions and integration points
         MatrixType NContainer;
         ShapeFunctionDerivativesArrayType DN_DXContainer;
@@ -344,8 +344,7 @@ public:
             const ShapeFunctionsType& Ng = row(NContainer, g);
             this->AddMomentumRHS(rRightHandSideVector, Density, Ng, GaussWeight);
         }
-//ZZ
-//G
+
         const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
         static const double arr[] = {0.5,0.5};
         std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
@@ -1245,7 +1244,7 @@ protected:
         double lu = lp;
         double c2u = 2;
         double c2p = c2u;
-        double sigma = 0.5;
+        double sigma = 0.0;
         //this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
         if (sigma > 0.00001){
             TauOne = Element_Size * Element_Size / (c2u * sigma * lu * lu);
@@ -1306,7 +1305,7 @@ protected:
         double lp = sqrt(L0 * Element_Size);
         double lu = lp;
         double c2u = 2;
-        double sigma = 0.5;
+        double sigma = 0.0;
         //this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 
         if (sigma > 0.00001){
@@ -1386,7 +1385,7 @@ protected:
             AGradN[i] = 0.0;
           }
 
-        double sigma = 0.5;
+        double sigma = 0.0;
         this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         array_1d<double,3> MomProj(3,0.0);
@@ -1523,7 +1522,7 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 0.5;
+        double sigma = 0.0;
         this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
 //Z
@@ -1577,7 +1576,7 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 0.5;
+        double sigma = 0.0;
         this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         // Build the local matrix and RHS
@@ -1829,7 +1828,7 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 0.5;
+        double sigma = 0.0;
         this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
 //G
@@ -1889,7 +1888,7 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 0.5;
+        double sigma = 0.0;
         this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
@@ -1937,7 +1936,7 @@ protected:
         for (int i = 0; i != TNumNodes; ++i){
             AGradN[i] = 0.0;
           }
-        double sigma = 0.5;
+        double sigma = 0.0;
         this->EvaluateInPoint(sigma,PERMEABILITY_1_DAY,rShapeFunc);
 //ZZ
         // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
