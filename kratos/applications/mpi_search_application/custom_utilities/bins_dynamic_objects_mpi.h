@@ -243,7 +243,6 @@ public:
 
     /// Destructor.
     virtual ~BinsObjectDynamicMpi() {
-
     }
 
 
@@ -312,9 +311,8 @@ public:
       * @param MaxNumberOfResults Maximum number of results returned for each point
       **/
     void SearchObjectsMpi(const ElementsContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
-          std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator& Communicator)
+          std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator& Communicator, bool useRealData = true)
     {  
-        KRATOS_TIMER_START("BMS-CALC")
         std::vector<ElementsContainerType> remoteResults(mpi_size);
         std::vector<ElementsContainerType> SearchPetitions(mpi_size);
         std::vector<ElementsContainerType> SearchResults(mpi_size);
@@ -354,13 +352,14 @@ public:
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
             
             SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
-
+            
             //For each point with results < MaxResults and each process excluding ourself
             if(NumberOfResults[objectCounter] < MaxNumberOfResults)
             {
                 for(int j = 0; j < mpi_size; j++)
                 {
                     if((((*object_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_MASK)) & (1<<j)))
+                    //if(true)
                     {
                         SendPoint[j*NumberOfObjects+objectCounter]=1;
                         NumberOfSendPoints[j]++;
@@ -394,15 +393,10 @@ public:
                 }
             }
         }
-        KRATOS_TIMER_STOP("BMS-CALC")
 
-        KRATOS_TIMER_START("BMS-COMM1")
         TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
-//         TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
-        KRATOS_TIMER_STOP("BMS-COMM1")
 
-        KRATOS_TIMER_START("BMS-CALC")
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
 
         //Calculate remote points
@@ -443,13 +437,7 @@ public:
                     for(ResultIteratorType result_it = TempResults.begin(); result_it != remoteResultsPointer; ++result_it)
                     {
                         Communicator.LocalMesh(destination).Elements().push_back((*result_it));
-                        
-                        //bool repeat = 0;
-                        //for(ModelPart::NodesContainerType::iterator it = Communicator.LocalMesh(destination).Nodes().begin(); !repeat && it != Communicator.LocalMesh(destination).Nodes().end(); ++it)
-                        //  if((*result_it)->GetGeometry()(0)->Id() == it->Id())
-                        //    repeat = 0;
-                        //if(!repeat)
-                            Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
+                        Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
 
                         (remoteResults[i].GetContainer()).push_back(*result_it);
 
@@ -462,15 +450,10 @@ public:
                 NumberOfSendPoints[i] = accum_results;
             }
         }
-        KRATOS_TIMER_STOP("BMS-CALC")
 
-        KRATOS_TIMER_START("BMS-COMM2")
         TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
-//         TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
-        KRATOS_TIMER_STOP("BMS-COMM2")
 
-        KRATOS_TIMER_START("BMS-CALC")
         for(int i = 0; i < mpi_size; i++) //for all ranks
         {
             int NumberOfRanks = Communicator.GetNumberOfColors();
@@ -519,7 +502,6 @@ public:
                 }
             }
         }
-        KRATOS_TIMER_STOP("BMS-CALC")
     }
 
 //************************************************************************
@@ -796,6 +778,14 @@ private:
                 mMaxPoint[i]  = (mMaxPoint[i]  < Max[k][i]) ? Max[k][i] : mMaxPoint[i];
                 mMinPoint[i]  = (mMinPoint[i]  > Min[k][i]) ? Min[k][i] : mMinPoint[i];
             }
+        }
+        
+        PointType Epsilon = mMaxPoint - mMinPoint;
+       
+        for(SizeType i = 0 ; i < Dimension ; i++) 
+        {
+            mMaxPoint[i] += Epsilon[i] * 0.1;
+            mMinPoint[i] -= Epsilon[i] * 0.1;
         }
     }
 
