@@ -129,6 +129,62 @@ void DEMWall::CalculateRightHandSide(
     
  }
 
+  
+ void DEMWall::AddExplicitContribution(const VectorType& rRHS,
+                         const Variable<VectorType>& rRHSVariable,
+                         Variable<array_1d<double,3> >& rDestinationVariable,
+                         const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+   if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
+      {
+
+    for(unsigned int i=0; i< number_of_nodes; i++)
+      {
+        int index = dimension * i;
+
+        GetGeometry()[i].SetLock();
+
+        array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+        for(unsigned int j=0; j<dimension; j++)
+          {
+        ExternalForce[j] += rRHS[index + j];
+       // KRATOS_WATCH(rRHS[index + j])
+          }
+
+        GetGeometry()[i].UnSetLock();
+      }
+      }
+
+    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
+      {
+
+    for(unsigned int i=0; i< number_of_nodes; i++)
+      {
+        int index = dimension * i;
+
+        GetGeometry()[i].SetLock();
+
+        array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+        for(unsigned int j=0; j<dimension; j++)
+          {
+        ForceResidual[j] += rRHS[index + j];
+          }
+
+        GetGeometry()[i].UnSetLock();
+      }
+      }
+
+    KRATOS_CATCH( "" )
+}
+
+ 
+ 
 
 void DEMWall::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 {
