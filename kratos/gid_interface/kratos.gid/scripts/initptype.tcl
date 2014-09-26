@@ -186,7 +186,7 @@ proc kipt::InitGIDProject { dir } {
     set KPriv(dir) $dir
     set KPriv(problemTypeDir) $dir
     
-    set KPriv(CurvesModule) 0  ;# For activating the Curves Module [Disabled -> 0 | Enabled -> 1]    
+    set KPriv(CurvesModule) 1  ;# For activating the Curves Module [Disabled -> 0 | Enabled -> 1]    
     set KPriv(RDConfig) 1 ;# For release/debug options [Release =>1|Debug => 0]
     
     # Read kratos.xml file

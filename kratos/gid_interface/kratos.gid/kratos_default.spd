@@ -720,13 +720,14 @@
             </Container>
         </Template>        
         <Template id="PointLoad" icon="groupsTree.gif" help="Point Load">
-            <Container id="MainProperties" pid="Point Load" state="hidden" help="Values">
+            <Container id="MainProperties" pid="Point Load" state="normal" help="Values">
                 <Item id="Fx" pid="Fx" dv="0.0" functionDissable="0" help="Fx Vector"/>
                 <Item id="Fy" pid="Fy" dv="0.0" functionDissable="0" help="Fy Vector"/>
                 <Item id="Fz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Fz Vector"/>
                 <Item id="Mx" pid="Mx" dv="0.0" state="hidden" help="Mx Vector"/>
                 <Item id="My" pid="My" dv="0.0" state="hidden" help="My Vector"/>
                 <Item id="Mz" pid="Mz" dv="0.0" state="hidden" nDim="3D" help="Mz Vector"/>
+		<Item id="Prop" pid="Prop" GCV="Curves" />
             </Container>
         </Template>
         <Template id="PointMoment" icon="groupsTree.gif" help="Point Moment">
@@ -880,6 +881,7 @@
       <Item id="ValidateModel" pid="Validate model before calculate" dv="1" state="normal" widget="check" help=""/>
       <Item id="CheckSpdVersion" pid="Check problem type version" dv="1" state="normal" widget="check" help=""/>
   <Item id="WriteAllGiDGroups" pid="Write all GiD groups" dv="0" widget="check" state="hidden" help="Write all GiD groups to the Kratos meshes"/>
+	<Item id="StartUpWizard" pid="Use start up wizard" dv="1" state="normal" widget="check" help=""/>
     </GlobalProjectSettings>
     <ClassConfiguration>
         <Class>timeIntMeth,nDim,axiSym,kinemType,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,BaseCFType,cddeltatimetype,CDLinearSolverType,CD-soluType,DEM-deltatimetype,DEM-BBox,DEM-BBoxType,CDAnalysisType,PressureIterativeSolverType,VelocityIterativeSolverType,CD-soluType</Class>
