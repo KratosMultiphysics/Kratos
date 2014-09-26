@@ -87,6 +87,11 @@ namespace Python
     Mesher.SetRefiningBox(radius,center,velocity);
   }
 
+  void SetMeshRefiningBox(TriangularMesh2DModeler& Mesher,double radius, Vector center, Vector velocity, int MeshId)
+  {
+    Mesher.SetRefiningBox(radius,center,velocity,MeshId);
+  }
+
   void SetInitialDataOnMesher(TriangularMesh2DModeler& Mesher,int number_of_domains)
   {
     Mesher.Initialize(number_of_domains);
@@ -121,6 +126,7 @@ namespace Python
       .def("SetRefineData",SetRefineDataOnMesher)
       .def("SetRigidWall",SetRigidWall)
       .def("SetRefiningBox",SetRefiningBox)
+      .def("SetMeshRefiningBox",SetMeshRefiningBox)
       .def("GenerateMesh",GenerateTriangleMesh)
       .def("SetEchoLevel",&TriangularMesh2DModeler::SetEchoLevel)
       
