@@ -129,8 +129,8 @@ namespace Kratos
 
     mMeshingVariables[MeshId].BoundingBox.IsSetFlag = false;
 
-    if( mEchoLevel > 1 )
-      std::cout<<" SetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
+    if( mEchoLevel > 0 )
+      std::cout<<" SetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
 
     KRATOS_CATCH(" ")
   }
@@ -224,6 +224,29 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
+  void MeshModeler::SetRefiningBox ( double Radius,
+				     Vector Center,
+				     Vector Velocity,
+				     int MeshId )
+    
+  {
+    KRATOS_TRY
+
+    mMeshingVariables[MeshId].BoundingBox.IsSetFlag = true;
+    mMeshingVariables[MeshId].BoundingBox.Radius    = Radius;
+    mMeshingVariables[MeshId].BoundingBox.Center    = Center;
+    mMeshingVariables[MeshId].BoundingBox.Velocity  = Velocity;
+
+    if( mEchoLevel > 1 )
+      std::cout<<" Bounding Box [ Radius: "<<Radius<<" Center: "<<Center<<" Velocity: "<<Velocity<<" ] "<<std::endl;
+
+    KRATOS_CATCH(" ")
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
 
   void MeshModeler::GenerateMesh ( ModelPart& rModelPart )
   {
@@ -249,7 +272,7 @@ namespace Kratos
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
 	if( GetEchoLevel() > 0 ){
-	  std::cout<<" GetRemeshData : [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<" - "<<mMeshingVariables[MeshId].RefineFlag<<" RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" - "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
+	  std::cout<<"  GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<"; RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
 	}
 
 	if(mMeshingVariables[MeshId].RemeshFlag)
