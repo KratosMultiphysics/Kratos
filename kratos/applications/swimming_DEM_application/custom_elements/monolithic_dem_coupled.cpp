@@ -364,7 +364,20 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
 template <>
 void MonolithicDEMCoupled<2,3>::CalculateWeights(ShapeFunctionDerivativesArrayType& rDN_DX,
         Matrix& rNContainer,
-        Vector& rGaussWeights){}
+        Vector& rGaussWeights)
+{
+
+  const GeometryType& rGeom = this->GetGeometry();
+  Vector DetJ;
+  rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_2);
+  rNContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+  const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+
+  rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2), false);
+
+  for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+      rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+}
 
 
 template <>
