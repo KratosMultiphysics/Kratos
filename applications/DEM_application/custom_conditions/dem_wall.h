@@ -115,6 +115,11 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );		
     virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    
+    virtual void AddExplicitContribution(const VectorType& rRHS,
+                                 const Variable<VectorType>& rRHSVariable,
+                                 Variable<array_1d<double,3> >& rDestinationVariable,
+                                 const ProcessInfo& rCurrentProcessInfo);
 
     double mTgOfFrictionAngle;
     std::vector<SphericParticle*> mNeighbourSphericParticles;
