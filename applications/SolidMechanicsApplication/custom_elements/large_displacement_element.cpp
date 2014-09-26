@@ -99,7 +99,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
 
-    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
+    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement element ... illegal operation!!", "" )
 
     return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
@@ -110,7 +110,7 @@ Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayTy
 Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
+    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement element ... illegal operation!!", "" )
 
     LargeDisplacementElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
