@@ -273,6 +273,7 @@ namespace Kratos
           KRATOS_TRY
 
           ModelPart& r_model_part            = BaseType::GetModelPart();
+          
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
           
           // Omp initializations
@@ -376,6 +377,7 @@ namespace Kratos
           // 3. Get and Calculate the forces
           GetForce();
           //FastGetForce();
+          Calculate_Conditions_RHS_and_Add();
           
           // 4. Synchronize (should be just FORCE and TORQUE)
           SynchronizeSolidMesh(r_model_part);
@@ -713,6 +715,94 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    
+    //DEMFFEM
+    
+    void Calculate_Conditions_RHS_and_Add()
+    {
+      
+      KRATOS_TRY
+      
+      Clear_forces_FEM();
+              
+      ConditionsArrayType& pConditions      = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+
+      ProcessInfo& CurrentProcessInfo  = GetFemModelPart().GetProcessInfo();
+
+      Vector rhs_cond;
+
+      vector<unsigned int> condition_partition;
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
+      unsigned int index;
+      
+      #pragma omp parallel for private (index, rhs_cond)     
+      
+      for(int k=0; k<this->GetNumberOfThreads(); k++)
+      {
+          typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
+          typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
+
+          for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
+          {
+              Condition::GeometryType& geom = it->GetGeometry();
+              
+              it->CalculateRightHandSide(rhs_cond,CurrentProcessInfo);
+            
+              const unsigned int& dim = geom.WorkingSpaceDimension();
+              for (unsigned int i = 0; i <geom.size(); i++)
+              {
+                  index = i*dim;//*2;
+                  array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);//TOTAL_FORCES
+                 // array_1d<double,3>& node_elastic_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);
+                  
+                  for(unsigned int kk=0; kk<dim; kk++)
+                  {
+                      geom(i)->SetLock();
+
+                      node_rhs[kk] = node_rhs[kk] + rhs_cond[index+kk];
+                      //node_elastic_rhs[kk] = node_elastic_rhs[kk] + rhs_cond[index+kk+3];
+                      geom(i)->UnSetLock();
+                  }
+                  
+              }                   
+              
+          }
+          
+      }
+
+      KRATOS_CATCH("")
+    }
+    
+    
+    void Clear_forces_FEM()
+
+    {
+        KRATOS_TRY
+
+        ModelPart& fem_model_part  = GetFemModelPart();
+        NodesArrayType& pNodes   = fem_model_part.Nodes();
+
+        vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        
+        for(int k=0; k<this->GetNumberOfThreads(); k++)
+        {
+            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+            typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+            {
+                array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(ELASTIC_FORCES));
+                //array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(TOTAL_FORCES));
+                noalias(node_rhs)             = ZeroVector(3);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+    
     
      void ApplyPrescribedBoundaryConditions()
     {
