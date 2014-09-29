@@ -141,7 +141,7 @@ void DEMWall::CalculateRightHandSide(
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-   if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
+   if( rDestinationVariable == EXTERNAL_FORCE )
       {
 
     for(unsigned int i=0; i< number_of_nodes; i++)
@@ -161,7 +161,7 @@ void DEMWall::CalculateRightHandSide(
       }
       }
 
-    if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
+    if( rDestinationVariable == FORCE_RESIDUAL )
       {
 
     for(unsigned int i=0; i< number_of_nodes; i++)
