@@ -352,7 +352,7 @@ class ExplicitStrategy:
 #          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_5, self.cylinder_angular_velocity_5)
 #          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_5, self.cylinder_friction_angle_5)
 
-        # GLOBAL PHISICAL ASPECTS
+        # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
         # GLOBAL MATERIAL PROPERTIES
