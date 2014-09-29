@@ -105,9 +105,8 @@ class DEM_FEM_Search : public SpatialSearch
       /// Destructor.
       ~DEM_FEM_Search(){
       }
-	  
-	  
-	   void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
+      
+  void SearchRigidFaceForDEMInRadiusExclusiveImplementation (
           ElementsContainerType   const& rElements,
           ConditionsContainerType const& rConditions,
           const RadiusArrayType & Radius, 
@@ -133,10 +132,15 @@ class DEM_FEM_Search : public SpatialSearch
           for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
                  
-          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
-              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);       
+          // This is used to generate the bins with all the particles. This does not need to be enabled unless you have
+          //  a really good reason for it
+              
+          //for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+          //    BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it); 
 
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          
+//           bins.PrintData(std::cout);
           
           #pragma omp parallel
           {
@@ -165,10 +169,6 @@ class DEM_FEM_Search : public SpatialSearch
           
           KRATOS_CATCH("")
       }
-	  
-	  
-	
-	
 
       /// Turn back information as a string.
       virtual std::string Info() const
