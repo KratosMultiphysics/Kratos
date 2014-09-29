@@ -648,7 +648,7 @@ private:
     {
         array_1d<double, 3> acceleration = ZeroVector(3);
 
-        for (int n = 0; n < geom.PointsNumber(); ++n){
+        for (unsigned int n = 0; n < geom.PointsNumber(); ++n){
             const array_1d<double, 3>& vel_old = geom[n].FastGetSolutionStepValue(VELOCITY, 1);
             const array_1d<double, 3>& vel_new = geom[n].FastGetSolutionStepValue(VELOCITY);
             acceleration += N[n] * (vel_old - vel_new);
@@ -1443,7 +1443,7 @@ private:
     void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor){
 
         #pragma omp parallel for
-        for (int i = 0; i < r_model_part.Nodes().size(); i++){
+        for (unsigned int i = 0; i < r_model_part.Nodes().size(); i++){
             NodeIteratorType inode = r_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pnode = *(inode.base());
             pnode->FastGetSolutionStepValue(r_variable) *= factor;
