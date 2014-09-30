@@ -238,16 +238,17 @@ public:
 
 					for(ModelPart::NodesContainerType::iterator i_node = cluster_nodes.begin() ; i_node != cluster_nodes.end() ; i_node++)
 					{
+
 						if(i_node->GetSolutionStepValue(SOLID_FRACTION, 1) < solid_fraction_threshold)
 						{
 							counter++;
 							i_node->GetSolutionStepValue(MACRO_POROSITY) = cluster_shrinkage;
+							
 						}
 					}
 					if (counter > 6)
 						break;
 				}
-				KRATOS_WATCH(counter);
 			}
 
 
