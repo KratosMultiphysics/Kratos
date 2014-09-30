@@ -392,6 +392,13 @@ public:
         const int n_structure_nodes = mrSkinModelPart.Nodes().size();
 
 #pragma omp parallel for firstprivate(results,N)
+	//MY NEW LOOP: reset the viisted flaf
+	for (int i = 0; i < n_structure_nodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+            Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+	    p_structure_node->Set(VISITED, false);
+	}
         for (int i = 0; i < n_structure_nodes; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
@@ -425,17 +432,122 @@ public:
                     double p_negative_structure = inner_prod(nodalPressures,Nneg);
 
                     // Assign ModelPart::ElementIteratorface pressure to structure node
-                    p_structure_node->GetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_positive_structure;
-                    p_structure_node->GetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_negative_structure;
+                    p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_positive_structure;
+                    p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_negative_structure;
+		    p_structure_node->Set(VISITED);
                 }
                 else
                 {
                     double p = inner_prod(nodalPressures,N);
-                    p_structure_node->GetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p;
-                    p_structure_node->GetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p;
+                    p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p;
+                    p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p;
+	            p_structure_node->Set(VISITED);
                 }
             }
         }
+	//AND NOW WE "TREAT" the bad nodes, the ones that belong to the structural faces that by some chance did not cross the fluid elements
+	//to such nodes we simply extrapolate the pressure from the neighbors
+	int n_bad_nodes=0;
+	for (int i = 0; i < n_structure_nodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+            Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+	    if (p_structure_node->IsNot(VISITED))
+		n_bad_nodes++;
+	}
+	//KRATOS_WATCH("THERE WERE THIS MANY BAD NODES ORIGINALLY")
+	//KRATOS_WATCH(n_bad_nodes)
+	while (n_bad_nodes>=1.0)
+	{
+	  	for (int i = 0; i < n_structure_nodes; i++)
+		{
+		    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+		    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+
+	  	    //here we store the number of neigbor nodes that were given the pressure in the previous loop (i.e. were found)
+		    if (p_structure_node->IsNot(VISITED))
+			{
+			    int n_good_neighbors=0;
+			    double pos_pres=0.0;
+			    double neg_pres=0.0;
+			    for( WeakPointerVector< Node<3> >::iterator i = p_structure_node->GetValue(NEIGHBOUR_NODES).begin();
+				        i != p_structure_node->GetValue(NEIGHBOUR_NODES).end(); i++)
+			    {
+				if(i->Is(VISITED)) 
+					{
+					n_good_neighbors++;
+					pos_pres+=i->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+					neg_pres+=i->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+					//KRATOS_WATCH("Good neighbor found")
+					}
+			    }
+			    if (n_good_neighbors!=0)
+					{
+					pos_pres/=n_good_neighbors;
+					neg_pres/=n_good_neighbors;
+					p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = pos_pres;
+				    	p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = neg_pres;    
+					p_structure_node->Set(VISITED);
+					n_bad_nodes--;
+					}
+			   //KRATOS_WATCH(pos_pres)
+			   //KRATOS_WATCH(neg_pres)          
+			}
+		 }
+	         /*int n_bad_nodes=0;
+		 for (int i = 0; i < n_structure_nodes; i++)
+        	 {
+		    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+		    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+		    if (p_structure_node->IsNot(VISITED))
+			n_bad_nodes++;		  
+		 }
+		*/
+		KRATOS_WATCH(n_bad_nodes)
+
+	  }
+		//THE BELOW ONE IS A "CHEAT".. THERE IS A PROBLEM OF INCORRECT PROJECTION BETWEEN THE MESHES AT SOME POINTS
+		//FOR NODES WITH PRESSURE VERY DIFFERENT FROM THAT OF THE NEIGHBORS, I JUST TAKE THE NEIGHBOR PRESSURE AVERAGED
+		for (int i = 0; i < n_structure_nodes; i++)
+		{
+		    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+		    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+
+		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+			
+	  	    if (p_structure_node->GetValue(NEIGHBOUR_NODES).size()>=1.0)
+			{			    
+			    double av_pos_pres=0.0;
+			    double av_neg_pres=0.0;
+			    for( WeakPointerVector< Node<3> >::iterator i = p_structure_node->GetValue(NEIGHBOUR_NODES).begin();
+				        i != p_structure_node->GetValue(NEIGHBOUR_NODES).end(); i++)
+			    {
+				
+					av_pos_pres+=i->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+					av_neg_pres+=i->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+										
+			    }
+			    av_pos_pres/=p_structure_node->GetValue(NEIGHBOUR_NODES).size();
+			    av_neg_pres/=p_structure_node->GetValue(NEIGHBOUR_NODES).size();
+			    
+			    //IF the average pressure of the neighbors is 10 times lower than of the given node, something is bad and we reset its value
+			    if (abs(pos_pressure)>3.0*abs(av_pos_pres))
+					{
+					p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = av_pos_pres;
+					//KRATOS_WATCH("BAD NODE")
+					}
+			    if (abs(neg_pressure)>3.0*abs(av_neg_pres))
+					{
+					p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = av_neg_pres;
+					//KRATOS_WATCH("BAD NODE")
+					}				    	
+			 
+			}
+		 }
+		
+
+
     }
 
     ///******************************************************************************************************************
