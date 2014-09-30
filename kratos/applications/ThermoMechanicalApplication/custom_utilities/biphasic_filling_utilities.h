@@ -452,9 +452,9 @@ public:
         for (int ii = 0; ii < node_size; ii++)
         {
             ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
-            double str_flag = it->GetValue(IS_STRUCTURE);
-            double slip_flag = it->GetSolutionStepValue(IS_SLIP);
-            double distance = it->GetSolutionStepValue(DISTANCE);
+            //double str_flag = it->GetValue(IS_STRUCTURE);
+            //double slip_flag = it->GetSolutionStepValue(IS_SLIP);
+            //double distance = it->GetSolutionStepValue(DISTANCE);
 
            // if ( (str_flag != 0.0 || slip_flag == 0.0) && distance < 0.0 )
             if ( it->Is(INLET) )
@@ -488,7 +488,7 @@ public:
     void ApplyVelocityLimitation(ModelPart& ThisModelPart, const double max_acc_modulus)
     {
         KRATOS_TRY;
-        double net_input = 0.0;
+        //double net_input = 0.0;
         int node_size = ThisModelPart.Nodes().size();
         const double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
         
