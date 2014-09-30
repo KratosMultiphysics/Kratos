@@ -208,17 +208,31 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 
 	}
 
+	//modify C for phase change
+	double c_star = 0.0;
+	if( gp_dist <= 0.0)
+	 {
 
+		//solidification terms LHS
+		double tangent_DF_DT = 0.0;
+		if(T <= fluid_T)
+		{
+			tangent_DF_DT = DF_DT;
+			if( !(solid_T <= T && T <= fluid_T) ) //if not in the range of phase change
+			{
+				double aux_denom = T - mid_T;
+				if(fabs(aux_denom) < 1e-6)
+				 {
+				   if(aux_denom >= 0) aux_denom = 1e-6;
+				   else aux_denom = -1e-6;
+				 }
+			   tangent_DF_DT = (FF - old_FF)/aux_denom;
+			}
+		}
+		c_star += tangent_DF_DT * LL;
+	  }
+	specific_heat += c_star;
 
-// 	conductivity *= lumping_factor;
-// 	density *= lumping_factor;
-// 	specific_heat *= lumping_factor;
-// 	heat_source *= lumping_factor;
-// 	ms_vel_gauss *= lumping_factor;
-
-	//we divide conductivity by (ro*C) and heat_source by C
-    // 	conductivity /= (density*specific_heat);
-    // 	heat_source /= (specific_heat);
 	double tau;
 	double conductivity_scaled = conductivity/(density*specific_heat);    
 	CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
@@ -276,18 +290,18 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 	noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;	 
 
 	//solidification terms RHS
-	if( gp_dist <= 0.0)
+	/*if( gp_dist <= 0.0)
 	 {
 		double const_fac = dt_inv * LL ;
 		if(T <= fluid_T)
 		 {
-	       for (unsigned int bb = 1; bb < nodes_number; bb++)
-			 phase_change_vec[bb] =  N[bb]*(FF - old_FF) * const_fac * density;
+	       for (unsigned int bb = 0; bb < nodes_number; bb++)
+			 phase_change_vec[bb] +=  N[bb]*(FF - old_FF) * const_fac * density;
 		 }
 		else
 		 {
-	       for (unsigned int bb = 1; bb < nodes_number; bb++)
-			 phase_change_vec[bb] = 0.0;
+	       for (unsigned int bb = 0; bb < nodes_number; bb++)
+			 phase_change_vec[bb] += 0.0;
 		 }
 
 		//solidification terms LHS
@@ -295,7 +309,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 		if(T <= fluid_T)
 		{
 			tangent_DF_DT = DF_DT;
-			/*if( !(solid_T <= T && T <= fluid_T) ) //if not in the range of phase change
+			if( !(solid_T <= T && T <= fluid_T) ) //if not in the range of phase change
 			{
 				double aux_denom = T - mid_T;
 				if(fabs(aux_denom) < 1e-6)
@@ -304,10 +318,11 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 				   else aux_denom = -1e-6;
 				 }
 			   tangent_DF_DT = (FF - old_FF)/aux_denom;
-			}*/
+			}
 		}
-	 	tan_phase_change += const_fac * density * tangent_DF_DT * msMassFactors;
-	  }
+	 	tan_phase_change += (const_fac * density * tangent_DF_DT * msMassFactors );// + density*LL*tangent_DF_DT*Advective_Matrix);
+
+	  }*/
     }
     //subtracting the dirichlet term
     // RHS -= LHS*temperatures
@@ -316,8 +331,8 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, step_unknown);
 
 	//phase chaneg term
-	noalias(rRightHandSideVector) += phase_change_vec;
-    noalias(rLeftHandSideMatrix) -= tan_phase_change;
+	//noalias(rRightHandSideVector) += phase_change_vec;
+    //noalias(rLeftHandSideMatrix) -= tan_phase_change;
 
     rRightHandSideVector *= (wgauss * Volume);
     rLeftHandSideMatrix *= (wgauss * Volume);
