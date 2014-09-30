@@ -155,7 +155,7 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 //************************************************************************************
 void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
-    int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes);
     for (int i=0; i<number_of_nodes; i++)
@@ -168,7 +168,7 @@ void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
 //************************************************************************************
 void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
-    int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)
         ElementalDofList.resize(number_of_nodes);
     for (int i=0; i<number_of_nodes; i++)
