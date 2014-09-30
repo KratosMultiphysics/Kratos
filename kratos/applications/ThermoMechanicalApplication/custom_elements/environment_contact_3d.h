@@ -130,14 +130,10 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
-    void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
-//        void GetFirstDerivativesVector(Vector& values, int Step = 0);
-//        void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
     ///@}
     ///@name Access
@@ -261,9 +257,9 @@ private:
     ///@name Private Inquiry
     ///@{
 
-	double ERFC( const double etta);
-
-	double CalcTempSemiInfiniteWall(ProcessInfo& rCurrentProcessInfo, const double T_0);
+// 	double ERFC( const double etta);
+// 
+// 	double CalcTempSemiInfiniteWall(ProcessInfo& rCurrentProcessInfo, const double T_0);
     ///@}
     ///@name Un accessible methods
     ///@{

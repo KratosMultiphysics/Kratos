@@ -27,7 +27,8 @@ def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(NORMAL);
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
     model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());
-    # model_part.AddNodalSolutionStepVariable(HTC);
+    model_part.AddNodalSolutionStepVariable(HTC);
+    model_part.AddNodalSolutionStepVariable(ENTHALPY);
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION);
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -128,14 +129,14 @@ class Solver:
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, self.settings)
 
         # self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)
-        # self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
 
-        self.solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
-                                                                     self.MaxNewtonRapshonIterations, self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
-                                                                     self.CalculateReactionFlag,
-                                                                     self.ReformDofSetAtEachStep,
-                                                                     self.MoveMeshFlag,
-                                                                    self.ApplyLineSearches)
+        #self.solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
+                                                                     #self.MaxNewtonRapshonIterations, self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
+                                                                     #self.CalculateReactionFlag,
+                                                                     #self.ReformDofSetAtEachStep,
+                                                                     #self.MoveMeshFlag,
+                                                                    #self.ApplyLineSearches)
 
         (self.solver).SetEchoLevel(self.echo_level)
         #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
