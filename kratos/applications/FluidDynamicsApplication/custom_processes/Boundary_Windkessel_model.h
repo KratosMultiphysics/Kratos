@@ -122,7 +122,7 @@ public:
                 double total_velocity=0.0;
                 double velocity =0.0;
                 double Flow_total_node=0.0;
-                for (int j = 0 ; j < i->GetGeometry().PointsNumber(); j++){
+                for (unsigned int j = 0 ; j < i->GetGeometry().PointsNumber(); j++){
                     const double Velocity_node_X= i->GetGeometry()(j)->FastGetSolutionStepValue(VELOCITY_X);
                     const double Velocity_node_Y= i->GetGeometry()(j)->FastGetSolutionStepValue(VELOCITY_Y);
                     const double Velocity_node_Z= i->GetGeometry()(j)->FastGetSolutionStepValue(VELOCITY_Z);
