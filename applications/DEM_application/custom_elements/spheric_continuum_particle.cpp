@@ -659,7 +659,7 @@ namespace Kratos
                 
                 double LocalRelVel[3] = {0.0};
                 
-                GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
                 
                     
                 if(mDempack)
