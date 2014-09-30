@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
-#include "custom_elements/SUPG_conv_diff_3d.h"
+#include "includes/element.h"
 
 
 
@@ -91,19 +91,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// ASGS, Incompressible fluid, Variational multi scale method, Quasi-static subscales, Implicit method.
-/**
-ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
-Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
-to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales´ estimation.
-The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
-This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
-The detailed description of the formulation could be fined in
-   "Stabilized finite element approximation of transient incompressible flows using orthogonal subscales, Comput. Methods Appl. Mech. Engrg. 191 (2002) 4295?4321"
 
-*/
 class SUPGConvDiffPhaseChange3D
-    : public SUPGConvDiff3D
+    : public Element
 {
 public:
     ///@name Type Definitions
@@ -139,16 +129,10 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-//     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    /// The DOF´s are VELOCITY_X, VELOCITY_Y and PRESSURE
-    /**
-     * @param ElementalDofList: the list of DOFs
-     * @param rCurrentProcessInfo: the current process info instance
-    */
-//     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
 
 
@@ -201,7 +185,25 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    SUPGConvDiffPhaseChange3D() : SUPGConvDiff3D() {}
+    double ComputeTau(const double h, const double k, const array_1d<double,3>& a);
+
+    void ComputeEffectiveSpeficifHeat(array_1d<double,4>& c,
+                                      const array_1d<double,4>& H,
+                                      const array_1d<double,4>& temperatures,
+                                      const double fluid_T,
+                                      const double solid_T,
+                                      const double latent_heat
+                                     );
+
+    const double ComputeDiscontinuityCapturingDiffusion(
+        const boost::numeric::ublas::bounded_matrix<double, 4, 3 >& DN_DX,
+        const array_1d<double,3>& gradT,
+        const double& norm_gradT,
+        const double& residual,
+        const double& reference_temperature
+    );
+
+    SUPGConvDiffPhaseChange3D() : Element() {}
 
     ///@}
     ///@name Protected Operations
@@ -245,18 +247,16 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-//         ASGS2D() : Element()
-//         {
-//         }
+
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SUPGConvDiff3D);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SUPGConvDiffPhaseChange3D);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SUPGConvDiff3D);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SUPGConvDiffPhaseChange3D);
     }
 
     ///@}
