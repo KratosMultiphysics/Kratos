@@ -860,7 +860,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
          std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 	 
 	
-     int ino1 = ino * 16;
+         int ino1 = ino * 16;
 	
 	 LocalCoordSystem[0][0] = RF_Pram[ino1 + 0];
 	 LocalCoordSystem[0][1] = RF_Pram[ino1 + 1];
