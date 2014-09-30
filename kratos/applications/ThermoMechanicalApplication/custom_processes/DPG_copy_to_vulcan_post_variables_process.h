@@ -271,7 +271,7 @@ namespace Kratos
 		       {
 				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
 			 	 double distance = i_node->GetSolutionStepValue(DISTANCE) * distance_norm_inverse;
-				 double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
+				 //double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
 				 // the distance is between -1 and 1 where < 0 is material while
 				 // the material is between 0 and 1 with >=0.5 is material!
 				 i_node->FastGetSolutionStepValue(MATERIAL) = (1.00 - distance) * 0.5;
@@ -322,7 +322,7 @@ namespace Kratos
 		       {
 				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
 			 	 double distance = i_node->GetSolutionStepValue(DISTANCE) * distance_norm_inverse;
-				 double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
+				 //double slip_falg = i_node->GetSolutionStepValue(IS_SLIP);
 				 i_node->FastGetSolutionStepValue(MATERIAL) = (1.00 - distance) * 0.5;
 				 
 
