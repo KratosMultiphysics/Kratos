@@ -160,7 +160,6 @@ public:
       double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
       double Weight[4]              = {0.0, 0.0, 0.0, 0.0};
       double DistPToB               = 0.0;
-
       double Particle_Coord[3] = {0.0};
       Particle_Coord[0] = rObj_1->GetGeometry()(0)->Coordinates()[0];
       Particle_Coord[1] = rObj_1->GetGeometry()(0)->Coordinates()[1];
@@ -171,7 +170,7 @@ public:
       double Centroid[3] = {0.0};
       int i_size = rObj_2->GetGeometry().size();
       double d_size = (double) i_size;
-      double inv_d_size = 1 / d_size;
+      double inv_d_size = 1.0 / d_size;
       array_1d<double, 3>& coordinates_obj2_0 = rObj_2->GetGeometry()(0)->Coordinates();
       array_1d<double, 3>& coordinates_obj2_1 = rObj_2->GetGeometry()(1)->Coordinates();
       
@@ -368,7 +367,7 @@ public:
           {
             
             RF_Pram.resize(ino + 16);
-            RF_Pram[ino + 0]  = LocalCoordSystem[0][0];
+            RF_Pram[ino + 0]  = LocalCoordSystem[0][0];//Room for improvement: ¿could we just store LocalCoordSystem[2]? Could we regenerate 0 and 1 randomly when we need the coordinate system?
             RF_Pram[ino + 1]  = LocalCoordSystem[0][1];
             RF_Pram[ino + 2]  = LocalCoordSystem[0][2];
             RF_Pram[ino + 3]  = LocalCoordSystem[1][0];
