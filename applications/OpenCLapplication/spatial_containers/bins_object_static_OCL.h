@@ -977,7 +977,7 @@ public:
 
         mMacroBins = std::vector<cl_int4>(mMacroBinsNumElements);
 
-        for(size_t i = 0, j = 0; i < lastIndex+1; i++)
+        for(int i = 0, j = 0; i < lastIndex+1; i++)
         {
             std::list<cl_int4> * elementList = &(*mTriangleNodesSortedPointer)[i];
 
