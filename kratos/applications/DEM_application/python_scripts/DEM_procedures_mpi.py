@@ -16,25 +16,25 @@ import MPIer
 class MdpaCreator(DEM_procedures.MdpaCreator):
 
     def __init__(self, path, DEM_parameters):
-        DEM_procedures.MdpaCreator.__init__(self, path, DEM_parameters)
+        super(MdpaCreator,self).__init__(path, DEM_parameters)
 
 
 class GranulometryUtils(DEM_procedures.GranulometryUtils):
 
     def __init__(self, domain_volume, model_part):
-        DEM_procedures.GranulometryUtils.__init__(self, domain_volume, model_part)
+        super(GranulometryUtils,self).__init__(domain_volume, model_part)
 
 
 class PostUtils(DEM_procedures.PostUtils):
 
     def __init__(self, DEM_parameters, balls_model_part):
-        DEM_procedures.PostUtils.__init__(self, DEM_parameters, balls_model_part)
+        super(PostUtils,self).__init__(DEM_parameters, balls_model_part)
 
         
 class Procedures(DEM_procedures.Procedures):
 
     def __init__(self, DEM_parameters):
-        DEM_procedures.Procedures.__init__(self, DEM_parameters)
+        super(Procedures,self).__init__(DEM_parameters)
 
     def AddMpiVariables(self, model_part):
         model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
@@ -69,54 +69,48 @@ class Procedures(DEM_procedures.Procedures):
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
     def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
-        DEM_procedures.DEMFEMProcedures.__init__(self,DEM_parameters,graphs_path,balls_model_part,RigidFace_model_part)
+        super(DEMFEMProcedures,self).__init__(DEM_parameters,graphs_path,balls_model_part,RigidFace_model_part)
 
     def PrintGraph(self, time):
         if (mpi.rank == 0):
-            super.PrintGraph(self,time)
+            super(DEMFEMProcedures,self).PrintGraph(time)
 
     def FinalizeGraphs(self):
         if (mpi.rank == 0):
-            super.FinalizeGraphs(self,time)
+            super(DEMFEMProcedures,self).FinalizeGraphs(time)
 
 
 class Report(DEM_procedures.Report):
 
     def __init__(self):
-        super.__init__(self)
+        super(Report,self).__init__()
 
 
 class MaterialTest(DEM_procedures.MaterialTest):
 
     def __init__(self):
-        DEM_procedures.MaterialTest.__init__(self)
+        super(MaterialTest,self).__init__()
 
+    # Important: This has to be defined here as the imports from
+    # the superclase and the derived clase are different
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part):
-        if mpi.rank == 0:
-            super.Initialize(self,DEM_parameters,procedures,solver,graphs_path,post_path,balls_model_part,rigid_face_model_part)
+        self.type = DEM_parameters.TestType
+
+        if (self.type != "None"):
+            self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
  
-    def PrepareDataForGraph(self):
-        if mpi.rank == 0:
-            super.PrepareDataForGraph()
 
-    def MeasureForcesAndPressure(self):
-        if mpi.rank == 0:
-            super.MeasureForcesAndPressure()
-
-    def FinalizeGraphs(self):
-        if mpi.rank == 0:
-            super.FinalizeGraphs()
 
 class MultifileList(DEM_procedures.MultifileList):
 
     def __init__(self,name,step):
-        DEM_procedures.MultifileList.__init__(self,name,step)
+        super(MultifileList,self).__init__(name,step)
 
 
 class DEMIo(DEM_procedures.DEMIo):
 
     def __init__(self):
-        DEM_procedures.DEMIo.__init__(self)
+        super(DEMIo,self).__init__()
 
     def EnableMpiVariables(self):
         self.ball_variables.append(PARTITION_INDEX)
@@ -128,8 +122,8 @@ class DEMIo(DEM_procedures.DEMIo):
 class ParallelUtils(DEM_procedures.ParallelUtils):
 
     def __init__(self):
+        super(ParallelUtils,self).__init__()
         self.mpi_utilities = MpiUtilities()
-        DEM_procedures.ParallelUtils.__init__(self)
 
     def Repart(self, balls_model_part):
         self.mpi_utilities.Repart(balls_model_part, 0, 1)
