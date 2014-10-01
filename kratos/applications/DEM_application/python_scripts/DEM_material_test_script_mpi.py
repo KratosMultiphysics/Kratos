@@ -298,6 +298,7 @@ class MaterialTest:
   def PrepareDataForGraph(self):
     
     prepare_check = [0,0,0,0]
+    prepare_check_gath = [0,0,0,0]
     self.total_check = 0
 
     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):

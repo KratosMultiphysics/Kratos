@@ -3,63 +3,164 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.MetisApplication import *
+from KratosMultiphysics.MPISearchApplication import *
 from KratosMultiphysics.mpi import *
 
-def KRATOS_MPI_WORLD_BARRIER():
-    mpi.world.barrier()
+import DEM_procedures
 
-def AddMpiVariables(model_part):
+import DEM_material_test_script_mpi as DEM_material_test_script
 
-    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
-    model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
+import MPIer
 
-def PerformInitialPartition(model_part, model_part_io_solid, input_file_name):
 
-    domain_size = 3
+class MdpaCreator(DEM_procedures.MdpaCreator):
 
-    print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
-    number_of_partitions = mpi.size  # we set it equal to the number of processors
-    if mpi.rank == 0:
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
-        partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_solid, number_of_partitions, domain_size);
-        partitioner.Execute()
+    def __init__(self, path, DEM_parameters):
+        DEM_procedures.MdpaCreator.__init__(self, path, DEM_parameters)
 
-    print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
-    mpi.world.barrier()
 
-    MPICommSetup = SetMPICommunicatorProcess(model_part)
-    MPICommSetup.Execute()
+class GranulometryUtils(DEM_procedures.GranulometryUtils):
 
-    print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Comunicator Set")
+    def __init__(self, domain_volume, model_part):
+        DEM_procedures.GranulometryUtils.__init__(self, domain_volume, model_part)
 
-    print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+input_file_name+"_"+str(mpi.rank))
 
-    my_input_filename = input_file_name + "_" + str(mpi.rank)
-    model_part_io_solid = ModelPartIO(my_input_filename, True)
+class PostUtils(DEM_procedures.PostUtils):
 
-    return [model_part_io_solid, model_part]
+    def __init__(self, DEM_parameters, balls_model_part):
+        DEM_procedures.PostUtils.__init__(self, DEM_parameters, balls_model_part)
 
-def CreateDirectories(main_path,problem_name):
+        
+class Procedures(DEM_procedures.Procedures):
 
-    KRATOS_MPI_WORLD_BARRIER()
+    def __init__(self, DEM_parameters):
+        DEM_procedures.Procedures.__init__(self, DEM_parameters)
 
-    root             = main_path + '/' + problem_name
+    def AddMpiVariables(self, model_part):
+        model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
+        model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
 
-    post_path        = root + '_Post_Files'
-    list_path        = root + '_Post_Lists'
-    data_and_results = root + '_Results_and_Data'
-    graphs_path      = root + '_Graphs'
-    MPI_results      = root + '_MPI_results'
+    def CreateDirectories(self, main_path, problem_name):
+        root             = main_path + '/' + problem_name
 
-    if mpi.rank == 0:
-        for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
-            if not os.path.isdir(directory):
-                os.makedirs(str(directory))
+        post_path        = root + '_Post_Files'
+        list_path        = root + '_Post_Lists'
+        data_and_results = root + '_Results_and_Data'
+        graphs_path      = root + '_Graphs'
+        MPI_results      = root + '_MPI_results'
 
-    KRATOS_MPI_WORLD_BARRIER()
+        if mpi.rank == 0:
+            for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
+                if not os.path.isdir(directory):
+                    os.makedirs(str(directory))
 
-    return [post_path,list_path,data_and_results,graphs_path,MPI_results]
+        mpi.world.barrier()
 
-def KRATOSprint(message):
-    if (mpi.rank == 0):
-        print(message)    
+        return [post_path,list_path,data_and_results,graphs_path,MPI_results]
+
+    def PreProcessModel(self, DEM_parameters):
+        if (mpi.rank == 0):
+            MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
+
+    def KRATOSprint(self, message):
+        if (mpi.rank == 0):
+            print(message)
+
+
+class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
+    def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
+        DEM_procedures.DEMFEMProcedures.__init__(self,DEM_parameters,graphs_path,balls_model_part,RigidFace_model_part)
+
+    def PrintGraph(self, time):
+        if (mpi.rank == 0):
+            super.PrintGraph(self,time)
+
+    def FinalizeGraphs(self):
+        if (mpi.rank == 0):
+            super.FinalizeGraphs(self,time)
+
+
+class Report(DEM_procedures.Report):
+
+    def __init__(self):
+        super.__init__(self)
+
+
+class MaterialTest(DEM_procedures.MaterialTest):
+
+    def __init__(self):
+        DEM_procedures.MaterialTest.__init__(self)
+
+    def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part):
+        if mpi.rank == 0:
+            super.Initialize(self,DEM_parameters,procedures,solver,graphs_path,post_path,balls_model_part,rigid_face_model_part)
+ 
+    def PrepareDataForGraph(self):
+        if mpi.rank == 0:
+            super.PrepareDataForGraph()
+
+    def MeasureForcesAndPressure(self):
+        if mpi.rank == 0:
+            super.MeasureForcesAndPressure()
+
+    def FinalizeGraphs(self):
+        if mpi.rank == 0:
+            super.FinalizeGraphs()
+
+class MultifileList(DEM_procedures.MultifileList):
+
+    def __init__(self,name,step):
+        DEM_procedures.MultifileList.__init__(self,name,step)
+
+
+class DEMIo(DEM_procedures.DEMIo):
+
+    def __init__(self):
+        DEM_procedures.DEMIo.__init__(self)
+
+    def EnableMpiVariables(self):
+        self.ball_variables.append(PARTITION_INDEX)
+
+    def SetOutputName(self,name):
+        self.gid_io.ChangeOutputName(name + "_" + str(mpi.rank))
+
+
+class ParallelUtils(DEM_procedures.ParallelUtils):
+
+    def __init__(self):
+        self.mpi_utilities = MpiUtilities()
+        DEM_procedures.ParallelUtils.__init__(self)
+
+    def Repart(self, balls_model_part):
+        self.mpi_utilities.Repart(balls_model_part, 0, 1)
+
+    def CalculateModelNewIds(self, balls_model_part):
+        self.mpi_utilities.CalculateModelNewIds(balls_model_part, 40000)
+
+    def PerformInitialPartition(self, model_part, model_part_io_solid, input_file_name):
+        domain_size = 3
+
+        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "before performing the division")
+        number_of_partitions = mpi.size
+        
+        if mpi.rank == 0:
+            print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "start partition process")
+            partitioner = MetisDivideNodalInputToPartitionsProcess(model_part_io_solid, number_of_partitions, domain_size);
+            partitioner.Execute()
+
+        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "division performed")
+        mpi.world.barrier()
+
+        MPICommSetup = SetMPICommunicatorProcess(model_part)
+        MPICommSetup.Execute()
+
+        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Comunicator Set")
+        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+input_file_name+"_"+str(mpi.rank))
+
+        my_input_filename = input_file_name + "_" + str(mpi.rank)
+        model_part_io_solid = ModelPartIO(my_input_filename, True)
+
+        return [model_part_io_solid, model_part, MPICommSetup]
+
+    def GetSearchStrategy(self, solver, model_part):
+        return MPI_DEMSearch(model_part.GetCommunicator())
