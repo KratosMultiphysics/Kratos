@@ -250,6 +250,20 @@ class ExplicitStrategy:
         b_box_high[1] = Param.BoundingBoxMaxY
         b_box_high[2] = Param.BoundingBoxMaxZ
 
+        b_box_min_x_tot = mpi.allgather(mpi.world, b_box_low[0])
+        b_box_min_y_tot = mpi.allgather(mpi.world, b_box_low[1])
+        b_box_min_z_tot = mpi.allgather(mpi.world, b_box_low[2])
+        b_box_max_x_tot = mpi.allgather(mpi.world, b_box_high[0])
+        b_box_max_y_tot = mpi.allgather(mpi.world, b_box_high[1])
+        b_box_max_z_tot = mpi.allgather(mpi.world, b_box_high[2])
+        
+        b_box_low[0]  = reduce(lambda x,y: min(x,y), b_box_min_x_tot)
+        b_box_low[1]  = reduce(lambda x,y: min(x,y), b_box_min_y_tot)
+        b_box_low[2]  = reduce(lambda x,y: min(x,y), b_box_min_z_tot)
+        b_box_high[0] = reduce(lambda x,y: max(x,y), b_box_max_x_tot)
+        b_box_high[1] = reduce(lambda x,y: max(x,y), b_box_max_y_tot)
+        b_box_high[2] = reduce(lambda x,y: max(x,y), b_box_max_z_tot)
+
         self.creator_destructor.SetLowNode(b_box_low)
         self.creator_destructor.SetHighNode(b_box_high)
 
@@ -399,10 +413,6 @@ class ExplicitStrategy:
 
     def Solve(self):
         (self.solver).Solve()
-
-    def DoAllOperations(self,DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path):
-        (self.solver).DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path)
-        
 
     def Compute_RigidFace_Movement(self):
         (self.solver).Compute_RigidFace_Movement()
