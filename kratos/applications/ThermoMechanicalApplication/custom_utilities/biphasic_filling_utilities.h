@@ -849,15 +849,16 @@ private:
 	{
 	   KRATOS_TRY; 
 
-      double solidus_temp = ThisModelPart.GetTable(3).Data().front().first;
-      double liquidus_temp = ThisModelPart.GetTable(3).Data().back().first;
-
-	  double temp_t = liquidus_temp;
-	  if ( solidus_temp > liquidus_temp)
-	  {
-		  liquidus_temp = solidus_temp;
-		  solidus_temp = temp_t;
-	  }
+      //double solidus_temp = ThisModelPart.GetTable(3).Data().front().first;
+      //double liquidus_temp = ThisModelPart.GetTable(3).Data().back().first;
+	  double solidus_temp=ThisModelPart.GetProcessInfo().GetValue(FLUID_TEMPERATURE);
+	  double liquidus_temp=ThisModelPart.GetProcessInfo().GetValue(SOLID_TEMPERATURE);
+	  //double temp_t = liquidus_temp;
+	  //if ( solidus_temp > liquidus_temp)
+	  //{
+		 // liquidus_temp = solidus_temp;
+		 // solidus_temp = temp_t;
+	  //}
 
 
 	  int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
