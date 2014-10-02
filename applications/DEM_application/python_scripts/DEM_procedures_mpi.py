@@ -77,7 +77,7 @@ class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
 
     def FinalizeGraphs(self):
         if (mpi.rank == 0):
-            super(DEMFEMProcedures,self).FinalizeGraphs(time)
+            super(DEMFEMProcedures,self).FinalizeGraphs()
 
 
 class Report(DEM_procedures.Report):
@@ -98,6 +98,7 @@ class MaterialTest(DEM_procedures.MaterialTest):
 
         if (self.type != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
+            self.script.Initialize()
  
 
 

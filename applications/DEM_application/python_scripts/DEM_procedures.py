@@ -560,6 +560,7 @@ class MaterialTest(object):
 
         if (self.type != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
+            self.script.Initialize()
  
     def PrepareDataForGraph(self):
         if (self.type != "None"):

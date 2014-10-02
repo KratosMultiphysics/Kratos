@@ -1,18 +1,15 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-#from KratosMultiphysics.MetisApplication import *
-#from KratosMultiphysics.mpi import *
 
 import math
 import datetime
 import shutil
 
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
 
-class MaterialTest:
+class MaterialTest(object):
 
   def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part):
-    
       self.parameters = DEM_parameters
       self.graphs_path = graphs_path
       self.post_path = post_path
@@ -32,7 +29,6 @@ class MaterialTest:
       self.XBOT = list()
       self.XTOPCORNER = list()
       self.XBOTCORNER = list()
-      
       
       self.bond_00_05 = list(); self.bond_05_10 = list(); self.bond_10_15 = list(); self.bond_15_20 = list(); self.bond_20_25 = list(); self.bond_25_30 = list(); self.bond_30_35 = list()
       self.bond_35_40 = list(); self.bond_40_45 = list(); self.bond_45_50 = list(); self.bond_50_55 = list(); self.bond_55_60 = list(); self.bond_60_65 = list(); self.bond_65_70 = list()
@@ -59,7 +55,6 @@ class MaterialTest:
       self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
       self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
 
-      
       self.new_strain = 0.0
       
       # for the graph plotting    
@@ -70,8 +65,50 @@ class MaterialTest:
       self.initial_time = datetime.datetime.now()
 
       os.chdir(self.graphs_path)
+      
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
+
+  def Initialize(self):
+      PrepareTestOedometric()
+      PrepareTestTriaxialHydro()
+      PrepareTestBTS()
+
+  def PrepareTestOedometric(self):
+      if(self.parameters.TestType == "Oedometric"):
+
+        for node in self.LAT:
+
+          node.SetSolutionStepValue(VELOCITY_X, 0.0);
+          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
+          node.Fix(VELOCITY_X);
+          node.Fix(VELOCITY_Z);
+
+  def PrepareTestTriaxialHydro(self):
+      if ( ( self.parameters.TestType == "Triaxial") or ( self.parameters.TestType == "Hydrostatic") ):
+
+        #Correction Coefs
+        self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+        self.alpha_bot = 3.141592*self.diameter*self.diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+        self.alpha_lat = 3.141592*self.diameter*self.height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
            
+  def PrepareTestBTS(self):
+      ##Fixing horizontally top and bot
+      if(self.parameters.TestType != "BTS"):
+        
+        for node in self.TOP:
+          
+          node.SetSolutionStepValue(VELOCITY_X, 0.0);
+          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
+          node.Fix(VELOCITY_X);
+          node.Fix(VELOCITY_Z);
+          
+        for node in self.BOT:
+          
+          node.SetSolutionStepValue(VELOCITY_X, 0.0);
+          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
+          node.Fix(VELOCITY_X);
+          node.Fix(VELOCITY_Z);
+
       if(self.parameters.TestType == "BTS"):
 
         self.bts_export = open(self.parameters.problem_name + "_bts" + ".grf", 'w');
@@ -125,46 +162,6 @@ class MaterialTest:
           
         self.length_correction_factor = specimen_length/extended_length
       
-      ##Oedometric
-
-      if(self.parameters.TestType == "Oedometric"):
-
-        for node in self.LAT:
-
-          node.SetSolutionStepValue(VELOCITY_X, 0.0);
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-          node.Fix(VELOCITY_X);
-          node.Fix(VELOCITY_Z);
-      
-      ##Pressure
-      
-      if ( ( self.parameters.TestType == "Triaxial") or ( self.parameters.TestType == "Hydrostatic") ):
-
-        #Correction Coefs
-        self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
-        self.alpha_bot = 3.141592*self.diameter*self.diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
-        self.alpha_lat = 3.141592*self.diameter*self.height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-        
-      ##Fixing horizontally top and bot
-      
-      if(self.parameters.TestType != "BTS"):
-        
-        for node in self.TOP:
-          
-          node.SetSolutionStepValue(VELOCITY_X, 0.0);
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-          node.Fix(VELOCITY_X);
-          node.Fix(VELOCITY_Z);
-          
-        for node in self.BOT:
-          
-          node.SetSolutionStepValue(VELOCITY_X, 0.0);
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-          node.Fix(VELOCITY_X);
-          node.Fix(VELOCITY_Z);
-      
-  #-------------------------------------------------------------------------------------#
-
   def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
         # SKIN DETERMINATION
@@ -268,8 +265,6 @@ class MaterialTest:
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
   
-  #-------------------------------------------------------------------------------------#
-
   def BtsSkinDetermination(self):
 
       # SKIN DETERMINATION
@@ -300,8 +295,6 @@ class MaterialTest:
 
       print("End 30x15 Bts Skin Determination", "\n")
      
-  #-------------------------------------------------------------------------------------#
-  
   def PrepareDataForGraph(self):
     
     prepare_check = [0,0,0,0]
@@ -339,8 +332,6 @@ class MaterialTest:
       
       print(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
    
-  #-------------------------------------------------------------------------------------#
-  
   def MeasureForcesAndPressure(self):
     
     dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -397,9 +388,6 @@ class MaterialTest:
           
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
             
-    
-  #-------------------------------------------------------------------------------------#
-  
   def PrintGraph(self,step):
     
     if(self.graph_counter == self.graph_frequency):
@@ -464,45 +452,34 @@ class MaterialTest:
     
     a_chart = open(self.parameters.problem_name + "_Parameter_chart.grf","r")
     for line in a_chart.readlines():
-      print(line)
+        print(line)
     a_chart.close()
-
-  #-------------------------------------------------------------------------------------#  
-  
+ 
   def FinalizeGraphs(self):
   
     os.chdir(self.graphs_path)
 
     #Create a copy and renaming
-    
     for filename in os.listdir("."):
-      
       if filename.startswith(self.parameters.problem_name + "_graph.grf"):
-        shutil.copy(filename, filename+"COPY")
-        os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + ".grf")
-      
+          shutil.copy(filename, filename+"COPY")
+          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_" + str(self.initial_time) + ".grf")
       if filename.startswith(self.parameters.problem_name + "_bts.grf"):
-        shutil.copy(filename, filename+"COPY")
-        os.rename(filename+"COPY", self.parameters.problem_name + "_bts_" + str(self.initial_time) + ".grf")
-      
+          shutil.copy(filename, filename+"COPY")
+          os.rename(filename+"COPY", self.parameters.problem_name + "_bts_" + str(self.initial_time) + ".grf")
       if filename.startswith(self.parameters.problem_name + "_graph_VOL.grf"):
-        shutil.copy(filename, filename+"COPY")
-        os.rename(filename+"COPY", self.parameters.problem_name + "_graph_VOL" + str(self.initial_time) + ".grf")
+          shutil.copy(filename, filename+"COPY")
+          os.rename(filename+"COPY", self.parameters.problem_name + "_graph_VOL" + str(self.initial_time) + ".grf")
 
     if(self.parameters.TestType == "BTS"):
-      
-      self.bts_export.close()
-      self.bts_stress_export.close()
-    
+        self.bts_export.close()
+        self.bts_stress_export.close()
     else:
-    
-      self.graph_export.close()
+        self.graph_export.close()
       
-      if( self.parameters.TestType =="Hydrostatic"):  
-        self.graph_export_volumetric.close()
-   
-  #-------------------------------------------------------------------------------------#  
-  
+        if( self.parameters.TestType =="Hydrostatic"):  
+            self.graph_export_volumetric.close()
+    
   def OrientationStudy(self,contact_model_part,step):
     
     os.chdir(self.post_path)
@@ -513,139 +490,136 @@ class MaterialTest:
     
     for element in contact_model_part.Elements:
 
-      u1 = element.GetNode(1).X - element.GetNode(0).X
-      u2 = element.GetNode(1).Y - element.GetNode(0).Y
-      u3 = element.GetNode(1).Z - element.GetNode(0).Z
+        u1 = element.GetNode(1).X - element.GetNode(0).X
+        u2 = element.GetNode(1).Y - element.GetNode(0).Y
+        u3 = element.GetNode(1).Z - element.GetNode(0).Z
+        
+        alpha = abs(math.asin(abs(u2)/math.sqrt((u1*u1)+(u2*u2)+(u3*u3))))
+        
+        alpha_deg = alpha/math.pi*180
+        
+        element.SetValue(CONTACT_ORIENTATION,alpha_deg)
+        
+        sigma = element.GetValue(CONTACT_SIGMA) 
       
-      alpha = abs(math.asin(abs(u2)/math.sqrt((u1*u1)+(u2*u2)+(u3*u3))))
+        OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean*1e6))+'\n')
+        counter += 1
       
-      alpha_deg = alpha/math.pi*180
-      
-      element.SetValue(CONTACT_ORIENTATION,alpha_deg)
-      
-      sigma = element.GetValue(CONTACT_SIGMA) 
-    
-      OrientationChart.write(str(counter)+"    "+str(sigma/(self.total_stress_mean*1e6))+'\n')
-      counter += 1
-    
-      if(alpha_deg >= 0.0 and alpha_deg < 5.0):
-        self.bond_00_05.append(element)
+        if(alpha_deg >= 0.0 and alpha_deg < 5.0):
+            self.bond_00_05.append(element)
 
-      if(alpha_deg >= 5.0 and alpha_deg < 10.0):
-        self.bond_05_10.append(element)
+        if(alpha_deg >= 5.0 and alpha_deg < 10.0):
+            self.bond_05_10.append(element)
+          
+        if(alpha_deg >= 10.0 and alpha_deg < 15.0):
+            self.bond_10_15.append(element)
+          
+        if(alpha_deg >= 15.0 and alpha_deg < 20.0):
+            self.bond_15_20.append(element)
+          
+        if(alpha_deg >= 20.0 and alpha_deg < 25.0):
+            self.bond_20_25.append(element)
+          
+        if(alpha_deg >= 25.0 and alpha_deg < 30.0):
+            self.bond_25_30.append(element)
+          
+        if(alpha_deg >= 30.0 and alpha_deg < 35.0):
+            self.bond_30_35.append(element)
         
-      if(alpha_deg >= 10.0 and alpha_deg < 15.0):
-        self.bond_10_15.append(element)
+        if(alpha_deg >= 35.0 and alpha_deg < 40.0):
+            self.bond_35_40.append(element)
         
-      if(alpha_deg >= 15.0 and alpha_deg < 20.0):
-        self.bond_15_20.append(element)
+        if(alpha_deg >= 40.0 and alpha_deg < 45.0):
+            self.bond_40_45.append(element)
+          
+        if(alpha_deg >= 45.0 and alpha_deg < 50.0):
+            self.bond_45_50.append(element)
+          
+        if(alpha_deg >= 50.0 and alpha_deg < 55.0):
+            self.bond_50_55.append(element)
+          
+        if(alpha_deg >= 55.0 and alpha_deg < 60.0):
+            self.bond_55_60.append(element)
         
-      if(alpha_deg >= 20.0 and alpha_deg < 25.0):
-        self.bond_20_25.append(element)
-        
-      if(alpha_deg >= 25.0 and alpha_deg < 30.0):
-        self.bond_25_30.append(element)
-        
-      if(alpha_deg >= 30.0 and alpha_deg < 35.0):
-        self.bond_30_35.append(element)
-      
-      if(alpha_deg >= 35.0 and alpha_deg < 40.0):
-        self.bond_35_40.append(element)
-      
-      if(alpha_deg >= 40.0 and alpha_deg < 45.0):
-        self.bond_40_45.append(element)
-        
-      if(alpha_deg >= 45.0 and alpha_deg < 50.0):
-        self.bond_45_50.append(element)
-        
-      if(alpha_deg >= 50.0 and alpha_deg < 55.0):
-        self.bond_50_55.append(element)
-        
-      if(alpha_deg >= 55.0 and alpha_deg < 60.0):
-        self.bond_55_60.append(element)
-      
-      if(alpha_deg >= 60.0 and alpha_deg < 65.0):
-        self.bond_60_65.append(element)
-        
-      if(alpha_deg >= 65.0 and alpha_deg < 70.0):
-        self.bond_65_70.append(element)
-        
-      if(alpha_deg >= 70.0 and alpha_deg < 75.0):
-        self.bond_70_75.append(element)
-            
-      if(alpha_deg >= 75.0 and alpha_deg < 80.0):
-        self.bond_75_80.append(element)
-        
-      if(alpha_deg >= 80.0 and alpha_deg < 85.0):
-        self.bond_80_85.append(element)
-        
-      if(alpha_deg >= 85.0 and alpha_deg < 90.0):
-        self.bond_85_90.append(element)
-    
-
+        if(alpha_deg >= 60.0 and alpha_deg < 65.0):
+            self.bond_60_65.append(element)
+          
+        if(alpha_deg >= 65.0 and alpha_deg < 70.0):
+            self.bond_65_70.append(element)
+          
+        if(alpha_deg >= 70.0 and alpha_deg < 75.0):
+            self.bond_70_75.append(element)
+              
+        if(alpha_deg >= 75.0 and alpha_deg < 80.0):
+            self.bond_75_80.append(element)
+          
+        if(alpha_deg >= 80.0 and alpha_deg < 85.0):
+            self.bond_80_85.append(element)
+          
+        if(alpha_deg >= 85.0 and alpha_deg < 90.0):
+            self.bond_85_90.append(element)
     ii=0 
+
     for item in [self.bond_00_05, self.bond_05_10, self.bond_10_15, self.bond_15_20, self.bond_20_25, self.bond_25_30, self.bond_30_35, self.bond_35_40, self.bond_40_45,  self.bond_45_50, self.bond_50_55, self.bond_55_60, self.bond_60_65, self.bond_65_70, self.bond_70_75, self.bond_75_80, self.bond_80_85, self.bond_85_90]:
       
-      self.sizes[ii] = len(item)  
-      
-      i = 0.0
-      sigma_sum =0.0
-      tau_sum = 0.0
-      
-      sigma_total_sum_squared = 0
-      tau_total_sum_squared = 0.0
-      
-      volume = 0.0
-      area = 0.0
-
-      for element in item:
+        self.sizes[ii] = len(item)  
         
-        sigma_normal = element.GetValue(CONTACT_SIGMA)
-        sigma_tau = element.GetValue(CONTACT_TAU)
+        i = 0.0
+        sigma_sum =0.0
+        tau_sum = 0.0
         
-        sigma_sum += sigma_normal
-        tau_sum += sigma_tau
+        sigma_total_sum_squared = 0
+        tau_total_sum_squared = 0.0
         
-        sigma_partial_sum_squared = sigma_normal ** 2.0
-        sigma_total_sum_squared += sigma_partial_sum_squared
+        volume = 0.0
+        area = 0.0
+
+        for element in item:
+          
+            sigma_normal = element.GetValue(CONTACT_SIGMA)
+            sigma_tau = element.GetValue(CONTACT_TAU)
+            
+            sigma_sum += sigma_normal
+            tau_sum += sigma_tau
+            
+            sigma_partial_sum_squared = sigma_normal ** 2.0
+            sigma_total_sum_squared += sigma_partial_sum_squared
+            
+            tau_partial_sum_squared = sigma_tau ** 2.0
+            tau_total_sum_squared += tau_partial_sum_squared
+            
+            i += 1.0
+
+        sigma_mean = sigma_sum / len(item)
+        sigma_var = sigma_total_sum_squared / len(item) - sigma_mean ** 2.0
         
-        tau_partial_sum_squared = sigma_tau ** 2.0
-        tau_total_sum_squared += tau_partial_sum_squared
+        sigma_std_dev = 0.0
+
+        if(abs(sigma_var) > 1e-9):
+            std_dev = sigma_var ** 0.5
+
+        sigma_rel_std_dev = sigma_std_dev / sigma_mean
         
-        i += 1.0
+        tau_mean = tau_sum/ len(item)
+        tau_var = tau_total_sum_squared / len(item) - tau_mean ** 2.0
+        
+        tau_std_dev = 0.0
 
-      sigma_mean = sigma_sum / len(item)
-      sigma_var = sigma_total_sum_squared / len(item) - sigma_mean ** 2.0
-      
-      sigma_std_dev = 0.0
+        if(abs(tau_var) > 1e-9):
+            tau_std_dev = tau_var ** 0.5
 
-      if(abs(sigma_var) > 1e-9):
-          std_dev = sigma_var ** 0.5
-
-      sigma_rel_std_dev = sigma_std_dev / sigma_mean
-      
-      tau_mean = tau_sum/ len(item)
-      tau_var = tau_total_sum_squared / len(item) - tau_mean ** 2.0
-      
-      tau_std_dev = 0.0
-
-      if(abs(tau_var) > 1e-9):
-          tau_std_dev = tau_var ** 0.5
-
-      tau_rel_std_dev = tau_std_dev / tau_mean
-      
-      self.sigma_mean_table[ii] = sigma_mean
-      self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
-      self.tau_mean_table[ii] = tau_mean   
-      self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
-      self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean*1e6)
-      ii+=1
+        tau_rel_std_dev = tau_std_dev / tau_mean
+        
+        self.sigma_mean_table[ii] = sigma_mean
+        self.sigma_rel_std_dev_table[ii] = sigma_rel_std_dev
+        self.tau_mean_table[ii] = tau_mean   
+        self.tau_rel_std_dev_table[ii] = tau_rel_std_dev
+        self.sigma_ratio_table[ii]=sigma_mean/(self.total_stress_mean*1e6)
+        ii+=1
       
     print(self.sigma_ratio_table)
     OrientationChart.close()
-    
-  #-------------------------------------------------------------------------------------#  
-    
+      
   def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
       for node in XLAT:
@@ -726,37 +700,35 @@ class MaterialTest:
 
           node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-  #-------------------------------------------------------------------------------------#  
-  
   def MeasureRadialStrain(self):
       
-    mean_radial_strain = 0.0
-    radial_strain = 0.0
-    weight = 0.0
+      mean_radial_strain = 0.0
+      radial_strain = 0.0
+      weight = 0.0
+      
+      for node in self.XLAT:
+        
+          r = node.GetSolutionStepValue(RADIUS)
+          x = node.X
+          z = node.Z
+        
+          x0 = node.X0
+          z0 = node.Z0
+        
+          dist_initial = math.sqrt(x0 * x0 + z0 * z0)
+          dist_now = math.sqrt(x * x + z * z)    
+          node_radial_strain = (dist_now - dist_initial) / dist_initial      
+          mean_radial_strain += node_radial_strain
+        
+          weight += 1.0
+      
+      radial_strain = mean_radial_strain/weight
+      
+      return radial_strain
     
-    for node in self.XLAT:
-      
-      r = node.GetSolutionStepValue(RADIUS)
-      x = node.X
-      z = node.Z
-      
-      x0 = node.X0
-      z0 = node.Z0
-      
-      dist_initial = math.sqrt(x0 * x0 + z0 * z0)
-      dist_now = math.sqrt(x * x + z * z)    
-      node_radial_strain = (dist_now - dist_initial) / dist_initial      
-      mean_radial_strain += node_radial_strain
-      
-      weight += 1.0
-    radial_strain = mean_radial_strain/weight
-    return radial_strain
-    
-    #-------------------------------------------------------------------------------------#  
-
   def PoissonMeasure(self):
+      print("Not Working now")
     
-    print("Not Working now")
     #left_nodes = list()
     #right_nodes = list()
 
