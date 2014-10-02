@@ -158,7 +158,7 @@ void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes);
-    for (int i=0; i<number_of_nodes; i++)
+    for (unsigned int i=0; i<number_of_nodes; i++)
     {
         rResult[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
     }
@@ -171,7 +171,7 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)
         ElementalDofList.resize(number_of_nodes);
-    for (int i=0; i<number_of_nodes; i++)
+    for (unsigned int i=0; i<number_of_nodes; i++)
     {
         ElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
     }
