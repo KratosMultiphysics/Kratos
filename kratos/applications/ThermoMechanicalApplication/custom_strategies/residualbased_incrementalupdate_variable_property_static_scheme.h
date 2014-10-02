@@ -198,7 +198,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin() + k;
             const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
-            const double dist = ind->FastGetSolutionStepValue(DISTANCE);
+            //const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
             /*double htc_var = ind->FastGetSolutionStepValue(rTransferCoef);
             double rho = rDensityVar_table.GetValue(unknown_val);
@@ -315,7 +315,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin() + k;
             const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
-            const double dist = ind->FastGetSolutionStepValue(DISTANCE);
+            //const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
             double specific_heat_var =C_table.GetValue(unknown_val);
             double htc_var = HTC_table.GetValue(unknown_val);
