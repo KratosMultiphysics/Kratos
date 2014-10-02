@@ -411,7 +411,7 @@ void SUPGConvDiffPhaseChange3D::ComputeEffectiveSpeficifHeat(array_1d<double,4>&
     {
         //follow the article DOI: 10.1002/fld.1484 by bazilevs and others
         const double& Z = residual;
-        const double Yinv = fabs(1.0/reference_temperature);
+        //const double Yinv = fabs(1.0/reference_temperature);
 
         //compute hdc_half
         array_1d<double,3> j = gradT / norm_gradT;
