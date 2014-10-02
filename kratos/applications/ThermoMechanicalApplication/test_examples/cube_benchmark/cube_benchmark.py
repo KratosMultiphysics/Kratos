@@ -45,29 +45,33 @@ class ProjectParameters:
 #
 #
 
+## Setting the path
 # Declaring Problem name and path
-kratos_path = "..\\..\\..\\..\\"
+import sys
+import os
 problem_name = "cube_benchmark"
-problem_path = "."
+current_directory=os.getcwd()
+problem_path = current_directory
+os.chdir("..\\..\\..\\..\\..")
+kratos_path = os.getcwd()
+os.chdir(current_directory)
+#os.chdir(current_directory)
+
 
 # including kratos path
-kratos_libs_path = kratos_path + '\\libs'  # kratos_root/libs
-kratos_applications_path    = kratos_path + '\\applications'  # kratos_root/applications
-kratos_benchmarking_path=kratos_path+'\\kratos\\benchmarking'
-import sys
+kratos_libs_path =os.path.join(kratos_path,'libs')  # kratos_root/libs
+kratos_applications_path = os.path.join(kratos_path,'applications')  #'\\applications'  # kratos_root/applications
+kratos_benchmarking_path=os.path.join(kratos_path,'kratos\\benchmarking') #'\\kratos\\benchmarking'
+kratos_kratos_path=os.path.join(kratos_path,'kratos') #'\\kratos\\benchmarking'
+
 sys.path.append(kratos_path)
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 sys.path.append(kratos_benchmarking_path)
+sys.path.append(kratos_kratos_path)
+sys.path.append(problem_path)
 
-# Verifying path
-print("Comprobacion de rutas:=============")
-print("kratos_path =" + kratos_path)
-print("kratos_applications_path =" + kratos_applications_path)
-print("kratos_libs_path =" + kratos_libs_path)
-print("problemname =" + problem_name)
-print("Benchmark path =" + kratos_benchmarking_path)
-print("=============Fin Comprobacion rutas")
+
 
 # from now on the order is not anymore crucial
 
