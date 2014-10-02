@@ -46,9 +46,9 @@ class ProjectParameters:
 #
 
 # Declaring Problem name and path
-kratos_path = "\\KratosMultiphysics"
+kratos_path = "..\\..\\..\\..\\"
 problem_name = "cube_benchmark"
-problem_path = kratos_path+"\\kratos\\applications\\ThermoMechanicalApplication\\test_examples\\cube_benchmark"
+problem_path = "."
 
 # including kratos path
 kratos_libs_path = kratos_path + '\\libs'  # kratos_root/libs
