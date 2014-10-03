@@ -230,7 +230,7 @@ public:
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
         bool ResidualIsUpdated = false;
-//        bool Satisfactory_Line_Search = false;
+        bool Satisfactory_Line_Search = false;
 
 
         //so = TSparseSpace::Dot(mDx,mb);
@@ -307,19 +307,20 @@ public:
             if (this->mApplyLineSearches == true)
             {
 
-//                Satisfactory_Line_Search = this->LineSearches(BaseType::GetModelPart(),
-//                                           pScheme,
-//                                           pBuilderAndSolver,
-//                                           rDofSet,
-//                                           X_old, Delta_p, mDx, mb, mA);
-                /*  if ( Satisfactory_Line_Search== true)
-                      {
-                            std::cout<<"***************************************************"<<std::endl;
-                            std::cout<<"******Line Searches Has Succecfuly Finished********"<<std::endl;
-                            std::cout<<"***************************************************"<<std::endl;
-                      }
+               Satisfactory_Line_Search = this->LineSearches(BaseType::GetModelPart(),
+                                          pScheme,
+                                          pBuilderAndSolver,
+                                          rDofSet,
+                                          X_old, Delta_p, mDx, mb, mA);
+               
+//                 if ( Satisfactory_Line_Search== true)
+//                       {
+//                             std::cout<<"***************************************************"<<std::endl;
+//                             std::cout<<"******Line Searches Has Succesfully Finished********"<<std::endl;
+//                             std::cout<<"***************************************************"<<std::endl;
+//                       }
 
-                 */
+                 
                 std::cout << "Line-Search Step Factor:" << this->meta << std::endl;
                 rDofSet = pBuilderAndSolver->GetDofSet();
                 this->SetDatabaseToValue(rDofSet, X_old);

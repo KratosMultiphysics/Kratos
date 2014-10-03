@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/pointlocation.h"
 #include "utilities/deflation_utils.h"
 #include "utilities/iso_printer.h"
-
+#include "utilities/activation_utilities.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -92,6 +92,8 @@ namespace Kratos
 		;
 
             class_<VariableUtils > ("VariableUtils", init<>())
+                    .def("SetVectorVar", &VariableUtils::SetVectorVar)
+                    .def("SetScalarVar", &VariableUtils::SetScalarVar)
                     .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
                     .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
                     .def("SelectNodeList", &VariableUtils::SelectNodeList)
@@ -254,6 +256,11 @@ namespace Kratos
                     .def("FindNodesInElement", &BinBasedNodesInElementLocator < 3 > ::FindNodesInElement)
                     .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
                     ;
+                    
+            class_< ActivationUtilities > ("ActivationUtilities", init< >())
+                    .def("ActivateElementsAndConditions", &ActivationUtilities::ActivateElementsAndConditions)
+                    ;
+                    
         }
 
     } // namespace Python.

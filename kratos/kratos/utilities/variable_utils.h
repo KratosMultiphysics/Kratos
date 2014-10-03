@@ -138,7 +138,41 @@ public:
     /*@} */
     /**@name Operations */
     /*@{ */
+    
+    //***********************************************************************
+    //***********************************************************************
+    void SetVectorVar(const Variable< array_1d<double, 3 > >& rVariable,
+                       const array_1d<double, 3 >& value,
+                       ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
 
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+        {
+            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+            noalias(i->FastGetSolutionStepValue(rVariable)) = value;
+        }
+        KRATOS_CATCH("")
+    }
+    
+    //***********************************************************************
+    //***********************************************************************
+    void SetScalarVar(const Variable<double  >& rVariable,
+                       const double& value,
+                       ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); k++)
+        {
+            ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+            i->FastGetSolutionStepValue(rVariable) = value;
+        }
+        KRATOS_CATCH("")
+    }
+    
     //***********************************************************************
     //***********************************************************************
 
