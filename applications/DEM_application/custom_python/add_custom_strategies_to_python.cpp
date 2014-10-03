@@ -144,9 +144,20 @@ namespace Kratos
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
           typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
           
+          class_< ExplicitSolverSettings, boost::noncopyable >
+          (
+            "ExplicitSolverSettings", init<>() )
+          .def_readwrite("r_model_part",&ExplicitSolverSettings::r_model_part)
+          .def_readwrite("contact_model_part",&ExplicitSolverSettings::contact_model_part)
+          .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
+          .def_readwrite("cluster_model_part",&ExplicitSolverSettings::cluster_model_part)
+          .def_readwrite("mapping_model_part",&ExplicitSolverSettings::mapping_model_part)
+          ;
+          
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+                  .def(init< ExplicitSolverSettings&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>() )
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("DoAllOperations", &ExplicitSolverStrategyType::DoAllOperations)
@@ -154,7 +165,7 @@ namespace Kratos
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
                   .def("PrepareContactElementsForPrinting", &ContinuumExplicitSolverStrategyType::PrepareContactElementsForPrinting)
