@@ -188,7 +188,6 @@ protected:
     double ComputeTau(const double h, const double k, const array_1d<double,3>& a);
 
     void ComputeEffectiveSpeficifHeat(array_1d<double,4>& c,
-                                      const array_1d<double,4>& H,
                                       const array_1d<double,4>& temperatures,
                                       const double fluid_T,
                                       const double solid_T,

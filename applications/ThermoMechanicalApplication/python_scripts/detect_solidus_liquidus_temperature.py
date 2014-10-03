@@ -20,7 +20,11 @@ def DetectSolidusLiquidusTemperature(model_part):
             liquidustemp=temp
         if SF>=1.0:
             solidustemp=temp
-            temp+=dtemp
+        temp+=dtemp
+    print("solidustemp",solidustemp)
+    print("liquidustemp",liquidustemp)
+    
+    
     model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE, liquidustemp)#ProjectParameters.FLUID_TEMPERATURE)
     model_part.ProcessInfo.SetValue(SOLID_TEMPERATURE, solidustemp)#ProjectParameters.SOLID_TEMPERATURE)
 
