@@ -51,6 +51,7 @@ namespace Kratos
       ContinuumExplicitSolverStrategy(
                              ModelPart& model_part,
                              ModelPart& fem_model_part,
+                             ModelPart& cluster_model_part,
                              ModelPart& contacts_model_part,
                              const double max_delta_time,
                              const double n_step_search,
@@ -64,7 +65,7 @@ namespace Kratos
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
-      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
+      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, cluster_model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
       {
 
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
@@ -200,6 +201,21 @@ namespace Kratos
           
           this->ContactInitializeSolutionStep();
           
+          
+            // 4. Search Neighbours /////////////////////////////////                   
+          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
+          {            
+            for (int i = 0; i < this->GetNumberOfThreads(); i++)
+            {
+              if(rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][i]==1)
+              {
+                rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
+                std::cout << "From now on, the search is activated because some failure occurred " <<std::endl;   
+                break;
+                
+               }
+             }             
+          }
 
           // 2. Calculate forces   /////////////////////////////////            
           BaseType::GetForce();
@@ -215,20 +231,7 @@ namespace Kratos
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
            
           
-          // 4. Search Neighbours /////////////////////////////////                   
-          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
-          {            
-            for (int i = 0; i < this->GetNumberOfThreads(); i++)
-            {
-              if(rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][i]==1)
-              {
-                rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
-                std::cout << "From now on, the search is activated because some failure occurred " <<std::endl;   
-                break;
-                
-               }
-             }             
-          }
+        
          
           //Synch this var.
           r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
