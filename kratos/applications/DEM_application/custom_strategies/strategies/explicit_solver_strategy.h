@@ -81,6 +81,18 @@ namespace Kratos
   ///@}
   ///@name Kratos Classes
   ///@{
+    
+  class ExplicitSolverSettings {
+  public:
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverSettings);
+    ExplicitSolverSettings(){}
+    ~ExplicitSolverSettings(){}
+        ModelPart::Pointer r_model_part;
+        ModelPart::Pointer contact_model_part;
+        ModelPart::Pointer fem_model_part;
+        ModelPart::Pointer cluster_model_part;
+        ModelPart::Pointer mapping_model_part;
+      };
 
   /*bool compare_ids(const Element::WeakPointer& i, const Element::WeakPointer& j) {
     
@@ -135,16 +147,74 @@ namespace Kratos
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
+      
+              
+
 
       ///@}
       ///@name Life Cycle
       ///@{
 
+
       /// Default constructor.
       ExplicitSolverStrategy(){}
+      
+      ExplicitSolverStrategy(ExplicitSolverSettings& settings,
+                             const double max_delta_time,
+                             const double n_step_search,
+                             const double safety_factor,
+                             const bool move_mesh_flag,
+                             const int delta_option,
+                             const double search_tolerance,
+                             const double coordination_number,
+                             typename ParticleCreatorDestructor::Pointer p_creator_destructor,
+                             typename IntegrationScheme::Pointer pScheme,
+                             typename SpatialSearch::Pointer pSpSearch)
+      :
+      BaseType( *(settings.r_model_part),move_mesh_flag)
+      {
+
+          mElementsAreInitialized        = false;
+          mInitializeWasPerformed        = false;
+          mDeltaOption                   = delta_option;
+          mSearchTolerance               = search_tolerance;
+          mCoordinationNumber            = coordination_number;
+          mpParticleCreatorDestructor    = p_creator_destructor;
+          mpScheme                       = pScheme;
+          mpSpSearch                     = pSpSearch;
+          mMaxTimeStep                   = max_delta_time;
+          mNStepSearch                   = n_step_search;
+          mSafetyFactor                  = safety_factor;
+          mNumberOfElementsOldRadiusList = 0;
+          
+          
+          mpDem_model_part = &(*(settings.r_model_part));
+          if ( mpDem_model_part == NULL )
+            KRATOS_ERROR(std::runtime_error,"Undefined settings.r_model_part in ExplicitSolverStrategy constructor","")
+            
+          mpContact_model_part            = &(*(settings.contact_model_part));
+           if ( mpContact_model_part == NULL )
+            KRATOS_ERROR(std::runtime_error,"Undefined settings.contact_model_part in ExplicitSolverStrategy constructor","")
+          
+          mpFem_model_part                = &(*(settings.fem_model_part));
+           if ( mpFem_model_part == NULL )
+            KRATOS_ERROR(std::runtime_error,"Undefined settings.fem_model_part in ExplicitSolverStrategy constructor","")
+         
+         mpCluster_model_part              = &(*(settings.cluster_model_part));
+           if ( mpCluster_model_part == NULL )
+            KRATOS_ERROR(std::runtime_error,"Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor","")
+            
+          mpMapping_model_part              = &(*(settings.mapping_model_part));
+           if ( mpMapping_model_part == NULL )
+            KRATOS_ERROR(std::runtime_error,"Undefined settings.mapping_model_part in ExplicitSolverStrategy constructor","")
+            
+
+        
+      }
 
       ExplicitSolverStrategy(ModelPart& r_model_part,
-                         ModelPart& fem_model_part,
+                             ModelPart& fem_model_part,
+                             ModelPart& cluster_model_part,
                              const double max_delta_time,
                              const double n_step_search,
                              const double safety_factor,
@@ -173,6 +243,9 @@ namespace Kratos
           
           mpDem_model_part               = &r_model_part;
           mpFem_model_part               = &fem_model_part;
+         
+          mpCluster_model_part           = &cluster_model_part;
+         /* mpMapping_model_part           = &mapping_model_part;*/
           
       }
 
@@ -182,6 +255,8 @@ namespace Kratos
           Timer::SetOuputFile("TimesPartialRelease");
           Timer::PrintTimingInformation();
       }            
+      
+      
       
       
       void CreatePropertiesProxies(){
@@ -276,6 +351,10 @@ namespace Kratos
           
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
           
+          
+          ClusterInitialize();
+          
+          
           // Omp initializations
           GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
           mNeighbourCounter.resize(this->GetNumberOfThreads());
@@ -335,6 +414,43 @@ namespace Kratos
       KRATOS_CATCH("")
       }// Initialize()
 
+      
+      
+      virtual void ClusterInitialize()
+      {
+         KRATOS_TRY
+
+/*
+        ElementsArrayType& pElements           = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();    
+        
+ 
+        
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+        #pragma omp parallel for 
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+
+                (it)->Initialize();
+
+            }
+
+        }
+
+        
+        */
+        KRATOS_CATCH("")
+        
+        
+      }
+      
+      
+      
+      
+      
       virtual double Solve()
       {
           KRATOS_TRY
@@ -751,16 +867,16 @@ namespace Kratos
               const unsigned int& dim = geom.WorkingSpaceDimension();
               for (unsigned int i = 0; i <geom.size(); i++)
               {
-                  index = i*dim;//*2;
+                  index = i*dim;
                   array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);//TOTAL_FORCES
-                 // array_1d<double,3>& node_elastic_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);
+
                   
                   for(unsigned int kk=0; kk<dim; kk++)
                   {
                       geom(i)->SetLock();
 
                       node_rhs[kk] = node_rhs[kk] + rhs_cond[index+kk];
-                      //node_elastic_rhs[kk] = node_elastic_rhs[kk] + rhs_cond[index+kk+3];
+
                       geom(i)->UnSetLock();
                   }
                   
@@ -1388,6 +1504,9 @@ namespace Kratos
     
     ModelPart&                                   GetBallsModelPart(){return(*mpDem_model_part);}
     ModelPart&                                   GetFemModelPart(){return(*mpFem_model_part);}
+    ModelPart&                                   GetContactModelPart(){return(*mpContact_model_part);}
+    ModelPart&                                   GetClusterModelPart(){return(*mpCluster_model_part);}
+    ModelPart&                                   GetMappingModelPart(){return(*mpMapping_model_part);}
     
     VectorResultElementsContainerType&           GetResults(){return(mResults);}
     VectorDistanceType&                          GetResultsDistances(){return(mResultsDistances);}
@@ -1463,6 +1582,9 @@ namespace Kratos
     vector<unsigned int>                 mConditionPartition;
     ModelPart                            *mpFem_model_part;
     ModelPart                            *mpDem_model_part;
+    ModelPart                            *mpContact_model_part;
+    ModelPart                            *mpCluster_model_part;
+    ModelPart                            *mpMapping_model_part;
     
   }; // Class ExplicitSolverStrategy
 
