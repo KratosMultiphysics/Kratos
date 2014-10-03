@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/translation_operation.h"
 #include "processes/rotation_operation.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
+#include "processes/compute_bdfcoefficients_process.h"
 #include "includes/node.h"
 
 
@@ -149,6 +150,10 @@ void  AddProcessesToPython()
 
     class_<TetrahedralMeshOrientationCheck, bases<Process>, boost::noncopyable >("TetrahedralMeshOrientationCheck",
             init<ModelPart&, bool>())
+    ;
+    
+    class_<ComputeBDFCoefficientsProcess, bases<Process>, boost::noncopyable >("ComputeBDFCoefficientsProcess",
+            init<ModelPart&, const unsigned int>())
     ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
