@@ -17,9 +17,11 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Particle_Contact_Element.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidFace.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/RigidEdge.cpp
                 ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/dem_wall.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp 
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp 
 )
