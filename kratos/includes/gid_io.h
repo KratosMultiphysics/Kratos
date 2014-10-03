@@ -241,6 +241,11 @@ public:
         mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Line3D3,
                                           GiD_Linear, "Kratos_Line3D3_Mesh" ) );
+	    mGidMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Point3D,
+                                          GiD_Point, "Kratos_Point3D_Mesh" ) );
+
+
     }//SetUpMeshContainers
 
     /**
@@ -270,7 +275,9 @@ public:
         //case Linear with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin1_element_gp",
                                             GeometryData::Kratos_Linear, GiD_Linear, 1, gp_indices ) );
-
+	    //case Point with 1 gauss point
+        mGidGaussPointContainers.push_back( TGaussPointContainer( "point1_element_gp",
+                                            GeometryData::Kratos_Point, GiD_Point, 1, gp_indices ) );
 
 
 
