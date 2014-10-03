@@ -349,7 +349,7 @@ class MonolithicSolver:
                 self.model_part, net_volume, self.max_edge_size)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
-        #BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,10000.0)
+        BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,100.0)
         #self.IncreaseCSmagToSOlidify(50.0)
         Timer.Stop("ApplyFluidProperties")
         # Recompute normals if necessary
