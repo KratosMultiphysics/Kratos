@@ -284,7 +284,7 @@ namespace Kratos
 
 					 double& temp = i_node->FastGetSolutionStepValue(TEMPERATURES);
 					 temp = i_node->FastGetSolutionStepValue(TEMPERATURE);
-					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
+// 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
 
 					 if(temp<min_wet_temp)
 							 temp = min_wet_temp;
@@ -305,7 +305,7 @@ namespace Kratos
 					// i_node->FastGetSolutionStepValue(TEMPERATURES) = 0.95*min_wet_temp;
 					 i_node->FastGetSolutionStepValue(TEMPERATURES) = 0.998*min_wet_temp;
 					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
-					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
+// 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
 				 }
 
 			  }
