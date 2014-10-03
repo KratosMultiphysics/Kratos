@@ -104,36 +104,51 @@ void EnvironmentContact3D::CalculateRightHandSide(VectorType& rRightHandSideVect
 //************************************************************************************
 void EnvironmentContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-
-    unsigned int nodes_number = GetGeometry().PointsNumber();
+    //stage = 0 is a pure convection step - this condition does nothing
+    //stage = 1 is a diffusion step
+    const unsigned int stage = rCurrentProcessInfo[FRACTIONAL_STEP];
     
-    if(rLeftHandSideMatrix.size1() != nodes_number)
-        rLeftHandSideMatrix.resize(nodes_number,nodes_number,false);
-    
-    if(rRightHandSideVector.size() != nodes_number)
-        rRightHandSideVector.resize(nodes_number,false);
-
-    noalias(rRightHandSideVector) = ZeroVector(nodes_number);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(nodes_number, nodes_number);
-    
-    //calculate area
-    const double area = GetGeometry().Area();
-    const double nodal_area = area/3.0;
-
-    //take thermal properties
-    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-    const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
-    const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-    
-    const double ambient_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
-    
-    //loop over integration poitns. Nodeal integration is assumed!!
-    for(unsigned int igauss = 0; igauss<3; igauss++)
+    if(stage == 0) //pure convection step
     {
-        const double HTC_Alpha = GetGeometry()[igauss].FastGetSolutionStepValue(rTransferCoefficientVar);
-        rLeftHandSideMatrix(igauss,igauss) += HTC_Alpha * nodal_area;  
-        rRightHandSideVector[igauss] = HTC_Alpha *  nodal_area * ( ambient_T - GetGeometry()[igauss].FastGetSolutionStepValue(rUnknownVar) );
-        
+            if(rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0,0,false);
+    
+        if(rRightHandSideVector.size() != 0)
+            rRightHandSideVector.resize(0,false);
+
+    }
+    else if(stage == 1) //diffusion step
+    {
+        unsigned int nodes_number = GetGeometry().PointsNumber();
+
+        if(rLeftHandSideMatrix.size1() != nodes_number)
+            rLeftHandSideMatrix.resize(nodes_number,nodes_number,false);
+
+        if(rRightHandSideVector.size() != nodes_number)
+            rRightHandSideVector.resize(nodes_number,false);
+
+        noalias(rRightHandSideVector) = ZeroVector(nodes_number);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(nodes_number, nodes_number);
+
+        //calculate area
+        const double area = GetGeometry().Area();
+        const double nodal_area = area/3.0;
+
+        //take thermal properties
+        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+        const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
+        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+        const double ambient_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
+
+        //loop over integration poitns. Nodeal integration is assumed!!
+        for(unsigned int igauss = 0; igauss<3; igauss++)
+        {
+            const double HTC_Alpha = GetGeometry()[igauss].FastGetSolutionStepValue(rTransferCoefficientVar);
+            rLeftHandSideMatrix(igauss,igauss) += HTC_Alpha * nodal_area;  
+            rRightHandSideVector[igauss] = HTC_Alpha *  nodal_area * ( ambient_T - GetGeometry()[igauss].FastGetSolutionStepValue(rUnknownVar) );
+
+        }
     }
 }
 
@@ -161,13 +176,24 @@ void EnvironmentContact3D::EquationIdVector(EquationIdVectorType& rResult, Proce
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-    if(rResult.size() != number_of_nodes)
-        rResult.resize(number_of_nodes,false);
-
-    for (unsigned int i=0; i<number_of_nodes; i++)
+        
+        //stage = 0 is a pure convection step - this condition does nothing
+    //stage = 1 is a diffusion step
+    const unsigned int stage = CurrentProcessInfo[FRACTIONAL_STEP];
+    
+    if(stage == 0) //pure convection step
     {
-        rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
+        if(rResult.size() != 0)
+            rResult.resize(0,false);
+    }
+    else if(stage == 1) //diffusion step
+    {
+        if(rResult.size() != number_of_nodes)
+            rResult.resize(number_of_nodes,false);
+        for (unsigned int i=0; i<number_of_nodes; i++)
+        {
+            rResult[i] = GetGeometry()[i].GetDof(rUnknownVar).EquationId();
+        }
     }
     KRATOS_CATCH("")
 
@@ -178,17 +204,30 @@ void EnvironmentContact3D::EquationIdVector(EquationIdVectorType& rResult, Proce
 void EnvironmentContact3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
+ 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-    if(ElementalDofList.size() != number_of_nodes)
-        ElementalDofList.resize(number_of_nodes);
-
-    for (unsigned int i=0; i<number_of_nodes; i++)
+        
+        //stage = 0 is a pure convection step - this condition does nothing
+    //stage = 1 is a diffusion step
+    const unsigned int stage = CurrentProcessInfo[FRACTIONAL_STEP];
+    
+    if(stage == 0) //pure convection step
     {
-        ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
+        if(ElementalDofList.size() != 0)
+            ElementalDofList.resize(0);
+    }
+    else if(stage == 1) //diffusion step
+    {
+        if(ElementalDofList.size() != number_of_nodes)
+            ElementalDofList.resize(number_of_nodes);
 
+        for (unsigned int i=0; i<number_of_nodes; i++)
+        {
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
+
+        }
     }
     KRATOS_CATCH("");
 }

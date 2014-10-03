@@ -69,7 +69,7 @@ class Solver:
         
         ##utility to effective store a copy of the variables
         self.variable_utils = VariableUtils()
-        #self.activation_utils = ActivationUtilities()
+        self.activation_utils = ActivationUtilities()
         
         
         ##strategy to be used in step0 - pure convection step - a non-symmetric linear solver is required
@@ -141,12 +141,12 @@ class Solver:
         
         #solve stage0 - pure convection step
         if(self.skip_stage0 == False):
-            for elem in self.model_part.Elements:
-                elem.Set(ACTIVE,True)
-            for cond in self.model_part.Conditions:
-                cond.Set(ACTIVE,True)
+            #for elem in self.model_part.Elements:
+                #elem.Set(ACTIVE,True)
+            #for cond in self.model_part.Conditions:
+                #cond.Set(ACTIVE,True)
             print("************* stage 0 *******************")
-            #self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 1e6, True) 
+            self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 1e6, True) 
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,0)
 
             #for elem in self.model_part.Elements:
@@ -162,9 +162,14 @@ class Solver:
             
             #store "unknown" in the database without history
             self.variable_utils.SaveScalarVar(TEMPERATURE,TEMPERATURE,self.model_part.Nodes)
-            #self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 0.0, True) 
+            self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 0.0, True) 
+            
+            
             
             #for elem in self.model_part.Elements:
+                #if(elem.Is(ACTIVE) == True):
+                    #err
+            #for cond in self.model_part.Conditions:
                 #if(elem.Is(ACTIVE) == True):
                     #err
                 ##for node in elem.GetNodes():
@@ -177,21 +182,61 @@ class Solver:
                     #if(node.GetSolutionStepValue(DISTANCE) > 0.0 and elem.Is(ACTIVE) == True): 
                         #err
                         
-             
-            for elem in self.model_part.Elements:
-                elem.Set(ACTIVE,True)
-                for node in elem.GetNodes():
-                    if(node.GetSolutionStepValue(DISTANCE) > 0.0):                   
-                        elem.Set(ACTIVE,False)
+            #unactive_elements = []
+            #for elem in self.model_part.Elements:
+                #tmp = 0
+                #for node in elem.GetNodes():                   
+                    #if(node.GetSolutionStepValue(DISTANCE) > 0.0):  
+                        #tmp = tmp + 1
+                #if(tmp == 0):
+                    #if( elem.Is(ACTIVE) == False):
+                        #expect_true
+                #elif(tmp >0) :
+                    #if( elem.Is(ACTIVE) == True):
+                        #expect_false                
+                        
+            #count active
+            #element_counter = 0
+            #for elem in self.model_part.Elements:
+                #if(elem.Is(ACTIVE)):
+                    #element_counter += 1
+            #condition_counter = 0
+            #for cond in self.model_part.Conditions:
+                #if(cond.Is(ACTIVE)):
+                    #condition_counter += 1
+            #print("element counter",element_counter)
+            #print("condition counter",condition_counter)
+            
+            #for elem in self.model_part.Elements:
+                #elem.Set(ACTIVE,False)
+                #for node in elem.GetNodes():
+                    #if(node.GetSolutionStepValue(DISTANCE) < 0.0):                   
+                        #elem.Set(ACTIVE,True)
+                        #break
                         
                     
                     
-            for cond in self.model_part.Conditions:
-                elem.Set(ACTIVE,True)
-                for node in cond.GetNodes():
-                    if(node.GetSolutionStepValue(DISTANCE) > 0.0):                   
-                        cond.Set(ACTIVE,False)
+            #for cond in self.model_part.Conditions:
+                #elem.Set(ACTIVE,False)
+                #for node in cond.GetNodes():
+                    #if(node.GetSolutionStepValue(DISTANCE) < 0.0):                   
+                        #cond.Set(ACTIVE,True)
+                        #break
 
+
+
+
+            ##count active
+            #element_counter = 0
+            #for elem in self.model_part.Elements:
+                #if(elem.Is(ACTIVE)):
+                    #element_counter += 1
+            #condition_counter = 0
+            #for cond in self.model_part.Conditions:
+                #if(cond.Is(ACTIVE)):
+                    #condition_counter += 1
+            #print("element counter",element_counter)
+            #print("condition counter",condition_counter)
             
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,1)
             self.stage1_solver.Solve()        
