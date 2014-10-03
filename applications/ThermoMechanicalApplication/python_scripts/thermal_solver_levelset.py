@@ -108,7 +108,7 @@ class Solver:
         self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
         self.amp = 1.618         # maximum amplification factor
         self.etmxa = 3.0           # maximum allowed step length
-        self.etmna = 0.1           # minimum allowed step length
+        self.etmna = 0.05           # minimum allowed step length
         self.toler = 1.0E-9
         self.norm = 1.0E-6
         self.ApplyLineSearches = True
@@ -121,14 +121,8 @@ class Solver:
         else:
             print("duplicate_and_create_conditions is not implemented for 3D")
 
-        #(self.neigh_finder).ClearNeighbours();
-        #(self.neigh_finder).Execute();
-
-        #(self.elem_neighbor_finder).ClearNeighbours()
-        #(self.elem_neighbor_finder).Execute()
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, self.settings)
 
-        # self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
 
         #self.solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
@@ -139,31 +133,8 @@ class Solver:
                                                                     #self.ApplyLineSearches)
 
         (self.solver).SetEchoLevel(self.echo_level)
-        #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
-
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
-        # if (self.domain_size == 2):
-        # self.normal_tools.CalculateBodyNormals(self.model_part,2);
-        # else:
-        # self.normal_tools.CalculateBodyNormals(self.model_part,3);
-
-        # self.ApplyFluidProperties()
-# print "Initialization monolithic solver finished"
-    #
-    # def ApplyFluidProperties(self):
-        # apply density
-        # for node in self.model_part.Nodes:
-        # dist = node.GetSolutionStepValue(DISTANCE)
-        # if(dist < 0):
-                # node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_mat)
-                # node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_mat)
-                # node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_mat)
-                # node.SetSolutionStepValue(TEMPERATURE,0,melting_temp)
-        # else:
-                # node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_empty)
-                # node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_empty)
-                # node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_empty)
 
     #
     def Solve(self):
