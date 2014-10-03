@@ -22,9 +22,10 @@ import string
 import types
 import smtplib
 import math
+import platform
 
 Header = "KRATOS_BENCHMARK"
-
+#get the platform used and set the pyhton name 
 
 def TypeToString(Var):
     t = type(Var)
@@ -326,40 +327,49 @@ def Output(Var, Label="", AbsErr=None, RelErr=None):
         sys.stdout.flush()
         
 def BuildReferenceData(ExamplePath, ReferenceBenchmarkFile):
-    if sys.version_info >= (3, 0):
-        os.system(
-            "python3 " +
-            ExamplePath +
-            " -u --benchmarking --build-reference | grep \"" +
-            Header +
-            "\" > " +
-            ReferenceBenchmarkFile)
+    if platform.system()=="Windows":
+        os.system("python " + ExamplePath + 
+        " -u --benchmarking --build-reference | find \"" +
+        Header + "\" > " +ReferenceBenchmarkFile)
     else:
-        os.system(
-            "python -3 " +
-            ExamplePath +
-            " --benchmarking --build-reference | grep \"" +
-            Header +
-            "\" > " +
-            ReferenceBenchmarkFile)
+        print("BuildReferenceData")        
+        if sys.version_info >= (3, 0):
+            os.system(
+                "python3 " +
+                ExamplePath +
+                " -u --benchmarking --build-reference | grep \"" +
+                Header + "\" > " +
+                ReferenceBenchmarkFile)
+        else:
+            os.system(
+                "python -3 " +
+                ExamplePath +
+                " --benchmarking --build-reference | grep \"" +
+                Header + "\" > " +
+                ReferenceBenchmarkFile)
 
 
 def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
-    if sys.version_info >= (3, 0):
-        os.system(
-            "python3 " +
-            ExamplePath +
-            " -u --benchmarking | grep \"" +
-            Header +
-            "\" > BenchTemp.txt")
+    if platform.system()=="Windows":
+        os.system("python " + ExamplePath +
+                " -u --benchmarking | find \"" +
+                Header +
+                "\" > BenchTemp.txt")
     else:
-        os.system(
-            "python -3 " +
-            ExamplePath +
-            " --benchmarking | grep \"" +
-            Header +
-            "\" > BenchTemp.txt")
-
+        if sys.version_info >= (3, 0):
+            os.system(
+                "python 3" +
+                ExamplePath +
+                " -u --benchmarking | grep \"" +
+                Header +
+                "\" > BenchTemp.txt")
+        else:
+            os.system(
+                "python -3 " +
+                ExamplePath +
+                " --benchmarking | grep \"" +
+                Header +
+                "\" > BenchTemp.txt")
     f = open("BenchTemp.txt", "r")
     t = f.readlines()
     f.close()
