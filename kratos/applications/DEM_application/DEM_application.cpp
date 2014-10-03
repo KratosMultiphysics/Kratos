@@ -320,14 +320,18 @@ namespace Kratos
   //For DEM_FEM element
   KRATOS_CREATE_VARIABLE(double, LOCAL_DAMP_RATIO)
 
+  //For DEM_FEM condition
+//  KRATOS_CREATE_VARIABLE( Vector, RESIDUAL_VECTOR )
+//  KRATOS_CREATE_VARIABLE( Vector, EXTERNAL_FORCES_VECTOR )
+//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_RESIDUAL )
+//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
+
   // DUMMY VARIABLES FOR CALCULATE
   KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA)
   KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
   KRATOS_CREATE_VARIABLE(double, CALCULATE_SET_INITIAL_DEM_CONTACTS)
   KRATOS_CREATE_VARIABLE(double, CALCULATE_SET_INITIAL_FEM_CONTACTS)
   
-  
-
     ///Cfeng,131013,RigidFace Movement
   
   KRATOS_CREATE_VARIABLE(double, WALL_FRICTION)
@@ -382,7 +386,9 @@ namespace Kratos
   mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
   mRigidFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
   mRigidFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-  mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+  mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+  mCluster3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mMapCon3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
   {}
     
 
@@ -686,7 +692,17 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PRINT_EXPORT_ID)
     KRATOS_REGISTER_VARIABLE(PRINT_SKIN_SPHERE)
     KRATOS_REGISTER_VARIABLE(PRINT_GROUP_ID)
+
+    //For DEM_FEM Element
     KRATOS_REGISTER_VARIABLE(LOCAL_DAMP_RATIO)
+
+    //For DEM_FEM Condition
+//    KRATOS_REGISTER_VARIABLE( RESIDUAL_VECTOR )
+//    KRATOS_REGISTER_VARIABLE( EXTERNAL_FORCES_VECTOR )
+//    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( FORCE_RESIDUAL )
+//    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
+
+
     // DUMMY VARIABLES FOR CALCULATE
     KRATOS_REGISTER_VARIABLE(CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA)
     KRATOS_REGISTER_VARIABLE(CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
@@ -733,6 +749,10 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION( "RigidFace3D4N", mRigidFace3D4N )
     KRATOS_REGISTER_CONDITION( "RigidEdge3D", mRigidEdge3D2N )
     KRATOS_REGISTER_CONDITION( "RigidEdge3D2N", mRigidEdge3D2N )
+
+    KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
+    
+    KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
 
     // SERIALIZER
