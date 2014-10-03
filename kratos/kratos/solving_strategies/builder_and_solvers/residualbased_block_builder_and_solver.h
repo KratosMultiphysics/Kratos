@@ -43,7 +43,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *   Revision:            $Revision: 1.10 $
  *
  * ***********************************************************/
- 
+
 
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 
 // #include <iostream>
 // #include <fstream>
@@ -266,25 +267,25 @@ public:
 
 
 
-        
+
 //         std::size_t* Arow_indices = A.index1_data().begin();
 //         std::size_t* Acol_indices = A.index2_data().begin();
-// 
+//
 //         std::ofstream row_file;
 //         row_file.open ("rows.txt");
 //         for (int k = 0; k < static_cast<int> (A.size1() ); k++)
 //             row_file << Arow_indices[k] << std::endl;
 //         row_file.close();
-//         
+//
 //         std::ofstream col_file;
 //         col_file.open ("cols.txt");
 //         for (int k = 0; k < static_cast<int>(Arow_indices[A.size1()]); k++)
 //             col_file << Acol_indices[k] << std::endl;
 //         col_file.close();
-//   
+//
 //   std::ofstream equation_ids;
 //   equation_ids.open ("equation_ids.txt");
-  
+
         //creating an array of lock variables of the size of the system matrix
         std::vector< omp_lock_t > lock_array(A.size1());
 
@@ -324,27 +325,24 @@ public:
             for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
 
-                //calculate elemental contribution
-                pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-				
-// for(unsigned int kk = 0; kk<EquationId.size(); kk++)
-// 	equation_ids << EquationId[kk] << " ";
-// equation_ids << std::endl;
-                //assemble the elemental contribution
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (*it)->IsDefined(ACTIVE) )
+                    element_is_active = (*it)->Is(ACTIVE);
+                
+                if(element_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                // clean local elemental memory
-                pScheme->CleanMemory(*it);
+                    //assemble the elemental contribution
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 
-                //					#pragma omp critical
-                //					{
-                //						//assemble the elemental contribution
-                //						AssembleLHS(A,LHS_Contribution,EquationId);
-                //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //
-                //						// clean local elemental memory
-                //						pScheme->CleanMemory(*it);
-                //					}
+                    // clean local elemental memory
+                    pScheme->CleanMemory(*it);
+                }
+
             }
         }
 
@@ -368,18 +366,23 @@ public:
             // assemble all elements
             for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
-                //calculate elemental contribution
-                pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool condition_is_active = true;
+                if( (*it)->IsDefined(ACTIVE) )
+                    condition_is_active = (*it)->Is(ACTIVE);
 
-                //assemble the elemental contribution
-                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+                if(condition_is_active)
+                {
+                    //calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                //                                        #pragma omp critical
-                //					{
-                //						//assemble the elemental contribution
-                //						AssembleLHS(A,LHS_Contribution,EquationId);
-                //						AssembleRHS(b,RHS_Contribution,EquationId);
-                //					}
+                    //assemble the elemental contribution
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
+
+                    // clean local elemental memory
+//                    pScheme->CleanMemory(*it);
+                }
             }
         }
 
@@ -397,7 +400,7 @@ public:
             KRATOS_WATCH("finished parallel building");
         }
 
-		
+
         //                        //ensure that all the threads are syncronized here
         //                        #pragma omp barrier
 #endif
@@ -423,7 +426,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
- 
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
@@ -480,7 +483,7 @@ public:
 
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
- 
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
@@ -604,8 +607,6 @@ public:
     {
         KRATOS_TRY
 
-        // 			boost::timer building_time;
-
         Timer::Start("Build");
 
         Build(pScheme, r_model_part, A, b);
@@ -613,14 +614,6 @@ public:
         Timer::Stop("Build");
 
 
-        // 			if(this->GetEchoLevel()>0)
-        // 			{
-        // 				std::cout << "Building Time : " << building_time.elapsed() << std::endl;
-        // 			}
-
-        //			ApplyPointLoads(pScheme,r_model_part,b);
-
-        //does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
         if (this->GetEchoLevel() == 3)
@@ -631,13 +624,13 @@ public:
             std::cout << "RHS vector = " << b << std::endl;
         }
 
-       double start_solve = OpenMPUtils::GetCurrentTime();
+        double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
         Timer::Stop("Solve");
-	double stop_solve = OpenMPUtils::GetCurrentTime();
+        double stop_solve = OpenMPUtils::GetCurrentTime();
         if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "system solve time: " << stop_solve - start_solve << std::endl;
 
@@ -752,31 +745,14 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
             // gets list of Dof involved on every element
-            //aaa = GetTickCount();
             pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
-            //bbb += GetTickCount() - aaa;
-            /*KRATOS_WATCH((*it)->Id());
-            std::cout << "node ids" << std::endl;
-            for(unsigned int i=0; i<((*it)->GetGeometry()).size(); i++)
-                    std::cout << ((*it)->GetGeometry())[i].Id() << " ";
-            std::cout << std::endl;
-            for(unsigned int i=0; i<ElementalDofList.size(); i++)
-                    std::cout << (ElementalDofList[i]->Id()) << " ";
-            std::cout << std::endl;*/
-
-            //KRATOS_WATCH(ElementalDofList);
 
             //ccc = GetTickCount();
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
             {
                 Doftemp.push_back(*i);
-                //mDofSet.push_back(*i);
             }
-            //ddd += GetTickCount() - ccc;
         }
-
-        //std::cout << "searching " << bbb << std::endl;
-        //std::cout << "inserting " << ddd << std::endl;
 
         //taking in account conditions
         ConditionsArrayType& pConditions = r_model_part.Conditions();
@@ -785,29 +761,15 @@ public:
             // gets list of Dof involved on every element
             pScheme->GetConditionDofList(*it, ElementalDofList, CurrentProcessInfo);
 
-            //ccc = GetTickCount();
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
             {
-                //mDofSet.push_back(*i);
                 Doftemp.push_back(*i);
             }
-            //ddd += GetTickCount() - ccc;
         }
-        //std::cout << "searching " << bbb << std::endl;
-        //std::cout << "inserting " << ddd << std::endl;
-        /*for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
-        {
-                KRATOS_WATCH(*dof_iterator);
-        }
-        std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
-         */
-        //ccc = GetTickCount();
-        Doftemp.Unique();
-        //std::cout << "DofTemp after Unique" << Doftemp.size() << std::endl;
-        BaseType::mDofSet = Doftemp;
 
-        //ddd = GetTickCount() - ccc;
-        //std::cout << "Unique " << ddd << std::endl;
+
+        Doftemp.Unique();
+        BaseType::mDofSet = Doftemp;
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size() == 0)
@@ -833,7 +795,7 @@ public:
         int free_id = 0;
 
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-                dof_iterator->SetEquationId(free_id++);
+            dof_iterator->SetEquationId(free_id++);
 
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
 
@@ -951,12 +913,12 @@ public:
             if ((*it2)->IsFixed())
             {
                 i = (*it2)->EquationId();
-                
-                 (*it2)->GetSolutionStepReactionValue() = b[i];
+
+                (*it2)->GetSolutionStepReactionValue() = b[i];
             }
         }
-		
-	//KRATOS_WATCH(__LINE__)
+
+        //KRATOS_WATCH(__LINE__)
     }
 
     //**************************************************************************
@@ -969,16 +931,39 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
-		vector<unsigned int> scaling_factors (A.size1());
-		
-		int i=0;
-		for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-			if(dof_iterator->IsFixed()) scaling_factors[i++] = 0;
-			else scaling_factors[i++] = 1;
-		
+        vector<unsigned int> scaling_factors (A.size1());
+
+        int i=0;
+        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+            if(dof_iterator->IsFixed()) scaling_factors[i++] = 0;
+            else scaling_factors[i++] = 1;
+
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();
         std::size_t* Acol_indices = A.index2_data().begin();
+        
+                //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        #pragma omp parallel for
+        for (int k = 0; k < static_cast<int> (A.size1() ); k++)
+        {
+            std::size_t col_begin = Arow_indices[k];
+            std::size_t col_end = Arow_indices[k+1];
+            bool empty = true;
+            for (std::size_t j=col_begin; j<col_end; j++)
+            {
+                if(Avalues[j] != 0.0)
+                {
+                    empty = false;
+                    break;
+                }
+            }
+            
+            if(empty == true)
+            {
+                A(k,k) = 1.0;
+                b[k] = 0.0;
+            }
+        } 
 
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int> (A.size1() ); k++)
@@ -986,24 +971,25 @@ public:
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
             double k_factor = scaling_factors[k];
-			if(k_factor == 0)
-			{
-				for (std::size_t j=col_begin; j<col_end; j++)
-				{
+            if(k_factor == 0)
+            {
+                for (std::size_t j=col_begin; j<col_end; j++)
+                {
                     if( static_cast<int>(Acol_indices[j]) != k ) Avalues[j] = 0.0;
-				}
-				b[k] = 0.0; 
-			}
-			else
-			{
-				for (std::size_t j=col_begin; j<col_end; j++)
-				{
-					if(scaling_factors[ Acol_indices[j] ] == 0 ) Avalues[j] = 0.0; 
-				}
-			}
-
-			
+                }
+                b[k] = 0.0;
+            }
+            else
+            {
+                for (std::size_t j=col_begin; j<col_end; j++)
+                {
+                    if(scaling_factors[ Acol_indices[j] ] == 0 ) Avalues[j] = 0.0;
+                }
+            }
         }
+        
+       
+        
     }
 
     //**************************************************************************
@@ -1199,14 +1185,14 @@ protected:
         {
             unsigned int i_global = EquationId[i_local];
 
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-                    
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                }
+            for (unsigned int j_local = 0; j_local < local_size; j_local++)
+            {
+                unsigned int j_global = EquationId[j_local];
+
+                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
             }
-        
+        }
+
     }
 
 
@@ -1222,15 +1208,15 @@ protected:
         unsigned int local_size = RHS_Contribution.size();
 
 
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                unsigned int i_global = EquationId[i_local];
+        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        {
+            unsigned int i_global = EquationId[i_local];
 
-                    // ASSEMBLING THE SYSTEM VECTOR
-                    b[i_global] += RHS_Contribution[i_local];
-                
-            }
-			
+            // ASSEMBLING THE SYSTEM VECTOR
+            b[i_global] += RHS_Contribution[i_local];
+
+        }
+
 
     }
 
@@ -1291,13 +1277,13 @@ private:
         {
             unsigned int i_global = EquationId[i_local];
 
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    int j_global = EquationId[j_local];
+            for (unsigned int j_local = 0; j_local < local_size; j_local++)
+            {
+                int j_global = EquationId[j_local];
 
-                    A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                }
-            
+                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+            }
+
         }
     }
 
@@ -1334,35 +1320,35 @@ private:
     }
 
 #ifdef _OPENMP
-inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
-{
-	double* values_vector = A.value_data().begin();
-    std::size_t* index1_vector = A.index1_data().begin();
-    std::size_t* index2_vector = A.index2_data().begin();
-		
-	size_t left_limit = index1_vector[i];
+    inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
+    {
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+
+        size_t left_limit = index1_vector[i];
 //	size_t right_limit = index1_vector[i+1];
 
-	//find the first entry
-	size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
-	size_t last_found = EquationId[0];
-	values_vector[last_pos] += Alocal(i_local,0);
-	
-	//now find all of the other entries
-	size_t pos = 0;
-	for(unsigned int j=1; j<EquationId.size(); j++)
-    {
-		unsigned int id_to_find = EquationId[j];
-		if(id_to_find > last_found) 
-			pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-		else 
-			pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+        //find the first entry
+        size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+        size_t last_found = EquationId[0];
+        values_vector[last_pos] += Alocal(i_local,0);
 
-		values_vector[pos] += Alocal(i_local,j);
-		last_found = id_to_find;
-		last_pos = pos;
-	}	
-}
+        //now find all of the other entries
+        size_t pos = 0;
+        for(unsigned int j=1; j<EquationId.size(); j++)
+        {
+            unsigned int id_to_find = EquationId[j];
+            if(id_to_find > last_found)
+                pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+            else
+                pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+
+            values_vector[pos] += Alocal(i_local,j);
+            last_found = id_to_find;
+            last_pos = pos;
+        }
+    }
 
     void Assemble(
         TSystemMatrixType& A,
@@ -1380,46 +1366,46 @@ inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, 
             unsigned int i_global = EquationId[i_local];
 
 
-                omp_set_lock(&lock_array[i_global]);
+            omp_set_lock(&lock_array[i_global]);
 
-                b[i_global] += RHS_Contribution(i_local);
-				
-				AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+            b[i_global] += RHS_Contribution(i_local);
+
+            AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
 //                  for (unsigned int j_local = 0; j_local < local_size; j_local++)
 //                  {
 //                      unsigned int j_global = EquationId[j_local];
-//  
+//
 //                          A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-//                      
-// 
+//
+//
 //                  }
-                omp_unset_lock(&lock_array[i_global]);
+            omp_unset_lock(&lock_array[i_global]);
 
 
-            
+
             //note that computation of reactions is not performed here!
         }
     }
 #endif
 
 
-inline unsigned int ForwardFind(const unsigned int id_to_find, 
-								const unsigned int start,
-								const size_t* index_vector)
-{
-	unsigned int pos = start;
-	while(id_to_find != index_vector[pos]) pos++;
-	return pos;
-}
+    inline unsigned int ForwardFind(const unsigned int id_to_find,
+                                    const unsigned int start,
+                                    const size_t* index_vector)
+    {
+        unsigned int pos = start;
+        while(id_to_find != index_vector[pos]) pos++;
+        return pos;
+    }
 
-inline unsigned int BackwardFind(const unsigned int id_to_find, 
-								const unsigned int start,
-								const size_t* index_vector)
-{
-	unsigned int pos = start;
-	while(id_to_find != index_vector[pos]) pos--;
-	return pos;
-}
+    inline unsigned int BackwardFind(const unsigned int id_to_find,
+                                     const unsigned int start,
+                                     const size_t* index_vector)
+    {
+        unsigned int pos = start;
+        while(id_to_find != index_vector[pos]) pos--;
+        return pos;
+    }
 
     /*@} */
     /**@name Private  Access */
