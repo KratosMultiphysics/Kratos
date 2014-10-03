@@ -198,7 +198,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin() + k;
             const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
-            //const double dist = ind->FastGetSolutionStepValue(DISTANCE);
+            const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
             /*double htc_var = ind->FastGetSolutionStepValue(rTransferCoef);
             double rho = rDensityVar_table.GetValue(unknown_val);
@@ -208,8 +208,8 @@ public:
             double htc_var = HTC_table.GetValue(unknown_val);
             ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
-//             if(dist <= 0)
-//             {
+             if(dist <= 0)
+             {
                 // double density_var = rDensityVar_table.GetValue(unknown_val);
                 // double specific_heat_var =C_table.GetValue(unknown_val);
                 double solid_fraction_var = F_table.GetValue(unknown_val);
@@ -242,23 +242,23 @@ public:
                     ind->FastGetSolutionStepValue(ENTHALPY,i) = initial_enthalpy;
 
 
-//             }
-//             else
-//             {
-//                 const double specific_heat_air = 1000.0;
-//                 ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
-//                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;
-//                 ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
-//                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
-//                 ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
-// 
-//                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var; ///(density_var*specific_heat_var);
-//                 // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
-// 
-//                 //assign an initial value to the enthalpy
-//                 for(unsigned int i=0; i<buffer_size; i++)
-//                     ind->FastGetSolutionStepValue(ENTHALPY,i) = specific_heat_air*unknown_val;
-//              }
+             }
+             else
+             {
+                 const double specific_heat_air = 1000.0;
+                 ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
+                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;
+                 ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
+                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
+                 ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
+ 
+                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var; ///(density_var*specific_heat_var);
+                 // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
+ 
+                 //assign an initial value to the enthalpy
+                 for(unsigned int i=0; i<buffer_size; i++)
+                     ind->FastGetSolutionStepValue(ENTHALPY,i) = specific_heat_air*unknown_val;
+              }
 
         }
 //               mSchemeIsInitialized = true;
@@ -311,8 +311,8 @@ public:
             double htc_var = HTC_table.GetValue(unknown_val);
             ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
-//             if(dist <= 0)
-//             {
+             if(dist <= 0)
+             {
                 //double density_var = rDensityVar_table.GetValue(unknown_val);
                 double solid_fraction_var = F_table.GetValue(unknown_val);
                 double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
@@ -333,21 +333,20 @@ public:
                 const double delta_enthalpy = Delta_T*specific_heat_var + delta_solid_fraction*latent_heat;
                 ind->FastGetSolutionStepValue(ENTHALPY) = ind->FastGetSolutionStepValue(ENTHALPY,1) + delta_enthalpy;
                 ind->GetValue(ENTHALPY) = ind->FastGetSolutionStepValue(ENTHALPY);
-/*
             }
             else
             {
                 const double specific_heat_air = 1000.0;
                 ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
+                ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
                 ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(density_var*specific_heat_var);
 
-                ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
-
-            }*/
+                ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air*unknown_val; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
+                ind->GetValue(ENTHALPY) = ind->FastGetSolutionStepValue(ENTHALPY);
+            }
 
         }
 
@@ -404,14 +403,14 @@ public:
         {
             ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin() + k;
             const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
-            //const double dist = ind->FastGetSolutionStepValue(DISTANCE);
+            const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
             double specific_heat_var =C_table.GetValue(unknown_val);
             double htc_var = HTC_table.GetValue(unknown_val);
             ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
-//             if(dist <= 0)
-//             {
+             if(dist <= 0)
+             {
                 //double density_var = rDensityVar_table.GetValue(unknown_val);
                 double solid_fraction_var = F_table.GetValue(unknown_val);
                 double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
@@ -431,21 +430,21 @@ public:
                 const double delta_solid_fraction = ind->FastGetSolutionStepValue(SOLID_FRACTION,1) - ind->FastGetSolutionStepValue(SOLID_FRACTION); //(1-Sn+1) - (1-Sn)
                 const double delta_enthalpy = Delta_T*avg_c + delta_solid_fraction*latent_heat;
                 ind->FastGetSolutionStepValue(ENTHALPY) = ind->FastGetSolutionStepValue(ENTHALPY,1) + delta_enthalpy;
-/*
+
             }
             else
             {
                 const double specific_heat_air = 1000.0;
                 ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;
-                ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
+                ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
                 ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(density_var*specific_heat_var);
 
-                ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
+                ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air*unknown_val; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
 
-            }*/
+            }
 
         }
 
