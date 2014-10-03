@@ -33,9 +33,13 @@
 #include "custom_elements/spheric_continuum_particle.h"
 #include "custom_elements/DEM_FEM_Particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
+#include "custom_elements/cluster3D.h"
+#include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
+#include "custom_conditions/mapping_condition.h"
+
 
 //constitutive laws
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
@@ -346,7 +350,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, PRINT_SKIN_SPHERE)
   KRATOS_DEFINE_VARIABLE(int, PRINT_GROUP_ID)
   
-    // For DEM_FEM Element
+  // For DEM_FEM Element
   KRATOS_DEFINE_VARIABLE(double, LOCAL_DAMP_RATIO)
 
   // DUMMY VARIABLES FOR CALCULATE
@@ -535,6 +539,9 @@ private:
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
+
+    const Cluster3D  mCluster3D;
+    const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
 
