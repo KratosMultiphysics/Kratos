@@ -69,9 +69,9 @@ class MaterialTest(object):
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
 
   def Initialize(self):
-      PrepareTestOedometric()
-      PrepareTestTriaxialHydro()
-      PrepareTestBTS()
+      self.PrepareTestOedometric()
+      self.PrepareTestTriaxialHydro()
+      self.PrepareTestBTS()
 
   def PrepareTestOedometric(self):
       if(self.parameters.TestType == "Oedometric"):
@@ -388,7 +388,7 @@ class MaterialTest(object):
           
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
             
-  def PrintGraph(self,step):
+  def PrintGraph(self, step):
     
     if(self.graph_counter == self.graph_frequency):
       
