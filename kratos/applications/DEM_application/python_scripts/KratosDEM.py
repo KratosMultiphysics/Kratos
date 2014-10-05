@@ -240,9 +240,7 @@ while ( time < DEM_parameters.FinalTime):
 
     #### CONCRETE TEST STUFF ############################
     materialTest.MeasureForcesAndPressure()
-      
-      #if(mpi.rank == 0):
-        #MaterialTest.PrintGraph(step)
+    materialTest.PrintGraph(step)
 
     #### GENERAL STUFF ###################################
     DEMFEMProcedures.MeasureForces()
