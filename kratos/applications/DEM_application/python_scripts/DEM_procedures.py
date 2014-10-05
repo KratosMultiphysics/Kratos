@@ -392,7 +392,8 @@ class Procedures(object):
         pass
 
     def KRATOSprint(self,message):
-        print(message)    
+        print(message)
+        sys.stdout.flush()
 
 # #~CHARLIE~# Aixo no ho entenc 
 class DEMFEMProcedures(object):
@@ -469,11 +470,11 @@ class DEMFEMProcedures(object):
 
     def PrintGraph(self, time):
 
-        if DEM_parameters.TestType == "None":
+        if DEM_parameters.TestType == "None":            
             if(self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
                 self.graph_forces.write(str(time)+"    "+str(self.total_force_top)+'\n')
-                self.graph_forces.flush()
+                self.graph_forces.flush()                
 
             self.graph_counter += 1
 
@@ -499,8 +500,7 @@ class Report(object):
 
     def BeginReport(self, timer):
 
-        report = "Main loop starts at instant: " + str(self.initial_re_time) + "\n"\
-            + "Total number of TIME STEPs expected in the calculation are: " + str(self.total_steps_expected) + " if time step is kept " + "\n"
+        report = "Main loop starts." + "\n" + "Total number of TIME STEPs expected in the calculation are: " + str(self.total_steps_expected) + " if time step and number of elements remain the same." + "\n"
 
         return report
 
@@ -569,6 +569,10 @@ class MaterialTest(object):
     def MeasureForcesAndPressure(self):
         if (self.type != "None"):
             self.script.MeasureForcesAndPressure()
+            
+    def PrintGraph(self, step):
+        if (self.type != "None"):
+            self.script.PrintGraph(step)
 
     def FinalizeGraphs(self):
         if (self.type != "None"):
