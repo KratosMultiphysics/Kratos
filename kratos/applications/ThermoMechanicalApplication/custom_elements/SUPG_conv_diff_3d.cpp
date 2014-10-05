@@ -481,7 +481,7 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	else
 	{
 	  double a_parallel = (ms_vel_gauss[0]*grad_t[0] + ms_vel_gauss[1]*grad_t[1] + ms_vel_gauss[2]*grad_t[2]) / norm_grad_t;
-	  a_parallel = abs(a_parallel);
+	  a_parallel = fabs(a_parallel);
 	  
 	  
 	  double Effective_K = scaled_K;
