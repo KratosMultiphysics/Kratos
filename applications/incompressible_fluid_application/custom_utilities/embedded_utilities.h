@@ -102,7 +102,7 @@ public:
         {
             //intersection Points - at most we shall consider 4 points
             std::vector<array_1d<double,3> > IntersectionPoints;
-	    array_1d<double,3> IntersectionVel;
+	    array_1d<double,3> IntersectionVel(3, 0.0);
             //std::vector<array_1d<double,3> > IntersectionVel;
 
             IntersectionPoints.reserve(8);
