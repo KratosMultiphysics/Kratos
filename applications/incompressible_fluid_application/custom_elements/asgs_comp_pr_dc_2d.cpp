@@ -474,7 +474,7 @@ void ASGSCOMPPRDC2D::CalculateArtifitialViscosity(double& Vel_art_visc ,double& 
     if( div_vel < 0.0)
     {
         CalculateCharectristicLength(H,DN_DX,norm_grad_p);
-        Vel_art_visc = 1.4*10.0 * abs(div_vel) * pow(H,2);
+        Vel_art_visc = 1.4*10.0 * fabs(div_vel) * pow(H,2);
 
         Pr_art_visc = 1.0*1.0 *sqrt(norm_grad_p/density) * pow(H,1.5);
     }
