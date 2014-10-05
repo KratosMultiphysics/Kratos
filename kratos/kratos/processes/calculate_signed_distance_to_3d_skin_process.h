@@ -582,7 +582,7 @@ public:
                 if(di*dj < 0) //edge is cut
                 {
                     //generate point on edge by linear interpolation
-                    double Ni = ffabs(dj) / ( ffabs(di) + ffabs(dj) );
+                    double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
                     double Nj = 1.0 - Ni;
                     Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
                     edge_points.push_back(edge_point);
@@ -1468,7 +1468,7 @@ public:
         const double sd = inner_prod(planeNormal,planeNormal);
         double DistanceToPlane = sn / sqrt(sd);
 
-        if( ffabs(DistanceToPlane) < epsilon )
+        if( fabs(DistanceToPlane) < epsilon )
             DistanceToPlane = 0;
 
         return DistanceToPlane;
@@ -1493,7 +1493,7 @@ public:
                 double currentNodeDist = geom[i_TetNode].GetSolutionStepValue(DISTANCE);
                 double nodeInElemDist  = ElementalDistances[i_TetNode];
 
-                if( ffabs( nodeInElemDist ) < ffabs( currentNodeDist ) )
+                if( fabs( nodeInElemDist ) < fabs( currentNodeDist ) )
                     geom[i_TetNode].GetSolutionStepValue(DISTANCE) = nodeInElemDist; // overwrite nodal distance (which is global)
             } // loop i_TetNode
         } // loop i_fluidElement
@@ -1518,7 +1518,7 @@ public:
 
         for(unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            if(ffabs(ElementalDistances[i_node]) < dist_limit)
+            if(fabs(ElementalDistances[i_node]) < dist_limit)
             {
                 ElementalDistances[i_node] = dist_limit;
                 distChangedToLimit = true;
@@ -1574,7 +1574,7 @@ public:
                         if(di*dj < 0) //edge is cut
                         {
                             // generate point on edge by linear interpolation
-                            double Ni = ffabs(dj) / ( ffabs(di) + ffabs(dj) );
+                            double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
                             double Nj = 1.0 - Ni;
                             Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
                             edge_points.push_back(edge_point);
@@ -2004,7 +2004,7 @@ public:
             distance *= ray_color;
 
             double& node_distance = nodes_array[i_node]->Distance();
-            if(ffabs(distance) < ffabs(node_distance))
+            if(fabs(distance) < fabs(node_distance))
                 node_distance = distance;
             else if (distance*node_distance < 0.00) // assigning the correct sign
                 node_distance = -node_distance;
@@ -2062,7 +2062,7 @@ public:
         double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
         //const double epsilon = 1.00e-12;
-        if(ffabs(node_distance) > ffabs(distance))
+        if(fabs(node_distance) > fabs(distance))
             node_distance = distance;
         else if (distance*node_distance < 0.00) // assigning the correct sign
             node_distance = -node_distance;
@@ -2085,7 +2085,7 @@ public:
     //          double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
     //          //const double epsilon = 1.00e-12;
-    //          if(ffabs(node_distance) > ffabs(distance))
+    //          if(fabs(node_distance) > fabs(distance))
     //            node_distance = distance;
     //          else if (distance*node_distance < 0.00) // assigning the correct sign
     //              node_distance = -node_distance;
@@ -2157,8 +2157,8 @@ public:
 //#ifdef _DEBUG
 //        std::cout << "colors : " << colors[0] << ", " << colors[1] << ", " << colors[2] << std::endl;
 //#endif
-        double distance = (ffabs(distances[0]) > ffabs(distances[1])) ? distances[1] : distances[0];
-        distance = (ffabs(distance) > ffabs(distances[2])) ? distances[2] : distance;
+        double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
+        distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
 
         return distance;
 
@@ -2268,7 +2268,7 @@ public:
             std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
             while (++i_begin != intersections.end()) {
                 // considering the very near points as the same points
-                if (ffabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+                if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
                     *(++i_intersection) = *i_begin;
             }
             intersections.resize((++i_intersection) - intersections.begin());
@@ -2325,7 +2325,7 @@ public:
             std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
             while (++i_begin != intersections.end()) {
                 // considering the very near points as the same points
-                if (ffabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+                if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
                     *(++i_intersection) = *i_begin;
             }
             intersections.resize((++i_intersection) - intersections.begin());
@@ -2404,7 +2404,7 @@ public:
         a = -inner_prod(n,w0);
         b = inner_prod(n,dir);
 
-        if (ffabs(b) < epsilon) {     // ray is parallel to triangle plane
+        if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
             if (a == 0)                // ray lies in triangle plane
                 return 2;
             else return 0;             // ray disjoint from plane
@@ -2652,9 +2652,9 @@ private:
             {
                 for(unsigned int j=(i+1); j< Help.size2(); j++)
                 {
-                    if((ffabs(Help(i,j)) > a ) && (ffabs(Help(i,j)) > zero_tolerance))
+                    if((fabs(Help(i,j)) > a ) && (fabs(Help(i,j)) > zero_tolerance))
                     {
-                        a= ffabs(Help(i,j));
+                        a= fabs(Help(i,j));
 
                         index1= i;
                         index2= j;
@@ -2675,13 +2675,13 @@ private:
 
             double u=1.0;
 
-            if(ffabs(gamma) > zero_tolerance && ffabs(gamma)< (1/zero_tolerance))
+            if(fabs(gamma) > zero_tolerance && fabs(gamma)< (1/zero_tolerance))
             {
-                u= gamma/ffabs(gamma)*1.0/(ffabs(gamma)+sqrt(1.0+gamma*gamma));
+                u= gamma/fabs(gamma)*1.0/(fabs(gamma)+sqrt(1.0+gamma*gamma));
             }
             else
             {
-                if  (ffabs(gamma)>= (1.0/zero_tolerance))
+                if  (fabs(gamma)>= (1.0/zero_tolerance))
                     u= 0.5/gamma;
             }
 
