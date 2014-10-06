@@ -67,6 +67,8 @@ class MaterialTest(object):
       os.chdir(self.graphs_path)
       
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
+      
+      self.Initialize()
 
   def Initialize(self):
       self.PrepareTestOedometric()
@@ -92,7 +94,9 @@ class MaterialTest(object):
         self.alpha_lat = 3.141592*self.diameter*self.height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
            
   def PrepareTestBTS(self):
+    
       ##Fixing horizontally top and bot
+      
       if(self.parameters.TestType != "BTS"):
         
         for node in self.TOP:
