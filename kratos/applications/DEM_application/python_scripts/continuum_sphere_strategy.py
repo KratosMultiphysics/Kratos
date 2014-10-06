@@ -404,9 +404,12 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.fem_model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
+        self.cluster_model_part = ModelPart("Dummy")
+        
+        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                       self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
-
+                                                    
+                                                      
         self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating)
 
         #Setting the constitutive LAWS
