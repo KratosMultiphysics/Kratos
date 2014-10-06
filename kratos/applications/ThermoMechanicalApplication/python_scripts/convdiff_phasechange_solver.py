@@ -86,7 +86,7 @@ class Solver:
         verbosity = 0
         self.symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.CG, tol, 200, verbosity, gmres_size)
         self.stage1_time_scheme = ResidualBasedIncrementalUpdateStaticVariablePropertyScheme()
-        self.stage1_conv_criteria = ResidualCriteria(1e-4,1e-6) #IncrementalDisplacementCriteria(1e-4, 1e-6)
+        self.stage1_conv_criteria = IncrementalDisplacementCriteria(1e-4,1e-6) #IncrementalDisplacementCriteria(1e-4, 1e-6)
         self.stage1_max_iterations = 3
         
 
@@ -141,17 +141,10 @@ class Solver:
         
         #solve stage0 - pure convection step
         if(self.skip_stage0 == False):
-            #for elem in self.model_part.Elements:
-                #elem.Set(ACTIVE,True)
-            #for cond in self.model_part.Conditions:
-                #cond.Set(ACTIVE,True)
             print("************* stage 0 *******************")
             self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 1e6, True) 
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,0)
 
-            #for elem in self.model_part.Elements:
-                #if(elem.Is(ACTIVE) == False):
-                    #err
 
             self.stage0_solver.Solve()
         
@@ -164,79 +157,6 @@ class Solver:
             self.variable_utils.SaveScalarVar(TEMPERATURE,TEMPERATURE,self.model_part.Nodes)
             self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 0.0, True) 
             
-            
-            
-            #for elem in self.model_part.Elements:
-                #if(elem.Is(ACTIVE) == True):
-                    #err
-            #for cond in self.model_part.Conditions:
-                #if(elem.Is(ACTIVE) == True):
-                    #err
-                ##for node in elem.GetNodes():
-                    ##if(node.GetSolutionStepValue(DISTANCE) > 0.0 and elem.Is(ACTIVE) == True): 
-                        ##err
-            #for cond in self.model_part.Conditions:
-                ##if(cond.Is(ACTIVE) == True):
-                    ##err
-                #for node in cond.GetNodes():
-                    #if(node.GetSolutionStepValue(DISTANCE) > 0.0 and elem.Is(ACTIVE) == True): 
-                        #err
-                        
-            #unactive_elements = []
-            #for elem in self.model_part.Elements:
-                #tmp = 0
-                #for node in elem.GetNodes():                   
-                    #if(node.GetSolutionStepValue(DISTANCE) > 0.0):  
-                        #tmp = tmp + 1
-                #if(tmp == 0):
-                    #if( elem.Is(ACTIVE) == False):
-                        #expect_true
-                #elif(tmp >0) :
-                    #if( elem.Is(ACTIVE) == True):
-                        #expect_false                
-                        
-            #count active
-            #element_counter = 0
-            #for elem in self.model_part.Elements:
-                #if(elem.Is(ACTIVE)):
-                    #element_counter += 1
-            #condition_counter = 0
-            #for cond in self.model_part.Conditions:
-                #if(cond.Is(ACTIVE)):
-                    #condition_counter += 1
-            #print("element counter",element_counter)
-            #print("condition counter",condition_counter)
-            
-            #for elem in self.model_part.Elements:
-                #elem.Set(ACTIVE,False)
-                #for node in elem.GetNodes():
-                    #if(node.GetSolutionStepValue(DISTANCE) < 0.0):                   
-                        #elem.Set(ACTIVE,True)
-                        #break
-                        
-                    
-                    
-            #for cond in self.model_part.Conditions:
-                #elem.Set(ACTIVE,False)
-                #for node in cond.GetNodes():
-                    #if(node.GetSolutionStepValue(DISTANCE) < 0.0):                   
-                        #cond.Set(ACTIVE,True)
-                        #break
-
-
-
-
-            ##count active
-            #element_counter = 0
-            #for elem in self.model_part.Elements:
-                #if(elem.Is(ACTIVE)):
-                    #element_counter += 1
-            #condition_counter = 0
-            #for cond in self.model_part.Conditions:
-                #if(cond.Is(ACTIVE)):
-                    #condition_counter += 1
-            #print("element counter",element_counter)
-            #print("condition counter",condition_counter)
             
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,1)
             self.stage1_solver.Solve()        

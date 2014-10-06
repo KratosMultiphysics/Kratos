@@ -419,6 +419,8 @@ public:
 
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
+        
+        const double liquidus_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];
 
         //volume loss is just corrected
          if(volume_difference > 0.0)
@@ -432,8 +434,11 @@ public:
 
 
 		//  double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);
-		  
-		  it->FastGetSolutionStepValue(DISTANCE) += correction;
+		double dist = it->FastGetSolutionStepValue(DISTANCE);
+                if(dist < 0 && (dist+correction)>0 )
+                    it->FastGetSolutionStepValue(TEMPERATURE) = liquidus_temp;
+                    
+                dist += correction;
 		  
 		}
 	}
