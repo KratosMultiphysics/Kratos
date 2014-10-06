@@ -797,7 +797,7 @@ public:
             ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 			double& current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 			
-			if( current_temp > max_temperature or current_temp < min_temperature )//1.05*fluid_temp
+			if( current_temp > max_temperature || current_temp < min_temperature )//1.05*fluid_temp
 			{
 				double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);
 				current_temp = old_temp;
