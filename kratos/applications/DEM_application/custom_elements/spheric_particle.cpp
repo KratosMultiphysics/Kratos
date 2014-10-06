@@ -346,12 +346,12 @@ namespace Kratos
               rCurrentMaxIndentation              = 0.0;
 
               //for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
-              for (unsigned int j = 0; j < mNeighbourElements.size(); j++) {
+              for (unsigned int j = 0; j < mNeighbourElements.size(); j++){
                   SphericParticle* i = mNeighbourElements[j];
                   
                   array_1d<double, 3> other_to_me_vect  = this->GetGeometry()[0].Coordinates() - i->GetGeometry()[0].Coordinates();
                   //double &other_radius                  = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-                  double other_radius                  = i->GetRadius();
+                  double other_radius                   = i->GetRadius();
                   double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                                other_to_me_vect[1] * other_to_me_vect[1] +
                                                                other_to_me_vect[2] * other_to_me_vect[2]);
@@ -362,9 +362,48 @@ namespace Kratos
 
               }
 
+              array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
+
+              double node_coor[3];
+
+              node_coor[0]=node_coor_array[0]; //MSIMSI 1 can be optimized.
+              node_coor[1]=node_coor_array[1];
+              node_coor[2]=node_coor_array[2];
+
+              for (unsigned int j = 0; j < mNeighbourRigidFaces.size(); j++){
+                  double DistPToB;
+                  DEMWall* pNeighbour = mNeighbourRigidFaces[j];
+                  double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
+
+                  // Triangle
+
+                  Coord[0][0] = pNeighbour->GetGeometry()[0].Coordinates()[0];    //MSIMSI 1 can be optimized with vector access.
+                  Coord[0][1] = pNeighbour->GetGeometry()[0].Coordinates()[1];
+                  Coord[0][2] = pNeighbour->GetGeometry()[0].Coordinates()[2];
+
+                  Coord[1][0] = pNeighbour->GetGeometry()[1].Coordinates()[0];
+                  Coord[1][1] = pNeighbour->GetGeometry()[1].Coordinates()[1];
+                  Coord[1][2] = pNeighbour->GetGeometry()[1].Coordinates()[2];
+
+                  Coord[2][0] = pNeighbour->GetGeometry()[2].Coordinates()[0];
+                  Coord[2][1] = pNeighbour->GetGeometry()[2].Coordinates()[1];
+                  Coord[2][2] = pNeighbour->GetGeometry()[2].Coordinates()[2];
+
+                  if (pNeighbour->GetGeometry().size() == 4){
+                   Coord[3][0] = pNeighbour->GetGeometry()[3].Coordinates()[0];
+                   Coord[3][1] = pNeighbour->GetGeometry()[3].Coordinates()[1];
+                   Coord[3][2] = pNeighbour->GetGeometry()[3].Coordinates()[2];
+                  }
+
+                  GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
+                  double indentation = mRadius - DistPToB;
+                  rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
+
+                }
+
           }
 
-      }
+      }            
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
