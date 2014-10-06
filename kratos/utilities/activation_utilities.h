@@ -145,7 +145,7 @@ public:
         ModelPart::ConditionsContainerType::iterator cond_begin = rmodel_part.ConditionsBegin();
         
         #pragma omp parallel for
-        for(unsigned int i=0; i<rmodel_part.Elements().size(); i++)
+        for(int i=0; i<rmodel_part.Elements().size(); i++)
         {
             ModelPart::ElementsContainerType::iterator it = el_begin + i;
             
@@ -163,7 +163,7 @@ public:
         }
             
         #pragma omp parallel for
-        for(unsigned int i=0; i<rmodel_part.Conditions().size(); i++)
+        for(int i=0; i<rmodel_part.Conditions().size(); i++)
         {
             ModelPart::ConditionsContainerType::iterator it = cond_begin + i;
             
@@ -183,14 +183,14 @@ public:
          if( active_if_lower_than_reference == false) //flip everything
         {
              #pragma omp parallel for
-            for(unsigned int i=0; i<rmodel_part.Elements().size(); i++)
+            for(int i=0; i<rmodel_part.Elements().size(); i++)
             {
                 ModelPart::ElementsContainerType::iterator it = el_begin + i;
                 it->Flip(ACTIVE);
             }
             
             #pragma omp parallel for
-            for(unsigned int i=0; i<rmodel_part.Conditions().size(); i++)
+            for(int i=0; i<rmodel_part.Conditions().size(); i++)
             {
                 ModelPart::ConditionsContainerType::iterator it = cond_begin + i;
                 it->Flip(ACTIVE);
