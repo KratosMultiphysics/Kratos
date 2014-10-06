@@ -67,10 +67,9 @@ class MaterialTest(object):
       os.chdir(self.graphs_path)
       
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
-      
-      self.Initialize()
 
   def Initialize(self):
+    
       self.PrepareTestOedometric()
       self.PrepareTestTriaxialHydro()
       self.PrepareTestBTS()
