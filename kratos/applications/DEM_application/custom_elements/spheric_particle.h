@@ -175,7 +175,7 @@ namespace Kratos
       std::vector<SphericParticle*> mNeighbourElements;
       std::vector<SphericParticle*> mTempNeighbourElements;
       
-      std::vector<DEMWall*>       mNeighbourRigidFaces;
+      std::vector<DEMWall*>         mNeighbourRigidFaces;
       std::vector<double>           mNeighbourRigidFacesPram;
       std::vector<double>           mNeighbourRigidFacesTotalContactForce;
       std::vector<double>           mNeighbourRigidFacesElasticContactForce;
