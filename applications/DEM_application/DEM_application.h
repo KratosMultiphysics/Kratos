@@ -202,8 +202,6 @@ namespace Kratos
 
   // GEOMETRIC PARAMETERS
 
-  KRATOS_DEFINE_VARIABLE(double, MAX_BTB_INDENTATION)
-  KRATOS_DEFINE_VARIABLE(double, MAX_BTF_INDENTATION)
 
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, LOCAL_CONTACT_AREA_HIGH)
