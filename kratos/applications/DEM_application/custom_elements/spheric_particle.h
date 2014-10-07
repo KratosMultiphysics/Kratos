@@ -200,7 +200,8 @@ namespace Kratos
       
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
-      void CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
+      void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
+      void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       void CalculateKineticEnergy(double& rKineticEnergy);
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
