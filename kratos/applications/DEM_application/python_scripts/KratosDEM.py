@@ -64,13 +64,11 @@ contact_model_part    = ""
 
 # Add variables
 procedures.AddCommonVariables(balls_model_part, DEM_parameters)
-procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddMpiVariables(balls_model_part)
-procedures.AddMpiVariables(rigid_face_model_part)
-
-# #~CHARLIE~#:????
 SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
+procedures.AddMpiVariables(balls_model_part)
+procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 SolverStrategy.AddFEMVariables(rigid_face_model_part, DEM_parameters)
+procedures.AddMpiVariables(rigid_face_model_part)
 
 # Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
