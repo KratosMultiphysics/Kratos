@@ -82,10 +82,11 @@ def AddDofs(model_part):
 
 def AddFEMVariables(model_part, Param):
 
+    model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
     model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
     model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
-
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     
     
 class ExplicitStrategy:
