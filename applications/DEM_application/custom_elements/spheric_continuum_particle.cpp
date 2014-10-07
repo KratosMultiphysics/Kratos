@@ -1460,12 +1460,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
         KRATOS_TRY
                
-        ////////////////////////////////////////////////////////////////////////
-        if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
-            ComputeNewRigidFaceNeighboursHistoricalData();
-            return;
-        }
-        ////////////////////////////////////////////////////////////////////////
         if (rVariable == DEMPACK_DAMPING)
         {                  
              array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
