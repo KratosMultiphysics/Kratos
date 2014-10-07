@@ -510,7 +510,7 @@ class Report(object):
 
     def BeginReport(self, timer):
 
-        report = "Main loop starts." + "\n" + "Total number of TIME STEPs expected in the calculation are: " + str(self.total_steps_expected) + " if time step and number of elements remain the same." + "\n"
+        report = "Main loop starting..." + "\n" + "Total number of TIME STEPs expected in the calculation: " + str(self.total_steps_expected) + "\n"
 
         return report
 
