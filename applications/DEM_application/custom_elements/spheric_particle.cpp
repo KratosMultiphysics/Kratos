@@ -337,15 +337,12 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance)
+      void SphericParticle::CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const double& rTolerance)
       {
 
           if (rCurrentMaxIndentation > rTolerance){
-              //ParticleWeakVectorType& rNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-              //double& radius                      = GetGeometry()[0].FastGetSolutionStepValue(RADIUS); // cannot use the member variable mRadius because it may not be initialized
-              rCurrentMaxIndentation              = 0.0;
+              rCurrentMaxIndentation = 0.0;
 
-              //for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
               for (unsigned int j = 0; j < mNeighbourElements.size(); j++){
                   SphericParticle* i = mNeighbourElements[j];
                   
@@ -362,6 +359,18 @@ namespace Kratos
 
               }
 
+          }
+
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation, const double& rTolerance)
+      {
+
+          if (rCurrentMaxIndentation > rTolerance){
+              rCurrentMaxIndentation = 0.0;
               array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
 
               double node_coor[3];
@@ -396,15 +405,14 @@ namespace Kratos
                   }
 
                   GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
-                  double indentation = 2 * (mRadius - DistPToB);
+                  double indentation = mRadius - DistPToB;
                   rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
 
                 }
 
           }
 
-      }            
-
+      }
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
@@ -2630,8 +2638,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
               return;
           }
 
-          if (rVariable == MAX_INDENTATION){
-              CalculateMaxIndentation(Output, rCurrentProcessInfo[DISTANCE_TOLERANCE]);
+          if (rVariable == MAX_BTB_INDENTATION){
+              CalculateMaxBallToBallIndentation(Output, rCurrentProcessInfo[DISTANCE_TOLERANCE]);
+              return;
+          }
+
+          if (rVariable == MAX_BTF_INDENTATION){
+              CalculateMaxBallToFaceIndentation(Output, rCurrentProcessInfo[DISTANCE_TOLERANCE]);
               return;
           }
 
