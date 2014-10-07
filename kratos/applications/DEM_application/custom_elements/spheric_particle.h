@@ -113,6 +113,9 @@ namespace Kratos
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
+      
+      void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
+      void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
       double GetRadius();
       void SetRadius(double radius);
@@ -200,8 +203,6 @@ namespace Kratos
       
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
-      void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
-      void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       void CalculateKineticEnergy(double& rKineticEnergy);
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
