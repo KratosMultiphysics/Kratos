@@ -92,7 +92,8 @@ namespace Kratos
       ///@name Operations
       ///@{
        
-
+      void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
+      void CreateContinuumConstitutiveLaws();
 
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
     
@@ -218,15 +219,15 @@ namespace Kratos
 
        SphericContinuumParticle();
 
-        void SetInitialSphereContacts();
-        void CreateContinuumConstitutiveLaws();
+//        void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
+//        void CreateContinuumConstitutiveLaws();
         void SetInitialFemContacts();
         void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         void CheckPairWiseBreaking(); //MSIMSI DEBUG
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
         
         virtual void ContactAreaWeighting2D();
-        void ContactAreaWeighting3D();
+        void ContactAreaWeighting3D( ProcessInfo& rCurrentProcessInfo );
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         
         virtual void CustomInitialize();
@@ -367,7 +368,7 @@ namespace Kratos
         //double mDampType;
         //double mTimeStep;
 
-
+        double distances_squared;
 
 
         //std::vector<double> mForce;
