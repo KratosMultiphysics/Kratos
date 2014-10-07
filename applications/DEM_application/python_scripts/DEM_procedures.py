@@ -421,6 +421,9 @@ class DEMFEMProcedures(object):
         os.chdir(self.graphs_path)
         self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
         self.total_force_top = 0.0
+        self.total_force_x = 0.0
+        self.total_force_y = 0.0
+        self.total_force_z = 0.0
 
         # SIMULATION SETTINGS
 
@@ -463,17 +466,24 @@ class DEMFEMProcedures(object):
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                         self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-                        self.total_force_top = 0.0
+                        self.total_force_x = 0.0
+                        self.total_force_y = 0.0
+                        self.total_force_z = 0.0
+
                         for node in self.top_mesh_nodes:
+                            force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                            self.total_force_top += force_node_y
+                            force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+                            self.total_force_x += force_node_x
+                            self.total_force_y += force_node_y
+                            self.total_force_z += force_node_z
 
     def PrintGraph(self, time):
 
         if DEM_parameters.TestType == "None":            
             if(self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
-                self.graph_forces.write(str(time)+"    "+str(self.total_force_top)+'\n')
+                self.graph_forces.write(str(time)+"    "+str(self.total_force_x)+"    "+str(self.total_force_y)+"    "+str(self.total_force_z)+'\n')
                 self.graph_forces.flush()                
 
             self.graph_counter += 1
