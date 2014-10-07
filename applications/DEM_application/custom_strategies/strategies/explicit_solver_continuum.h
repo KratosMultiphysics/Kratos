@@ -829,9 +829,7 @@ namespace Kratos
       ElementsArrayType& pElements      = GetElements(r_model_part);
       
       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-      
-      double Output = 0.0;
-      
+            
       #pragma omp parallel for
       
       for (int k = 0; k < this->GetNumberOfThreads(); k++){
@@ -843,11 +841,7 @@ namespace Kratos
               Kratos::SphericContinuumParticle& spheric_particle = dynamic_cast<Kratos::SphericContinuumParticle&>(*it);
               spheric_particle.SetInitialSphereContacts(rCurrentProcessInfo);
               spheric_particle.CreateContinuumConstitutiveLaws();
-
-//          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-//          {
-//              (it)->Calculate(CALCULATE_SET_INITIAL_DEM_CONTACTS,Output,rCurrentProcessInfo);
-            
+      
           } //loop over particles
 
       }// loop threads OpenMP
