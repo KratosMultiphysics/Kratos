@@ -1333,8 +1333,10 @@ namespace Kratos
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                 double max_indentation = reduction_distances[this->GetElementPartition()[k] + elem_counter];
-                it->Calculate(MAX_INDENTATION, max_indentation, rCurrentProcessInfo);
-                reduction_distances[this->GetElementPartition()[k] + elem_counter] = 0.5 * max_indentation;
+                it->Calculate(MAX_BTB_INDENTATION, max_indentation, rCurrentProcessInfo);
+                max_indentation *= 0.5; // reducing the radius by half the indentation is enough
+                it->Calculate(MAX_BTF_INDENTATION, max_indentation, rCurrentProcessInfo);
+                reduction_distances[this->GetElementPartition()[k] + elem_counter] = max_indentation;
                 elem_counter++;
             }
 
@@ -1352,7 +1354,7 @@ namespace Kratos
 
                 if (reduction > tol){
                     (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= reduction;
-                    spheric_particle.SetRadius( spheric_particle.GetRadius() - reduction );
+                    spheric_particle.SetRadius(spheric_particle.GetRadius() - reduction);
                 }
 
                 elem_counter++;
