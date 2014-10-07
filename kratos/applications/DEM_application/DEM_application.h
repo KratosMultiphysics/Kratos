@@ -384,6 +384,9 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int,    ANGULAR_VELOCITY_Z_DOF_POS)
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(OLD_COORDINATES)
 
+
+  KRATOS_DEFINE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
+
 class DEMFlags
   {
   public:
@@ -539,6 +542,8 @@ private:
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
+    const Cluster3D  mCluster3D;
+    const MAPcond    mMapCon3D3N;
 
     const Cluster3D  mCluster3D;
     const MAPcond    mMapCon3D3N;
