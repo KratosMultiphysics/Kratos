@@ -324,7 +324,7 @@ namespace Kratos
       double mRadius;
       double mSqrtOfRealMass;
 
-      PropertiesProxy *mFastProperties;
+      PropertiesProxy* mFastProperties;
       
       std::vector<int> mOldNeighbourIds;
       //std::vector<int> mTempNeighboursIds;
