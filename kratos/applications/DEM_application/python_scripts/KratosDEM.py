@@ -70,6 +70,7 @@ procedures.AddMpiVariables(rigid_face_model_part)
 
 # #~CHARLIE~#:????
 SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
+SolverStrategy.AddFEMVariables(rigid_face_model_part, DEM_parameters)
 
 # Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
