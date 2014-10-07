@@ -269,10 +269,10 @@ void SUPGConvDiffPhaseChange3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
         //compute temperature gradient
         array_1d<double,3> gradT = prod(trans(DN_DX),temperatures);
-        const double norm_gradT = norm_2(gradT);
+        //const double norm_gradT = norm_2(gradT);
 
         //estimate the element lenght h
-        const double h = pow(6.0*Volume,0.3333333333333333333333333333);
+        //const double h = pow(6.0*Volume,0.3333333333333333333333333333);
 
         //compute DH_Dt (time variation of enthalpy )
         array_1d<double,4> DH_Dt;
