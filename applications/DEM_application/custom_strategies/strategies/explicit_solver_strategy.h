@@ -1290,77 +1290,60 @@ namespace Kratos
     {
 
         KRATOS_TRY
-
-        double tol                          = 10e-18 * mpParticleCreatorDestructor->GetStrictDiameter();
-        double initial_max_indentation      = 1.0 + tol;
+        
         ModelPart& r_model_part             = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-        rCurrentProcessInfo.SetValue(DISTANCE_TOLERANCE, tol);
         ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
         Vector reduction_distances;
         reduction_distances.resize(r_model_part.Elements().size());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-        int elem_counter;
+        int elem_counter;      
 
-        #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-            elem_counter = 0;
+        #pragma omp parallel 
+        {
 
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+            #pragma omp for private(elem_counter)
+            for (int k = 0; k < this->GetNumberOfThreads(); k++){
+                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+                typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+                elem_counter = 0;
 
-                if (it->GetGeometry()(0)->IsNot(DEMFlags::FIXED_VEL_X) ) {
-                    reduction_distances[this->GetElementPartition()[k] + elem_counter] = initial_max_indentation;
+                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+
+                    SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);        
+
+                    double indentation;
+                    spheric_particle.CalculateMaxBallToBallIndentation(indentation);
+                    double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
+                    spheric_particle.CalculateMaxBallToFaceIndentation(indentation);
+                    max_indentation = std::max(max_indentation, indentation);
+
+                    reduction_distances[this->GetElementPartition()[k] + elem_counter] = max_indentation;
+                    elem_counter++;
                 }
 
-                else {
-                    reduction_distances[this->GetElementPartition()[k] + elem_counter] = 0.0;
-                }
-
-                elem_counter++;
             }
 
-        }
+            #pragma omp for private(elem_counter)
+            for (int k = 0; k < this->GetNumberOfThreads(); k++){
+                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+                typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+                elem_counter = 0;
 
-        #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-            elem_counter = 0;
+                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                    SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
+                    double reduction = reduction_distances[this->GetElementPartition()[k] + elem_counter];
 
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                double max_indentation = reduction_distances[this->GetElementPartition()[k] + elem_counter];
-                it->Calculate(MAX_BTB_INDENTATION, max_indentation, rCurrentProcessInfo);
-                max_indentation *= 0.5; // reducing the radius by half the indentation is enough
-                it->Calculate(MAX_BTF_INDENTATION, max_indentation, rCurrentProcessInfo);
-                reduction_distances[this->GetElementPartition()[k] + elem_counter] = max_indentation;
-                elem_counter++;
-            }
-
-        }
-
-        #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-            elem_counter = 0;
-
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
-                double reduction = reduction_distances[this->GetElementPartition()[k] + elem_counter];
-
-                if (reduction > tol){
                     (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= reduction;
-                    spheric_particle.SetRadius(spheric_particle.GetRadius() - reduction);
+                    spheric_particle.SetRadius(spheric_particle.GetRadius() - reduction);                
+
+                    elem_counter++;
                 }
 
-                elem_counter++;
             }
-
-        }
+        
+        } //Pragma omp parallel
 
         KRATOS_CATCH("")
     
