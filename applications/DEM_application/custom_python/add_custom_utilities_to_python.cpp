@@ -178,13 +178,6 @@ void  AddCustomUtilitiesToPython(){
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         ;
      
-     class_<CatsTest, boost::noncopyable >
-        ("CatsTest", init<int,int,int>())
-        .def("EachCatEatsOneMouse", &CatsTest::EachCatEatsOneMouse)
-        .def("ResizeAssignedMiceForEachCatList", &CatsTest::ResizeAssignedMiceForEachCatList)
-
-        ;
-  
     }
 }  // namespace Python.
 
