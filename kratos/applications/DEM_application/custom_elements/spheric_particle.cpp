@@ -2645,11 +2645,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
               return;
           }                   
           
-          if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
-              ComputeNewRigidFaceNeighboursHistoricalData();
-              return;
-          }
-          
           //AdditionalCalculate(rVariable, Output, rCurrentProcessInfo);
 
           KRATOS_CATCH("")
