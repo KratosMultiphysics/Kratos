@@ -545,9 +545,6 @@ private:
     const Cluster3D  mCluster3D;
     const MAPcond    mMapCon3D3N;
 
-    const Cluster3D  mCluster3D;
-    const MAPcond    mMapCon3D3N;
-
     //       static const ApplicationCondition  msApplicationCondition;
 
     ///@}
