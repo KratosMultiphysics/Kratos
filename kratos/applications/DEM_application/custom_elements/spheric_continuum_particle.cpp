@@ -64,7 +64,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
       
-      void SphericContinuumParticle::SetInitialSphereContacts() 
+      void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo)
       {   
                 
           /*
@@ -173,9 +173,10 @@ namespace Kratos
 
         if (mDimension == 3) 
         {
-            ContactAreaWeighting3D();
-        } 
-        
+            ContactAreaWeighting3D(rCurrentProcessInfo);
+        }
+
+
         else if (mDimension == 2) 
         {
             ContactAreaWeighting2D();
@@ -304,7 +305,7 @@ namespace Kratos
       
 
       
-      void SphericContinuumParticle::ContactAreaWeighting3D() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+      void SphericContinuumParticle::ContactAreaWeighting3D( ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
           double alpha = 1.0;
@@ -331,6 +332,19 @@ namespace Kratos
           
               mcont_ini_neigh_area[index] = equiv_area; //*
               index++; //*
+
+
+              //RECAREY
+              array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - ini_cont_neighbour_iterator->GetGeometry()(0)->Coordinates();
+
+
+              double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                            other_to_me_vect[1] * other_to_me_vect[1] +
+                                                            other_to_me_vect[2] * other_to_me_vect[2]);
+
+
+              rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES] +=  0.5*distance*distance;
+
               
               
           } //for every neighbour
@@ -481,13 +495,26 @@ namespace Kratos
 
             if(mDempack){
 
+//              double rmin = mRadius;
+//              if(other_radius<mRadius) rmin = other_radius;
+
+//              double recarey_factor_i = 0.00530/rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES];
+
+//              calculation_area = KRATOS_M_PI*rmin*rmin;
+
+
+//              double equiv_shear = equiv_young/(2.0*(1+equiv_poisson));
+              
+//              kn_el = 3*equiv_young*recarey_factor_i/(1-2*equiv_poisson);
+
+//              double kn_old = equiv_young*calculation_area*initial_dist_i;
 
               double rmin = mRadius;
               if(other_radius<mRadius) rmin = other_radius;
-              
+
               calculation_area = KRATOS_M_PI*rmin*rmin;
               double equiv_shear = equiv_young/(2.0*(1+equiv_poisson));
-              
+
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
 
@@ -1598,13 +1625,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             return;
         }                                   
         ////////////////////////////////////////////////////////////////////////
-        if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
-        {            
-            SetInitialSphereContacts();
+//        if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
+//        {
+//            SetInitialSphereContacts(rCurrentProcessInfo);
 
-            CreateContinuumConstitutiveLaws();
-            return;
-        }
+//            CreateContinuumConstitutiveLaws();
+//            return;
+//        }
         
         if (rVariable == CALCULATE_SET_INITIAL_FEM_CONTACTS)
         {            
@@ -1666,7 +1693,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
  
       void SphericContinuumParticle::CustomInitialize()
       {         
-          
+
+          distances_squared = 0.0;
+
           /*double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
           mSectionalInertia                 = 0.25 * KRATOS_M_PI * mRadius * mRadius * mRadius  * mRadius ;   */ 
           
