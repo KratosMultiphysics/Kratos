@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/search_utilities.h"
 #include "custom_utilities/omp_dem_search.h"
 #include "custom_utilities/dem_fem_utilities.h"
+#include "custom_utilities/cats_test.h"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -176,7 +177,13 @@ void  AddCustomUtilitiesToPython(){
         ("DEMFEMUtilities", init<>())
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
         ;
+     
+     class_<CatsTest, boost::noncopyable >
+        ("CatsTest", init<int,int,int>())
+        .def("EachCatEatsOneMouse", &CatsTest::EachCatEatsOneMouse)
+        .def("ResizeAssignedMiceForEachCatList", &CatsTest::ResizeAssignedMiceForEachCatList)
 
+        ;
   
     }
 }  // namespace Python.
