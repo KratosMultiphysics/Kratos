@@ -79,7 +79,7 @@ class Solver:
         self.non_symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)
         self.stage0_time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         self.stage0_conv_criteria = IncrementalDisplacementCriteria(1e-2, 1e-4)
-        self.stage0_max_iterations = 2
+        self.stage0_max_iterations = 3
               
         ##strategy to be used in step1 - diffusion + phase change - a symmetric linear solver is sufficient
         tol = 1e-9
@@ -103,29 +103,29 @@ class Solver:
                                                                 self.ReformDofSetAtEachStep,
                                                                 self.MoveMeshFlag)
 
-        #self.stage1_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
-                                                                #self.stage1_time_scheme,
-                                                                #self.symmetric_linear_solver,
-                                                                #self.stage1_conv_criteria,
-                                                                #self.stage1_max_iterations,
-                                                                #self.CalculateReactionFlag, 
-                                                                #self.ReformDofSetAtEachStep,
-                                                                #self.MoveMeshFlag)   
+        self.stage1_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
+                                                                self.stage1_time_scheme,
+                                                                self.symmetric_linear_solver,
+                                                                self.stage1_conv_criteria,
+                                                                self.stage1_max_iterations,
+                                                                self.CalculateReactionFlag, 
+                                                                self.ReformDofSetAtEachStep,
+                                                                self.MoveMeshFlag)   
         
-        self.MaxLineSearchIterations = 20
-        self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
-        self.amp = 1.618         # maximum amplification factor
-        self.etmxa = 3.0           # maximum allowed step length
-        self.etmna = 0.01           # minimum allowed step length
-        self.toler = 1.0E-9
-        self.norm = 1.0E-6
-        self.ApplyLineSearches = True
-        self.stage1_solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.stage1_time_scheme, self.symmetric_linear_solver, self.stage1_conv_criteria,
-                                                                     self.stage1_max_iterations, self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
-                                                                     self.CalculateReactionFlag,
-                                                                     self.ReformDofSetAtEachStep,
-                                                                     self.MoveMeshFlag,
-                                                                    self.ApplyLineSearches)
+        #self.MaxLineSearchIterations = 20
+        #self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
+        #self.amp = 1.618         # maximum amplification factor
+        #self.etmxa = 3.0           # maximum allowed step length
+        #self.etmna = 0.01           # minimum allowed step length
+        #self.toler = 1.0E-9
+        #self.norm = 1.0E-6
+        #self.ApplyLineSearches = True
+        #self.stage1_solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.stage1_time_scheme, self.symmetric_linear_solver, self.stage1_conv_criteria,
+                                                                     #self.stage1_max_iterations, self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
+                                                                     #self.CalculateReactionFlag,
+                                                                     #self.ReformDofSetAtEachStep,
+                                                                     #self.MoveMeshFlag,
+                                                                    #self.ApplyLineSearches)
         
         
         self.Check()
