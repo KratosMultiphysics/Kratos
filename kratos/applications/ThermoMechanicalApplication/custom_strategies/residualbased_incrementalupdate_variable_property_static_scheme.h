@@ -384,9 +384,9 @@ public:
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
         ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-        const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
-        const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
-        const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
+        //const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
+        //const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
+        //const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
         //const double amb_temp = CurrentProcessInfo[AMBIENT_TEMPERATURE];
 
         ModelPart::TableType rDensityVar_table = r_model_part.GetTable(1);
@@ -396,7 +396,7 @@ public:
         ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);
 //         ModelPart::TableType HTC_table = r_model_part.GetTable(7);
 
-        double density_var = r_model_part.GetProcessInfo()[DENSITY];
+        //double density_var = r_model_part.GetProcessInfo()[DENSITY];
 
         const double latent_heat = r_model_part.GetProcessInfo()[LATENT_HEAT];
 
