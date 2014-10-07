@@ -838,10 +838,15 @@ namespace Kratos
           typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
           typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-          {
             
-              (it)->Calculate(CALCULATE_SET_INITIAL_DEM_CONTACTS,Output,rCurrentProcessInfo); 
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+              Kratos::SphericContinuumParticle& spheric_particle = dynamic_cast<Kratos::SphericContinuumParticle&>(*it);
+              spheric_particle.SetInitialSphereContacts(rCurrentProcessInfo);
+              spheric_particle.CreateContinuumConstitutiveLaws();
+
+//          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+//          {
+//              (it)->Calculate(CALCULATE_SET_INITIAL_DEM_CONTACTS,Output,rCurrentProcessInfo);
             
           } //loop over particles
 
