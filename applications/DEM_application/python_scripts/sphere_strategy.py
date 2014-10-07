@@ -21,9 +21,6 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-#    model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
-#    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-#    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
     
     # FORCES
@@ -32,19 +29,10 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
     model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
-    model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
-    model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
-#    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
-    #model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    #model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
-    #model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    #model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
-    #model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
 
     # ROTATION RELATED PROPERTIES
 
@@ -56,47 +44,10 @@ def AddVariables(model_part, Param):
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-#    model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
-#    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
-#    model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
-#    model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)  # MA: this is added temporarily until inlet becomes a process
 
     # LOCAL AXIS
     if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
-
-    # BOUNDARY SURFACE
-
-#   if (Param.LimitSurfaceOption > 0):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_1)
-#   if (Param.LimitSurfaceOption > 1):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_2)
-#   if (Param.LimitSurfaceOption > 2):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_3)
-#   if (Param.LimitSurfaceOption > 3):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_4)
-#   if (Param.LimitSurfaceOption > 4):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_5)
-#
-#   if (Param.LimitCylinderOption > 0):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_1)
-#   if (Param.LimitCylinderOption > 1):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_2)
-#   if (Param.LimitCylinderOption > 2):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_3)
-#   if (Param.LimitCylinderOption > 3):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_4)
-#   if (Param.LimitCylinderOption > 4):
-#       model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_5)
-
-    # OPTIMIZATION
-#    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
 
     # FLAGS
 
@@ -115,14 +66,11 @@ def AddVariables(model_part, Param):
         model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
     print("Variables for the explicit solver added correctly")
-
+    
 
 def AddDofs(model_part):
 
     for node in model_part.Nodes:
-        #node.AddDof(DISPLACEMENT_X, REACTION_X)
-        #node.AddDof(DISPLACEMENT_Y, REACTION_Y)
-        #node.AddDof(DISPLACEMENT_Z, REACTION_Z)
         node.AddDof(VELOCITY_X, REACTION_X)
         node.AddDof(VELOCITY_Y, REACTION_Y)
         node.AddDof(VELOCITY_Z, REACTION_Z)
@@ -132,7 +80,14 @@ def AddDofs(model_part):
 
     print("DOFs for the DEM solution added correctly")
 
+def AddFEMVariables(model_part, Param):
 
+    model_part.AddNodalSolutionStepVariable(PRESSURE)
+    model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
+    model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
+
+    
+    
 class ExplicitStrategy:
 
     def __init__(self, model_part, fem_model_part, creator_destructor, Param):
@@ -293,67 +248,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0);
 
         # TOLERANCES
-        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);       
-
-        # BOUNDARY
-#        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_option)
-#        if (self.limit_surface_option > 0):
-#          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_1, self.surface_normal_dir_1)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_1, self.surface_point_coor_1)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_1, self.surface_friction_angle_1)
-#        if (self.limit_surface_option > 1):
-#          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_2, self.surface_normal_dir_2)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_2, self.surface_point_coor_2)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_2, self.surface_friction_angle_2)
-#        if (self.limit_surface_option > 2):
-#          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_3, self.surface_normal_dir_3)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_3, self.surface_point_coor_3)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_3, self.surface_friction_angle_3)
-#        if (self.limit_surface_option > 3):
-#          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_4, self.surface_normal_dir_4)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_4, self.surface_point_coor_4)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_4, self.surface_friction_angle_4)
-#        if (self.limit_surface_option > 4):
-#          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_5, self.surface_normal_dir_5)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_5, self.surface_point_coor_5)
-#          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_5, self.surface_friction_angle_5)
-#
-#        self.model_part.ProcessInfo.SetValue(LIMIT_CYLINDER_OPTION, self.limit_cylinder_option)
-#        if (self.limit_cylinder_option > 0):
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_1, self.cylinder_axis_dir_1)
-#          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_1, self.cylinder_initial_base_centre_1)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_1, self.cylinder_radius_1)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_1, self.cylinder_velocity_1)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_1, self.cylinder_angular_velocity_1)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_1, self.cylinder_friction_angle_1)
-#        if (self.limit_cylinder_option > 1):
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_2, self.cylinder_axis_dir_2)
-#          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_2, self.cylinder_initial_base_centre_2)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_2, self.cylinder_radius_2)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_2, self.cylinder_velocity_2)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_2, self.cylinder_angular_velocity_2)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_2, self.cylinder_friction_angle_2)
-#        if (self.limit_cylinder_option > 2):
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_3, self.cylinder_axis_dir_3)
-#          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_3, self.cylinder_initial_base_centre_3)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_3, self.cylinder_radius_3)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_3, self.cylinder_velocity_3)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_3, self.cylinder_angular_velocity_3)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_3, self.cylinder_friction_angle_3)
-#        if (self.limit_cylinder_option > 3):
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_4, self.cylinder_axis_dir_4)
-#          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_4, self.cylinder_initial_base_centre_4)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_4, self.cylinder_radius_4)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_4, self.cylinder_velocity_4)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_4, self.cylinder_angular_velocity_4)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_4, self.cylinder_friction_angle_4)
-#        if (self.limit_cylinder_option > 4):
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_5, self.cylinder_axis_dir_5)
-#          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_5, self.cylinder_initial_base_centre_5)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_5, self.cylinder_radius_5)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_5, self.cylinder_velocity_5)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_5, self.cylinder_angular_velocity_5)
-#          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_5, self.cylinder_friction_angle_5)
+        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);               
 
         # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
