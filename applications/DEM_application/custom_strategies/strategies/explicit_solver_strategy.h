@@ -1347,10 +1347,12 @@ namespace Kratos
             elem_counter = 0;
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
                 double reduction = reduction_distances[this->GetElementPartition()[k] + elem_counter];
 
                 if (reduction > tol){
                     (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= reduction;
+                    spheric_particle.SetRadius( spheric_particle.GetRadius() - reduction );
                 }
 
                 elem_counter++;
