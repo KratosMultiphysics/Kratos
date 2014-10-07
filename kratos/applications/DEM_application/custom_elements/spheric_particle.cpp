@@ -396,7 +396,7 @@ namespace Kratos
                   }
 
                   GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
-                  double indentation = mRadius - DistPToB;
+                  double indentation = 2 * (mRadius - DistPToB);
                   rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
 
                 }
