@@ -628,7 +628,7 @@ public:
 		const double dist = it->FastGetSolutionStepValue(DISTANCE);
 		if(dist<=0.0)
 		{
-			const double alpha = it->FastGetSolutionStepValue(SOLID_FRACTION);
+			const double alpha = 1.0 + it->FastGetSolutionStepValue(SOLID_FRACTION);
 			double& visc = it->FastGetSolutionStepValue(VISCOSITY);
                         visc *= alpha*ViscosityFactor;
 			//visc *= (ViscosityFactor - (ViscosityFactor -1.0)*(1.0 - alpha));
