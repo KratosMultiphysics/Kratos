@@ -26,7 +26,6 @@
 namespace Kratos
 {
         
-  KRATOS_CREATE_VARIABLE(double, AUX_DOUBLE_VAR)
   KRATOS_CREATE_VARIABLE(int, TRACK_SUBSCALES)
   
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
@@ -43,8 +42,6 @@ void KratosSwimmingDEMApplication::Register()
   KratosApplication::Register();
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
                 
-
-  KRATOS_REGISTER_VARIABLE(AUX_DOUBLE_VAR)
   KRATOS_REGISTER_VARIABLE(TRACK_SUBSCALES)
 
   /* Define In Global variables.cpp */
