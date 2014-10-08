@@ -45,6 +45,7 @@
 #include "custom_strategies/schemes/integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/dem_fem_utilities.h"
+#include "custom_utilities/GeometryFunctions.h"
 
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
@@ -493,7 +494,10 @@ namespace Kratos
           // 3. Get and Calculate the forces
           GetForce();
           //FastGetForce();
+          
           Calculate_Conditions_RHS_and_Add();
+          
+          Calculate_Nodal_Pressures_and_Stresses();
           
           // 4. Synchronize (should be just FORCE and TORQUE)
           SynchronizeSolidMesh(r_model_part);
@@ -824,6 +828,7 @@ namespace Kratos
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it){
 
                 (it)->Initialize();
+                CalculateNormals(it);
 
             }
 
@@ -832,88 +837,165 @@ namespace Kratos
         KRATOS_CATCH("")
     }
     
-    //DEMFFEM
+    //DEMFEM
     
-    void Calculate_Conditions_RHS_and_Add()
-    {
-      
-      KRATOS_TRY
-      
-      Clear_forces_FEM();
-              
-      ConditionsArrayType& pConditions      = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+    void CalculateNormals(ConditionsArrayType::iterator it) {
 
-      ProcessInfo& CurrentProcessInfo  = GetFemModelPart().GetProcessInfo();
+        KRATOS_TRY
+        
+        array_1d<double, 3>& NormalToCondition = it->GetValue(NORMAL);
+         
+        //Calculate the normal vector to an element
+        
+        array_1d<double, 3> v1, v2;
+        
+        v1[0] = it->GetGeometry()[1].X() - it->GetGeometry()[0].X();
+        v1[1] = it->GetGeometry()[1].Y() - it->GetGeometry()[0].Y();
+        v1[2] = it->GetGeometry()[1].Z() - it->GetGeometry()[0].Z();
 
-      Vector rhs_cond;
+        v2[0] = it->GetGeometry()[2].X() - it->GetGeometry()[0].X();
+        v2[1] = it->GetGeometry()[2].Y() - it->GetGeometry()[0].Y();
+        v2[2] = it->GetGeometry()[2].Z() - it->GetGeometry()[0].Z();
 
-      vector<unsigned int> condition_partition;
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
-      unsigned int index;
-      
-      #pragma omp parallel for private (index, rhs_cond)     
-      
-      for(int k=0; k<this->GetNumberOfThreads(); k++)
-      {
-          typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
-          typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
-
-          for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
-          {
-              Condition::GeometryType& geom = it->GetGeometry();
-              
-              it->CalculateRightHandSide(rhs_cond,CurrentProcessInfo);
-            
-              const unsigned int& dim = geom.WorkingSpaceDimension();
-              for (unsigned int i = 0; i <geom.size(); i++)
-              {
-                  index = i*dim;
-                  array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);//TOTAL_FORCES
-
-                  
-                  for(unsigned int kk=0; kk<dim; kk++)
-                  {
-                      geom(i)->SetLock();
-
-                      node_rhs[kk] = node_rhs[kk] + rhs_cond[index+kk];
-
-                      geom(i)->UnSetLock();
-                  }
-                  
-              }                   
-              
-          }
-          
-      }
-
-      KRATOS_CATCH("")
+        MathUtils<double>::CrossProduct(NormalToCondition, v1, v2);
+        
+        NormalToCondition /= MathUtils<double>::Norm3(NormalToCondition);
+    
+        KRATOS_CATCH("")
     }
     
     
-    void Clear_forces_FEM()
+    void Calculate_Conditions_RHS_and_Add() {
+      
+        KRATOS_TRY
+      
+        Clear_forces_FEM();
+        ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+        ProcessInfo& CurrentProcessInfo = GetFemModelPart().GetProcessInfo();
+        
+        Vector rhs_cond;
+        vector<unsigned int> condition_partition;    
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);    
+        unsigned int index;
+               
+        #pragma omp parallel for private (index, rhs_cond)
+        
+        for (int k=0; k<this->GetNumberOfThreads(); k++) {
+            
+            typename ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];        
+            typename ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k+1];
+            
+            for (typename ConditionsArrayType::iterator it = it_begin; it!= it_end; ++it) { //each iteration refers to a different triangle
+                
+                Condition::GeometryType& geom = it->GetGeometry();            
+                double Element_Area = geom.Area();                     
+                it->CalculateRightHandSide(rhs_cond, CurrentProcessInfo);           
+                array_1d<double, 3> Normal_to_Element = it->GetValue(NORMAL);                                                                       
+                const unsigned int& dim = geom.WorkingSpaceDimension();
+                
+                for (unsigned int i = 0; i <geom.size(); i++) { //talking about each of the three nodes of the triangle
+                                                                //we are studying a certain triangle here
+                    index = i * dim;    //*2;                 
+                    geom(i)->SetLock();                    
+                    
+                    array_1d<double, 3>& node_rhs = geom(i)->GetSolutionStepValue(ELASTIC_FORCES); //TOTAL_FORCES
+                    array_1d<double, 3>& node_rhs_tang = geom(i)->GetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+                    double& node_pressure = geom(i)->GetSolutionStepValue(PRESSURE);                  
+                    double& node_area = geom(i)->GetSolutionStepValue(NODAL_AREA);
+                    double& shear_stress = geom(i)->GetSolutionStepValue(SHEAR_STRESS);
+                    array_1d<double, 3> rhs_cond_comp;
+                    
+                    for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
+                        
+                        node_rhs[j] = node_rhs[j] + rhs_cond[index+j];
+                        rhs_cond_comp[j] =  rhs_cond[index+j];
+                    }
+                                                           
+                    node_area += 0.333333333333333 * Element_Area;
+                    //node_pressure actually refers to normal force. It is really computed later in function Calculate_Nodal_Pressures_and_Stresses()
+                    //as a real pressure
+                    node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
+                    
+                    node_rhs_tang += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
+                    shear_stress = GeometryFunctions::module(node_rhs_tang);
+                    
+                    geom(i)->UnSetLock();
+                    
+                }                                 
+            }          
+        }
 
-    {
+        KRATOS_CATCH("")
+    }
+    
+    
+    void Clear_forces_FEM() {
+        
         KRATOS_TRY
 
-        ModelPart& fem_model_part  = GetFemModelPart();
-        NodesArrayType& pNodes   = fem_model_part.Nodes();
+        ModelPart& fem_model_part = GetFemModelPart();
+        NodesArrayType& pNodes = fem_model_part.Nodes();
 
         vector<unsigned int> node_partition;
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
 
         #pragma omp parallel for
         
-        for(int k=0; k<this->GetNumberOfThreads(); k++)
-        {
-            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-            typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+        for (int k=0; k<this->GetNumberOfThreads(); k++) {
+            
+            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin() + node_partition[k];
+            typename NodesArrayType::iterator i_end=pNodes.ptr_begin() + node_partition[k+1];
 
-            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-            {
-                array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(ELASTIC_FORCES));
-                //array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(TOTAL_FORCES));
-                noalias(node_rhs)             = ZeroVector(3);
+            for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
+                
+                array_1d<double, 3>& node_rhs = i->FastGetSolutionStepValue(ELASTIC_FORCES);
+                array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+                double& node_pressure = i->FastGetSolutionStepValue(PRESSURE);
+                double& node_area = i->FastGetSolutionStepValue(NODAL_AREA);
+                double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
+                
+                noalias(node_rhs) = ZeroVector(3);
+                noalias(node_rhs_tang) = ZeroVector(3);
+                node_pressure = 0.0;
+                node_area = 0.0;
+                shear_stress = 0.0;
+                
             }
+            
+        }
+
+        KRATOS_CATCH("")
+    }
+    
+    
+    void Calculate_Nodal_Pressures_and_Stresses() {
+        
+        KRATOS_TRY
+
+        ModelPart& fem_model_part = GetFemModelPart();
+        NodesArrayType& pNodes = fem_model_part.Nodes();
+
+        vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        
+        for (int k = 0; k < this->GetNumberOfThreads(); k++) {
+            
+            typename NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
+            typename NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k+1];
+
+            for (ModelPart::NodeIterator i = i_begin; i!= i_end; ++i) {
+                
+                double& node_pressure = i->FastGetSolutionStepValue(PRESSURE);
+                double& node_area = i->FastGetSolutionStepValue(NODAL_AREA);
+                double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
+                                
+                node_pressure = node_pressure/node_area;
+                shear_stress = shear_stress/node_area;
+                 
+            }
+            
         }
 
         KRATOS_CATCH("")
