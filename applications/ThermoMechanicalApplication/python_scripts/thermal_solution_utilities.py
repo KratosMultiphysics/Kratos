@@ -50,7 +50,8 @@ class ThermalSolutionUtilities:
         liquidus = self.model_part.ProcessInfo[FLUID_TEMPERATURE]
         solidus = self.model_part.ProcessInfo[SOLID_TEMPERATURE]
         ambient = self.ProjectParameters.AMBIENT_TEMPERATURE
-        air_temperature = 0.5*(solidus+liquidus) #self.ProjectParameters.FLUID_TEMPERATURE #liquidus #0.5*(solidus + liquidus)
+        #air_temperature = 0.5*(solidus+liquidus) #
+        air_temperature = self.ProjectParameters.FLUID_TEMPERATURE #liquidus #0.5*(solidus + liquidus)
         
         #speficif_heat = specific_heat_table.GetValue(air_temperature) #self.ProjectParameters.FLUID_TEMPERATURE)
         
