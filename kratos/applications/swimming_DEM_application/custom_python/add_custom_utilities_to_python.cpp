@@ -166,15 +166,9 @@ using namespace boost::python;
         .def("CheckIfRuleIsMet", &BoundingBoxRule::CheckIfRuleIsMet)
         ;
 
-    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRuleFieldValue", init<RealField::Pointer, const double>())
-        .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
-        ;
-
-    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRuleValueField", init<const double, RealField::Pointer>())
-        .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
-        ;
-
-    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRuleFieldField", init<RealField::Pointer, RealField::Pointer>())
+    class_<MoreThanRule, bases<SpaceTimeRule> > ("MoreThanRule", init<RealField::Pointer, const double>())
+        .def(init<const double, RealField::Pointer>())
+        .def( init<RealField::Pointer, RealField::Pointer>())
         .def("CheckIfRuleIsMet", &MoreThanRule::CheckIfRuleIsMet)
         ;
 
