@@ -53,7 +53,7 @@ def ConstructListsOfVariables(pp):
     pp.fluid_vars = []
     pp.fluid_vars += pp.fluid_printing_vars
     pp.fluid_vars += pp.coupling_fluid_vars
-    pp.fluid_vars += [PRESSURE_GRADIENT, AUX_DOUBLE_VAR]
+    pp.fluid_vars += [PRESSURE_GRADIENT]
 
     if (pp.drag_force_type >= 0):
         pp.fluid_vars += [POWER_LAW_N]
