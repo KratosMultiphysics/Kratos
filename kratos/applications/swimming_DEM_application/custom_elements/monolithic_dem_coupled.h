@@ -344,8 +344,6 @@ public:
         this->CalculateWeights(DN_DXContainer, NContainer, GaussWeights);
         const SizeType NumGauss = NContainer.size1();
 
-
-
         for (SizeType g = 0; g < NumGauss; g++){
             const double GaussWeight = GaussWeights[g];
             const ShapeFunctionsType& Ng = row(NContainer, g);
