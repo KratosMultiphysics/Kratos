@@ -109,7 +109,7 @@ class MonolithicSolver:
         self.verbosity = 0
         self.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
-            AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK,
+            AMGCLIterativeSolverType.GMRES, ##BICGSTAB_WITH_GMRES_FALLBACK,
             self.tol,
             self.iterations,
             self.verbosity,
