@@ -368,6 +368,49 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
 }
 
 
+template <>
+double VMS<2,3>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,3,2> &rDN_DX) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+
+    // Calculate Symetric gradient (Voigt notation)
+    array_1d<double,3> S(3,0.0);
+    for (unsigned int n = 0; n < 3; ++n)
+    {
+        const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
+        S[0] += rDN_DX(n,0)*rVel[0];
+        S[1] += rDN_DX(n,1)*rVel[1];
+        S[2] += rDN_DX(n,0)*rVel[1]+rDN_DX(n,1)*rVel[0];
+    }
+
+    // Norm of symetric gradient (cross terms don't get the 2)
+    return std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + S[2]*S[2]);
+}
+
+
+template <>
+double VMS<3,4>::EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double,4,3> &rDN_DX) const
+{
+    const GeometryType& rGeom = this->GetGeometry();
+
+    // Calculate Symetric gradient (Voigt notation)
+    array_1d<double,6> S(6,0.0);
+    for (unsigned int n = 0; n < 4; ++n)
+    {
+        const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
+        S[0] += rDN_DX(n,0)*rVel[0];
+        S[1] += rDN_DX(n,1)*rVel[1];
+        S[2] += rDN_DX(n,2)*rVel[2];
+        S[3] += rDN_DX(n,2)*rVel[1]+rDN_DX(n,1)*rVel[2];
+        S[4] += rDN_DX(n,2)*rVel[0]+rDN_DX(n,0)*rVel[2];
+        S[5] += rDN_DX(n,1)*rVel[0]+rDN_DX(n,0)*rVel[1];
+    }
+
+    // Norm of symetric gradient (cross terms don't get the 2)
+    return std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] + S[3]*S[3] + S[4]*S[4] + S[5]*S[5]);
+}
+
+
 /**
  * See VMS::CalculateB
  */

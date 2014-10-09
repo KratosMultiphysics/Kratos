@@ -43,7 +43,7 @@ void FractionalStep<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     }
     case 6:
     {
-        KRATOS_ERROR(std::logic_error,"Full solution of end of step velocity is not implemented, see Calculate(VELOCITY)","");
+        this->CalculateEndOfStepSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
         break;
     }
     default:
@@ -676,6 +676,80 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
         }
     }
 }
+
+
+template< unsigned int TDim >
+void FractionalStep<TDim>::CalculateEndOfStepSystem(MatrixType& rLeftHandSideMatrix,
+                                                    VectorType& rRightHandSideVector,
+                                                    ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = TDim * NumNodes;
+
+    // Check sizes and initialize
+    if( rLeftHandSideMatrix.size1() != LocalSize )
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+
+    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
+
+    if( rRightHandSideVector.size() != LocalSize )
+        rRightHandSideVector.resize(LocalSize);
+
+    rRightHandSideVector = ZeroVector(LocalSize);
+
+    // Shape functions and integration points
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+
+    //MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
+
+    // Stabilization parameters
+    double ElemSize = this->ElementSize();
+
+    double Bdf0 = rCurrentProcessInfo[BDF_COEFFICIENTS][0]; // for BDF2, 3/(2dt)
+
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+    {
+        const double GaussWeight = GaussWeights[g];
+        const ShapeFunctionsType& N = row(NContainer,g);
+        const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
+
+        // Evaluate required variables at the integration point
+        double Density;
+        this->EvaluateInPoint(Density,DENSITY,N);
+
+        const double Coeff = GaussWeight * Density * Bdf0 ;
+
+        // Calculate contribution to the gradient term (RHS)
+        double DeltaPressure;
+        this->EvaluateInPoint(DeltaPressure,PRESSURE_OLD_IT,N);
+
+        SizeType RowIndex = 0;
+
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+            for (SizeType d = 0; d < TDim; ++d)
+            {
+                rRightHandSideVector[RowIndex++] += GaussWeight * rDN_DX(i,d) * DeltaPressure;
+            }
+        }
+
+        // LHS matrix includes mass and viscous terms
+        double Viscosity = this->EffectiveViscosity(Density,N,rDN_DX,ElemSize,rCurrentProcessInfo);
+
+        this->AddMomentumMassTerm(rLeftHandSideMatrix,N,Coeff);
+
+        // Add viscous term
+        const double ViscousCoeff = Viscosity * GaussWeight;
+        this->AddViscousTerm(rLeftHandSideMatrix,rDN_DX,ViscousCoeff);
+    }
+}
+
 
 template< unsigned int TDim >
 int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
@@ -1388,17 +1462,17 @@ void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampMatrix,
 
     // Element lengths
     array_1d<double,3> Delta(3,0.0);
-    Delta[0] = abs(rGeom[NumNodes-1].X()-rGeom[0].X());
-    Delta[1] = abs(rGeom[NumNodes-1].Y()-rGeom[0].Y());
-    Delta[2] = abs(rGeom[NumNodes-1].Z()-rGeom[0].Z());
+    Delta[0] = std::fabs(rGeom[NumNodes-1].X()-rGeom[0].X());
+    Delta[1] = std::fabs(rGeom[NumNodes-1].Y()-rGeom[0].Y());
+    Delta[2] = std::fabs(rGeom[NumNodes-1].Z()-rGeom[0].Z());
 
     for (unsigned int n = 1; n < NumNodes; n++)
     {
-        double hx = abs(rGeom[n].X()-rGeom[n-1].X());
+        double hx = std::fabs(rGeom[n].X()-rGeom[n-1].X());
         if (hx > Delta[0]) Delta[0] = hx;
-        double hy = abs(rGeom[n].Y()-rGeom[n-1].Y());
+        double hy = std::fabs(rGeom[n].Y()-rGeom[n-1].Y());
         if (hy > Delta[1]) Delta[1] = hy;
-        double hz = abs(rGeom[n].Z()-rGeom[n-1].Z());
+        double hz = std::fabs(rGeom[n].Z()-rGeom[n-1].Z());
         if (hz > Delta[2]) Delta[2] = hz;
     }
 

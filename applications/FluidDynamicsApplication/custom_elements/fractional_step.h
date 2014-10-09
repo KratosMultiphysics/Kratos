@@ -421,6 +421,10 @@ namespace Kratos
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo);
 
+        void CalculateEndOfStepSystem(MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
+                                      ProcessInfo& rCurrentProcessInfo);
+
         void VelocityEquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo);
 
