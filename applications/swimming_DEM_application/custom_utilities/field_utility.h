@@ -117,7 +117,7 @@ class FieldUtility
            }
 
          #pragma omp parallel for
-         for (unsigned int i = 0; i < nnodes; ++i){
+         for ( int i = 0; i < (int)nnodes; ++i){
              ModelPart::NodeIterator node_it = r_model_part.NodesBegin() + i;
              double& destination_value = node_it->FastGetSolutionStepValue(destination_variable);
              destination_value = default_value;
@@ -152,7 +152,7 @@ class FieldUtility
            }
 
          #pragma omp parallel for
-         for (unsigned int i = 0; i < nnodes; ++i){
+         for ( int i = 0; i < (int)nnodes; ++i){
              ModelPart::NodeIterator node_it = r_model_part.NodesBegin() + i;
              array_1d<double, 3>& destination_value = node_it->FastGetSolutionStepValue(destination_variable);
              destination_value[0] = default_value[0];
