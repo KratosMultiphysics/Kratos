@@ -44,16 +44,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
+// External includes
+#include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // System includes
 #include <cstddef>
 #include <iostream>
 #include <sstream>
-
-// External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
 
 // Project includes
 #include "includes/define.h"
