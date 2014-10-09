@@ -272,21 +272,23 @@ while ( time < DEM_parameters.FinalTime):
     
     # adding DEM elements by the inlet:
     if (inlet_option):
-        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.  
-        
-    # measuring mean velocities in a certain control volume (the 'velocity trap')
-    if (DEM_parameters.VelocityTrapOption):
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
+        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.              
 
     stepinfo = report.StepiReport(timer,time,step)
     if stepinfo:
         KRATOSprint(stepinfo)
+    
+    #### PRINTING GRAPHS ####
+    os.chdir(graphs_path)
+    # measuring mean velocities in a certain control volume (the 'velocity trap')
+    if (DEM_parameters.VelocityTrapOption):
+        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
 
-    #### CONCRETE TEST STUFF ############################
+    #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(step)
 
-    #### GENERAL STUFF ###################################
+    #### GENERAL FORCE GRAPHS ###################################
     DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
 
