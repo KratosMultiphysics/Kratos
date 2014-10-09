@@ -482,55 +482,8 @@ public:
     {
         if (rVariable == ERROR_RATIO)
         {
-            // Get the element's geometric parameters
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            // Calculate this element's fluid properties
-            double Density;
-            this->EvaluateInPoint(Density, DENSITY, N);
-
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
-
-            // Get Advective velocity
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            // Output container
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
-
-            // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
-            double TauOne;
-            this->CalculateStaticTau(TauOne,AdvVel,ElemSize,Density,Viscosity);
-
-            if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
-            {
-                this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
-                ElementalMomRes *= TauOne;
-            }
-            else // OSS
-            {
-                this->OSSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);;
-                ElementalMomRes *= TauOne;
-            }
-
-            // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
-            double ErrorRatio(0.0);//, UNorm(0.0);
-//                array_1d< double, 3 > UGauss(3, 0.0);
-//                this->AddPointContribution(UGauss, VELOCITY, N);
-
-            for (unsigned int i = 0; i < TDim; ++i)
-            {
-                ErrorRatio += ElementalMomRes[i] * ElementalMomRes[i];
-//                    UNorm += UGauss[i] * UGauss[i];
-            }
-            ErrorRatio = sqrt(ErrorRatio); // / UNorm);
-            ErrorRatio /= Density;
-            this->SetValue(ERROR_RATIO, ErrorRatio);
-            rOutput = ErrorRatio;
+            rOutput = this->SubscaleErrorEstimate(rCurrentProcessInfo);
+            this->SetValue(ERROR_RATIO,rOutput);
         }
         else if (rVariable == NODAL_AREA)
         {
@@ -844,6 +797,11 @@ public:
             double DetJ = J(0,0)*( J(1,1)*J(2,2) - J(1,2)*J(2,1) ) + J(0,1)*( J(1,2)*J(2,0) - J(1,0)*J(2,2) ) + J(0,2)*( J(1,0)*J(2,1) - J(1,1)*J(2,0) );
             rValues.resize(1, false);
             rValues[0] = DetJ;
+        }
+        else if (rVariable == ERROR_RATIO)
+        {
+            rValues.resize(1,false);
+            rValues[0] = this->SubscaleErrorEstimate(rCurrentProcessInfo);
         }
         else // Default behaviour (returns elemental data)
         {
@@ -1515,60 +1473,8 @@ protected:
      * @param rDN_DX Shape function derivatives at the integration point.
      * @return GammaDot = (2SijSij)^0.5.
      */
-    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX) const
-    {
-        const GeometryType& rGeom = this->GetGeometry();
+    double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > &rDN_DX) const;
 
-        // Calculate Symetric gradient
-        MatrixType S = ZeroMatrix(TDim,TDim);
-        for (unsigned int n = 0; n < TNumNodes; ++n)
-        {
-            const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int i = 0; i < TDim; ++i)
-                for (unsigned int j = 0; j < TDim; ++j)
-                    S(i,j) += 0.5 * ( rDN_DX(n,j) * rVel[i] + rDN_DX(n,i) * rVel[j] );
-        }
-
-        // Norm of symetric gradient
-        double NormS = 0.0;
-        for (unsigned int i = 0; i < TDim; ++i)
-            for (unsigned int j = 0; j < TDim; ++j)
-                NormS += S(i,j) * S(i,j);
-
-        return std::sqrt(2.0*NormS);
-    }
-
-
-//    /// Add the contribution from Smagorinsky model to the (kinematic) viscosity
-//    /**
-//     * @param Denstity Density evaluated at the integration point (unused)
-//     * @param MolecularViscosity Viscosity of the fluid, in kinematic units (m2/s)
-//     * @param rShapeFunc Elemental shape functions, evaluated on the integration point
-//     * @param rShapeDeriv Shape function derivatives, evaluated on the integration point
-//     * @param TotalViscosity Effective viscosity (output)
-//     * @param rCurrentProcessInfo ProcessInfo instance (unused)
-//     */
-//    virtual void GetEffectiveViscosity(const double Density,
-//                                       const double MolecularViscosity,
-//                                       const array_1d<double, TNumNodes>& rShapeFunc,
-//                                       const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-//                                       double& TotalViscosity,
-//                                       const ProcessInfo& rCurrentProcessInfo)
-//    {
-//        const double C = this->GetValue(C_SMAGORINSKY);
-
-//        TotalViscosity = MolecularViscosity;
-//        if (C != 0.0 )
-//        {
-//            // The filter width in Smagorinsky is typically the element size h. We will store the square of h, as the final formula involves the squared filter width
-//            const double FilterWidth = this->FilterWidth(rShapeDeriv);
-
-//            const double NormS = this->SymmetricGradientNorm(rShapeDeriv);
-
-//            // Total Viscosity
-//            TotalViscosity += 2.0 * C * C * FilterWidth * NormS;
-//        }
-//    }
 
     /// Write the advective velocity evaluated at this point to an array
     /**
@@ -1843,17 +1749,17 @@ protected:
 
         // Element lengths
         array_1d<double,3> Delta(3,0.0);
-        Delta[0] = abs(rGeom[TNumNodes-1].X()-rGeom[0].X());
-        Delta[1] = abs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
-        Delta[2] = abs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
+        Delta[0] = std::fabs(rGeom[TNumNodes-1].X()-rGeom[0].X());
+        Delta[1] = std::fabs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
+        Delta[2] = std::fabs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
 
         for (unsigned int n = 1; n < TNumNodes; n++)
         {
-            double hx = abs(rGeom[n].X()-rGeom[n-1].X());
+            double hx = std::fabs(rGeom[n].X()-rGeom[n-1].X());
             if (hx > Delta[0]) Delta[0] = hx;
-            double hy = abs(rGeom[n].Y()-rGeom[n-1].Y());
+            double hy = std::fabs(rGeom[n].Y()-rGeom[n-1].Y());
             if (hy > Delta[1]) Delta[1] = hy;
-            double hz = abs(rGeom[n].Z()-rGeom[n-1].Z());
+            double hz = std::fabs(rGeom[n].Z()-rGeom[n-1].Z());
             if (hz > Delta[2]) Delta[2] = hz;
         }
 
@@ -1938,6 +1844,60 @@ protected:
                              const double Viscosity);
 
     double ConsistentMassCoef(const double Area);
+
+
+    double SubscaleErrorEstimate(const ProcessInfo& rProcessInfo)
+    {
+        // Get the element's geometric parameters
+        double Area;
+        array_1d<double, TNumNodes> N;
+        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+        // Calculate this element's fluid properties
+        double Density;
+        this->EvaluateInPoint(Density, DENSITY, N);
+
+        double ElemSize = this->ElementSize(Area);
+        double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rProcessInfo);
+
+        // Get Advective velocity
+        array_1d<double, 3 > AdvVel;
+        this->GetAdvectiveVel(AdvVel, N);
+
+        // Output container
+        array_1d< double, 3 > ElementalMomRes(3, 0.0);
+
+        // Calculate stabilization parameter. Note that to estimate the subscale velocity, the dynamic coefficient in TauOne is assumed zero.
+        double TauOne;
+        this->CalculateStaticTau(TauOne,AdvVel,ElemSize,Density,Viscosity);
+
+        if ( rProcessInfo[OSS_SWITCH] != 1 ) // ASGS
+        {
+            this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
+            ElementalMomRes *= TauOne;
+        }
+        else // OSS
+        {
+            this->OSSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);;
+            ElementalMomRes *= TauOne;
+        }
+
+        // Error estimation ( ||U'|| / ||Uh_gauss|| ), taking ||U'|| = TauOne ||MomRes||
+        double ErrorRatio(0.0);//, UNorm(0.0);
+        //array_1d< double, 3 > UGauss(3, 0.0);
+        //this->EvaluateInPoint(UGauss,VELOCITY,N);
+
+        for (unsigned int i = 0; i < TDim; ++i)
+        {
+            ErrorRatio += ElementalMomRes[i] * ElementalMomRes[i];
+            //UNorm += UGauss[i] * UGauss[i];
+        }
+        ErrorRatio = sqrt(ErrorRatio*Area);// / UNorm);
+        //ErrorRatio /= Density;
+        //this->SetValue(ERROR_RATIO, ErrorRatio);
+        return ErrorRatio;
+    }
 
     ///@}
     ///@name Protected  Access
