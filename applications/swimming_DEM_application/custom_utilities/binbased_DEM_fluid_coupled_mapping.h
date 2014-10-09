@@ -1251,8 +1251,8 @@ private:
             noalias(inode->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
         }
 
+        array_1d <double, 3> grad;
         array_1d <double, TDim + 1 > elemental_fluid_fractions;
-        array_1d <double, TDim> grad;
         array_1d <double, TDim + 1 > N; // shape functions vector
         boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
