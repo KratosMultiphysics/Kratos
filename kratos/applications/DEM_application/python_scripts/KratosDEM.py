@@ -150,6 +150,42 @@ solver.Initialize()
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
     contact_model_part = solver.contact_model_part
   
+# constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
+# Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
+inlet_option                     = 1
+dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+
+if (inlet_option):
+    max_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(balls_model_part)
+    max_FEM_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(rigid_face_model_part)
+    if ( max_FEM_node_Id > max_node_Id):
+        max_node_Id = max_FEM_node_Id
+    creator_destructor.SetMaxNodeId(max_node_Id)
+        
+    DEM_inlet_model_part = ModelPart("DEMInletPart")
+    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
+    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
+    os.chdir(main_path)
+    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+
+    # setting up the buffer size:
+    DEM_inlet_model_part.SetBufferSize(1)
+
+    # adding nodal degrees of freedom
+    SolverStrategy.AddDofs(DEM_inlet_model_part)
+    DEM_inlet_parameters = DEM_inlet_model_part.Properties
+    
+    for properties in DEM_inlet_model_part.Properties:
+            
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
+
+    # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)    
+    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, dem_inlet_element_type)
+  
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
    #ProceduresSetPredefinedSkin(balls_model_part)
@@ -200,8 +236,8 @@ KRATOSprint(report.BeginReport(timer))
 
 mesh_motion = DEMFEMUtilities()
 
-#if(DEM_parameters.PoissonMeasure == "ON"):
-  #MaterialTest.PoissonMeasure()
+# creating a Post Utils object that executes several post-related tasks
+post_utils = DEM_procedures.PostUtils(DEM_parameters, balls_model_part)
 
 a = 50
 step = 0  
@@ -233,6 +269,15 @@ while ( time < DEM_parameters.FinalTime):
     solver.Solve()
     
     #### TIME CONTROL ##################################
+    
+    # adding DEM elements by the inlet:
+    if (inlet_option):
+        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.  
+        
+    # measuring mean velocities in a certain control volume (the 'velocity trap')
+    if (DEM_parameters.VelocityTrapOption):
+        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
+
     stepinfo = report.StepiReport(timer,time,step)
     if stepinfo:
         KRATOSprint(stepinfo)
