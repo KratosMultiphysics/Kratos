@@ -31,7 +31,6 @@
 #include "kratos_DEMApplication_export_dll.h"
 
 
-
 namespace Kratos
 {
   ///@addtogroup ApplicationNameApplication
@@ -70,10 +69,8 @@ namespace Kratos
       /// Pointer definition of SphericParticle
       KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
 
-      //Cfeng,RigidFace
       typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
-      typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
-	  
+      typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType; 
 
       typedef WeakPointerVector<Element> ParticleWeakVectorType; 
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
@@ -89,12 +86,10 @@ namespace Kratos
       SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
-      
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;            
 
       /// Destructor.
       virtual ~SphericParticle();
-
 
       ///@}
       ///@name Operations
@@ -121,7 +116,6 @@ namespace Kratos
       void SetRadius(double radius);
       double GetSqrtOfRealMass();
       void SetSqrtOfRealMass(double sqrt_of_real_mass);
-
       double GetYoung();
       void SetYoungFromProperties(double* young);      
       double GetRollingFriction();
@@ -168,8 +162,6 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
 
-
-      //virtual void ComputeNewNeighboursHistoricalData();
       virtual void ComputeNewNeighboursHistoricalData( std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
                                                        std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
             
@@ -191,15 +183,11 @@ namespace Kratos
 
       SphericParticle();
 
-      //void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo);
-	        
-      virtual void ComputeBallToRigidFaceContactForce(  //array_1d<double, 3>& rContactForce, 
-                                                        //array_1d<double, 3>& rContactMoment, 
-                                                        array_1d<double, 3>& rElasticForce, 
-                                                        array_1d<double, 3>& InitialRotaMoment, 
-                                                        ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
+                                                      array_1d<double, 3>& InitialRotaMoment,
+                                                      ProcessInfo& rCurrentProcessInfo);
+
       virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
-      //////
       
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
@@ -207,20 +195,11 @@ namespace Kratos
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
       void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum); 
-      virtual void ComputeBallToBallContactForce(   //array_1d<double, 3>& rContactForce, 
-                                                    //array_1d<double, 3>& rContactMoment, 
-                                                    array_1d<double, 3>& rElasticForce, 
-                                                    array_1d<double, 3>& InitialRotaMoment, 
-                                                    ProcessInfo& rCurrentProcessInfo, 
-                                                    double dt,
-                                                    const bool multi_stage_RHS); 
-      void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, 
-                                            array_1d<double, 3>& rContactMoment, 
-                                            array_1d<double, 3>& InitialRotaMoment, 
-                                            int surface_num, ProcessInfo& rCurrentProcessInfo);
-      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, int cylinder_num, ProcessInfo& rCurrentProcessInfo);     
-      //virtual void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
-      //virtual void ComputeParticleRotationSpring(   const ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
+                                                 array_1d<double, 3>& InitialRotaMoment,
+                                                 ProcessInfo& rCurrentProcessInfo,
+                                                 double dt,
+                                                 const bool multi_stage_RHS);
 
       virtual void CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& other_to_me_vect,
                                                              const double& other_radius,
@@ -230,19 +209,15 @@ namespace Kratos
                                                              double& equiv_visco_damp_coeff_normal,
                                                              double& equiv_visco_damp_coeff_tangential,
                                                              double& equiv_tg_of_fri_ang,
-                                                             //ParticleWeakIteratorType neighbour_iterator);
                                                              SphericParticle* neighbour_iterator);
 
       virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                                 double RelVel[3],
-                                //double NormalDir[3],
-                                //double OldNormalDir[3],
                                 double LocalCoordSystem[3][3],
                                 double OldLocalCoordSystem[3][3],
                                 array_1d<double, 3> &other_to_me_vect,
                                 const array_1d<double, 3> &vel,
                                 const array_1d<double, 3> &delta_displ,
-                                //ParticleWeakIteratorType neighbour_iterator,
                                 SphericParticle* neighbour_iterator,
                                 double& distance);
       
@@ -251,22 +226,16 @@ namespace Kratos
       virtual void TangentialForceCalculation(const double normal_force, double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
       virtual void DisplacementDueToRotation(double DeltDesp[3],
-                                //double OldNormalDir[3],
                                 double OldLocalCoordSystem[3][3],
                                 const double &other_radius,
                                 const double &dt,
                                 const array_1d<double, 3> &angl_vel,
                                 SphericParticle* neighbour_iterator);
 
-      virtual void ComputeMoments(//double LocalElasticContactForce[3],
-                                  double normalLocalElasticContactForce,
+      virtual void ComputeMoments(double normalLocalElasticContactForce,
                                   array_1d<double, 3>& GlobalElasticContactForces,
-                                  //double InitialRotaMoment[3],
                                   array_1d<double, 3>& rInitialRotaMoment,
-                                  //double LocalCoordSystem[3][3],
                                   double LocalCoordSystem_2[3],
-                                  //const double &other_radius,
-                                  //array_1d<double, 3>& rContactMoment,
                                   SphericParticle* neighbour_iterator);
 
       virtual void CustomInitialize();
@@ -283,8 +252,6 @@ namespace Kratos
                                 double GlobalContactForce[3],
                                 double GlobalElasticContactForce[3],
                                 double ViscoDampingLocalContactForce[3],
-                                //double ViscoDampingGlobalContactForce[3],
-                                //array_1d<double, 3> &rContactForce,
                                 array_1d<double, 3> &rElasticForce,
                                 const double &i_neighbour_count);
       
@@ -294,8 +261,6 @@ namespace Kratos
                                 double GlobalContactForce[3],
                                 double GlobalElasticContactForce[3],
                                 double ViscoDampingLocalContactForce[3],
-                                //double ViscoDampingGlobalContactForce[3],
-                                //array_1d<double, 3> &rContactForce,
                                 array_1d<double, 3> &rElasticForce,
                                 const double &iRigidFaceNeighbour);
       
@@ -337,11 +302,6 @@ namespace Kratos
       std::vector<int> mFemOldNeighbourIds;
       std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
      
-      
-
-      
-      
-       
       ///@name Protected static Member Variables
       ///@{
 
@@ -388,8 +348,6 @@ namespace Kratos
       ///@}
       ///@name Member Variables
       ///@{
-
-
 
 
       ///@}
