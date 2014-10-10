@@ -104,11 +104,10 @@ class Solver:
         # linesearch solver
         # definition of parameters
         self.MaxLineSearchIterations = 20
-        self.MaxNewtonRapshonIterations = 5
         self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
         self.amp = 1.618         # maximum amplification factor
         self.etmxa = 3.0           # maximum allowed step length
-        self.etmna = 0.05           # minimum allowed step length
+        self.etmna = 0.1           # minimum allowed step length
         self.toler = 1.0E-9
         self.norm = 1.0E-6
         self.ApplyLineSearches = True

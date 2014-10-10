@@ -56,6 +56,7 @@ class Solver:
         self.model_part = model_part
         self.settings = my_settings
         self.domain_size = domain_size
+        self.max_distance = 1e6
         
         self.echo_level = 0
         self.CalculateReactionFlag = False
@@ -74,21 +75,25 @@ class Solver:
         
         ##strategy to be used in step0 - pure convection step - a non-symmetric linear solver is required
         gmres_size = 50
-        tol = 1e-6
+        tol = 1e-4
         verbosity = 0
         self.non_symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)
         self.stage0_time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         self.stage0_conv_criteria = IncrementalDisplacementCriteria(1e-2, 1e-4)
-        self.stage0_max_iterations = 3
+        self.stage0_max_iterations = 2
               
         ##strategy to be used in step1 - diffusion + phase change - a symmetric linear solver is sufficient
-        tol = 1e-9
+        tol = 1e-3
         verbosity = 0
         self.symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.CG, tol, 200, verbosity, gmres_size)
         self.stage1_time_scheme = ResidualBasedIncrementalUpdateStaticVariablePropertyScheme()
         self.stage1_conv_criteria = IncrementalDisplacementCriteria(1e-4,1e-6) #IncrementalDisplacementCriteria(1e-4, 1e-6)
-        self.stage1_max_iterations = 3
+        self.stage1_max_iterations = 1
         
+        ##strategy to be used in step3 - diffusion + phase change - a symmetric linear solver is sufficient
+        #self.stage2_time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        #self.stage2_conv_criteria = IncrementalDisplacementCriteria(1e-4,1e-6) #IncrementalDisplacementCriteria(1e-4, 1e-6)
+        #self.stage2_max_iterations = 1
 
 
     def Initialize(self):
@@ -111,7 +116,15 @@ class Solver:
                                                                 self.CalculateReactionFlag, 
                                                                 self.ReformDofSetAtEachStep,
                                                                 self.MoveMeshFlag)   
-        
+ 
+        #self.stage2_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
+                                                                #self.stage1_time_scheme,
+                                                                #self.symmetric_linear_solver,
+                                                                #self.stage2_conv_criteria,
+                                                                #self.stage2_max_iterations,
+                                                                #self.CalculateReactionFlag, 
+                                                                #self.ReformDofSetAtEachStep,
+                                                                #self.MoveMeshFlag)  
         #self.MaxLineSearchIterations = 20
         #self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
         #self.amp = 1.618         # maximum amplification factor
@@ -139,10 +152,47 @@ class Solver:
         #compute BDF2_coefficients
         ComputeBDFCoefficientsProcess(self.model_part,2).Execute()
         
+        #thermal_inlet = []
+        #for node in self.model_part.Nodes:
+            #if(node.IsFixed(TEMPERATURE)):
+                #thermal_inlet.append(node)
+        
+        #for node in self.model_part.Nodes:
+            #if(node.GetSolutionStepValue(DISTANCE) < 0):
+                #node.Fix(TEMPERATURE)
+            #else:
+                #node.Free(TEMPERATURE)
+                
+        #for cond in self.model_part.Conditions:
+            #cond.Set(ACTIVE,False)
+            
+        #for elem in self.model_part.Elements:
+            #count = 0.0
+            #for node in elem.GetNodes():
+                #if(node.GetSolutionStepValue(DISTANCE) < 0):
+                    #count += 1
+            #if(count == 4):
+                #elem.Set(ACTIVE,False)
+            #else:
+                #for node in elem.GetNodes():
+                    #node.Free(TEMPERATURE)
+                
+        #for node in self.model_part.Nodes:
+            #if(node.GetSolutionStepValue(DISTANCE) < 0):
+                #node.Free(TEMPERATURE)
+                
+        #for node in thermal_inlet:
+            #node.Fix(TEMPERATURE)
+        
+        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,2)
+        #self.stage1_solver.Solve() 
+        
+        
+        
         #solve stage0 - pure convection step
         if(self.skip_stage0 == False):
             print("************* stage 0 *******************")
-            self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 1e6, True) 
+            self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, self.max_distance, True) 
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,0)
 
 
@@ -155,7 +205,7 @@ class Solver:
             
             #store "unknown" in the database without history
             self.variable_utils.SaveScalarVar(TEMPERATURE,TEMPERATURE,self.model_part.Nodes)
-            self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, 0.0, True) 
+            self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE,  self.max_distance, True)  #0.0, True) 
             
             
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,1)
@@ -167,7 +217,7 @@ class Solver:
         (self.stage1_solver).SetEchoLevel(level)
         
     def Check(self):
-        #self.stage0_solver.Check()
-        #self.stage1_solver.Check()
+        self.stage0_solver.Check()
+        self.stage1_solver.Check()
         pass
 
