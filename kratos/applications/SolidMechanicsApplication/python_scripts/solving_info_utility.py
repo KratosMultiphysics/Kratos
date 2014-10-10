@@ -35,7 +35,7 @@ class SolvingInfoUtility(object):
         self.execute_save  = False
         self.restart_id    = 0
 
-        self.write_perfomed = False
+        self.write_performed = False
         self.number_of_result_files = 0;
 
         self.restart_performed = False
@@ -140,7 +140,7 @@ class SolvingInfoUtility(object):
         total_info = "::[Solving Info]:: [ AVG-ITERS:"+str(average_iters)
         total_info = total_info+"|MAX-ITERS="+str(self.max_iter_number) 
         
-        if(self.write_performed):
+        if( self.write_performed ):
             total_info = total_info+"|RESULTS-FILES="+str(self.number_of_result_files)
         else:
             total_info = total_info+"|WARNING: NO RESULTS WRITTEN"
