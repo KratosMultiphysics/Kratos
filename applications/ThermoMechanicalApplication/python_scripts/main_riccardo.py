@@ -178,7 +178,7 @@ def IncreaseWallLawInSolidifiedZone(ThisModelPart, Ywall):
         if(slip_flag != 0.0 and distance<0.0):
             alpha = node.GetSolutionStepValue(SOLID_FRACTION)
             
-            modification_coefficient = 100.0*alpha*alpha
+            modification_coefficient = 1.0+100.0*alpha*alpha
             if(alpha != 0.0):
                 node.SetValue(Y_WALL, modification_coefficient * Ywall)
 
@@ -643,7 +643,7 @@ if(FILLING == 1.0):
             tilt_pouring_process.Execute()
         #percent_done = 100.00 * (time / final_time)
         Dt = EstimateTimeStep3D().ComputeDt(
-            fluid_model_part, 4.0 * fluid_solver.max_edge_size, CFL, 0.3 * max_Dt, max_Dt)
+            fluid_model_part, 4.0 * fluid_solver.max_edge_size, CFL, 0.03 * max_Dt, max_Dt)
         time = time + Dt
         time_crt = time
         fluid_model_part.CloneTimeStep(time)
