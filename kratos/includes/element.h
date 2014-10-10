@@ -232,6 +232,19 @@ public:
     }
 
     ///@}
+    ///@name Informations
+    ///@{
+    
+    /** Dimensional space of the element geometry
+	@return SizeType, working space dimension of this geometry.
+    */
+
+    SizeType WorkingSpaceDimension() const
+    {
+         return pGetGeometry()->WorkingSpaceDimension();
+    }
+
+    ///@}
     ///@name Operations
     ///@{
 
@@ -269,6 +282,7 @@ public:
         return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }
+
 
     /**
      * ELEMENTS inherited from this class have to implement next 

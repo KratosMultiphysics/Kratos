@@ -241,7 +241,7 @@ public:
         mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Line3D3,
                                           GiD_Linear, "Kratos_Line3D3_Mesh" ) );
-	    mGidMeshContainers.push_back( TMeshContainer(
+        mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Point3D,
                                           GiD_Point, "Kratos_Point3D_Mesh" ) );
 
@@ -956,6 +956,7 @@ public:
                         break;
         }
         if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
+		{
             for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin();
                     conditions_iterator != rThisMesh.ConditionsEnd(); conditions_iterator++ )
@@ -963,7 +964,7 @@ public:
                         it != mGidMeshContainers.end(); it++ )
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
-
+		}
 //         mNodeList.clear();
 
         for ( typename std::vector<TMeshContainer>::iterator it = mGidMeshContainers.begin();

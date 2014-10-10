@@ -236,6 +236,19 @@ public:
     }
 
     ///@}
+    ///@name Informations
+    ///@{
+    
+    /** Dimensional space of the mesh geometries
+	@return SizeType, working space dimension of this geometry.
+    */
+
+    SizeType WorkingSpaceDimension() const
+    {
+        return (mpElements->begin())->WorkingSpaceDimension();
+    }
+
+    ///@}
     ///@name Nodes
     ///@{
 
