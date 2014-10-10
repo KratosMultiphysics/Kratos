@@ -321,7 +321,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateKineticEnergy(double& rKineticEnergy)
+      void SphericParticle::CalculateKineticEnergy(double& r_kinetic_energy)
       {
           const array_1d<double, 3>& vel    = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
           const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -329,7 +329,7 @@ namespace Kratos
           double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
           double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
 
-          rKineticEnergy = 0.5 * (mSqrtOfRealMass * mSqrtOfRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
+          r_kinetic_energy = 0.5 * (mSqrtOfRealMass * mSqrtOfRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
       }
 
       //**************************************************************************************************************************************************
