@@ -345,7 +345,7 @@ public:
                 ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
                 ind->FastGetSolutionStepValue(rDiffusionVar) = conductivity_var*100.0; //1.0;
-                ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(50.0); //*density_var*specific_heat_air);
+                ind->FastGetSolutionStepValue(rTransferCoef) = 0.0; //htc_var/(50.0); //*density_var*specific_heat_air);
 
                 ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air*unknown_val; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
                 ind->GetValue(ENTHALPY) = specific_heat_air*unknown_val; 
