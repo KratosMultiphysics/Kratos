@@ -20,7 +20,7 @@ class ThermalSolutionUtilities:
         pass
     
     def BeforeThermalSolution(self,max_distance):
-        
+        pass
       
         #mark as inactive the temperature elements and condition with distance greater than zero
         #for elem in self.model_part.Elements:
@@ -47,22 +47,22 @@ class ThermalSolutionUtilities:
         #now detect if there is a node has just been switched on
         #latent_heat = self.model_part.ProcessInfo[LATENT_HEAT]        
         #specific_heat_table = self.model_part.GetTable(2)
-        liquidus = self.model_part.ProcessInfo[FLUID_TEMPERATURE]
-        solidus = self.model_part.ProcessInfo[SOLID_TEMPERATURE]
-        ambient = self.ProjectParameters.AMBIENT_TEMPERATURE
-        #air_temperature = 0.5*(solidus+liquidus) #
-        air_temperature = self.ProjectParameters.FLUID_TEMPERATURE #liquidus #0.5*(solidus + liquidus)
+        #liquidus = self.model_part.ProcessInfo[FLUID_TEMPERATURE]
+        #solidus = self.model_part.ProcessInfo[SOLID_TEMPERATURE]
+        #ambient = self.ProjectParameters.AMBIENT_TEMPERATURE
+        ##air_temperature = 0.5*(solidus+liquidus) #
+        #air_temperature = self.ProjectParameters.FLUID_TEMPERATURE #liquidus #0.5*(solidus + liquidus)
         
-        #speficif_heat = specific_heat_table.GetValue(air_temperature) #self.ProjectParameters.FLUID_TEMPERATURE)
+        ##speficif_heat = specific_heat_table.GetValue(air_temperature) #self.ProjectParameters.FLUID_TEMPERATURE)
         
-        for node in self.model_part.Nodes:
-            dist = node.GetSolutionStepValue(DISTANCE)
-            if(dist > 0):   
-                T = air_temperature #self.ProjectParameters.FLUID_TEMPERATURE
-                #H = speficif_heat*T + latent_heat
-                for i in range(0,3):
-                    node.SetSolutionStepValue(TEMPERATURE,i,T) ##assign to the past the current temperature
-                    #node.SetSolutionStepValue(ENTHALPY,i,H)
+        #for node in self.model_part.Nodes:
+            #dist = node.GetSolutionStepValue(DISTANCE)
+            #if(dist > 0):   
+                #T = air_temperature #self.ProjectParameters.FLUID_TEMPERATURE
+                ##H = speficif_heat*T + latent_heat
+                #for i in range(0,3):
+                    #node.SetSolutionStepValue(TEMPERATURE,i,T) ##assign to the past the current temperature
+                    ##node.SetSolutionStepValue(ENTHALPY,i,H)
                 
     def AfterThermalSolution(self):
         pass
