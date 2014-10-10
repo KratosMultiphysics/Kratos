@@ -296,6 +296,12 @@ while ( time < DEM_parameters.FinalTime):
     time_to_print = time - time_old_print
 
     if ( time_to_print >= DEM_parameters.OutputTimeStep):
+        
+        
+        print("*******************  PRINTING RESULTS FOR GID  ***************************")
+        print("                        (", balls_model_part.NumberOfElements(0), " elements)")
+        print("")
+        sys.stdout.flush()
 
         os.chdir(data_and_results)
 
