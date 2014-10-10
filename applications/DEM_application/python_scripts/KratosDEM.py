@@ -298,9 +298,9 @@ while ( time < DEM_parameters.FinalTime):
     if ( time_to_print >= DEM_parameters.OutputTimeStep):
         
         
-        print("*******************  PRINTING RESULTS FOR GID  ***************************")
-        print("                        (", balls_model_part.NumberOfElements(0), " elements)")
-        print("")
+        KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
+        KRATOSprint("                        ("+ str(balls_model_part.NumberOfElements(0)) + " elements)")
+        KRATOSprint("")
         sys.stdout.flush()
 
         os.chdir(data_and_results)
