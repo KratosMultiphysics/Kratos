@@ -95,10 +95,6 @@ public:
         {
             mMeshConditions.push_back ( * (pCondIt.base() ) );
             Geometry<Node<3> >&geom = pCondIt->GetGeometry();
-//                     for( int i=0; i<geom.size(); i++ )
-//                     {
-//                         mMeshNodes.push_back( geom.pGetPoint(i) );
-//                     }
             for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
@@ -152,7 +148,7 @@ public:
             {
                 if (elements_per_layer[current_layer] > 0)
                 {
-                    //create an appropriate name
+                    //create an appropiate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer ;
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )

@@ -235,6 +235,21 @@ public:
         return *this;
     }
    
+
+    ///@}
+    ///@name Informations
+    ///@{
+    
+    /** Dimensional space of the element geometry
+	@return SizeType, working space dimension of this geometry.
+    */
+
+    SizeType WorkingSpaceDimension() const
+    {
+        return pGetGeometry()->WorkingSpaceDimension();
+    }
+
+
     ///@}
     ///@name Operations
     ///@{
