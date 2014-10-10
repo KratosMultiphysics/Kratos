@@ -109,7 +109,7 @@ class MonolithicSolver:
         self.verbosity = 0
         self.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
-            AMGCLIterativeSolverType.GMRES, ##BICGSTAB_WITH_GMRES_FALLBACK,
+            AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK,
             self.tol,
             self.iterations,
             self.verbosity,
@@ -122,7 +122,7 @@ class MonolithicSolver:
         self.abs_pres_tol = 1e-7
 
         self.dynamic_tau_levelset = 0.01
-        self.dynamic_tau_fluid = 1.0
+        self.dynamic_tau_fluid = 0.0
         self.oss_switch = 0
 
         # non newtonian setting
