@@ -94,6 +94,7 @@ namespace Kratos
 
     //for General kratos application: 
     KRATOS_DEFINE_VARIABLE( int, TIME_STEPS )
+    KRATOS_DEFINE_VARIABLE( int, RIGID_BODY_ID )
 
     //for Structural application
     KRATOS_DEFINE_VARIABLE( int, CONTACT_RAMP )
