@@ -20,9 +20,13 @@
 #include "DEM_application.h"
 #include "includes/kratos_flags.h"
 
-#define DEM_COPY_SECOND_TO_FIRST_3(a, b) a[0] = b[0]; a[1] = b[1]; a[2] = b[2];
-#define DEM_SET_COMPONENTS_TO_ZERO_3(a)  a[0] = 0.0;  a[1] = 0.0;  a[2] = 0.0;
-#define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)  a[0][0] = 0.0;  a[0][1] = 0.0;  a[0][2] = 0.0; a[1][0] = 0.0;  a[1][1] = 0.0;  a[1][2] = 0.0; a[2][0] = 0.0;  a[2][1] = 0.0;  a[2][2] = 0.0;
+#define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0] = b[0]; a[1] = b[1]; a[2] = b[2];
+#define DEM_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
+#define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0] = 0.0;  a[1] = 0.0;  a[2] = 0.0;
+#define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0;  a[0][1] = 0.0;  a[0][2] = 0.0; a[1][0] = 0.0;  a[1][1] = 0.0;  a[1][2] = 0.0; a[2][0] = 0.0;  a[2][1] = 0.0;  a[2][2] = 0.0;
+#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1];  a[2] = b * a[2];
+#define DEM_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+#define DEM_INNER_PRODUCT_3(a, b)                   (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 
 namespace Kratos
 {
@@ -101,11 +105,6 @@ namespace Kratos
           if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 
-          //mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
-          //mDiscontinuumConstitutiveLaw->Initialize();
-          //mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
-          //mDiscontinuumConstitutiveLaw->Initialize();
-
           CustomInitialize();
 
           KRATOS_CATCH( "" )
@@ -114,7 +113,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
+      void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vector, ProcessInfo& r_current_process_info, double dt, const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
 
@@ -132,27 +131,27 @@ namespace Kratos
 
           bool multi_stage_RHS = false;
 
-          ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS);
+          ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt, multi_stage_RHS);
 
           if (mFemOldNeighbourIds.size() > 0){
-              ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo);
+              ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info);
             }
 
-          ComputeAdditionalForces(additional_forces, additionally_applied_moment, rCurrentProcessInfo, gravity);
+          ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_current_process_info, gravity);
 
-          rRightHandSideVector[0] = mContactForce[0]  + additional_forces[0];
-          rRightHandSideVector[1] = mContactForce[1]  + additional_forces[1];
-          rRightHandSideVector[2] = mContactForce[2]  + additional_forces[2];
-          rRightHandSideVector[3] = mContactMoment[0] + additionally_applied_moment[0];
-          rRightHandSideVector[4] = mContactMoment[1] + additionally_applied_moment[1];
-          rRightHandSideVector[5] = mContactMoment[2] + additionally_applied_moment[2];
+          r_right_hand_side_vector[0] = mContactForce[0]  + additional_forces[0];
+          r_right_hand_side_vector[1] = mContactForce[1]  + additional_forces[1];
+          r_right_hand_side_vector[2] = mContactForce[2]  + additional_forces[2];
+          r_right_hand_side_vector[3] = mContactMoment[0] + additionally_applied_moment[0];
+          r_right_hand_side_vector[4] = mContactMoment[1] + additionally_applied_moment[1];
+          r_right_hand_side_vector[5] = mContactMoment[2] + additionally_applied_moment[2];
 
-          array_1d<double,3>& total_forces  = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
-          array_1d<double,3>& total_moment  = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+          array_1d<double,3>& total_forces = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+          array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
 
           for (int i = 0; i < 3; i++){
-              total_forces[i] = rRightHandSideVector[i];
-              total_moment[i] = rRightHandSideVector[3 + i];
+              total_forces[i] = r_right_hand_side_vector[i];
+              total_moment[i] = r_right_hand_side_vector[3 + i];
             }
 
           KRATOS_CATCH( "" )
@@ -161,7 +160,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt)
+      void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process_info, double dt)
       {
           KRATOS_TRY
 
@@ -173,9 +172,7 @@ namespace Kratos
           initial_rotation_moment.clear();
           elastic_force.clear();
 
-          bool multi_stage_RHS = true;
-
-          ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
+          ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt, true); // The preset argument 'true' should be removed
 
           std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
           std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
@@ -183,7 +180,7 @@ namespace Kratos
           std::fill(neighbour_rigid_faces_total_contact_force.begin(), neighbour_rigid_faces_total_contact_force.end(), 0.0);
 
           if (mFemOldNeighbourIds.size() > 0){
-              ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, rCurrentProcessInfo);
+              ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info);
             }
 
           KRATOS_CATCH( "" )
@@ -192,26 +189,25 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_current_process_info)
       {
           KRATOS_TRY
 
-          //LOOP OVER NEIGHBOURS BEGINS:
           for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
-              SphericParticle* neighbour_iterator = mNeighbourElements[i];
+              SphericParticle* ineighbour = mNeighbourElements[i];
 
-              if (this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
-              if (this->Id() < neighbour_iterator->Id()) continue;
+              if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;
+              if (this->Id() < ineighbour->Id()) continue;
 
-              for (unsigned int j = 0; j < neighbour_iterator->mNeighbourElements.size(); j++){  //loop to find the neighbour of the neighbours which is me
-                  SphericParticle* is_that_me = neighbour_iterator->mNeighbourElements[j];
+              for (unsigned int j = 0; j < ineighbour->mNeighbourElements.size(); j++){  //loop to find the neighbour of the neighbours which is me
+                  SphericParticle* is_that_me = ineighbour->mNeighbourElements[j];
 
                   if (is_that_me->Id() == this->Id()){
-                      mOldNeighbourElasticContactForces[i] = - neighbour_iterator->mOldNeighbourElasticContactForces[j];
-                      mOldNeighbourTotalContactForces[i]   = - neighbour_iterator->mOldNeighbourTotalContactForces[j];
+                      mOldNeighbourElasticContactForces[i] = - ineighbour->mOldNeighbourElasticContactForces[j];
+                      mOldNeighbourTotalContactForces[i]   = - ineighbour->mOldNeighbourTotalContactForces[j];
                       mContactForce += mOldNeighbourTotalContactForces[i];
-                      array_1d<double, 3>& rElasticForce = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
-                      rElasticForce += mOldNeighbourElasticContactForces[i];
+                      array_1d<double, 3>& r_elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+                      r_elastic_force += mOldNeighbourElasticContactForces[i];
                       break;
                     }
 
@@ -225,37 +221,27 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
+      void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& r_current_process_info, double dt, const array_1d<double,3>& gravity)
       {
           KRATOS_TRY
 
           if (this->Is(DEMFlags::HAS_ROTATION)){
+              const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+              const double coeff_acc            = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
+              array_1d<double, 3> initial_rotation_moment = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
 
-              //LOOP OVER NEIGHBOURS BEGINS:
-              for( unsigned int i = 0; i < mNeighbourElements.size(); i++){
-                  SphericParticle* neighbour_iterator = mNeighbourElements[i];
+              for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
+                  SphericParticle* ineighbour = mNeighbourElements[i];
 
-                  if (this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
+                  if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;
 
-                  array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-                  double distance                      = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-                  double inv_distance                  = 1.0/distance;
-                  double other_to_me_vect_unitary[3]   = {0.0};
-                  other_to_me_vect_unitary[0]          = other_to_me_vect[0] * inv_distance;
-                  other_to_me_vect_unitary[1]          = other_to_me_vect[1] * inv_distance;
-                  other_to_me_vect_unitary[2]          = other_to_me_vect[2] * inv_distance;
-
-                  double projection_to_local_axis2 = mOldNeighbourElasticContactForces[i][0] * other_to_me_vect_unitary[0]
-                                                   + mOldNeighbourElasticContactForces[i][1] * other_to_me_vect_unitary[1]
-                                                   + mOldNeighbourElasticContactForces[i][2] * other_to_me_vect_unitary[2];
-
-                  const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                  const double coeff_acc            = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
-                  array_1d<double, 3> initial_rotation_moment;
-                  initial_rotation_moment           = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
+                  array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+                  double inv_distance                  = 1.0 / DEM_MODULUS_3(other_to_me_vect);
+                  double other_to_me_vect_unitary[3]   = {other_to_me_vect[0] * inv_distance, other_to_me_vect[1] * inv_distance, other_to_me_vect[2] * inv_distance};
+                  double projection_to_local_axis2     = DEM_INNER_PRODUCT_3(mOldNeighbourElasticContactForces[i], other_to_me_vect_unitary);
 
                   if (this->Is(DEMFlags::HAS_ROTATION)){
-                      ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, neighbour_iterator);
+                      ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, ineighbour);
                     }
 
                 }
@@ -267,7 +253,7 @@ namespace Kratos
           additional_forces.clear();
           additionally_applied_moment.clear();
 
-          ComputeAdditionalForces(additional_forces, additionally_applied_moment, rCurrentProcessInfo, gravity);
+          ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_current_process_info, gravity);
 
           array_1d<double,3>& total_forces = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
           array_1d<double,3>& total_moment = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
@@ -281,22 +267,20 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation)
+      void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_indentation)
       {
-          rCurrentMaxIndentation = - std::numeric_limits<double>::max();
+          r_current_max_indentation = - std::numeric_limits<double>::max();
 
-          for (unsigned int j = 0; j < mNeighbourElements.size(); j++){
-              SphericParticle* i = mNeighbourElements[j];
+          for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
+              SphericParticle* ineighbour = mNeighbourElements[i];
 
-              array_1d<double, 3> other_to_me_vect  = this->GetGeometry()[0].Coordinates() - i->GetGeometry()[0].Coordinates();
-              double other_radius                   = i->GetRadius();
-              double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                                           other_to_me_vect[1] * other_to_me_vect[1] +
-                                                           other_to_me_vect[2] * other_to_me_vect[2]);
+              array_1d<double, 3> other_to_me_vect  = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+              double other_radius                   = ineighbour->GetRadius();
+              double distance                       = DEM_MODULUS_3(other_to_me_vect);
               double radius_sum                     = mRadius + other_radius;
               double indentation                    = radius_sum - distance;
 
-              rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
+              r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
              }
 
       }
@@ -304,36 +288,34 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation)
+      void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_indentation)
       {
+          r_current_max_indentation = - std::numeric_limits<double>::max();
 
-          rCurrentMaxIndentation = - std::numeric_limits<double>::max();
           array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
-
           double node_coor[3];
 
           DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
 
-          for (unsigned int j = 0; j < mNeighbourRigidFaces.size(); j++){
+          for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++){
               double DistPToB;
-              DEMWall* pNeighbour = mNeighbourRigidFaces[j];
+              DEMWall* ineighbourface = mNeighbourRigidFaces[i];
               double Coord[4][3] = {{0.0}, {0.0}, {0.0}, {0.0}};
 
               // Triangle
-              DEM_COPY_SECOND_TO_FIRST_3(Coord[0], pNeighbour->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
-              DEM_COPY_SECOND_TO_FIRST_3(Coord[1], pNeighbour->GetGeometry()[1].Coordinates())
-              DEM_COPY_SECOND_TO_FIRST_3(Coord[2], pNeighbour->GetGeometry()[2].Coordinates())
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[0], ineighbourface->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[1], ineighbourface->GetGeometry()[1].Coordinates())
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[2], ineighbourface->GetGeometry()[2].Coordinates())
 
-              if (pNeighbour->GetGeometry().size() == 4){
-                  DEM_COPY_SECOND_TO_FIRST_3(Coord[3], pNeighbour->GetGeometry()[3].Coordinates())
+              if (ineighbourface->GetGeometry().size() == 4){
+                  DEM_COPY_SECOND_TO_FIRST_3(Coord[3], ineighbourface->GetGeometry()[3].Coordinates())
               }
 
               GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
               double indentation = mRadius - DistPToB;
-              rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
+              r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
 
             }
-
       }
 
       //**************************************************************************************************************************************************
@@ -353,7 +335,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateElasticEnergyOfContacts(double& rElasticEnergy) // Calculates the elastic energy stored in the sum of all the contacts shared by the particle and all its neighbours
+      void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy) // Calculates the elastic energy stored in the sum of all the contacts shared by the particle and all its neighbours
       {
           double added_potential_energy_of_contacts   = 0.0;
           size_t i_neighbour_count                    = 0;
@@ -365,23 +347,21 @@ namespace Kratos
           std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
           ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces, mTempNeighbourTotalContactForces);
 
-          //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
           for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-              SphericParticle* neighbour_iterator = mNeighbourElements[i];
+              SphericParticle* ineighbour = mNeighbourElements[i];
 
-              //const double &other_radius              = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-              const double &other_radius              = neighbour_iterator->GetRadius();
-              double radius_sum                       = mRadius + other_radius;
-              double radius_sum_i                     = 1.0 / radius_sum;
-              double equiv_radius                     = 2.0 * mRadius * other_radius * radius_sum_i;
-              double equiv_area                       = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+              const double &other_radius          = ineighbour->GetRadius();
+              double radius_sum                   = mRadius + other_radius;
+              double radius_sum_i                 = 1.0 / radius_sum;
+              double equiv_radius                 = 2.0 * mRadius * other_radius * radius_sum_i;
+              double equiv_area                   = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
               double equiv_young;
               double equiv_poisson;
               double kn;
               double kt;
 
-              const double other_young           = neighbour_iterator->GetYoung();
-              const double other_poisson         = neighbour_iterator->GetPoisson();
+              const double other_young            = ineighbour->GetYoung();
+              const double other_poisson          = ineighbour->GetPoisson();
 
               equiv_young                         = 2.0 * myYoung * other_young / (myYoung + other_young);
               equiv_poisson                       = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
@@ -395,23 +375,18 @@ namespace Kratos
 
               switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
                    case 0:
-
                        aux_power_of_contact_i_normal_force = mOldNeighbourElasticContactForces[i_neighbour_count][2] * mOldNeighbourElasticContactForces[i_neighbour_count][2];
                        added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
-
                    break;
 
                    case 1:
                         aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourElasticContactForces[i_neighbour_count][2]), 5 / 3); //error: substitute divisions by known result!!!
                         added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3); //error: substitute divisions by known result!!!
-
                    break;
 
                    default:
-
                        aux_power_of_contact_i_normal_force = mOldNeighbourElasticContactForces[i_neighbour_count][2] * mOldNeighbourElasticContactForces[i_neighbour_count][2];
                        added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
-
                   break;
 
                }//switch
@@ -422,29 +397,28 @@ namespace Kratos
               added_potential_energy_of_contacts       += 0.5 * aux_power_of_contact_i_tang_force / kt;
 
               i_neighbour_count ++;
-
             }
 
-          rElasticEnergy = added_potential_energy_of_contacts;
+          r_elastic_energy = added_potential_energy_of_contacts;
       }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateMomentum(array_1d<double, 3>& rMomentum)
+      void SphericParticle::CalculateMomentum(array_1d<double, 3>& r_momentum)
       {
           const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-          rMomentum = mSqrtOfRealMass * mSqrtOfRealMass * vel;
+          r_momentum = mSqrtOfRealMass * mSqrtOfRealMass * vel;
       }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum)
+      void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angular_momentum)
       {
           const array_1d<double, 3> ang_vel  = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
           const double moment_of_inertia     = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          rAngularMomentum = moment_of_inertia * ang_vel;
+          r_angular_momentum = moment_of_inertia * ang_vel;
       }
 
       //**************************************************************************************************************************************************
@@ -459,9 +433,8 @@ namespace Kratos
           mTempNeighbourElasticContactForces.resize(new_size);
           mTempNeighbourTotalContactForces.resize(new_size);
 
-          for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
+          for (unsigned int i = 0; i < new_size; i++){
               SphericParticle* i_neighbour = mNeighbourElements[i];
-
               mTempNeighboursIds[i] = static_cast<int>(i_neighbour->Id());
               mTempNeighbourElasticContactForces[i] = vector_of_zeros;
               mTempNeighbourTotalContactForces[i] = vector_of_zeros;
@@ -494,7 +467,7 @@ namespace Kratos
          std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
          std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
 
-         for (unsigned int i=0; i<rNeighbours.size(); i++){
+         for (unsigned int i = 0; i<rNeighbours.size(); i++){
 
              temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());
              temp_neighbours_contact_forces[i] = vector_of_zeros;
@@ -517,12 +490,12 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_current_process_info){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_current_process_info)
       {
           rMassMatrix(0,0) = mSqrtOfRealMass * mSqrtOfRealMass;
       }
@@ -537,7 +510,7 @@ namespace Kratos
                                                       array_1d<double, 3>& other_to_me_vect,
                                                       const array_1d<double, 3>& vel,
                                                       const array_1d<double, 3>& delta_displ,
-                                                      SphericParticle* neighbour_iterator,
+                                                      SphericParticle* p_neighbour,
                                                       double& distance)
       {
           // FORMING LOCAL CORDINATES
@@ -549,16 +522,16 @@ namespace Kratos
 
           // FORMING OLD LOCAL CORDINATES
           const array_1d<double,3> old_coord_target      = this->GetGeometry()[0].Coordinates() - delta_displ;
-          const array_1d<double, 3 > & other_delta_displ = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          const array_1d<double,3> old_coord_neigh       = neighbour_iterator->GetGeometry()[0].Coordinates() - other_delta_displ;
+          const array_1d<double, 3 > & other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double,3> old_coord_neigh       = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
 
           array_1d<double,3> old_other_to_me_vect = old_coord_target - old_coord_neigh;
-          const double old_distance = sqrt(old_other_to_me_vect[0] * old_other_to_me_vect[0] + old_other_to_me_vect[1] * old_other_to_me_vect[1] + old_other_to_me_vect[2] * old_other_to_me_vect[2]);
+          const double old_distance = DEM_MODULUS_3(old_other_to_me_vect);
 
           GeometryFunctions::ComputeContactLocalCoordSystem(old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coord System
 
           // VELOCITIES AND DISPLACEMENTS
-          const array_1d<double, 3 >& other_vel = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3 >& other_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
           RelVel[0] = (vel[0] - other_vel[0]);
           RelVel[1] = (vel[1] - other_vel[1]);
@@ -578,12 +551,12 @@ namespace Kratos
                                                       const double& other_radius,
                                                       const double& dt,
                                                       const array_1d<double, 3>& ang_vel,
-                                                      SphericParticle* neighbour_iterator)
+                                                      SphericParticle* p_neighbour)
       {
           double velA[3]                    = {0.0};
           double velB[3]                    = {0.0};
           double dRotaDisp[3]               = {0.0};
-          array_1d<double, 3> other_ang_vel = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          array_1d<double, 3> other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
           double VelTemp[3]                 = {      ang_vel[0],       ang_vel[1],       ang_vel[2]};
           double OtherVelTemp[3]            = {other_ang_vel[0], other_ang_vel[1], other_ang_vel[2]};
 
@@ -603,15 +576,15 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeMoments(double normalLocalElasticContactForce,
+      void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                                            array_1d<double, 3>& GlobalElasticContactForce,
                                            array_1d<double, 3>& rInitialRotaMoment,
-                                           double LocalCoordSystem_2[3],
-                                           SphericParticle* neighbour_iterator)
+                                           double LocalCoordSystem2[3],
+                                           SphericParticle* p_neighbour)
       {
           double MA[3] = {0.0};
 
-          GeometryFunctions::CrossProduct(LocalCoordSystem_2, GlobalElasticContactForce, MA);
+          GeometryFunctions::CrossProduct(LocalCoordSystem2, GlobalElasticContactForce, MA);
 
           mContactMoment[0] -= MA[0] * mRadius;
           mContactMoment[1] -= MA[1] * mRadius;
@@ -620,50 +593,36 @@ namespace Kratos
           // ROLLING FRICTION
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) ){
               double rolling_friction_coeff       = GetRollingFriction() * mRadius;
-              const double other_rolling_friction = neighbour_iterator->GetRollingFriction();
-              double other_rolling_friction_coeff = other_rolling_friction * neighbour_iterator->GetRadius();
+              const double other_rolling_friction = p_neighbour->GetRollingFriction();
+              double other_rolling_friction_coeff = other_rolling_friction * p_neighbour->GetRadius();
               double equiv_rolling_friction_coeff = std::min(rolling_friction_coeff,other_rolling_friction_coeff);
 
               if (equiv_rolling_friction_coeff != 0.0){
-                  double MaxRotaMoment[3]      = {0.0};
+                  double MaxRotaMoment[3]      = {rInitialRotaMoment[0] + mContactMoment[0], rInitialRotaMoment[1] + mContactMoment[1], rInitialRotaMoment[2] + mContactMoment[2]};
                   double CoordSystemMoment1[3] = {0.0};
                   double CoordSystemMoment2[3] = {0.0};
                   double MR[3]                 = {0.0};
 
-                  MaxRotaMoment[0] = rInitialRotaMoment[0] + mContactMoment[0];
-                  MaxRotaMoment[1] = rInitialRotaMoment[1] + mContactMoment[1];
-                  MaxRotaMoment[2] = rInitialRotaMoment[2] + mContactMoment[2];
-
-                  GeometryFunctions::CrossProduct(LocalCoordSystem_2, MaxRotaMoment, CoordSystemMoment1);
-                  double det_coor_sys_moment_i_1 = 1 / sqrt(CoordSystemMoment1[0] * CoordSystemMoment1[0] + CoordSystemMoment1[1] * CoordSystemMoment1[1] + CoordSystemMoment1[2] * CoordSystemMoment1[2]);
-                  CoordSystemMoment1[0] *= det_coor_sys_moment_i_1;
-                  CoordSystemMoment1[1] *= det_coor_sys_moment_i_1;
-                  CoordSystemMoment1[2] *= det_coor_sys_moment_i_1;
+                  GeometryFunctions::CrossProduct(LocalCoordSystem2, MaxRotaMoment, CoordSystemMoment1);
+                  DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment1, (1.0 / DEM_MODULUS_3(CoordSystemMoment1)))
 
                   GeometryFunctions::CrossProduct(MaxRotaMoment, CoordSystemMoment1, CoordSystemMoment2);
-                  double det_coor_sys_moment_i_2 = 1 / sqrt(CoordSystemMoment2[0] * CoordSystemMoment2[0] + CoordSystemMoment2[1] * CoordSystemMoment2[1] + CoordSystemMoment2[2] * CoordSystemMoment2[2]);
-
-                  CoordSystemMoment2[0] *= det_coor_sys_moment_i_2;
-                  CoordSystemMoment2[1] *= det_coor_sys_moment_i_2;
-                  CoordSystemMoment2[2] *= det_coor_sys_moment_i_2;
+                  DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, (1.0 / DEM_MODULUS_3(CoordSystemMoment2)))
 
                   GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
-                  MR[0] *= fabs(normalLocalElasticContactForce);
-                  MR[1] *= fabs(normalLocalElasticContactForce);
-                  MR[2] *= fabs(normalLocalElasticContactForce);
+                  DEM_MULTIPLY_BY_SCALAR_3(MR, fabs(NormalLocalElasticContactForce))
 
-                  double det_MR = sqrt(MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2]);
-                  double MR_now = det_MR * equiv_rolling_friction_coeff;
-                  double MR_max = sqrt(MaxRotaMoment[0] * MaxRotaMoment[0] + MaxRotaMoment[1] * MaxRotaMoment[1] + MaxRotaMoment[2] * MaxRotaMoment[2]);
+                  double MR_now = DEM_MODULUS_3(MR) * equiv_rolling_friction_coeff;
+                  double MR_max = DEM_MODULUS_3(MaxRotaMoment);
 
                   if (MR_max > MR_now){
-                       mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
-                       mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
-                       mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
+                      mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
+                      mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
+                      mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
                     }
 
                   else {
-                     mContactMoment = - rInitialRotaMoment;
+                      mContactMoment = - rInitialRotaMoment;
                     }
 
                 } // if (equiv_rolling_friction_coeff != 0.0)
@@ -675,9 +634,9 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
+      void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elastic_force,
                                                           array_1d<double, 3>& rInitialRotaMoment,
-                                                          ProcessInfo& rCurrentProcessInfo,
+                                                          ProcessInfo& r_current_process_info,
                                                           double dt,
                                                           const bool multi_stage_RHS)
       {
@@ -709,41 +668,39 @@ namespace Kratos
 
           //LOOP OVER NEIGHBOURS BEGINS:
           for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
-              SphericParticle* neighbour_iterator = mNeighbourElements[i];
+              SphericParticle* ineighbour = mNeighbourElements[i];
 
-              if (this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
-              if (multi_stage_RHS  &&  this->Id() > neighbour_iterator->Id()) continue;
+              if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;
+              if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
 
               // BASIC CALCULATIONS
-              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-              const double &other_radius              = neighbour_iterator->GetRadius();
-              double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-
+              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+              const double &other_radius              = ineighbour->GetRadius();
+              double distance                         = DEM_MODULUS_3(other_to_me_vect);
               double radius_sum                       = mRadius + other_radius;
               double indentation                      = radius_sum - distance;
 
-              CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, neighbour_iterator);
+              CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, ineighbour);
 
               DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
               DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
               DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
               DEM_SET_COMPONENTS_TO_ZERO_3(LocalRelVel)
-
               DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)
               DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
 
-              EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
+              EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, ineighbour, distance);
 
               if (this->Is(DEMFlags::HAS_ROTATION)){
-                  DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                  DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, ineighbour);
                 }
 
-              double normal_force                      = 0.0;
-              double LocalContactForce[3]              = {0.0};
-              double GlobalContactForce[3]             = {0.0};
-              double LocalElasticContactForce[3]       = {0.0};
-              double GlobalElasticContactForce[3]      = {0.0};
-              double ViscoDampingLocalContactForce[3]  = {0.0};
+              double normal_force                     = 0.0;
+              double LocalContactForce[3]             = {0.0};
+              double GlobalContactForce[3]            = {0.0};
+              double LocalElasticContactForce[3]      = {0.0};
+              double GlobalElasticContactForce[3]     = {0.0};
+              double ViscoDampingLocalContactForce[3] = {0.0};
 
               DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mOldNeighbourElasticContactForces[i])
 
@@ -767,11 +724,11 @@ namespace Kratos
                 }
 
               // Transforming to global forces and adding up
-              AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, /*ViscoDampingGlobalContactForce, rContactForce, */rElasticForce, i);
+              AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, i);
 
               // ROTATION FORCES
               if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS){
-                  ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], /*other_radius, rContactMoment,*/ neighbour_iterator);
+                  ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
                 }
 
             }// for each neighbour
@@ -829,206 +786,196 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
+      void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                                array_1d<double, 3>& rInitialRotaMoment,
-                                                               ProcessInfo& rCurrentProcessInfo)
+                                                               ProcessInfo& r_current_process_info)
       {
 
         KRATOS_TRY
 
         std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
 
-        double mTimeStep        = rCurrentProcessInfo[DELTA_TIME]; //TODO: to be removed and sent as an argument
-        double myYoung          = GetYoung();
-        double myPoisson        = GetPoisson();
-        double area             = KRATOS_M_PI * mRadius * mRadius;
-
+        double mTimeStep         = r_current_process_info[DELTA_TIME]; //TODO: to be removed and sent as an argument
+        double myYoung           = GetYoung();
+        double myPoisson         = GetPoisson();
+        double area              = KRATOS_M_PI * mRadius * mRadius;
         array_1d<double, 3 > vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
         for (unsigned int i=0; i<rNeighbours.size(); i++){
-          //Condition* p_neighbour_condition = &(*ineighbour);
-          //RigidFace3D* cast_neighbour = dynamic_cast<RigidFace3D*>( p_neighbour_condition );
-          DEMWall* cast_neighbour = rNeighbours[i];
+            DEMWall* cast_neighbour = rNeighbours[i];
+            double WallBallFriction = cast_neighbour->mTgOfFrictionAngle;
+            double LocalElasticContactForce[3]  = {0.0};
+            double GlobalElasticContactForce[3] = {0.0};
+            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+            array_1d<double, 3 > other_to_me_vel = ZeroVector(3);
+            array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
+            double node_coor[3];
 
-          double WallBallFriction = cast_neighbour->mTgOfFrictionAngle;
+            DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
 
-          double LocalElasticContactForce[3]  = {0.0};
-          double GlobalElasticContactForce[3] = {0.0};
+            double ini_delta = GetInitialDelta(i);
+            double kn_el;
 
-          array_1d<double, 3 > other_to_me_vel;
-          noalias(other_to_me_vel) = ZeroVector(3);
+            switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
 
-          double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+                case 0:
+                    kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
+                break;
 
-          array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
+                case 1:
+                    kn_el    = (4/3) * (myYoung / 2 * (1 - myPoisson * myPoisson)) * sqrt(mRadius - ini_delta);
+                break;
 
-          double node_coor[3];
-          DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
+                default:
+                    kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
+                break;
 
-          double ini_delta = GetInitialDelta(i);
-          double kn_el;
+              }//switch
 
-          switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+            double ks_el = kn_el / (2.0 * (1.0 + myPoisson));
+            double aux_norm_to_tang = sqrt(ks_el / kn_el);
+            double DistPToB = 0.0;
 
-              case 0:
-                  kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
-              break;
+            int ContactType = -1;
 
-              case 1:
-                  kn_el    = (4/3) * (myYoung / 2 * (1 - myPoisson * myPoisson)) * sqrt(mRadius - ini_delta);
-              break;
+            ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
 
-              default:
-                  kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
-              break;
+            //MSI: Renew Distance for steps in between searches.
+            // The flag ContactType takes value 0 for a plane contact, 1 for line and 2 for point. The optimized function is created for Plane contact, not for other cases yet.
 
-            }//switch
+            if (ContactType == 0){
+                double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
 
-          double ks_el = kn_el / (2.0 * (1.0 + myPoisson));
-          double aux_norm_to_tang = sqrt(ks_el / kn_el);
-          double DistPToB = 0.0;
+                // Triangle
+                DEM_COPY_SECOND_TO_FIRST_3(Coord[0], rNeighbours[i]->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
+                DEM_COPY_SECOND_TO_FIRST_3(Coord[1], rNeighbours[i]->GetGeometry()[1].Coordinates())
+                DEM_COPY_SECOND_TO_FIRST_3(Coord[2], rNeighbours[i]->GetGeometry()[2].Coordinates())
 
-          int ContactType = -1;
+                if (rNeighbours[i]->GetGeometry().size() == 4){
+                    DEM_COPY_SECOND_TO_FIRST_3(Coord[3], rNeighbours[i]->GetGeometry()[3].Coordinates())
+                  }
 
-          ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
-
-          //MSI: Renew Distance for steps in between searches.
-          // The flag ContactType takes value 0 for a plane contact, 1 for line and 2 for point. The optimized function is created for Plane contact, not for other cases yet.
-
-          if (ContactType == 0){
-              double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
-
-              // Triangle
-
-              DEM_COPY_SECOND_TO_FIRST_3(Coord[0], rNeighbours[i]->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
-              DEM_COPY_SECOND_TO_FIRST_3(Coord[1], rNeighbours[i]->GetGeometry()[1].Coordinates())
-              DEM_COPY_SECOND_TO_FIRST_3(Coord[2], rNeighbours[i]->GetGeometry()[2].Coordinates())
-
-              if (rNeighbours[i]->GetGeometry().size() == 4){
-                  DEM_COPY_SECOND_TO_FIRST_3(Coord[3], rNeighbours[i]->GetGeometry()[3].Coordinates())
+                GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
               }
 
-              GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
-            }
+            double indentation = -(DistPToB - mRadius) - ini_delta;
+            double DeltDisp[3] = {0.0};
+            double DeltVel [3] = {0.0};
 
-          double indentation = -(DistPToB - mRadius) - ini_delta;
-          double DeltDisp[3] = {0.0};
-          double DeltVel [3] = {0.0};
+            DeltVel[0] = vel[0] - other_to_me_vel[0];
+            DeltVel[1] = vel[1] - other_to_me_vel[1];
+            DeltVel[2] = vel[2] - other_to_me_vel[2];
 
-          DeltVel[0] = (vel[0] - other_to_me_vel[0]);
-          DeltVel[1] = (vel[1] - other_to_me_vel[1]);
-          DeltVel[2] = (vel[2] - other_to_me_vel[2]);
+            // For translation movement delt displacement
+            DeltDisp[0] = DeltVel[0] * mTimeStep;
+            DeltDisp[1] = DeltVel[1] * mTimeStep;
+            DeltDisp[2] = DeltVel[2] * mTimeStep;
 
-          // For translation movement delt displacement
-          DeltDisp[0] = DeltVel[0] * mTimeStep;
-          DeltDisp[1] = DeltVel[1] * mTimeStep;
-          DeltDisp[2] = DeltVel[2] * mTimeStep;
+            if (this->Is(DEMFlags::HAS_ROTATION)){
+                double velA[3]      = {0.0};
+                double dRotaDisp[3] = {0.0};
 
-          if (this->Is(DEMFlags::HAS_ROTATION)){
-              double velA[3]      = {0.0};
-              double dRotaDisp[3] = {0.0};
+                array_1d<double, 3 > AngularVel= GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                double Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
+                GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
-              array_1d<double, 3 > AngularVel= GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-              double Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
-              GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
+                dRotaDisp[0] = - velA[0] * mRadius;
+                dRotaDisp[1] = - velA[1] * mRadius;
+                dRotaDisp[2] = - velA[2] * mRadius;
 
-              dRotaDisp[0] = -velA[0] * mRadius;
-              dRotaDisp[1] = -velA[1] * mRadius;
-              dRotaDisp[2] = -velA[2] * mRadius;
+                //////contribution of the rotation vel
+                DeltDisp[0] += dRotaDisp[0] * mTimeStep;
+                DeltDisp[1] += dRotaDisp[1] * mTimeStep;
+                DeltDisp[2] += dRotaDisp[2] * mTimeStep;
+              }
 
-              //////contribution of the rotation vel
-              DeltDisp[0] += dRotaDisp[0] * mTimeStep;
-              DeltDisp[1] += dRotaDisp[1] * mTimeStep;
-              DeltDisp[2] += dRotaDisp[2] * mTimeStep;
-            }
+            double LocalDeltDisp[3] = {0.0};
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
 
-          double LocalDeltDisp[3] = {0.0};
-          GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+            DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mFemOldNeighbourContactForces[i])
 
-          DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mFemOldNeighbourContactForces[i])
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
+            LocalElasticContactForce[0] +=  - ks_el * LocalDeltDisp[0];
+            LocalElasticContactForce[1] +=  - ks_el * LocalDeltDisp[1];
 
-          GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
-          LocalElasticContactForce[0] +=  - ks_el * LocalDeltDisp[0];
-          LocalElasticContactForce[1] +=  - ks_el * LocalDeltDisp[1];
+            if (indentation > 0.0){
+                LocalElasticContactForce[2] =  kn_el * indentation;
+              }
 
-          if (indentation > 0.0){
-              LocalElasticContactForce[2] =  kn_el * indentation;
-            }
+            else {
+                LocalElasticContactForce[2] = 0.0;
+              }
 
-          else {
-              LocalElasticContactForce[2] = 0.0;
-            }
+            bool If_sliding = false;
 
-          bool If_sliding = false;
+            if (-LocalElasticContactForce[2] > 0.0){
+                DEM_SET_COMPONENTS_TO_ZERO_3(LocalElasticContactForce)
+              }
 
-          if (-LocalElasticContactForce[2] > 0.0){
-              DEM_SET_COMPONENTS_TO_ZERO_3(LocalElasticContactForce)
-            }
+            else {
+                double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
+                double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                                     +      LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-          else {
-              double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
-              double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                   +      LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+                if (ShearForceMax == 0.0){
+                    LocalElasticContactForce[0] = 0.0;
+                    LocalElasticContactForce[1] = 0.0;
+                  }
 
-              if (ShearForceMax == 0.0){
-                  LocalElasticContactForce[0] = 0.0;
-                  LocalElasticContactForce[1] = 0.0;
-                }
+                else if (ShearForceNow > ShearForceMax){
+                    double inv_ShearForceNow = 1.0 / ShearForceNow;
+                    LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
+                    LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
 
-              else if (ShearForceNow > ShearForceMax){
-                  double inv_ShearForceNow = 1.0 / ShearForceNow;
-                  LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
-                  LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
+                    If_sliding = true;
+                  }
 
-                  If_sliding = true;
-                }
+              }
 
-            }
+            //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
 
-          //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
+            double ViscoDampingLocalContactForce[3] = {0.0};
 
-          double ViscoDampingLocalContactForce[3] = {0.0};
+            if (indentation > 0.0){ // Compression , use visc damp
+                double LocalRelVel[3] = {0.0};
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
+                double equiv_visco_damp_coeff_normal     = 0.0;
+                double equiv_visco_damp_coeff_tangential = 0.0;
+                double mass = mSqrtOfRealMass * mSqrtOfRealMass;
 
-          if (indentation > 0.0){ // Compression , use visc damp
-              double LocalRelVel[3] = {0.0};
-              GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
-              double equiv_visco_damp_coeff_normal     = 0.0;
-              double equiv_visco_damp_coeff_tangential = 0.0;
-              double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+                if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
+                    equiv_visco_damp_coeff_normal     = r_current_process_info[DEMPACK_DAMPING]*2.0*sqrt(kn_el/(mass+mass))*mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
+                    equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
+                  }
 
-              if (rCurrentProcessInfo[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
-                  equiv_visco_damp_coeff_normal     = rCurrentProcessInfo[DEMPACK_DAMPING]*2.0*sqrt(kn_el/(mass+mass))*mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
-                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
-                }
+                else {
 
-              else {
+                    if ( GetLnOfRestitCoeff() > 0.0){
+                        equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
+                      }
 
-                  if ( GetLnOfRestitCoeff() > 0.0){
-                      equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
-                    }
+                    else {
+                        equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
+                      }
 
-                  else {
-                      equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
-                    }
+                    equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
+                  }
 
-                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
-                }
+                CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal,
+                equiv_visco_damp_coeff_tangential, If_sliding);
+              }
 
-              CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal,
-              equiv_visco_damp_coeff_tangential, If_sliding);
-            }
+            double LocalContactForce[3]  = {0.0};
+            double GlobalContactForce[3] = {0.0};
 
-          double LocalContactForce[3]  = {0.0};
-          double GlobalContactForce[3] = {0.0};
+            AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
+                                    GlobalElasticContactForce,ViscoDampingLocalContactForce, r_elastic_force, i);
 
-          AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                  GlobalElasticContactForce,ViscoDampingLocalContactForce,rElasticForce, i);
+            if (this->Is(DEMFlags::HAS_ROTATION)){
+                ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbour!!
+              }
 
-          if (this->Is(DEMFlags::HAS_ROTATION)){
-              ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbour!!
-            }
-
-        }
+          }
 
         KRATOS_CATCH("")
 
@@ -1037,7 +984,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_current_process_info){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
@@ -1072,24 +1019,23 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::InitializeSolutionStep(ProcessInfo& r_current_process_info)
       {
           KRATOS_TRY
 
-          const ProcessInfo& r_process_info = rCurrentProcessInfo;
+          const ProcessInfo& r_process_info = r_current_process_info;
 
           MemberDeclarationFirstStep(r_process_info);
 
           this->Set(DEMFlags::HAS_INITIALIZED_VARIABLES);
 
           KRATOS_CATCH("")
-
       }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::FinalizeSolutionStep(ProcessInfo& r_current_process_info){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
@@ -1107,92 +1053,92 @@ namespace Kratos
                                                                       double& equiv_visco_damp_coeff_normal,
                                                                       double& equiv_visco_damp_coeff_tangential,
                                                                       double& equiv_tg_of_fri_ang,
-                                                                      SphericParticle* neighbour_iterator)
+                                                                      SphericParticle* p_neighbour)
       {
-        double other_sqrt_of_mass = neighbour_iterator->GetSqrtOfRealMass();
-        double radius_sum_i = 1 / radius_sum;
-        double equiv_radius = 2 * mRadius * other_radius * radius_sum_i;
-        double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-        double equiv_mass = mSqrtOfRealMass * other_sqrt_of_mass;
+          double other_sqrt_of_mass = p_neighbour->GetSqrtOfRealMass();
+          double radius_sum_i = 1 / radius_sum;
+          double equiv_radius = 2 * mRadius * other_radius * radius_sum_i;
+          double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+          double equiv_mass = mSqrtOfRealMass * other_sqrt_of_mass;
 
-        double myYoung = GetYoung();
-        double myPoisson = GetPoisson();
-        double myLnOfRestitCoeff = GetLnOfRestitCoeff();
-        double myTgOfFrictionAngle = GetTgOfFrictionAngle();
+          double myYoung = GetYoung();
+          double myPoisson = GetPoisson();
+          double myLnOfRestitCoeff = GetLnOfRestitCoeff();
+          double myTgOfFrictionAngle = GetTgOfFrictionAngle();
 
-        double other_young;
-        double other_poisson;
-        double equiv_ln_of_restit_coeff;
-        double equiv_young;
-        double equiv_poisson;
-        double other_ln_of_restit_coeff;
+          double other_young;
+          double other_poisson;
+          double equiv_ln_of_restit_coeff;
+          double equiv_young;
+          double equiv_poisson;
+          double other_ln_of_restit_coeff;
 
-        if (mFastProperties == neighbour_iterator->GetFastProperties()){
-            other_young   = myYoung;
-            other_poisson = myPoisson;
-            equiv_poisson = myPoisson;
-            other_ln_of_restit_coeff = myLnOfRestitCoeff;
-            equiv_ln_of_restit_coeff = myLnOfRestitCoeff;
-            equiv_tg_of_fri_ang      = myTgOfFrictionAngle;
-          }
+          if (mFastProperties == p_neighbour->GetFastProperties()){
+              other_young   = myYoung;
+              other_poisson = myPoisson;
+              equiv_poisson = myPoisson;
+              other_ln_of_restit_coeff = myLnOfRestitCoeff;
+              equiv_ln_of_restit_coeff = myLnOfRestitCoeff;
+              equiv_tg_of_fri_ang      = myTgOfFrictionAngle;
+            }
 
-        else {
-            other_young = neighbour_iterator->GetYoung();
-            other_poisson = neighbour_iterator->GetPoisson();
-            equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
-            other_ln_of_restit_coeff = neighbour_iterator->GetLnOfRestitCoeff();
-            equiv_ln_of_restit_coeff = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
-            const double other_tg_of_fri_angle = neighbour_iterator->GetTgOfFrictionAngle();
-            equiv_tg_of_fri_ang      = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
-          }
-
-
-        switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-
-            case 0:
-                equiv_young                     = 2.0 * myYoung * other_young / (myYoung + other_young);
-                kn                              = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
-
-            break;
-
-            case 1:
-                equiv_young                     = myYoung * other_young / (other_young * (1.0 - myPoisson * myPoisson) + myYoung * (1.0 - other_poisson * other_poisson));
-                kn                              = 1.3333333333333 * equiv_young * sqrt(0.5 * equiv_radius);
-                kt                              = 2.0 * kn * (1.0 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1.0 + equiv_poisson));
-
-            break;
-
-            default:
-                equiv_young                     = 2.0 * myYoung * other_young / (myYoung + other_young);
-                kn                              = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
-
-            break;
-
-          }//switch
+          else {
+              other_young = p_neighbour->GetYoung();
+              other_poisson = p_neighbour->GetPoisson();
+              equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+              other_ln_of_restit_coeff = p_neighbour->GetLnOfRestitCoeff();
+              equiv_ln_of_restit_coeff = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+              const double other_tg_of_fri_angle = p_neighbour->GetTgOfFrictionAngle();
+              equiv_tg_of_fri_ang      = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
+            }
 
 
-        if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
-            equiv_visco_damp_coeff_normal = 2.0 * sqrt(equiv_mass * kn);
-          }
+          switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
 
-        else {
-            equiv_visco_damp_coeff_normal = - 2.0 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
-          }
+              case 0:
+                  equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+                  kn          = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                  kt          = kn / (2.0 + equiv_poisson + equiv_poisson);
 
-        double aux_norm_to_tang = sqrt(kt / kn);
-        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+              break;
+
+              case 1:
+                  equiv_young = myYoung * other_young / (other_young * (1.0 - myPoisson * myPoisson) + myYoung * (1.0 - other_poisson * other_poisson));
+                  kn          = 1.3333333333333 * equiv_young * sqrt(0.5 * equiv_radius);
+                  kt          = 2.0 * kn * (1.0 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1.0 + equiv_poisson));
+
+              break;
+
+              default:
+                  equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
+                  kn          = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                  kt          = kn / (2.0 + equiv_poisson + equiv_poisson);
+
+              break;
+
+            }//switch
+
+
+          if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
+              equiv_visco_damp_coeff_normal = 2.0 * sqrt(equiv_mass * kn);
+            }
+
+          else {
+              equiv_visco_damp_coeff_normal = - 2.0 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
+            }
+
+          double aux_norm_to_tang = sqrt(kt / kn);
+          equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
       }
 
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity)
+      void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& r_current_process_info, const array_1d<double,3>& gravity)
       {
-        double mass = mSqrtOfRealMass * mSqrtOfRealMass;
-        externally_applied_force = mass * gravity;
+          double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+          externally_applied_force = mass * gravity;
       }
 
       //**************************************************************************************************************************************************
@@ -1234,7 +1180,7 @@ namespace Kratos
                                                   double GlobalContactForce[3],
                                                   double GlobalElasticContactForce[3],
                                                   double ViscoDampingLocalContactForce[3],
-                                                  array_1d<double, 3> &rElasticForce,
+                                                  array_1d<double, 3> &r_elastic_force,
                                                   const double &i_neighbour_count)
       {
 
@@ -1250,25 +1196,14 @@ namespace Kratos
           vect_normal_force[2] = normal_force;
 
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, vect_normal_force, global_normal_force);
-
-          GlobalElasticContactForce[0] += global_normal_force[0];
-          GlobalElasticContactForce[1] += global_normal_force[1];
-          GlobalElasticContactForce[2] += global_normal_force[2];
-          GlobalContactForce[0]        += global_normal_force[0];
-          GlobalContactForce[1]        += global_normal_force[1];
-          GlobalContactForce[2]        += global_normal_force[2];
+          DEM_ADD_SECOND_TO_FIRST(GlobalElasticContactForce, global_normal_force)
+          DEM_ADD_SECOND_TO_FIRST(GlobalContactForce, global_normal_force)
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)
           DEM_COPY_SECOND_TO_FIRST_3(mOldNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
           DEM_COPY_SECOND_TO_FIRST_3(mOldNeighbourTotalContactForces[i_neighbour_count], GlobalContactForce)
-
-          mContactForce[0] += GlobalContactForce[0];
-          mContactForce[1] += GlobalContactForce[1];
-          mContactForce[2] += GlobalContactForce[2];
-
-          rElasticForce[0] += GlobalElasticContactForce[0];
-          rElasticForce[1] += GlobalElasticContactForce[1];
-          rElasticForce[2] += GlobalElasticContactForce[2];
+          DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
+          DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
       }
 
       //**************************************************************************************************************************************************
@@ -1280,10 +1215,9 @@ namespace Kratos
                                                   double GlobalContactForce[3],
                                                   double GlobalElasticContactForce[3],
                                                   double ViscoDampingLocalContactForce[3],
-                                                  array_1d<double, 3> &rElasticForce,
+                                                  array_1d<double, 3> &r_elastic_force,
                                                   const double &iRigidFaceNeighbour)
       {
-
           for (unsigned int index = 0; index < 3; index++){
               LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
           }
@@ -1293,14 +1227,8 @@ namespace Kratos
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)
           std::copy(GlobalElasticContactForce, GlobalElasticContactForce + 3, mFemOldNeighbourContactForces[iRigidFaceNeighbour].begin());
-
-          mContactForce[0] += GlobalContactForce[0];
-          mContactForce[1] += GlobalContactForce[1];
-          mContactForce[2] += GlobalContactForce[2];
-
-          rElasticForce[0] += GlobalElasticContactForce[0];
-          rElasticForce[1] += GlobalElasticContactForce[1];
-          rElasticForce[2] += GlobalElasticContactForce[2];
+          DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
+          DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
 
           ///Global stored contact force between rigid face and particle, used by fem elements
           std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
@@ -1310,7 +1238,6 @@ namespace Kratos
               neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + i] = GlobalElasticContactForce[i];
               neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + i]   = GlobalContactForce[i];
             }
-
       }
 
       //**************************************************************************************************************************************************
@@ -1339,7 +1266,6 @@ namespace Kratos
 
               AdditionalMemberDeclarationFirstStep(r_process_info);
             }
-
       }
 
       //**************************************************************************************************************************************************
@@ -1348,7 +1274,6 @@ namespace Kratos
       void SphericParticle::NormalForceCalculation(double& normal_force, double kn, double indentation)
 
       {
-
          switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
               case 0:
                   normal_force = kn * indentation;
@@ -1368,7 +1293,6 @@ namespace Kratos
               break;
 
           }//switch
-
       } //NormalForceCalculation
 
       //**************************************************************************************************************************************************
@@ -1379,7 +1303,7 @@ namespace Kratos
           LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
           LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
-          double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+          double ShearForceNow = DEM_MODULUS_3(LocalElasticContactForce);
           double Frictional_ShearForceMax = equiv_tg_of_fri_ang * normal_force;
 
           if (Frictional_ShearForceMax < 0.0){
@@ -1392,7 +1316,6 @@ namespace Kratos
               LocalElasticContactForce[1] = ShearForceNowMaxRatio * LocalElasticContactForce[1];
               sliding = true;
             }
-
       }
 
       //**************************************************************************************************************************************************
@@ -1401,16 +1324,16 @@ namespace Kratos
       double SphericParticle::GetInitialDelta(int index)
 
       {
-        double delta = 0.0; //only available in continuum_particle
+          double delta = 0.0; //only available in continuum_particle
 
-        return delta;
+          return delta;
       }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
 
-      void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info)
       {
         KRATOS_TRY
 
@@ -1424,19 +1347,19 @@ namespace Kratos
           if (rVariable == DELTA_TIME){
 
               double mass = mSqrtOfRealMass * mSqrtOfRealMass;
-              double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+              double coeff = r_current_process_info[NODAL_MASS_COEFF];
 
               if (coeff > 1.0){
                   KRATOS_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff);
                 }
 
-              else if ((coeff == 1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])){
+              else if ((coeff == 1.0) && (r_current_process_info[VIRTUAL_MASS_OPTION])){
                   Output = 9.0E09;
                 }
 
               else {
 
-                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]){
+                  if (r_current_process_info[VIRTUAL_MASS_OPTION]){
                       mass = mass / (1 - coeff);
                     }
 
@@ -1469,9 +1392,8 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& r_current_process_info)
       {
-
           if (rVariable == MOMENTUM){
               CalculateMomentum(Output);
             }
@@ -1479,20 +1401,19 @@ namespace Kratos
           else if (rVariable == ANGULAR_MOMENTUM){
               CalculateLocalAngularMomentum(Output);
             }
-
       }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-      void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_current_process_info){}
+      void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_current_process_info){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
       void SphericParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info){}
-      void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
