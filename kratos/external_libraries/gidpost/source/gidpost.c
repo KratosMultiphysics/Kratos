@@ -260,7 +260,7 @@ int GiD_OpenPostMeshFile(GP_CONST char * FileName, GiD_PostMode Mode )
 GiD_FILE GiD_fOpenPostMeshFile(GP_CONST char * FileName,
 		               GiD_PostMode Mode)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   GiD_FILE fd;
   
   /* Binary mode not allowed in mesh file!!! */
@@ -311,7 +311,7 @@ int GiD_ClosePostMeshFile()
 int GiD_fClosePostMeshFile(GiD_FILE fd)
 {
   int fail = 1;
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -489,7 +489,7 @@ int GiD_MeshUnit(GP_CONST char * UnitName)
 
 int GiD_fMeshUnit(GiD_FILE fd,GP_CONST char * UnitName)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   FD2FILE(fd,File);
   return _GiD_MeshUnit(File,UnitName);
 }
@@ -532,7 +532,7 @@ int GiD_BeginCoordinates()
 
 int GiD_fBeginCoordinates(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   return _GiD_BeginCoordinates(File);
@@ -554,6 +554,7 @@ int _GiD_EndCoordinates(CPostFile *File)
   /* state checking */
   assert(CheckState(POST_MESH_COORD0, File->level_mesh));
   File->level_mesh = POST_MESH_COORD1;
+  CPostFile_ResetLastID(File); /* m_lastID is also checked when writting coordinates */
   return CPostFile_WriteString(File, "End Coordinates");
 }
 
@@ -570,7 +571,7 @@ int GiD_EndCoordinates()
 
 int GiD_fEndCoordinates(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -616,7 +617,7 @@ int GiD_BeginMeshGroup( GP_CONST char* Name )
 
 int GiD_fBeginMeshGroup(GiD_FILE fd, GP_CONST char* Name)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -641,7 +642,7 @@ int GiD_EndMeshGroup()
 
 int GiD_fEndMeshGroup(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -654,45 +655,56 @@ int GiD_fEndMeshGroup(GiD_FILE fd)
 
 int GiD_WriteCoordinates( int id, double x, double y, double z )
 {
+  int res = 0;
 #ifdef HDF5
   if(PostMode==GiD_PostHDF5){
-    return GiD_WriteCoordinates_HDF5(id,x,y,z);
+    res = GiD_WriteCoordinates_HDF5(id,x,y,z);
+    return res;
   }
 #endif
 
   /* state checking */
   assert(CheckState(POST_MESH_COORD0, outputMesh->level_mesh));
   /* keep in the same level */
-  return CPostFile_WriteValuesVA(outputMesh, id, 3, x, y, z);
+  res = CPostFile_WriteValuesVA(outputMesh, id, 3, x, y, z);
+  CPostFile_ResetLastID( outputMesh); /* inside _WriteValuesVA there is some trick to write gaussian  results */
+  return res;
 }
 
 int GiD_fWriteCoordinates(GiD_FILE fd, int id, double x, double y, double z)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
+  int res = 0;
 
   FD2FILE(fd,File);
   
   /* state checking */
   assert(CheckState(POST_MESH_COORD0, File->level_mesh));
   /* keep in the same level */
-  return CPostFile_WriteValuesVA(File, id, 3, x, y, z);
+  res = CPostFile_WriteValuesVA(File, id, 3, x, y, z);
+  CPostFile_ResetLastID(File); /* inside _WriteValuesVA there is some trick to write gaussian  results */
+  return res;
 }
 
 int _GiD_WriteCoordinates2D(CPostFile *File, int id, double x, double y)
 {
+  int res = 0;
   /* state checking */
   assert(CheckState(POST_MESH_COORD0, File->level_mesh));
   /* keep in the same level */
-  return CPostFile_IsBinary(File)
+  res = CPostFile_IsBinary(File)
     ? CPostFile_WriteValuesVA(File,id, 3, x, y, 0.0)
     : CPostFile_WriteValuesVA(File, id, 2, x, y);
+  CPostFile_ResetLastID(File); /* inside _WriteValuesVA there is some trick to write gaussian  results */
+  return res;
 }
 
 int GiD_WriteCoordinates2D(int id, double x, double y)
 {
 #ifdef HDF5
   if(PostMode==GiD_PostHDF5){
-    return GiD_WriteCoordinates2D_HDF5(id,x,y);
+    int res = GiD_WriteCoordinates2D_HDF5(id,x,y);
+    return res;
   }
 #endif
 
@@ -701,7 +713,7 @@ int GiD_WriteCoordinates2D(int id, double x, double y)
 
 int GiD_fWriteCoordinates2D(GiD_FILE fd, int id, double x, double y)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -732,7 +744,7 @@ int GiD_BeginElements()
 
 int GiD_fBeginElements(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   return _GiD_BeginElements(File);
@@ -763,7 +775,7 @@ int GiD_EndElements()
 
 int GiD_fEndElements(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   
   FD2FILE(fd,File);
   
@@ -799,7 +811,7 @@ int GiD_WriteElement( int id, int nid[] )
 
 int GiD_fWriteElement(GiD_FILE fd, int id, int nid[])
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -837,7 +849,7 @@ int GiD_WriteElementMat(int id, int nid[])
 
 int GiD_fWriteElementMat(GiD_FILE fd, int id, int nid[])
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -884,7 +896,7 @@ int GiD_WriteSphere(int id, int nid, double r)
 
 int GiD_fWriteSphere(GiD_FILE fd, int id, int nid, double r)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -933,7 +945,7 @@ int GiD_WriteSphereMat(int id, int nid, double r, int mat)
 
 int GiD_fWriteSphereMat(GiD_FILE fd, int id, int nid, double r, int mat)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -989,7 +1001,7 @@ int GiD_WriteCircle(int id, int nid, double r,
 int GiD_fWriteCircle(GiD_FILE fd, int id, int nid, double r,
 		     double nx, double ny, double nz)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1044,7 +1056,7 @@ int GiD_WriteCircleMat(int id, int nid, double r,
 int GiD_fWriteCircleMat(GiD_FILE fd, int id, int nid, double r,
 		        double nx, double ny, double nz, int mat)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1102,7 +1114,7 @@ int GiD_OpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode )
 
 GiD_FILE GiD_fOpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   GiD_FILE fd;
 
   /* level_res = POST_UNDEFINED; */
@@ -1167,7 +1179,7 @@ int GiD_ClosePostResultFile()
 int GiD_fClosePostResultFile(GiD_FILE fd)
 {
   int fail = 1;
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -1258,7 +1270,7 @@ int GiD_fBeginGaussPoint(GiD_FILE fd, GP_CONST char * name,
 		         GP_CONST char * MeshName,
 		         int GP_number, int NodesIncluded, int InternalCoord)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -1321,7 +1333,7 @@ int GiD_EndGaussPoint()
 
 int GiD_fEndGaussPoint(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1356,7 +1368,7 @@ int GiD_WriteGaussPoint2D(double x, double y)
 
 int GiD_fWriteGaussPoint2D(GiD_FILE fd, double x, double y)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1387,7 +1399,7 @@ int GiD_WriteGaussPoint3D(double x, double y, double z)
 
 int GiD_fWriteGaussPoint3D(GiD_FILE fd, double x, double y, double z)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1429,7 +1441,7 @@ int GiD_BeginRangeTable(GP_CONST char * name )
 
 int GiD_fBeginRangeTable(GiD_FILE fd, GP_CONST char * name)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -1465,7 +1477,7 @@ int GiD_EndRangeTable()
 
 int GiD_fEndRangeTable(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1511,7 +1523,7 @@ int GiD_WriteMinRange(double max, GP_CONST char * name)
 
 int GiD_fWriteMinRange(GiD_FILE fd, double max, GP_CONST char * name)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   
   FD2FILE(fd,File);
 
@@ -1546,7 +1558,7 @@ int GiD_WriteRange(double min, double max, GP_CONST char * name)
 
 int GiD_fWriteRange(GiD_FILE fd, double min, double max, GP_CONST char * name)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1580,7 +1592,7 @@ int GiD_WriteMaxRange( double min, GP_CONST char * name )
 
 int GiD_fWriteMaxRange(GiD_FILE fd, double min, GP_CONST char * name)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -1682,7 +1694,7 @@ int GiD_fBeginResult(GiD_FILE fd, GP_CONST char * Result,
 		     GP_CONST char * RangeTable, 
 		     int compc, GP_CONST char * compv[])
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1756,7 +1768,7 @@ int GiD_fBeginResultHeader(GiD_FILE fd, GP_CONST char * Result,
 		           GiD_ResultType Type, GiD_ResultLocation Where,
 		           GP_CONST char * GaussPointsName)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -1808,7 +1820,7 @@ int GiD_ResultRange(GP_CONST char * RangeTable)
 
 int GiD_fResultRange(GiD_FILE fd, GP_CONST char * RangeTable)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -1854,7 +1866,7 @@ int GiD_ResultComponents(int compc, GP_CONST char * compv[])
 
 int GiD_fResultComponents(GiD_FILE fd, int compc, GP_CONST char * compv[])
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -1892,7 +1904,7 @@ int GiD_ResultUnit(GP_CONST char * UnitName)
 
 int GiD_fResultUnit(GiD_FILE fd, GP_CONST char * UnitName)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   FD2FILE(fd,File);
   return _GiD_ResultUnit(File, UnitName);  
 }
@@ -1932,7 +1944,7 @@ int GiD_ResultUserDefined(GP_CONST char * Name,GP_CONST char * Value)
 
 int GiD_fResultUserDefined(GiD_FILE fd, GP_CONST char * Name,GP_CONST char * Value)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
   FD2FILE(fd,File);
   return _GiD_ResultUserDefined(File,Name,Value);
 }
@@ -1996,7 +2008,7 @@ int GiD_fBeginResultGroup(GiD_FILE fd, GP_CONST char * Analysis, double step,
 		          GiD_ResultLocation Where,
 		          GP_CONST char * GaussPointsName)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -2059,7 +2071,7 @@ int GiD_ResultDescription(GP_CONST char * Result, GiD_ResultType Type)
 int GiD_fResultDescription(GiD_FILE fd,
 		           GP_CONST char * Result, GiD_ResultType Type)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2071,7 +2083,8 @@ int GiD_ResultDescriptionDim(GP_CONST char * Result, GiD_ResultType Type,
 {
 #ifdef HDF5
   if(PostMode==GiD_PostHDF5){
-    return -1;
+    /* disregard s in hdf5, because ResultGroup is really written in HDF5 as independent Results*/
+    return GiD_ResultDescription_HDF5(Result,Type);
   }
 #endif
 
@@ -2082,7 +2095,7 @@ int GiD_fResultDescriptionDim(GiD_FILE fd,
 		              GP_CONST char * Result, GiD_ResultType Type,
 		              size_t s)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2162,7 +2175,7 @@ int GiD_EndResult()
 
 int GiD_fEndResult(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -2196,7 +2209,7 @@ int GiD_BeginOnMeshGroup(char * Name)
 
 int GiD_fBeginOnMeshGroup(GiD_FILE fd, char * Name)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -2221,7 +2234,7 @@ int GiD_EndOnMeshGroup()
 
 int GiD_fEndOnMeshGroup(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2248,7 +2261,7 @@ int GiD_FlushPostFile()
 
 int GiD_fFlushPostFile(GiD_FILE fd)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
 
@@ -2302,7 +2315,7 @@ int GiD_WriteScalar(int id, double v)
 
 int GiD_fWriteScalar(GiD_FILE fd, int id, double v)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2341,7 +2354,7 @@ int GiD_Write2DVector(int id, double x, double y)
 
 int GiD_fWrite2DVector(GiD_FILE fd, int id, double x, double y)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2382,7 +2395,7 @@ int GiD_WriteVector(int id, double x, double y, double z)
 
 int GiD_fWriteVector(GiD_FILE fd, int id, double x, double y, double z)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2419,7 +2432,7 @@ int GiD_WriteVectorModule(int id, double x, double y, double z, double mod)
 int GiD_fWriteVectorModule(GiD_FILE fd,
 		           int id, double x, double y, double z, double mod)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2464,7 +2477,7 @@ int GiD_Write2DMatrix(int id, double Sxx, double Syy, double Sxy)
 
 int GiD_fWrite2DMatrix(GiD_FILE fd, int id, double Sxx, double Syy, double Sxy)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2507,7 +2520,7 @@ int GiD_fWrite3DMatrix(GiD_FILE fd, int id,
 		       double Sxx, double Syy, double Szz,
 		       double Sxy, double Syz, double Sxz)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2555,7 +2568,7 @@ int GiD_WritePlainDefMatrix(int id,
 int GiD_fWritePlainDefMatrix(GiD_FILE fd, int id,
 		             double Sxx, double Syy, double Sxy, double Szz )
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2614,7 +2627,7 @@ int GiD_fWriteMainMatrix(GiD_FILE fd, int id,
 		         double Viix, double Viiy, double Viiz,
 		         double Viiix, double Viiiy, double Viiiz)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
@@ -2655,7 +2668,7 @@ int GiD_WriteLocalAxes(int id, double euler_1, double euler_2, double euler_3)
 int GiD_fWriteLocalAxes(GiD_FILE fd,
 		        int id, double euler_1, double euler_2, double euler_3)
 {
-  CPostFile *File;
+  CPostFile *File = NULL;
 
   FD2FILE(fd,File);
   
