@@ -734,7 +734,7 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             if (self.contact_mesh_option == "ON"):
-                self.self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
+                self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
 
             self.gid_io.InitializeMesh(time) 
@@ -765,11 +765,10 @@ class DEMIo(object):
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)            
 
     def PrintingContactElementsVariables(self, export_model_part, time):
-        if (Var_Translator(DEM_parameters.ContactMeshOption)):
-            gid_io.PrintOnGaussPoints(CONTACT_ORIENTATION, export_model_part, time)
-
-        for variable in self.contact_variables:
-            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+        if (self.contact_mesh_option == "ON"):
+            for variable in self.contact_variables:
+                self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
+                #self.gid_io.PrintOnGaussPoints(CONTACT_ORIENTATION, export_model_part, time)
 
     def PrintResults(self,mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part,time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
@@ -781,6 +780,7 @@ class DEMIo(object):
 
         self.PrintingGlobalVariables(mixed_model_part, time)
         self.PrintingBallsVariables(balls_model_part, time)
+        self.PrintingContactElementsVariables(rigid_face_model_part, time)
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
