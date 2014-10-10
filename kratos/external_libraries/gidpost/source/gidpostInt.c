@@ -11,6 +11,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include "gidpostInt.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static int ByteOrderCheck = 0x91d;  /* Magic number */
 
@@ -325,11 +328,20 @@ static int CPostAscii_Close(CPostFile *this);
 static
 int CPostAscii_Open(CPostFile *this, GP_CONST char *name )
 {
+#ifdef _WIN32
+  wchar_t wname[MAX_PATH];
+#endif
   assert(this);
   assert(this->ptr_Close);
   
   CPostAscii_Close(this);
+#ifdef _WIN32  
+  /* convert from utf-8 */
+  MultiByteToWideChar(CP_UTF8,0,name,-1,wname,MAX_PATH);
+  this->m_FILE=_wfopen(wname,L"w");  
+#else
   this->m_FILE = fopen(name, "w");
+#endif
   return this->m_FILE == NULL;
 }
 
@@ -429,7 +441,7 @@ int CPostAscii_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
   assert(this);
   assert(this->m_FILE);
   
-  if (this->m_LastID != id)
+  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
     fprintf(this->m_FILE, "%d", id);
   for (i = 0; i < num_comp; i++) {
     value = va_arg(ap, double);
@@ -448,7 +460,7 @@ int CPostAscii_WriteValues(CPostFile* this, int id, int n, double *buffer)
 
   assert(this);
   
-  if (this->m_LastID != id)
+  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
     fprintf(this->m_FILE, "%d", id);
   for ( i = 0; i < n; i++ )
     fprintf(this->m_FILE, " %g", buffer[i]);
@@ -542,11 +554,21 @@ static int CPostAsciiZ_Close(CPostFile *this);
 static
 int CPostAsciiZ_Open(CPostFile *this, GP_CONST char * name)
 {
+
+#ifdef _WIN32
+  wchar_t wname[MAX_PATH];
+#endif
   assert(this);
   assert(this->ptr_Close);
   
-  CPostAscii_Close(this);
+  CPostAsciiZ_Close(this);
+#ifdef _WIN32  
+  /* convert from utf-8 */
+  MultiByteToWideChar(CP_UTF8,0,name,-1,wname,MAX_PATH);  
+  this->m_FILE = gzopen_w(wname, "w1");  
+#else  
   this->m_FILE = gzopen(name, "w1");  
+#endif
   return this->m_FILE == NULL;
 }
 
@@ -650,7 +672,7 @@ int CPostAsciiZ_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
 
   assert(this);
   
-  if (this->m_LastID != id)
+  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
     gzprintf(this->m_FILE, "%d", id);
   for (i = 0; i < num_comp; i++) {
     value = va_arg(ap, double);
@@ -669,7 +691,7 @@ int CPostAsciiZ_WriteValues(CPostFile* this, int id, int n, double * buffer)
 
   assert(this);
   
-  if (this->m_LastID != id)
+  if (this->m_LastID != id) /* Hey this is only useful when writting values for gauss points in elements !!!! */
     gzprintf(this->m_FILE, "%d", id);
   for ( i = 0; i < n; i++ )
     gzprintf(this->m_FILE, " %g", buffer[i]);
@@ -764,11 +786,22 @@ static int CPostBinary_Close(CPostFile *this);
 static
 int CPostBinary_Open(CPostFile *this, GP_CONST char * name)
 {
+
+#ifdef _WIN32
+  wchar_t wname[MAX_PATH];
+#endif  
   assert(this);
   assert(this->ptr_Close);
   
   CPostBinary_Close(this);
+#ifdef _WIN32  
+  /* convert from utf-8 */
+  MultiByteToWideChar(CP_UTF8,0,name,-1,wname,MAX_PATH);  
+  this->m_FILE = gzopen_w(wname, "wb1");  
+#else  
   this->m_FILE = gzopen(name, "wb1");  
+#endif
+  
   /* escribir el numero magico */
   if (this->m_FILE) {
     gzwrite(this->m_FILE, &ByteOrderCheck, sizeof(ByteOrderCheck));
@@ -889,7 +922,7 @@ int CPostBinary_WriteValuesVA(CPostFile* this, int id, int num_comp, va_list ap)
   assert(this);
   assert(this->m_FILE);
 
-  if ( this->m_LastID != id ) {
+  if ( this->m_LastID != id ) { /* Hey this is only useful when writting values for gauss points in elements !!!! */
     gzwrite(this->m_FILE, &id, sizeof(id));
     this->m_LastID = id;
   }
@@ -909,7 +942,7 @@ int CPostBinary_WriteValues(CPostFile* this, int id, int n, double * buffer)
   assert(this);
   assert(this->m_FILE);
 
-  if ( this->m_LastID != id ) {
+  if ( this->m_LastID != id ) { /* Hey this is only useful when writting values for gauss points in elements !!!! */
     gzwrite(this->m_FILE, &id, sizeof(id));
     this->m_LastID = id;
   }
