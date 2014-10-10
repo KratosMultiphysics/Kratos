@@ -602,10 +602,11 @@ class DEMIo(object):
 
     def __init__(self):
         # Printing variables
-        self.global_variables  = []
-        self.ball_variables    = []
-        self.contact_variables = []
-        self.multifilelists    = []
+        self.global_variables          = []
+        self.ball_variables            = []
+        self.ball_local_axis_variables = []
+        self.contact_variables         = []
+        self.multifilelists            = []
 
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
@@ -629,7 +630,7 @@ class DEMIo(object):
         if (Var_Translator(DEM_parameters.RotationOption)):  # xapuza
             self.PushPrintVar(DEM_parameters.PostAngularVelocity, ANGULAR_VELOCITY, self.ball_variables)
             self.PushPrintVar(DEM_parameters.PostParticleMoment,  PARTICLE_MOMENT,  self.ball_variables)
-            self.PushPrintVar(DEM_parameters.PostEulerAngles,     EULER_ANGLES,     self.ball_variables)
+            self.PushPrintVar(DEM_parameters.PostEulerAngles,     EULER_ANGLES,     self.ball_local_axis_variables)
 
         # Balls Strain
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
@@ -760,6 +761,8 @@ class DEMIo(object):
     def PrintingBallsVariables(self, export_model_part, time):
         for variable in self.ball_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+        for variable in self.ball_local_axis_variables:
+            self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)            
 
     def PrintingContactElementsVariables(self, export_model_part, time):
         if (Var_Translator(DEM_parameters.ContactMeshOption)):
