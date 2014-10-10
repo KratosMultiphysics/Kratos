@@ -20,8 +20,9 @@
 #include "DEM_application.h"
 #include "includes/kratos_flags.h"
 
-#define DEM_COPY_FIRST_TO_SECOND_3(a, b) a[0] = b[0]; a[1] = b[1]; a[2] = b[2];
+#define DEM_COPY_SECOND_TO_FIRST_3(a, b) a[0] = b[0]; a[1] = b[1]; a[2] = b[2];
 #define DEM_SET_COMPONENTS_TO_ZERO_3(a)  a[0] = 0.0;  a[1] = 0.0;  a[2] = 0.0;
+#define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)  a[0][0] = 0.0;  a[0][1] = 0.0;  a[0][2] = 0.0; a[1][0] = 0.0;  a[1][1] = 0.0;  a[1][2] = 0.0; a[2][0] = 0.0;  a[2][1] = 0.0;  a[2][2] = 0.0;
 
 namespace Kratos
 {
@@ -311,7 +312,7 @@ namespace Kratos
 
           double node_coor[3];
 
-          DEM_COPY_FIRST_TO_SECOND_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
+          DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
 
           for (unsigned int j = 0; j < mNeighbourRigidFaces.size(); j++){
               double DistPToB;
@@ -319,12 +320,12 @@ namespace Kratos
               double Coord[4][3] = {{0.0}, {0.0}, {0.0}, {0.0}};
 
               // Triangle
-              DEM_COPY_FIRST_TO_SECOND_3(Coord[0], pNeighbour->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
-              DEM_COPY_FIRST_TO_SECOND_3(Coord[1], pNeighbour->GetGeometry()[1].Coordinates())
-              DEM_COPY_FIRST_TO_SECOND_3(Coord[2], pNeighbour->GetGeometry()[2].Coordinates())
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[0], pNeighbour->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[1], pNeighbour->GetGeometry()[1].Coordinates())
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[2], pNeighbour->GetGeometry()[2].Coordinates())
 
               if (pNeighbour->GetGeometry().size() == 4){
-                  DEM_COPY_FIRST_TO_SECOND_3(Coord[3], pNeighbour->GetGeometry()[3].Coordinates())
+                  DEM_COPY_SECOND_TO_FIRST_3(Coord[3], pNeighbour->GetGeometry()[3].Coordinates())
               }
 
               GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
@@ -732,14 +733,8 @@ namespace Kratos
               DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
               DEM_SET_COMPONENTS_TO_ZERO_3(RelVel)
               DEM_SET_COMPONENTS_TO_ZERO_3(LocalRelVel)
-
-              DEM_SET_COMPONENTS_TO_ZERO_3(LocalCoordSystem[0])
-              DEM_SET_COMPONENTS_TO_ZERO_3(LocalCoordSystem[1])
-              DEM_SET_COMPONENTS_TO_ZERO_3(LocalCoordSystem[2])
-
-              DEM_SET_COMPONENTS_TO_ZERO_3(OldLocalCoordSystem[0])
-              DEM_SET_COMPONENTS_TO_ZERO_3(OldLocalCoordSystem[1])
-              DEM_SET_COMPONENTS_TO_ZERO_3(OldLocalCoordSystem[2])
+              DEM_SET_COMPONENTS_TO_ZERO_3x3(LocalCoordSystem)         
+              DEM_SET_COMPONENTS_TO_ZERO_3x3(OldLocalCoordSystem)
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
@@ -754,7 +749,7 @@ namespace Kratos
               double GlobalElasticContactForce[3]      = {0.0};
               double ViscoDampingLocalContactForce[3]  = {0.0};
 
-              DEM_COPY_FIRST_TO_SECOND_3(GlobalElasticContactForce, mOldNeighbourElasticContactForces[i])
+              DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mOldNeighbourElasticContactForces[i])
 
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
@@ -765,9 +760,9 @@ namespace Kratos
               bool sliding = false;
 
               if (indentation > 0.0){
-                  NormalForceCalculation(normal_force, kn, indentation);  //ERROR here! The normal force should be added to the local NEW axis!!
+                  NormalForceCalculation(normal_force, kn, indentation);  //ERROR here? The normal force should be added to the local NEW axis?
 
-                  // TANGENTIAL FORCE. Incremental calculation. An "absolute method" could also be used (YADE?)
+                  // TANGENTIAL FORCE. Incremental calculation. An "absolute method" could also be used
                   LocalElasticContactForce[2] = 0.0;
                   TangentialForceCalculation(normal_force, LocalElasticContactForce, LocalDeltDisp, kt, equiv_tg_of_fri_ang, sliding);
 
@@ -873,7 +868,7 @@ namespace Kratos
           array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
 
           double node_coor[3];
-          DEM_COPY_FIRST_TO_SECOND_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
+          DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
 
           double ini_delta = GetInitialDelta(i);
           double kn_el;
@@ -910,12 +905,12 @@ namespace Kratos
 
               // Triangle
 
-              DEM_COPY_FIRST_TO_SECOND_3(Coord[0], rNeighbours[i]->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
-              DEM_COPY_FIRST_TO_SECOND_3(Coord[1], rNeighbours[i]->GetGeometry()[1].Coordinates())
-              DEM_COPY_FIRST_TO_SECOND_3(Coord[2], rNeighbours[i]->GetGeometry()[2].Coordinates())
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[0], rNeighbours[i]->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[1], rNeighbours[i]->GetGeometry()[1].Coordinates())
+              DEM_COPY_SECOND_TO_FIRST_3(Coord[2], rNeighbours[i]->GetGeometry()[2].Coordinates())
 
               if (rNeighbours[i]->GetGeometry().size() == 4){
-                  DEM_COPY_FIRST_TO_SECOND_3(Coord[3], rNeighbours[i]->GetGeometry()[3].Coordinates())
+                  DEM_COPY_SECOND_TO_FIRST_3(Coord[3], rNeighbours[i]->GetGeometry()[3].Coordinates())
               }
 
               GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
@@ -955,7 +950,7 @@ namespace Kratos
           double LocalDeltDisp[3] = {0.0};
           GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
 
-          DEM_COPY_FIRST_TO_SECOND_3(GlobalElasticContactForce, mFemOldNeighbourContactForces[i])
+          DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mFemOldNeighbourContactForces[i])
 
           GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
           LocalElasticContactForce[0] +=  - ks_el * LocalDeltDisp[0];
@@ -1268,8 +1263,8 @@ namespace Kratos
           GlobalContactForce[2]        += global_normal_force[2];
 
           // Saving contact forces (We need to, since tangential elastic force is history-dependent)
-          DEM_COPY_FIRST_TO_SECOND_3(mOldNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
-          DEM_COPY_FIRST_TO_SECOND_3(mOldNeighbourTotalContactForces[i_neighbour_count], GlobalContactForce)
+          DEM_COPY_SECOND_TO_FIRST_3(mOldNeighbourElasticContactForces[i_neighbour_count], GlobalElasticContactForce)
+          DEM_COPY_SECOND_TO_FIRST_3(mOldNeighbourTotalContactForces[i_neighbour_count], GlobalContactForce)
 
           mContactForce[0] += GlobalContactForce[0];
           mContactForce[1] += GlobalContactForce[1];
