@@ -227,18 +227,19 @@ class PorosityUtils:
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
-        self.granul_utils        = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
-        self.custom_utils        = CustomFunctionsCalculator()
-        self.domain_volume       = domain_volume
-        self.number_of_balls     = self.balls_model_part.NumberOfElements(0)
-        self.discr_domain_volume = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
-        self.proj_fluid_volume   = self.custom_utils.CalculateGlobalFluidVolume(self.fluid_model_part)
-        self.solid_volume        = self.granul_utils.solid_volume
-        self.fluid_volume        = domain_volume - self.solid_volume
-        self.discr_fluid_volume  = self.discr_domain_volume - self.solid_volume
-        self.proj_solid_volume   = self.discr_domain_volume - self.proj_fluid_volume
-        self.global_porosity     = self.fluid_volume / self.domain_volume
-        self.balls_per_area      = domain_volume / self.number_of_balls
+        self.granul_utils          = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
+        self.custom_utils          = CustomFunctionsCalculator()
+        self.domain_volume         = domain_volume
+        self.number_of_balls       = self.balls_model_part.NumberOfElements(0)
+        self.discr_domain_volume   = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
+        self.proj_fluid_volume     = self.custom_utils.CalculateGlobalFluidVolume(self.fluid_model_part)
+        self.solid_volume          = self.granul_utils.solid_volume
+        self.fluid_volume          = domain_volume - self.solid_volume
+        self.discr_fluid_volume    = self.discr_domain_volume - self.solid_volume
+        self.proj_solid_volume     = self.discr_domain_volume - self.proj_fluid_volume
+        self.global_fluid_fraction = self.fluid_volume / self.domain_volume
+        self.global_solid_fraction = 1 - self.global_fluid_fraction
+        self.balls_per_area        = domain_volume / self.number_of_balls
 
     def PrintCurrentData(self):
 
@@ -246,16 +247,17 @@ class PorosityUtils:
         print()
         print("Volume-related mesurements")
         print("************************************************")
-        print(GetWordWithSpaces("number_of_balls", tot_len)     + '=', self.number_of_balls)
-        print(GetWordWithSpaces("domain_volume", tot_len)       + '=', self.domain_volume)
-        print(GetWordWithSpaces("fluid_volume", tot_len)        + '=', self.fluid_volume)
-        print(GetWordWithSpaces("solid_volume", tot_len)        + '=', self.solid_volume)
-        print(GetWordWithSpaces("discr_domain_volume", tot_len) + '=', self.discr_domain_volume)
-        print(GetWordWithSpaces("discr_fluid_volume", tot_len)  + '=', self.discr_fluid_volume)
-        print(GetWordWithSpaces("proj_fluid_volume", tot_len)   + '=', self.proj_fluid_volume)
-        print(GetWordWithSpaces("proj_solid_volume", tot_len)   + '=', self.proj_solid_volume)
-        print(GetWordWithSpaces("global_porosity", tot_len)     + '=', self.global_porosity)
-        print(GetWordWithSpaces("balls_per_area", tot_len)      + '=', self.balls_per_area)
+        print(GetWordWithSpaces("number_of_balls", tot_len)       + '=', self.number_of_balls)
+        print(GetWordWithSpaces("domain_volume", tot_len)         + '=', self.domain_volume)
+        print(GetWordWithSpaces("fluid_volume", tot_len)          + '=', self.fluid_volume)
+        print(GetWordWithSpaces("solid_volume", tot_len)          + '=', self.solid_volume)
+        print(GetWordWithSpaces("discr_domain_volume", tot_len)   + '=', self.discr_domain_volume)
+        print(GetWordWithSpaces("discr_fluid_volume", tot_len)    + '=', self.discr_fluid_volume)
+        print(GetWordWithSpaces("proj_fluid_volume", tot_len)     + '=', self.proj_fluid_volume)
+        print(GetWordWithSpaces("proj_solid_volume", tot_len)     + '=', self.proj_solid_volume)
+        print(GetWordWithSpaces("global_fluid_fraction", tot_len) + '=', self.global_fluid_fraction)
+        print(GetWordWithSpaces("global_solid_fraction", tot_len) + '=', self.global_solid_fraction)
+        print(GetWordWithSpaces("balls_per_area", tot_len)        + '=', self.balls_per_area)
         print("************************************************")
         print()
 
