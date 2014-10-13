@@ -375,8 +375,8 @@ class IncompressibleFluidSolver:
 
 #
 #
-def CreateSolver(model_part, config):
-    fluid_solver = IncompressibleFluidSolver(model_part, config.domain_size)
+def CreateSolver(model_part, config, periodic=False):
+    fluid_solver = IncompressibleFluidSolver(model_part, config.domain_size, periodic)
 
     # default settings
     fluid_solver.vel_toll = config.vel_toll
