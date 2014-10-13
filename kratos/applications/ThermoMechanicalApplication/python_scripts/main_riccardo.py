@@ -304,7 +304,7 @@ else:
     corrected_rho2 = 1.0
     mold_temp = ProjectParameters.AMBIENT_TEMPERATURE
 
-max_itr_solver = 2 #it does not really improve with more iterations!!
+max_itr_solver = 1#it does not really improve with more iterations!!
 
 # writing log
 log_file.write("y_wall_val : " + str(y_wall_val) + "\n")
@@ -708,7 +708,7 @@ if(FILLING == 1.0):
             fluid_model_part, gravity[0], gravity[1], gravity[2])
         too_low = ApplyInletVelocity(
             inlet_conditions, fluid_model_part, step, fluid_solver.maxmin[0])
-        IncreaseWallLawInSolidifiedZone(fluid_model_part, y_wall_val)
+        #IncreaseWallLawInSolidifiedZone(fluid_model_part, y_wall_val)
         
         #Open air escape after all edge exits are closed
         #is_dry = BiphasicFillingUtilities().CreateAutoExitAssignAirSmagorinsky(fluid_model_part,100.0*y_wall_val,C_SMAG)
