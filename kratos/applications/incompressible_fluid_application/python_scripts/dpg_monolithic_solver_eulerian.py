@@ -68,6 +68,10 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Z)
         node.AddDof(PRESSURE)
 
+        #node.AddDof(MESH_VELOCITY_X)
+        #node.AddDof(MESH_VELOCITY_Y)
+        #node.AddDof(MESH_VELOCITY_Z)
+
     levelset_solver.AddDofs(model_part, distance_settings)
     print("dofs for the monolithic solver added correctly")
 
@@ -105,11 +109,11 @@ class MonolithicSolver:
         # new solvers
         self.gmres_size = 200
         self.iterations = 200
-        self.tol = 1e-3
-        self.verbosity = 0
+        self.tol = 1e-5
+        self.verbosity = 1
         self.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
-            AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK,
+            AMGCLIterativeSolverType.GMRES, #BICGSTAB_WITH_GMRES_FALLBACK,
             self.tol,
             self.iterations,
             self.verbosity,
@@ -121,8 +125,8 @@ class MonolithicSolver:
         self.rel_pres_tol = 1e-5
         self.abs_pres_tol = 1e-7
 
-        self.dynamic_tau_levelset = 0.01
-        self.dynamic_tau_fluid = 0.0
+        self.dynamic_tau_levelset = 0.0 #0.01
+        self.dynamic_tau_fluid = 0.0 #0.01
         self.oss_switch = 0
 
         # non newtonian setting
@@ -260,7 +264,7 @@ class MonolithicSolver:
         self.level_set_solver.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
             AMGCLIterativeSolverType.GMRES,
-            self.tol,
+            1e-6, #self.tol,
             200,
             self.verbosity,
             self.gmres_size)
@@ -292,6 +296,11 @@ class MonolithicSolver:
             if(cond.GetValue(IS_INLET) > 0):
                 for node in cond.GetNodes():
                     self.inlet_nodes.append(node)
+                    
+                    
+                    
+        #import velocity_convection_utility
+        #self.velocity_prediction = velocity_convection_utility.VelocityConvectionUtility(self.model_part)
 
     #
     def DoRedistance(self):
@@ -361,6 +370,8 @@ class MonolithicSolver:
 
         if(step > 3):
             (self.solver).Predict()
+            
+            #self.velocity_prediction.PredictVelocity()
         (self.solver).Solve()
         self.internal_step_counter += 1
         Timer.Stop("self.solve")
