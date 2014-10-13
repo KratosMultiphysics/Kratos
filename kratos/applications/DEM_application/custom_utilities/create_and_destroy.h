@@ -33,8 +33,6 @@
 #include "../DEM_application.h"
 
 #
-//SALVA_ENDING
-//const double prox_tol = 0.00000000001;
 namespace Kratos {
 
     static double rand_normal(double mean, double stddev, double max_radius, double min_radius) {
@@ -184,8 +182,6 @@ public:
 
     }   
 
-    void PrintingTest() {}
-
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, 
                                               Properties::Pointer r_params, const Element& r_reference_element, PropertiesProxy* p_fast_properties, bool has_sphericity, bool has_rotation, bool initial) {          
         
@@ -240,7 +236,79 @@ public:
       
       r_modelpart.Elements().push_back(p_particle);          
 }    
-    //MA
+    
+    
+    void NodeCreatorForClusters(ModelPart& r_modelpart, 
+                                Node < 3 > ::Pointer& pnew_node,
+                                int aId,
+                                array_1d<double, 3 >& reference_coordinates,                                  
+                                double radius, 
+                                Properties& params)
+    {
+        
+      double bx= reference_coordinates[0];
+      double cy= reference_coordinates[1];
+      double dz= reference_coordinates[2];
+      
+
+      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
+                             
+      pnew_node->FastGetSolutionStepValue(RADIUS)                       = radius;
+      array_1d<double, 3 > null_vector(3,0.0);      
+      pnew_node->FastGetSolutionStepValue(VELOCITY)                     = null_vector;           
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];                  
+      
+      pnew_node->AddDof(VELOCITY_X,REACTION_X);
+      pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
+      pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
+      pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
+      pnew_node->AddDof(ANGULAR_VELOCITY_Y,REACTION_Y);
+      pnew_node->AddDof(ANGULAR_VELOCITY_Z,REACTION_Z);
+      
+      pnew_node->pGetDof(VELOCITY_X)->FixDof();
+      pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+      pnew_node->pGetDof(VELOCITY_Z)->FixDof();           
+      pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+      pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+            
+      pnew_node->Set(DEMFlags::FIXED_VEL_X,true);
+      pnew_node->Set(DEMFlags::FIXED_VEL_Y,true);
+      pnew_node->Set(DEMFlags::FIXED_VEL_Z,true);
+      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X,true);
+      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+
+    }           
+    
+    void ElementCreatorForClusters( ModelPart& r_modelpart, 
+                                    int r_Elem_Id, 
+                                    double radius,
+                                    array_1d<double, 3 >& reference_coordinates, 
+                                    double sqrt_of_cluster_mass,
+                                    Properties::Pointer r_params, 
+                                    const Element& r_reference_element) {          
+
+      Node < 3 > ::Pointer pnew_node;
+            
+      NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params); 
+      
+      Geometry< Node < 3 > >::PointsArrayType nodelist;
+      nodelist.push_back(pnew_node);                                              
+      
+      Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);      
+      p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());      
+      
+      Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get()); 
+      
+      spheric_p_particle->SetRadius(radius);     
+      spheric_p_particle->SetSqrtOfRealMass(sqrt_of_cluster_mass);
+      
+      spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
+      
+      r_modelpart.Elements().push_back(p_particle);          
+}    
 
     void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor, bool automatic)
     {
