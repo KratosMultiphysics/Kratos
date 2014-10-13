@@ -885,7 +885,7 @@ namespace Kratos
             typename ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];        
             typename ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k+1];
             
-            for (typename ConditionsArrayType::iterator it = it_begin; it!= it_end; ++it) { //each iteration refers to a different triangle
+            for (typename ConditionsArrayType::iterator it = it_begin; it!= it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
                 
                 Condition::GeometryType& geom = it->GetGeometry();            
                 double Element_Area = geom.Area();                     
@@ -893,16 +893,15 @@ namespace Kratos
                 array_1d<double, 3> Normal_to_Element = it->GetValue(NORMAL);                                                                       
                 const unsigned int& dim = geom.WorkingSpaceDimension();
                 
-                for (unsigned int i = 0; i <geom.size(); i++) { //talking about each of the three nodes of the triangle
-                                                                //we are studying a certain triangle here
+                for (unsigned int i = 0; i <geom.size(); i++) { //talking about each of the three nodes of the condition  
+                                                                //we are studying a certain condition here
                     index = i * dim;    //*2;                 
                     geom(i)->SetLock();                    
                     
-                    array_1d<double, 3>& node_rhs = geom(i)->GetSolutionStepValue(ELASTIC_FORCES); //TOTAL_FORCES
+                    array_1d<double, 3>& node_rhs = geom(i)->GetSolutionStepValue(ELASTIC_FORCES); 
                     array_1d<double, 3>& node_rhs_tang = geom(i)->GetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
                     double& node_pressure = geom(i)->GetSolutionStepValue(PRESSURE);                  
                     double& node_area = geom(i)->GetSolutionStepValue(NODAL_AREA);
-                    double& shear_stress = geom(i)->GetSolutionStepValue(SHEAR_STRESS);
                     array_1d<double, 3> rhs_cond_comp;
                     
                     for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
@@ -917,7 +916,7 @@ namespace Kratos
                     node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
                     
                     node_rhs_tang += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
-                    shear_stress = GeometryFunctions::module(node_rhs_tang);
+                    
                     
                     geom(i)->UnSetLock();
                     
@@ -990,9 +989,10 @@ namespace Kratos
                 double& node_pressure = i->FastGetSolutionStepValue(PRESSURE);
                 double& node_area = i->FastGetSolutionStepValue(NODAL_AREA);
                 double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
-                                
+                array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+
                 node_pressure = node_pressure/node_area;
-                shear_stress = shear_stress/node_area;
+                shear_stress = GeometryFunctions::module(node_rhs_tang)/node_area;
                  
             }
             
