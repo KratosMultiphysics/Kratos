@@ -359,8 +359,8 @@ public:
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
 
         //volume loss is just corrected
-         if(volume_difference > 0.0)
-         {
+//          if(volume_difference > 0.0)
+//          {
 
          //Thermal extrapolation is necessary to avoid hot front (attention: extrapolation is checked and does not help!
 	     //Find the minimum temp of the wet part and put it as the TEMPERATURE of the part added by the voluem correction
@@ -382,7 +382,7 @@ public:
 		   }
          
 
-	    }
+// 	    }
 
         std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
