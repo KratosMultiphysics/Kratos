@@ -648,7 +648,7 @@ namespace Kratos
           const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
           const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
-          if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS){
+          if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS){
               const double coeff_acc             = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
               rInitialRotaMoment                 = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
             }
@@ -1439,6 +1439,14 @@ namespace Kratos
 
       PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                                }
       void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                              }
+      
+      
+      double SphericParticle::SlowGetYoung()                                                   { return GetProperties()[YOUNG_MODULUS];                                             }
+      double SphericParticle::SlowGetRollingFriction()                                         { return GetProperties()[ROLLING_FRICTION_OPTION];                                   }
+      double SphericParticle::SlowGetPoisson()                                                 { return GetProperties()[POISSON_RATIO];                                             }
+      double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                         }
+      double SphericParticle::SlowGetLnOfRestitCoeff()                                         { return GetProperties()[LN_OF_RESTITUTION_COEFF];                                   }
+      double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                          }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
