@@ -237,7 +237,6 @@ namespace Kratos
           }
 		  
 
-          //KRATOS_WATCH("Ball2ball entered") //SALVA
           //LOOP OVER NEIGHBOURS BEGINS
 		  
           size_t i_neighbour_count = 0;
