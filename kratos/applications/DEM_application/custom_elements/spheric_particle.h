@@ -122,8 +122,6 @@ namespace Kratos
       void SetRollingFrictionFromProperties(double* rolling_friction);
       double GetPoisson();
       void SetPoissonFromProperties(double* poisson);
-      //double GetFrictionAngle();
-      //void SetFrictionAngleFromProperties(double& friction_angle);
       double GetTgOfFrictionAngle();
       void SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
       double GetLnOfRestitCoeff();
@@ -133,6 +131,15 @@ namespace Kratos
       
       PropertiesProxy* GetFastProperties();
       void SetFastProperties(PropertiesProxy* pProps);
+      
+      double SlowGetYoung();
+      double SlowGetRollingFriction();
+      double SlowGetPoisson();
+      double SlowGetTgOfFrictionAngle();
+      double SlowGetLnOfRestitCoeff();
+      double SlowGetDensity();
+      
+      
 
       ///@}
       ///@name Access
