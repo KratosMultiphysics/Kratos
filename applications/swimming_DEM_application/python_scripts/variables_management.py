@@ -73,7 +73,7 @@ def ConstructListsOfVariables(pp):
     if (pp.drag_force_type > 0 and  pp.add_each_hydro_force_option):
         pp.dem_vars += [DRAG_FORCE]
 
-    if (pp.drag_force_type == 2 or pp.drag_force_type == 3 and pp.add_each_hydro_force_option):
+    if (pp.drag_force_type > 1):
         pp.dem_vars += [PARTICLE_SPHERICITY]
 
     if (pp.lift_force_type > 0 and  pp.add_each_hydro_force_option):
@@ -122,6 +122,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if (pp.print_FLUID_FRACTION_PROJECTED_option):
             pp.dem_nodal_results += ["FLUID_FRACTION_PROJECTED"]
+
+        if (pp.print_FLUID_VISCOSITY_PROJECTED_option):
+            pp.dem_nodal_results += ["FLUID_VISCOSITY_PROJECTED"]
 
         if (pp.print_BUOYANCY_option > 0):
             pp.dem_nodal_results += ["BUOYANCY"]
@@ -227,6 +230,8 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [GEL_STRENGTH]
         pp.coupling_dem_vars += [YIELD_STRESS]
 
+    if (pp.print_REYNOLDS_NUMBER_option):
+        pp.coupling_dem_vars += [REYNOLDS_NUMBER]
 
 def ChangeListOfFluidNodalResultsToPrint(pp):
 
