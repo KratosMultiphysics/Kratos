@@ -45,56 +45,59 @@ import variables_management as vars_man
 import embedded
 
 # listing project parameters (to be put in problem type)
-ProjectParameters.dem                                  = DEM_explicit_solver_var
-ProjectParameters.projection_module_option             = 1
-ProjectParameters.print_particles_results_option       = 0
-ProjectParameters.add_each_hydro_force_option          = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)
-ProjectParameters.project_at_every_substep_option      = 0
-ProjectParameters.velocity_trap_option                 = 0
-ProjectParameters.inlet_option                         = 1
-ProjectParameters.manually_imposed_drag_law_option     = 0
-ProjectParameters.stationary_problem_option            = 0 # stationary, stop calculating the fluid after it reaches the stationary state (1)
-ProjectParameters.flow_in_porous_medium_option         = 0 # the porosity is an imposed field (1)
-ProjectParameters.flow_in_porous_DEM_medium_option     = 0 # the DEM part is kept static (1)
-ProjectParameters.embedded_option                      = 1 # the embedded domain tools are to be used (1)
-ProjectParameters.make_results_directories_option      = 1 # results are written into a folder (../results) inside the problem folder
-ProjectParameters.body_force_on_fluid_option           = 0
-ProjectParameters.print_REYNOLDS_NUMBER_option         = 0
-ProjectParameters.print_PRESSURE_GRAD_PROJECTED_option = 0
-ProjectParameters.print_FLUID_VEL_PROJECTED_option     = 1
-ProjectParameters.print_BUOYANCY_option                = 1
-ProjectParameters.print_DRAG_FORCE_option              = 1
-ProjectParameters.print_VIRTUAL_MASS_FORCE_option      = 0
-ProjectParameters.print_LIFT_FORCE_option              = 1
-ProjectParameters.print_SOLID_FRACTION_option          = 1
-ProjectParameters.print_FLUID_FRACTION_option          = 1
-ProjectParameters.print_MESH_VELOCITY1_option          = 1
-ProjectParameters.print_FLUID_FRACTION_GRADIENT_option = 0
-ProjectParameters.print_BODY_FORCE_option              = 0
-ProjectParameters.print_HYDRODYNAMIC_REACTION_option   = 1
-ProjectParameters.print_HYDRODYNAMIC_FORCE_option      = 1
-ProjectParameters.print_PRESSURE_option                = 0
-ProjectParameters.similarity_transformation_type       = 0 # no transformation (0), Tsuji (1)
-ProjectParameters.dem_inlet_element_type               = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-ProjectParameters.fluid_model_type                     = 0 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)
-ProjectParameters.coupling_level_type                  = 0 # one way coupling (0), two way coupling (1)
-ProjectParameters.coupling_scheme_type                 = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
-ProjectParameters.coupling_weighing_type               = 2 # {fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)
-ProjectParameters.buoyancy_force_type                  = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
-ProjectParameters.drag_force_type                      = 2 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
-ProjectParameters.virtual_mass_force_type              = 0 # null virtual mass force (0)
-ProjectParameters.lift_force_type                      = 1 # null lift force (0)
-ProjectParameters.drag_modifier_type                   = 3 # Hayder (2), Chien (3) # problemtype option
-ProjectParameters.interaction_start_time               = 0.00
-ProjectParameters.min_fluid_fraction                   = 0.4
-ProjectParameters.initial_drag_force                   = 0.0   # problemtype option
-ProjectParameters.drag_law_slope                       = 0.0   # problemtype option
-ProjectParameters.power_law_tol                        = 0.0
-ProjectParameters.model_over_real_diameter_factor      = 1.0 # not active if similarity_transformation_type = 0
-ProjectParameters.max_pressure_variation_rate_tol      = 1e-3 # for stationary problems, criterion to stop the fluid calculations
-ProjectParameters.time_steps_per_stationarity_step     = 15 # number of fluid time steps between consecutive assessment of stationarity steps
-ProjectParameters.meso_scale_length                    = -1 # the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)
-ProjectParameters.shape_factor                         = 1.0 # the density function's maximum over its support's radius (only relevant if coupling_weighing_type == 3)
+ProjectParameters.dem                                    = DEM_explicit_solver_var
+ProjectParameters.projection_module_option               = 1
+ProjectParameters.print_particles_results_option         = 0
+ProjectParameters.add_each_hydro_force_option            = 1 # add each of the hydrodynamic forces (drag, lift and virtual mass)
+ProjectParameters.project_at_every_substep_option        = 0
+ProjectParameters.velocity_trap_option                   = 0
+ProjectParameters.inlet_option                           = 1
+ProjectParameters.manually_imposed_drag_law_option       = 0
+ProjectParameters.stationary_problem_option              = 0 # stationary, stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.flow_in_porous_medium_option           = 0 # the porosity is an imposed field (1)
+ProjectParameters.flow_in_porous_DEM_medium_option       = 0 # the DEM part is kept static (1)
+ProjectParameters.embedded_option                        = 1 # the embedded domain tools are to be used (1)
+ProjectParameters.make_results_directories_option        = 1 # results are written into a folder (../results) inside the problem folder
+ProjectParameters.body_force_on_fluid_option             = 0
+ProjectParameters.print_REYNOLDS_NUMBER_option           = 0
+ProjectParameters.print_PRESSURE_GRAD_PROJECTED_option   = 0
+ProjectParameters.print_FLUID_VEL_PROJECTED_option       = 1
+ProjectParameters.print_FLUID_ACCEL_PROJECTED_option     = 1
+ProjectParameters.print_BUOYANCY_option                  = 1
+ProjectParameters.print_DRAG_FORCE_option                = 1
+ProjectParameters.print_VIRTUAL_MASS_FORCE_option        = 0
+ProjectParameters.print_LIFT_FORCE_option                = 1
+ProjectParameters.print_SOLID_FRACTION_option            = 1
+ProjectParameters.print_FLUID_FRACTION_option            = 1
+ProjectParameters.print_FLUID_VISCOSITY_PROJECTED_option = 1
+ProjectParameters.print_FLUID_FRACTION_PROJECTED_option  = 1
+ProjectParameters.print_MESH_VELOCITY1_option            = 1
+ProjectParameters.print_FLUID_FRACTION_GRADIENT_option   = 0
+ProjectParameters.print_BODY_FORCE_option                = 0
+ProjectParameters.print_HYDRODYNAMIC_REACTION_option     = 1
+ProjectParameters.print_HYDRODYNAMIC_FORCE_option        = 1
+ProjectParameters.print_PRESSURE_option                  = 0
+ProjectParameters.similarity_transformation_type         = 0 # no transformation (0), Tsuji (1)
+ProjectParameters.dem_inlet_element_type                 = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+ProjectParameters.fluid_model_type                       = 0 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)
+ProjectParameters.coupling_level_type                    = 0 # one way coupling (0), two way coupling (1)
+ProjectParameters.coupling_scheme_type                   = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
+ProjectParameters.coupling_weighing_type                 = 2 # {fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)
+ProjectParameters.buoyancy_force_type                    = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
+ProjectParameters.drag_force_type                        = 2 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4)
+ProjectParameters.virtual_mass_force_type                = 0 # null virtual mass force (0)
+ProjectParameters.lift_force_type                        = 1 # null lift force (0)
+ProjectParameters.drag_modifier_type                     = 3 # Hayder (2), Chien (3) # problemtype option
+ProjectParameters.interaction_start_time                 = 0.00
+ProjectParameters.min_fluid_fraction                     = 0.4
+ProjectParameters.initial_drag_force                     = 0.0   # problemtype option
+ProjectParameters.drag_law_slope                         = 0.0   # problemtype option
+ProjectParameters.power_law_tol                          = 0.0
+ProjectParameters.model_over_real_diameter_factor        = 1.0 # not active if similarity_transformation_type = 0
+ProjectParameters.max_pressure_variation_rate_tol        = 1e-3 # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.time_steps_per_stationarity_step       = 15 # number of fluid time steps between consecutive assessment of stationarity steps
+ProjectParameters.meso_scale_length                      = -1 # the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)
+ProjectParameters.shape_factor                           = 1.0 # the density function's maximum over its support's radius (only relevant if coupling_weighing_type == 3)
 
 # defining and adding imposed porosity fields
 ProjectParameters.fluid_fraction_fields = []
