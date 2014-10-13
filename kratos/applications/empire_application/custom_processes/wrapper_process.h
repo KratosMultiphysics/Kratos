@@ -23,7 +23,9 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "../structural_application/custom_elements/membrane_element.h"
 
 namespace Kratos
@@ -64,15 +66,38 @@ public:
     /// Pointer definition of WrapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(WrapperProcess);
 
+    //definition of node type
+    typedef ModelPart::NodeType NodeType;
+
+    typedef NodeType::IndexType IndexType;
+
+    ///definition of the geometry type with given NodeType
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Nodes container. Which is a vector set of nodes with their Id's as key.
+    typedef ModelPart::NodesContainerType NodesContainerType;
+
+    /// Nodes map.
+    typedef PointerVectorMap<IndexType, NodeType> NodesContainerMapType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    WrapperProcess(ModelPart& model_part, ModelPart& interface_part)
+    WrapperProcess(ModelPart& model_part, ModelPart& interface_part, int dimension)
         : mr_model_part(model_part),
-          mr_interface_part(interface_part)
+          mr_interface_part(interface_part),
+          m_dimension(dimension)
     {
+      KRATOS_TRY
+	if (m_dimension != 2 && m_dimension != 3)
+	    KRATOS_ERROR(std::logic_error, "invalid dimension", "");
+
+      mr_interface_part.GetNodalSolutionStepVariablesList() = mr_model_part.GetNodalSolutionStepVariablesList();
+      mr_interface_part.SetBufferSize(mr_model_part.GetBufferSize());
+
+      KRATOS_CATCH("")
     }
 
     /// Destructor.
@@ -94,63 +119,73 @@ public:
     {
         KRATOS_TRY
 
-        // Add interface nodes (nodes of fluid model part with flag IS_INTERFACE)
-        // to interface model part
-        for( ModelPart::NodeIterator i_node =  mr_model_part.NodesBegin() ;
-                                     i_node != mr_model_part.NodesEnd() ;
-                                     i_node++ )
-        {
-            if( i_node->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 )
-            {
-                mr_interface_part.Nodes().push_back( *(i_node.base()) );
-            }
-        }
+	if (m_dimension == 2)
+	  {
+	    mr_model_part.Nodes().Sort();
 
-        // Add interface conditions
-        for ( ModelPart::ConditionIterator i_condition =  mr_model_part.ConditionsBegin();
-                                           i_condition != mr_model_part.ConditionsEnd();
-                                           i_condition++ )
-        {
-            int size = (*i_condition).GetGeometry().size();
+	    IndexType NodeId = mr_model_part.Nodes().back().Id();
 
-            if(size == 2) // interface conditions are lines (2D fluid mesh)
-            {
-                if ( ((*i_condition).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                     ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
-                {
-                    mr_interface_part.Conditions().push_back( *(i_condition.base()) );
-                }
-            }
-            else if(size == 3) // interface conditions are triangles (3D fluid mesh)
-            {
-                if ( ((*i_condition).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                     ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                     ((*i_condition).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
-                {
-//                    NECESSARY FOR CANTILEVER EXAMPLE
-//                    double Y0 = (*i_condition).GetGeometry()[0].Y();
-//                    double Y1 = (*i_condition).GetGeometry()[1].Y();
-//                    double Y2 = (*i_condition).GetGeometry()[2].Y();
+	    mDummyNodes2D.clear();
 
-//                    if(Y0 > 0 || Y1 > 0 || Y2 > 0 )
-//                    {
-//                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
-//                    }
-                   // NECESSARY FOR TUREK EXAMPLE
-//                    double Z0 = (*i_condition).GetGeometry()[0].Z();
-//                    double Z1 = (*i_condition).GetGeometry()[1].Z();
-//                    double Z2 = (*i_condition).GetGeometry()[2].Z();
+	    // EMPIRE requires a 3D mesh so this 2D adapter creates a set of 
+	    // dummy nodes with z-offset in third dimension. 
+	    for( ModelPart::NodeIterator i_node =  mr_model_part.NodesBegin() ;
+		 i_node != mr_model_part.NodesEnd() ;
+		 i_node++ )
+	      {
+		if ((*i_node).Is(INTERFACE))
+		  {
+		    double NodeX = (*i_node).X0();
+		    double NodeY = (*i_node).Y0();
+		    double NodeZ = (*i_node).Z0() + 0.1; // z-offset for dummyNodes2D (must be same on structure side)
+		    mr_interface_part.Nodes().push_back( *(i_node.base()) );
+		    NodeType::Pointer pNode = mr_interface_part.CreateNewNode(++NodeId,NodeX,NodeY,NodeZ);
+		    mDummyNodes2D.push_back( NodesContainerMapType::value_type((*i_node).Id(),pNode) );
+		  }
+	      }
 
-//                    if((Z0 < 0 || Z1 < 0 || Z2 < 0) && (Z0 > -0.01 || Z1 > -0.01 || Z2 > -0.01) )
-//                    {
-//                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
-//                    }
+	    mr_model_part.Conditions().Sort();
+	    
+	    IndexType ConditionId = mr_model_part.Conditions().back().Id();
 
-                    mr_interface_part.Conditions().push_back( *(i_condition.base()) );
-                }
-            }
-
-        }
+	    // The 2D adapter creates quadrilateral elements to map the interface data. 
+	    for ( ModelPart::ConditionIterator i_condition =  mr_model_part.ConditionsBegin();
+		  i_condition != mr_model_part.ConditionsEnd();
+		  i_condition++ )
+	      {
+		if ((*i_condition).Is(INTERFACE))
+		  {
+		    NodeType& Node1 = (*i_condition).GetGeometry()[0];
+		    NodeType& Node2 = (*i_condition).GetGeometry()[1];
+		    // make sure the node was correctly set in the mDummyNodes2D map
+		    if (Node1.IsNot(INTERFACE) || Node2.IsNot(INTERFACE))
+		      KRATOS_ERROR(std::logic_error, "A condition node is not INTERFACE","");
+	    
+		    NodeType& Node3 = *(mDummyNodes2D.find(Node2.Id()).base()->second);
+		    NodeType& Node4 = *(mDummyNodes2D.find(Node1.Id()).base()->second);
+		    GeometryType::Pointer pGeom(new Quadrilateral3D4<NodeType>(Node1,Node2,Node3,Node4));
+                    mr_interface_part.Conditions().push_back( Condition::Pointer(new Condition(++ConditionId,pGeom)) );
+		  }
+	      }
+	  }
+	else if (m_dimension == 3)
+	  {
+	    for( ModelPart::NodeIterator i_node =  mr_model_part.NodesBegin() ;
+		 i_node != mr_model_part.NodesEnd() ;
+		 i_node++ )
+	      {
+		if ((*i_node).Is(INTERFACE))
+		  mr_interface_part.Nodes().push_back( *(i_node.base()) );
+	      }
+	    
+	    for ( ModelPart::ConditionIterator i_condition =  mr_model_part.ConditionsBegin();
+		  i_condition != mr_model_part.ConditionsEnd();
+		  i_condition++ )
+	      {
+		if((*i_condition).Is(INTERFACE))
+		    mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+	      }
+	  }
 
         KRATOS_CATCH("")
     }
@@ -158,6 +193,10 @@ public:
     void ExtractPressureFromModelPart( boost::python::list& pressure )
     {
         KRATOS_TRY
+
+	// the dummyNodes2D get copies of data on their parent nodes before mapping.
+	if (m_dimension == 2)
+	  SynchronizeDummy2DVariable(PRESSURE);
 
         for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
                                      i_node != mr_interface_part.NodesEnd() ;
@@ -175,6 +214,9 @@ public:
     {
         KRATOS_TRY
 
+	if (m_dimension == 2)
+	  KRATOS_ERROR(std::logic_error, "Not implemented for 2D","");
+
         for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
                                      i_node != mr_interface_part.NodesEnd() ;
                                      i_node++ )
@@ -184,10 +226,6 @@ public:
 
                 double p_diff = p_pos - p_neg;
                 
-//                 KRATOS_WATCH(p_diff);
-//                 KRATOS_WATCH(p_pos);
-//                 KRATOS_WATCH(p_neg);
-
                 pressure.append(p_diff);
         }
 
@@ -199,6 +237,19 @@ public:
     void ExtractForcesFromModelPart( boost::python::list& forces )
     {
         KRATOS_TRY
+	
+	  double weight;
+
+	// the dummyNodes2D get copies of data on their parent nodes before mapping.
+	if (m_dimension == 2)
+	  {
+	    SynchronizeDummy2DVariable(REACTION);
+	    // weight is 1.0 for 2D-2D coupling and 0.5 * depth for 2D-3D coupling 
+	    // with depth the domain length in z-direction
+	    weight = 0.5 * 0.1;
+	  }
+	else
+	  weight = 1.0;
 
         for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
                                      i_node != mr_interface_part.NodesEnd() ;
@@ -209,10 +260,9 @@ public:
             double r_z = i_node->GetSolutionStepValue(REACTION_Z);
 
             // Negative of reactions = forces to structure
-            double f_x = -r_x;
-            double f_y = -r_y;
-            double f_z = -r_z;
-
+            double f_x = -weight * r_x;
+            double f_y = -weight * r_y;
+            double f_z = -weight * r_z;
 
             forces.append(f_x);
             forces.append(f_y);
@@ -227,6 +277,10 @@ public:
     void ExtractDisplacementsFromModelPart( boost::python::list& displacements )
     {
         KRATOS_TRY
+
+	// the dummyNodes2D get copies of data on their parent nodes before mapping.
+	if (m_dimension == 2)
+	  SynchronizeDummy2DVariable(DISPLACEMENT);
 
         for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
                                      i_node != mr_interface_part.NodesEnd() ;
@@ -251,6 +305,9 @@ public:
                                       boost::python::list velocity)
     {
         KRATOS_TRY
+
+	if (m_dimension == 2)
+	  KRATOS_ERROR(std::logic_error, "Not implemented for 2D","");
         
         mr_interface_part.Nodes().erase(mr_interface_part.Nodes().begin(), mr_interface_part.Nodes().end());
         mr_interface_part.Elements().erase(mr_interface_part.Elements().begin(), mr_interface_part.Elements().end());
@@ -389,6 +446,20 @@ public:
 
                 elemsCounter++;
             }
+	    else if ( nodesPerElem == 4 ) // interface conditions are quads (2D adaptor with z-offset)
+	      {
+		unsigned int nodeID_1 = i_Condition->GetGeometry()[0].Id();
+                unsigned int nodeID_2 = i_Condition->GetGeometry()[1].Id();
+                unsigned int nodeID_3 = i_Condition->GetGeometry()[2].Id();
+                unsigned int nodeID_4 = i_Condition->GetGeometry()[3].Id();
+
+                elems.append(nodeID_1);
+                elems.append(nodeID_2);
+                elems.append(nodeID_3);
+                elems.append(nodeID_4);
+
+                elemsCounter++;
+	      }
         }
 
         numNodes.append(nodesCounter);
@@ -484,6 +555,8 @@ private:
     ///@{
     ModelPart& mr_model_part;
     ModelPart& mr_interface_part;
+    NodesContainerMapType mDummyNodes2D;
+    const int m_dimension;
 
     ///@}
     ///@name Private Operators
@@ -498,6 +571,19 @@ private:
     ///@}
     ///@name Private  Access
     ///@{
+    template< class TDataType >
+    void SynchronizeDummy2DVariable(Variable<TDataType>& ThisVariable)
+    {
+      KRATOS_TRY
+	for (NodesContainerMapType::iterator itDummy = mDummyNodes2D.begin(); itDummy != mDummyNodes2D.end(); itDummy++)
+	  {
+	    NodesContainerType::iterator itNode = mr_interface_part.Nodes().find(itDummy.key());
+	    if (itNode == mr_interface_part.Nodes().end())
+	      KRATOS_ERROR(std::logic_error, "Cannot find parent node of dummy node","");
+	    itDummy.base()->second->FastGetSolutionStepValue(ThisVariable) = itNode->FastGetSolutionStepValue(ThisVariable);
+	  }
+      KRATOS_CATCH("")
+    }
 
 
     ///@}

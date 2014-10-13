@@ -73,7 +73,7 @@ void  AddCustomProcessesToPython()
 {
     using namespace boost::python;
 
-    class_<WrapperProcess, bases<Process> >("WrapperProcess", init<ModelPart&,ModelPart&>())
+    class_<WrapperProcess, bases<Process> >("WrapperProcess", init<ModelPart&,ModelPart&,int>())
     .def("ExtractInterface", &WrapperProcess::ExtractInterface)
     .def("ExtractPressureFromModelPart", &WrapperProcess::ExtractPressureFromModelPart)
     .def("ExtractPressureFromEmbeddedModelPart", &WrapperProcess::ExtractPressureFromEmbeddedModelPart)
