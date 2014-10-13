@@ -304,6 +304,7 @@ else:
     corrected_rho2 = 1.0
     mold_temp = ProjectParameters.AMBIENT_TEMPERATURE
 
+max_itr_solver = 2 #it does not really improve with more iterations!!
 
 # writing log
 log_file.write("y_wall_val : " + str(y_wall_val) + "\n")
@@ -323,9 +324,11 @@ FILLING = ProjectParameters.filling
 SOLIDIFICATION = ProjectParameters.solidification
 
 air_temp = ProjectParameters.FLUID_TEMPERATURE 
+initial_density = fluid_model_part.GetTable(1).GetValue(ProjectParameters.AMBIENT_TEMPERATURE)
 for node in fluid_model_part.Nodes:
     node.SetValue(Y_WALL, y_wall_val)
     node.SetSolutionStepValue(DISTANCE, 0, 1000.0)
+    node.SetSolutionStepValue(DENSITY, 0, initial_density)
     node.SetSolutionStepValue(VELOCITY_X, 0, 0.0)
     node.SetSolutionStepValue(VELOCITY_Y, 0, 0.0)
     node.SetSolutionStepValue(VELOCITY_Z, 0, 0.0)
@@ -392,8 +395,8 @@ else:
 
 fluid_model_part.ProcessInfo.SetValue(
     AMBIENT_TEMPERATURE, mold_temp)
-fluid_model_part.ProcessInfo.SetValue(
-    FLUID_TEMPERATURE, 613.0)
+#fluid_model_part.ProcessInfo.SetValue(
+    #FLUID_TEMPERATURE, 613.0)
 fluid_model_part.ProcessInfo.SetValue(
     SOLID_TEMPERATURE, ProjectParameters.SOLID_TEMPERATURE)
 fluid_model_part.ProcessInfo.SetValue(
@@ -521,6 +524,9 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
                 if(dist > 0.0):
                     if(slip_flag != 10):
                         node.Fix(PRESSURE)
+                        node.SetSolutionStepValue(VELOCITY,0,zero)   #newly added
+                        node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
+                        node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
                         node.SetSolutionStepValue(PRESSURE, 0, 0.0)
                         node.SetValue(IS_STRUCTURE, 0.0)
                     else:
@@ -544,6 +550,9 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
             d = node.GetSolutionStepValue(DISTANCE)
             if(d > dlimit):
                 node.Fix(PRESSURE)
+                node.SetSolutionStepValue(VELOCITY,0,zero)  #newly added
+                node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
+                node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
                 node.SetSolutionStepValue(PRESSURE, 0, 0.0)
                 node.SetValue(IS_STRUCTURE, 0.0)
                 node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 20.0)
@@ -643,7 +652,7 @@ if(FILLING == 1.0):
             tilt_pouring_process.Execute()
         #percent_done = 100.00 * (time / final_time)
         Dt = EstimateTimeStep3D().ComputeDt(
-            fluid_model_part, 4.0 * fluid_solver.max_edge_size, CFL, 0.03 * max_Dt, max_Dt)
+            fluid_model_part, 4.0 * fluid_solver.max_edge_size, CFL, 0.05 * max_Dt, max_Dt)
         time = time + Dt
         time_crt = time
         fluid_model_part.CloneTimeStep(time)
@@ -702,7 +711,7 @@ if(FILLING == 1.0):
         IncreaseWallLawInSolidifiedZone(fluid_model_part, y_wall_val)
         
         #Open air escape after all edge exits are closed
-        is_dry = BiphasicFillingUtilities().CreateAutoExitAssignAirSmagorinsky(fluid_model_part,100.0*y_wall_val,C_SMAG)
+        #is_dry = BiphasicFillingUtilities().CreateAutoExitAssignAirSmagorinsky(fluid_model_part,100.0*y_wall_val,C_SMAG)
         
         fluid_solver.Solve(step)
         
@@ -882,12 +891,26 @@ if(FILLING == 1.0):
     sys.stdout.flush()
 gid_io = 0
 
+
+if(SOLIDIFICATION == 1.0 and FILLING==0):
+    for node in fluid_model_part.Nodes:
+        node.SetSolutionStepValue(DENSITY, 0, initial_density)
+        T = ProjectParameters.FLUID_TEMPERATURE
+        node.SetSolutionStepValue(TEMPERATURE,0,T)
+        node.SetSolutionStepValue(TEMPERATURE,1,T)
+        node.SetSolutionStepValue(TEMPERATURE,2,T)
+        #print(node.GetSolutionStepValue(TEMPERATURE))
+        #print(node.GetSolutionStepValue(DENSITY))    
+
 if(SOLIDIFICATION == 1.0):
     #verifyp.Execute()
     print ("Click2cast running state: Start SOLIDIFICATION-COOLING solver")
     sys.stdout.flush()
     gid_io = GidIO(input_file_name + "_S_k", gid_mode,
                    multifile, deformed_mesh_flag, write_conditions)
+    
+    
+    fluid_model_part.ProcessInfo.SetValue(LATENT_HEAT, ProjectParameters.LATENT_HEAT)
 
     # mesh to be printed
     mesh_name = 0.0
@@ -903,13 +926,22 @@ if(SOLIDIFICATION == 1.0):
     for cond in fluid_model_part.Conditions:
         for node in cond.GetNodes():
             node.SetSolutionStepValue(IS_BOUNDARY, 0, 1.0)
+            node.SetSolutionStepValue(DISTANCE, 0, -1.0)
 # AssignEnvironmentCondition().AssignCondition(solidification_model_part)
 
+
+    
+    
+    BiphasicFillingUtilities().ComputeNodalVolume(solidification_model_part) 
+    
     solidification_model_part.ProcessInfo = fluid_model_part.ProcessInfo
     solidification_them_solver = convdiff_phasechange_solver.Solver(
         solidification_model_part, domain_size, my_settings)
     #solidification_them_solver.MaxNewtonRapshonIterations = 15
     #solidification_them_solver.MaxLineSearchIterations = 10
+    solidification_them_solver.use_linesearch_in_step1=True
+    solidification_them_solver.skip_stage0 = True
+    solidification_them_solver.stage1_max_iterations = 5
     solidification_them_solver.Initialize()
 
     for node in fluid_model_part.Nodes:
@@ -930,6 +962,9 @@ if(SOLIDIFICATION == 1.0):
             fluid_model_part.Nodes[int(nd_id)].SetSolutionStepValue(
                 TEMPERATURE, float(nd_temp))
         filling_temp.close()
+        
+        
+
 
     cooled_precent = 0.0
     solidification_model_part.ProcessInfo.SetValue(IS_SOLIDIFIED, 0)
@@ -957,6 +992,13 @@ if(SOLIDIFICATION == 1.0):
         solidification_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.0)
 
         solidification_them_solver.Solve()
+        
+        
+        #for node in fluid_model_part.Nodes:
+            ##node.SetSolutionStepValue(DENSITY, 0, initial_density)
+            #print(node.GetSolutionStepValue(TEMPERATURE))
+            #print(node.GetSolutionStepValue(DENSITY))
+        
         shrinkage_porosity_calculation.Execute()
         Dt = EstimateTimeStep3D().ComputeSolidificationCoolingDt(
             solidification_model_part,  solidification_percent,  max_cooling_delta_temp,  dt_min_ss,  dt_max_ss)
@@ -971,7 +1013,7 @@ if(SOLIDIFICATION == 1.0):
             next_screen_output += screen_output_dt
 
         if(time >= next_output_time):
-            verifyp.Execute()
+            #verifyp.Execute()
             copy_solidification_variables_process.Execute()
             gid_io.WriteNodalResults(
                 TEMPERATURES, fluid_model_part.Nodes, time, 0)
@@ -979,6 +1021,10 @@ if(SOLIDIFICATION == 1.0):
                 SOLIDIF_TIME, fluid_model_part.Nodes, time, 0)
             gid_io.WriteNodalResults(
                 SOLIDIF_MODULUS, fluid_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(
+                DENSITY, fluid_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(
+                HTC, fluid_model_part.Nodes, time, 0)
            
             gid_io.WriteNodalResults(
                 SOLID_FRACTION, fluid_model_part.Nodes, time, 0)

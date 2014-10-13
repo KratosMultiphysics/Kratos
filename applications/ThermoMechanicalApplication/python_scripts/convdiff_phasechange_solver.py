@@ -67,6 +67,7 @@ class Solver:
         #functions to skip one of the stages 
         self.skip_stage0 = False
         self.skip_stage1 = False
+        self.use_linesearch_in_step1 = False
         
         ##utility to effective store a copy of the variables
         self.variable_utils = VariableUtils()
@@ -83,7 +84,7 @@ class Solver:
         self.stage0_max_iterations = 2
               
         ##strategy to be used in step1 - diffusion + phase change - a symmetric linear solver is sufficient
-        tol = 1e-3
+        tol = 1e-6
         verbosity = 0
         self.symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.CG, tol, 200, verbosity, gmres_size)
         self.stage1_time_scheme = ResidualBasedIncrementalUpdateStaticVariablePropertyScheme()
@@ -107,16 +108,32 @@ class Solver:
                                                                 self.CalculateReactionFlag, 
                                                                 self.ReformDofSetAtEachStep,
                                                                 self.MoveMeshFlag)
-
-        self.stage1_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
-                                                                self.stage1_time_scheme,
-                                                                self.symmetric_linear_solver,
-                                                                self.stage1_conv_criteria,
-                                                                self.stage1_max_iterations,
-                                                                self.CalculateReactionFlag, 
-                                                                self.ReformDofSetAtEachStep,
-                                                                self.MoveMeshFlag)   
- 
+        if(self.use_linesearch_in_step1 == False):
+            self.stage1_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
+                                                                    self.stage1_time_scheme,
+                                                                    self.symmetric_linear_solver,
+                                                                    self.stage1_conv_criteria,
+                                                                    self.stage1_max_iterations,
+                                                                    self.CalculateReactionFlag, 
+                                                                    self.ReformDofSetAtEachStep,
+                                                                    self.MoveMeshFlag)   
+        else:
+            self.MaxLineSearchIterations = 20
+            self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
+            self.amp = 1.618         # maximum amplification factor
+            self.etmxa = 3.0           # maximum allowed step length
+            self.etmna = 0.01           # minimum allowed step length
+            self.toler = 1.0E-9
+            self.norm = 1.0E-6
+            self.ApplyLineSearches = True
+            self.stage1_solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.stage1_time_scheme, self.symmetric_linear_solver, self.stage1_conv_criteria,
+                                                                        self.stage1_max_iterations, self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
+                                                                        self.CalculateReactionFlag,
+                                                                        self.ReformDofSetAtEachStep,
+                                                                        self.MoveMeshFlag,
+                                                                        self.ApplyLineSearches)
+            
+            
         #self.stage2_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
                                                                 #self.stage1_time_scheme,
                                                                 #self.symmetric_linear_solver,
@@ -125,20 +142,6 @@ class Solver:
                                                                 #self.CalculateReactionFlag, 
                                                                 #self.ReformDofSetAtEachStep,
                                                                 #self.MoveMeshFlag)  
-        #self.MaxLineSearchIterations = 20
-        #self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
-        #self.amp = 1.618         # maximum amplification factor
-        #self.etmxa = 3.0           # maximum allowed step length
-        #self.etmna = 0.01           # minimum allowed step length
-        #self.toler = 1.0E-9
-        #self.norm = 1.0E-6
-        #self.ApplyLineSearches = True
-        #self.stage1_solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part, self.stage1_time_scheme, self.symmetric_linear_solver, self.stage1_conv_criteria,
-                                                                     #self.stage1_max_iterations, self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
-                                                                     #self.CalculateReactionFlag,
-                                                                     #self.ReformDofSetAtEachStep,
-                                                                     #self.MoveMeshFlag,
-                                                                    #self.ApplyLineSearches)
         
         
         self.Check()
@@ -197,7 +200,19 @@ class Solver:
 
 
             self.stage0_solver.Solve()
-        
+        else:
+            BDFVector = self.model_part.ProcessInfo.GetValue(BDF_COEFFICIENTS)
+            print(self.model_part.ProcessInfo[DELTA_TIME])
+            print(BDFVector)
+            aux1 = BDFVector[1]/BDFVector[0]
+            aux2 = BDFVector[2]/BDFVector[0]
+            print("aux1 = ",aux1)
+            print("aux2 = ",aux2)
+            for node in self.model_part.Nodes:
+                Told = node.GetSolutionStepValue(TEMPERATURE,1)
+                Toldold = node.GetSolutionStepValue(TEMPERATURE,2)
+                Tstar = -aux1*Told - aux2*Toldold
+                node.SetSolutionStepValue(TEMPERATURE,0,Tstar)
         
         if(self.skip_stage1 == False):
             #solve stage1 - diffusion + phase change - a symmetric linear solver is sufficient
