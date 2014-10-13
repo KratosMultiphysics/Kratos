@@ -692,11 +692,20 @@ public:
         // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
-            //calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                //detect if the element is active or not. If the user did not make any choice the element
+                //is active by default
+                bool element_is_active = true;
+                if( (*it)->IsDefined(ACTIVE) )
+                    element_is_active = (*it)->Is(ACTIVE);
+                
+                if(element_is_active)
+                {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-            //assemble the elemental contribution
-            AssembleRHS(b, RHS_Contribution, EquationId);
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
+                }
         }
 
         LHS_Contribution.resize(0, 0, false);
@@ -705,11 +714,21 @@ public:
         // assemble all conditions
         for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
         {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+            //detect if the element is active or not. If the user did not make any choice the element
+            //is active by default
+            bool condition_is_active = true;
+            if( (*it)->IsDefined(ACTIVE) )
+                condition_is_active = (*it)->Is(ACTIVE);
+            
+            if(condition_is_active)
+            {
+                        
+                //calculate elemental contribution
+                pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-            //assemble the elemental contribution
-            AssembleRHS(b, RHS_Contribution, EquationId);
+                //assemble the elemental contribution
+                AssembleRHS(b, RHS_Contribution, EquationId);
+            }
         }
 
         KRATOS_CATCH("")
