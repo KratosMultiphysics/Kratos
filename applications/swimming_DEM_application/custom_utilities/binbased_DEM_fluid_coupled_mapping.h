@@ -120,7 +120,6 @@ public:
         if (TDim == 3){
             mParticlesPerDepthDistance = 1;
         }
-
     }
 
     /// Destructor.
@@ -191,22 +190,25 @@ public:
 
                 if (is_found){
 
+                    pparticle->Set(INSIDE, true);
+
                     for (unsigned int j = 0; j != mDEMCouplingVariables.size(); ++j){
                         Project(pelement, N, pparticle, mDEMCouplingVariables[j], alpha);
-                      }
+                    }
+                }
 
-                  }
+                else {
+                    pparticle->Set(INSIDE, false);
+                }
+            }
+        }
 
-              }
+        if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
 
-          }
+          const double delta_time_inv = 1.0 / rfluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
+          MultiplyNodalVariableBy(rdem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
 
-          if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
-
-              const double delta_time_inv = 1.0 / rfluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
-              MultiplyNodalVariableBy(rdem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
-
-          }
+        }
 
         KRATOS_CATCH("")
     }
@@ -234,7 +236,7 @@ public:
         for (int i = 0; i < nparticles; i++){
             NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
-            
+
             if (pparticle->IsNot(BLOCKED)){
                 Element::Pointer pelement;
 
@@ -247,20 +249,17 @@ public:
 
                     for (unsigned int j = 0; j != mDEMCouplingVariables.size(); ++j){
                         Project(pelement, N, pparticle, mDEMCouplingVariables[j]);
-                      }
-
-                  }
-
-              }
-
-          }
+                    }
+                }
+            }
+        }
 
         if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
 
             const double delta_time_inv = 1.0 / rfluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
             MultiplyNodalVariableBy(rdem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
 
-          }
+        }
 
         KRATOS_CATCH("")
     }
@@ -323,18 +322,17 @@ public:
 
         for (unsigned int i = 0; i < rfluid_model_part.Nodes().size(); ++i){
             weighing_function.ComputeWeights(vectors_of_distances[i], vectors_of_distances[i]);
-          }
+        }
 
         for (unsigned int i = 0; i < rfluid_model_part.Nodes().size(); ++i){
-            NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;            
+            NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
 
             CalculateNodalFluidFractionByAveraging(*(inode.base()), vectors_of_neighbouring_balls[i], vectors_of_distances[i]);
 
             for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
                 ComputeHomogenizedNodalVariable(*(inode.base()), vectors_of_neighbouring_balls[i], vectors_of_distances[i], mFluidCouplingVariables[j]);
-              }
-
-          }
+            }
+        }
 
         KRATOS_CATCH("")
     }
@@ -350,7 +348,7 @@ public:
         const ProcessInfo& r_current_process_info)
     {
         const int n_dem_elements = rdem_model_part.Elements().size();
-        const int n_fluid_nodes = rfluid_model_part.Nodes().size();
+        const int n_fluid_nodes  = rfluid_model_part.Nodes().size();
 
         if (IsDEMVariable(REYNOLDS_NUMBER)){
 
@@ -360,9 +358,9 @@ public:
                 Geometry< Node<3> >& geom = ielem->GetGeometry();
                 double& reynolds_number = geom[0].FastGetSolutionStepValue(REYNOLDS_NUMBER);
                 ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
-              }
-          }
-       
+            }
+        }
+
         if (IsFluidVariable(MESH_VELOCITY1)){
 
             #pragma omp parallel for
@@ -372,9 +370,8 @@ public:
                 const array_1d<double, 3>& darcy_vel          = inode->FastGetSolutionStepValue(VELOCITY);
                 array_1d<double, 3>& space_averaged_fluid_vel = inode->FastGetSolutionStepValue(MESH_VELOCITY1);
                 space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
-              }
-
-          }
+            }
+        }
 
         if (IsFluidVariable(SOLID_FRACTION)){
 
@@ -383,10 +380,8 @@ public:
                 NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
                 double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION);
                 solid_fraction = 1.0 - inode->FastGetSolutionStepValue(FLUID_FRACTION);
-              }
-
-          }
-
+            }
+        }
     }
 
     //***************************************************************************************************************
@@ -530,15 +525,14 @@ private:
 
             if (is_found) {
                 DistributeDimensionalContributionToFluidFraction(pelement, N, pparticle);
-              }
-
-          }
+            }
+        }
 
         CalculateFluidFraction(rfluid_model_part);
 
         if (IsFluidVariable(FLUID_FRACTION_GRADIENT)){
             CalculateFluidFractionGradient(rfluid_model_part);
-          }
+        }
 
         KRATOS_CATCH("")
     }
@@ -574,11 +568,9 @@ private:
 
                 for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
                     Distribute(pelement, N, pparticle, mFluidCouplingVariables[j]);
-                  }
-
-              }
-
-          }
+                }
+            }
+        }
 
         KRATOS_CATCH("")
     }
@@ -601,7 +593,7 @@ private:
 
       for (unsigned int i = 0; i != rfluid_model_part.Nodes().size(); ++i){
           search_radii[i] = search_radius; // spatial search is designed for varying radius
-        }
+      }
 
       mpSpSearch->SearchNodesInRadiusExclusive(rdem_model_part, rfluid_model_part.NodesArray(), search_radii, vectors_of_neighbouring_balls, vectors_of_distances);
 
@@ -614,7 +606,6 @@ private:
 
     bool IsDEMVariable(const VariableData& var)
     {
-
         for (unsigned int i = 0; i != mDEMCouplingVariables.size(); ++i){
 
             if (*mDEMCouplingVariables[i] == var){
@@ -630,14 +621,12 @@ private:
 
     bool IsFluidVariable(const VariableData& var)
     {
-
         for (unsigned int i = 0; i != mFluidCouplingVariables.size(); ++i){
 
             if (*mFluidCouplingVariables[i] == var){
                 return true;
-              }
-
-          }
+            }
+        }
 
         return false;
     }
@@ -653,7 +642,7 @@ private:
             const array_1d<double, 3>& vel_old = geom[i].FastGetSolutionStepValue(VELOCITY, 1);
             const array_1d<double, 3>& vel_new = geom[i].FastGetSolutionStepValue(VELOCITY);
             acceleration += N[i] * (vel_new - vel_old);
-          }
+        }
 
         return(acceleration);
     }
@@ -678,11 +667,9 @@ private:
 
                 for (unsigned int j = 0; j < TDim; ++j){
                     S(i, j) += 0.5 * (DN_DX[0](n, j) * vel[i] + DN_DX[0](n, i) * vel[j]);
-                  }
-
-              }
-
-          }
+                }
+            }
+        }
 
         // norm of the symetric gradient (shear rate)
         double norm_s = 0.0;
@@ -691,9 +678,8 @@ private:
 
             for (unsigned int j = 0; j < TDim; ++j){
                 norm_s += S(i, j) * S(i, j);
-              }
-
-          }
+            }
+        }
 
         norm_s = sqrt(2.0 * norm_s);
 
@@ -719,11 +705,11 @@ private:
 
             for (unsigned int i = 0; i < TDim; ++i){
                 derivatives[i] = DN_DX[0](n, i);
-              }
+            }
 
             const array_1d<double, 3>& vel = geom[n].FastGetSolutionStepValue(VELOCITY, index);
             vorticity += MathUtils<double>::CrossProduct(derivatives, vel);
-          }
+        }
 
         return(vorticity);
     }
@@ -736,55 +722,53 @@ private:
                  Node<3>::Pointer pnode,
                  const VariableData *r_destination_variable)
     {
-
         if (*r_destination_variable == FLUID_DENSITY_PROJECTED){
             Interpolate(el_it, N, pnode, DENSITY, FLUID_DENSITY_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && IsFluidVariable(FLUID_FRACTION)){
             Interpolate(el_it, N, pnode, FLUID_FRACTION, FLUID_FRACTION_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_VEL_PROJECTED){
             Interpolate(el_it, N, pnode, VELOCITY, FLUID_VEL_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == PRESSURE_GRAD_PROJECTED){
             Interpolate(el_it, N, pnode, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_VISCOSITY_PROJECTED){
             Interpolate(el_it, N, pnode, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == POWER_LAW_N){
             Interpolate(el_it, N, pnode, POWER_LAW_N, POWER_LAW_N);
-          }
+        }
 
         else if (*r_destination_variable == POWER_LAW_K){
             Interpolate(el_it, N, pnode, POWER_LAW_K, POWER_LAW_K);
-          }
+        }
 
         else if (*r_destination_variable == GEL_STRENGTH){
             Interpolate(el_it, N, pnode, GEL_STRENGTH, GEL_STRENGTH);
-          }
+        }
 
         else if (*r_destination_variable == DISTANCE){
             Interpolate(el_it, N, pnode, DISTANCE, DISTANCE);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
             InterpolateAcceleration(el_it, N, pnode, FLUID_ACCEL_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
             InterpolateShearRate(el_it, N, pnode, SHEAR_RATE_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_VORTICITY_PROJECTED){
             InterpolateVorticity(el_it, N, pnode, FLUID_VORTICITY_PROJECTED);
-          }
-
+        }
     }
 
     //***************************************************************************************************************
@@ -796,55 +780,53 @@ private:
                  const VariableData *r_destination_variable,
                  double alpha)
     {
-
         if (*r_destination_variable == FLUID_DENSITY_PROJECTED){
             Interpolate(el_it, N, pnode, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && IsFluidVariable(FLUID_FRACTION)){
             Interpolate(el_it, N, pnode, FLUID_FRACTION, FLUID_FRACTION_PROJECTED, alpha);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_VEL_PROJECTED){
             Interpolate(el_it, N, pnode, VELOCITY, FLUID_VEL_PROJECTED, alpha);
-          }
+        }
 
         else if (*r_destination_variable == PRESSURE_GRAD_PROJECTED){
             Interpolate(el_it, N, pnode, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_VISCOSITY_PROJECTED){
             Interpolate(el_it, N, pnode, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
-          }
+        }
 
         else if (*r_destination_variable == POWER_LAW_N){
             Interpolate(el_it, N, pnode, POWER_LAW_N, POWER_LAW_N, alpha);
-          }
+        }
 
         else if (*r_destination_variable == POWER_LAW_K){
             Interpolate(el_it, N, pnode, POWER_LAW_K, POWER_LAW_K, alpha);
-          }
+        }
 
         else if (*r_destination_variable == GEL_STRENGTH){
             Interpolate(el_it, N, pnode, GEL_STRENGTH, GEL_STRENGTH, alpha);
-          }
+        }
 
         else if (*r_destination_variable == DISTANCE){
             Interpolate(el_it, N, pnode, DISTANCE, DISTANCE, alpha);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
             InterpolateAcceleration(el_it, N, pnode, FLUID_ACCEL_PROJECTED);
-          }
+        }
 
         else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
             InterpolateShearRate(el_it, N, pnode, SHEAR_RATE_PROJECTED, alpha);
-          }
+        }
 
         else if (*r_destination_variable == FLUID_VORTICITY_PROJECTED){
             InterpolateVorticity(el_it, N, pnode, FLUID_VORTICITY_PROJECTED, alpha);
-          }
-
+        }
     }
 
     //***************************************************************************************************************
@@ -855,15 +837,13 @@ private:
         const array_1d<double, TDim + 1>& N,
         Node<3>::Pointer pnode)
     {
-
         if (mCouplingType == 0 || mCouplingType == 1){
             CalculateNodalFluidFractionWithConstantWeighing(el_it, N, pnode);
-          }
+        }
 
         else if (mCouplingType == 2){
             CalculateNodalFluidFractionWithLinearWeighing(el_it, N, pnode);
-          }
-
+        }
     }
 
     //***************************************************************************************************************
@@ -875,39 +855,33 @@ private:
         Node<3>::Pointer pnode,
         const VariableData *r_destination_variable)
     {
-
         if (mCouplingType == 0){
 
             if (*r_destination_variable == BODY_FORCE){
                 TransferWithConstantWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
-              }
-
-          }
+            }
+        }
 
         else if (mCouplingType == 1){
 
             if (*r_destination_variable == BODY_FORCE){
                 TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
-              }
-
-          }
+            }
+        }
 
         else if (mCouplingType == 2){
-            
+
             if (*r_destination_variable == BODY_FORCE){
                 TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
-              }
-
-          }
+            }
+        }
 
         else if (mCouplingType == - 1){
 
              if (*r_destination_variable == BODY_FORCE){
                  TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
-               }
-
-          }
-
+             }
+        }
     }
 
     //***************************************************************************************************************
@@ -919,15 +893,12 @@ private:
         const DistanceType& weights,
         const VariableData *r_destination_variable)
     {
-
         if (mCouplingType < 0 || mCouplingType > - 1){
 
             if (*r_destination_variable == BODY_FORCE){
                 TransferByAveraging(pnode, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
-              }
-
-          }
-
+            }
+        }
     }
 
     //***************************************************************************************************************
@@ -935,7 +906,6 @@ private:
 
     void  CalculateFluidFraction(ModelPart& rfluid_model_part)
     {
-
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), rfluid_model_part.Nodes().size(), mNodesPartition);
 
         #pragma omp parallel for
@@ -947,12 +917,9 @@ private:
 
                 if (fluid_fraction < mMinFluidFraction){
                     fluid_fraction = mMinFluidFraction;
-                  }
-
-              }
-
-          }
-
+                }
+            }
+        }
     }
 
     //***************************************************************************************************************
@@ -966,7 +933,6 @@ private:
         Variable<array_1d<double, 3> >& r_origin_variable,
         Variable<array_1d<double, 3> >& r_destination_variable)
     {
-
         // Geometry of the element of the origin model part
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
@@ -977,8 +943,7 @@ private:
 
         for (unsigned int i = 1; i < TDim + 1; i++){
             step_data += N[i] * geom[i].FastGetSolutionStepValue(r_origin_variable);
-          }
-
+        }
     }
 
     //***************************************************************************************************************
@@ -992,7 +957,6 @@ private:
         Variable<array_1d<double, 3> >& r_destination_variable,
         double alpha)
     {
-
         // Geometry of the element of the origin model part
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
@@ -1002,8 +966,7 @@ private:
 
         for (unsigned int i = 1; i < TDim + 1; i++){
             step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
-          }
-
+        }
      }
 
     //***************************************************************************************************************
@@ -1017,7 +980,6 @@ private:
         Variable<double>& r_origin_variable,
         Variable<double>& r_destination_variable)
     {
-
         // Geometry of the element of the origin model part
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
@@ -1029,7 +991,6 @@ private:
         for (unsigned int i = 1; i < TDim + 1; i++){
             step_data += N[i] * geom[i].FastGetSolutionStepValue(r_origin_variable);
         }
-
     }
 
     //***************************************************************************************************************
@@ -1043,18 +1004,16 @@ private:
         Variable<double>& r_destination_variable,
         double alpha)
     {
+        // Geometry of the element of the origin model part
+        Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-      // Geometry of the element of the origin model part
-      Geometry< Node<3> >& geom = el_it->GetGeometry();
+        // Destination data
+        double& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+        step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
 
-      // Destination data
-      double& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
-      step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
-
-      for (unsigned int i = 1; i < TDim + 1; i++){
+        for (unsigned int i = 1; i < TDim + 1; i++){
           step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
         }
-
     }
 
     //***************************************************************************************************************
@@ -1155,12 +1114,11 @@ private:
             const double density        = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY);
             const double nodal_mass_inv = mParticlesPerDepthDistance / (fluid_fraction * density * nodal_volume);
             destination_data            = - nodal_mass_inv * origin_data;
-          }
+        }
 
         else {
             std::cout << "Variable " << r_origin_variable << " is not supported for transference with constant weights";
-          }
-
+        }
     }
 
     //***************************************************************************************************************
@@ -1190,14 +1148,12 @@ private:
                 const double& nodal_volume                 = geom[i].FastGetSolutionStepValue(NODAL_AREA);
                 const double& density                      = geom[i].FastGetSolutionStepValue(DENSITY);
                 hydrodynamic_reaction -= (mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume)) * origin_data;
-              }
-
-          }
+            }
+        }
 
         else {
             std::cout << "Variable " << r_origin_variable << " is not supported for transference with linear weights" ;
-          }
-
+        }
     }
 
     //***************************************************************************************************************
@@ -1237,16 +1193,15 @@ private:
         const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
         for (unsigned int i = 0; i < TDim + 1; i++){
-            (el_it->GetGeometry())[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * element_volume * particle_volume;
-          }
-
+            (el_it->GetGeometry())[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        }
     }
+
     //***************************************************************************************************************
     //***************************************************************************************************************
 
     void CalculateFluidFractionGradient(ModelPart& r_model_part)
     {
-
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
             noalias(inode->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
         }
@@ -1266,7 +1221,7 @@ private:
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
                 elemental_fluid_fractions[i] = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
-              }
+            }
 
             noalias(grad) = prod(trans(DN_DX), elemental_fluid_fractions);
             double nodal_area = volume / (TDim + 1);
@@ -1274,14 +1229,12 @@ private:
 
             for (unsigned int i = 0; i < TDim + 1; ++i){
                 geom[i].FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT) += grad;
-              }
-
+            }
         }
 
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
             inode->GetSolutionStepValue(FLUID_FRACTION_GRADIENT) /= inode->GetSolutionStepValue(NODAL_AREA);
           }
-
      }
 
     //***************************************************************************************************************
@@ -1302,11 +1255,11 @@ private:
         for (unsigned int i = 0; i < neighbours.size(); ++i){
             const array_1d<double, 3>& origin_data = neighbours[i]->FastGetSolutionStepValue(r_origin_variable);
             neighbours_contribution += origin_data * weights[i];
-          }
+        }
 
         if (r_origin_variable == HYDRODYNAMIC_FORCE){
             neighbours_contribution /= (fluid_density * fluid_fraction);
-          }
+        }
 
         destination_data += neighbours_contribution;
     }
@@ -1324,7 +1277,7 @@ private:
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             const double& radius = neighbours[i]->FastGetSolutionStepValue(RADIUS);
             destination_data += weights[i] * radius * radius * radius;
-          }
+        }
 
         destination_data = 1 -  4 / 3 * KRATOS_M_PI * destination_data;
     }
@@ -1335,12 +1288,11 @@ private:
     void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor){
 
         #pragma omp parallel for
-        for ( int i = 0; i < (int)r_model_part.Nodes().size(); i++){
+        for (unsigned int i = 0; i < r_model_part.Nodes().size(); i++){
             NodeIteratorType inode = r_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pnode = *(inode.base());
             pnode->FastGetSolutionStepValue(r_variable) *= factor;
         }
-
     }
 
     //***************************************************************************************************************
@@ -1349,29 +1301,24 @@ private:
     void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor){
 
         #pragma omp parallel for
-        for ( int i = 0; i < (int)r_model_part.Nodes().size(); i++){
+        for (unsigned int i = 0; i < r_model_part.Nodes().size(); i++){
             NodeIteratorType inode = r_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pnode = *(inode.base());
             pnode->FastGetSolutionStepValue(r_variable) *= factor;
         }
-
     }
 
     //***************************************************************************************************************
     //***************************************************************************************************************
 
-
     void ResetDEMVariables(ModelPart& rdem_model_part)
     {
-
         for (NodeIteratorType node_it = rdem_model_part.NodesBegin(); node_it != rdem_model_part.NodesEnd(); ++node_it){
 
             for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
                 ClearVariable(node_it, mDEMCouplingVariables[i]);
-              }
-
-          }
-
+            }
+        }
     }
 
     //***************************************************************************************************************
@@ -1379,7 +1326,6 @@ private:
 
     void ResetFluidVariables(ModelPart& rfluid_model_part)
     {
-
         for (NodeIteratorType node_it = rfluid_model_part.NodesBegin(); node_it != rfluid_model_part.NodesEnd(); ++node_it){
 
             ClearVariable(node_it, FLUID_FRACTION);
@@ -1390,7 +1336,6 @@ private:
 
             noalias(old_hydrodynamic_reaction) = ZeroVector(3);
           }
-
     }
 
     //***************************************************************************************************************
@@ -1458,11 +1403,10 @@ private:
 
       for (unsigned int inode = 1; inode < TDim + 1; ++inode){
 
-          if (N[inode] > max) {
+          if (N[inode] > max){
               max = N[inode];
               i_nearest_node = inode;
-            }
-
+          }
         }
 
       return i_nearest_node;
