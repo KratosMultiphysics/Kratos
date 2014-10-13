@@ -12,12 +12,12 @@ CheckForPreviousImport()
 class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
-    def __init__(self, model_parts_list, libempire_api):
+    def __init__(self, model_parts_list, libempire_api, dimension=3):
         self.libempire_api = libempire_api
         self.model_parts_list = model_parts_list
         N = len(self.model_parts_list)
         self.interface_model_parts_list = [ModelPart("InterfaceModelPart_"+str(i)) for i in range(N)]
-        self.wrapper_processes_list = [WrapperProcess(self.model_parts_list[i], self.interface_model_parts_list[i]) for i in range(N)]
+        self.wrapper_processes_list = [WrapperProcess(self.model_parts_list[i], self.interface_model_parts_list[i], dimension) for i in range(N)]
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -49,12 +49,12 @@ class EmpireWrapper:
             disp = Vector(3)
             i = 0
             # assign displacements to nodes of interface for current time step
-            for nodes in (interface_model_part).Nodes:
+            for node in (interface_model_part).Nodes:
                 disp[0] = c_displacements[3 * i + 0]
                 disp[1] = c_displacements[3 * i + 1]
                 disp[2] = c_displacements[3 * i + 2]
                 
-                nodes.SetSolutionStepValue(DISPLACEMENT, 0, disp)
+                node.SetSolutionStepValue(DISPLACEMENT, 0, disp)
                 
                 i = i + 1
     # -------------------------------------------------------------------------------------------------

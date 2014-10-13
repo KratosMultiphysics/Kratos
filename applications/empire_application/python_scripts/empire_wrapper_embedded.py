@@ -21,7 +21,7 @@ class EmpireWrapper:
         self.interface_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
         self.interface_model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
         self.interface_model_part.SetBufferSize(3)
-        self.wrapper_process = WrapperProcess(self.model_part, self.interface_model_part)
+        self.wrapper_process = WrapperProcess(self.model_part, self.interface_model_part, 3)
 
         # specifically needed for exchange of mesh information (constant mesh information)
         self.nodeIDs = []
