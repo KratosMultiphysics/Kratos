@@ -206,6 +206,15 @@ class MembraneElement
 			double pressure,
 			double weight);
 
+        void ClearNodalForces();
+
+        void AddExplicitContribution(
+             const VectorType& rRHSVector,
+             const Variable<VectorType>& rRHSVariable,
+             Variable<array_1d<double,3> >& rDestinationVariable,
+             const ProcessInfo& rCurrentProcessInfo);
+
+
 		void MakeCrossMatrix(
 			boost::numeric::ublas::bounded_matrix<double,3,3>& M,
 			array_1d<double,3>& U);
@@ -275,7 +284,7 @@ class MembraneElement
 			array_1d<double,3>& b);
 
 		int  Check( const ProcessInfo& rCurrentProcessInfo);
-	
+
 	    ///@} 
 	    ///@name Serialization
 	    ///@{ 
