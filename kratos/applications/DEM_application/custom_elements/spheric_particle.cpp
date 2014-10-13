@@ -58,8 +58,7 @@ namespace Kratos
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
-           return Element::Pointer(new SphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
-
+          return Element::Pointer(new SphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
       }
 
       /// Destructor.
@@ -83,26 +82,26 @@ namespace Kratos
           if (this->Is(DEMFlags::HAS_ROTATION) ){
               double moment_of_inertia = 0.4 * mass * mRadius * mRadius;
               GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
-            }
+          }
 
           else {
               array_1d<double, 3>& angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
               angular_velocity[0] = 0.0;
               angular_velocity[1] = 0.0;
               angular_velocity[2] = 0.0;
-            }
+          }
 
-          if ( GetGeometry()[0].GetDof(VELOCITY_X).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,true);
+          if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,false);
-          if ( GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,true);
+          if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,false);
-          if ( GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed() )         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,true);
+          if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,false);
-          if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,true);
+          if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,false);
-          if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+          if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,false);
-          if ( GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed() ) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+          if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
           else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,false);
 
           CustomInitialize();
@@ -135,7 +134,7 @@ namespace Kratos
 
           if (mFemOldNeighbourIds.size() > 0){
               ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info);
-            }
+          }
 
           ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_current_process_info, gravity);
 
@@ -152,7 +151,7 @@ namespace Kratos
           for (int i = 0; i < 3; i++){
               total_forces[i] = r_right_hand_side_vector[i];
               total_moment[i] = r_right_hand_side_vector[3 + i];
-            }
+          }
 
           KRATOS_CATCH( "" )
       }
@@ -181,7 +180,7 @@ namespace Kratos
 
           if (mFemOldNeighbourIds.size() > 0){
               ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info);
-            }
+          }
 
           KRATOS_CATCH( "" )
       }
@@ -209,11 +208,9 @@ namespace Kratos
                       array_1d<double, 3>& r_elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
                       r_elastic_force += mOldNeighbourElasticContactForces[i];
                       break;
-                    }
-
-                }
-
-            }
+                  }
+              }
+          }
 
           KRATOS_CATCH( "" )
       }
@@ -242,11 +239,10 @@ namespace Kratos
 
                   if (this->Is(DEMFlags::HAS_ROTATION)){
                       ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, ineighbour);
-                    }
+                  }
+              }
 
-                }
-
-            } //if( this->Is(DEMFlags::HAS_ROTATION) )
+          } //if( this->Is(DEMFlags::HAS_ROTATION) )
 
           array_1d<double, 3> additional_forces;
           array_1d<double, 3> additionally_applied_moment;
@@ -281,7 +277,7 @@ namespace Kratos
               double indentation                    = radius_sum - distance;
 
               r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
-             }
+           }
 
       }
 
@@ -314,8 +310,7 @@ namespace Kratos
               GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
               double indentation = mRadius - DistPToB;
               r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
-
-            }
+          }
       }
 
       //**************************************************************************************************************************************************
@@ -389,7 +384,7 @@ namespace Kratos
                        added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
                   break;
 
-               }//switch
+             }//switch
 
               // Tangential Contribution
 
@@ -397,7 +392,7 @@ namespace Kratos
               added_potential_energy_of_contacts       += 0.5 * aux_power_of_contact_i_tang_force / kt;
 
               i_neighbour_count ++;
-            }
+          }
 
           r_elastic_energy = added_potential_energy_of_contacts;
       }
@@ -445,11 +440,9 @@ namespace Kratos
                       mTempNeighbourElasticContactForces[i] = mOldNeighbourElasticContactForces[j];
                       mTempNeighbourTotalContactForces[i]   = mOldNeighbourTotalContactForces[j];
                       break;
-                    }
-
-                }
-
-            }
+                  }
+              }
+          }
 
           mOldNeighbourIds.swap(mTempNeighboursIds);
           mOldNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
@@ -477,11 +470,9 @@ namespace Kratos
                  if (static_cast<int>(rNeighbours[i]->Id()) == mFemOldNeighbourIds[j]) {
                      temp_neighbours_contact_forces[i] = mFemOldNeighbourContactForces[j];
                      break;
-                   }
-
-                }
-
-            }
+                 }
+              }
+          }
 
           mFemOldNeighbourIds.swap(temp_neighbours_ids);
           mFemOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
@@ -619,16 +610,13 @@ namespace Kratos
                       mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
                       mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
                       mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
-                    }
+                  }
 
                   else {
                       mContactMoment = - rInitialRotaMoment;
-                    }
-
-                } // if (equiv_rolling_friction_coeff != 0.0)
-
-            } // if (mRotationDampType == 2)
-
+                  }
+              } // if (equiv_rolling_friction_coeff != 0.0)
+          } // if (mRotationDampType == 2)
       }
 
       //**************************************************************************************************************************************************
@@ -651,13 +639,13 @@ namespace Kratos
           if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) && !multi_stage_RHS){
               const double coeff_acc             = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
               rInitialRotaMoment                 = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
-            }
+          }
 
-	  double kn;
-	  double kt;
-	  double equiv_visco_damp_coeff_normal;
-	  double equiv_visco_damp_coeff_tangential;
-	  double equiv_tg_of_fri_ang;
+          double kn;
+          double kt;
+          double equiv_visco_damp_coeff_normal;
+          double equiv_visco_damp_coeff_tangential;
+          double equiv_tg_of_fri_ang;
 
           double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
           double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
@@ -693,7 +681,7 @@ namespace Kratos
 
               if (this->Is(DEMFlags::HAS_ROTATION)){
                   DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, ineighbour);
-                }
+              }
 
               double normal_force                     = 0.0;
               double LocalContactForce[3]             = {0.0};
@@ -721,7 +709,7 @@ namespace Kratos
 
                   // VISCODAMPING (applyied locally)
                   CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding);
-                }
+              }
 
               // Transforming to global forces and adding up
               AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, i);
@@ -729,9 +717,9 @@ namespace Kratos
               // ROTATION FORCES
               if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS){
                   ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
-                }
+              }
 
-            }// for each neighbour
+          }// for each neighbour
 
           KRATOS_CATCH("")
       }// ComputeBallToBallContactForce
@@ -776,9 +764,8 @@ namespace Kratos
 
               for(std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
                  other_to_me_vel += rObj_2->GetGeometry()(inode)->FastGetSolutionStepValue(VELOCITY) * Weight[inode];
-                }
-
-            }
+              }
+          }
 
           KRATOS_CATCH("")
       }
@@ -853,10 +840,10 @@ namespace Kratos
 
                 if (rNeighbours[i]->GetGeometry().size() == 4){
                     DEM_COPY_SECOND_TO_FIRST_3(Coord[3], rNeighbours[i]->GetGeometry()[3].Coordinates())
-                  }
+                }
 
                 GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
-              }
+            }
 
             double indentation = -(DistPToB - mRadius) - ini_delta;
             double DeltDisp[3] = {0.0};
@@ -887,7 +874,7 @@ namespace Kratos
                 DeltDisp[0] += dRotaDisp[0] * mTimeStep;
                 DeltDisp[1] += dRotaDisp[1] * mTimeStep;
                 DeltDisp[2] += dRotaDisp[2] * mTimeStep;
-              }
+            }
 
             double LocalDeltDisp[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
@@ -900,17 +887,17 @@ namespace Kratos
 
             if (indentation > 0.0){
                 LocalElasticContactForce[2] =  kn_el * indentation;
-              }
+            }
 
             else {
                 LocalElasticContactForce[2] = 0.0;
-              }
+            }
 
             bool If_sliding = false;
 
             if (-LocalElasticContactForce[2] > 0.0){
                 DEM_SET_COMPONENTS_TO_ZERO_3(LocalElasticContactForce)
-              }
+            }
 
             else {
                 double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
@@ -920,7 +907,7 @@ namespace Kratos
                 if (ShearForceMax == 0.0){
                     LocalElasticContactForce[0] = 0.0;
                     LocalElasticContactForce[1] = 0.0;
-                  }
+                }
 
                 else if (ShearForceNow > ShearForceMax){
                     double inv_ShearForceNow = 1.0 / ShearForceNow;
@@ -928,8 +915,7 @@ namespace Kratos
                     LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
 
                     If_sliding = true;
-                  }
-
+                }
               }
 
             //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
@@ -946,24 +932,24 @@ namespace Kratos
                 if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
                     equiv_visco_damp_coeff_normal     = r_current_process_info[DEMPACK_DAMPING]*2.0*sqrt(kn_el/(mass+mass))*mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
                     equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
-                  }
+                }
 
                 else {
 
                     if ( GetLnOfRestitCoeff() > 0.0){
                         equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
-                      }
+                    }
 
                     else {
                         equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
-                      }
+                    }
 
                     equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
-                  }
+                }
 
                 CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal,
                 equiv_visco_damp_coeff_tangential, If_sliding);
-              }
+            }
 
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
@@ -973,9 +959,9 @@ namespace Kratos
 
             if (this->Is(DEMFlags::HAS_ROTATION)){
                 ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbour!!
-              }
+            }
 
-          }
+        }
 
         KRATOS_CATCH("")
 
@@ -1001,14 +987,14 @@ namespace Kratos
 
               if (GetGeometry().WorkingSpaceDimension() == 3){
                   ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
-                }
+              }
 
               ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_X));
               ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_Y));
 
               if (GetGeometry().WorkingSpaceDimension() == 3){
                   ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_Z));
-                }
+              }
 
           }
 
@@ -1080,7 +1066,7 @@ namespace Kratos
               other_ln_of_restit_coeff = myLnOfRestitCoeff;
               equiv_ln_of_restit_coeff = myLnOfRestitCoeff;
               equiv_tg_of_fri_ang      = myTgOfFrictionAngle;
-            }
+          }
 
           else {
               other_young = p_neighbour->GetYoung();
@@ -1090,8 +1076,7 @@ namespace Kratos
               equiv_ln_of_restit_coeff = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
               const double other_tg_of_fri_angle = p_neighbour->GetTgOfFrictionAngle();
               equiv_tg_of_fri_ang      = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
-            }
-
+          }
 
           switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
 
@@ -1121,11 +1106,11 @@ namespace Kratos
 
           if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
               equiv_visco_damp_coeff_normal = 2.0 * sqrt(equiv_mass * kn);
-            }
+          }
 
           else {
               equiv_visco_damp_coeff_normal = - 2.0 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
-            }
+          }
 
           double aux_norm_to_tang = sqrt(kt / kn);
           equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
@@ -1159,14 +1144,13 @@ namespace Kratos
 
               if (mDampType == 11 || mDampType == 10){
                   ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
-                }
+              }
 
               if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friction law or the spring convergence
                   ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
                   ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-                }
-            }
-
+              }
+          }
       }
 
       //**************************************************************************************************************************************************
@@ -1183,7 +1167,6 @@ namespace Kratos
                                                   array_1d<double, 3> &r_elastic_force,
                                                   const double &i_neighbour_count)
       {
-
           for (unsigned int index = 0; index < 3; index++){
               LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
             }
@@ -1237,7 +1220,7 @@ namespace Kratos
           for (unsigned int i = 0; i < 3; ++i){
               neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + i] = GlobalElasticContactForce[i];
               neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + i]   = GlobalContactForce[i];
-            }
+          }
       }
 
       //**************************************************************************************************************************************************
@@ -1252,7 +1235,7 @@ namespace Kratos
 
               if (r_process_info[PRINT_EXPORT_ID] == 1){
                  this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-                }
+              }
 
               mDampType                                    = r_process_info[DAMP_TYPE];
               mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];
@@ -1265,7 +1248,7 @@ namespace Kratos
                                                            this->Set(DEMFlags::HAS_ROTATION_SPRING,false);
 
               AdditionalMemberDeclarationFirstStep(r_process_info);
-            }
+          }
       }
 
       //**************************************************************************************************************************************************
@@ -1274,7 +1257,7 @@ namespace Kratos
       void SphericParticle::NormalForceCalculation(double& normal_force, double kn, double indentation)
 
       {
-         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+          switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
               case 0:
                   normal_force = kn * indentation;
 
@@ -1291,7 +1274,6 @@ namespace Kratos
                   normal_force = kn * indentation;
 
               break;
-
           }//switch
       } //NormalForceCalculation
 
@@ -1308,21 +1290,20 @@ namespace Kratos
 
           if (Frictional_ShearForceMax < 0.0){
               Frictional_ShearForceMax = 0.0;
-            }
+          }
 
           if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)){
               double ShearForceNowMaxRatio = Frictional_ShearForceMax / ShearForceNow;
               LocalElasticContactForce[0] = ShearForceNowMaxRatio * LocalElasticContactForce[0];
               LocalElasticContactForce[1] = ShearForceNowMaxRatio * LocalElasticContactForce[1];
               sliding = true;
-            }
+          }
       }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
       double SphericParticle::GetInitialDelta(int index)
-
       {
           double delta = 0.0; //only available in continuum_particle
 
@@ -1340,7 +1321,7 @@ namespace Kratos
           if (rVariable == PARTICLE_ID){
               Output = mParticleId; // (NOT YET ACTIVE!!)
               return;
-            }
+          }
 
           //CRITICAL DELTA CALCULATION
 
@@ -1351,17 +1332,17 @@ namespace Kratos
 
               if (coeff > 1.0){
                   KRATOS_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff);
-                }
+              }
 
               else if ((coeff == 1.0) && (r_current_process_info[VIRTUAL_MASS_OPTION])){
                   Output = 9.0E09;
-                }
+              }
 
               else {
 
                   if (r_current_process_info[VIRTUAL_MASS_OPTION]){
                       mass = mass / (1 - coeff);
-                    }
+                  }
 
                   double K = KRATOS_M_PI * GetYoung() * mRadius; //M. Error, should be the same that the local definition.
 
@@ -1369,22 +1350,23 @@ namespace Kratos
 
                   if (this->Is(DEMFlags::HAS_ROTATION) ){
                       Output *= 0.5; //factor for critical time step when rotation is allowed.
-                    }
-
-                }
+                  }
+              }
 
               return;
-            }
+          }
 
           if (rVariable == KINETIC_ENERGY){
               CalculateKineticEnergy(Output);
               return;
-            }
+          }
 
           if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
               CalculateElasticEnergyOfContacts(Output);
               return;
-            }
+          }
+
+          AdditionalCalculate(rVariable, Output, r_current_process_info);
 
           KRATOS_CATCH("")
       }// Calculate
@@ -1396,11 +1378,11 @@ namespace Kratos
       {
           if (rVariable == MOMENTUM){
               CalculateMomentum(Output);
-            }
+          }
 
           else if (rVariable == ANGULAR_MOMENTUM){
               CalculateLocalAngularMomentum(Output);
-            }
+          }
       }
 
       //**************************************************************************************************************************************************
@@ -1439,8 +1421,7 @@ namespace Kratos
 
       PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                                }
       void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                              }
-      
-      
+
       double SphericParticle::SlowGetYoung()                                                   { return GetProperties()[YOUNG_MODULUS];                                             }
       double SphericParticle::SlowGetRollingFriction()                                         { return GetProperties()[ROLLING_FRICTION_OPTION];                                   }
       double SphericParticle::SlowGetPoisson()                                                 { return GetProperties()[POISSON_RATIO];                                             }

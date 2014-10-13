@@ -282,11 +282,7 @@ namespace Kratos
       virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
       virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       
-      //DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
-      //DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
-      
       const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
-      //int mInitializedVariablesFlag;
       int mDimension;
       int mDampType;
       int mElasticityType;
@@ -300,11 +296,8 @@ namespace Kratos
       PropertiesProxy* mFastProperties;
       
       std::vector<int> mOldNeighbourIds;
-      //std::vector<int> mTempNeighboursIds;
       std::vector< array_1d<double, 3> > mOldNeighbourElasticContactForces;            
-      //std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
       std::vector< array_1d<double, 3> > mOldNeighbourTotalContactForces;
-      //std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;      
 	  
       std::vector<int> mFemOldNeighbourIds;
       std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
