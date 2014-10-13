@@ -139,7 +139,7 @@ public:
     /// Default constructor.
     PointerVectorMap() : mData(), mSortedPartSize(size_type()), mMaxBufferSize(100) {}
 
-    PointerVectorMap(const PointerVectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize, mMaxBufferSize(rOther.mMaxBufferSize)) {}
+ PointerVectorMap(const PointerVectorMap& rOther) :  mData(rOther.mData), mSortedPartSize(rOther.mSortedPartSize), mMaxBufferSize(rOther.mMaxBufferSize) {}
 
     PointerVectorMap(const TContainerType& rContainer) :  mData(rContainer), mSortedPartSize(size_type()), mMaxBufferSize(100)
     {
