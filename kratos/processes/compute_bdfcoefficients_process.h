@@ -152,16 +152,29 @@ public:
             //calculate the BDF coefficients
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+            
+            if(OldDt > 1e-10*Dt) //this should always be the case!!
+            {
+                double Rho = OldDt / Dt;
+                double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
 
-            double Rho = OldDt / Dt;
-            double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+                Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+                BDFcoeffs.resize(3, false);
 
-            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-            BDFcoeffs.resize(3, false);
+                BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
+                BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+                BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+            }
+            else
+            {
+                KRATOS_WATCH("Dt was zero at the previous time step!!!")
+                Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+                BDFcoeffs.resize(3, false);
 
-            BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
-            BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-            BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+                BDFcoeffs[0] = 1.0/Dt; //coefficient for step n+1 (3/2Dt if Dt is constant)
+                BDFcoeffs[1] = -1.0/Dt; //coefficient for step n (-4/2Dt if Dt is constant)
+                BDFcoeffs[2] = 0.0; //coefficient for step n-1 (1/2Dt if Dt is constant)
+            }
         }
         else if (mtime_order == 1)
         {
