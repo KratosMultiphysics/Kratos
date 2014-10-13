@@ -207,6 +207,7 @@ public:
             double specific_heat_var =C_table.GetValue(unknown_val);
             double htc_var = HTC_table.GetValue(unknown_val);
             ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
+            double conductivity_var = rDiffusionVar_table.GetValue(unknown_val);
 
              if(dist <= 0)
              {
@@ -214,7 +215,7 @@ public:
                 // double specific_heat_var =C_table.GetValue(unknown_val);
                 double solid_fraction_var = F_table.GetValue(unknown_val);
                 double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
-                double conductvity_var = rDiffusionVar_table.GetValue(unknown_val);
+                
                 //double htc_var = HTC_table.GetValue(unknown_val);
 
 
@@ -230,8 +231,8 @@ public:
                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = solid_fraction_rate_var;
                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE,1) = solid_fraction_rate_var;
 
-                ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
-                ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;
+                ind->FastGetSolutionStepValue(rDiffusionVar) = conductivity_var;
+                ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductivity_var;
 
                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
@@ -250,9 +251,9 @@ public:
                  ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;
                  ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
                  ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
-                 ind->FastGetSolutionStepValue(rDiffusionVar) = 1000.0;
+                 ind->FastGetSolutionStepValue(rDiffusionVar) = conductivity_var*1000.0;
  
-                 ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/1000.0; ///(density_var*specific_heat_var);
+                 ind->FastGetSolutionStepValue(rTransferCoef) = 0.0; ///(density_var*specific_heat_var);
                  // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
  
                  //assign an initial value to the enthalpy
@@ -276,7 +277,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
         //update variables based on resolved unknowns
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -328,8 +328,8 @@ public:
 
                 //here compute the ENTHALPY = int(c dT,0,T) + L(T)
                 //which should be computed incrementally as   Hn+1 = Hn + 1/2*(Tn+1 - Tn)*(cn+1 - cn) + L(Tn+1) - L(Tn)
-                const double Delta_T = unknown_val - ind->GetValue(rUnknownVar);
-                const double delta_solid_fraction = 0.0; //(1-Sn+1) - (1-Sn)
+//                const double Delta_T = unknown_val - ind->GetValue(rUnknownVar);
+//                const double delta_solid_fraction = 0.0; //(1-Sn+1) - (1-Sn)
                 const double delta_enthalpy = 0.0; //Delta_T*specific_heat_var + delta_solid_fraction*latent_heat;
                 ind->FastGetSolutionStepValue(ENTHALPY) = /*ind->FastGetSolutionStepValue(ENTHALPY,1) +*/ delta_enthalpy;
                 ind->GetValue(ENTHALPY) = ind->FastGetSolutionStepValue(ENTHALPY);
@@ -344,7 +344,7 @@ public:
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;
                 ind->FastGetSolutionStepValue(SOLID_FRACTION) = 0.0;
                 ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;
-                ind->FastGetSolutionStepValue(rDiffusionVar) = conductivity_var*100.0; //1.0;
+                ind->FastGetSolutionStepValue(rDiffusionVar) = conductivity_var*1000.0; //1.0;
                 ind->FastGetSolutionStepValue(rTransferCoef) = 0.0; //htc_var/(50.0); //*density_var*specific_heat_air);
 
                 ind->FastGetSolutionStepValue(ENTHALPY) = specific_heat_air*unknown_val; // * (ind->FastGetSolutionStepValue(rUnknownVar)) ;
