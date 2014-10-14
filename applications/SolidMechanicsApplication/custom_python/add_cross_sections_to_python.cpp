@@ -60,6 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_cross_sections_to_python.h"
 #include "custom_utilities/shell_cross_section.hpp"
 
+#include "custom_elements\shell_thick_element_3D4N.hpp"
+#include "custom_elements\shell_thin_element_3D3N.hpp"
 
 namespace Kratos
 {
@@ -67,6 +69,25 @@ namespace Python
 {
 
 using namespace boost::python;
+
+void Helper_SetCrossSectionsOnIntegrationPoints_Thin(ShellThinElement3D3N& el, const boost::python::list& seclist)
+{
+	int n = len(seclist);
+	std::vector<ShellCrossSection::Pointer> shell_sec_list;
+	for(int i = 0; i < n; i++) {
+		shell_sec_list.push_back(boost::python::extract<ShellCrossSection::Pointer>(seclist[i]));
+	}
+	el.SetCrossSectionsOnIntegrationPoints(shell_sec_list);
+}
+void Helper_SetCrossSectionsOnIntegrationPoints_Thick(ShellThickElement3D4N& el, const boost::python::list& seclist)
+{
+	int n = len(seclist);
+	std::vector<ShellCrossSection::Pointer> shell_sec_list;
+	for(int i = 0; i < n; i++) {
+		shell_sec_list.push_back(boost::python::extract<ShellCrossSection::Pointer>(seclist[i]));
+	}
+	el.SetCrossSectionsOnIntegrationPoints(shell_sec_list);
+}
 
 void AddCrossSectionsToPython()
 {
@@ -89,6 +110,19 @@ void AddCrossSectionsToPython()
 
 	class_<Variable<ShellCrossSection::Pointer> , bases<VariableData>, boost::noncopyable >("ShellCrossSectionVariable", no_init)
     ;
+
+	class_<ShellThinElement3D3N, ShellThinElement3D3N::Pointer, bases<Element>, boost::noncopyable >(
+		"ShellThinElement3D3N",
+		no_init)
+		.def("SetCrossSectionsOnIntegrationPoints", &Helper_SetCrossSectionsOnIntegrationPoints_Thin)
+		;
+
+	class_<ShellThickElement3D4N, ShellThickElement3D4N::Pointer, bases<Element>, boost::noncopyable >(
+		"ShellThickElement3D4N",
+		no_init)
+		.def("SetCrossSectionsOnIntegrationPoints", &Helper_SetCrossSectionsOnIntegrationPoints_Thick)
+		;
+
 
 }
 
