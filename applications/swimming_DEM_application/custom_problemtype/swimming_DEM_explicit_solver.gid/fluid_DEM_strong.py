@@ -391,7 +391,7 @@ if (ProjectParameters.projection_module_option):
     projection_module.UpdateDatabase(h_min)
 
 # creating a custom functions calculator for the implementation of additional custom functions
-custom_functions_tool = CustomFunctionsCalculator()
+custom_functions_tool = swim_proc.FunctionsCalculator(ProjectParameters)
 
 # creating a CreatorDestructor object, responsible for any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
@@ -631,9 +631,9 @@ while (time <= final_time):
         sys.stdout.flush()
         projection_module.ProjectFromParticles()
 
-        # porosity checks (debugging)
+        # conservation checks (debugging)
         #cylinder_vol = 5 * math.pi
-        #dem_volume_tool = swim_proc.PorosityUtils(cylinder_vol, fluid_model_part, balls_model_part)
+        #dem_volume_tool = swim_proc.ProjectionDebugUtils(cylinder_vol, fluid_model_part, balls_model_part, custom_functions_tool)
         #dem_volume_tool.PrintCurrentData()
 
     # printing if required
