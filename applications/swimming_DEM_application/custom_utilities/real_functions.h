@@ -26,317 +26,317 @@
 namespace Kratos
 {
 class RealFunction
-    {
-     public:
+{
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(RealFunction);
+KRATOS_CLASS_POINTER_DEFINITION(RealFunction);
 
-      /// Default constructor.
+/// Default constructor.
 
-      RealFunction(const double param1, const double param2):mA(param1), mB(param2){}
+RealFunction(const double param1, const double param2):mA(param1), mB(param2){}
 
-      /// Destructor.
+/// Destructor.
 
-      virtual ~RealFunction(){}
+virtual ~RealFunction(){}
 
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual double Evaluate(const double x)
-      {
-        return 0.0;
-      }
+virtual double Evaluate(const double x)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual double CalculateDerivative(const double x)
-      {
-        return 0.0;
-      }
+virtual double CalculateDerivative(const double x)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual double CalculateSecondDerivative(const double x)
-      {
-        return 0.0;
-      }
+virtual double CalculateSecondDerivative(const double x)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        ///@}
-        ///@name Inquiry
-        ///@{
+///@}
+///@name Inquiry
+///@{
 
 
-        ///@}
-        ///@name Input and output
-        ///@{
+///@}
+///@name Input and output
+///@{
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
+virtual std::string Info() const
+{
+return "";
+}
 
-        /// Print information about this object.
+/// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
 
-        /// Print object's data.
+/// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
 
-        ///@}
-        ///@name Friends
-        ///@{
+///@}
+///@name Friends
+///@{
 
-        ///@}
+///@}
 
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
-      double mA;
-      double mB;
+protected:
+///@name Protected static Member r_variables
+///@{
+double mA;
+double mB;
 
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
 
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
+///@name Protected Operators
+///@{
 
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+///@}
+///@name Protected Operations
+///@{
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+///@}
+///@name Protected  Access
+///@{
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+///@}
+///@name Protected LifeCycle
+///@{
 
 
-        ///@}
+///@}
 
-    private:
+private:
 
-        ///@name Static Member r_variables
-        ///@{
+///@name Static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
+///@}
+///@name Member r_variables
+///@{
 
-        ///@}
-        ///@name Private Operators
-        ///@{
+///@}
+///@name Private Operators
+///@{
 
-        ///@}
-        ///@name Private Operations
-        ///@{
+///@}
+///@name Private Operations
+///@{
 
 
-        ///@}
-        ///@name Private  Access
-        ///@{
+///@}
+///@name Private  Access
+///@{
 
 
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+///@}
+///@name Private Inquiry
+///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
+///@}
+///@name Un accessible methods
+///@{
 
-        /// Assignment operator.
-        RealFunction & operator=(RealFunction const& rOther);
+/// Assignment operator.
+RealFunction & operator=(RealFunction const& rOther);
 
-        ///@}
+///@}
 
-    }; // Class RealFunction
+}; // Class RealFunction
 
 
-    //***************************************************************************************************************
-    //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-    class LinearFunction: public RealFunction
-    {
-    public:
+class LinearFunction: public RealFunction
+{
+public:
 
-      LinearFunction(const double a, const double b): RealFunction(a, b){}
+LinearFunction(const double a, const double b): RealFunction(a, b){}
 
-      ~LinearFunction(){}
+~LinearFunction(){}
 
-      double Evaluate(const double x)
-      {
-        return mA * x + mB;
-      }
+double Evaluate(const double x)
+{
+    return mA * x + mB;
+}
 
-      double CalculateDerivative(const double x)
-      {
-        return mA;
-      }
+double CalculateDerivative(const double x)
+{
+    return mA;
+}
 
-      double CalculateSecondDerivative(const double x)
-      {
-        return 0.0;
-      }
+double CalculateSecondDerivative(const double x)
+{
+    return 0.0;
+}
 
-    };
+};
 
-    //***************************************************************************************************************
-    //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-    class PowerFunction: public RealFunction
-    {
-    public:
+class PowerFunction: public RealFunction
+{
+public:
 
-      PowerFunction(const double a, const double b, const double c):RealFunction(a, b), mC(c){}
+PowerFunction(const double a, const double b, const double c):RealFunction(a, b), mC(c){}
 
-      ~PowerFunction(){}
+~PowerFunction(){}
 
-      double Evaluate(const double x)
-      {
-        return mA * pow(x, mB) + mC;
-      }
+double Evaluate(const double x)
+{
+    return mA * pow(x, mB) + mC;
+}
 
-      double CalculateDerivative(const double x)
-      {
-        return mA * mB * pow(x, mB - 1.0);
-      }
+double CalculateDerivative(const double x)
+{
+    return mA * mB * pow(x, mB - 1.0);
+}
 
-      double CalculateSecondDerivative(const double x)
-      {
-        return mA * mB * (mB - 1.0) * pow(x, mB - 2.0);
-      }
+double CalculateSecondDerivative(const double x)
+{
+    return mA * mB * (mB - 1.0) * pow(x, mB - 2.0);
+}
 
-    private:
+private:
 
-      double mC;
+double mC;
 
-    };
-    //***************************************************************************************************************
-    //***************************************************************************************************************
+};
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-    class AdditionFunction: public RealFunction
-    {
-    public:
+class AdditionFunction: public RealFunction
+{
+public:
 
-      AdditionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
+AdditionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
 
-      ~AdditionFunction(){}
+~AdditionFunction(){}
 
-      double Evaluate(const double x)
-      {
-        return mA * (mF.Evaluate(x) + mG.Evaluate(x));
-      }
+double Evaluate(const double x)
+{
+    return mA * (mF.Evaluate(x) + mG.Evaluate(x));
+}
 
-      double CalculateDerivative(const double x)
-      {
-        return mA * (mF.CalculateDerivative(x) + mG.CalculateDerivative(x));
-      }
+double CalculateDerivative(const double x)
+{
+    return mA * (mF.CalculateDerivative(x) + mG.CalculateDerivative(x));
+}
 
-      double CalculateSecondDerivative(const double x)
-      {
-        return mA * (mF.CalculateSecondDerivative(x) + mG.CalculateSecondDerivative(x));
-      }
+double CalculateSecondDerivative(const double x)
+{
+    return mA * (mF.CalculateSecondDerivative(x) + mG.CalculateSecondDerivative(x));
+}
 
-    private:
+private:
 
-      RealFunction& mF;
-      RealFunction& mG;
-    };
+RealFunction& mF;
+RealFunction& mG;
+};
 
-    //***************************************************************************************************************
-    //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-    class ProductFunction: public RealFunction
-    {
-    public:
+class ProductFunction: public RealFunction
+{
+public:
 
-      ProductFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
+ProductFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
 
-      ~ProductFunction(){}
+~ProductFunction(){}
 
-      double Evaluate(const double x)
-      {
-        return mA * mF.Evaluate(x) * mG.Evaluate(x);
-      }
+double Evaluate(const double x)
+{
+    return mA * mF.Evaluate(x) * mG.Evaluate(x);
+}
 
-      double CalculateDerivative(const double x)
-      {
-        return mA * (mG.Evaluate(x) * mF.CalculateDerivative(x) + mF.Evaluate(x) * mG.CalculateDerivative(x));
-      }
+double CalculateDerivative(const double x)
+{
+    return mA * (mG.Evaluate(x) * mF.CalculateDerivative(x) + mF.Evaluate(x) * mG.CalculateDerivative(x));
+}
 
-      double CalculateSecondDerivative(const double x)
-      {
-        return mA * (mF.CalculateSecondDerivative(x) * mG.Evaluate(x) + mF.Evaluate(x) * mG.CalculateSecondDerivative(x) + 2 * mF.CalculateDerivative(x) * mG.CalculateDerivative(x));
-      }
+double CalculateSecondDerivative(const double x)
+{
+    return mA * (mF.CalculateSecondDerivative(x) * mG.Evaluate(x) + mF.Evaluate(x) * mG.CalculateSecondDerivative(x) + 2 * mF.CalculateDerivative(x) * mG.CalculateDerivative(x));
+}
 
-    private:
+private:
 
-      RealFunction& mF;
-      RealFunction& mG;
-    };
+RealFunction& mF;
+RealFunction& mG;
+};
 
-    //***************************************************************************************************************
-    //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-    class CompositionFunction: public RealFunction
-    {
-    public:
+class CompositionFunction: public RealFunction
+{
+public:
 
-      CompositionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
+CompositionFunction(const double a, RealFunction& f, RealFunction& g):RealFunction(a, 1.0), mF(f), mG(g){}
 
-      ~CompositionFunction(){}
+~CompositionFunction(){}
 
-      double Evaluate(const double x)
-      {
-        return mA * mF.Evaluate(mG.Evaluate(x));
-      }
+double Evaluate(const double x)
+{
+    return mA * mF.Evaluate(mG.Evaluate(x));
+}
 
-      double CalculateDerivative(const double x)
-      {
-        return mA * mF.CalculateDerivative(mG.Evaluate(x)) * mG.CalculateDerivative(x);
-      }
+double CalculateDerivative(const double x)
+{
+    return mA * mF.CalculateDerivative(mG.Evaluate(x)) * mG.CalculateDerivative(x);
+}
 
-      double CalculateSecondDerivative(const double x)
-      {
-        return mA * (mF.CalculateSecondDerivative(x) * mG.CalculateDerivative(x) * mG.CalculateDerivative(x) + mF.CalculateDerivative(mG.Evaluate(x)) * mG.CalculateSecondDerivative(x));
-      }
+double CalculateSecondDerivative(const double x)
+{
+    return mA * (mF.CalculateSecondDerivative(x) * mG.CalculateDerivative(x) * mG.CalculateDerivative(x) + mF.CalculateDerivative(mG.Evaluate(x)) * mG.CalculateSecondDerivative(x));
+}
 
-    private:
+private:
 
-      RealFunction& mF;
-      RealFunction& mG;
-    };
+RealFunction& mF;
+RealFunction& mG;
+};
 
-    //***************************************************************************************************************
-    //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
 ///@}
 

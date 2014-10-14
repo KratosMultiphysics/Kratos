@@ -13,19 +13,13 @@ template< unsigned int TDim>
 class Mollifier: public DensityFunction<TDim>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(Mollifier);
+KRATOS_CLASS_POINTER_DEFINITION(Mollifier);
 
-    Mollifier():
-    {
+Mollifier():{}
 
-    }
+virtual ~Mollifier(){}
 
-  virtual ~Mollifier(){}
-
-    void ComputeWeights(std::vector<double> & distances, std::vector<double> & weights)
-    {
-
-    }
+void ComputeWeights(std::vector<double> & distances, std::vector<double> & weights){}
 
 private:
 

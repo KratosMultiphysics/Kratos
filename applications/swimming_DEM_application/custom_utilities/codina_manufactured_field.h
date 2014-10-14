@@ -7,167 +7,157 @@
 namespace Kratos
 {
 class CodinaManufacturedField:RealField
-    {
-     public:
+{
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(CodinaManufacturedField);
+KRATOS_CLASS_POINTER_DEFINITION(CodinaManufacturedField);
 
-      /// Default constructor.
+/// Default constructor.
 
-      CodinaManufacturedField(const RealField& alpha):RealField(), mAlpha(Alpha){}
+CodinaManufacturedField(const RealField& alpha):RealField(), mAlpha(Alpha){}
 
-      /// Destructor.
+/// Destructor.
 
-      virtual ~CodinaManufacturedField(){}
+virtual ~CodinaManufacturedField(){}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      double Evaluate(const double time, const array_1d<double, 3>& coor)
-      {
-        return 0.0;
-      }
+double Evaluate(const double time, const array_1d<double, 3>& coor)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
-      {
-        return 0.0;
-      }
+double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
-      {
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient){}
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian){}
 
-      }
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
-      {
-
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-        ///@}
-        ///@name Inquiry
-        ///@{
+///@}
+///@name Inquiry
+///@{
 
 
-        ///@}
-        ///@name Input and output
-        ///@{
+///@}
+///@name Input and output
+///@{
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
+virtual std::string Info() const
+{
+return "";
+}
 
-        /// Print information about this object.
+/// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
 
-        /// Print object's data.
+/// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-        ///@}
-
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
 
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
+///@}
+///@name Friends
+///@{
+
+///@}
+
+protected:
+///@name Protected static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
 
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+///@}
+///@name Protected Operators
+///@{
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+///@}
+///@name Protected Operations
+///@{
 
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+///@}
+///@name Protected  Access
+///@{
+
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
-
-    private:
-
-        ///@name Static Member r_variables
-        ///@{
+///@}
+///@name Protected LifeCycle
+///@{
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
-        RealFunction mF;
-        RealFunction mG;
-        RealField& mAlpha;
-        ///@}
-        ///@name Private Operators
-        ///@{
+///@}
 
-        ///@}
-        ///@name Private Operations
-        ///@{
+private:
+
+///@name Static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Private  Access
-        ///@{
+///@}
+///@name Member r_variables
+///@{
+RealFunction mF;
+RealFunction mG;
+RealField& mAlpha;
+///@}
+///@name Private Operators
+///@{
+
+///@}
+///@name Private Operations
+///@{
 
 
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+///@}
+///@name Private  Access
+///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-        /// Assignment operator.
-        CodinaManufacturedField & operator=(CodinaManufacturedField const& rOther);
+///@}
+///@name Private Inquiry
+///@{
 
 
-        ///@}
+///@}
+///@name Un accessible methods
+///@{
 
-    }; // Class CodinaManufacturedField
+/// Assignment operator.
+CodinaManufacturedField & operator=(CodinaManufacturedField const& rOther);
+
+
+///@}
+
+}; // Class CodinaManufacturedField
 
 ///@}
 

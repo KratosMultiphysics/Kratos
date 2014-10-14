@@ -34,19 +34,22 @@ namespace Kratos
 
 class Particle_Data
 {
-    const double mRadius;
-    const double mStiffness;
-    const double mDensity;
-    const double mPi;
-    const double mProximity_Tol;
+const double mRadius;
+const double mStiffness;
+const double mDensity;
+const double mPi;
+const double mProximity_Tol;
 
-    Particle_Data(double radius, double stiffness, double density, double prox_tol): mRadius(radius), mStiffness(stiffness), mDensity(density),
-        mPi(3.141592653589793238462643383279), mProximity_Tol(prox_tol)
-    {};
-    virtual ~Particle_Data() {};
+Particle_Data(double radius, double stiffness, double density, double prox_tol)
+    : mRadius(radius),
+      mStiffness(stiffness),
+      mDensity(density),
+      mPi(3.141592653589793238462643383279),
+      mProximity_Tol(prox_tol){};
+
+virtual ~Particle_Data(){};
 
 };
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PARTICLE_DATA_H  defined 
