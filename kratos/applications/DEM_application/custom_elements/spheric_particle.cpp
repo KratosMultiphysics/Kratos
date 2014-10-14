@@ -20,13 +20,13 @@
 #include "DEM_application.h"
 #include "includes/kratos_flags.h"
 
-#define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0] = b[0]; a[1] = b[1]; a[2] = b[2];
+#define DEM_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
 #define DEM_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
-#define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0] = 0.0;  a[1] = 0.0;  a[2] = 0.0;
-#define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0;  a[0][1] = 0.0;  a[0][2] = 0.0; a[1][0] = 0.0;  a[1][1] = 0.0;  a[1][2] = 0.0; a[2][0] = 0.0;  a[2][1] = 0.0;  a[2][2] = 0.0;
-#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1];  a[2] = b * a[2];
+#define DEM_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
+#define DEM_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
+#define DEM_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
 #define DEM_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
-#define DEM_INNER_PRODUCT_3(a, b)                   (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+#define DEM_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 
 namespace Kratos
 {
@@ -370,21 +370,21 @@ void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy)
         double aux_power_of_contact_i_normal_force;
 
         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-           case 0:
-               aux_power_of_contact_i_normal_force = mOldNeighbourElasticContactForces[i_neighbour_count][2] * mOldNeighbourElasticContactForces[i_neighbour_count][2];
-               added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
-           break;
+            case 0:
+                aux_power_of_contact_i_normal_force = mOldNeighbourElasticContactForces[i_neighbour_count][2] * mOldNeighbourElasticContactForces[i_neighbour_count][2];
+                added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
+                break;
 
-           case 1:
+            case 1:
                 aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourElasticContactForces[i_neighbour_count][2]), 5 / 3); //error: substitute divisions by known result!!!
                 added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3); //error: substitute divisions by known result!!!
-           break;
+                break;
 
-           default:
-               aux_power_of_contact_i_normal_force = mOldNeighbourElasticContactForces[i_neighbour_count][2] * mOldNeighbourElasticContactForces[i_neighbour_count][2];
-               added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
-          break;
-        }//switch
+            default:
+                aux_power_of_contact_i_normal_force = mOldNeighbourElasticContactForces[i_neighbour_count][2] * mOldNeighbourElasticContactForces[i_neighbour_count][2];
+                added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
+                break;
+        }
 
         // Tangential Contribution
 
@@ -799,20 +799,18 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         double kn_el;
 
         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-
             case 0:
-            kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
-            break;
+                kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
+                break;
 
             case 1:
-            kn_el    = (4/3) * (myYoung / 2 * (1 - myPoisson * myPoisson)) * sqrt(mRadius - ini_delta);
-            break;
+                kn_el    = (4/3) * (myYoung / 2 * (1 - myPoisson * myPoisson)) * sqrt(mRadius - ini_delta);
+                break;
 
             default:
-            kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
-            break;
-
-        }//switch
+                kn_el    = 1.0 * myYoung * area / (2.0 * mRadius - ini_delta);
+                break;
+        }
 
         double ks_el = kn_el / (2.0 * (1.0 + myPoisson));
         double aux_norm_to_tang = sqrt(ks_el / kn_el);
@@ -1072,30 +1070,24 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
     }
 
     switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-
         case 0:
             equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
             kn          = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
             kt          = kn / (2.0 + equiv_poisson + equiv_poisson);
-
-        break;
+            break;
 
         case 1:
             equiv_young = myYoung * other_young / (other_young * (1.0 - myPoisson * myPoisson) + myYoung * (1.0 - other_poisson * other_poisson));
             kn          = 1.3333333333333 * equiv_young * sqrt(0.5 * equiv_radius);
             kt          = 2.0 * kn * (1.0 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1.0 + equiv_poisson));
-
-        break;
+            break;
 
         default:
             equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
             kn          = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
             kt          = kn / (2.0 + equiv_poisson + equiv_poisson);
-
-        break;
-
-    }//switch
-
+            break;
+    }
 
     if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
         equiv_visco_damp_coeff_normal = 2.0 * sqrt(equiv_mass * kn);
@@ -1261,7 +1253,7 @@ void SphericParticle::NormalForceCalculation(double& normal_force, double kn, do
         default:
             normal_force = kn * indentation;
             break;
-    }//switch
+    }
 } //NormalForceCalculation
 
 //**************************************************************************************************************************************************
