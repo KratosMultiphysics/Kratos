@@ -242,6 +242,24 @@ namespace Kratos
 		noalias(alpha) -= prod(Hinv, temp);
 	}
 
+	void ShellThickElement3D4N::EASOperatorStorage::save(Serializer& rSerializer) const
+	{
+		rSerializer.save("A0", alpha);
+		rSerializer.save("A1", alpha_converged);
+		rSerializer.save("U0", displ);
+		rSerializer.save("U1", displ_converged);
+		rSerializer.save("init", mInitialized);
+	}
+
+	void ShellThickElement3D4N::EASOperatorStorage::load(Serializer& rSerializer)
+	{
+		rSerializer.load("A0", alpha);
+		rSerializer.load("A1", alpha_converged);
+		rSerializer.load("U0", displ);
+		rSerializer.load("U1", displ_converged);
+		rSerializer.load("init", mInitialized);
+	}
+
 	// =====================================================================================
     //
     // Class EASOperator

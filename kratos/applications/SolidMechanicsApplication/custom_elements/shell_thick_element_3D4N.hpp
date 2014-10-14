@@ -178,8 +178,8 @@ namespace Kratos
       array_1d<double, 5> alpha;              /*!< (trial) vector containing the 5 enhanced strain parameters */
       array_1d<double, 5> alpha_converged;    /*!< (converged) vector containing the 5 enhanced strain parameters */
 											    
-      array_1d<double, 24> displ;             /*!< (trial) vector containing the 5 enhanced strain parameters */
-      array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the 5 enhanced strain parameters */
+      array_1d<double, 24> displ;             /*!< (trial) vector containing the displacement vector */
+      array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
 
       array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
       bounded_matrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
@@ -191,23 +191,10 @@ namespace Kratos
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
-      {
-	rSerializer.save("A0", alpha);
-	rSerializer.save("A1", alpha_converged);
-	rSerializer.save("U0", displ);
-	rSerializer.save("U1", displ_converged);
-	rSerializer.save("init", mInitialized);
-      }
+      virtual void save(Serializer& rSerializer) const;
 
-      virtual void load(Serializer& rSerializer)
-      {
-	rSerializer.load("A0", alpha);
-	rSerializer.load("A1", alpha_converged);
-	rSerializer.load("U0", displ);
-	rSerializer.load("U1", displ_converged);
-	rSerializer.load("init", mInitialized);
-      }
+      virtual void load(Serializer& rSerializer);
+
     };
 
     /** \brief EASOperator
