@@ -197,8 +197,7 @@ void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_current_proce
         SphericParticle* ineighbour = mNeighbourElements[i];
 
         if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;
-
-        if (this->Id() < ineighbour->Id()) continue;
+        if (this->Id() < ineighbour->Id())                      continue;
 
         for (unsigned int j = 0; j < ineighbour->mNeighbourElements.size(); j++){  //loop to find the neighbour of the neighbours which is me
             SphericParticle* is_that_me = ineighbour->mNeighbourElements[j];
