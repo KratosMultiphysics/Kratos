@@ -1829,7 +1829,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                   } //negative values of sigma              
           
               } //UNCOUPLED FRACTURE
-              
+              if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
     
       }
       
