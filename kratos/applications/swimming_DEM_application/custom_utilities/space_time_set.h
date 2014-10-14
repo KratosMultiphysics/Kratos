@@ -31,270 +31,261 @@
 namespace Kratos
 {
 class SpaceTimeSet
-    {
-     public:
+{
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(SpaceTimeSet);
+KRATOS_CLASS_POINTER_DEFINITION(SpaceTimeSet);
 
-      /// Default constructor.
+/// Default constructor.
 
-      SpaceTimeSet()
-      {
-        BoundingBoxRule::Pointer b_box_rule(new BoundingBoxRule());
-        std::vector<SpaceTimeRule::Pointer> union_rules;
-        union_rules.push_back(b_box_rule);
-        mUnionOfRules.push_back(union_rules);
-      }
+SpaceTimeSet()
+{
+BoundingBoxRule::Pointer b_box_rule(new BoundingBoxRule());
+                                    std::vector<SpaceTimeRule::Pointer> union_rules;
+                                    union_rules.push_back(b_box_rule);
+                                    mUnionOfRules.push_back(union_rules);
+}
 
-      /// Destructor.
+/// Destructor.
 
-      virtual ~SpaceTimeSet()
-      {
+virtual ~SpaceTimeSet(){}
 
-      }
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+void AddAndRule(SpaceTimeRule::Pointer p_rule)
+{
+    for (unsigned int i = 0; i < mUnionOfRules.size(); ++i){
+        mUnionOfRules[i].push_back(p_rule);
+    }
+}
 
-      void AddAndRule(SpaceTimeRule::Pointer p_rule)
-      {
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        for (unsigned int i = 0; i < mUnionOfRules.size(); ++i){
-            mUnionOfRules[i].push_back(p_rule);
-          }
+void AddOrRule(SpaceTimeRule::Pointer p_rule)
+{
+std::vector<SpaceTimeRule::Pointer> p_rule_array;
+p_rule_array.push_back(p_rule);
+mUnionOfRules.push_back(p_rule_array);
 
-      }
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      void AddOrRule(SpaceTimeRule::Pointer p_rule)
-      {
-        std::vector<SpaceTimeRule::Pointer> p_rule_array;
-        p_rule_array.push_back(p_rule);
-        mUnionOfRules.push_back(p_rule_array);
+void AddAndRules(std::vector<SpaceTimeRule::Pointer> p_rules)
+{
+    for (unsigned int i = 0; i < mUnionOfRules.size(); ++i){
 
-      }
+        for (unsigned int j = 0; j < p_rules.size(); ++j){
+            mUnionOfRules[i].push_back(p_rules[j]);
+        }
+    }
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      void AddAndRules(std::vector<SpaceTimeRule::Pointer> p_rules)
-      {
+void AddOrRules(std::vector<SpaceTimeRule::Pointer> p_rules)
+{
+    mUnionOfRules.push_back(p_rules);
+}
 
-        for (unsigned int i = 0; i < mUnionOfRules.size(); ++i){
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-            for (unsigned int j = 0; j < p_rules.size(); ++j){
-                mUnionOfRules[i].push_back(p_rules[j]);
-              }
+bool IsIn(const double time, const double coor_x, const double coor_y, const double coor_z)
+{
+    bool rules_are_met = true;
 
-          }
+    for (unsigned int i = 0; i < mUnionOfRules.size(); ++i){
 
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      void AddOrRules(std::vector<SpaceTimeRule::Pointer> p_rules)
-      {
-        mUnionOfRules.push_back(p_rules);
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      bool IsIn(const double time, const double coor_x, const double coor_y, const double coor_z)
-      {
-
-        bool rules_are_met = true;
-
-        for (unsigned int i = 0; i < mUnionOfRules.size(); ++i){
-
-            for (unsigned int j = 0; j < mUnionOfRules[i].size(); ++j){
-                rules_are_met = rules_are_met && mUnionOfRules[i][j]->CheckIfRuleIsMet(time, coor_x, coor_y, coor_z);
-              }
-
-            if (rules_are_met){
-                return true;
-              }
-
-          }
-
-        return false;
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-      double GetLowTime(){return mLowTime;}
-      double GetHighTime(){return mHighTime;}
-      double GetLowX(){return mLowX;}
-      double GetHighX(){return mHighX;}
-      double GetLowY(){return mLowY;}
-      double GetHighY(){return mHighY;}
-      double GetLowZ(){return mLowZ;}
-      double GetHighZ(){return mHighZ;}
-      std::vector<std::vector<SpaceTimeRule::Pointer> > GetRules(){return mUnionOfRules;}
-
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
-
-        virtual std::string Info() const
-        {
-            return "";
+        for (unsigned int j = 0; j < mUnionOfRules[i].size(); ++j){
+            rules_are_met = rules_are_met && mUnionOfRules[i][j]->CheckIfRuleIsMet(time, coor_x, coor_y, coor_z);
         }
 
-        /// Print information about this object.
-
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
+        if (rules_are_met){
+            return true;
         }
 
-        /// Print object's data.
+    }
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
+    return false;
+}
 
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        ///@}
-        ///@name Friends
-        ///@{
-
-        ///@}
-
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
+///@name Inquiry
+///@{
+double GetLowTime(){return mLowTime;}
+double GetHighTime(){return mHighTime;}
+double GetLowX(){return mLowX;}
+double GetHighX(){return mHighX;}
+double GetLowY(){return mLowY;}
+double GetHighY(){return mHighY;}
+double GetLowZ(){return mLowZ;}
+double GetHighZ(){return mHighZ;}
+std::vector<std::vector<SpaceTimeRule::Pointer> > GetRules(){return mUnionOfRules;}
 
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+///@}
+///@name Input and output
+///@{
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+virtual std::string Info() const
+{
+    return "";
+}
 
+/// Print information about this object.
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
 
+/// Print object's data.
 
-        ///@}
-
-    private:
-
-        ///@name Static Member r_variables
-        ///@{
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
-        double mLowTime;
-        double mHighTime;
-        double mLowX;
-        double mHighX;
-        double mLowY;
-        double mHighY;
-        double mLowZ;
-        double mHighZ;
-        std::vector<std::vector<SpaceTimeRule::Pointer> > mUnionOfRules;
+///@}
+///@name Friends
+///@{
 
-        ///@}
-        ///@name Private Operators
-        ///@{
+///@}
 
-        ///@}
-        ///@name Private Operations
-        ///@{
+protected:
+///@name Protected static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Private  Access
-        ///@{
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
 
 
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+///@}
+///@name Protected Operators
+///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
+///@}
+///@name Protected Operations
+///@{
 
-        /// Assignment operator.
-        SpaceTimeSet & operator=(SpaceTimeSet const& rOther);
+///@}
+///@name Protected  Access
+///@{
+
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
+///@}
+///@name Protected LifeCycle
+///@{
 
-    }; // Class SpaceTimeSet
+
+///@}
+
+private:
+
+///@name Static Member r_variables
+///@{
+
+
+///@}
+///@name Member r_variables
+///@{
+double mLowTime;
+double mHighTime;
+double mLowX;
+double mHighX;
+double mLowY;
+double mHighY;
+double mLowZ;
+double mHighZ;
+std::vector<std::vector<SpaceTimeRule::Pointer> > mUnionOfRules;
+
+///@}
+///@name Private Operators
+///@{
+
+///@}
+///@name Private Operations
+///@{
+
+
+///@}
+///@name Private  Access
+///@{
+
+
+///@}
+///@name Private Inquiry
+///@{
+
+
+///@}
+///@name Un accessible methods
+///@{
+
+/// Assignment operator.
+SpaceTimeSet & operator=(SpaceTimeSet const& rOther);
+
+
+///@}
+
+}; // Class SpaceTimeSet
 
 SpaceTimeSet::Pointer SetUnion(SpaceTimeSet::Pointer set_1, SpaceTimeSet::Pointer set_2)
 {
-  SpaceTimeSet::Pointer set(new SpaceTimeSet());
-  std::vector<std::vector<SpaceTimeRule::Pointer> > rules_1 = set_1->GetRules();
-  std::vector<std::vector<SpaceTimeRule::Pointer> > rules_2 = set_2->GetRules();
+    SpaceTimeSet::Pointer set(new SpaceTimeSet());
+    std::vector<std::vector<SpaceTimeRule::Pointer> > rules_1 = set_1->GetRules();
+    std::vector<std::vector<SpaceTimeRule::Pointer> > rules_2 = set_2->GetRules();
 
-  for (unsigned int i = 0; i < rules_1.size(); ++i){
-      set->AddOrRules(rules_1[i]);
+    for (unsigned int i = 0; i < rules_1.size(); ++i){
+        set->AddOrRules(rules_1[i]);
     }
 
-  for (unsigned int i = 0; i < rules_2.size(); ++i){
-      set->AddOrRules(rules_2[i]);
+    for (unsigned int i = 0; i < rules_2.size(); ++i){
+        set->AddOrRules(rules_2[i]);
     }
 
-  return set;
+    return set;
 }
 
 SpaceTimeSet::Pointer SetIntersection(SpaceTimeSet::Pointer set_1, SpaceTimeSet::Pointer set_2)
 {
-  SpaceTimeSet::Pointer set(new SpaceTimeSet());
-  std::vector<std::vector<SpaceTimeRule::Pointer> > rules_1 = set_1->GetRules();
-  std::vector<std::vector<SpaceTimeRule::Pointer> > rules_2 = set_2->GetRules();
-  std::vector<SpaceTimeRule::Pointer> u_rules_1;
+    SpaceTimeSet::Pointer set(new SpaceTimeSet());
+    std::vector<std::vector<SpaceTimeRule::Pointer> > rules_1 = set_1->GetRules();
+    std::vector<std::vector<SpaceTimeRule::Pointer> > rules_2 = set_2->GetRules();
+    std::vector<SpaceTimeRule::Pointer> u_rules_1;
 
-  for (unsigned int i = 0; i < rules_1.size(); ++i){
+    for (unsigned int i = 0; i < rules_1.size(); ++i){
 
-      for (unsigned int j = 0; j < rules_1[i].size(); ++j){
+        for (unsigned int j = 0; j < rules_1[i].size(); ++j){
           u_rules_1.push_back(rules_1[i][j]);
         }
     }
 
-  for (unsigned int i = 0; i < rules_2.size(); ++i){
-      set->AddOrRules(rules_2[i]);
+    for (unsigned int i = 0; i < rules_2.size(); ++i){
+        set->AddOrRules(rules_2[i]);
     }
 
-  for (unsigned int i = 0; i < rules_2.size(); ++i){
-      set->AddAndRules(u_rules_1);
+    for (unsigned int i = 0; i < rules_2.size(); ++i){
+        set->AddAndRules(u_rules_1);
     }
 
-  return set;
+    return set;
 }
 
 ///@}

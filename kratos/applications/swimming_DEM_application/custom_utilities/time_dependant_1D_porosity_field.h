@@ -7,254 +7,236 @@
 namespace Kratos
 {
 class TimeDependant1DPorosityField: public RealField
-    {
-     //friend class TimeDependant1DPorosityField;
-     public:
+{
+//friend class TimeDependant1DPorosityField;
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(TimeDependant1DPorosityField);
+KRATOS_CLASS_POINTER_DEFINITION(TimeDependant1DPorosityField);
 
-      /// Default constructor.
+/// Default constructor.
 
-     TimeDependant1DPorosityField(const double& max_time): mC(max_time)
-      {
-        mC = 2 * max_time;
-      }
+TimeDependant1DPorosityField(const double& max_time): mC(max_time)
+{
+    mC = 2 * max_time;
+}
 
-      /// Destructor.
+/// Destructor.
 
-      virtual ~TimeDependant1DPorosityField(){}
+virtual ~TimeDependant1DPorosityField(){}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      double Evaluate(const double time, const array_1d<double, 3>& coor)
-      {
-        return ((coor[1] - 2) / (2 * time - mC));
-      }
+double Evaluate(const double time, const array_1d<double, 3>& coor)
+{
+    return ((coor[1] - 2) / (2 * time - mC));
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
-      {
-        return (2 * (2 - coor[1]) / ((2 * time - 4) * (2 * time - mC)));
-      }
+double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+{
+    return (2 * (2 - coor[1]) / ((2 * time - 4) * (2 * time - mC)));
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
-      {
-        gradient[0] = 0.0;
-        gradient[1] = 1.0 / (2 * time - mC);
-        gradient[2] = 0.0;
-      }
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+{
+    gradient[0] = 0.0;
+    gradient[1] = 1.0 / (2 * time - mC);
+    gradient[2] = 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
-      {
-        laplacian[0] = 0.0;
-        laplacian[1] = 0.0;
-        laplacian[2] = 0.0;
-      }
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+{
+    laplacian = ZeroVector(3);
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        ///@}
-        ///@name Inquiry
-        ///@{
+///@}
+///@name Inquiry
+///@{
 
 
-        ///@}
-        ///@name Input and output
-        ///@{
+///@}
+///@name Input and output
+///@{
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
+virtual std::string Info() const
+{
+    return "";
+}
 
-        /// Print information about this object.
+/// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
 
-        /// Print object's data.
+/// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-        ///@}
-
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
 
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
-        double mC;
-        RealFunction mF;
-        RealFunction mG;
+///@}
+///@name Friends
+///@{
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
 
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
+protected:
+///@name Protected static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
+double mC;
+RealFunction mF;
+RealFunction mG;
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+///@}
+///@name Protected Operators
+///@{
 
 
-        ///@}
-
-    private:
-
-        ///@name Static Member r_variables
-        ///@{
+///@}
+///@name Protected Operations
+///@{
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
+///@}
+///@name Protected  Access
+///@{
 
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-        ///@}
-        ///@name Private Operations
-        ///@{
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
-        ///@name Private  Access
-        ///@{
+///@}
+///@name Protected LifeCycle
+///@{
 
 
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+///@}
+
+private:
+
+///@name Static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
+///@}
+///@name Member r_variables
+///@{
 
-        /// Assignment operator.
-        TimeDependant1DPorosityField & operator=(TimeDependant1DPorosityField const& rOther);
+///@}
+///@name Private Operators
+///@{
+
+///@}
+///@name Private Operations
+///@{
 
 
-        ///@}
+///@}
+///@name Private  Access
+///@{
 
-    }; // Class TimeDependant1DPorosityField
+
+///@}
+///@name Private Inquiry
+///@{
+
+
+///@}
+///@name Un accessible methods
+///@{
+
+/// Assignment operator.
+TimeDependant1DPorosityField & operator=(TimeDependant1DPorosityField const& rOther);
+
+
+///@}
+
+}; // Class TimeDependant1DPorosityField
 
 class TimeDependantForceField:RealField
-    {
+{
 
-     public:
+public:
 
-      TimeDependantForceField(const double max_time): mAlpha(TimeDependant1DPorosityField(max_time)){}
-
-
-      virtual ~TimeDependantForceField(){}
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      double Evaluate(const double time, const array_1d<double, 3>& coor)
-      {
-        array_1d<double, 3> porosity_grad;
-        double porosity = mAlpha.Evaluate(time, coor);
-        mAlpha.CalculateGradient(time, coor, porosity_grad);
-
-        return (- porosity * porosity_grad[1]);
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
-      {
-        return 0.0;
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
-      {
-
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
-      {
-
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+TimeDependantForceField(const double max_time): mAlpha(TimeDependant1DPorosityField(max_time)){}
 
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
+virtual ~TimeDependantForceField(){}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+double Evaluate(const double time, const array_1d<double, 3>& coor)
+{
+    array_1d<double, 3> porosity_grad;
+
+    double porosity = mAlpha.Evaluate(time, coor);
+    mAlpha.CalculateGradient(time, coor, porosity_grad);
+
+    return (- porosity * porosity_grad[1]);
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+{
+    return 0.0;
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient){}
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian){}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
 
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+virtual std::string Info() const
+{
+    return "";
+}
 
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
+virtual void PrintInfo(std::ostream& rOStream) const{}
 
+virtual void PrintData(std::ostream& rOStream) const{}
 
-    protected:
+protected:
 
+private:
 
-    private:
+RealFunction mF;
+RealFunction mG;
+RealField& mAlpha;
 
-        RealFunction mF;
-        RealFunction mG;
-        RealField& mAlpha;
+TimeDependantForceField & operator=(TimeDependantForceField const& rOther);
 
-        TimeDependantForceField & operator=(TimeDependantForceField const& rOther);
-
-    }; // Class TimeDependantForceField
+}; // Class TimeDependantForceField
 ///@}
 
 ///@name Type Definitions

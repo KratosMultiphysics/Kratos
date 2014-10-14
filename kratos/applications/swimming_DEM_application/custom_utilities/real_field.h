@@ -28,165 +28,159 @@
 namespace Kratos
 {
 class RealField
-    {
-     public:
+{
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(RealField);
+KRATOS_CLASS_POINTER_DEFINITION(RealField);
 
-      /// Default constructor.
+/// Default constructor.
 
-      RealField(){}
+RealField(){}
 
-      /// Destructor.
+/// Destructor.
 
-      virtual ~RealField(){}
+virtual ~RealField(){}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual double Evaluate(const double time, const array_1d<double, 3>& coor)
-      {
-        return 0.0;
-      }
+virtual double Evaluate(const double time, const array_1d<double, 3>& coor)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
-      {
-        return 0.0;
-      }
+virtual double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+{
+    return 0.0;
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
-      {
+virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient){}
 
-      }
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian){}
 
-      virtual void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
-      {
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-        ///@}
-        ///@name Inquiry
-        ///@{
+///@}
+///@name Inquiry
+///@{
 
 
-        ///@}
-        ///@name Input and output
-        ///@{
+///@}
+///@name Input and output
+///@{
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
+virtual std::string Info() const
+{
+return "";
+}
 
-        /// Print information about this object.
+/// Print information about this object.
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
 
-        /// Print object's data.
+/// Print object's data.
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-        ///@}
-
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
 
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
+///@}
+///@name Friends
+///@{
+
+///@}
+
+protected:
+///@name Protected static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
 
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+///@}
+///@name Protected Operators
+///@{
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+///@}
+///@name Protected Operations
+///@{
 
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+///@}
+///@name Protected  Access
+///@{
+
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
-
-    private:
-
-        ///@name Static Member r_variables
-        ///@{
+///@}
+///@name Protected LifeCycle
+///@{
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
+///@}
 
-        ///@}
-        ///@name Private Operators
-        ///@{
+private:
 
-        ///@}
-        ///@name Private Operations
-        ///@{
+///@name Static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Private  Access
-        ///@{
+///@}
+///@name Member r_variables
+///@{
+
+///@}
+///@name Private Operators
+///@{
+
+///@}
+///@name Private Operations
+///@{
 
 
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+///@}
+///@name Private  Access
+///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-        /// Assignment operator.
-        RealField & operator=(RealField const& rOther);
+///@}
+///@name Private Inquiry
+///@{
 
 
-        ///@}
+///@}
+///@name Un accessible methods
+///@{
 
-    }; // Class RealField
+/// Assignment operator.
+RealField & operator=(RealField const& rOther);
+
+
+///@}
+
+}; // Class RealField
 
 ///@}
 

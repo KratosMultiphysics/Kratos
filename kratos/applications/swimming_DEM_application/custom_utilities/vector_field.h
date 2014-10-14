@@ -31,181 +31,154 @@ namespace Kratos
 {
 template<std::size_t TDim>
 class VectorField
-    {
-     public:
+{
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(VectorField);
+KRATOS_CLASS_POINTER_DEFINITION(VectorField);
 
-      /// Default constructor.
+/// Default constructor.
 
-      VectorField():
-      mUx(LinearFunction(0, 0)), mUy(LinearFunction(0, 0)), mUz(LinearFunction(0, 0)){}
+VectorField():
+mUx(LinearFunction(0, 0)), mUy(LinearFunction(0, 0)), mUz(LinearFunction(0, 0)){}
 
-      VectorField(RealFunction& u_x, RealFunction& u_y, RealFunction& u_z):
-      mUx(u_x), mUy(u_y), mUz(u_z){}
-      /// Destructor.
+VectorField(RealFunction& u_x, RealFunction& u_y, RealFunction& u_z):
+mUx(u_x), mUy(u_y), mUz(u_z){}
+/// Destructor.
 
-      virtual ~VectorField(){}
+virtual ~VectorField(){}
 
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector)
-      {
+virtual void Evaluate(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& vector){}
 
-      }
+virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv){}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient){}
 
-      virtual void CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& deriv)
-      {
+virtual void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div){}
 
-      }
+virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot){}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-      virtual void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d< array_1d<double, 3>, 3>& gradient)
-      {
+///@}
+///@name Inquiry
+///@{
 
-      }
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+///@}
+///@name Input and output
+///@{
 
-      virtual void CalculateDivergence(const double time, const array_1d<double, 3>& coor, double& div)
-      {
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
-      }
+virtual std::string Info() const
+{
+    return "";
+}
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+/// Print information about this object.
 
-      virtual void CalculateRotational(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& rot)
-      {
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
 
-      }
+/// Print object's data.
 
-      //***************************************************************************************************************
-      //***************************************************************************************************************
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
-        ///@}
-        ///@name Inquiry
-        ///@{
 
+///@}
+///@name Friends
+///@{
 
-        ///@}
-        ///@name Input and output
-        ///@{
+///@}
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+protected:
+///@name Protected static Member r_variables
+///@{
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
 
-        /// Print information about this object.
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
 
-        /// Print object's data.
+///@}
+///@name Protected Operators
+///@{
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
 
+///@}
+///@name Protected Operations
+///@{
 
-        ///@}
-        ///@name Friends
-        ///@{
 
-        ///@}
+///@}
+///@name Protected  Access
+///@{
 
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
+///@}
+///@name Protected LifeCycle
+///@{
 
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
 
+private:
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+///@name Static Member r_variables
+///@{
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+///@}
+///@name Member r_variables
+///@{
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+RealFunction mUx;
+RealFunction mUy;
+RealFunction mUz;
 
+///@}
+///@name Private Operators
+///@{
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+///@}
+///@name Private Operations
+///@{
 
 
-        ///@}
+///@}
+///@name Private  Access
+///@{
 
-    private:
 
-        ///@name Static Member r_variables
-        ///@{
+///@}
+///@name Private Inquiry
+///@{
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
+///@}
+///@name Un accessible methods
+///@{
 
-        RealFunction mUx;
-        RealFunction mUy;
-        RealFunction mUz;
+/// Assignment operator.
+VectorField & operator=(VectorField const& rOther);
 
-        ///@}
-        ///@name Private Operators
-        ///@{
 
-        ///@}
-        ///@name Private Operations
-        ///@{
+///@}
 
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-
-
-        ///@}
-        ///@name Private Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-        /// Assignment operator.
-        VectorField & operator=(VectorField const& rOther);
-
-
-        ///@}
-
-    }; // Class VectorField
+}; // Class VectorField
 
 ///@}
 

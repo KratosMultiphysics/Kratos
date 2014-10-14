@@ -59,36 +59,36 @@ template< unsigned int TDim>
 class DensityFunctionPolynomial: public DensityFunction<TDim>
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(DensityFunctionPolynomial);
+KRATOS_CLASS_POINTER_DEFINITION(DensityFunctionPolynomial);
 
-    DensityFunctionPolynomial(const double range, const double shape_factor): mR(range), mHeightOverR(shape_factor)
-    {
-      m6 = 315 / (32 * KRATOS_M_PI * pow(mR, 9)) - 3 * mHeightOverR / pow(mR, 5);
-      m4 = 7 * mHeightOverR / pow(mR, 3) - 315 / (16 * KRATOS_M_PI * pow(mR, 7));
-      m2 = 315 / (32 * KRATOS_M_PI * pow(mR, 5)) - 5 * mHeightOverR / mR;
-      m0 = mR * mHeightOverR;
+DensityFunctionPolynomial(const double range, const double shape_factor)
+    : mR(range),
+      mHeightOverR(shape_factor)
+{
+    m6 = 315 / (32 * KRATOS_M_PI * pow(mR, 9)) - 3 * mHeightOverR / pow(mR, 5);
+    m4 = 7 * mHeightOverR / pow(mR, 3) - 315 / (16 * KRATOS_M_PI * pow(mR, 7));
+    m2 = 315 / (32 * KRATOS_M_PI * pow(mR, 5)) - 5 * mHeightOverR / mR;
+    m0 = mR * mHeightOverR;
+}
+
+virtual ~DensityFunctionPolynomial(){}
+
+void ComputeWeights(std::vector<double> & distances, std::vector<double> & weights)
+{
+    for (unsigned int i = 0; i != distances.size(); ++i){
+        double radius_2 = distances[i] * distances[i];
+        weights[i] = m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0;
     }
-
-  virtual ~DensityFunctionPolynomial(){}
-
-    void ComputeWeights(std::vector<double> & distances, std::vector<double> & weights)
-    {
-
-      for (unsigned int i = 0; i != distances.size(); ++i){
-          double radius_2 = distances[i] * distances[i];
-          weights[i] = m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0;
-        }
-
-    }
+}
 
 private:
 
-  double mR; // the radius of the support of the PDF;
-  double mHeightOverR;
-  double m6;
-  double m4;
-  double m2;
-  double m0;
+double mR; // the radius of the support of the PDF;
+double mHeightOverR;
+double m6;
+double m4;
+double m2;
+double m0;
 
 }; // class DensityFunctionPolynomial
 

@@ -27,179 +27,175 @@
 namespace Kratos
 {
 class LinearRealField: public RealField
-    {
-     public:
+{
+public:
 
-     KRATOS_CLASS_POINTER_DEFINITION(LinearRealField);
+KRATOS_CLASS_POINTER_DEFINITION(LinearRealField);
 
-      /// Default constructor.
+/// Default constructor.
 
-     LinearRealField(const double& a0, const double& b0, const double& c0,
-                     RealFunction& fa, RealFunction& fb, RealFunction& fc):
-                     mX0(a0), mY0(b0), mZ0(c0), mFx(fa), mFy(fb), mFz(fc)
-     {}
+LinearRealField(const double& a0, const double& b0, const double& c0,
+                RealFunction& fa, RealFunction& fb, RealFunction& fc)
+              : mX0(a0), mY0(b0), mZ0(c0), mFx(fa), mFy(fb), mFz(fc)
+{}
 
-      /// Destructor.
+/// Destructor.
 
-     virtual ~LinearRealField(){}
-
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      double Evaluate(const double time, const array_1d<double, 3>& coor)
-      {
-        return mX0 + mFx.Evaluate(time) * coor[0] + mY0 + mFy.Evaluate(time) * coor[1] + mZ0 + mFz.Evaluate(time) * coor[2];
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
-      {
-        return mFx.CalculateDerivative(time) * coor[0] + mY0 + mFy.CalculateDerivative(time) * coor[1] + mZ0 + mFz.CalculateDerivative(time) * coor[2];;
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
-      {
-        gradient[0] = mFx.Evaluate(time);
-        gradient[1] = mFy.Evaluate(time);
-        gradient[2] = mFz.Evaluate(time);
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-      void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
-      {
-        laplacian[0] = 0.0;
-        laplacian[1] = 0.0;
-        laplacian[2] = 0.0;
-      }
-
-      //***************************************************************************************************************
-      //***************************************************************************************************************
-
-        ///@}
-        ///@name Inquiry
-        ///@{
+virtual ~LinearRealField(){}
 
 
-        ///@}
-        ///@name Input and output
-        ///@{
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+double Evaluate(const double time, const array_1d<double, 3>& coor)
+{
+    return mX0 + mFx.Evaluate(time) * coor[0] + mY0 + mFy.Evaluate(time) * coor[1] + mZ0 + mFz.Evaluate(time) * coor[2];
+}
 
-        virtual std::string Info() const
-        {
-            return "";
-        }
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        /// Print information about this object.
+double CalculateTimeDerivative(const double time, const array_1d<double, 3>& coor)
+{
+    return mFx.CalculateDerivative(time) * coor[0] + mY0 + mFy.CalculateDerivative(time) * coor[1] + mZ0 + mFz.CalculateDerivative(time) * coor[2];;
+}
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        /// Print object's data.
+void CalculateGradient(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& gradient)
+{
+    gradient = ZeroVector(3);
+}
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
+//***************************************************************************************************************
+//***************************************************************************************************************
 
+void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, array_1d<double, 3>& laplacian)
+{
+    laplacian = ZeroVector(3);
+}
 
-        ///@}
-        ///@name Friends
-        ///@{
+//***************************************************************************************************************
+//***************************************************************************************************************
 
-        ///@}
-
-    protected:
-        ///@name Protected static Member r_variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member r_variables
-        ///@{ template<class T, std::size_t dim>
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
+///@}
+///@name Inquiry
+///@{
 
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+///@}
+///@name Input and output
+///@{
+
+/// Turn back information as a stemplate<class T, std::size_t dim> tring.
+
+virtual std::string Info() const
+{
+return "";
+}
+
+/// Print information about this object.
+
+virtual void PrintInfo(std::ostream& rOStream) const
+{
+}
+
+/// Print object's data.
+
+virtual void PrintData(std::ostream& rOStream) const
+{
+}
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+///@}
+///@name Friends
+///@{
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+///@}
 
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+protected:
+///@name Protected static Member r_variables
+///@{
 
 
-        ///@}
-
-    private:
-
-        ///@name Static Member r_variables
-        ///@{
+///@}
+///@name Protected member r_variables
+///@{ template<class T, std::size_t dim>
 
 
-        ///@}
-        ///@name Member r_variables
-        ///@{
-        double mX0;
-        double mY0;
-        double mZ0;
-        RealFunction& mFx;
-        RealFunction& mFy;
-        RealFunction& mFz;
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-        ///@}
-        ///@name Private Operations
-        ///@{
+///@}
+///@name Protected Operators
+///@{
 
 
-        ///@}
-        ///@name Private  Access
-        ///@{
+///@}
+///@name Protected Operations
+///@{
 
 
-        ///@}
-        ///@name Private Inquiry
-        ///@{
+///@}
+///@name Protected  Access
+///@{
+
+///@}
+///@name Protected Inquiry
+///@{
 
 
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-        /// Assignment operator.
-        LinearRealField & operator=(LinearRealField const& rOther);
+///@}
+///@name Protected LifeCycle
+///@{
 
 
-        ///@}
+///@}
 
-    }; // Class LinearRealField
+private:
+
+///@name Static Member r_variables
+///@{
+
+
+///@}
+///@name Member r_variables
+///@{
+double mX0;
+double mY0;
+double mZ0;
+RealFunction& mFx;
+RealFunction& mFy;
+RealFunction& mFz;
+
+///@}
+///@name Private Operators
+///@{
+
+///@}
+///@name Private Operations
+///@{
+
+
+///@}
+///@name Private  Access
+///@{
+
+
+///@}
+///@name Private Inquiry
+///@{
+
+
+///@}
+///@name Un accessible methods
+///@{
+
+/// Assignment operator.
+LinearRealField & operator=(LinearRealField const& rOther);
+
+
+///@}
+
+}; // Class LinearRealField
 
 ///@}
 

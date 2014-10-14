@@ -58,13 +58,13 @@ template< unsigned int TDim>
 class DensityFunctionNormal: public DensityFunction
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(DensityFunctionNormal);
+KRATOS_CLASS_POINTER_DEFINITION(DensityFunctionNormal);
 
-    DensityFunctionNormal(const double inter_quartile_range): mHalfIQR(inter_quartile_range){}
+DensityFunctionNormal(const double inter_quartile_range): mHalfIQR(inter_quartile_range){}
 
-  virtual ~DensityFunctionNormal(){}
+virtual ~DensityFunctionNormal(){}
 
-  void Compute
+void Compute
 
 private:
 
