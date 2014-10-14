@@ -17,21 +17,6 @@
 namespace Kratos
 {
 
-	/*
-	double mThickness;
-	double mOffset;
-	PlyCollection mStack;
-	bool mEditingStack;
-	bool mHasDrillingPenalty;
-	double mDrillingPenalty;
-	double mOrientation;
-	SectionBehaviorType mBehavior;
-	bool mInitialized;
-	bool mNeedsOOPCondensation;
-	Vector mOOP_CondensedStrains;
-	Vector mOOP_CondensedStrains_converged;
-	*/
-
 	ShellCrossSection::ShellCrossSection()
 		: mThickness(0.0)
 		, mOffset(0.0)
