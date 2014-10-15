@@ -60,8 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_cross_sections_to_python.h"
 #include "custom_utilities/shell_cross_section.hpp"
 
-#include "custom_elements\shell_thick_element_3D4N.hpp"
-#include "custom_elements\shell_thin_element_3D3N.hpp"
+#include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D3N.hpp"
 
 namespace Kratos
 {
