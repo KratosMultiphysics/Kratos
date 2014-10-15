@@ -229,10 +229,7 @@ namespace Kratos
           BaseType::SynchronizeSolidMesh(r_model_part); // Should be... just TOTAL_FORCES (and ELASTIC_FORCES) and PARTICLE_MOMENT
           
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
-           
-          
-        
-         
+                                      
           //Synch this var.
           r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
