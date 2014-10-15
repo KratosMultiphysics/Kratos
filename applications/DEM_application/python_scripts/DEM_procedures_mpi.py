@@ -62,7 +62,7 @@ class Procedures(DEM_procedures.Procedures):
         if (mpi.rank == 0):
             MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
             
-    def FindMaxNodeIdInModelPart(model_part):
+    def FindMaxNodeIdInModelPart(self, model_part):
 
         #TODO THIS MUST BE PARALLELIZED!!
         super(Procedures,self).FindMaxNodeIdInModelPart(model_part)
