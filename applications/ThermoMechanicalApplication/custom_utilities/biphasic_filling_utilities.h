@@ -493,7 +493,7 @@ public:
     void ApplyVelocityLimitation(ModelPart& ThisModelPart, const double max_acc_modulus)
     {
         KRATOS_TRY;
-        double net_input = 0.0;
+//         double net_input = 0.0;
         int node_size = ThisModelPart.Nodes().size();
         const double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
         
@@ -508,11 +508,26 @@ public:
                 const double current_vel_norm = norm_2(vel);
                 const double old_vel_norm = norm_2(old_vel);
                 
-                const double acceptable_vel_norm = old_vel_norm + max_acc_modulus*dt;
-                const double ratio = current_vel_norm/acceptable_vel_norm;
+                const double slip_flag = it->FastGetSolutionStepValue(IS_SLIP);
                 
-                //velocity is reduced if too high
-                if(ratio > 1.0) vel /= ratio;
+                if(slip_flag > 11.0) //edge or corners -- here we reduce by a factor of 6 the max acceleration
+                {
+                    const double acceptable_vel_norm = old_vel_norm + 0.1666667*max_acc_modulus*dt;
+                    
+                    const double ratio = current_vel_norm/acceptable_vel_norm;
+                    
+                    //velocity is reduced if too high
+                    if(ratio > 1.0) vel /= ratio;
+                }
+                else
+                {        
+                    const double acceptable_vel_norm = old_vel_norm + max_acc_modulus*dt;
+                    
+                    const double ratio = current_vel_norm/acceptable_vel_norm;
+                    
+                    //velocity is reduced if too high
+                    if(ratio > 1.0) vel /= ratio;
+                }
             }
             
         }

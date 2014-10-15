@@ -190,7 +190,7 @@ class Solver:
         #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,2)
         #self.stage1_solver.Solve() 
         
-        
+        self.max_distance = 1e6
         
         #solve stage0 - pure convection step
         if(self.skip_stage0 == False):
