@@ -29,7 +29,7 @@ extern "C"
 {
     //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
     void METIS_NodeND(int *, idxtype *, idxtype *, int *, int *, idxtype *, idxtype *);
-};
+}
 
 namespace Kratos
 {
