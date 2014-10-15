@@ -1474,10 +1474,10 @@ std::ostream & operator<<( std::ostream& rOStream,
    rThis.PrintSize(rOStream);
    rThis.PrintData(rOStream);
    return rOStream;
-};
+}
 
 
 
-};
+}
 
 #endif // KRATOS_BINS_DYNAMIC_MPI_CONTAINER_H_INCLUD
