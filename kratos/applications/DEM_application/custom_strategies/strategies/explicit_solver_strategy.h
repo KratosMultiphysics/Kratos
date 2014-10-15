@@ -778,6 +778,8 @@ namespace Kratos
                   
         }
         
+        //TODO: here we should use MPI_Allreduce?? MPI is doing each node separately!!
+        
         double coord_number = (double(total_contacts)/double(pElements.size()));
         //std::cout<<"COORDINATION NUMBER = "<<coord_number<<std::endl;
         return coord_number;
