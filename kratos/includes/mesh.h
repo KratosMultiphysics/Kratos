@@ -245,7 +245,16 @@ public:
 
     SizeType WorkingSpaceDimension() const
     {
-        return (mpElements->begin())->WorkingSpaceDimension();
+      SizeType dimension = 3;
+
+      if(NumberOfElements()!=0)
+	dimension = (mpElements->begin())->WorkingSpaceDimension();
+      else if(NumberOfConditions()!=0)
+	dimension = (mpConditions->begin())->WorkingSpaceDimension();
+      else if(NumberOfNodes()!=0)
+	dimension = (mpNodes->begin())->Dimension();
+
+      return dimension;	
     }
 
     ///@}
