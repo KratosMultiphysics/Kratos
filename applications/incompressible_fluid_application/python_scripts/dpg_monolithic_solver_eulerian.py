@@ -141,7 +141,7 @@ class MonolithicSolver:
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
         self.volume_correction = True
-        self.vol_cr_step = 2
+        self.vol_cr_step = 5
 
 # print "Construction monolithic solver finished"
 
@@ -350,6 +350,12 @@ class MonolithicSolver:
         if(self.internal_step_counter >= self.next_redistance):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
+            
+            #ensure that inlet nodes are still wet
+            for node in self.inlet_nodes:
+                if( node.GetSolutionStepValue(DISTANCE) > 0.0):
+                    node.SetSolutionStepValue(DISTANCE,0,  -0.01*self.max_edge_size)
+            
             self.DoRedistance()
             self.next_redistance = self.internal_step_counter + \
                 self.redistance_frequency
@@ -374,6 +380,10 @@ class MonolithicSolver:
             (self.solver).Predict()
             
             #self.velocity_prediction.PredictVelocity()
+            
+           
+           
+        #ActivationUtilities().ActivateElementsAndConditions( self.model_part, DISTANCE, self.max_distance, True) 
         (self.solver).Solve()
         self.internal_step_counter += 1
         Timer.Stop("self.solve")
