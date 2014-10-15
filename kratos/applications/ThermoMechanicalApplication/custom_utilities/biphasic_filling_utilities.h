@@ -493,11 +493,12 @@ public:
     void ApplyVelocityLimitation(ModelPart& ThisModelPart, const double max_acc_modulus)
     {
         KRATOS_TRY;
-//         double net_input = 0.0;
+//          double net_input = 0.0;
         int node_size = ThisModelPart.Nodes().size();
         const double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
         
-        #pragma omp parallel for firstprivate(node_size) reduction(+:net_input)
+        #pragma omp parallel for firstprivate(node_size) 
+        //reduction(+:net_input)
         for (int ii = 0; ii < node_size; ii++)
         {
             ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
