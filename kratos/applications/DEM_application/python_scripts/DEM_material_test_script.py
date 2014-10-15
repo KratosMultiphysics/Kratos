@@ -20,6 +20,12 @@ class MaterialTest(object):
       
       self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = [];
       
+      self.xtop_area = 0.0
+      self.xbot_area = 0.0
+      self.xlat_area = 0.0
+      self.xtopcorner_area = 0.0
+      self.xbotcorner_area = 0.0
+      
       self.SKIN = list()
       self.LAT = list()
       self.BOT = list()
@@ -69,10 +75,10 @@ class MaterialTest(object):
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
 
   def Initialize(self):
-    
-      self.PrepareTestOedometric()
+              
+      self.PrepareTests()
       self.PrepareTestTriaxialHydro()
-      self.PrepareTestBTS()
+      self.PrepareTestOedometric()
 
   def PrepareTestOedometric(self):
       if(self.parameters.TestType == "Oedometric"):
@@ -88,14 +94,13 @@ class MaterialTest(object):
       if ( ( self.parameters.TestType == "Triaxial") or ( self.parameters.TestType == "Hydrostatic") ):
 
         #Correction Coefs
-        self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
-        self.alpha_bot = 3.141592*self.diameter*self.diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
-        self.alpha_lat = 3.141592*self.diameter*self.height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
+        self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
+        self.alpha_bot = 3.141592*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
+        self.alpha_lat = 3.141592*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area) 
            
-  def PrepareTestBTS(self):
+  def PrepareTests(self):
     
       ##Fixing horizontally top and bot
-      
       if(self.parameters.TestType != "BTS"):
         
         for node in self.TOP:
@@ -130,9 +135,9 @@ class MaterialTest(object):
         
         if(self.parameters.PredefinedSkinOption == "ON" ):
           print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
-
-        (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
-
+        
+        (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
+        
         #xtop_area_gath        = mpi.allgather(mpi.world, xtop_area) 
         #xbot_area_gath        = mpi.allgather(mpi.world, xbot_area) 
         #xlat_area_gath        = mpi.allgather(mpi.world, xlat_area) 
@@ -382,7 +387,7 @@ class MaterialTest(object):
 
       
       if( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):
-      
+          
           self.Pressure = min(self.total_stress_mean*1e6, self.parameters.ConfinementPressure * 1e6)
           
           if( self.parameters.TestType == "Hydrostatic"):
@@ -476,7 +481,7 @@ class MaterialTest(object):
 
     if(self.parameters.TestType == "BTS"):
         self.bts_export.close()
-        self.bts_stress_export.close()
+        #self.bts_stress_export.close()
     else:
         self.graph_export.close()
       
@@ -624,7 +629,7 @@ class MaterialTest(object):
     OrientationChart.close()
       
   def ApplyLateralPressure(self, Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
-
+      
       for node in XLAT:
           
           r = node.GetSolutionStepValue(RADIUS)
