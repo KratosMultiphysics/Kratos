@@ -343,9 +343,10 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
+			if (this->GetValue(IS_STRUCTURE) != 0.0)
+			  this->ApplyWallLaw(rLeftHandSideMatrix, rRightHandSideVector);
 		}
-		else if (this->Is(INTERFACE) && rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
+		else if (rCurrentProcessInfo[FRACTIONAL_STEP] == 5)
 		{
 			// add IAC penalty to local pressure system
 			const SizeType LocalSize = TNumNodes;
@@ -362,7 +363,8 @@ public:
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 			noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-			this->ApplyIACPenalty(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+			if (this->Is(INTERFACE))
+			  this->ApplyIACPenalty(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 		}
 		else
 		{
@@ -823,7 +825,6 @@ protected:
 
 		CalculateWallParameters(WallHeight, WallVel, WallGradP, Area);
 		WallVelMag = norm_2(WallVel);
-
 
 		if (IsCorner(0.966) == false)
 		{

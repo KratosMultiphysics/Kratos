@@ -52,6 +52,8 @@ public:
         VariablesList * mVariables_List = &origin_model_part.GetNodalSolutionStepVariablesList();
         destination_model_part.SetCommunicator(Communicator::Pointer(new MPICommunicator(mVariables_List)));
 
+	destination_model_part.GetNodalSolutionStepVariablesList() = *mVariables_List;
+	destination_model_part.SetBufferSize(origin_model_part.GetBufferSize());
 
         //*********************************************************************************
         //copy the mesh of interest to destination_model_part (on each mpi processor)
