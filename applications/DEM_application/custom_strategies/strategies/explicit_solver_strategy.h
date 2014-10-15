@@ -490,7 +490,12 @@ namespace Kratos
               ComputeNewRigidFaceNeighboursHistoricalData();
               
           }
-                
+                    
+          ElementsArrayType& pElements             = r_model_part.GetCommunicator().LocalMesh().Elements();
+          RebuildPropertiesProxyPointers(pElements);
+          ElementsArrayType& pGhostElements        = r_model_part.GetCommunicator().GhostMesh().Elements();
+          RebuildPropertiesProxyPointers(pGhostElements);
+          
           // 3. Get and Calculate the forces
           GetForce();
           //FastGetForce();
