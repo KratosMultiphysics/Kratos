@@ -202,7 +202,75 @@ void FSGeneralizedWallCondition<2, 2>::CalculateWallParameters(
 		double& rArea)
 {
 	KRATOS_TRY;
-	KRATOS_ERROR(std::logic_error, "Not yet implemented for 2D","");
+
+	const double Small = 1.0e-12;
+	double DetM, s, w1, Proj;
+	array_1d<double, 3> Rhs;
+	MatrixType M(2, 2), InvM(2, 2);
+	ElementPointerType pElem = pGetElement();
+	const array_1d<double, 3>& Normal = this->GetValue(NORMAL);
+	GeometryType& rElemGeom = pElem->GetGeometry();
+	const GeometriesArrayType& edges = rElemGeom.Edges();
+	const array_1d<double, 3>& center = this->GetGeometry().Center();
+	
+	rWallHeight = 0.0;
+	rArea = norm_2(Normal);
+	for (SizeType i = 0; i < edges.size(); i++)
+	{
+		const GeometryType& rEdge = edges[i];
+
+		// rEdge[0] + w1*(rEdge[1] - rEdge[0]) = center - s*Normal
+		M(0, 0) = rEdge[1].X() - rEdge[0].X();
+		M(1, 0) = rEdge[1].Y() - rEdge[0].Y();
+		M(0, 1) = Normal[0];
+		M(1, 1) = Normal[1];
+
+		if (fabs(MathUtils<double>::Det2(M)) < Small * pow(mMinEdgeLength, 2))
+		{
+			continue;
+		}
+
+		Rhs = center - rEdge[0].Coordinates();
+
+		MathUtils<double>::InvertMatrix2(M, InvM, DetM);
+		w1 = InvM(0, 0) * Rhs[0] + InvM(0, 1) * Rhs[1];
+		s  = InvM(1, 0) * Rhs[0] + InvM(1, 1) * Rhs[1];
+		if (w1 >= -Small && w1 <= 1.0 + Small) // check if normal intersects this edge
+		{
+			// rWallHeight = ||s*Normal|| = |s| * ||Normal|| = |s| * rArea
+			rWallHeight = fabs(s) * rArea;
+			if (rWallHeight > Small * mMinEdgeLength) // don't count condition's face
+			{
+				const array_1d<double, 3> v0 =
+				  rEdge[0].FastGetSolutionStepValue(VELOCITY, 1)
+				  - rEdge[0].FastGetSolutionStepValue(MESH_VELOCITY, 1);
+				const array_1d<double, 3> v1 =
+				  rEdge[1].FastGetSolutionStepValue(VELOCITY, 1)
+				  - rEdge[1].FastGetSolutionStepValue(MESH_VELOCITY, 1);
+
+				rWallVel[0] = w1 * v1[0] + (1.0 - w1) * v0[0];
+				rWallVel[1] = w1 * v1[1] + (1.0 - w1) * v0[1];
+				rWallVel[2] = w1 * v1[2] + (1.0 - w1) * v0[2];
+
+				// make velocity tangent
+				Proj = (rWallVel[0] * Normal[0] + rWallVel[1] * Normal[1]
+						+ rWallVel[2] * Normal[2]) / (rArea * rArea);
+				rWallVel[0] -= Proj * Normal[0];
+				rWallVel[1] -= Proj * Normal[1];
+				rWallVel[2] -= Proj * Normal[2];
+
+				// pressure gradient term
+				double WallVelMag = norm_2(rWallVel);
+				array_1d<double, 2> PressureGradient;
+				this->EvaluateOldPressureGradientInElement(PressureGradient);
+				rWallGradP = PressureGradient[0] * rWallVel[0] + PressureGradient[1] * rWallVel[1];
+				rWallGradP /= (WallVelMag != 0.0) ? WallVelMag : 1.0;
+
+				break;
+			}
+		}
+	}
+
 	KRATOS_CATCH("");
 }
 
