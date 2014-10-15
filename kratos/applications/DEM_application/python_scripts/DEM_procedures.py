@@ -378,7 +378,7 @@ class Procedures(object):
 
         return [post_path,list_path,data_and_results,graphs_path,MPI_results]
     
-    def FindMaxNodeIdInModelPart(model_part):
+    def FindMaxNodeIdInModelPart(self, model_part):
 
         maxid = 0
 
