@@ -1288,7 +1288,7 @@ void CalculateNodalFluidFractionByAveraging(
 void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor){
 
     #pragma omp parallel for
-    for (unsigned int i = 0; i < r_model_part.Nodes().size(); i++){
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
         NodeIteratorType inode = r_model_part.NodesBegin() + i;
         Node < 3 > ::Pointer pnode = *(inode.base());
         pnode->FastGetSolutionStepValue(r_variable) *= factor;
@@ -1301,7 +1301,7 @@ void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variab
 void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor){
 
     #pragma omp parallel for
-    for (unsigned int i = 0; i < r_model_part.Nodes().size(); i++){
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
         NodeIteratorType inode = r_model_part.NodesBegin() + i;
         Node < 3 > ::Pointer pnode = *(inode.base());
         pnode->FastGetSolutionStepValue(r_variable) *= factor;
