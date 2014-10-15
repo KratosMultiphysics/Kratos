@@ -125,8 +125,8 @@ class MonolithicSolver:
         self.rel_pres_tol = 1e-5
         self.abs_pres_tol = 1e-7
 
-        self.dynamic_tau_levelset = 0.0 #0.01
-        self.dynamic_tau_fluid = 0.0 #0.01
+        self.dynamic_tau_levelset = 0.01
+        self.dynamic_tau_fluid = 0.01
         self.oss_switch = 0
 
         # non newtonian setting
@@ -348,6 +348,8 @@ class MonolithicSolver:
         # recompute distance function as needed
         Timer.Start("DoRedistance")
         if(self.internal_step_counter >= self.next_redistance):
+            net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
+            BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
             self.DoRedistance()
             self.next_redistance = self.internal_step_counter + \
                 self.redistance_frequency
