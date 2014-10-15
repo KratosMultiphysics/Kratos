@@ -20,7 +20,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
       self.PrepareTestTriaxialHydro()
       self.PrepareTestBTS()
 
-  def PrepareTestBTS(self):
+  def PrepareTests(self):
       ##Fixing horizontally top and bot
       if(self.parameters.TestType != "BTS"):
         
