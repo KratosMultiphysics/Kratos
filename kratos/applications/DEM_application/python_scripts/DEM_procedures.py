@@ -14,17 +14,7 @@ def Var_Translator(variable):
     else:
         variable = 1
 
-    return variable
-    
-def FindMaxNodeIdInModelPart(model_part):
-
-    maxid = 0
-
-    for node in model_part.Nodes:
-        if (node.Id > maxid):
-            maxid = node.Id
-
-    return maxid
+    return variable    
 
 
 class MdpaCreator(object):
@@ -387,6 +377,16 @@ class Procedures(object):
                 os.makedirs(str(directory))
 
         return [post_path,list_path,data_and_results,graphs_path,MPI_results]
+    
+    def FindMaxNodeIdInModelPart(model_part):
+
+        maxid = 0
+
+        for node in model_part.Nodes:
+            if (node.Id > maxid):
+                maxid = node.Id
+
+        return maxid
 
     def PreProcessModel(self, DEM_parameters):
         pass

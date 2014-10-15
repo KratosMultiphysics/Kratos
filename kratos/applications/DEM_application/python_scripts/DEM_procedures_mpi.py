@@ -61,6 +61,12 @@ class Procedures(DEM_procedures.Procedures):
     def PreProcessModel(self, DEM_parameters):
         if (mpi.rank == 0):
             MPIClassObject = MPIer.MPIerClass(str(DEM_parameters.problem_name) + "DEM.mdpa")
+            
+    def FindMaxNodeIdInModelPart(model_part):
+
+        #TODO THIS MUST BE PARALLELIZED!!
+        super(Procedures,self).FindMaxNodeIdInModelPart(model_part)
+        
 
     def KRATOSprint(self, message):
         if (mpi.rank == 0):

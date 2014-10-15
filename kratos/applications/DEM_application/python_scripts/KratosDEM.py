@@ -156,8 +156,8 @@ inlet_option                     = 1
 dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 
 if (inlet_option):
-    max_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(balls_model_part)
-    max_FEM_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(rigid_face_model_part)
+    max_node_Id = procedures.FindMaxNodeIdInModelPart(balls_model_part)
+    max_FEM_node_Id = procedures.FindMaxNodeIdInModelPart(rigid_face_model_part)
     if ( max_FEM_node_Id > max_node_Id):
         max_node_Id = max_FEM_node_Id
     creator_destructor.SetMaxNodeId(max_node_Id)
