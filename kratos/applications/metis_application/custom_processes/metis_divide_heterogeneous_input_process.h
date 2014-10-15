@@ -27,7 +27,7 @@
                                   int*,  //int* options
                                   int*,  //int* edgecut
                                   int*); //indxtype* part
-  };
+  }
 #endif
 
 namespace Kratos
