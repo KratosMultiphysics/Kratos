@@ -506,9 +506,9 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
         if(dist >= 0.9 * max_d):
             node.SetSolutionStepValue(BODY_FORCE, 0, zero)
             node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 10.0)
-            # node.SetSolutionStepValue(VELOCITY,0,zero)
-            # node.SetSolutionStepValue(VELOCITY,1,zero)
-            # node.SetSolutionStepValue(VELOCITY,2,zero)
+            node.SetSolutionStepValue(VELOCITY,0,zero)
+            node.SetSolutionStepValue(VELOCITY,1,zero)
+            node.SetSolutionStepValue(VELOCITY,2,zero)
             number_of_exits += 1
 
             node.Fix(PRESSURE)
@@ -523,12 +523,26 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
 
                 if(dist > 0.0):
                     if(slip_flag != 10):
-                        node.Fix(PRESSURE)
-                        node.SetSolutionStepValue(VELOCITY,0,zero)   #newly added
-                        node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
-                        node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
-                        node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-                        node.SetValue(IS_STRUCTURE, 0.0)
+                        
+                        vel = node.GetSolutionStepValue(VELOCITY)
+                        n = node.GetSolutionStepValue(NORMAL)
+                        prod = n[0]*vel[0] + n[1]*vel[1] + n[1]*vel[1]
+                        if(prod > 0.0): ##going outside!
+                            
+                            node.Fix(PRESSURE)
+                            node.SetSolutionStepValue(VELOCITY,0,zero)   #newly added
+                            node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
+                            node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
+                            node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+                            node.SetValue(IS_STRUCTURE, 0.0)
+                            node.SetValue(Y_WALL, 100.0 * y_wall_val)
+                        else:
+                             
+                            node.SetValue(IS_STRUCTURE, 1.0)
+                            #node.SetSolutionStepValue(VELOCITY,0,zero)   #newly added
+                            #node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
+                            #node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
+                            
                     else:
                         out_skin_list.append(node)
                         node.SetValue(IS_STRUCTURE, 1.0)
@@ -550,9 +564,9 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
             d = node.GetSolutionStepValue(DISTANCE)
             if(d > dlimit):
                 node.Fix(PRESSURE)
-                node.SetSolutionStepValue(VELOCITY,0,zero)  #newly added
-                node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
-                node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
+                #node.SetSolutionStepValue(VELOCITY,0,zero)  #newly added
+                #node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
+                #node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
                 node.SetSolutionStepValue(PRESSURE, 0, 0.0)
                 node.SetValue(IS_STRUCTURE, 0.0)
                 node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 20.0)
@@ -717,7 +731,7 @@ if(FILLING == 1.0):
         
 
 
-        max_acceptable_acc_norm = 6.0 * ProjectParameters.inlet_velocity / Dt
+        max_acceptable_acc_norm = 6.0 * ProjectParameters.inlet_velocity / max_Dt
         BiphasicFillingUtilities().ApplyVelocityLimitation(
             fluid_model_part, max_acceptable_acc_norm)
 
@@ -731,8 +745,8 @@ if(FILLING == 1.0):
         if(volume_correction_switch == True and step > fluid_solver.vol_cr_step):
             wet_vol = fluid_model_part.ProcessInfo[WET_VOLUME]
             time_fact = wet_vol / tot_volume
-            time_crt = fill_time * time_fact
-           # time_crt = time
+            #time_crt = fill_time * time_fact
+            time_crt = time
 
         timer.Start("Air entrapment")
         # Air entrapment
