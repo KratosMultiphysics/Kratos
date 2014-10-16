@@ -1492,64 +1492,42 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         {
             int my_id = this->Id();
             bool im_skin = bool(this->GetValue(SKIN_SPHERE));
-            //ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+
             std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = this->mContinuumIniNeighbourElements;
-                        
-            //for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-              //ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+
             for (unsigned int i=0; i<r_continuum_ini_neighbours.size(); i++)              
             {                
-                  //Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(cont_neigh_index)).lock();
                   Particle_Contact_Element* lock_p_weak = mBondElements[i];
 
                   if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
-                  {
-                  
+                  {                  
                     bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetValue(SKIN_SPHERE));
                     
                     int neigh_id = r_continuum_ini_neighbours[i]->Id();
                                         
                     if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) )
-                    {
-                                             
+                    {                                             
                       if( my_id < neigh_id )
-                        {
-
-                          //lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[i];
-                          lock_p_weak->mLocalContactAreaLow = mcont_ini_neigh_area[i];
-                                                    
-                        } // if my id < neigh id
-                        
-                        else
-                        {
-
-                          //lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[i];
-                          lock_p_weak->mLocalContactAreaHigh = mcont_ini_neigh_area[i];
-                          
-                        }
-                        
-                      
+                      {
+                         lock_p_weak->mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                    
+                      } // if my id < neigh id                        
+                      else
+                      {
+                         lock_p_weak->mLocalContactAreaHigh = mcont_ini_neigh_area[i];                          
+                      }                                              
                     } //both skin or both inner.
                     
                     else if( !im_skin && neigh_is_skin ) //we will store both the same only comming from the inner to the skin.
-                    {
-                      
-                
+                    {                                      
                       lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[i];
-                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[i];
-                      
-                                          
+                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[i];                                                                
                     } //neigh skin
-
                       
                 }//if(first_time)
                 
                 else //last operation
-                {
-                  
-                  //mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
-                   mcont_ini_neigh_area[i] = lock_p_weak->mMeanContactArea;   
-                
+                {                  
+                   mcont_ini_neigh_area[i] = lock_p_weak->mMeanContactArea;                   
                 }
                             
             }//loop neigh.
