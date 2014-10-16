@@ -97,7 +97,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 //**************************************************************************************************************************************************
 
 bool AssessStationarity(ModelPart& r_model_part, const double& tol)
-    {
+{
     if (!mPressuresFilled){
         PerformFirstStepComputations(r_model_part);
 
