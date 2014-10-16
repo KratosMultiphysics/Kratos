@@ -16,9 +16,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
       super(MaterialTest,self).__init__(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part)
 
   def Initialize(self):
-      self.PrepareTestOedometric()
-      self.PrepareTestTriaxialHydro()
-      self.PrepareTestBTS()
+      super(MaterialTest,self).Initialize()
 
   def PrepareTests(self):
       ##Fixing horizontally top and bot

@@ -733,7 +733,7 @@ class DEMIo(object):
             mixed_model_part.Nodes.clear()
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-            if (self.contact_mesh_option == "ON"):
+            if (self.contact_mesh_option == "ON"):                
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
 
@@ -742,8 +742,7 @@ class DEMIo(object):
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetMesh())
-            self.gid_io.FinalizeMesh()
-            
+            self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetMesh())
 
     def FinalizeMesh(self):
