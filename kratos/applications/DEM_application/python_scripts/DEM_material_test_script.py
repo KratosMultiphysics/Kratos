@@ -131,10 +131,10 @@ class MaterialTest(object):
         if( self.parameters.TestType =="Hydrostatic"):  
           self.graph_export_volumetric = open(self.parameters.problem_name+"_graph_VOL.grf",'w')
 
-        print ('Initial Height of the Model: ' + str(self.height)+'\n')
+        self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
         
         if(self.parameters.PredefinedSkinOption == "ON" ):
-          print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
+          self.Procedures.KRATOSprint ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
         
         (self.xtop_area,self.xbot_area,self.xlat_area,self.xtopcorner_area,self.xbotcorner_area,y_top_total,weight_top, y_bot_total, weight_bot) = self.CylinderSkinDetermination()
         
@@ -265,11 +265,11 @@ class MaterialTest(object):
             
         if(len(self.XLAT)==0):
             
-            print("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES", "\n")
+            self.Procedures.KRATOSprint("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
         
         else:
           
-            print("End ", h, "x", d, "Cylinder Skin Determination", "\n")
+            self.Procedures.KRATOSprint("End "+ str(h) + "x" + str(d) + "Cylinder Skin Determination" + "\n")
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area, y_top_total, weight_top, y_bot_total, weight_bot)
   
