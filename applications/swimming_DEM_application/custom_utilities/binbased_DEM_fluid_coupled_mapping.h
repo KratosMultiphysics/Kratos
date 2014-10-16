@@ -1136,18 +1136,13 @@ void TransferWithLinearWeighing(
     const array_1d<double, 3>& origin_data = pnode->FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
-        array_1d<double, 3>& hydrodynamic_reaction = geom[0].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-        const double& fluid_fraction               = geom[0].FastGetSolutionStepValue(FLUID_FRACTION);
-        const double& nodal_volume                 = geom[0].FastGetSolutionStepValue(NODAL_AREA);
-        const double& density                      = geom[0].FastGetSolutionStepValue(DENSITY);
-        hydrodynamic_reaction = - (mParticlesPerDepthDistance * N[0] / (fluid_fraction * density * nodal_volume)) * origin_data;
 
-        for (unsigned int i = 1; i < TDim + 1; i++){
+        for (unsigned int i = 0; i < TDim + 1; i++){
             array_1d<double, 3>& hydrodynamic_reaction = geom[i].FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
             const double& fluid_fraction               = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
             const double& nodal_volume                 = geom[i].FastGetSolutionStepValue(NODAL_AREA);
             const double& density                      = geom[i].FastGetSolutionStepValue(DENSITY);
-            hydrodynamic_reaction -= (mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume)) * origin_data;
+            hydrodynamic_reaction -= mParticlesPerDepthDistance * N[i] / (fluid_fraction * density * nodal_volume) * origin_data;
         }
     }
 
@@ -1170,7 +1165,7 @@ void CalculateNodalFluidFractionWithConstantWeighing(
     const double& radius         = pnode->FastGetSolutionStepValue(RADIUS);
     const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-    (el_it->GetGeometry())[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
+    el_it->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
 }
 
 //***************************************************************************************************************
@@ -1188,12 +1183,11 @@ void CalculateNodalFluidFractionWithLinearWeighing(
     double element_volume;
     GeometryUtils::CalculateGeometryData(geom, DN_DX, N_2, element_volume);
 
-    // Destination data
     const double& radius         = (inode)->FastGetSolutionStepValue(RADIUS);
     const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
     for (unsigned int i = 0; i < TDim + 1; i++){
-        (el_it->GetGeometry())[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        el_it->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
     }
 }
 
@@ -1234,7 +1228,7 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
         inode->GetSolutionStepValue(FLUID_FRACTION_GRADIENT) /= inode->GetSolutionStepValue(NODAL_AREA);
-      }
+    }
  }
 
 //***************************************************************************************************************
@@ -1335,7 +1329,7 @@ void ResetFluidVariables(ModelPart& rfluid_model_part)
         body_force -= old_hydrodynamic_reaction;
 
         noalias(old_hydrodynamic_reaction) = ZeroVector(3);
-      }
+    }
 }
 
 //***************************************************************************************************************
@@ -1389,7 +1383,6 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
                   z10 * x20 * y30 - z10 * y20 * x30;
 
     return  detJ * 0.1666666666666666666667;
-
 }
 
 //***************************************************************************************************************
@@ -1467,5 +1460,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_BINBASED_DEM_FLUID_COUPLED_MAPPING  defined
-
-
