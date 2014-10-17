@@ -75,7 +75,8 @@ KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
     mSUPGConv3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConvDiffPhaseChange2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mSUPGConvDiffPhaseChange3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mVirtualMouldElement3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
    // mPoisson3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
     
     
@@ -127,7 +128,7 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
     KRATOS_REGISTER_CONDITION("EnvironmentContact", mEnvironmentContact);
     KRATOS_REGISTER_CONDITION("EnvironmentContact3D", mEnvironmentContact3D);    
-    
+    KRATOS_REGISTER_CONDITION("VirtualMouldElement3D", mVirtualMouldElement3D);
 
 
     KRATOS_REGISTER_ELEMENT("SUPGConvDiff2D", mSUPGConvDiff2D);
@@ -136,6 +137,7 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange2D", mSUPGConvDiffPhaseChange2D);
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange3D", mSUPGConvDiffPhaseChange3D); 
     KRATOS_REGISTER_ELEMENT("SUPGConv2D", mSUPGConv2D);
+    
     //KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);    
 }
 
