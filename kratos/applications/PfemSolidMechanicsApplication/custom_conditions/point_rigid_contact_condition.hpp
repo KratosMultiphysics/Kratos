@@ -441,7 +441,6 @@ protected:
     /**
      * Initialize System Matrices
      */
-
     virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					  VectorType& rRightHandSideVector,
 					  Flags& rCalculationFlags);
@@ -495,7 +494,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the Contact Forces Vector 
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      GeneralVariables& rVariables,
