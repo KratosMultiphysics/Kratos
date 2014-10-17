@@ -313,25 +313,31 @@ void HomogenizeFromDEMMesh(
 
     // searching neighbours
     std::vector<double> search_radii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-    VectorResultNodesContainerType vectors_of_neighbouring_balls; // list of nodal arrays of pointers to he node's neighbours
-    VectorDistanceType vectors_of_distances; // list of nodal arrays of distances to the node's neighbours
+    VectorResultNodesContainerType vectors_of_neighbouring_nodes; // list of nodal arrays of pointers to the particle's nodal neighbours
+    VectorDistanceType vectors_of_distances; // list of nodal arrays of distances to the particle's neighbours
 
-    SearchNodalNeighbours(rfluid_model_part, rdem_model_part, search_radius, search_radii, vectors_of_neighbouring_balls, vectors_of_distances);
+    SearchParticleNodalNeighbours(rfluid_model_part, rdem_model_part, search_radius, search_radii, vectors_of_neighbouring_nodes, vectors_of_distances);
 
     DensityFunctionPolynomial<3> weighing_function(search_radius, shape_factor);
 
-    for (unsigned int i = 0; i < rfluid_model_part.Nodes().size(); ++i){
+    for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
         weighing_function.ComputeWeights(vectors_of_distances[i], vectors_of_distances[i]);
+    }
+
+    for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
+        NodeIteratorType inode = rdem_model_part.NodesBegin() + i;
+
+        CalculateNodalFluidFractionByAveraging(*(inode.base()), vectors_of_neighbouring_nodes[i], vectors_of_distances[i]);
+
+        for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
+            ComputeHomogenizedNodalVariable(*(inode.base()), vectors_of_neighbouring_nodes[i], vectors_of_distances[i], mFluidCouplingVariables[j]);
+        }
     }
 
     for (unsigned int i = 0; i < rfluid_model_part.Nodes().size(); ++i){
         NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
-
-        CalculateNodalFluidFractionByAveraging(*(inode.base()), vectors_of_neighbouring_balls[i], vectors_of_distances[i]);
-
-        for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
-            ComputeHomogenizedNodalVariable(*(inode.base()), vectors_of_neighbouring_balls[i], vectors_of_distances[i], mFluidCouplingVariables[j]);
-        }
+        double& fluid_fraction = inode->FastGetSolutionStepValue(FLUID_FRACTION);
+        fluid_fraction = 1.0 - fluid_fraction;
     }
 
     KRATOS_CATCH("")
@@ -578,12 +584,12 @@ void InterpolateOtherFluidVariables(
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void SearchNodalNeighbours(ModelPart& rfluid_model_part,
-                           ModelPart& rdem_model_part,
-                           const double& search_radius,
-                           std::vector<double>& search_radii,
-                           VectorResultNodesContainerType& vectors_of_neighbouring_balls,
-                           VectorDistanceType& vectors_of_distances)
+void SearchNodeParticularNeighbours(ModelPart& rfluid_model_part,
+                                    ModelPart& rdem_model_part,
+                                    const double& search_radius,
+                                    std::vector<double>& search_radii,
+                                    VectorResultNodesContainerType& vectors_of_neighbouring_balls,
+                                    VectorDistanceType& vectors_of_distances)
 {
   KRATOS_TRY
 
@@ -600,6 +606,30 @@ void SearchNodalNeighbours(ModelPart& rfluid_model_part,
   KRATOS_CATCH("")
 }
 
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void SearchParticleNodalNeighbours(ModelPart& rfluid_model_part,
+                                   ModelPart& rdem_model_part,
+                                   const double& search_radius,
+                                   std::vector<double>& search_radii,
+                                   VectorResultNodesContainerType& vectors_of_neighbouring_nodes,
+                                   VectorDistanceType& vectors_of_distances)
+{
+  KRATOS_TRY
+
+  search_radii.resize(rdem_model_part.Nodes().size());
+  vectors_of_neighbouring_nodes.resize(rdem_model_part.Nodes().size());
+  vectors_of_distances.resize(rdem_model_part.Nodes().size());
+
+  for (unsigned int i = 0; i != rdem_model_part.Nodes().size(); ++i){
+      search_radii[i] = search_radius; // spatial search is designed for varying radius
+  }
+
+  mpSpSearch->SearchNodesInRadiusExclusive(rfluid_model_part, rdem_model_part.NodesArray(), search_radii, vectors_of_neighbouring_nodes, vectors_of_distances);
+
+  KRATOS_CATCH("")
+}
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -1181,7 +1211,7 @@ void CalculateNodalFluidFractionWithLinearWeighing(
     array_1d<double, TDim + 1> N_2; // a dummy since we are not interested in its value at the Gauss points
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX; // a dummy
     double element_volume;
-    GeometryUtils::CalculateGeometryData(geom, DN_DX, N_2, element_volume);
+    GetGeometryData<TDim>(geom, DN_DX, N_2, element_volume);
 
     const double& radius         = (inode)->FastGetSolutionStepValue(RADIUS);
     const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
@@ -1209,7 +1239,7 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
         // computing the shape function derivatives
         Geometry< Node < 3 > >& geom = ielem->GetGeometry();
         double volume;
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
+        GetGeometryData(geom, DN_DX, N, volume);
 
         // getting the fluid fraction gradients;
 
@@ -1241,21 +1271,22 @@ void TransferByAveraging(
     Variable<array_1d<double, 3> >& r_destination_variable,
     Variable<array_1d<double, 3> >& r_origin_variable)
 {
-    array_1d<double, 3>& destination_data = pnode->FastGetSolutionStepValue(r_destination_variable);
-    const double& fluid_density  = pnode->FastGetSolutionStepValue(DENSITY);
-    const double& fluid_fraction = pnode->FastGetSolutionStepValue(FLUID_FRACTION);
-    array_1d<double, 3> neighbours_contribution = ZeroVector(3);
-
-    for (unsigned int i = 0; i < neighbours.size(); ++i){
-        const array_1d<double, 3>& origin_data = neighbours[i]->FastGetSolutionStepValue(r_origin_variable);
-        neighbours_contribution += origin_data * weights[i];
-    }
+    array_1d<double, 3>& origin_data = pnode->FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
-        neighbours_contribution /= (fluid_density * fluid_fraction);
-    }
 
-    destination_data += neighbours_contribution;
+        for (unsigned int i = 0; i != neighbours.size(); ++i){
+            double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
+            double fluid_density = neighbours[i]->FastGetSolutionStepValue(DENSITY);
+            double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
+            array_1d<double, 3> contribution = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
+            neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
+
+            if (IsFluidVariable(HYDRODYNAMIC_REACTION)){
+                neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION) += contribution;
+            }
+        }
+    }
 }
 
 //***************************************************************************************************************
@@ -1266,14 +1297,15 @@ void CalculateNodalFluidFractionByAveraging(
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights)
 {
-    double& destination_data = pnode->FastGetSolutionStepValue(FLUID_FRACTION);
+    if (neighbours.size() > 0){
+        double& radius = pnode->FastGetSolutionStepValue(RADIUS);
+        double solid_volume = 4.0 / 3.0 * KRATOS_M_PI * radius * radius * radius;
 
-    for (unsigned int i = 0; i != neighbours.size(); ++i){
-        const double& radius = neighbours[i]->FastGetSolutionStepValue(RADIUS);
-        destination_data += weights[i] * radius * radius * radius;
+        for (unsigned int i = 0; i != neighbours.size(); ++i){
+            double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
+            neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume / area ;
+        }
     }
-
-    destination_data = 1 -  4 / 3 * KRATOS_M_PI * destination_data;
 }
 
 //***************************************************************************************************************
@@ -1389,7 +1421,6 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 //***************************************************************************************************************
 
 inline unsigned int GetNearestNode(const array_1d<double, TDim + 1>& N)
-
 {
   unsigned int i_nearest_node = 0;
   double max                  = N[0];
@@ -1407,6 +1438,30 @@ inline unsigned int GetNearestNode(const array_1d<double, TDim + 1>& N)
 
 //***************************************************************************************************************
 //***************************************************************************************************************
+
+template <std::size_t SpaceDim>
+static inline void GetGeometryData(
+Element::GeometryType& geom,
+boost::numeric::ublas::bounded_matrix<double, SpaceDim + 1, SpaceDim>& DN_DX,
+array_1d<double, SpaceDim + 1>& N,
+double& measure)
+{
+    if (SpaceDim == 2){
+        static_cast<boost::numeric::ublas::bounded_matrix<double, 3, 2> >(DN_DX);
+        static_cast< array_1d<double, 3> >(N);
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, measure);
+    }
+
+    else {
+        static_cast<boost::numeric::ublas::bounded_matrix<double, 4, 3> >(DN_DX);
+        static_cast< array_1d<double, 4> >(N);
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, measure);
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
 
 ///@}
 ///@name Private Operators
