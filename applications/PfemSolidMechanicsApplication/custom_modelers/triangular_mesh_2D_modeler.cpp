@@ -1531,13 +1531,17 @@ namespace Kratos
 	    //   	accepted=mModelerUtilities.CheckSubdomain(vertices);
 	    // }
 
-	    
+	    //3.1.-
+	    bool self_contact = false;
+	    if(rMeshingVariables.RefiningOptions.Is(MeshModeler::CONTACT_SEARCH))
+	      self_contact = mModelerUtilities.CheckSubdomain(vertices);
+	    	    
 	    //4.- to control that the element is inside of the domain boundaries
 	    if(accepted)
 	      {
 		if(rMeshingVariables.RefiningOptions.Is(MeshModeler::CONTACT_SEARCH))
 		  {
-		    accepted=mModelerUtilities.CheckOuterCentre(vertices,rMeshingVariables.OffsetFactor);
+		    accepted=mModelerUtilities.CheckOuterCentre(vertices,rMeshingVariables.OffsetFactor, self_contact);
 		  }
 		else
 		  {
