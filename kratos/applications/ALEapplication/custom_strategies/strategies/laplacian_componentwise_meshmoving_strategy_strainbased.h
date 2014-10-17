@@ -291,7 +291,11 @@ public:
     {
         KRATOS_TRY;
 
-        double DeltaTime = (*mpMeshModelPart).GetProcessInfo()[DELTA_TIME];
+        double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+	
+	if (DeltaTime <= 0.0)
+	  KRATOS_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
+
         double coeff = 1/DeltaTime;
         if( mvel_order == 1) //mesh velocity calculated as (x(n+1)-x(n))/Dt
         {
