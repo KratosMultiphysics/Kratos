@@ -287,12 +287,6 @@ class Counter:
         self.step = initial_step
         self.step_residual = initial_step % steps_in_cicle
 
-    def GetStep(self):
-        return self.step
-
-    def GetStepInCycle(self):
-        return self.step_residual
-
     def Tick(self):
         self.step += 1
         self.step_residual += 1
@@ -304,6 +298,12 @@ class Counter:
 
         else:
             return False
+
+    def GetStep(self):
+        return self.step
+
+    def GetStepInCycle(self):
+        return self.step_residual
 
 
 class PostUtils:
