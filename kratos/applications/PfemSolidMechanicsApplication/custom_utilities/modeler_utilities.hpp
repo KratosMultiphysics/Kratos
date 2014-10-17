@@ -103,7 +103,7 @@ public:
     
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
     
-    bool CheckOuterCentre   (Geometry<Node<3> >& rGeometry, double& rOffsetFactor);
+    bool CheckOuterCentre   (Geometry<Node<3> >& rGeometry, double& rOffsetFactor, bool& rSelfContact);
 
     bool CheckGeometryShape (Geometry<Node<3> >& rGeometry, double& rShape);         
 
