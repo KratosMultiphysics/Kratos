@@ -502,9 +502,10 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
 time_dem     = 0.0
 Dt_DEM       = ProjectParameters.dem.MaxTimeStep
-DEM_step     = 0      # necessary to get a good random insertion of particles
-stat_steps   = 0      # relevant to the stationarity assessment tool
+DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
 stationarity = False
+coupling_counter = swim_proc.Counter(10)
+stationarity_counter = swim_proc.Counter(ProjectParameters.time_steps_per_stationarity_step, 1)
 mesh_motion = DEMFEMUtilities()
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
 
@@ -512,7 +513,6 @@ while (time <= final_time):
 
     time = time + Dt
     step += 1
-    stat_steps += 1
     fluid_model_part.CloneTimeStep(time)
     print("\n", "TIME = ", time)
     sys.stdout.flush()
@@ -551,10 +551,9 @@ while (time <= final_time):
 
     # assessing stationarity
 
-        if (stat_steps >= ProjectParameters.time_steps_per_stationarity_step and ProjectParameters.stationary_problem_option):
+        if (stationarity_counter.Tick() and ProjectParameters.stationary_problem_option):
             print("Assessing Stationarity...")
             sys.stdout.flush()
-            stat_steps = 0
             stationarity = custom_functions_tool.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol)  # in the first time step the 'old' pressure vector is created and filled
 
             if (stationarity):
@@ -629,11 +628,11 @@ while (time <= final_time):
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.coupling_level_type == 1):
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
-        projection_module.ProjectFromParticles()
+        projection_module.ProjectFromParticles(coupling_counter.Tick())
 
         # conservation checks (debugging)
-        #cylinder_vol = 5 * math.pi
-        #dem_volume_tool = swim_proc.ProjectionDebugUtils(cylinder_vol, fluid_model_part, balls_model_part, custom_functions_tool)
+        #fluid_domain_vol = 5 * math.pi // write down the volume you know it has
+        #dem_volume_tool = swim_proc.ProjectionDebugUtils(fluid_domain_vol, fluid_model_part, balls_model_part, custom_functions_tool)
         #dem_volume_tool.PrintCurrentData()
 
     # printing if required
