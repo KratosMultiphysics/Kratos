@@ -237,6 +237,7 @@ class ProjectionDebugUtils:
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
+
         self.granul_utils                    = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                   = domain_volume
         self.number_of_balls                 = self.balls_model_part.NumberOfElements(0)
@@ -250,16 +251,16 @@ class ProjectionDebugUtils:
         self.global_solid_fraction           = 1 - self.global_fluid_fraction
         self.balls_per_area                  = domain_volume / self.number_of_balls
         self.fluid_on_balls_total_force      = Array3()
-        self.proj_fluid_on_balls_total_force = Array3()
+        self.proj_balls_on_fluid_total_force = Array3()
         self.custom_utils.CalculateTotalHydrodynamicForceOnParticles(self.balls_model_part, self.fluid_on_balls_total_force)
-        self.custom_utils.CalculateTotalHydrodynamicForceOnFluid(self.fluid_model_part, self.proj_fluid_on_balls_total_force)
+        self.custom_utils.CalculateTotalHydrodynamicForceOnFluid(self.fluid_model_part, self.proj_balls_on_fluid_total_force)
 
     def PrintCurrentData(self):
 
-        tot_len = 32 # total length of the line including spaces
+        tot_len = 32 # total length of each line, including spaces
         print()
         print("Projection-related measurements")
-        print("************************************************")
+        print("*****************************************************")
         print(GetWordWithSpaces("number_of_balls", tot_len)                 + '=', self.number_of_balls)
         print(GetWordWithSpaces("domain_volume", tot_len)                   + '=', self.domain_volume)
         print(GetWordWithSpaces("fluid_volume", tot_len)                    + '=', self.fluid_volume)
@@ -272,9 +273,38 @@ class ProjectionDebugUtils:
         print(GetWordWithSpaces("global_solid_fraction", tot_len)           + '=', self.global_solid_fraction)
         print(GetWordWithSpaces("balls_per_area", tot_len)                  + '=', self.balls_per_area)
         print(GetWordWithSpaces("fluid_on_balls_total_force", tot_len)      + '=', self.fluid_on_balls_total_force)
-        print(GetWordWithSpaces("proj_fluid_on_balls_total_force", tot_len) + '=', self.proj_fluid_on_balls_total_force)
-        print("************************************************")
+        print(GetWordWithSpaces("proj_balls_on_fluid_total_force", tot_len) + '=', self.proj_balls_on_fluid_total_force)
+        print("*****************************************************")
         print()
+
+# This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle and the initial step
+# Function Tick() adds 1 to the general counter and to the cycle counter, returning True when the cycling counter is back to the beggining of the cycle.
+
+class Counter:
+
+    def __init__(self, steps_in_cicle, initial_step = 0):
+        self.steps_in_cicle = steps_in_cicle
+        self.step = initial_step
+        self.step_residual = initial_step % steps_in_cicle
+
+    def GetStep(self):
+        return self.step
+
+    def GetStepInCycle(self):
+        return self.step_residual
+
+    def Tick(self):
+        self.step += 1
+        self.step_residual += 1
+
+        if (self.step_residual % self.steps_in_cicle == 1):
+            self.step_residual = 1
+
+            return True
+
+        else:
+            return False
+
 
 class PostUtils:
 
