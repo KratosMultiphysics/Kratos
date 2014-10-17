@@ -108,6 +108,7 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
 // 0:   Linear         Constant            Constant
 // 1:   Linear         Linear              Constant
 // 2:   Linear         Linear              Linear
+// 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
 BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
@@ -142,76 +143,75 @@ virtual ~BinBasedDEMFluidCoupledMapping() {}
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void AddDEMCouplingVariable(const VariableData& rVariable){
-    mDEMCouplingVariables.Add(rVariable);
+void AddDEMCouplingVariable(const VariableData& r_variable){
+    mDEMCouplingVariables.Add(r_variable);
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void AddFluidCouplingVariable(const VariableData& rVariable){
-    mFluidCouplingVariables.Add(rVariable);
+void AddFluidCouplingVariable(const VariableData& r_variable){
+    mFluidCouplingVariables.Add(r_variable);
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 /// Interpolate fluid data onto the DEM model part.
 /**
-  * @param rfluid_model_part: the origin model part from which to project
-  * @param rdem_model_part: the destination model part of which we want to interpolate its nodal values
+  * @param r_fluid_model_part: the origin model part from which to project
+  * @param r_dem_model_part: the destination model part of which we want to interpolate its nodal values
   * @param bin_of_objects_fluid: pre-assembled bin of objects (elelments of the fluid mesh). It is to be constructed separately
   * @see binbased_nodes_in_element_locator
 */
 // data_to_project to DEM mesh = alpha * new_data + (1 - alpha) * old_data
 
 void InterpolateFromFluidMesh(
-    ModelPart& rfluid_model_part,
-    ModelPart& rdem_model_part,
+    ModelPart& r_fluid_model_part,
+    ModelPart& r_dem_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
     const double alpha)
 {
     KRATOS_TRY
 
     // setting interpolated variables to their default values
-    ResetDEMVariables(rdem_model_part);
+    ResetDEMVariables(r_dem_model_part);
 
-    array_1d<double, TDim + 1 > N;
+    array_1d<double, TDim + 1> N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-    const int nparticles = rdem_model_part.Nodes().size();
 
     #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < nparticles; i++){
-        NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pparticle = *(iparticle.base());
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
 
-        if (pparticle->IsNot(BLOCKED)){
-            Element::Pointer pelement;
+        if (p_particle->IsNot(BLOCKED)){
+            Element::Pointer p_element;
 
             // looking for the fluid element in which the DEM node falls
-            bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, results.begin(), max_results);
+            bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
 
             // interpolating the variables
 
             if (is_found){
 
-                pparticle->Set(INSIDE, true);
+                p_particle->Set(INSIDE, true);
 
                 for (unsigned int j = 0; j != mDEMCouplingVariables.size(); ++j){
-                    Project(pelement, N, pparticle, mDEMCouplingVariables[j], alpha);
+                    Project(p_element, N, p_particle, mDEMCouplingVariables[j], alpha);
                 }
             }
 
             else {
-                pparticle->Set(INSIDE, false);
+                p_particle->Set(INSIDE, false);
             }
         }
     }
 
     if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
 
-      const double delta_time_inv = 1.0 / rfluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
-      MultiplyNodalVariableBy(rdem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
+      const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
+      MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
 
     }
 
@@ -223,37 +223,35 @@ void InterpolateFromFluidMesh(
 // data_to_project to DEM mesh = current fluid data
 
 void InterpolateFromNewestFluidMesh(
-    ModelPart& rfluid_model_part,
-    ModelPart& rdem_model_part,
+    ModelPart& r_fluid_model_part,
+    ModelPart& r_dem_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)
 {
     KRATOS_TRY
 
     // setting interpolated variables to their default values
-    ResetDEMVariables(rdem_model_part);
+    ResetDEMVariables(r_dem_model_part);
 
-    array_1d<double, TDim + 1 > N;
+    array_1d<double, TDim + 1> N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-    const int nparticles = rdem_model_part.Nodes().size();
 
     #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < nparticles; i++){
-        NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pparticle = *(iparticle.base());
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
 
-        if (pparticle->IsNot(BLOCKED)){
-            Element::Pointer pelement;
+        if (p_particle->IsNot(BLOCKED)){
+            Element::Pointer p_element;
 
             // looking for the fluid element in which the DEM node falls
-            bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, results.begin(), max_results);
+            bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
 
             // interpolating variables
-
             if (is_found){
 
                 for (unsigned int j = 0; j != mDEMCouplingVariables.size(); ++j){
-                    Project(pelement, N, pparticle, mDEMCouplingVariables[j]);
+                    Project(p_element, N, p_particle, mDEMCouplingVariables[j]);
                 }
             }
         }
@@ -261,8 +259,8 @@ void InterpolateFromNewestFluidMesh(
 
     if (IsDEMVariable(FLUID_ACCEL_PROJECTED)){
 
-        const double delta_time_inv = 1.0 / rfluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
-        MultiplyNodalVariableBy(rdem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
+        const double delta_time_inv = 1.0 / r_fluid_model_part.GetProcessInfo().GetValue(DELTA_TIME);
+        MultiplyNodalVariableBy(r_dem_model_part, FLUID_ACCEL_PROJECTED, delta_time_inv);
 
     }
 
@@ -274,8 +272,8 @@ void InterpolateFromNewestFluidMesh(
 
 /// Interpolate form the DEM  to the fluid mesh
 /**
-  * @param rdem_model_part: the origin model part from which to project
-  * @param rfluid_model_part: the destination model part of which we want to interpolate its nodal values
+  * @param r_dem_model_part: the origin model part from which to project
+  * @param r_fluid_model_part: the destination model part of which we want to interpolate its nodal values
   * @param bin_of_objects_fluid: pre-assembled bin of objects (elelments of the fluid mesh). It is to be constructed separately
   * @see binbased_nodes_in_element_locator
 */
@@ -285,18 +283,18 @@ void InterpolateFromNewestFluidMesh(
 //  data_to_project to fluid mesh = current DEM data
 
 void InterpolateFromDEMMesh(
-    ModelPart& rdem_model_part,
-    ModelPart& rfluid_model_part,
+    ModelPart& r_dem_model_part,
+    ModelPart& r_fluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
     KRATOS_TRY
 
     // setting interpolated variables to their default values
-    ResetFluidVariables(rfluid_model_part);
+    ResetFluidVariables(r_fluid_model_part);
     // calculating the fluid fraction
-    InterpolateFluidFraction(rdem_model_part, rfluid_model_part, bin_of_objects_fluid);
+    InterpolateFluidFraction(r_dem_model_part, r_fluid_model_part, bin_of_objects_fluid);
     // calculating the rest of fluid variables (particle-fluid force etc.). The solid fraction must be known at this point as it may be used in this step
-    InterpolateOtherFluidVariables(rdem_model_part, rfluid_model_part, bin_of_objects_fluid);
+    InterpolateOtherFluidVariables(r_dem_model_part, r_fluid_model_part, bin_of_objects_fluid);
 
     KRATOS_CATCH("")
 }
@@ -306,8 +304,8 @@ void InterpolateFromDEMMesh(
 //  data_to_project to fluid mesh = current DEM data
 
 void HomogenizeFromDEMMesh(
-    ModelPart& rdem_model_part,
-    ModelPart& rfluid_model_part,
+    ModelPart& r_dem_model_part,
+    ModelPart& r_fluid_model_part,
     const double& search_radius,
     const double& shape_factor,
     bool must_search = true) // it is the density function's maximum divided by its support's radius
@@ -315,42 +313,51 @@ void HomogenizeFromDEMMesh(
     KRATOS_TRY
 
     // setting interpolated variables to their default values
-    ResetFluidVariables(rfluid_model_part);
+    ResetFluidVariables(r_fluid_model_part);
 
-    // searching neighbour nodes to each particle (it will have an influence over them only)
+    // searching neighbour nodes to each particle (it will have an influence on them only)
+
     if (must_search){
-        SearchParticleNodalNeighbours(rfluid_model_part, rdem_model_part, search_radius, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+        SearchParticleNodalNeighbours(r_fluid_model_part, r_dem_model_part, search_radius);
     }
 
     else { // we keep the old neighbours
-        RecalculateDistances(rfluid_model_part, rdem_model_part);
+        RecalculateDistances(r_fluid_model_part, r_dem_model_part);
     }
+
+    // calculating weights for each particle's nodal contributions
 
     DensityFunctionPolynomial<3> weighing_function(search_radius, shape_factor);
 
-    for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
         weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfDistances[i]);
     }
 
-    for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
-        NodeIteratorType inode = rdem_model_part.NodesBegin() + i;
+    // transferring fluid fraction information onto the fluid
 
-        CalculateNodalFluidFractionByAveraging(*(inode.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i]);
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+
+        CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i]);
     }
 
-    for (unsigned int i = 0; i < rfluid_model_part.Nodes().size(); ++i){
-        NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
-        double& fluid_fraction = inode->FastGetSolutionStepValue(FLUID_FRACTION);
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+        double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
 
         fluid_fraction = 1.0 - fluid_fraction;
     }
 
+    // transferring the rest of effects onto the fluid
+
     for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
 
-        for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
-            NodeIteratorType inode = rdem_model_part.NodesBegin() + i;
+        for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+            NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
 
-            ComputeHomogenizedNodalVariable(*(inode.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+            ComputeHomogenizedNodalVariable(*(i_particle.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i], mFluidCouplingVariables[j]);
         }
     }
 
@@ -361,21 +368,18 @@ void HomogenizeFromDEMMesh(
 //***************************************************************************************************************
 
 void ComputePostProcessResults(
-    ModelPart& rdem_model_part,
-    ModelPart& rfluid_model_part,
+    ModelPart& r_dem_model_part,
+    ModelPart& r_fluid_model_part,
     ModelPart& rfem_dem_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
     const ProcessInfo& r_current_process_info)
 {
-    const int n_dem_elements = rdem_model_part.Elements().size();
-    const int n_fluid_nodes  = rfluid_model_part.Nodes().size();
-
     if (IsDEMVariable(REYNOLDS_NUMBER)){
 
         #pragma omp parallel for
-        for (int i = 0; i < n_dem_elements; i++){
-            ElementIteratorType ielem = rdem_model_part.ElementsBegin() + i;
-            Geometry< Node<3> >& geom = ielem->GetGeometry();
+        for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+            ElementIteratorType ielem = r_dem_model_part.ElementsBegin() + i;
+            Geometry<Node<3> >& geom = ielem->GetGeometry();
             double& reynolds_number = geom[0].FastGetSolutionStepValue(REYNOLDS_NUMBER);
             ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
         }
@@ -384,11 +388,11 @@ void ComputePostProcessResults(
     if (IsFluidVariable(MESH_VELOCITY1)){
 
         #pragma omp parallel for
-        for (int i = 0; i < n_fluid_nodes; i++){
-            NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
-            double fluid_fraction                         = inode->FastGetSolutionStepValue(FLUID_FRACTION);
-            const array_1d<double, 3>& darcy_vel          = inode->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& space_averaged_fluid_vel = inode->FastGetSolutionStepValue(MESH_VELOCITY1);
+        for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
+            NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+            double fluid_fraction                         = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+            const array_1d<double, 3>& darcy_vel          = i_node->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3>& space_averaged_fluid_vel = i_node->FastGetSolutionStepValue(MESH_VELOCITY1);
             space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
         }
     }
@@ -396,10 +400,10 @@ void ComputePostProcessResults(
     if (IsFluidVariable(SOLID_FRACTION)){
 
         #pragma omp parallel for
-        for (int i = 0; i < n_fluid_nodes; i++){
-            NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
-            double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION);
-            solid_fraction = 1.0 - inode->FastGetSolutionStepValue(FLUID_FRACTION);
+        for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
+            NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
+            double& solid_fraction = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+            solid_fraction = 1.0 - i_node->FastGetSolutionStepValue(FLUID_FRACTION);
         }
     }
 }
@@ -528,35 +532,34 @@ VectorDistanceType mVectorsOfDistances; // list of nodal arrays of distances to 
 //***************************************************************************************************************
 
 void InterpolateFluidFraction(
-    ModelPart& rdem_model_part,
-    ModelPart& rfluid_model_part,
+    ModelPart& r_dem_model_part,
+    ModelPart& r_fluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
-    array_1d<double, TDim + 1 > N;
+    array_1d<double, TDim + 1> N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-    const int nparticles = rdem_model_part.Nodes().size();
 
     #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < nparticles; i++){
-        NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pparticle = *(iparticle.base());
-        Element::Pointer pelement;
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
+        Element::Pointer p_element;
 
         // looking for the fluid element in which the DEM node falls
-        bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, results.begin(), max_results);
+        bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
 
         // interpolating variables
 
         if (is_found) {
-            DistributeDimensionalContributionToFluidFraction(pelement, N, pparticle);
+            DistributeDimensionalContributionToFluidFraction(p_element, N, p_particle);
         }
     }
 
-    CalculateFluidFraction(rfluid_model_part);
+    CalculateFluidFraction(r_fluid_model_part);
 
     if (IsFluidVariable(FLUID_FRACTION_GRADIENT)){
-        CalculateFluidFractionGradient(rfluid_model_part);
+        CalculateFluidFractionGradient(r_fluid_model_part);
     }
 }
 
@@ -564,31 +567,30 @@ void InterpolateFluidFraction(
 //***************************************************************************************************************
 
 void InterpolateOtherFluidVariables(
-    ModelPart& rdem_model_part,
-    ModelPart& rfluid_model_part,
+    ModelPart& r_dem_model_part,
+    ModelPart& r_fluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
     // resetting the variables to be mapped
-    array_1d<double, TDim + 1 > N;
+    array_1d<double, TDim + 1> N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-    const int nparticles = rdem_model_part.Nodes().size();
 
     #pragma omp parallel for firstprivate(results, N)
-    for (int i = 0; i < nparticles; i++){
-        NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pparticle = *(iparticle.base());
-        Element::Pointer pelement;
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
+        Element::Pointer p_element;
 
         // looking for the fluid element in which the DEM node falls
-        bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, results.begin(), max_results);
+        bool is_found = bin_of_objects_fluid.FindPointOnMesh(p_particle->Coordinates(), N, p_element, results.begin(), max_results);
 
         // interpolating variables
 
         if (is_found) {
 
             for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
-                Distribute(pelement, N, pparticle, mFluidCouplingVariables[j]);
+                Distribute(p_element, N, p_particle, mFluidCouplingVariables[j]);
             }
         }
     }
@@ -597,36 +599,12 @@ void InterpolateOtherFluidVariables(
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void SearchNodeParticularNeighbours(ModelPart& rfluid_model_part,
-                                    ModelPart& rdem_model_part,
-                                    const double& search_radius,
-                                    std::vector<double>& search_radii,
-                                    VectorResultNodesContainerType& vectors_of_neighbouring_balls,
-                                    VectorDistanceType& vectors_of_distances)
+void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part,
+                                   ModelPart& r_dem_model_part,
+                                   const double& search_radius)
 {
-  search_radii.resize(rfluid_model_part.Nodes().size());
-  vectors_of_neighbouring_balls.resize(rfluid_model_part.Nodes().size());
-  vectors_of_distances.resize(rfluid_model_part.Nodes().size());
-
-  for (unsigned int i = 0; i != rfluid_model_part.Nodes().size(); ++i){
-      search_radii[i] = search_radius; // spatial search is designed for varying radius
-  }
-
-  mpSpSearch->SearchNodesInRadiusExclusive(rdem_model_part, rfluid_model_part.NodesArray(), search_radii, vectors_of_neighbouring_balls, vectors_of_distances);
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-void SearchParticleNodalNeighbours(ModelPart& rfluid_model_part,
-                                   ModelPart& rdem_model_part,
-                                   const double& search_radius,
-                                   std::vector<double>& search_radii,
-                                   VectorResultNodesContainerType& vectors_of_neighbouring_nodes,
-                                   VectorDistanceType& vectors_of_distances)
-{
-  if (mOldSize != rdem_model_part.Nodes().size())  {
-      mOldSize = rdem_model_part.Nodes().size();
+  if (mOldSize != r_dem_model_part.Nodes().size())  {
+      mOldSize = r_dem_model_part.Nodes().size();
       mSearchRadii.resize(mOldSize);
       mVectorsOfNeighNodes.resize(mOldSize);
       mVectorsOfDistances.resize(mOldSize);
@@ -634,25 +612,25 @@ void SearchParticleNodalNeighbours(ModelPart& rfluid_model_part,
 
   if (mOldSearchRadius != search_radius){
 
-      for (unsigned int i = 0; i != rdem_model_part.Nodes().size(); ++i){
+      for (unsigned int i = 0; i != r_dem_model_part.Nodes().size(); ++i){
           mSearchRadii[i] = search_radius; // spatial search is designed for varying radius
       }
   }
 
-  mpSpSearch->SearchNodesInRadiusExclusive(rfluid_model_part, rdem_model_part.NodesArray(), mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+  mpSpSearch->SearchNodesInRadiusExclusive(r_fluid_model_part, r_dem_model_part.NodesArray(), mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void RecalculateDistances(ModelPart& rfluid_model_part, ModelPart& rdem_model_part){
+void RecalculateDistances(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part){
 
-    for (unsigned int i = 0; i != rdem_model_part.Nodes().size(); ++i){
-        NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pparticle = *(iparticle.base());
+    for (unsigned int i = 0; i != r_dem_model_part.Nodes().size(); ++i){
+        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_particle = *(i_particle.base());
 
         for (unsigned int j = 0; j != mVectorsOfDistances[i].size(); ++j){
-            mVectorsOfDistances[i][j] = CalculateDistance(mVectorsOfNeighNodes[i][j], pparticle); // spatial search is designed for varying radius
+            mVectorsOfDistances[i][j] = CalculateDistance(mVectorsOfNeighNodes[i][j], p_particle); // spatial search is designed for varying radius
         }
     }
 }
@@ -690,7 +668,7 @@ bool IsFluidVariable(const VariableData& var)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-array_1d<double, 3> CalculateAcceleration(const Geometry< Node < 3 > >& geom, const array_1d<double, TDim + 1 >& N)
+array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const array_1d<double, TDim + 1>& N)
 {
     array_1d<double, 3> acceleration = ZeroVector(3);
 
@@ -706,9 +684,9 @@ array_1d<double, 3> CalculateAcceleration(const Geometry< Node < 3 > >& geom, co
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double CalculateNormOfSymmetricGradient(const Geometry< Node < 3 > >& geom, const int index)
+double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index)
 {
-    Geometry< Node < 3 > >::ShapeFunctionsGradientsType DN_DX;
+    Geometry<Node<3> >::ShapeFunctionsGradientsType DN_DX;
 
     // calculating the gradient of the shape functions on the Gauss points (its ok, since their value is constant over the element)
     geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
@@ -745,9 +723,9 @@ double CalculateNormOfSymmetricGradient(const Geometry< Node < 3 > >& geom, cons
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-array_1d<double, 3> CalculateVorticity(const Geometry< Node < 3 > >& geom, const int index)
+array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index)
 {
-    Geometry< Node < 3 > >::ShapeFunctionsGradientsType DN_DX;
+    Geometry<Node<3> >::ShapeFunctionsGradientsType DN_DX;
 
     // calculating the gradient of the shape functions on the Gauss points (its ok, since their value is constant over the element)
     geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
@@ -773,115 +751,115 @@ array_1d<double, 3> CalculateVorticity(const Geometry< Node < 3 > >& geom, const
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void Project(Element::Pointer el_it,
+void Project(Element::Pointer p_elem,
              const array_1d<double, TDim + 1>& N,
-             Node<3>::Pointer pnode,
+             Node<3>::Pointer p_node,
              const VariableData *r_destination_variable)
 {
     if (*r_destination_variable == FLUID_DENSITY_PROJECTED){
-        Interpolate(el_it, N, pnode, DENSITY, FLUID_DENSITY_PROJECTED);
+        Interpolate(p_elem, N, p_node, DENSITY, FLUID_DENSITY_PROJECTED);
     }
 
     else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && IsFluidVariable(FLUID_FRACTION)){
-        Interpolate(el_it, N, pnode, FLUID_FRACTION, FLUID_FRACTION_PROJECTED);
+        Interpolate(p_elem, N, p_node, FLUID_FRACTION, FLUID_FRACTION_PROJECTED);
     }
 
     else if (*r_destination_variable == FLUID_VEL_PROJECTED){
-        Interpolate(el_it, N, pnode, VELOCITY, FLUID_VEL_PROJECTED);
+        Interpolate(p_elem, N, p_node, VELOCITY, FLUID_VEL_PROJECTED);
     }
 
     else if (*r_destination_variable == PRESSURE_GRAD_PROJECTED){
-        Interpolate(el_it, N, pnode, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
+        Interpolate(p_elem, N, p_node, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
     }
 
     else if (*r_destination_variable == FLUID_VISCOSITY_PROJECTED){
-        Interpolate(el_it, N, pnode, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
+        Interpolate(p_elem, N, p_node, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
     }
 
     else if (*r_destination_variable == POWER_LAW_N){
-        Interpolate(el_it, N, pnode, POWER_LAW_N, POWER_LAW_N);
+        Interpolate(p_elem, N, p_node, POWER_LAW_N, POWER_LAW_N);
     }
 
     else if (*r_destination_variable == POWER_LAW_K){
-        Interpolate(el_it, N, pnode, POWER_LAW_K, POWER_LAW_K);
+        Interpolate(p_elem, N, p_node, POWER_LAW_K, POWER_LAW_K);
     }
 
     else if (*r_destination_variable == GEL_STRENGTH){
-        Interpolate(el_it, N, pnode, GEL_STRENGTH, GEL_STRENGTH);
+        Interpolate(p_elem, N, p_node, GEL_STRENGTH, GEL_STRENGTH);
     }
 
     else if (*r_destination_variable == DISTANCE){
-        Interpolate(el_it, N, pnode, DISTANCE, DISTANCE);
+        Interpolate(p_elem, N, p_node, DISTANCE, DISTANCE);
     }
 
     else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
-        InterpolateAcceleration(el_it, N, pnode, FLUID_ACCEL_PROJECTED);
+        InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
     }
 
     else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
-        InterpolateShearRate(el_it, N, pnode, SHEAR_RATE_PROJECTED);
+        InterpolateShearRate(p_elem, N, p_node, SHEAR_RATE_PROJECTED);
     }
 
     else if (*r_destination_variable == FLUID_VORTICITY_PROJECTED){
-        InterpolateVorticity(el_it, N, pnode, FLUID_VORTICITY_PROJECTED);
+        InterpolateVorticity(p_elem, N, p_node, FLUID_VORTICITY_PROJECTED);
     }
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void Project(Element::Pointer el_it,
+void Project(Element::Pointer p_elem,
              const array_1d<double, TDim + 1> N,
-             Node<3>::Pointer pnode,
+             Node<3>::Pointer p_node,
              const VariableData *r_destination_variable,
              double alpha)
 {
     if (*r_destination_variable == FLUID_DENSITY_PROJECTED){
-        Interpolate(el_it, N, pnode, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
+        Interpolate(p_elem, N, p_node, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && IsFluidVariable(FLUID_FRACTION)){
-        Interpolate(el_it, N, pnode, FLUID_FRACTION, FLUID_FRACTION_PROJECTED, alpha);
+        Interpolate(p_elem, N, p_node, FLUID_FRACTION, FLUID_FRACTION_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == FLUID_VEL_PROJECTED){
-        Interpolate(el_it, N, pnode, VELOCITY, FLUID_VEL_PROJECTED, alpha);
+        Interpolate(p_elem, N, p_node, VELOCITY, FLUID_VEL_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == PRESSURE_GRAD_PROJECTED){
-        Interpolate(el_it, N, pnode, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
+        Interpolate(p_elem, N, p_node, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == FLUID_VISCOSITY_PROJECTED){
-        Interpolate(el_it, N, pnode, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
+        Interpolate(p_elem, N, p_node, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == POWER_LAW_N){
-        Interpolate(el_it, N, pnode, POWER_LAW_N, POWER_LAW_N, alpha);
+        Interpolate(p_elem, N, p_node, POWER_LAW_N, POWER_LAW_N, alpha);
     }
 
     else if (*r_destination_variable == POWER_LAW_K){
-        Interpolate(el_it, N, pnode, POWER_LAW_K, POWER_LAW_K, alpha);
+        Interpolate(p_elem, N, p_node, POWER_LAW_K, POWER_LAW_K, alpha);
     }
 
     else if (*r_destination_variable == GEL_STRENGTH){
-        Interpolate(el_it, N, pnode, GEL_STRENGTH, GEL_STRENGTH, alpha);
+        Interpolate(p_elem, N, p_node, GEL_STRENGTH, GEL_STRENGTH, alpha);
     }
 
     else if (*r_destination_variable == DISTANCE){
-        Interpolate(el_it, N, pnode, DISTANCE, DISTANCE, alpha);
+        Interpolate(p_elem, N, p_node, DISTANCE, DISTANCE, alpha);
     }
 
     else if (*r_destination_variable == FLUID_ACCEL_PROJECTED){
-        InterpolateAcceleration(el_it, N, pnode, FLUID_ACCEL_PROJECTED);
+        InterpolateAcceleration(p_elem, N, p_node, FLUID_ACCEL_PROJECTED);
     }
 
     else if (*r_destination_variable == SHEAR_RATE_PROJECTED){
-        InterpolateShearRate(el_it, N, pnode, SHEAR_RATE_PROJECTED, alpha);
+        InterpolateShearRate(p_elem, N, p_node, SHEAR_RATE_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == FLUID_VORTICITY_PROJECTED){
-        InterpolateVorticity(el_it, N, pnode, FLUID_VORTICITY_PROJECTED, alpha);
+        InterpolateVorticity(p_elem, N, p_node, FLUID_VORTICITY_PROJECTED, alpha);
     }
 }
 
@@ -889,16 +867,16 @@ void Project(Element::Pointer el_it,
 //***************************************************************************************************************
 
 void DistributeDimensionalContributionToFluidFraction(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode)
+    Node<3>::Pointer p_node)
 {
     if (mCouplingType == 0 || mCouplingType == 1){
-        CalculateNodalFluidFractionWithConstantWeighing(el_it, N, pnode);
+        CalculateNodalFluidFractionWithConstantWeighing(p_elem, N, p_node);
     }
 
     else if (mCouplingType == 2){
-        CalculateNodalFluidFractionWithLinearWeighing(el_it, N, pnode);
+        CalculateNodalFluidFractionWithLinearWeighing(p_elem, N, p_node);
     }
 }
 
@@ -906,36 +884,36 @@ void DistributeDimensionalContributionToFluidFraction(
 //***************************************************************************************************************
 
 void Distribute(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     const VariableData *r_destination_variable)
 {
     if (mCouplingType == 0){
 
         if (*r_destination_variable == BODY_FORCE){
-            TransferWithConstantWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
+            TransferWithConstantWeighing(p_elem, N, p_node, BODY_FORCE, HYDRODYNAMIC_FORCE);
         }
     }
 
     else if (mCouplingType == 1){
 
         if (*r_destination_variable == BODY_FORCE){
-            TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
+            TransferWithLinearWeighing(p_elem, N, p_node, BODY_FORCE, HYDRODYNAMIC_FORCE);
         }
     }
 
     else if (mCouplingType == 2){
 
         if (*r_destination_variable == BODY_FORCE){
-            TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
+            TransferWithLinearWeighing(p_elem, N, p_node, BODY_FORCE, HYDRODYNAMIC_FORCE);
         }
     }
 
     else if (mCouplingType == - 1){
 
          if (*r_destination_variable == BODY_FORCE){
-             TransferWithLinearWeighing(el_it, N, pnode, BODY_FORCE, HYDRODYNAMIC_FORCE);
+             TransferWithLinearWeighing(p_elem, N, p_node, BODY_FORCE, HYDRODYNAMIC_FORCE);
          }
     }
 }
@@ -944,29 +922,29 @@ void Distribute(
 //***************************************************************************************************************
 
 void ComputeHomogenizedNodalVariable(
-    const Node<3>::Pointer pnode,
+    const Node<3>::Pointer p_node,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
     const VariableData *r_destination_variable)
 {
     if (*r_destination_variable == BODY_FORCE){
-        TransferByAveraging(pnode, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
+        TransferByAveraging(p_node, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
     }
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void  CalculateFluidFraction(ModelPart& rfluid_model_part)
+void  CalculateFluidFraction(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), rfluid_model_part.Nodes().size(), mNodesPartition);
+    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.Nodes().size(), mNodesPartition);
 
     #pragma omp parallel for
     for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
-        for (NodesArrayType::iterator inode = this->GetNodePartitionBegin(rfluid_model_part, k); inode != this->GetNodePartitionEnd(rfluid_model_part, k); ++inode){
-            double& fluid_fraction          = inode->FastGetSolutionStepValue(FLUID_FRACTION);
-            fluid_fraction                  = 1.0 - fluid_fraction / inode->FastGetSolutionStepValue(NODAL_AREA);
+        for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_fluid_model_part, k); i_node != this->GetNodePartitionEnd(r_fluid_model_part, k); ++i_node){
+            double& fluid_fraction          = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+            fluid_fraction                  = 1.0 - fluid_fraction / i_node->FastGetSolutionStepValue(NODAL_AREA);
 
             if (fluid_fraction < mMinFluidFraction){
                 fluid_fraction = mMinFluidFraction;
@@ -980,17 +958,16 @@ void  CalculateFluidFraction(ModelPart& rfluid_model_part)
 // project an array1D
 
 void Interpolate(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_origin_variable,
     Variable<array_1d<double, 3> >& r_destination_variable)
 {
-    // Geometry of the element of the origin model part
-    Geometry< Node<3> >& geom = el_it->GetGeometry();
+    // geometry of the element of the origin model part
+    Geometry<Node<3> >& geom = p_elem->GetGeometry();
 
-    // Destination data
-    array_1d<double, 3>& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+    array_1d<double, 3>& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
 
     step_data = N[0] * geom[0].FastGetSolutionStepValue(r_origin_variable);
 
@@ -1003,18 +980,18 @@ void Interpolate(
 //***************************************************************************************************************
 
 void Interpolate(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_origin_variable,
     Variable<array_1d<double, 3> >& r_destination_variable,
     double alpha)
 {
     // Geometry of the element of the origin model part
-    Geometry< Node<3> >& geom = el_it->GetGeometry();
+    Geometry<Node<3> >& geom = p_elem->GetGeometry();
 
     // Destination data
-    array_1d<double, 3>& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+    array_1d<double, 3>& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
     step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
 
     for (unsigned int i = 1; i < TDim + 1; i++){
@@ -1027,17 +1004,17 @@ void Interpolate(
 // projecting a scalar
 
 void Interpolate(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<double>& r_origin_variable,
     Variable<double>& r_destination_variable)
 {
     // Geometry of the element of the origin model part
-    Geometry< Node<3> >& geom = el_it->GetGeometry();
+    Geometry<Node<3> >& geom = p_elem->GetGeometry();
 
     // Destination data
-    double& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+    double& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
 
     step_data = N[0] * geom[0].FastGetSolutionStepValue(r_origin_variable);
 
@@ -1050,18 +1027,18 @@ void Interpolate(
 //***************************************************************************************************************
 
 void Interpolate(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<double>& r_origin_variable,
     Variable<double>& r_destination_variable,
     double alpha)
 {
     // Geometry of the element of the origin model part
-    Geometry< Node<3> >& geom = el_it->GetGeometry();
+    Geometry<Node<3> >& geom = p_elem->GetGeometry();
 
     // Destination data
-    double& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+    double& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
     step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
 
     for (unsigned int i = 1; i < TDim + 1; i++){
@@ -1073,25 +1050,25 @@ void Interpolate(
 //***************************************************************************************************************
 
 void InterpolateAcceleration(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_destination_variable)
 {
-    pnode->FastGetSolutionStepValue(r_destination_variable) = CalculateAcceleration(el_it->GetGeometry(), N);
+    p_node->FastGetSolutionStepValue(r_destination_variable) = CalculateAcceleration(p_elem->GetGeometry(), N);
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
 void InterpolateShearRate(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<double>& r_destination_variable)
 {
-    double shear_rate = CalculateNormOfSymmetricGradient(el_it->GetGeometry(), 0);
-    double& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+    double shear_rate = CalculateNormOfSymmetricGradient(p_elem->GetGeometry(), 0);
+    double& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
 
     step_data = shear_rate;
 }
@@ -1100,15 +1077,15 @@ void InterpolateShearRate(
 //***************************************************************************************************************
 
 void InterpolateShearRate(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<double>& r_destination_variable,
     double alpha)
 {
-    double shear_rate       = CalculateNormOfSymmetricGradient(el_it->GetGeometry(), 0);
-    double prev_shear_rate  = CalculateNormOfSymmetricGradient(el_it->GetGeometry(), 1);
-    double& step_data       = pnode->FastGetSolutionStepValue(r_destination_variable);
+    double shear_rate       = CalculateNormOfSymmetricGradient(p_elem->GetGeometry(), 0);
+    double prev_shear_rate  = CalculateNormOfSymmetricGradient(p_elem->GetGeometry(), 1);
+    double& step_data       = p_node->FastGetSolutionStepValue(r_destination_variable);
 
     step_data = alpha * shear_rate + (1.0 - alpha) * prev_shear_rate;
 }
@@ -1117,13 +1094,13 @@ void InterpolateShearRate(
 //***************************************************************************************************************
 
 void InterpolateVorticity(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_destination_variable)
 {
-    array_1d<double, 3> vorticity  = CalculateVorticity(el_it->GetGeometry(), 0);
-    array_1d<double, 3>& step_data = pnode->FastGetSolutionStepValue(r_destination_variable);
+    array_1d<double, 3> vorticity  = CalculateVorticity(p_elem->GetGeometry(), 0);
+    array_1d<double, 3>& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
 
     step_data = vorticity;
 }
@@ -1132,15 +1109,15 @@ void InterpolateVorticity(
 //***************************************************************************************************************
 
 void InterpolateVorticity(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_destination_variable,
     double alpha)
 {
-    array_1d<double, 3> vorticity      = CalculateVorticity(el_it->GetGeometry(), 0);
-    array_1d<double, 3> prev_vorticity = CalculateVorticity(el_it->GetGeometry(), 1);
-    array_1d<double, 3>& step_data     = pnode->FastGetSolutionStepValue(r_destination_variable);
+    array_1d<double, 3> vorticity      = CalculateVorticity(p_elem->GetGeometry(), 0);
+    array_1d<double, 3> prev_vorticity = CalculateVorticity(p_elem->GetGeometry(), 1);
+    array_1d<double, 3>& step_data     = p_node->FastGetSolutionStepValue(r_destination_variable);
 
     step_data = alpha * vorticity + (1.0 - alpha) * prev_vorticity;
 }
@@ -1149,16 +1126,16 @@ void InterpolateVorticity(
 //***************************************************************************************************************
 
 void TransferWithConstantWeighing(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_destination_variable,
     Variable<array_1d<double, 3> >& r_origin_variable)
 {
     // Geometry of the element of the destination model part
-    Geometry< Node<3> >& geom              = el_it->GetGeometry();
+    Geometry<Node<3> >& geom              = p_elem->GetGeometry();
     unsigned int i_nearest_node            = GetNearestNode(N);
-    const array_1d<double, 3>& origin_data = pnode->FastGetSolutionStepValue(r_origin_variable);
+    const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
     array_1d<double, 3>& destination_data  = geom[i_nearest_node].FastGetSolutionStepValue(r_destination_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
@@ -1178,15 +1155,15 @@ void TransferWithConstantWeighing(
 //***************************************************************************************************************
 
 void TransferWithLinearWeighing(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double,TDim + 1>& N,
-    Node<3>::Pointer pnode,
+    Node<3>::Pointer p_node,
     Variable<array_1d<double, 3> >& r_destination_variable,
     Variable<array_1d<double, 3> >& r_origin_variable)
 {
     // Geometry of the element of the destination model part
-    Geometry< Node<3> >& geom = el_it->GetGeometry();
-    const array_1d<double, 3>& origin_data = pnode->FastGetSolutionStepValue(r_origin_variable);
+    Geometry<Node<3> >& geom = p_elem->GetGeometry();
+    const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
 
@@ -1208,39 +1185,39 @@ void TransferWithLinearWeighing(
 //***************************************************************************************************************
 
 void CalculateNodalFluidFractionWithConstantWeighing(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer pnode)
+    Node<3>::Pointer p_node)
 {
     unsigned int i_nearest_node = GetNearestNode(N);
 
     // Geometry of the element of the destination model part
-    const double& radius         = pnode->FastGetSolutionStepValue(RADIUS);
+    const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
     const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-    el_it->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
+    p_elem->GetGeometry()[i_nearest_node].FastGetSolutionStepValue(FLUID_FRACTION) += particle_volume;
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
 void CalculateNodalFluidFractionWithLinearWeighing(
-    Element::Pointer el_it,
+    Element::Pointer p_elem,
     const array_1d<double, TDim + 1>& N,
-    Node<3>::Pointer inode)
+    Node<3>::Pointer p_node)
 {
     // Geometry of the element of the origin model part
-    Geometry< Node<3> >& geom = el_it->GetGeometry();
+    Geometry<Node<3> >& geom = p_elem->GetGeometry();
     array_1d<double, TDim + 1> N_2; // a dummy since we are not interested in its value at the Gauss points
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX; // a dummy
     double element_volume;
     GetGeometryData<TDim>(geom, DN_DX, N_2, element_volume);
 
-    const double& radius         = (inode)->FastGetSolutionStepValue(RADIUS);
+    const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
     const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
     for (unsigned int i = 0; i < TDim + 1; i++){
-        el_it->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
     }
 }
 
@@ -1249,18 +1226,18 @@ void CalculateNodalFluidFractionWithLinearWeighing(
 
 void CalculateFluidFractionGradient(ModelPart& r_model_part)
 {
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        noalias(inode->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
+    for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
+        noalias(i_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
     }
 
     array_1d <double, 3> grad;
-    array_1d <double, TDim + 1 > elemental_fluid_fractions;
-    array_1d <double, TDim + 1 > N; // shape functions vector
+    array_1d <double, TDim + 1> elemental_fluid_fractions;
+    array_1d <double, TDim + 1> N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++){
         // computing the shape function derivatives
-        Geometry< Node < 3 > >& geom = ielem->GetGeometry();
+        Geometry<Node<3> >& geom = ielem->GetGeometry();
         double volume;
         GetGeometryData(geom, DN_DX, N, volume);
 
@@ -1279,8 +1256,8 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
         }
     }
 
-    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        inode->GetSolutionStepValue(FLUID_FRACTION_GRADIENT) /= inode->GetSolutionStepValue(NODAL_AREA);
+    for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
+        i_node->GetSolutionStepValue(FLUID_FRACTION_GRADIENT) /= i_node->GetSolutionStepValue(NODAL_AREA);
     }
  }
 
@@ -1288,18 +1265,18 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
 //***************************************************************************************************************
 
 void TransferByAveraging(
-    const Node<3>::Pointer pnode,
+    const Node<3>::Pointer p_node,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
     Variable<array_1d<double, 3> >& r_destination_variable,
     Variable<array_1d<double, 3> >& r_origin_variable)
 {
-    if (pnode->IsNot(INSIDE)){
+    if (p_node->IsNot(INSIDE)){
 
         return;
     }
 
-    array_1d<double, 3>& origin_data = pnode->FastGetSolutionStepValue(r_origin_variable);
+    array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
 
@@ -1318,12 +1295,12 @@ void TransferByAveraging(
 //***************************************************************************************************************
 
 void CalculateNodalFluidFractionByAveraging( // it is actually calculating its complementary here; (1 - this value) is performed later
-    const Node<3>::Pointer pnode,
+    const Node<3>::Pointer p_node,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights)
 {
-    if (neighbours.size() > 0 && pnode->Is(INSIDE)){
-        double& radius = pnode->FastGetSolutionStepValue(RADIUS);
+    if (neighbours.size() > 0 && p_node->Is(INSIDE)){
+        double& radius = p_node->FastGetSolutionStepValue(RADIUS);
         double solid_volume = 4.0 / 3.0 * KRATOS_M_PI * radius * radius * radius;
 
         for (unsigned int i = 0; i != neighbours.size(); ++i){
@@ -1336,35 +1313,35 @@ void CalculateNodalFluidFractionByAveraging( // it is actually calculating its c
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor){
-
-    #pragma omp parallel for
-    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
-        NodeIteratorType inode = r_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pnode = *(inode.base());
-        pnode->FastGetSolutionStepValue(r_variable) *= factor;
-    }
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor){
-
-    #pragma omp parallel for
-    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
-        NodeIteratorType inode = r_model_part.NodesBegin() + i;
-        Node < 3 > ::Pointer pnode = *(inode.base());
-        pnode->FastGetSolutionStepValue(r_variable) *= factor;
-    }
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-void ResetDEMVariables(ModelPart& rdem_model_part)
+void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor)
 {
-    for (NodeIteratorType node_it = rdem_model_part.NodesBegin(); node_it != rdem_model_part.NodesEnd(); ++node_it){
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        Node <3> ::Pointer p_node = *(i_node.base());
+        p_node->FastGetSolutionStepValue(r_variable) *= factor;
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<array_1d<double, 3> >& r_variable, const double& factor)
+{
+    #pragma omp parallel for
+    for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
+        NodeIteratorType i_node = r_model_part.NodesBegin() + i;
+        Node<3>::Pointer p_node = *(i_node.base());
+        p_node->FastGetSolutionStepValue(r_variable) *= factor;
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void ResetDEMVariables(ModelPart& r_dem_model_part)
+{
+    for (NodeIteratorType node_it = r_dem_model_part.NodesBegin(); node_it != r_dem_model_part.NodesEnd(); ++node_it){
 
         for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
             ClearVariable(node_it, mDEMCouplingVariables[i]);
@@ -1375,9 +1352,9 @@ void ResetDEMVariables(ModelPart& rdem_model_part)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void ResetFluidVariables(ModelPart& rfluid_model_part)
+void ResetFluidVariables(ModelPart& r_fluid_model_part)
 {
-    for (NodeIteratorType node_it = rfluid_model_part.NodesBegin(); node_it != rfluid_model_part.NodesEnd(); ++node_it){
+    for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
 
         ClearVariable(node_it, FLUID_FRACTION);
 
@@ -1447,18 +1424,18 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 
 inline unsigned int GetNearestNode(const array_1d<double, TDim + 1>& N)
 {
-  unsigned int i_nearest_node = 0;
-  double max                  = N[0];
+    double max = N[0];
+    unsigned int i_nearest_node = 0;
 
-  for (unsigned int inode = 1; inode < TDim + 1; ++inode){
+    for (unsigned int i = 1; i < TDim + 1; ++i){
 
-      if (N[inode] > max){
-          max = N[inode];
-          i_nearest_node = inode;
-      }
+        if (N[i] > max){
+            max = N[i];
+            i_nearest_node = i;
+        }
     }
 
-  return i_nearest_node;
+    return i_nearest_node;
 }
 
 //***************************************************************************************************************
