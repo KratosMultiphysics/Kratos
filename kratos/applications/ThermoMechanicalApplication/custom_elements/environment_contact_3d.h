@@ -127,7 +127,7 @@ public:
 
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
@@ -184,6 +184,11 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    virtual void ComputeGaussHeatFluxAndHTC( unsigned int igauss, 
+                                             double& HTC_Alpha, 
+                                             double& heat_flux, 
+                                             ProcessInfo& rCurrentProcessInfo,
+                                             bool save_internal_variables = false);
 
 
     ///@}

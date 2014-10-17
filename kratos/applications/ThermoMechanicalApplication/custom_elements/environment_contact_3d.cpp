@@ -137,19 +137,40 @@ void EnvironmentContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         //take thermal properties
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
-        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+//        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
-        const double ambient_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
+//        const double ambient_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
 
         //loop over integration poitns. Nodeal integration is assumed!!
         for(unsigned int igauss = 0; igauss<3; igauss++)
         {
-            const double HTC_Alpha = GetGeometry()[igauss].FastGetSolutionStepValue(rTransferCoefficientVar);
-            rLeftHandSideMatrix(igauss,igauss) += HTC_Alpha * nodal_area;  
-            rRightHandSideVector[igauss] = HTC_Alpha *  nodal_area * ( ambient_T - GetGeometry()[igauss].FastGetSolutionStepValue(rUnknownVar) );
+               double HTC_Alpha, node_heat_flux;
+               ComputeGaussHeatFluxAndHTC( igauss, HTC_Alpha, node_heat_flux, rCurrentProcessInfo);
+               
+               rLeftHandSideMatrix(igauss,igauss) += HTC_Alpha * nodal_area;  
+               rRightHandSideVector[igauss] = node_heat_flux *  nodal_area;
+               
+//             const double HTC_Alpha = GetGeometry()[igauss].FastGetSolutionStepValue(rTransferCoefficientVar);
+//             rLeftHandSideMatrix(igauss,igauss) += HTC_Alpha * nodal_area;  
+//             rRightHandSideVector[igauss] = HTC_Alpha *  nodal_area * ( ambient_T - GetGeometry()[igauss].FastGetSolutionStepValue(rUnknownVar) );
 
         }
     }
+}
+
+void EnvironmentContact3D::ComputeGaussHeatFluxAndHTC( unsigned int igauss, 
+                                             double& HTC_Alpha, 
+                                             double& heat_flux, 
+                                             ProcessInfo& rCurrentProcessInfo,
+                                             bool save_internal_variables)
+{
+    const double ambient_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
+    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+    const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
+    const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+        
+    HTC_Alpha = GetGeometry()[igauss].FastGetSolutionStepValue(rTransferCoefficientVar);
+    heat_flux = HTC_Alpha  * ( ambient_T - GetGeometry()[igauss].FastGetSolutionStepValue(rUnknownVar) );
 }
 
 
