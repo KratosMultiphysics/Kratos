@@ -110,13 +110,18 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
 // 2:   Linear         Linear              Linear
 //----------------------------------------------------------------
 
-BinBasedDEMFluidCoupledMapping(double min_fluid_fraction, const int coupling_type, typename SpatialSearch::Pointer pSpSearch, const int n_particles_per_depth_distance = 1):
-                               mMinFluidFraction(min_fluid_fraction),
+BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
+                               const int coupling_type,
+                               typename SpatialSearch::Pointer pSpSearch,
+                               const int n_particles_per_depth_distance = 1)
+                             : mMinFluidFraction(min_fluid_fraction),
                                mCouplingType(coupling_type),
                                mParticlesPerDepthDistance(n_particles_per_depth_distance),
-                               mpSpSearch(pSpSearch)
-{
+                               mpSpSearch(pSpSearch),
+                               mOldSize(0),
+                               mOldSearchRadius(-1.0)
 
+{
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
     }
@@ -167,7 +172,7 @@ void InterpolateFromFluidMesh(
 {
     KRATOS_TRY
 
-    // setting interpolated values to 0
+    // setting interpolated variables to their default values
     ResetDEMVariables(rdem_model_part);
 
     array_1d<double, TDim + 1 > N;
@@ -224,7 +229,7 @@ void InterpolateFromNewestFluidMesh(
 {
     KRATOS_TRY
 
-    // setting interpolated values to 0
+    // setting interpolated variables to their default values
     ResetDEMVariables(rdem_model_part);
 
     array_1d<double, TDim + 1 > N;
@@ -286,7 +291,7 @@ void InterpolateFromDEMMesh(
 {
     KRATOS_TRY
 
-    // setting interpolated values to 0
+    // setting interpolated variables to their default values
     ResetFluidVariables(rfluid_model_part);
     // calculating the fluid fraction
     InterpolateFluidFraction(rdem_model_part, rfluid_model_part, bin_of_objects_fluid);
@@ -304,40 +309,49 @@ void HomogenizeFromDEMMesh(
     ModelPart& rdem_model_part,
     ModelPart& rfluid_model_part,
     const double& search_radius,
-    const double& shape_factor) // it is the density function's maximum over its support's radius
+    const double& shape_factor,
+    bool must_search = true) // it is the density function's maximum divided by its support's radius
 {
     KRATOS_TRY
 
-    // setting interpolated values to 0
+    // setting interpolated variables to their default values
     ResetFluidVariables(rfluid_model_part);
 
-    // searching neighbours
-    std::vector<double> search_radii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-    VectorResultNodesContainerType vectors_of_neighbouring_nodes; // list of nodal arrays of pointers to the particle's nodal neighbours
-    VectorDistanceType vectors_of_distances; // list of nodal arrays of distances to the particle's neighbours
+    // searching neighbour nodes to each particle (it will have an influence over them only)
+    if (must_search){
+        SearchParticleNodalNeighbours(rfluid_model_part, rdem_model_part, search_radius, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+    }
 
-    SearchParticleNodalNeighbours(rfluid_model_part, rdem_model_part, search_radius, search_radii, vectors_of_neighbouring_nodes, vectors_of_distances);
+    else { // we keep the old neighbours
+        RecalculateDistances(rfluid_model_part, rdem_model_part);
+    }
 
     DensityFunctionPolynomial<3> weighing_function(search_radius, shape_factor);
 
     for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
-        weighing_function.ComputeWeights(vectors_of_distances[i], vectors_of_distances[i]);
+        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfDistances[i]);
     }
 
     for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
         NodeIteratorType inode = rdem_model_part.NodesBegin() + i;
 
-        CalculateNodalFluidFractionByAveraging(*(inode.base()), vectors_of_neighbouring_nodes[i], vectors_of_distances[i]);
-
-        for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
-            ComputeHomogenizedNodalVariable(*(inode.base()), vectors_of_neighbouring_nodes[i], vectors_of_distances[i], mFluidCouplingVariables[j]);
-        }
+        CalculateNodalFluidFractionByAveraging(*(inode.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i]);
     }
 
     for (unsigned int i = 0; i < rfluid_model_part.Nodes().size(); ++i){
         NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
         double& fluid_fraction = inode->FastGetSolutionStepValue(FLUID_FRACTION);
+
         fluid_fraction = 1.0 - fluid_fraction;
+    }
+
+    for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
+
+        for (unsigned int i = 0; i < rdem_model_part.Nodes().size(); ++i){
+            NodeIteratorType inode = rdem_model_part.NodesBegin() + i;
+
+            ComputeHomogenizedNodalVariable(*(inode.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+        }
     }
 
     KRATOS_CATCH("")
@@ -503,6 +517,13 @@ VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
 typename SpatialSearch::Pointer mpSpSearch; // it is not be used for some interpolation options
 
+// neighbour lists (for mCouplingType = 3)
+std::vector<double> mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
+unsigned int mOldSize; // it is used to keep track of any changes in the number of particles
+double mOldSearchRadius;
+VectorResultNodesContainerType mVectorsOfNeighNodes; // list of nodal arrays of pointers to the particle's nodal neighbours
+VectorDistanceType mVectorsOfDistances; // list of nodal arrays of distances to the particle's neighbours
+
 //***************************************************************************************************************
 //***************************************************************************************************************
 
@@ -511,8 +532,6 @@ void InterpolateFluidFraction(
     ModelPart& rfluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
-    KRATOS_TRY
-
     array_1d<double, TDim + 1 > N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -539,8 +558,6 @@ void InterpolateFluidFraction(
     if (IsFluidVariable(FLUID_FRACTION_GRADIENT)){
         CalculateFluidFractionGradient(rfluid_model_part);
     }
-
-    KRATOS_CATCH("")
 }
 
 //***************************************************************************************************************
@@ -551,8 +568,6 @@ void InterpolateOtherFluidVariables(
     ModelPart& rfluid_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
 {
-    KRATOS_TRY
-
     // resetting the variables to be mapped
     array_1d<double, TDim + 1 > N;
     const int max_results = 10000;
@@ -577,8 +592,6 @@ void InterpolateOtherFluidVariables(
             }
         }
     }
-
-    KRATOS_CATCH("")
 }
 
 //***************************************************************************************************************
@@ -591,8 +604,6 @@ void SearchNodeParticularNeighbours(ModelPart& rfluid_model_part,
                                     VectorResultNodesContainerType& vectors_of_neighbouring_balls,
                                     VectorDistanceType& vectors_of_distances)
 {
-  KRATOS_TRY
-
   search_radii.resize(rfluid_model_part.Nodes().size());
   vectors_of_neighbouring_balls.resize(rfluid_model_part.Nodes().size());
   vectors_of_distances.resize(rfluid_model_part.Nodes().size());
@@ -602,8 +613,6 @@ void SearchNodeParticularNeighbours(ModelPart& rfluid_model_part,
   }
 
   mpSpSearch->SearchNodesInRadiusExclusive(rdem_model_part, rfluid_model_part.NodesArray(), search_radii, vectors_of_neighbouring_balls, vectors_of_distances);
-
-  KRATOS_CATCH("")
 }
 
 //***************************************************************************************************************
@@ -616,19 +625,36 @@ void SearchParticleNodalNeighbours(ModelPart& rfluid_model_part,
                                    VectorResultNodesContainerType& vectors_of_neighbouring_nodes,
                                    VectorDistanceType& vectors_of_distances)
 {
-  KRATOS_TRY
-
-  search_radii.resize(rdem_model_part.Nodes().size());
-  vectors_of_neighbouring_nodes.resize(rdem_model_part.Nodes().size());
-  vectors_of_distances.resize(rdem_model_part.Nodes().size());
-
-  for (unsigned int i = 0; i != rdem_model_part.Nodes().size(); ++i){
-      search_radii[i] = search_radius; // spatial search is designed for varying radius
+  if (mOldSize != rdem_model_part.Nodes().size())  {
+      mOldSize = rdem_model_part.Nodes().size();
+      mSearchRadii.resize(mOldSize);
+      mVectorsOfNeighNodes.resize(mOldSize);
+      mVectorsOfDistances.resize(mOldSize);
   }
 
-  mpSpSearch->SearchNodesInRadiusExclusive(rfluid_model_part, rdem_model_part.NodesArray(), search_radii, vectors_of_neighbouring_nodes, vectors_of_distances);
+  if (mOldSearchRadius != search_radius){
 
-  KRATOS_CATCH("")
+      for (unsigned int i = 0; i != rdem_model_part.Nodes().size(); ++i){
+          mSearchRadii[i] = search_radius; // spatial search is designed for varying radius
+      }
+  }
+
+  mpSpSearch->SearchNodesInRadiusExclusive(rfluid_model_part, rdem_model_part.NodesArray(), mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+void RecalculateDistances(ModelPart& rfluid_model_part, ModelPart& rdem_model_part){
+
+    for (unsigned int i = 0; i != rdem_model_part.Nodes().size(); ++i){
+        NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
+        Node < 3 > ::Pointer pparticle = *(iparticle.base());
+
+        for (unsigned int j = 0; j != mVectorsOfDistances[i].size(); ++j){
+            mVectorsOfDistances[i][j] = CalculateDistance(mVectorsOfNeighNodes[i][j], pparticle); // spatial search is designed for varying radius
+        }
+    }
 }
 
 //***************************************************************************************************************
@@ -923,11 +949,8 @@ void ComputeHomogenizedNodalVariable(
     const DistanceType& weights,
     const VariableData *r_destination_variable)
 {
-    if (mCouplingType < 0 || mCouplingType > - 1){
-
-        if (*r_destination_variable == BODY_FORCE){
-            TransferByAveraging(pnode, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
-        }
+    if (*r_destination_variable == BODY_FORCE){
+        TransferByAveraging(pnode, neighbours, weights, BODY_FORCE, HYDRODYNAMIC_FORCE);
     }
 }
 
@@ -1271,6 +1294,11 @@ void TransferByAveraging(
     Variable<array_1d<double, 3> >& r_destination_variable,
     Variable<array_1d<double, 3> >& r_origin_variable)
 {
+    if (pnode->IsNot(INSIDE)){
+
+        return;
+    }
+
     array_1d<double, 3>& origin_data = pnode->FastGetSolutionStepValue(r_origin_variable);
 
     if (r_origin_variable == HYDRODYNAMIC_FORCE){
@@ -1281,10 +1309,7 @@ void TransferByAveraging(
             double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
             array_1d<double, 3> contribution = - weights[i] * origin_data / (area * fluid_density * fluid_fraction);
             neighbours[i]->FastGetSolutionStepValue(r_destination_variable) += contribution;
-
-            if (IsFluidVariable(HYDRODYNAMIC_REACTION)){
-                neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION) += contribution;
-            }
+            neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION) += contribution;
         }
     }
 }
@@ -1292,12 +1317,12 @@ void TransferByAveraging(
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void CalculateNodalFluidFractionByAveraging(
+void CalculateNodalFluidFractionByAveraging( // it is actually calculating its complementary here; (1 - this value) is performed later
     const Node<3>::Pointer pnode,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights)
 {
-    if (neighbours.size() > 0){
+    if (neighbours.size() > 0 && pnode->Is(INSIDE)){
         double& radius = pnode->FastGetSolutionStepValue(RADIUS);
         double solid_volume = 4.0 / 3.0 * KRATOS_M_PI * radius * radius * radius;
 
@@ -1462,6 +1487,14 @@ double& measure)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+double inline CalculateDistance(Node<3>::Pointer a, Node<3>::Pointer b){
+    array_1d<double, 3> coor_a = a->Coordinates();
+    array_1d<double, 3> coor_b = b->Coordinates();
+    return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
 
 ///@}
 ///@name Private Operators
