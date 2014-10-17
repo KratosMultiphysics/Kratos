@@ -39,6 +39,7 @@
 #include "custom_elements/SUPG_conv_2d.h"
 //#include "custom_elements/Poisson_3d.h"
 #include "custom_elements/environment_contact_3d.h"
+#include "custom_elements/environment_contact_3d_virtualmould.h"
 
 namespace Kratos
 {
@@ -237,6 +238,7 @@ private:
     const SUPGConvDiffPhaseChange2D  mSUPGConvDiffPhaseChange2D;
     const SUPGConvDiffPhaseChange3D  mSUPGConvDiffPhaseChange3D;  
     const SUPGConv2D  mSUPGConv2D;  
+    const EnvironmentContact3DVirtualMould  mVirtualMouldElement3D;  
  //   const Poisson3D mPoisson3D;
     ///@}
     ///@name Private Operators
