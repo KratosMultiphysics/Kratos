@@ -75,9 +75,20 @@ virtual ~DensityFunctionPolynomial(){}
 
 void ComputeWeights(std::vector<double> & distances, std::vector<double> & weights)
 {
+    double sum_of_weights_inv = 0.0;
+
     for (unsigned int i = 0; i != distances.size(); ++i){
         double radius_2 = distances[i] * distances[i];
-        weights[i] = m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0;
+        double weight = m6 * radius_2 * radius_2 * radius_2 + m4 * radius_2 * radius_2 + m2 * radius_2 + m0;
+        weights[i] = weight;
+        sum_of_weights_inv += weight;
+    }
+
+    sum_of_weights_inv = 1.0 / sum_of_weights_inv;
+
+    // normalizing weights
+    for (unsigned int i = 0; i != distances.size(); ++i){
+        weights[i] *= sum_of_weights_inv;
     }
 }
 
