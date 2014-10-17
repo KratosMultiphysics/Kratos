@@ -787,16 +787,14 @@ public:
             //aaa = GetTickCount();
             pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
             //bbb += GetTickCount() - aaa;
-            /*KRATOS_WATCH( (*it)->Id() )
-            std::cout << "node ids" << std::endl;
-            for(unsigned int i=0; i<((*it)->GetGeometry()).size(); i++)
-                    std::cout << ((*it)->GetGeometry())[i].Id() << " ";
-            std::cout << std::endl;
-            for(unsigned int i=0; i<ElementalDofList.size(); i++)
-                    std::cout << (ElementalDofList[i]->Id()) << " ";
-            std::cout << std::endl;*/
-
-            //KRATOS_WATCH( ElementalDofList )
+            // KRATOS_WATCH( (*it)->Id() )
+            // std::cout << "node ids" << std::endl;
+            // for(unsigned int i=0; i<((*it)->GetGeometry()).size(); i++)
+            //         std::cout << ((*it)->GetGeometry())[i].Id() << " ";
+            // std::cout << std::endl;
+            // for(unsigned int i=0; i<ElementalDofList.size(); i++)
+            //         std::cout << (ElementalDofList[i]->Id()) << " ";
+            // std::cout << std::endl;
 
             //ccc = GetTickCount();
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
