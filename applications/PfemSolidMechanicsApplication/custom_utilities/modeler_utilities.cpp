@@ -348,7 +348,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool ModelerUtilities::CheckOuterCentre(Geometry<Node<3> >& rGeometry, double& rOffsetFactor)
+  bool ModelerUtilities::CheckOuterCentre(Geometry<Node<3> >& rGeometry, double& rOffsetFactor, bool& rSelfContact)
   {
     KRATOS_TRY
 
@@ -474,12 +474,12 @@ namespace Kratos
 	if(numouter==(num-1) && numextra==1)
 	  outer=true;
 	
-	if(numouter>0 && (numextra>0 && numorthogonal>0)){
+	if(numouter>0 && (numextra>0 && numorthogonal>0) && !rSelfContact){
 	  outer=true;
 	  std::cout<<"   Element with "<<num<<" corners accepted:case1 "<<std::endl;
 	}
 	
-	if(numouter==0 && (numextra>(num-2) && numorthogonal>0)){
+	if(numouter==0 && (numextra>(num-2) && numorthogonal>0) && !rSelfContact){
 	  outer=true;
 	  std::cout<<"   Element with "<<num<<" corners accepted:case2 "<<std::endl;
 	}
