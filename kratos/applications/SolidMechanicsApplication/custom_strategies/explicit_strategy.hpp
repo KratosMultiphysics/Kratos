@@ -313,16 +313,15 @@ public:
 
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
 
-        //move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
         
+        //move the mesh if needed
+        if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
         //Cleaning memory after the solution
         pScheme->Clean();
 

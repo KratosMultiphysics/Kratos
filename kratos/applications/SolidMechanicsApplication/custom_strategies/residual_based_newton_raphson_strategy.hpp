@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "includes/kratos_flags.h"
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -420,8 +421,7 @@ public:
     {
         KRATOS_TRY
 
-
-        //pointers needed in the solution
+	//pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
@@ -513,10 +513,10 @@ public:
         rDofSet = pBuilderAndSolver->GetDofSet();
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
         //move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
         if (is_converged == true)
         {
@@ -587,10 +587,10 @@ public:
             rDofSet = pBuilderAndSolver->GetDofSet();
             pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
+            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
             //move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
             //ResidualIsUpdated = false;
 
