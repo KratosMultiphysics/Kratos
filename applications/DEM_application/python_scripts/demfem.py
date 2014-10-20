@@ -68,9 +68,9 @@ KRATOSprint   = procedures.KRATOSprint
 procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
-dem_model_part = ModelPart("DEM_Part");
-fem_model_part = ModelPart("FEM_Part");
-mixed_model_part = ModelPart("Mixed_Part");
+dem_model_part      = ModelPart("DEM_Part");
+fem_model_part      = ModelPart("FEM_Part");
+mixed_model_part    = ModelPart("Mixed_Part");
 contact_model_part    = ""
 
 # Add variables
@@ -209,7 +209,6 @@ multifiles = (
     )
 
 demio.SetMultifileLists(multifiles)
-#prev_time = 0.0
 
 os.chdir(main_path)
 
@@ -218,6 +217,7 @@ KRATOSprint("Initializing Problem....")
 # Initialize GiD-IO
 demio.AddGlobalVariables()
 demio.AddBallVariables()
+demio.AddFEMBoundaryVariables()
 demio.AddContactVariables()
 demio.AddMpiVariables()
 demio.EnableMpiVariables()
@@ -235,22 +235,21 @@ demio.InitializeMesh(mixed_model_part,
                      fem_model_part,
                      contact_model_part)
 
-#initial_pr_time = timer.clock()
-#initial_real_time = timer.time()
-
 os.chdir(post_path)
-#demio.PrintResults(2)
 
 # Perform a partition to balance the problem
 parallelutils.Repart(dem_model_part)
 parallelutils.CalculateModelNewIds(dem_model_part)
 
 os.chdir(post_path)
-#demio.PrintResults(3)
+
+#Setting up the BoundingBox
+procedures.SetBoundingBox(dem_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
 solver                 = SolverStrategy.ExplicitStrategy(dem_model_part, fem_model_part,creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, dem_model_part)
+
 solver.Initialize()
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
@@ -262,8 +261,8 @@ inlet_option                     = 1
 dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 
 if (inlet_option):
-    max_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(dem_model_part)
-    max_FEM_node_Id = DEM_procedures.FindMaxNodeIdInModelPart(fem_model_part)
+    max_node_Id = procedures.FindMaxNodeIdInModelPart(dem_model_part)
+    max_FEM_node_Id = procedures.FindMaxNodeIdInModelPart(fem_model_part)
     if ( max_FEM_node_Id > max_node_Id):
         max_node_Id = max_FEM_node_Id
     creator_destructor.SetMaxNodeId(max_node_Id)
@@ -411,8 +410,8 @@ while ( time < DEM_parameters.FinalTime):
     #### PRINTING GRAPHS ####
     os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
-    if (DEM_parameters.VelocityTrapOption):
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
+    #if (DEM_parameters.VelocityTrapOption):
+     #   post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
