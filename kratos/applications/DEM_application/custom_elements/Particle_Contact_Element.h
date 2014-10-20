@@ -159,6 +159,8 @@ public:
     void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo );
     
     void PrepareForPrinting();
+    
+    void CalculateMeanContactArea(const bool has_mpi);
 
     ///@}
     ///@name Access
