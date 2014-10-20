@@ -133,12 +133,19 @@ class Procedures(object):
 
         # Initialization of member variables
         # SIMULATION FLAGS
-        self.rotation_OPTION        = Var_Translator(DEM_parameters.RotationOption)
-        self.bounding_box_OPTION    = Var_Translator(DEM_parameters.BoundingBoxOption)
-        self.contact_mesh_OPTION    = Var_Translator(DEM_parameters.ContactMeshOption)
+        self.rotation_OPTION               = Var_Translator(DEM_parameters.RotationOption)
+        self.bounding_box_OPTION           = Var_Translator(DEM_parameters.BoundingBoxOption)
+        self.automatic_bounding_box_OPTION = Var_Translator(DEM_parameters.AutomaticBoundingBoxOption)      
+        self.contact_mesh_OPTION           = Var_Translator(DEM_parameters.ContactMeshOption)
         #self.solver = solver
 
         # SIMULATION SETTINGS
+        self.b_box_minX = DEM_parameters.BoundingBoxMinX
+        self.b_box_minY = DEM_parameters.BoundingBoxMinY
+        self.b_box_minZ = DEM_parameters.BoundingBoxMinZ
+        self.b_box_maxX = DEM_parameters.BoundingBoxMaxX
+        self.b_box_maxY = DEM_parameters.BoundingBoxMaxY
+        self.b_box_maxZ = DEM_parameters.BoundingBoxMaxZ
         self.bounding_box_enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
        
         # MODEL
@@ -388,6 +395,25 @@ class Procedures(object):
 
         return maxid
 
+    
+    def SetBoundingBox(self, model_part, creator_destructor):
+        
+        b_box_low = Array3()
+        b_box_high = Array3()
+        b_box_low[0] = self.b_box_minX
+        b_box_low[1] = self.b_box_minY
+        b_box_low[2] = self.b_box_minZ
+        b_box_high[0] = self.b_box_maxX
+        b_box_high[1] = self.b_box_maxY
+        b_box_high[2] = self.b_box_maxZ
+               
+        creator_destructor.SetLowNode(b_box_low)
+        creator_destructor.SetHighNode(b_box_high)
+
+        if (self.bounding_box_OPTION):
+            creator_destructor.CalculateSurroundingBoundingBox(model_part, self.bounding_box_enlargement_factor,self. automatic_bounding_box_OPTION)
+            
+            
     def PreProcessModel(self, DEM_parameters):
         pass
 
@@ -605,6 +631,7 @@ class DEMIo(object):
         self.global_variables          = []
         self.ball_variables            = []
         self.ball_local_axis_variables = []
+        self.fem_boundary_variables    = []
         self.contact_variables         = []
         self.multifilelists            = []
 
@@ -644,6 +671,14 @@ class DEMIo(object):
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.ball_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.ball_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.ball_variables)
+     
+    def AddFEMBoundaryVariables(self):
+        pass
+        #self.PushPrintVar(DEM_parameters.PostWallsElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
+        #self.PushPrintVar(DEM_parameters.PostWallsPressure,                PRESSURE, self.fem_boundary_variables)
+        #self.PushPrintVar(DEM_parameters.PostWallsTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
+        #self.PushPrintVar(DEM_parameters.PostWallsShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
+        #self.PushPrintVar(DEM_parameters.PostWallsNodalArea,               NODAL_AREA, self.fem_boundary_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
@@ -718,14 +753,14 @@ class DEMIo(object):
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
             self.gid_io.InitializeMesh(0.0) 
-            self.gid_io.WriteMesh(rigid_face_model_part.GetMesh())
-            self.gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+            self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
 
             if (self.contact_mesh_option == "ON"):
-                self.gid_io.WriteMesh(contact_model_part.GetMesh())
+                self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
-            self.gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
+            self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
 
     def InitializeResults(self,mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part,time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
@@ -738,12 +773,12 @@ class DEMIo(object):
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
 
             self.gid_io.InitializeMesh(time) 
-            self.gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+            self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
-                self.gid_io.WriteMesh(contact_model_part.GetMesh())
-            self.gid_io.WriteMesh(rigid_face_model_part.GetMesh())
+                self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.FinalizeMesh()            
-            self.gid_io.InitializeResults(time, mixed_model_part.GetMesh())
+            self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
     def FinalizeMesh(self):
         if (self.filesystem == MultiFileFlag.SingleFile):
@@ -763,11 +798,14 @@ class DEMIo(object):
         for variable in self.ball_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)            
 
+    def PrintingFEMBoundaryVariables(self, export_model_part, time):
+        for variable in self.fem_boundary_variables:
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+            
     def PrintingContactElementsVariables(self, export_model_part, time):
         if (self.contact_mesh_option == "ON"):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
-                #self.gid_io.PrintOnGaussPoints(CONTACT_ORIENTATION, export_model_part, time)
 
     def PrintResults(self,mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part,time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
@@ -779,7 +817,8 @@ class DEMIo(object):
 
         self.PrintingGlobalVariables(mixed_model_part, time)
         self.PrintingBallsVariables(balls_model_part, time)
-        self.PrintingContactElementsVariables(rigid_face_model_part, time)
+        self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
+        self.PrintingContactElementsVariables(contact_model_part, time)
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
