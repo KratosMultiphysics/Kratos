@@ -112,13 +112,13 @@ void Particle_Contact_Element::Initialize()
     this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
     //this->GetValue(MEAN_CONTACT_AREA) = 0.0;   
     mMeanContactArea = 0.0;
-    this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
-    this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
     this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
     mFailureCriterionState = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+    mLocalContactAreaLow  = 0.0;
+    mLocalContactAreaHigh = 0.0;
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
@@ -139,6 +139,17 @@ void Particle_Contact_Element::PrepareForPrinting()
     this->GetValue(CONTACT_FAILURE)        = mContactFailure;
     this->GetValue(FAILURE_CRITERION_STATE)= mFailureCriterionState;
     this->GetValue(UNIDIMENSIONAL_DAMAGE)  = mUnidimendionalDamage; 
+    
+    KRATOS_CATCH( "" )
+    
+}
+
+void Particle_Contact_Element::CalculateMeanContactArea(const bool has_mpi)
+{
+    KRATOS_TRY
+            
+    if(!has_mpi) mMeanContactArea = 0.5 * ( mLocalContactAreaLow + mLocalContactAreaHigh );
+    else mMeanContactArea = mLocalContactAreaLow;
     
     KRATOS_CATCH( "" )
     
@@ -257,15 +268,7 @@ void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
 { 
-  if (rVariable == MEAN_CONTACT_AREA)
-  {
  
-    //this-> GetValue(MEAN_CONTACT_AREA) = 0.5* this-> GetValue(LOCAL_CONTACT_AREA_LOW) + 0.5* this-> GetValue(LOCAL_CONTACT_AREA_HIGH);
-    //mMeanContactArea = 0.5* this-> GetValue(LOCAL_CONTACT_AREA_LOW) + 0.5* this-> GetValue(LOCAL_CONTACT_AREA_HIGH);
-    mMeanContactArea = 0.5 * ( mLocalContactAreaLow + mLocalContactAreaHigh );
-
-  }
-  
   if (rVariable == DUMMY_DEBUG_DOUBLE)
   {
     
