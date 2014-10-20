@@ -73,6 +73,7 @@ class Procedures(DEM_procedures.Procedures):
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
             print(message)
+            sys.stdout.flush()
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
