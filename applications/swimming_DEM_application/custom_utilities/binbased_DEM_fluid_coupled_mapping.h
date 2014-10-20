@@ -334,7 +334,7 @@ void HomogenizeFromDEMMesh(
         weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfDistances[i]);
     }
 
-    // transferring fluid fraction information onto the fluid
+    // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
     for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
@@ -350,7 +350,7 @@ void HomogenizeFromDEMMesh(
         fluid_fraction = 1.0 - fluid_fraction;
     }
 
-    // transferring the rest of effects onto the fluid
+    // transferring the rest of effects onto the fluid (not a naturally parallel task)
 
     for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
 
@@ -1208,16 +1208,12 @@ void CalculateNodalFluidFractionWithLinearWeighing(
 {
     // Geometry of the element of the origin model part
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
-    array_1d<double, TDim + 1> N_2; // a dummy since we are not interested in its value at the Gauss points
-    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX; // a dummy
-    double element_volume;
-    GetGeometryData<TDim>(geom, DN_DX, N_2, element_volume);
 
     const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
     const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
     for (unsigned int i = 0; i < TDim + 1; i++){
-        p_elem->GetGeometry()[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
+        geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += N[i] * particle_volume; // no multiplying by element_volume since we devide by it to get the contributed volume fraction
     }
 }
 
@@ -1239,7 +1235,7 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
         // computing the shape function derivatives
         Geometry<Node<3> >& geom = ielem->GetGeometry();
         double volume;
-        GetGeometryData(geom, DN_DX, N, volume);
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
 
         // getting the fluid fraction gradients;
 
@@ -1436,29 +1432,6 @@ inline unsigned int GetNearestNode(const array_1d<double, TDim + 1>& N)
     }
 
     return i_nearest_node;
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-template <std::size_t SpaceDim>
-static inline void GetGeometryData(
-Element::GeometryType& geom,
-boost::numeric::ublas::bounded_matrix<double, SpaceDim + 1, SpaceDim>& DN_DX,
-array_1d<double, SpaceDim + 1>& N,
-double& measure)
-{
-    if (SpaceDim == 2){
-        static_cast<boost::numeric::ublas::bounded_matrix<double, 3, 2> >(DN_DX);
-        static_cast< array_1d<double, 3> >(N);
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, measure);
-    }
-
-    else {
-        static_cast<boost::numeric::ublas::bounded_matrix<double, 4, 3> >(DN_DX);
-        static_cast< array_1d<double, 4> >(N);
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, measure);
-    }
 }
 
 //***************************************************************************************************************
