@@ -339,6 +339,15 @@ public:
                 }
 
             }
+            
+            r_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
+            r_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
+            r_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
+            r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[0]);
+            r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
+            r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
+            
+            r_model_part.GetCommunicator().MaxAll(ref_radius);
 
             array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
             mHighPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
@@ -348,8 +357,12 @@ public:
                 mLowPoint[i]  -= 2 * ref_radius;
                 mHighPoint[i] += 2 * ref_radius;
             }
+        KRATOS_WATCH(ref_radius)
 
-        }        
+        }    
+        
+        KRATOS_WATCH(mLowPoint)
+        KRATOS_WATCH(mHighPoint)
         
         mStrictHighPoint = mHighPoint;
         mStrictLowPoint  =  mLowPoint;
