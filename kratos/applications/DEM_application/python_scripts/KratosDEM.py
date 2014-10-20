@@ -115,6 +115,7 @@ KRATOSprint("Initializing Problem....")
 # Initialize GiD-IO
 demio.AddGlobalVariables()
 demio.AddBallVariables()
+demio.AddFEMBoundaryVariables()
 demio.AddContactVariables()
 demio.AddMpiVariables()
 demio.EnableMpiVariables()
@@ -133,18 +134,20 @@ demio.InitializeMesh(mixed_model_part,
                      contact_model_part)
 
 os.chdir(post_path)
-#demio.PrintResults(2)
 
 # Perform a partition to balance the problem
 parallelutils.Repart(balls_model_part)
 parallelutils.CalculateModelNewIds(balls_model_part)
 
 os.chdir(post_path)
-#demio.PrintResults(3)
+
+#Setting up the BoundingBox
+procedures.SetBoundingBox(balls_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
-solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part,creator_destructor, DEM_parameters)
+solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part, creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, balls_model_part)
+
 solver.Initialize()
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
