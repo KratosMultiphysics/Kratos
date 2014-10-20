@@ -498,6 +498,10 @@ public:
                 GiD_fWriteGaussPoint2D( MeshFile, 1.0/6.0, 2.0/3.0 );
                 GiD_fEndGaussPoint(MeshFile);
             }
+            else if ( mGidElementFamily == GiD_Point ||  mGidElementFamily == GiD_Sphere ||  mGidElementFamily == GiD_Circle )
+            {
+                //Gid does not accept gauss points on Points, Circles or Spheres! (october 18th 2014)
+            }
             else
             {
                 GiD_fBeginGaussPoint(MeshFile, mGPTitle, mGidElementFamily, NULL,
