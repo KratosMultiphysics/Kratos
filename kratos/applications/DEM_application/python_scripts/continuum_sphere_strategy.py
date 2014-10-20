@@ -10,9 +10,6 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-    #model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
-#    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-#    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
 
     # FORCES
@@ -24,17 +21,10 @@ def AddVariables(model_part, Param):
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
-#    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
-    #model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    #model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
-    #model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    #model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
-    #model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
 
     # ROTATION RELATED PROPERTIES
     if (Var_Translator(Param.RotationOption)):
-        #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
         if( Var_Translator(Param.RollingFrictionOption)):
@@ -43,14 +33,12 @@ def AddVariables(model_part, Param):
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
     model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
-    #model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
     # LOCAL AXIS
     if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-    # FLAGS
-    
+    # FLAGS   
     
     if(Var_Translator(Param.StressStrainOption)): 
       model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
@@ -66,15 +54,6 @@ def AddVariables(model_part, Param):
       
     if(Var_Translator(Param.PostGroupId)):
         model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
-
-    # OPTIMIZATION
-#    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
-#    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
 
     # ONLY VISUALIZATION
 
@@ -285,21 +264,7 @@ class ExplicitStrategy:
         self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
 
         # CREATOR-DESTRUCTOR
-        self.creator_destructor = creator_destructor
-
-        b_box_low = Array3()
-        b_box_high = Array3()
-        b_box_low[0] = Param.BoundingBoxMinX
-        b_box_low[1] = Param.BoundingBoxMinY
-        b_box_low[2] = Param.BoundingBoxMinZ
-        b_box_high[0] = Param.BoundingBoxMaxX
-        b_box_high[1] = Param.BoundingBoxMaxY
-        b_box_high[2] = Param.BoundingBoxMaxZ
-
-        self.creator_destructor.SetLowNode(b_box_low)
-        self.creator_destructor.SetHighNode(b_box_high)
-
-        self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor,self.automatic_bounding_box_option)
+        self.creator_destructor = creator_destructor       
 
         # STRATEGIES
 

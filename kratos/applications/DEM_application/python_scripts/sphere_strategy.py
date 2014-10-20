@@ -198,21 +198,7 @@ class ExplicitStrategy:
         self.safety_factor = Param.DeltaTimeSafetyFactor  # For critical time step
 
         # CREATOR-DESTRUCTOR
-        self.creator_destructor = creator_destructor
-
-        b_box_low = Array3()
-        b_box_high = Array3()
-        b_box_low[0] = Param.BoundingBoxMinX
-        b_box_low[1] = Param.BoundingBoxMinY
-        b_box_low[2] = Param.BoundingBoxMinZ
-        b_box_high[0] = Param.BoundingBoxMaxX
-        b_box_high[1] = Param.BoundingBoxMaxY
-        b_box_high[2] = Param.BoundingBoxMaxZ
-
-        self.creator_destructor.SetLowNode(b_box_low)
-        self.creator_destructor.SetHighNode(b_box_high)
-
-        self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor, self.automatic_bounding_box_option)
+        self.creator_destructor = creator_destructor        
 
         # STRATEGIES
 
