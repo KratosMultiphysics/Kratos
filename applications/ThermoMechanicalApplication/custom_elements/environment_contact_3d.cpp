@@ -135,8 +135,8 @@ void EnvironmentContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         const double nodal_area = area/3.0;
 
         //take thermal properties
-        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-        const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
+  //      ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+//        const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
 //        const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
 //        const double ambient_T = rCurrentProcessInfo[AMBIENT_TEMPERATURE];
