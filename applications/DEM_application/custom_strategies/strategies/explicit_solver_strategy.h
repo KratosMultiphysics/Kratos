@@ -409,7 +409,7 @@ namespace Kratos
           
            // 5. Finalize Solution Step.
           //FinalizeSolutionStep();
-          KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
+          //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
                     
 
       KRATOS_CATCH("")
@@ -755,33 +755,43 @@ namespace Kratos
         {
         mNeighbourCounter[OpenMPUtils::ThisThread()] = 0;
         
-        #pragma omp for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
+        #pragma omp for 
         for (int k = 0; k < this->GetNumberOfThreads(); k++){
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-
-                //mNeighbourCounter[OpenMPUtils::ThisThread()] += (it)->GetValue(NEIGHBOUR_ELEMENTS).size();
                 SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*it);
-                mNeighbourCounter[OpenMPUtils::ThisThread()] += spheric_particle.mNeighbourElements.size();
-                
+                mNeighbourCounter[OpenMPUtils::ThisThread()] += spheric_particle.mNeighbourElements.size();                
             }
-
         }
         } //#pragma omp parallel 
               
         for (int i = 0; i < this->GetNumberOfThreads(); i++)
         {
-          //std::cout<<mNeighbourCounter[i]<<"*********";
           total_contacts += mNeighbourCounter[i];
                   
         }
         
         //TODO: here we should use MPI_Allreduce?? MPI is doing each node separately!!
+        int global_total_contacts = total_contacts; 
+        r_model_part.GetCommunicator().SumAll(global_total_contacts);
+        int global_number_of_elements = (int)pElements.size();
+        r_model_part.GetCommunicator().SumAll(global_number_of_elements);
         
-        double coord_number = (double(total_contacts)/double(pElements.size()));
-        //std::cout<<"COORDINATION NUMBER = "<<coord_number<<std::endl;
+        
+        double coord_number = double(global_total_contacts)/double(global_number_of_elements);
+        
+        
+        /*int global_total_contacts==0;
+        MPI_Allreduce(&total_contacts, &global_total_contacts, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        
+        int global_number_of_elements = 0;
+        MPI_Allreduce(&pElements.size(), &global_number_of_elements, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);        
+        
+        double coord_number = double(global_total_contacts)/double(global_number_of_elements);*/
+        
+        
         return coord_number;
        
         KRATOS_CATCH("")
