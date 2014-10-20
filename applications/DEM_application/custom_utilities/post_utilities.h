@@ -54,16 +54,16 @@ public:
       KRATOS_TRY;      
       
       //preallocate the memory needed
-      int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.Nodes().size();
-      int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.Elements().size();
+      int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().size();
+      int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.GetCommunicator().LocalMesh().Elements().size();
       rCompleteModelPart.Nodes().reserve( tot_nodes );
       rCompleteModelPart.Elements().reserve( tot_elements );
-      for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.Nodes().ptr_begin(); node_it != rModelPartToAdd.Nodes().ptr_end(); node_it++)
+      for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
 	{			
           rCompleteModelPart.Nodes().push_back( *node_it );
 	}
       
-      for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.Elements().ptr_begin(); elem_it != rModelPartToAdd.Elements().ptr_end(); elem_it++)
+      for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_begin(); elem_it != rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_end(); elem_it++)
 	{			
 	  rCompleteModelPart.Elements().push_back( *elem_it );          
 	}
