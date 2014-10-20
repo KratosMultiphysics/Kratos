@@ -275,9 +275,10 @@ public:
         //case Linear with 1 gauss point
         mGidGaussPointContainers.push_back( TGaussPointContainer( "lin1_element_gp",
                                             GeometryData::Kratos_Linear, GiD_Linear, 1, gp_indices ) );
-	    //case Point with 1 gauss point
-        mGidGaussPointContainers.push_back( TGaussPointContainer( "point1_element_gp",
-                                            GeometryData::Kratos_Point, GiD_Point, 1, gp_indices ) );
+        
+	//case Point with 1 gauss point //Gid does not accept this kind of gauss point (october 18th 2014)
+        //mGidGaussPointContainers.push_back( TGaussPointContainer( "point1_element_gp",
+        //                                    GeometryData::Kratos_Point, GiD_Point, 1, gp_indices ) );
 
 
 
@@ -524,6 +525,7 @@ public:
         //initializing gauss points containers
         if ( mWriteConditions != WriteConditionsOnly )
         {
+            int i=0;
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
             {            
@@ -531,10 +533,11 @@ public:
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
                 {                      
-
+                    i++;
                     if ( it->AddElement( element_iterator ) )
                         break;
                 }
+                
             }
         }
 
