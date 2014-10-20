@@ -335,15 +335,15 @@ namespace Kratos
 
 
               //RECAREY
-              array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - ini_cont_neighbour_iterator->GetGeometry()(0)->Coordinates();
+              //array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - ini_cont_neighbour_iterator->GetGeometry()(0)->Coordinates();
 
 
-              double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                                            other_to_me_vect[1] * other_to_me_vect[1] +
-                                                            other_to_me_vect[2] * other_to_me_vect[2]);
+              //double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+              //                                              other_to_me_vect[1] * other_to_me_vect[1] +
+              //                                              other_to_me_vect[2] * other_to_me_vect[2]);
 
-
-              rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES] +=  0.5*distance*distance;
+              //do this in pragma omp critical!!
+              //rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES] +=  0.5*distance*distance;
 
               
               
@@ -405,6 +405,9 @@ namespace Kratos
         const double dt = rCurrentProcessInfo[DELTA_TIME];        
         const double dt_i = 1 / dt; 
         const int time_steps = rCurrentProcessInfo[TIME_STEPS];
+        
+        int& activate_search = rCurrentProcessInfo[ACTIVATE_SEARCH];
+        vector<int>& activate_search_vector = rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR];
                 
         /* Initializations */
                           
@@ -639,12 +642,11 @@ namespace Kratos
  
                 }
                    
-                //if(*mpActivateSearch == 0)
-                if(rCurrentProcessInfo[ACTIVATE_SEARCH] == 0)
+                if(activate_search == 0)
                 {
                     if(mNeighbourFailureId[i_neighbour_count]!=0)
                     {
-                        rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][OpenMPUtils::ThisThread()]=1;
+                        activate_search_vector[OpenMPUtils::ThisThread()]=1;
                     }
                   
                 }
@@ -1453,7 +1455,69 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
         
       }
-   
+      
+      
+      void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo)
+      {
+            int my_id = this->Id();
+            double my_partition_index = 0.0;
+            if (has_mpi) my_partition_index = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_INDEX); 
+            bool im_skin = bool(this->GetValue(SKIN_SPHERE));
+
+            std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = this->mContinuumIniNeighbourElements;
+
+            for (unsigned int i=0; i<r_continuum_ini_neighbours.size(); i++)              
+            {                
+                  Particle_Contact_Element* bond_i = mBondElements[i];
+                  double other_partition_index = 0.0;
+                  if (has_mpi) other_partition_index = r_continuum_ini_neighbours[i]->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_INDEX);
+
+                  if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
+                  {                  
+                    bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetValue(SKIN_SPHERE));
+                    
+                    int neigh_id = r_continuum_ini_neighbours[i]->Id();
+                                        
+                    if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) )
+                    {                                             
+                      if( my_id < neigh_id )
+                      {
+                         bond_i->mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                    
+                      } // if my id < neigh id                        
+                      else
+                      {
+                         if(!has_mpi) bond_i->mLocalContactAreaHigh = mcont_ini_neigh_area[i];   
+                         else{
+                             if(other_partition_index == my_partition_index) bond_i->mLocalContactAreaHigh = mcont_ini_neigh_area[i];
+                         }
+                      }                                              
+                    } //both skin or both inner.
+                    
+                    else if( !im_skin && neigh_is_skin ) //we will store both the same only comming from the inner to the skin.
+                    {
+                        if(!has_mpi){
+                                bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
+                                bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                                
+                        }
+                        else{
+                             if(other_partition_index == my_partition_index){
+                                bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
+                                bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];
+                             }
+                         }
+                    } //neigh skin
+                      
+                }//if(first_time)
+                
+                else //last operation
+                {                  
+                   if(!has_mpi) mcont_ini_neigh_area[i] = bond_i->mMeanContactArea;                      
+                }
+                            
+            }//loop neigh.
+          
+            return;
+      }
   
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
@@ -1488,53 +1552,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
              return;
         } 
         ////////////////////////////////////////////////////////////////////////
-        if (rVariable == MEAN_CONTACT_AREA)
-        {
-            int my_id = this->Id();
-            bool im_skin = bool(this->GetValue(SKIN_SPHERE));
 
-            std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = this->mContinuumIniNeighbourElements;
-
-            for (unsigned int i=0; i<r_continuum_ini_neighbours.size(); i++)              
-            {                
-                  Particle_Contact_Element* lock_p_weak = mBondElements[i];
-
-                  if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
-                  {                  
-                    bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetValue(SKIN_SPHERE));
-                    
-                    int neigh_id = r_continuum_ini_neighbours[i]->Id();
-                                        
-                    if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) )
-                    {                                             
-                      if( my_id < neigh_id )
-                      {
-                         lock_p_weak->mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                    
-                      } // if my id < neigh id                        
-                      else
-                      {
-                         lock_p_weak->mLocalContactAreaHigh = mcont_ini_neigh_area[i];                          
-                      }                                              
-                    } //both skin or both inner.
-                    
-                    else if( !im_skin && neigh_is_skin ) //we will store both the same only comming from the inner to the skin.
-                    {                                      
-                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[i];
-                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[i];                                                                
-                    } //neigh skin
-                      
-                }//if(first_time)
-                
-                else //last operation
-                {                  
-                   mcont_ini_neigh_area[i] = lock_p_weak->mMeanContactArea;                   
-                }
-                            
-            }//loop neigh.
-          
-            return;
-        } //MEAN_CONTACT_AREA
-        ////////////////////////////////////////////////////////////////////////
         if (rVariable == DELTA_TIME)
         {
 
@@ -1591,12 +1609,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           return;
         }        
         ////////////////////////////////////////////////////////////////////////
-        if (rVariable == LOCAL_CONTACT_AREA_HIGH)
-        {            
-            Output = AreaDebugging( rCurrentProcessInfo);
-            return;
-        }                                   
-        ////////////////////////////////////////////////////////////////////////
+        
 //        if (rVariable == CALCULATE_SET_INITIAL_DEM_CONTACTS)
 //        {
 //            SetInitialSphereContacts(rCurrentProcessInfo);
@@ -1620,13 +1633,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
            
      void SphericContinuumParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output,
                            const ProcessInfo& rCurrentProcessInfo)
-    {
-       
-      if (rVariable == DEM_AREA_VECTOR)  //weighting area.
-          {            
-              Output = mcont_ini_neigh_area;
-              return;                   
-          } //EULER_ANGLES
+    {            
       
       
     }//calculate Output vector.
@@ -2339,56 +2346,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
         //MSIMSI DEBUG
       }
-      
-       double SphericContinuumParticle::AreaDebugging(const ProcessInfo& rCurrentProcessInfo)  //MSIMSI DEBUG
-     
-      { 
-         //DEBUG MEDICIÓ
-           
-          double area_vertical_centre = 0.0;
-          
-          if (this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID)==5)
-                
-          {
-
             
-           size_t i_neighbour_count = 0;
-
-           //ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-           for( unsigned int i = 0; i < mContinuumIniNeighbourElements.size(); i++) {
-               SphericContinuumParticle* neighbour_iterator = mContinuumIniNeighbourElements[i];                         
-           //for(ParticleWeakIteratorType neighbour_iterator = r_continuum_ini_neighbours.begin(); neighbour_iterator != r_continuum_ini_neighbours.end(); neighbour_iterator++)  {
-            
-                if ( neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID) != 5 )
-                {                                                      
-                  array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-                  array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards     
-                            
-                  double Dummy_Dummy = 0.0;
-                  GeometryFunctions::normalize(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module                        
-                  
-                  area_vertical_centre += mcont_ini_neigh_area[i_neighbour_count]*fabs(normal_vector_on_contact[1]); //X(0), Y(1), Z(2)
-                }                   
-                
-                i_neighbour_count++;
-                
-            }  // loop neigh
-      
-          }  //group_id == 5
-          
-          
-          return area_vertical_centre;
-
-      } //AreaDebugging
-      
-      
-    
-      
-      
-      
-      
-      
-      
     void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
     void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
