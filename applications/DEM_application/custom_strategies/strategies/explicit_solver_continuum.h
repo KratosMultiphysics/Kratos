@@ -83,7 +83,7 @@ namespace Kratos
         
         KRATOS_TRY
          
-        std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << "\n" <<std::endl;
+        std::cout << "------------------CONTINUUM EXPLICIT SOLVER STRATEGY---------------------" << "\n" <<std::endl;
 
         ModelPart& r_model_part             = BaseType::GetModelPart();
         ModelPart& fem_model_part           = BaseType::GetFemModelPart();
@@ -91,7 +91,14 @@ namespace Kratos
         
         // Omp initializations
         this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
-    
+        
+        std::cout << "          **************************************************" << std::endl;
+        std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() <<std::endl;
+        if( r_model_part.GetCommunicator().TotalProcesses() > 1 )
+            std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() <<std::endl;
+        std::cout << "            Parallelism Info:  OMP number of processors: " << this->GetNumberOfThreads() <<std::endl;
+        std::cout << "          **************************************************" << std::endl << std::endl;
+                    
         rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
         this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
 
