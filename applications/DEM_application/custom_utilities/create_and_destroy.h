@@ -320,8 +320,8 @@ public:
                 }
 
             //Type definitions
-            Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
-            Configure::ElementsContainerType Elements           = r_model_part.Elements();
+            Configure::ElementsContainerType::Pointer pElements = r_model_part.GetCommunicator().LocalMesh().pElements();
+            Configure::ElementsContainerType Elements           = r_model_part.GetCommunicator().LocalMesh().Elements();
 
             double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
@@ -347,7 +347,7 @@ public:
             r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
             r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
             
-            r_model_part.GetCommunicator().MaxAll(ref_radius);
+            r_model_part.GetCommunicator().MinAll(ref_radius);
 
             array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
             mHighPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
@@ -376,17 +376,18 @@ public:
         //Type definitions
         typedef ModelPart::ElementsContainerType                          ElementsArrayType;
         typedef ElementsArrayType::iterator                               ElementsIterator;
-        //Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
-        ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
+        
+        ElementsArrayType& rElements        = r_model_part.GetCommunicator().LocalMesh().Elements();                       
+        ModelPart::NodesContainerType& rNodes       = r_model_part.GetCommunicator().LocalMesh().Nodes();
 
-        ElementsArrayType& rElements                          = r_model_part.Elements();
-        ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
+        //ElementsArrayType& rElements                          = r_model_part.Elements();
+        //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
 
         ElementsArrayType temp_particles_container;
         ModelPart::NodesContainerType temp_nodes_container;
 
         temp_particles_container.reserve(rElements.size());
-        temp_nodes_container.reserve(pNodes->size());
+        temp_nodes_container.reserve(rNodes.size());
         
         temp_particles_container.swap(rElements);
         temp_nodes_container.swap(rNodes);
@@ -394,7 +395,7 @@ public:
         //Add the ones not marked with TO_ERASE
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){	  
             
-            if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) ) {
+            if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
                 (rElements).push_back(*particle_pointer_it); //adding the elements
 
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
@@ -416,7 +417,7 @@ public:
         typedef ModelPart::ElementsContainerType                          ElementsArrayType;
         typedef ElementsArrayType::iterator                               ElementsIterator;
 
-        ElementsArrayType& rElements                          = r_model_part.Elements();
+        ElementsArrayType& rElements                          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         ElementsArrayType temp_elements_container;
 
@@ -448,7 +449,7 @@ public:
 
       KRATOS_TRY
 
-      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+      Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
@@ -472,7 +473,7 @@ public:
 
       KRATOS_TRY
 
-      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+      Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
@@ -496,9 +497,9 @@ public:
     {
 
       KRATOS_TRY
-
-      Configure::ElementsContainerType& rElements = r_model_part.Elements();
-      int num_erased=0;
+              
+      ModelPart::NodesContainerType& rNodes       = r_model_part.GetCommunicator().LocalMesh().Nodes();
+      Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
       
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
@@ -511,13 +512,27 @@ public:
           }
           
           if(!include) {
-              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);          
-              num_erased++;
+              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE); 
+              (*particle_pointer_it)->Set(TO_ERASE); 
           }
       }
-      //if(num_erased)
-      //  std::cout<<num_erased<<" particles are about to be erased."<<std::endl;
+      
+      for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin();
+              node_pointer_it != rNodes.ptr_end(); ++node_pointer_it){
 
+          array_1d<double, 3 > coor = (*node_pointer_it)->Coordinates();
+          bool include=true;            
+          
+          for (unsigned int i = 0; i < 3; i++){
+              include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
+          }
+          
+          if(!include) {
+              (*node_pointer_it)->Set(TO_ERASE);
+          }
+          
+      }
+      
       KRATOS_CATCH("")
     }
     
@@ -528,7 +543,7 @@ public:
 
       KRATOS_TRY
                                                            
-      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+      Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
@@ -558,6 +573,19 @@ public:
 
       KRATOS_CATCH("")
     }
+    
+    void DestroyBallsOutsideBoundingBox(ModelPart& r_model_part)
+    {
+       MarkDistantParticlesForErasing(r_model_part);
+       DestroyParticles( r_model_part);
+    }
+    
+    void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
+    {
+        MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
+        DestroyContactElements(mcontacts_model_part);
+    }
+    
     
 
     ///@}
@@ -1014,6 +1042,9 @@ public:
               
               aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
               aux_props.SetDensityFromProperties(aux_pointer);
+              
+              int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
+              aux_props.SetParticleMaterialFromProperties(int_aux_pointer);
               
               mFastProperties[i] = aux_props;
               i++;
