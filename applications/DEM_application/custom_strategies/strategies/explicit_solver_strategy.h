@@ -302,6 +302,9 @@ namespace Kratos
               aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
               aux_props.SetDensityFromProperties(aux_pointer);
               
+              int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
+              aux_props.SetParticleMaterialFromProperties(int_aux_pointer);
+              
               mFastProperties[i] = aux_props;
               i++;
               
