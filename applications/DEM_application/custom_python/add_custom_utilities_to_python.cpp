@@ -122,6 +122,8 @@ void  AddCustomUtilitiesToPython(){
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
+        .def("DestroyBallsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyBallsOutsideBoundingBox)
+        .def("DestroyContactElementsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox)
         ;
       
       class_<DEM_Inlet, boost::noncopyable >
