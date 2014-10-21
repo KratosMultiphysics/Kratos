@@ -357,12 +357,7 @@ public:
                 mLowPoint[i]  -= 2 * ref_radius;
                 mHighPoint[i] += 2 * ref_radius;
             }
-        KRATOS_WATCH(ref_radius)
-
-        }    
-        
-        KRATOS_WATCH(mLowPoint)
-        KRATOS_WATCH(mHighPoint)
+        }            
         
         mStrictHighPoint = mHighPoint;
         mStrictLowPoint  =  mLowPoint;
@@ -406,7 +401,8 @@ public:
                     ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
                     (rNodes).push_back(pNode);
                 }
-	    }	  
+	    }	
+
         }                           
         KRATOS_CATCH("")
     }
@@ -518,7 +514,6 @@ public:
               (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);          
               num_erased++;
           }
-
       }
       //if(num_erased)
       //  std::cout<<num_erased<<" particles are about to be erased."<<std::endl;
