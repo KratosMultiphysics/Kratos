@@ -296,7 +296,7 @@ public:
 
         double density_var = r_model_part.GetProcessInfo()[DENSITY];
 
-        const double latent_heat = r_model_part.GetProcessInfo()[LATENT_HEAT];
+        //const double latent_heat = r_model_part.GetProcessInfo()[LATENT_HEAT];
 
 
         //for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
