@@ -300,6 +300,9 @@ while ( time < DEM_parameters.FinalTime):
 
     if ( time_to_print >= DEM_parameters.OutputTimeStep):
         
+        creator_destructor.DestroyBallsOutsideBoundingBox(balls_model_part)
+        if (DEM_parameters.ContactMeshOption == "ON"):
+            creator_destructor.DestroyContactElementsOutsideBoundingBox(balls_model_part,contact_model_part)
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(balls_model_part.NumberOfElements(0)) + " elements)")
