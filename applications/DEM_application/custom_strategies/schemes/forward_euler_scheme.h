@@ -119,11 +119,11 @@ namespace Kratos
                   mass                                  *= mass;
                   
                   double aux = delta_t / mass;   
-
+                  
                   if (if_virtual_mass_option)
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
-                      if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
+                      if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
                   }
                   
                   if( i->IsNot(DEMFlags::FIXED_VEL_X))
@@ -192,7 +192,7 @@ namespace Kratos
                   double mass                            = i->FastGetSolutionStepValue(SQRT_OF_MASS);
                   mass                                  *= mass;
                   double aux = delta_t / mass;   
-
+                  
                   if( i->IsNot(DEMFlags::FIXED_VEL_X))
                   {    
                       vel[0]        += aux * force[0];
