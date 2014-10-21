@@ -47,6 +47,10 @@ class PropertiesProxy {
       double* pGetDensity()                                                    { return  mDensity;                           }
       void    SetDensityFromProperties(double* density)                        { mDensity = density;                         }  
       
+      int     GetParticleMaterial()                                            { return *mParticleMaterial;                  }
+      int*    pGetParticleMaterial()                                           { return  mParticleMaterial;                  }
+      void    SetParticleMaterialFromProperties(int* particle_material)        { mParticleMaterial = particle_material;      }  
+      
       PropertiesProxy operator=(PropertiesProxy props){
           
           mId                = props.GetId();
@@ -56,18 +60,20 @@ class PropertiesProxy {
           mTgOfFrictionAngle = props.pGetTgOfFrictionAngle();
           mLnOfRestitCoeff   = props.pGetLnOfRestitCoeff();
           mDensity           = props.pGetDensity();
+          mParticleMaterial  = props.pGetParticleMaterial();
                   
           return *this;
       }
            
   private:
       int     mId;
-      double *mYoung;
-      double *mPoisson;
-      double *mRollingFriction;
-      double *mTgOfFrictionAngle;
-      double *mLnOfRestitCoeff;
-      double *mDensity;
+      double* mYoung;
+      double* mPoisson;
+      double* mRollingFriction;
+      double* mTgOfFrictionAngle;
+      double* mLnOfRestitCoeff;
+      double* mDensity;
+      int*    mParticleMaterial;
       
       
       friend class Serializer;
@@ -81,7 +87,7 @@ class PropertiesProxy {
           rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
           rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);
           rSerializer.save("mDensity",mDensity);
-
+          rSerializer.save("mParticleMaterial",mParticleMaterial);
       }
 
       virtual void load(Serializer& rSerializer)
@@ -93,8 +99,7 @@ class PropertiesProxy {
           rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
           rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);
           rSerializer.load("mDensity",mDensity);
-          
-
+          rSerializer.load("mParticleMaterial",mParticleMaterial);          
       }
       
 };
