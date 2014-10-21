@@ -113,24 +113,26 @@ void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
 double GetRadius();
-void SetRadius(double radius);
+void   SetRadius(double radius);
 double GetSqrtOfRealMass();
-void SetSqrtOfRealMass(double sqrt_of_real_mass);
+void   SetSqrtOfRealMass(double sqrt_of_real_mass);
 double GetYoung();
-void SetYoungFromProperties(double* young);
+void   SetYoungFromProperties(double* young);
 double GetRollingFriction();
-void SetRollingFrictionFromProperties(double* rolling_friction);
+void   SetRollingFrictionFromProperties(double* rolling_friction);
 double GetPoisson();
-void SetPoissonFromProperties(double* poisson);
+void   SetPoissonFromProperties(double* poisson);
 double GetTgOfFrictionAngle();
-void SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
+void   SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle);
 double GetLnOfRestitCoeff();
-void SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff);
+void   SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff);
 double GetDensity();
-void SetDensityFromProperties(double* density);
+void   SetDensityFromProperties(double* density);
+int    GetParticleMaterial();
+void   SetParticleMaterialFromProperties(int* particle_material);
 
 PropertiesProxy* GetFastProperties();
-void SetFastProperties(PropertiesProxy* pProps);
+void             SetFastProperties(PropertiesProxy* pProps);
 
 double SlowGetYoung();
 double SlowGetRollingFriction();
@@ -138,6 +140,7 @@ double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetLnOfRestitCoeff();
 double SlowGetDensity();
+int    SlowGetParticleMaterial();
 
 
 
