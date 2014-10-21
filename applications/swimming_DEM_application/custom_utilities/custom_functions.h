@@ -75,15 +75,15 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
         // getting the pressure gradients;
 
-        for (unsigned int i = 0; i < geom.size(); ++i){
+        for (unsigned int i = 0; i < TDim + 1; ++i){
             elemental_pressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
         }
 
         noalias(grad) = prod(trans(DN_DX), elemental_pressures);
-        double nodal_area = Volume / static_cast<double>(geom.size());
+        double nodal_area = Volume / static_cast<double>(TDim + 1);
         grad *= nodal_area;
 
-        for (unsigned int i = 0; i < geom.size(); ++i){
+        for (unsigned int i = 0; i < TDim + 1; ++i){
             geom[i].FastGetSolutionStepValue(PRESSURE_GRADIENT) += grad;
         }
     }

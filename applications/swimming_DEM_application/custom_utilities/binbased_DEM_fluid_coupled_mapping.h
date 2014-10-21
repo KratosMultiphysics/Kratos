@@ -525,8 +525,8 @@ typename SpatialSearch::Pointer mpSpSearch; // it is not be used for some interp
 std::vector<double> mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
 unsigned int mOldSize; // it is used to keep track of any changes in the number of particles
 double mOldSearchRadius;
-VectorResultNodesContainerType mVectorsOfNeighNodes; // list of nodal arrays of pointers to the particle's nodal neighbours
-VectorDistanceType mVectorsOfDistances; // list of nodal arrays of distances to the particle's neighbours
+VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
+VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
 
 //***************************************************************************************************************
 //***************************************************************************************************************
@@ -731,7 +731,7 @@ array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int
     geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GeometryData::GI_GAUSS_1);
 
     array_1d<double, 3> vorticity = ZeroVector(3);
-    array_1d<double, 3> derivatives = ZeroVector(3);
+    array_1d<double, 3> derivatives;
 
     const unsigned int n_nodes = geom.PointsNumber();
 
@@ -912,9 +912,9 @@ void Distribute(
 
     else if (mCouplingType == - 1){
 
-         if (*r_destination_variable == BODY_FORCE){
-             TransferWithLinearWeighing(p_elem, N, p_node, BODY_FORCE, HYDRODYNAMIC_FORCE);
-         }
+        if (*r_destination_variable == BODY_FORCE){
+            TransferWithLinearWeighing(p_elem, N, p_node, BODY_FORCE, HYDRODYNAMIC_FORCE);
+        }
     }
 }
 
@@ -1376,43 +1376,6 @@ inline void ClearVariable(const NodeIteratorType& node_it, const VariableData *v
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var)
 {
     var.AssignZero(node_it->SolutionStepData().Data(var));
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-inline double CalculateVol(const double x0, const double y0,
-                           const double x1, const double y1,
-                           const double x2, const double y2)
-{
-    return 0.5 * ((x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0));
-}
-
-//***************************************************************************************************************
-//***************************************************************************************************************
-
-inline double CalculateVol(const double x0, const double y0, const double z0,
-                           const double x1, const double y1, const double z1,
-                           const double x2, const double y2, const double z2,
-                           const double x3, const double y3, const double z3)
-{
-    double x10 = x1 - x0;
-    double y10 = y1 - y0;
-    double z10 = z1 - z0;
-
-    double x20 = x2 - x0;
-    double y20 = y2 - y0;
-    double z20 = z2 - z0;
-
-    double x30 = x3 - x0;
-    double y30 = y3 - y0;
-    double z30 = z3 - z0;
-
-    double detJ = x10 * y20 * z30 - x10 * y30 * z20 +
-                  y10 * z20 * x30 - y10 * x20 * z30 +
-                  z10 * x20 * y30 - z10 * y20 * x30;
-
-    return  detJ * 0.1666666666666666666667;
 }
 
 //***************************************************************************************************************
