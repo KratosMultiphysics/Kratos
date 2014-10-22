@@ -225,12 +225,12 @@ public:
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
 
-        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
-        
         //Initialize The Conditions- OPERATIONS TO BE DONE ONCE
         if (pScheme->ConditionsAreInitialized() == false)
             pScheme->InitializeConditions(BaseType::GetModelPart());
 
+        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+        
         mInitializeWasPerformed = true;
 
         KRATOS_CATCH( "" )
