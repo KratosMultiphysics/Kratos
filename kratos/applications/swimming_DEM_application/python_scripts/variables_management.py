@@ -93,7 +93,6 @@ def ConstructListsOfVariables(pp):
     # inlet variables
     pp.inlet_vars = pp.dem_vars
    
-
 def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
 
@@ -167,6 +166,9 @@ def ConstructListsOfResultsToPrint(pp):
             
     if (not pp.print_PRESSURE_option):        
         pp.nodal_results.remove("PRESSURE")
+
+    EliminateRepeatedValuesFromList(pp.nodal_results)
+    EliminateRepeatedValuesFromList(pp.mixed_nodal_results)
 
 def ConstructListsOfVariablesForCoupling(pp):
 
@@ -274,13 +276,12 @@ def ChangeInputDataForConsistency(pp):
     pp.time_steps_per_stationarity_step = max(1, int(pp.time_steps_per_stationarity_step)) # it should never be smaller than 1!
     pp.stationary_problem_option *= not pp.dem.project_from_particles_option
 
-    #if (pp.coupling_level_type > 0 and not pp.body_force_on_fluid_option):
-        #pp.coupling_level_type = 0
-        #print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
-        #print()
-        #print('Two-way coupling cannot be performed if body_force_on_fluid_option = 0 !')
-        #print('Running one-way copupling simulation...')
-        #print()
-        #print('! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ')
+def EliminateRepeatedValuesFromList(redundant_list):
+    clean_list = []
 
+    for var in redundant_list:
 
+        if var in clean_list:
+            redundant_list.remove(var)
+
+        clean_list += [var]
