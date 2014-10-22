@@ -400,6 +400,10 @@ public:
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
 
+	//Initialize The Conditions - OPERATIONS TO BE DONE ONCE
+        if (pScheme->ConditionsAreInitialized() == false)
+            pScheme->InitializeConditions(BaseType::GetModelPart());
+
         //initialisation of the convergence criteria
         if (mpConvergenceCriteria->mConvergenceCriteriaIsInitialized == false)
             mpConvergenceCriteria->Initialize(BaseType::GetModelPart());
