@@ -83,7 +83,7 @@ def ConstructListsOfVariables(pp):
         pp.dem_vars += [VIRTUAL_MASS_FORCE]
 
     # fem-dem variables
-    pp.fem_dem_vars = [VELOCITY, DISPLACEMENT]
+    pp.fem_dem_vars = [VELOCITY, DISPLACEMENT, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]                  
 
     if (pp.embedded_option):
         pp.fem_dem_vars += [FORCE]
