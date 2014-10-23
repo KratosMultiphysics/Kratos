@@ -89,7 +89,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
     }
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
-        inode->GetSolutionStepValue(PRESSURE_GRADIENT) /= inode->GetSolutionStepValue(NODAL_AREA);
+        inode->FastGetSolutionStepValue(PRESSURE_GRADIENT) /= inode->FastGetSolutionStepValue(NODAL_AREA);
     }
 }
 
