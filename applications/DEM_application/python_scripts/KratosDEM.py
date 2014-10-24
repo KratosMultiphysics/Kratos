@@ -20,8 +20,8 @@ if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_paramet
 elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
     import continuum_sphere_strategy as SolverStrategy
 
-# Import MPI modules if needed
-if os.environ.has_key("OMPI_COMM_WORLD_SIZE"):
+# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
+if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # Kratos MPI
     from KratosMultiphysics.MetisApplication import *
     from KratosMultiphysics.MPISearchApplication import *
