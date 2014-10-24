@@ -22,7 +22,7 @@ class ConditionsUtility:
         if(incr_load == "True"):
             self.incr_load = True
 
-        self.rotation_dofs = rotation_dofs;
+        self.rotation_dofs = rotation_dofs
 
     #
     def Initialize(self, time_step):
@@ -44,32 +44,32 @@ class ConditionsUtility:
                 ImposedDisp[0] = Displacement[0]
                 Displacement[0] = 0
             if(node.IsFixed(DISPLACEMENT_Y) == 1):
-                ImposedDisp[1] = Displacement[1];
-                Displacement[1] = 0;
+                ImposedDisp[1] = Displacement[1]
+                Displacement[1] = 0
             if(node.IsFixed(DISPLACEMENT_Z) == 1):
-                ImposedDisp[2] = Displacement[2];
-                Displacement[2] = 0;
+                ImposedDisp[2] = Displacement[2]
+                Displacement[2] = 0
 
             # For velocity imposition instead of displacement
             if(node.IsFixed(VELOCITY_X) == 1):
-                ImposedDisp[0] = Velocity[0] * time_step;
-                Velocity[0] = 0;
+                ImposedDisp[0] = Velocity[0] * time_step
+                Velocity[0] = 0
             if(node.IsFixed(VELOCITY_Y) == 1):
-                ImposedDisp[1] = Velocity[1] * time_step;
-                Velocity[1] = 0;
+                ImposedDisp[1] = Velocity[1] * time_step
+                Velocity[1] = 0
             if(node.IsFixed(VELOCITY_Z) == 1):
-                ImposedDisp[2] = Velocity[2] * time_step;
-                Velocity[2] = 0;
+                ImposedDisp[2] = Velocity[2] * time_step
+                Velocity[2] = 0
                 
             # print " ImposedDisp  =", ImposedDisp
             # print " Displacement =", Displacement
             # print " Velocity     =", Velocity
 
-            node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp);
+            node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp)
 
             # set to buffer variables to zero
-            node.SetSolutionStepValue(DISPLACEMENT, Displacement);
-            node.SetSolutionStepValue(VELOCITY, Velocity);
+            node.SetSolutionStepValue(DISPLACEMENT, Displacement)
+            node.SetSolutionStepValue(VELOCITY, Velocity)
 
 
     #
@@ -85,16 +85,16 @@ class ConditionsUtility:
                 ImposedRotation[0] = Rotation[0]
                 Rotation[0] = 0
             if(node.IsFixed(ROTATION_Y) == 1):
-                ImposedRotation[1] = Rotation[1];
-                Rotation[1] = 0;
+                ImposedRotation[1] = Rotation[1]
+                Rotation[1] = 0
             if(node.IsFixed(ROTATION_Z) == 1):
-                ImposedRotation[2] = Rotation[2];
-                Rotation[2] = 0;
+                ImposedRotation[2] = Rotation[2]
+                Rotation[2] = 0
 
-            node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation);
+            node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation)
 
             # set to buffer variables to zero
-            node.SetSolutionStepValue(ROTATION, Rotation);
+            node.SetSolutionStepValue(ROTATION, Rotation)
 
 
     #
@@ -103,43 +103,43 @@ class ConditionsUtility:
             for node in self.model_part.Nodes:
 
                 # line load conditions
-                force = node.GetSolutionStepValue(LINE_LOAD);
+                force = node.GetSolutionStepValue(LINE_LOAD)
                 for dim in range(0,len(force)):
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(LINE_LOAD, force);
+                node.SetSolutionStepValue(LINE_LOAD, force)
 
                 # surface load conditions
-                force = node.GetSolutionStepValue(SURFACE_LOAD);
+                force = node.GetSolutionStepValue(SURFACE_LOAD)
                 for dim in range(0,len(force)):
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(SURFACE_LOAD, force);
+                node.SetSolutionStepValue(SURFACE_LOAD, force)
 
                 # line or surface pressure conditions
-                pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE)
                 pressure = pressure / (time_step * (incr_steps))
                 pressure = pressure * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(POSITIVE_FACE_PRESSURE, pressure);
+                node.SetSolutionStepValue(POSITIVE_FACE_PRESSURE, pressure)
 
-                pressure = node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                pressure = node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
                 pressure = pressure / (time_step * (incr_steps))
                 pressure = pressure * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE, pressure);
+                node.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE, pressure)
 
                 # point load conditions
-                force = node.GetSolutionStepValue(POINT_LOAD);
+                force = node.GetSolutionStepValue(POINT_LOAD)
                 for dim in range(0,len(force)):
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(POINT_LOAD, force);
+                node.SetSolutionStepValue(POINT_LOAD, force)
                 
                 # point moment conditions
-                moment = node.GetSolutionStepValue(POINT_TORQUE);
+                moment = node.GetSolutionStepValue(POINT_TORQUE)
                 for comp in [0,1,2]:
                     moment[comp] = moment[comp] / (time_step * (incr_steps))
                     moment[comp] = moment[comp] * time_step * (incr_steps + 1)
-                node.SetSolutionStepValue(POINT_TORQUE, moment);
+                node.SetSolutionStepValue(POINT_TORQUE, moment)
 
     #
     def RestartImposedDisp(self):
@@ -152,14 +152,14 @@ class ConditionsUtility:
                 if(node.IsFixed(DISPLACEMENT_X) == 1):
                     ImposedDisp[0] = 0
                 if(node.IsFixed(DISPLACEMENT_Y) == 1):
-                    ImposedDisp[1] = 0;
+                    ImposedDisp[1] = 0
                 if(node.IsFixed(DISPLACEMENT_Z) == 1):
-                    ImposedDisp[2] = 0;
+                    ImposedDisp[2] = 0
 
-                node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp);
+                node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp)
            
             if(self.rotation_dofs == True):
-                self.RestartImposedRotation();
+                self.RestartImposedRotation()
 
 
     #
@@ -173,10 +173,10 @@ class ConditionsUtility:
                 if(node.IsFixed(ROTATION_X) == 1):
                     ImposedRotation[0] = 0
                 if(node.IsFixed(ROTATION_Y) == 1):
-                    ImposedRotation[1] = 0;
+                    ImposedRotation[1] = 0
                 if(node.IsFixed(ROTATION_Z) == 1):
-                    ImposedRotation[2] = 0;
+                    ImposedRotation[2] = 0
 
-                node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation);
+                node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation)
 
     #
