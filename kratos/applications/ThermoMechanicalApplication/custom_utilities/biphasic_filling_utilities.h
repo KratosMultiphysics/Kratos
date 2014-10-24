@@ -325,6 +325,13 @@ public:
         }
         KRATOS_CATCH("")
     }
+	//**********************************************************************************************
+	//**********************************************************************************************
+	double sign(const double& a)
+	{
+		if(a < 0) return -1.0;
+		else return 1.0;
+	}
     //**********************************************************************************************
     //**********************************************************************************************
     void VolumeCorrection(ModelPart& ThisModelPart, const double Net_volume, const double max_correction)
@@ -332,59 +339,143 @@ public:
         KRATOS_TRY
 
         double wet_volume = 0.0;
+		double wet_volume_old=wet_volume;
         double cutted_area = 0.0;
-// 	      int node_size = ThisModelPart.Nodes().size();
+		double wet_volume_left=0.0;
+		double wet_volume_right=0.0;
+		double tol=1e-9;
+		double tolv=1e-3;
+		double lower_correction;
+		double upper_correction;
         int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
 
-// #pragma omp parallel for firstprivate(node_size) reduction(+:wet_volume,cutted_area )
-// 		for (int ii = 0; ii < node_size; ii++)
-// 		{
-// 		  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
-//
-// 		  wet_volume += it->FastGetSolutionStepValue(WET_VOLUME);
-// 		  cutted_area += it->FastGetSolutionStepValue(CUTTED_AREA);
-// 		}
-
+		// First we compute the Total Volume of the Fluid
         ComputeWetVolumeAndCuttedArea(ThisModelPart, wet_volume, cutted_area);
 
-
+		// Now we compute the difference between the Total Volume and the volume that has enetered through the inlet
         double volume_difference = fabs(Net_volume) - wet_volume;
-        double correction = volume_difference/cutted_area;
-        if(correction > max_correction)
-            correction = max_correction;
-        if(correction < -max_correction)
-            correction = -max_correction;
+		// First guess in correction
+		double correction = volume_difference/cutted_area;
+		double correction_old=correction;
+		double signcorrection=sign(correction);
+		//Maximum signed correction
+		double maximum_signed_correction=fabs(max_correction)*(sign(correction)); //Way of obtaining sign(x)
+		// If correction is greater than signed correction, we keep the maximum correction.If the wet volume exceeds the correction, then we start from maximum_signed_correction
+		bool exit_loop=false; // Just to skip the iterations
+		if((correction>maximum_signed_correction)&&(correction>0)){
+			correction=maximum_signed_correction;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
+			lower_correction=0.0;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_left,cutted_area,lower_correction);
+			upper_correction=correction;
+			wet_volume_right=wet_volume;
+			if(fabs(Net_volume)>wet_volume_right){exit_loop=true;}
+			}
+		if((correction<maximum_signed_correction)&&(correction<0)){
+			correction=maximum_signed_correction;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
+			upper_correction=0.0;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_right,cutted_area,upper_correction);
+			lower_correction=correction;
+			wet_volume_left=wet_volume;
+			if(fabs(Net_volume)<wet_volume_left){exit_loop=true;}
+			}
+		// Now we find the left and right limits
+		if(exit_loop==false)
+		{
+			double extreme_correction;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
+			if(correction>0) 
+			{
+				extreme_correction=fabs(max_correction);
+				if(wet_volume<=fabs(Net_volume)){
+					lower_correction=correction;
+					wet_volume_left=wet_volume;
+					upper_correction=extreme_correction;
+					ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_right,cutted_area,extreme_correction);
+				}
+				else
+				{
+					lower_correction=0.0;
+					ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_left,cutted_area,0.0);
+					wet_volume_right=wet_volume;
+					upper_correction=correction;
+				}
+			}
+			else
+			{
+				extreme_correction=-fabs(max_correction);
+				if(wet_volume>=fabs(Net_volume)){
+					upper_correction=correction;
+					wet_volume_right=wet_volume;
+					lower_correction=extreme_correction;
+					ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_left,cutted_area,extreme_correction);
+				}
+				else
+				{
+					upper_correction=0.0;
+					ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_right,cutted_area,0.0);
+					wet_volume_left=wet_volume;
+					lower_correction=correction;
+				}		
+			}
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_right,cutted_area,upper_correction);
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_left,cutted_area,lower_correction);
+		}
+
+		// Now we loop until convergence
+		unsigned int iteration=0;
+		double inc_correction=1000.0;
+		while((iteration<15)&&(exit_loop==false))
+			{
+			correction_old=correction;
+			wet_volume_old=wet_volume;
+			correction=((wet_volume_right-fabs(Net_volume))*lower_correction-(wet_volume_left-fabs(Net_volume))*upper_correction)/(wet_volume_right-wet_volume_left);
+			if((correction<lower_correction)||(correction>upper_correction)){KRATOS_WATCH("!!!!!!!!!!!!!!!!ERROR CORRECTING VOLUME IN VOLUMECORRECTION!!!!!!!!!!!!!!!");}
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
+			volume_difference = fabs(Net_volume) - wet_volume;
+			if(fabs(Net_volume)>wet_volume){
+				lower_correction=correction;
+				wet_volume_left=wet_volume;
+				}
+			else{
+				upper_correction=correction;
+				wet_volume_right=wet_volume;
+				}
+			//Now the middle point just in case
+			double middle_point=(lower_correction+upper_correction)/2.0;
+			double wet_volume_middle=0.0;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume_middle,cutted_area,middle_point);
+			if(wet_volume_middle<fabs(Net_volume)){
+				lower_correction=middle_point;
+				wet_volume_left=wet_volume_middle;
+			}
+			else{
+				upper_correction=middle_point;
+				wet_volume_right=wet_volume_middle;
+			}
+			
+			inc_correction=upper_correction-lower_correction;
+
+			iteration++;
+			if((fabs(correction_old-correction)<tol)&&((fabs(wet_volume-wet_volume_old)/wet_volume_old)<tolv)){
+				exit_loop=true;
+				//std::cout << "Volume Correction performed: it= "<< iteration <<" Correction =" << correction << " Wet_volume =" << wet_volume << " Net Volume =" << fabs(Net_volume) << std::endl;
+				}
+			}
+		// Now we correct the distances
+        #pragma omp parallel for firstprivate(node_size)
+        for (int ii = 0; ii < node_size; ii++)
+        {
+			ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;  
+			it->FastGetSolutionStepValue(DISTANCE) -= correction;
+		}
 
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
 
-        //volume loss is just corrected
-         if(volume_difference > 0.0)
-         {
-
-         //Thermal extrapolation is necessary to avoid hot front (attention: extrapolation is checked and does not help!
-	     //Find the minimum temp of the wet part and put it as the TEMPERATURE of the part added by the voluem correction
-          // CorrectTemperatureInAddedVolume(ThisModelPart, correction);
-		
-
-//             TODO: this is not correct in MPI parallel
-            #pragma omp parallel for firstprivate(node_size)
-            for (int ii = 0; ii < node_size; ii++)
-            {
-// 		  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
-                ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
-/*
-
-		  double alpha = it->FastGetSolutionStepValue(DP_ALPHA1);*/
-		  
-		  it->FastGetSolutionStepValue(DISTANCE) -= /*(1.0-alpha)**/correction;
-		  
-		   }
-         
-
-	    }
-
-        std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
+        //std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
     }
     //**********************************************************************************************
@@ -1029,6 +1120,77 @@ private:
                 const array_1d<double, 3 > & xyz = iel->GetGeometry()[i].Coordinates();
                 volumes[i] = 0.0;
                 distances[i] = iel->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+                for (unsigned int j = 0; j < 3; j++)
+                    coords(i, j) = xyz[j];
+            }
+            for (unsigned int i = 0; i < 6; i++)
+                gauss_gradients[i].resize(1, 3, false);
+                
+            array_1d<double,6> edge_areas;
+            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
+
+            if(ndivisions == 1)
+            {
+                if( signs[0] < 0.0)
+                    wetvol += volumes[0];
+            }
+            else
+            {
+                double ele_wet_volume=0.0;
+                for (unsigned int kk = 0; kk < ndivisions; kk++)
+                {
+                    if( signs[kk]<0.0 )
+                        ele_wet_volume += volumes[kk];
+                }
+                wetvol += ele_wet_volume;
+                
+                for(unsigned int i=0; i<6; i++)
+                    cutare += edge_areas[i];
+                //cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
+            }
+        }
+        //syncronoze
+        ThisModelPart.GetCommunicator().SumAll(wetvol);
+        ThisModelPart.GetCommunicator().SumAll(cutare);
+
+        wet_volume = wetvol;
+        cutted_area = cutare;
+
+        KRATOS_CATCH("")
+    }
+	 //**********************************************************************************************
+    //**********************************************************************************************
+    void ComputeVolumeAndCuttedAreaInDistance(ModelPart& ThisModelPart, double& wet_volume, double& cutted_area, const double& reference_distance)
+    {
+        KRATOS_TRY;
+        int elem_size = ThisModelPart.Elements().size();
+        double wetvol = 0.0;
+        double cutare = 0.0;
+
+        #pragma omp parallel for firstprivate(elem_size) reduction(+:wetvol,cutare)
+        for(int ii = 0; ii<elem_size; ii++)
+        {
+            PointerVector< Element>::iterator iel=ThisModelPart.ElementsBegin()+ii;
+
+            // Calculate this element's geometric parameters
+            double Area;
+            array_1d<double, 4> N;
+            boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
+            GeometryUtils::CalculateGeometryData(iel->GetGeometry(), DN_DX, N, Area);
+            //get position of the cut surface
+            Vector distances(4);
+            Matrix Nenriched(6, 1);
+            Vector volumes(6);
+            Matrix coords(4, 3);
+            Matrix Ngauss(6, 4);
+            Vector signs(6);
+            std::vector< Matrix > gauss_gradients(6);
+            //fill coordinates
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                const array_1d<double, 3 > & xyz = iel->GetGeometry()[i].Coordinates();
+                volumes[i] = 0.0;
+                distances[i] = (iel->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE))-reference_distance;
                 for (unsigned int j = 0; j < 3; j++)
                     coords(i, j) = xyz[j];
             }
