@@ -247,6 +247,9 @@ public:
     {
       SizeType dimension = 3;
 
+      // NOTE: possible segmentacion fault if a Element or Condition  
+      // is created using the base class of geometry, then the mpGeometryData 
+      // of the geometry is a null pointer and has not any mWorkingSpaceDimension
       if(NumberOfElements()!=0)
 	dimension = (mpElements->begin())->WorkingSpaceDimension();
       else if(NumberOfConditions()!=0)
