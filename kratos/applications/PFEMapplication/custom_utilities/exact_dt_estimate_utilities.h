@@ -157,10 +157,10 @@ public:
                 dxprim32[1] = geom[2].X() - geom[1].X();
 
                 //Calculate A,B and C to calculate zero´s of dt
-                B = inner_prod(dv32,dxprim12);
-                B += inner_prod(dv12,dxprim32);
+                B = dv32[0]*dxprim12[0] + dv32[1]*dxprim12[1]; //inner_prod(dv32,dxprim12);
+                B += dv12[0]*dxprim32[0] + dv12[1]*dxprim32[1]; //inner_prod(dv12,dxprim32);
 
-                A = inner_prod(dv32,dvprim12);
+                A = dv32[0]*dvprim12[0] + dv32[1]*dvprim12[1]; //inner_prod(dv32,dvprim12);
 
                 C = inner_prod(dx32, dxprim12);
 
