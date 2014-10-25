@@ -13,7 +13,7 @@ from KratosMultiphysics.DEMApplication import *
 # DEM Application
 import DEM_explicit_solver_var as DEM_parameters
 
-# TODO: Ungly fix. Change it. I don't like this to be in the main...
+# TO_DO: Ungly fix. Change it. I don't like this to be in the main...
 # Strategy object
 if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
@@ -30,12 +30,12 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
-else :
+else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
 
-    print("Runing under OpenMP")
+    print("Running under OpenMP")
 
 ##############################################################################
 #                                                                            #
@@ -43,14 +43,14 @@ else :
 #                                                                            #
 ##############################################################################
 
-# Import utilities from moduels
+# Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 demio         = DEM_procedures.DEMIo()
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
  
-# Set the print function TODO: do this better...
+# Set the print function TO_DO: do this better...
 KRATOSprint   = procedures.KRATOSprint
 
 # Preprocess the model
