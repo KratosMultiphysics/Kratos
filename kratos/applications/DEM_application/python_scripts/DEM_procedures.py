@@ -680,6 +680,9 @@ class DEMIo(object):
         #self.PushPrintVar(DEM_parameters.PostWallsShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
         #self.PushPrintVar(DEM_parameters.PostWallsNodalArea,               NODAL_AREA, self.fem_boundary_variables)
 
+    def AddClusterVariables(self):
+        pass
+
     def AddContactVariables(self):
         # Contact Elements Variables
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
