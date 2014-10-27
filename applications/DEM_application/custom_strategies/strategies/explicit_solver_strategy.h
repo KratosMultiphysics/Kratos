@@ -257,15 +257,14 @@ namespace Kratos
           Timer::PrintTimingInformation();
       }            
       
-      void RebuildListOfSphericParticles(){
+      template <class T>
+      void RebuildListOfSphericParticles(ElementsArrayType& pElements, std::vector<T*>& rCustomListOfParticles){
           
           KRATOS_TRY
-                  
-          ModelPart& r_model_part             = BaseType::GetModelPart();
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+                    
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
                                         
-          std::vector<std::vector<SphericParticle*> > partial_lists;
+          std::vector<std::vector<T*> > partial_lists;
           partial_lists.resize(this->GetNumberOfThreads());
           
           #pragma omp parallel for
@@ -276,15 +275,15 @@ namespace Kratos
 
             for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it){
                 
-                SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
+                T* spheric_particle = dynamic_cast<T*>( &(*particle_pointer_it) );
                 partial_lists[OpenMPUtils::ThisThread()].push_back(spheric_particle);                                 
             }                                
           }    
           
           //We concatenate the partial lists of elements
-          mListOfSphericParticles.clear();
+          rCustomListOfParticles.clear();
           for (int k = 0; k < this->GetNumberOfThreads(); k++){                            
-              mListOfSphericParticles.insert(mListOfSphericParticles.end(), partial_lists[k].begin(), partial_lists[k].end());
+              rCustomListOfParticles.insert(rCustomListOfParticles.end(), partial_lists[k].begin(), partial_lists[k].end());
           }                    
           
           return;          
@@ -297,9 +296,7 @@ namespace Kratos
       void CreatePropertiesProxies(){
           KRATOS_TRY
                   
-          ModelPart& r_model_part             = BaseType::GetModelPart();
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-          
+          ModelPart& r_model_part             = BaseType::GetModelPart();          
           
           int number_of_properties = r_model_part.NumberOfProperties();
           mFastProperties.resize(number_of_properties);
@@ -344,24 +341,23 @@ namespace Kratos
               
           }
           
-          RebuildPropertiesProxyPointers(pElements);
-          ElementsArrayType& pGhostElements        = r_model_part.GetCommunicator().GhostMesh().Elements();
-          RebuildPropertiesProxyPointers(pGhostElements);
+          RebuildPropertiesProxyPointers(mListOfSphericParticles);
+          RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
            
           return;          
           KRATOS_CATCH("")
       }
-      void RebuildPropertiesProxyPointers(ElementsArrayType& pElements){
+      void RebuildPropertiesProxyPointers(std::vector<SphericParticle*>& rCustomListOfSphericParticles){
           //This function is called for the local mesh and the local mesh, so mListOfSphericElements must not be used here.
           KRATOS_TRY         
                  
           #pragma omp parallel for
-          for(int i=0; i<(int)mListOfSphericParticles.size(); i++){              
-              int general_properties_id = mListOfSphericParticles[i]->GetProperties().Id();  
+          for(int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){              
+              int general_properties_id = rCustomListOfSphericParticles[i]->GetProperties().Id();  
                 for (unsigned int j = 0; j < mFastProperties.size(); j++){
                     int fast_properties_id = mFastProperties[j].GetId(); 
                     if( fast_properties_id == general_properties_id ){                  
-                        mListOfSphericParticles[i]->SetFastProperties( &(mFastProperties[j]) );
+                        rCustomListOfSphericParticles[i]->SetFastProperties( &(mFastProperties[j]) );
                         break;
                     }
                 }      
@@ -383,7 +379,8 @@ namespace Kratos
           GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
           mNeighbourCounter.resize(this->GetNumberOfThreads());
           
-          RebuildListOfSphericParticles();
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
           
           ClusterInitialize();                              
 
@@ -486,7 +483,8 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();      
           
-          RebuildListOfSphericParticles();
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+          RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
           int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
@@ -508,7 +506,8 @@ namespace Kratos
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
-                  RebuildListOfSphericParticles();
+                  RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+                  RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
               }
               
               SetSearchRadius(r_model_part, 1.0);        
@@ -520,11 +519,9 @@ namespace Kratos
               ComputeNewRigidFaceNeighboursHistoricalData();
               
           }
-                    
-          ElementsArrayType& pElements             = r_model_part.GetCommunicator().LocalMesh().Elements();
-          RebuildPropertiesProxyPointers(pElements);
-          ElementsArrayType& pGhostElements        = r_model_part.GetCommunicator().GhostMesh().Elements();
-          RebuildPropertiesProxyPointers(pGhostElements);
+           
+          RebuildPropertiesProxyPointers(mListOfSphericParticles);
+          RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
           
           // 3. Get and Calculate the forces
           GetForce();
@@ -583,13 +580,9 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ModelPart& r_model_part             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+          ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
           double dt = rCurrentProcessInfo[DELTA_TIME];
-          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
-
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());                   
+          const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];             
 
           #pragma omp parallel
           {
@@ -603,6 +596,7 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }
+      
       void FastGetForce()
       {
           KRATOS_TRY
@@ -1478,6 +1472,7 @@ namespace Kratos
     ModelPart                            *mpMapping_model_part;
     
     std::vector<SphericParticle*>        mListOfSphericParticles;
+    std::vector<SphericParticle*>        mListOfGhostSphericParticles;
     
   }; // Class ExplicitSolverStrategy
 
