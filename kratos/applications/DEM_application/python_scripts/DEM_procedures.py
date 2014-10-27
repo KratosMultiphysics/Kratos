@@ -746,7 +746,7 @@ class DEMIo(object):
         for mfilelist in self.multifilelists:
             mfilelist.file.close()
 
-    def InitializeMesh(self,mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part):
+    def InitializeMesh(self, mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part):
         if (self.filesystem == MultiFileFlag.SingleFile):
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
@@ -755,6 +755,8 @@ class DEMIo(object):
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
+
             self.gid_io.InitializeMesh(0.0) 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
@@ -765,7 +767,7 @@ class DEMIo(object):
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
 
-    def InitializeResults(self,mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part,time):
+    def InitializeResults(self, mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
@@ -774,12 +776,14 @@ class DEMIo(object):
             if (self.contact_mesh_option == "ON"):                
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(time) 
             self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteSphereMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
@@ -810,11 +814,12 @@ class DEMIo(object):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
 
-    def PrintResults(self,mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part,time):
+    def PrintResults(self, mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(mixed_model_part,
                                    balls_model_part,
                                    rigid_face_model_part,
+                                   cluster_model_part,
                                    contact_model_part,
                                    time)
 
