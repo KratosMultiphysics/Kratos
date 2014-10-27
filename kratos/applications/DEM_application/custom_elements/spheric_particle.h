@@ -29,6 +29,7 @@
 #include "../custom_conditions/RigidFace.h"
 #include "../custom_conditions/dem_wall.h"
 #include "kratos_DEMApplication_export_dll.h"
+#include "../custom_utilities/properties_proxies.h"
 
 
 namespace Kratos
@@ -140,8 +141,8 @@ double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetLnOfRestitCoeff();
 double SlowGetDensity();
-int    SlowGetParticleMaterial();
-
+double SlowGetCohesion();
+int SlowGetParticleMaterial();
 
 
 ///@}
@@ -233,6 +234,8 @@ virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
 
 virtual void NormalForceCalculation(double& normal_force, double kn, double indentation);
 
+virtual void CohesionCalculation(double& cohesion_force, double cohesion);
+
 virtual void TangentialForceCalculation(const double normal_force, double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
 virtual void DisplacementDueToRotation(double DeltDesp[3],
@@ -257,6 +260,7 @@ virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_for
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double LocalCoordSystem[3][3],
                     double normal_force,
+                    double cohesion_force,
                     double LocalContactForce[3],
                     double LocalElasticContactForce[3],
                     double GlobalContactForce[3],
