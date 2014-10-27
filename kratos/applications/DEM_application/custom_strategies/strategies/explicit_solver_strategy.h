@@ -47,6 +47,8 @@
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/GeometryFunctions.h"
 
+#include "custom_elements/cluster3D.h"
+
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 
@@ -398,6 +400,9 @@ namespace Kratos
 
           InitializeSolutionStep();
           InitializeElements();
+          
+          ClusterInitialize();
+          
           InitializeFEMElements();
 
           mInitializeWasPerformed = true;
@@ -438,41 +443,61 @@ namespace Kratos
 
       KRATOS_CATCH("")
       }// Initialize()
-
+    
       
+      virtual void ClusterInitialize() {
+          
+          KRATOS_TRY
+
+          ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();    
+          
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+          typename ElementsArrayType::iterator it_end = pElements.ptr_end();
+          
+          for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
       
-      virtual void ClusterInitialize()
-      {
-         KRATOS_TRY
-
-/*
-        ElementsArrayType& pElements           = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();    
+              Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);
+              
+              (cluster_element).Initialize();
+              (cluster_element).CreateParticles(mpParticleCreatorDestructor, *mpDem_model_part);
+              
+          }
         
- 
-        
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
-        #pragma omp parallel for 
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-
-                (it)->Initialize();
-
-            }
-
-        }
-
-        
-        */
-        KRATOS_CATCH("")
-        
+          KRATOS_CATCH("")
         
       }
       
+      /*
+     
+      virtual void ClusterInitialize() {
+          
+          KRATOS_TRY
       
+          ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();     
+                
+          vector<unsigned int> cluster_partition;    
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), cluster_partition);    
+          unsigned int index;
+               
+          #pragma omp parallel for private (index)
+        
+          for (int k=0; k<this->GetNumberOfThreads(); k++) {
+            
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + cluster_partition[k];        
+              typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + cluster_partition[k+1];
+           
+              for (typename ElementsArrayType::iterator it = it_begin; it!= it_end; ++it) { //each iteration refers to a different triangle
+                
+              (it)->Initialize();
+             
+              }
+          }
+
+          KRATOS_CATCH("")
+             
+      }
+      
+      */
       
       
       
@@ -597,6 +622,25 @@ namespace Kratos
           KRATOS_CATCH("")
       }
       
+      void ClusterGetForce() {
+          
+          KRATOS_TRY
+
+          ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();    
+          
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+          typename ElementsArrayType::iterator it_end = pElements.ptr_end();
+                            
+          for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
+      
+              //Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);
+                  
+          }
+        
+          KRATOS_CATCH("")
+        
+      }
+            
       void FastGetForce()
       {
           KRATOS_TRY
