@@ -723,11 +723,14 @@ namespace Kratos
            
             // Transforming to global forces and adding up
             double LocalContactForce[3] =                 {0.0};
+            
+            double CohesionForce[3] =                     {0.0};
+            
             //double ViscoDampingGlobalContactForce[3] =    {0.0}; 
             double GlobalContactForce[3] =                {0.0};
             
               
-            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce[2], LocalContactForce,LocalElasticContactForce,GlobalContactForce,
+            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce[2], CohesionForce[2], LocalContactForce,LocalElasticContactForce,GlobalContactForce,
                                   GlobalElasticContactForce,ViscoDampingLocalContactForce/*,ViscoDampingGlobalContactForce,rContactForce*/,rElasticForce,
                                   i_neighbour_count);
             
