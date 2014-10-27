@@ -1608,7 +1608,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         ////////////////////////////////////////////////////////////////////////
         if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
         {          
-          CheckPairWiseBreaking();
+          //CheckPairWiseBreaking();
           return;
         }        
         ////////////////////////////////////////////////////////////////////////
@@ -2343,12 +2343,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
       
       
-     void SphericContinuumParticle::CheckPairWiseBreaking()  //MSIMSI DEBUG
+     /*void SphericContinuumParticle::CheckPairWiseBreaking()  //MSIMSI DEBUG
      
       {              
       
         //MSIMSI DEBUG
-      }
+      }*/
             
     void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
     void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
