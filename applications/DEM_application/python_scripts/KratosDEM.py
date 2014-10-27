@@ -60,6 +60,7 @@ procedures.PreProcessModel(DEM_parameters)
 balls_model_part      = ModelPart("SpheresPart");
 rigid_face_model_part = ModelPart("RigidFace_Part");  
 mixed_model_part      = ModelPart("Mixed_Part");
+cluster_model_part    = ModelPart("Cluster_Part");
 contact_model_part    = ""
 
 # Add variables
@@ -69,6 +70,9 @@ procedures.AddMpiVariables(balls_model_part)
 procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 SolverStrategy.AddFEMVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
+procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
+SolverStrategy.AddClusterVariables(cluster_model_part, DEM_parameters)
+procedures.AddMpiVariables(cluster_model_part)
 
 # Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
@@ -84,11 +88,19 @@ rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
 model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
+clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
+model_part_io_clusters = ModelPartIO(clusters_mp_filename)
+
+model_part_io_clusters.ReadModelPart(cluster_model_part)
+
+
 # Setting up the buffer size
 balls_model_part.SetBufferSize(1)
+cluster_model_part.SetBufferSize(1)
 
 # Adding dofs
 SolverStrategy.AddDofs(balls_model_part)
+SolverStrategy.AddDofs(cluster_model_part)
 
 # Constructing a creator/destructor object
 creator_destructor = ParticleCreatorDestructor()
@@ -116,6 +128,7 @@ KRATOSprint("Initializing Problem....")
 demio.AddGlobalVariables()
 demio.AddBallVariables()
 demio.AddFEMBoundaryVariables()
+demio.AddClusterVariables()
 demio.AddContactVariables()
 demio.AddMpiVariables()
 demio.EnableMpiVariables()
@@ -131,6 +144,7 @@ os.chdir(post_path)
 demio.InitializeMesh(mixed_model_part,
                      balls_model_part,
                      rigid_face_model_part,
+                     cluster_model_part,
                      contact_model_part)
 
 os.chdir(post_path)
@@ -257,6 +271,10 @@ while ( time < DEM_parameters.FinalTime):
     rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
     rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
 
+    cluster_model_part.ProcessInfo[TIME]            = time
+    cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
+    cluster_model_part.ProcessInfo[TIME_STEPS]      = step
+
     #print("STEP:"+str(step)+"*******************************************")
     #print("*************************************************************")
 
@@ -319,7 +337,7 @@ while ( time < DEM_parameters.FinalTime):
 
         os.chdir(post_path)
 
-        demio.PrintResults(mixed_model_part,balls_model_part,rigid_face_model_part,contact_model_part, time)
+        demio.PrintResults(mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time)
         
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
