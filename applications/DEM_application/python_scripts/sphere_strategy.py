@@ -88,7 +88,10 @@ def AddFEMVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     
-    
+def AddClusterVariables(model_part, Param):
+    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+    model_part.AddNodalSolutionStepVariable(RADIUS)
+
 class ExplicitStrategy:
 
     def __init__(self, model_part, fem_model_part, creator_destructor, Param):
