@@ -78,6 +78,50 @@ namespace Kratos
          Timer::PrintTimingInformation();
       }
 
+      
+      void RebuildListOfSphericParticles(){
+          
+          KRATOS_TRY
+                  
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+                                        
+          std::vector<std::vector<SphericParticle*> > partial_lists;
+          partial_lists.resize(this->GetNumberOfThreads());
+          std::vector<std::vector<SphericContinuumParticle*> > partial_lists_continuum;
+          partial_lists_continuum.resize(this->GetNumberOfThreads());
+          
+          #pragma omp parallel for
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it){
+                
+                SphericParticle* spheric_particle = dynamic_cast<Kratos::SphericParticle*>( &(*particle_pointer_it) );
+                partial_lists[OpenMPUtils::ThisThread()].push_back(spheric_particle); 
+                
+                SphericContinuumParticle* spheric_continuum_particle = dynamic_cast<Kratos::SphericContinuumParticle*>( &(*particle_pointer_it) );
+                partial_lists_continuum[OpenMPUtils::ThisThread()].push_back(spheric_continuum_particle); 
+                
+            }                                
+          }    
+          
+          //We concatenate the partial lists of elements
+          mListOfSphericContinuumParticles.clear();
+          BaseType::mListOfSphericParticles.clear();
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){                                          
+              BaseType::mListOfSphericParticles.insert(BaseType::mListOfSphericParticles.end(), partial_lists[k].begin(), partial_lists[k].end());
+              mListOfSphericContinuumParticles.insert(mListOfSphericContinuumParticles.end(), partial_lists_continuum[k].begin(), partial_lists_continuum[k].end());
+          }                    
+          
+          return;          
+          KRATOS_CATCH("")          
+      }
+      
+      
       virtual void Initialize()
       {
         
@@ -98,7 +142,9 @@ namespace Kratos
             std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() <<std::endl;
         std::cout << "            Parallelism Info:  OMP number of processors: " << this->GetNumberOfThreads() <<std::endl;
         std::cout << "          **************************************************" << std::endl << std::endl;
-                    
+
+        RebuildListOfSphericParticles();
+        
         rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
         this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
 
@@ -203,13 +249,14 @@ namespace Kratos
           int time_step                     = rCurrentProcessInfo[TIME_STEPS];
           mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
           
+          RebuildListOfSphericParticles();
+          
           // 1. Initialize step   /////////////////////////////////            
           BaseType::InitializeSolutionStep();
           
           this->ContactInitializeSolutionStep();
           
-          
-            // 4. Search Neighbours /////////////////////////////////                   
+                                  
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
           {            
             for (int i = 0; i < this->GetNumberOfThreads(); i++)
@@ -240,13 +287,16 @@ namespace Kratos
           //Synch this var.
           r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
+          
+          // 4. Search Neighbours /////////////////////////////////     
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
           {
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
                   if (this->GetBoundingBoxOption() == 1)
                   {
-                      this->BoundingBoxUtility();                                            
+                      this->BoundingBoxUtility();  
+                      RebuildListOfSphericParticles();
                   }                  
                    BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
                    BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
@@ -280,9 +330,6 @@ namespace Kratos
     void DebugOperations(ModelPart& r_model_part)
     
     {
-          //DEBUG OPERATIONS
-          
-          //this->CheckPairWiseBreaking();
           
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
@@ -307,186 +354,14 @@ namespace Kratos
             
             std::cout<<"The total measured area is: "<<total_area<<std::endl;
             std::cout<<" "<<std::endl;
-          }
-          
-          /*      
-           if(time_step == 1000)
-           {
-             this->Contact_Debug();
-           }
-          */
-          
-          //KRATOS_TIMER_STOP("SOLVE")
+          }          
 
     } 
     
-      
-    /*void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
-    {                
-
-        KRATOS_TRY
-
-        typedef Node < 3 > NodeType;
-        typedef Geometry<NodeType> GeometryType;
-
-        ModelPart& r_sphere_model_part          = BaseType::GetModelPart();
-        ElementsArrayType& pSphereElements      = GetAllElements(r_sphere_model_part);
-
-        int index_new_ids = 1;
-                    
-        std::string ElementName;
-        ElementName = std::string("ParticleContactElement");
-        const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
-        
-        PrepareContactModelPart(r_sphere_model_part,mcontacts_model_part);
-
-          //Here we are going to create contact elements when we are on a target particle and we see a neighbour whose id is higher than ours.
-          //We create also a pointer from the node to the element, after creating it.
-          //When our particle has a higher ID than the neighbour we also create a pointer to the (previously) created contact element.
-          //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
-                 
-        
-        for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-        {
-            ParticleWeakVectorType& r_continuum_ini_neighbours = (*it)->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);   
-
-            size_t neighbour_index = 0;
-
-            for(ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator = r_continuum_ini_neighbours.ptr_begin();
-                continuum_ini_neighbour_iterator != r_continuum_ini_neighbours.ptr_end(); continuum_ini_neighbour_iterator++)
-            {
-                
-                if ( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))                           //to avoid repetition
-                {
- 
-                    Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0);                   //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
-                    Geometry<Node<3> >::PointsArrayType  NodeArray(2);
-                    
-
-                    if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
-                    {
-                        NodeArray.GetContainer()[0] = (*it)->GetGeometry()(0);
-                        NodeArray.GetContainer()[1] = (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0);
-                    }    
-                    else
-                    {
-                        NodeArray.GetContainer()[1] = (*it)->GetGeometry()(0);
-                        NodeArray.GetContainer()[0] = (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0);          
-                    }
-
-                    Element::Pointer p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
-                    Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element);
-                    
-                     //generating the elements
-                    
-                    if(ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))  //false, only for MPI
-                    {
-                        ((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).push_back(p_weak);
-                        (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
-                        
-                        //If ghost element is in a different partition and out local element has lower id add it as local, otherwise as ghost.
-                        if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
-                        {
-                            
-                            Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
-                                                  
-                        }
-                        
-                        else
-                        {   
-        
-                            Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
-                        
-                          
-                        }
-                    }
-                    
-                    else 
-                    {
-                      
-                      Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
-                        
-                      (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
-                     
-                    }
-                    
-                    //copiar el weak a la variable nodal punters a barres
-                    
-                    index_new_ids++;    
- 
-                } 
-
-                neighbour_index++;             
-            }
-      
-        } //for (ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-    
-        for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-        {
-            ParticleWeakVectorType& r_continuum_ini_neighbours = (*it)->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-            
-            size_t neighbour_index = 0;
-                 
-            for(ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator = r_continuum_ini_neighbours.ptr_begin();
-                   continuum_ini_neighbour_iterator != r_continuum_ini_neighbours.ptr_end(); continuum_ini_neighbour_iterator++)
-            {
-                int neigh_size_ini_cont_neigh = (*continuum_ini_neighbour_iterator).lock()->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size(); //this is the size of the initial continuum neighbours of the neighbour of the particle where we are focused on.
-
-                if (!((*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() ) || ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))                   //to avoid repetition
-                {   
-                    int index = -1;
-                     
-                    for (int iii=0; iii< neigh_size_ini_cont_neigh; iii++)
-                    {
-                        int neigh_neigh_ID = (*continuum_ini_neighbour_iterator).lock()->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[iii];
-                                               
-                        if( neigh_neigh_ID == int((*it)->Id()))
-                        { 
-                            index = iii; //we keep the last iii of the iteration and this is the one to do pushback         
-                            break; 
-                        }
-                    } // for each ini continuum neighbour's ini continuum neighbour.
-
-                    if (index == -1)
-                    {
-                        std::cout << "Wrong index!!!!" << std::endl;
-                    }
-                    else
-                    {
-                        if(index >= int(((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).size()))
-                        {
-                            std::cout << "ERROR: " << (*it)->Id() << " " << ((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).size() << " " << index << std::endl;
-                        }
-
-                        (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = ((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index);
-                    }
-                } //if target id > neigh id
-                
-                neighbour_index++;
-                
-            } // for every ini continuum neighbour   
-            
-        } //loop over particles
-        
-        Sort_Contact_Modelpart(mcontacts_model_part);
-
-        Reassign_Ids(mcontacts_model_part);
-
-        KRATOS_CATCH("")
-        
-             
-    } //CreateContactElements*/
     
     void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
     {                
-
         KRATOS_TRY
-
-        typedef Node < 3 > NodeType;
-        typedef Geometry<NodeType> GeometryType;
-
-        ModelPart& r_sphere_model_part          = BaseType::GetModelPart();
-        ElementsArrayType& pSphereElements      = GetAllElements(r_sphere_model_part);
 
         int index_new_ids = 1;
                     
@@ -494,69 +369,65 @@ namespace Kratos
         ElementName = std::string("ParticleContactElement");
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
         
-        PrepareContactModelPart(r_sphere_model_part,mcontacts_model_part);
-
           //Here we are going to create contact elements when we are on a target particle and we see a neighbour whose id is higher than ours.
           //We create also a pointer from the node to the element, after creating it.
           //When our particle has a higher ID than the neighbour we also create a pointer to the (previously) created contact element.
           //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
-                 
+                     
+        Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
         
-        for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-        {
-            Element* p_neighbour_element = it->get();
-            SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>( p_neighbour_element );            
-            std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = p_continuum_spheric_particle->mContinuumIniNeighbourElements;
-            p_continuum_spheric_particle->mBondElements.resize(r_continuum_ini_neighbours.size());
-            
-           
-            for ( unsigned int i = 0; i<r_continuum_ini_neighbours.size(); i++ ) {
-                SphericContinuumParticle* continuum_ini_neighbour_iterator = r_continuum_ini_neighbours[i];
-                if ( p_continuum_spheric_particle->mContinuumGroup != continuum_ini_neighbour_iterator->mContinuumGroup ) continue;
+        #pragma omp parallel for 
+        for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
+                       
+            std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;
+            mListOfSphericContinuumParticles[i]->mBondElements.resize(r_continuum_ini_neighbours.size());
+                       
+            for ( unsigned int j=0; j<r_continuum_ini_neighbours.size(); j++ ) {
                 
-                if ( (*it)->GetGeometry()(0)->Id() < continuum_ini_neighbour_iterator->GetGeometry()(0)->Id() ) 
-                { 
-                    Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
-                    Geometry<Node<3> >::PointsArrayType  NodeArray(2);
-                                     
-                    NodeArray.GetContainer()[0] = (*it)->GetGeometry()(0);
-                    NodeArray.GetContainer()[1] = continuum_ini_neighbour_iterator->GetGeometry()(0);
+                if ( mListOfSphericContinuumParticles[i]->GetGeometry()(0)->Id() > r_continuum_ini_neighbours[j]->GetGeometry()(0)->Id() ) continue;
 
-                    Element::Pointer p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
-                    //mcontacts_model_part.AddElement(p_contact_element);
-                    mcontacts_model_part.Elements().push_back(p_contact_element);
-                    Element* raw_p_contact_element = p_contact_element.get();
-                    Particle_Contact_Element* p_bond = dynamic_cast<Particle_Contact_Element*>( raw_p_contact_element );     
-                    p_continuum_spheric_particle->mBondElements[i] = p_bond;                                                             
-                    index_new_ids++;     
-                } 
-            }
-            
-      
-        } //for (ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-        
-        for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
-        {
-            Element* p_neighbour_element = it->get();
-            SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>( p_neighbour_element );            
-            std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = p_continuum_spheric_particle->mContinuumIniNeighbourElements;
-            p_continuum_spheric_particle->mBondElements.clear();
-            
-           
-            for ( unsigned int i = 0; i<r_continuum_ini_neighbours.size(); i++ ) {
-                SphericContinuumParticle* continuum_ini_neighbour_iterator = r_continuum_ini_neighbours[i];
-                if ( p_continuum_spheric_particle->mContinuumGroup != continuum_ini_neighbour_iterator->mContinuumGroup ) continue;
+                if ( mListOfSphericContinuumParticles[i]->mContinuumGroup != r_continuum_ini_neighbours[j]->mContinuumGroup ) continue;                                                 
                 
-                if ( (*it)->GetGeometry()(0)->Id() > continuum_ini_neighbour_iterator->GetGeometry()(0)->Id() ) 
-                { 
-                    for ( unsigned int j=0; j<continuum_ini_neighbour_iterator->mContinuumIniNeighbourElements.size(); j++ )
-                    {                        
-                        if( continuum_ini_neighbour_iterator->mContinuumIniNeighbourElements[j]->GetGeometry()(0)->Id() == (*it)->GetGeometry()(0)->Id() ) {
-                            Particle_Contact_Element* bond = continuum_ini_neighbour_iterator->mBondElements[j];
-                            p_continuum_spheric_particle->mBondElements[i] = bond; break;
-                        }
+                Geometry<Node<3> >::PointsArrayType  NodeArray(2);
+                
+                NodeArray.GetContainer()[0] = mListOfSphericContinuumParticles[i]->GetGeometry()(0);
+                NodeArray.GetContainer()[1] = r_continuum_ini_neighbours[j]->GetGeometry()(0);
+
+                Element::Pointer p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
+                
+                #pragma omp critical
+                {
+                    mcontacts_model_part.Elements().push_back(p_contact_element);
+                    index_new_ids++;
+                }
+                
+                Element* raw_p_contact_element = p_contact_element.get();
+                Particle_Contact_Element* p_bond = dynamic_cast<Particle_Contact_Element*>( raw_p_contact_element );     
+                mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;                                                                  
+            }            
+      
+        } //for all Spheric Continuum Particles
+        
+        #pragma omp parallel for
+        for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
+            
+            std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;
+            //mListOfSphericContinuumParticles[i]->mBondElements.clear();                       
+            for ( unsigned int j = 0; j<r_continuum_ini_neighbours.size(); j++ ) {
+                
+                if ( mListOfSphericContinuumParticles[i]->GetGeometry()(0)->Id() < r_continuum_ini_neighbours[j]->GetGeometry()(0)->Id() ) continue;
+                
+                if ( mListOfSphericContinuumParticles[i]->mContinuumGroup != r_continuum_ini_neighbours[j]->mContinuumGroup ) continue;                
+                
+                for ( unsigned int k=0; k<r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements.size(); k++ )
+                {                        
+                    if( r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k]->GetGeometry()(0)->Id() == mListOfSphericContinuumParticles[i]->GetGeometry()(0)->Id() ) {
+                        Particle_Contact_Element* bond = r_continuum_ini_neighbours[j]->mBondElements[k];
+                        mListOfSphericContinuumParticles[i]->mBondElements[j] = bond; 
+                        break;
                     }
                 }
+                
             }
         }                                
         
@@ -741,17 +612,7 @@ namespace Kratos
      {
         KRATOS_TRY
 
-        ModelPart& r_model_part = BaseType::GetModelPart();
-        
-        /*        
-        if (mFixSwitch)
-        {
-            
-            FixHorizontalVelocities();
-            rCurrentProcessInfo[FIX_VELOCITIES_FLAG] = 0;
-          
-        } // mFixSwitch
-        */
+        ModelPart& r_model_part = BaseType::GetModelPart();               
         
         BaseType::GetScheme()->Calculate(r_model_part);
         
@@ -771,8 +632,7 @@ namespace Kratos
           
           double Output = 0.0;
           
-          #pragma omp parallel for
-          
+          #pragma omp parallel for          
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -797,59 +657,32 @@ namespace Kratos
 
       ModelPart& r_model_part           = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      ElementsArrayType& pElements      = GetElements(r_model_part);
       
       bool has_mpi = false;
       VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
-      if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
-            
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-            
-      #pragma omp parallel for
+      if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;                        
       
-      for (int k = 0; k < this->GetNumberOfThreads(); k++){
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-          {
-              Kratos::SphericContinuumParticle& spheric_particle = dynamic_cast<Kratos::SphericContinuumParticle&>(*it);
-              spheric_particle.CalculateMeanContactArea(has_mpi,rCurrentProcessInfo);             
-          } //loop over particles
-
-      }// loop threads OpenMP
+      #pragma omp parallel for 
+      for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
+         mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi,rCurrentProcessInfo); 
+      }
       
       KRATOS_CATCH("")
 
     } //Particle_Area_Calculate
  
     void SetInitialDemContacts()
-    {
-           
+    {           
       KRATOS_TRY
+      
+      ProcessInfo& rCurrentProcessInfo  = BaseType::GetModelPart().GetProcessInfo();
 
-      ModelPart& r_model_part           = BaseType::GetModelPart();
-      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      ElementsArrayType& pElements      = GetElements(r_model_part);
-      
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-            
-      #pragma omp parallel for
-      
-      for (int k = 0; k < this->GetNumberOfThreads(); k++){
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-              Kratos::SphericContinuumParticle& spheric_particle = dynamic_cast<Kratos::SphericContinuumParticle&>(*it);
-              spheric_particle.SetInitialSphereContacts(rCurrentProcessInfo);
-              spheric_particle.CreateContinuumConstitutiveLaws();
-      
-          } //loop over particles
-
-      }// loop threads OpenMP
-      
+      #pragma omp parallel for 
+      for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
+          mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(rCurrentProcessInfo);
+          mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws();
+      }
+           
       KRATOS_CATCH("")
 
     } //SetInitialDemContacts
@@ -858,67 +691,15 @@ namespace Kratos
     {
            
       KRATOS_TRY
-
-      ModelPart& r_model_part           = BaseType::GetModelPart();
-      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      ElementsArrayType& pElements      = GetElements(r_model_part);
       
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-      
-      double Output = 0.0;
-      
-      #pragma omp parallel for
-
-      for (int k = 0; k < this->GetNumberOfThreads(); k++){
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-          {
-            
-              (it)->Calculate(CALCULATE_SET_INITIAL_FEM_CONTACTS,Output,rCurrentProcessInfo); 
-            
-          } //loop over particles
-
-      }// loop threads OpenMP
+      #pragma omp parallel for 
+      for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
+          mListOfSphericContinuumParticles[i]->SetInitialFemContacts();
+      }
       
       KRATOS_CATCH("")
 
-    } //SetInitialDemContacts
- 
-
-        
-
-   void CheckPairWiseBreaking()
-     {
-          KRATOS_TRY
-
-          // SPHERE MODEL PART
-
-          ModelPart& r_model_part             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
-          double dummy = 0.0;
-          
-          #pragma omp parallel for
-          
-          for (int k = 0; k < this->GetNumberOfThreads(); k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-              for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                    
-                     it->Calculate(DUMMY_DEBUG_DOUBLE, dummy , rCurrentProcessInfo);
-                    
-              } // loop over particles
-
-          } // loop threads OpenMP
-
-        KRATOS_CATCH("")
-      }            
+    } //SetInitialDemContacts            
          
      void FinalizeSolutionStepFEM()
     {
@@ -934,35 +715,20 @@ namespace Kratos
       vector<unsigned int> condition_partition;
       OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
             
-      #pragma omp parallel for private (rhs_cond)
-      
-      
+      #pragma omp parallel for private (rhs_cond)            
       for(int k=0; k<this->GetNumberOfThreads(); k++)
       {
           typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
           typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
 
-          for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
-          {
-              
-            it->FinalizeSolutionStep(rCurrentProcessInfo);
-              
+          for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it){
+              it->FinalizeSolutionStep(rCurrentProcessInfo);              
           }
       }
 
       KRATOS_CATCH("")
     }
-
-    virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
-    {  
-        /* */
-    }
-   
-    
-    virtual bool ContactElementsParallelCondition(typename ElementsArrayType::ptr_iterator it, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator)
-    {
-        return false;
-    }
+     
         
     virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
     {
@@ -1012,7 +778,7 @@ namespace Kratos
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
     bool   mDempackOption;
-    
+    std::vector<SphericContinuumParticle*>        mListOfSphericContinuumParticles;
 
   }; // Class ContinuumExplicitSolverStrategy
 
