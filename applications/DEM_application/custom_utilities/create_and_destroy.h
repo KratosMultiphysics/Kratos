@@ -27,12 +27,13 @@
 #include "includes/define.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/spheric_particle.h"
+#include "../custom_elements/spheric_continuum_particle.h"
 #include "includes/define.h"
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-#include "../DEM_application.h"
+#include "../DEM_application_variables.h"
 
-#
+
 namespace Kratos {
 
     static double rand_normal(double mean, double stddev, double max_radius, double min_radius) {
@@ -306,6 +307,7 @@ public:
       spheric_p_particle->SetSqrtOfRealMass(sqrt_of_cluster_mass);
       
       spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
+      spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
       
       r_modelpart.Elements().push_back(p_particle);          
 }    
@@ -515,6 +517,7 @@ public:
               (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE); 
               (*particle_pointer_it)->Set(TO_ERASE); 
           }
+
       }
       
       for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin();
