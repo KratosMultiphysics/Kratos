@@ -6,11 +6,8 @@
 //
 //
 
-
 #if !defined(KRATOS_CLUSTER3D_H_INCLUDED )
 #define  KRATOS_CLUSTER3D_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -19,7 +16,6 @@
 
 // External includes 
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -31,8 +27,10 @@
 #include "utilities/indexed_object.h"
 #include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
+#include "custom_utilities/create_and_destroy.h"
 
 #include "includes/condition.h"
+
 
 namespace Kratos
 {
@@ -40,15 +38,14 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class Cluster3D
-       : public Element
+    class Cluster3D : public Element
     {
     public:
       ///@name Type Definitions
       ///@{
       
       /// Pointer definition of Cluster3D
-      KRATOS_CLASS_POINTER_DEFINITION(Cluster3D);
+        KRATOS_CLASS_POINTER_DEFINITION(Cluster3D);
   
       ///@}
       ///@name Life Cycle
@@ -65,12 +62,12 @@ namespace Kratos
 //         {
 //         }
 //         
-      Cluster3D( );
-      Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
-      Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
-      Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+        Cluster3D( );
+        Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
+        Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
+        Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
         
 
         /**
@@ -96,7 +93,7 @@ namespace Kratos
       
    
       /// Destructor.
-      virtual ~Cluster3D();
+        virtual ~Cluster3D();
       
       /*
       virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -120,7 +117,7 @@ namespace Kratos
          * Must be called before any calculation is done!
          */
         virtual void Initialize();
-
+        virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
         /**
          * this is called during the assembling process in order
          * to calculate all elemental contributions to the global system
@@ -221,24 +218,24 @@ namespace Kratos
       ///@name Input and output
       ///@{
 
-      virtual std::string Info() const
-      {
-	  std::stringstream buffer;
-	  buffer << "Discrete Element #" << Id();
-	  return buffer.str();
-      }
+        virtual std::string Info() const
+        {
+	    std::stringstream buffer;
+	    buffer << "Discrete Element #" << Id();
+	    return buffer.str();
+        }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-      {
-	  rOStream << "Discrete Element #" << Id();
-      }
+        virtual void PrintInfo(std::ostream& rOStream) const
+        {
+	    rOStream << "Discrete Element #" << Id();
+        }
       
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
+        virtual void PrintData(std::ostream& rOStream) const
+        {
 	  //mpGeometry->PrintData(rOStream);
-      }
+        }
       
             
       ///@}      
@@ -318,17 +315,17 @@ namespace Kratos
       ///@name Serialization
       ///@{
 
-      friend class Serializer;
+        friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
-      {
-          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-      }
+        virtual void save(Serializer& rSerializer) const
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+        }
 
-      virtual void load(Serializer& rSerializer)
-      {
-          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
-      }
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+        }
 
         
         
@@ -351,18 +348,18 @@ namespace Kratos
         
  
   /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
+    inline std::istream& operator >> (std::istream& rIStream, 
                     Cluster3D& rThis);
 
   /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
+    inline std::ostream& operator << (std::ostream& rOStream, 
                     const Cluster3D& rThis)
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
 
-      return rOStream;
+        return rOStream;
     }
   ///@}
 
