@@ -371,6 +371,7 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_X, 8);
   KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_Y, 9);
   KRATOS_CREATE_LOCAL_FLAG(DEMFlags,FIXED_ANG_VEL_Z, 10);
+  KRATOS_CREATE_LOCAL_FLAG(DEMFlags,BELONGS_TO_A_CLUSTER, 11);
 
   KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
   
@@ -391,6 +392,7 @@ namespace Kratos
   mRigidFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
   mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
   mCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mLineCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mMapCon3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
   {}
     
@@ -757,6 +759,7 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION( "RigidEdge3D2N", mRigidEdge3D2N )
 
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
+    KRATOS_REGISTER_ELEMENT("LineCluster3D", mLineCluster3D)
 
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
