@@ -632,6 +632,7 @@ class DEMIo(object):
         self.ball_variables            = []
         self.ball_local_axis_variables = []
         self.fem_boundary_variables    = []
+        self.cluster_variables         = []
         self.contact_variables         = []
         self.multifilelists            = []
 
@@ -808,7 +809,11 @@ class DEMIo(object):
     def PrintingFEMBoundaryVariables(self, export_model_part, time):
         for variable in self.fem_boundary_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-            
+    
+    def PrintingClusterVariables(self, export_model_part, time):
+        for variable in self.cluster_variables:
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+
     def PrintingContactElementsVariables(self, export_model_part, time):
         if (self.contact_mesh_option == "ON"):
             for variable in self.contact_variables:
@@ -826,6 +831,7 @@ class DEMIo(object):
         self.PrintingGlobalVariables(mixed_model_part, time)
         self.PrintingBallsVariables(balls_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
+        self.PrintingClusterVariables(cluster_model_part, time)
         self.PrintingContactElementsVariables(contact_model_part, time)
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
