@@ -39,7 +39,6 @@
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
-#include "custom_conditions/mapping_condition.h"
 
 #include "DEM_application_variables.h"
 
