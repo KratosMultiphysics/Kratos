@@ -115,7 +115,7 @@ class DEM_FEM_Search : public SpatialSearch
       {     
           KRATOS_TRY
           
-          int MaxNumberOfElements = rElements.size();
+          int MaxNumberOfElements = rConditions.size();
 
           ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rElements.GetContainer());
           ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rConditions.GetContainer());
@@ -162,8 +162,9 @@ class DEM_FEM_Search : public SpatialSearch
                   {
                       Condition::Pointer elem = boost::dynamic_pointer_cast<Condition>(*it);
                       rResults[i].push_back(elem);
-                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
                   }
+
+                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
               }
           }
           
