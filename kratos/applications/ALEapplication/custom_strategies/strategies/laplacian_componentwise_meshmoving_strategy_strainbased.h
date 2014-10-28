@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "custom_elements/laplacian_componentwise_meshmoving_element_2d.h"
-#include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
+//#include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -458,11 +458,12 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3DStrainbased(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
+	      pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
+	                                   (*it).Id(),
+	                                   (*it).pGetGeometry(),
+	                                   (*it).pGetProperties() ) );
+	      MeshElems.push_back(pElem);
+	      
             }
 //KRATOS_WATCH((mpMeshModelPart->Elements()).size());
 //KRATOS_WATCH((mpMeshModelPart->Nodes()).size());
@@ -498,11 +499,11 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3DStrainbased(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
+	      pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
+	                                   (*it).Id(),
+	                                   (*it).pGetGeometry(),
+	                                   (*it).pGetProperties() ) );
+	      MeshElems.push_back(pElem);
             }
 
         KRATOS_WATCH(MeshElems.size());

@@ -29,7 +29,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "../ALEapplication/ale_application.h"
 #include "../ALEapplication/custom_elements/laplacian_componentwise_meshmoving_element_2d_strainbased.h"
-#include "../ALEapplication/custom_elements/laplacian_componentwise_meshmoving_element_3d_strainbased.h"
+//#include "../ALEapplication/custom_elements/laplacian_componentwise_meshmoving_element_3d_strainbased.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
@@ -483,11 +483,11 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3DStrainbased(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
+	      pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
+	                                   (*it).Id(),
+	                                   (*it).pGetGeometry(),
+	                                   (*it).pGetProperties() ) );
+	      MeshElems.push_back(pElem);
             }
 
         // Optimize communicaton plan
