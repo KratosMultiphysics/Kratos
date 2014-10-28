@@ -377,7 +377,7 @@ namespace Kratos
           
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
           
-          ClusterInitialize();
+          InitializeClusters();
           
           // Omp initializations
           GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
@@ -443,7 +443,7 @@ namespace Kratos
       }// Initialize()
     
       
-      virtual void ClusterInitialize() {
+      virtual void InitializeClusters() {
           
           KRATOS_TRY
 
