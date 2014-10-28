@@ -273,8 +273,6 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
         
-        cluster_model_part = ModelPart("Dummy")
-        
         self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
                                              self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
