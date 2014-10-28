@@ -90,7 +90,8 @@ namespace Kratos
       ///@}
       ///@name Access
       ///@{
-
+      std::vector<Node<3>::Pointer> mNeighbourNodes;
+      std::vector<double>   mNeighbourNodesDistances;
 
       ///@}
       ///@name Inquiry
