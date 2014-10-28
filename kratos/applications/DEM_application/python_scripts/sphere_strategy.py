@@ -105,8 +105,6 @@ class ExplicitStrategy:
         self.bounding_box_option = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities_flag = 0
         
-#        self.limit_surface_option           = Param.LimitSurfaceOption
-#        self.limit_cylinder_option          = Param.LimitCylinderOption
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option = Var_Translator(Param.AutomaticBoundingBoxOption)
