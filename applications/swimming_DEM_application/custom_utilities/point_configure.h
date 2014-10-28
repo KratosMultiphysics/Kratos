@@ -135,9 +135,10 @@ static inline bool Intersection(const PointerType& r_p_point_1, const PointerTyp
 
 static inline bool Intersection(const PointerType& r_p_point_1, const PointerType& r_p_point_2, const double& radius){
     array_1d<double, 3> node_2_to_1 = *r_p_point_1 - *r_p_point_2;
-    double distance_2 = inner_prod(node_2_to_1, node_2_to_1);
+    double distance;
+    Distance(r_p_point_1, r_p_point_2, distance);
 
-    bool intersect = (distance_2 - radius) <= 0;
+    bool intersect = (distance - radius) <= 0;
 
     return intersect;
 }

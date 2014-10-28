@@ -603,33 +603,34 @@ void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part,
                                    const double& search_radius)
 {
     unsigned int n_nodes = r_dem_model_part.Nodes().size();
-    mSearchRadii.resize(0);
-    mVectorsOfNeighNodes.resize(0);
-    mVectorsOfDistances.resize(0);
-    mSearchRadii.resize(n_nodes);
-    mVectorsOfNeighNodes.resize(n_nodes);
-    mVectorsOfDistances.resize(n_nodes);
-    VectorResultNodesContainerType vector1; // list of arrays of pointers to the particle's nodal neighbours
-    VectorDistanceType vector2;
-    vector1.clear();
-    vector2.clear();
-    vector1.resize(n_nodes);
-    vector2.resize(n_nodes);
+    mSearchRadii.resize(n_nodes, search_radius);
+
+    if (n_nodes != mVectorsOfNeighNodes.size()){
+        mVectorsOfNeighNodes.resize(n_nodes);
+        mVectorsOfDistances.resize(n_nodes);
+    }
 
     for (int i = 0; i != (int)n_nodes; ++i){
-        mSearchRadii[i] = search_radius; // spatial search is designed for varying radius
+        mVectorsOfNeighNodes[i].clear();
+        mVectorsOfDistances[i].clear();
     }
 
     NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
     NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
-    mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, vector1, vector2);
+    mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
 
-    for (int i = 0; i != (int)n_nodes; ++i){
-        KRATOS_WATCH(mSearchRadii[i])
-        KRATOS_WATCH(vector1[i].size())
-        KRATOS_WATCH(vector2[i].size())
-        for (int j = 0; j != (int)vector2[i].size(); ++j){
-            //KRATOS_WATCH(mVectorsOfDistances[i][j])
+    // passing the neighbour's information to the particles
+
+    for (int i = 0; i < (int)n_nodes; i++){
+        ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
+        SphericSwimmingParticle* p_particle = dynamic_cast<SphericSwimmingParticle*>(&(*i_particle));
+
+        if (mVectorsOfNeighNodes[i].size()){
+            p_particle->Set(INSIDE, true);
+            p_particle->mNeighbourNodes.clear();
+            p_particle->mNeighbourNodesDistances.clear();
+            p_particle->mNeighbourNodes.insert((p_particle->mNeighbourNodes).begin(), mVectorsOfNeighNodes[i].begin(), mVectorsOfNeighNodes[i].end());
+            p_particle->mNeighbourNodesDistances.insert((p_particle->mNeighbourNodesDistances).begin(), mVectorsOfDistances[i].begin(), mVectorsOfDistances[i].end());
         }
     }
 }
@@ -1318,8 +1319,8 @@ void CalculateNodalFluidFractionByAveraging( // it is actually calculating its c
         double solid_volume = 4.0 / 3.0 * KRATOS_M_PI * radius * radius * radius;
 
         for (unsigned int i = 0; i != neighbours.size(); ++i){
-            double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
-            neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume / area ;
+            double area = neighbours[i]->GetSolutionStepValue(NODAL_AREA);
+            neighbours[i]->GetSolutionStepValue(FLUID_FRACTION) += weights[i] * solid_volume / area ;
         }
     }
 }
@@ -1425,15 +1426,6 @@ void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part){
 
     for (ElementsArrayType::iterator i_elem = r_dem_model_part.ElementsBegin(); i_elem != r_dem_model_part.ElementsEnd(); ++i_elem){
         mSwimmingSphereElementPointers[i] = &(dynamic_cast<Kratos::SphericSwimmingParticle&>(*i_elem));
-        std::vector<Node<3>::Pointer> particle_neighbours = mSwimmingSphereElementPointers[i]->mNeighbourNodes;
-        std::vector<Node<3>::Pointer> neighbours = mVectorsOfNeighNodes[i];
-        unsigned int neigh_size = neighbours.size();
-        particle_neighbours.resize(neigh_size);
-
-        for (int j = 0; j < (int)neigh_size; ++j){
-            particle_neighbours[j] = neighbours[j];
-        }
-
         ++i;
     }
 }
