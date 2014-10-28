@@ -19,14 +19,13 @@ class ProjectionModule:
         self.n_particles_in_depth = pp.n_particles_in_depth
         self.meso_scale_length    = pp.meso_scale_length
         self.shape_factor         = pp.shape_factor
-        self.search_strategy      = OMP_DEMSearch()
 
         if (self.dimension == 3):
-            self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type, self.search_strategy)
+            self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.search_strategy, self.n_particles_in_depth)
+            self.projector = BinBasedDEMFluidCoupledMapping2D(self.min_fluid_fraction, self.coupling_type, self.n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
         # telling the projector which variables we are interested in modifying
