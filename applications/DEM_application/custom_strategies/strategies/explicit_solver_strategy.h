@@ -384,8 +384,6 @@ namespace Kratos
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
           
-          ClusterInitialize();                              
-
           CreatePropertiesProxies();
           
           int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
@@ -462,44 +460,10 @@ namespace Kratos
               (cluster_element).CreateParticles(mpParticleCreatorDestructor, *mpDem_model_part);
               
           }
-        
-          KRATOS_CATCH("")
-        
-      }
-      
-      /*
-     
-      virtual void ClusterInitialize() {
           
-          KRATOS_TRY
-      
-          ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();     
-                
-          vector<unsigned int> cluster_partition;    
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), cluster_partition);    
-          unsigned int index;
-               
-          #pragma omp parallel for private (index)
-        
-          for (int k=0; k<this->GetNumberOfThreads(); k++) {
-            
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + cluster_partition[k];        
-              typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + cluster_partition[k+1];
-           
-              for (typename ElementsArrayType::iterator it = it_begin; it!= it_end; ++it) { //each iteration refers to a different triangle
-                
-              (it)->Initialize();
-             
-              }
-          }
-
           KRATOS_CATCH("")
-             
+        
       }
-      
-      */
-      
-      
       
       virtual double Solve()
       {
