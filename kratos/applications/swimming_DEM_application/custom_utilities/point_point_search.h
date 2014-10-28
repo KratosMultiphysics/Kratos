@@ -100,52 +100,54 @@ PointPointSearch(){}
 void SearchPointsImplementation(
         NodesContainerType const& r_nodes,
         NodesContainerType const& r_nodes_to_find,
-        const RadiusArrayType & radius,
+        RadiusArrayType const& radius,
         VectorResultNodesContainerType& r_results,
         VectorDistanceType& r_results_distances)
 {
     KRATOS_TRY
 
-    int max_number_of_nodes = r_nodes.size();
+    int max_n_of_neigh_nodes = r_nodes_to_find.size();
 
-    NodesContainerType::ContainerType& nodes      = const_cast <NodesContainerType::ContainerType&> (r_nodes.GetContainer());
-    NodesContainerType::ContainerType& nodes_bins = const_cast <NodesContainerType::ContainerType&> (r_nodes_to_find.GetContainer());
+    NodesContainerType::ContainerType& nodes         = const_cast <NodesContainerType::ContainerType&> (r_nodes.GetContainer());
+    NodesContainerType::ContainerType& nodes_to_find = const_cast <NodesContainerType::ContainerType&> (r_nodes_to_find.GetContainer());
 
-    PointSetType::ContainerType nodes_to_geometrical_object_pointer_vector;
-    PointSetType::ContainerType bins_of_nodes_to_geometrical_object_pointer_vector;
+    PointSetType::ContainerType nodes_temp;
+    PointSetType::ContainerType nodes_to_find_temp;
 
-    nodes_to_geometrical_object_pointer_vector.reserve(nodes.size());
-    bins_of_nodes_to_geometrical_object_pointer_vector.reserve(nodes_bins.size());
+    nodes_temp.reserve(nodes.size());
+    nodes_to_find_temp.reserve(nodes_to_find.size());
 
     for (NodesContainerType::ContainerType::iterator it = nodes.begin(); it != nodes.end(); ++it){
-        nodes_to_geometrical_object_pointer_vector.push_back(*it);
+        nodes_temp.push_back(*it);
     }
 
-    for (NodesContainerType::ContainerType::iterator it = nodes_bins.begin(); it != nodes_bins.end(); ++it){
-        bins_of_nodes_to_geometrical_object_pointer_vector.push_back(*it);
+    for (NodesContainerType::ContainerType::iterator it = nodes_to_find.begin(); it != nodes_to_find.end(); ++it){
+        nodes_to_find_temp.push_back(*it);
     }
 
-    PointBinsType bins(bins_of_nodes_to_geometrical_object_pointer_vector.begin(), bins_of_nodes_to_geometrical_object_pointer_vector.end());
+    PointBinsType bins(nodes_to_find_temp.begin(), nodes_to_find_temp.end());
 
     #pragma omp parallel
     {
-        PointSetType::ContainerType local_results(max_number_of_nodes);
-        DistanceType                         local_results_distances(max_number_of_nodes);
-        std::size_t                          number_of_results = 0;
+        PointSetType::ContainerType local_results(max_n_of_neigh_nodes);
+        DistanceType                local_results_distances(max_n_of_neigh_nodes);
+        std::size_t                 n_of_results = 0;
 
         #pragma omp for
         for (int i = 0; i < static_cast<int>(nodes.size()); ++i){
-            PointSetType::ContainerType::iterator i_results = local_results.begin();
-            DistanceType::iterator i_distances_results      = local_results_distances.begin();
+            PointSetType::ContainerType::iterator i_results_begin = local_results.begin();
+            DistanceType::iterator i_distances_results_begin      = local_results_distances.begin();
 
-            number_of_results = bins.SearchObjectsInRadiusExclusive(nodes_to_geometrical_object_pointer_vector[i], radius[i], i_results, i_distances_results, max_number_of_nodes);
-            r_results[i].reserve(number_of_results);
+            n_of_results = bins.SearchObjectsInRadiusExclusive(nodes_temp[i], radius[i], i_results_begin, i_distances_results_begin, max_n_of_neigh_nodes);
 
-            for (PointSetType::ContainerType::iterator it = local_results.begin(); it != local_results.begin() + number_of_results; ++it){
+            r_results[i].reserve(n_of_results);
+
+            for (PointSetType::ContainerType::iterator it = local_results.begin(); it != local_results.begin() + n_of_results; ++it){
                 Node<3>::Pointer p_node = boost::dynamic_pointer_cast<Node<3> >(*it);
                 r_results[i].push_back(p_node);
-                r_results_distances[i].insert(r_results_distances[i].begin(), local_results_distances.begin(), local_results_distances.begin() + number_of_results);
             }
+
+            r_results_distances[i].insert(r_results_distances[i].begin(), local_results_distances.begin(), local_results_distances.begin() + n_of_results);
         }
     }
 
