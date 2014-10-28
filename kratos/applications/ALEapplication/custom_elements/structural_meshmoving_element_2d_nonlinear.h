@@ -68,6 +68,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "geometries/geometry.h"
+
 
 
 namespace Kratos
@@ -93,10 +95,10 @@ namespace Kratos
 ///@{
 
 
-/// This class implements a structural structural-meshsolver in 2D using non-linear kinematics
+/// This class implements a structural mesh-updating scheme in 2D using non-linear kinematics
 /**
- *Implements a mesh-solver in 2D treating the mesh as a structure using a linear elastic
- *material law. The kinemematics are implemented non-linear. In Addition the solver
+ *Implements a mesh-updating scheme in 2D treating the mesh as a structure using a linear elastic
+ *material law. The kinemematics are implemented non-linearly. In Addition the solver
  *can be stabilized by an exponential law using an exponential law containing the
  *Jacobi determinant.
 */
@@ -122,12 +124,6 @@ public:
     /// Destructor.
     virtual ~StructuralMeshMovingElem2DNonlin();
 
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
     ///@}
     ///@name Operations
     ///@{
@@ -142,6 +138,9 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+    double CalculateMaximum(double , double , double );
+
 
 
 

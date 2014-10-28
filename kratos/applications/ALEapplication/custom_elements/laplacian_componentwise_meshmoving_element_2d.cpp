@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: jwolf $
-//   Date:                $Date: 2013-08-30 10:30:31 $
+//   Last modified by:    $Author: AMini $
+//   Date:                $Date: Oct 2014  $
 //   Revision:            $Revision: 1.2 $
 //
 //
@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-//************************************************************************************
+//*********************************Constructor****************************************
 //************************************************************************************
 LaplacianComponentwiseMeshMovingElem2D::LaplacianComponentwiseMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
@@ -74,66 +74,85 @@ LaplacianComponentwiseMeshMovingElem2D::LaplacianComponentwiseMeshMovingElem2D(I
     //DO NOT ADD DOFS HERE!!!
 }
 
-//************************************************************************************
+//*********************************Constructor****************************************
 //************************************************************************************
 LaplacianComponentwiseMeshMovingElem2D::LaplacianComponentwiseMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
+//*********************************Element Pointer************************************
+//************************************************************************************
 Element::Pointer LaplacianComponentwiseMeshMovingElem2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new LaplacianComponentwiseMeshMovingElem2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+//*********************************Destructor*****************************************
+//************************************************************************************
 LaplacianComponentwiseMeshMovingElem2D::~LaplacianComponentwiseMeshMovingElem2D()
 {
 }
 
-//************************************************************************************
-//************************************************************************************
-void LaplacianComponentwiseMeshMovingElem2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
-}
-
-
-//************************************************************************************
+//******************************Build up system matrices******************************
 //************************************************************************************
 void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    unsigned int number_of_points = 3;
 
-    if(rLeftHandSideMatrix.size1() != number_of_points)
-        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
+    //==========================================================================
+    //                     Define matrices and variables
+    //==========================================================================
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-    if(rRightHandSideVector.size() != number_of_points)
-        rRightHandSideVector.resize(number_of_points,false);
+    if(rLeftHandSideMatrix.size1() != number_of_nodes)
+        rLeftHandSideMatrix.resize(number_of_nodes,number_of_nodes,false);
+
+    if(rRightHandSideVector.size() != number_of_nodes)
+        rRightHandSideVector.resize(number_of_nodes,false);
 
     unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
     boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
     array_1d<double,3> msN;
     array_1d<double,3> ms_temp_vec_np;
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes,number_of_nodes);
+    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
 
-    //getting data for the given geometry
+    //==========================================================================
+    //                  Getting data for the given geometry
+    //==========================================================================
     double Area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 
+    //==========================================================================
+    //                          Compute LHS
+    //==========================================================================
+    noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
+
+    //==========================================================================
+    //                     Compute Delta position
+    //==========================================================================
     const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
     const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,1);
     const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
-    noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
-
-    //dirichlet contribution
+    //==========================================================================
+    //                     Compute dirichlet contribution
+    //==========================================================================
     ms_temp_vec_np[0] = disp0[ComponentIndex];
     ms_temp_vec_np[1] = disp1[ComponentIndex];
     ms_temp_vec_np[2] = disp2[ComponentIndex];
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points);
+
+    //==========================================================================
+    //                          Compute RHS
+    //==========================================================================
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
+
+
+    //==========================================================================
+    //       Compute conductivity and modify RHS and LHS
+    //==========================================================================
 
     //note that no multiplication by area is performed,
     //this makes smaller elements more rigid and minimizes the mesh deformation
@@ -141,7 +160,7 @@ void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rL
     // switchValue to turn of / on conductivity settigns
     // 1 = on  (LHS and RHS are multiplied by conductivity)
     // 0 = off (no all elements are considered to have a conductivity of 1)
-    double switchValue = 0;
+    double switchValue = 1;
 
     // preserve matrices to become ill-conditioned
     if(switchValue != 0)
@@ -159,7 +178,7 @@ void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rL
         grad_u[2] = 0;
 
         // compute strains
-        for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
+        for(unsigned int i = 0; i < number_of_nodes; i++) // loop over the three nodes
         {
             disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
@@ -192,7 +211,7 @@ void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rL
     KRATOS_CATCH("");
 }
 
-//************************************************************************************
+//*************************Generate Equation ID Vector********************************
 //************************************************************************************
 void LaplacianComponentwiseMeshMovingElem2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
@@ -209,7 +228,7 @@ void LaplacianComponentwiseMeshMovingElem2D::EquationIdVector(EquationIdVectorTy
     }
 }
 
-//************************************************************************************
+//***********************************Get Dof List*************************************
 //************************************************************************************
 void LaplacianComponentwiseMeshMovingElem2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
@@ -225,8 +244,6 @@ void LaplacianComponentwiseMeshMovingElem2D::GetDofList(DofsVectorType& Elementa
             ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
     }
 }
-
-
 
 } // Namespace Kratos
 

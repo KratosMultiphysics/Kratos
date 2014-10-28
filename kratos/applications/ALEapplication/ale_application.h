@@ -1,8 +1,8 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2007-08-30 14:12:27 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: AMini $
+//   Date:                $Date: Oct 2014 $
+//   Revision:            $Revision: 1.3 $
 //
 //
 
@@ -31,6 +31,9 @@
 #include "custom_elements/structural_meshmoving_element_2d.h"
 #include "custom_elements/structural_meshmoving_element_3d.h"
 #include "custom_elements/laplacian_componentwise_meshmoving_element_2d_strainbased.h"
+
+#include "custom_elements/laplacian_componentwise_meshmoving_element_3d_strainbased.h"
+
 #include "custom_elements/structural_meshmoving_element_2d_nonlinear.h"
 #include "custom_elements/structural_meshmoving_element_3d_nonlinear.h"
 
@@ -45,8 +48,6 @@ namespace Kratos
 ///@{
 
 // Variables definition
-//	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
-//	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 
 
 ///@}
@@ -207,6 +208,7 @@ private:
     const StructuralMeshMovingElem2D  mStructuralMeshMovingElem2D;
     const StructuralMeshMovingElem3D  mStructuralMeshMovingElem3D;
     const LaplacianComponentwiseMeshMovingElem2DStrainbased mLaplacianComponentwiseMeshMovingElem2DStrainbased;
+    const LaplacianComponentwiseMeshMovingElem3DStrainbased mLaplacianComponentwiseMeshMovingElem3DStrainbased;
     const StructuralMeshMovingElem2DNonlin  mStructuralMeshMovingElem2DNonlin;
     const StructuralMeshMovingElem3DNonlin  mStructuralMeshMovingElem3DNonlin;
 

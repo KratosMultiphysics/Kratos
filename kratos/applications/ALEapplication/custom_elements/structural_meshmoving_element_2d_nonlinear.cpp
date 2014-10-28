@@ -58,11 +58,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // Project includes
+#include "math.h"
 #include "includes/define.h"
 #include "custom_elements/structural_meshmoving_element_2d_nonlinear.h"
 #include "ale_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "includes/gid_io.h"
 
 namespace Kratos
 {
@@ -71,7 +73,7 @@ namespace Kratos
 //************************************************************************************
 StructuralMeshMovingElem2DNonlin::StructuralMeshMovingElem2DNonlin(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
-      //mJold(1.0)
+      //mJold(1.0);
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -80,7 +82,7 @@ StructuralMeshMovingElem2DNonlin::StructuralMeshMovingElem2DNonlin(IndexType New
 //************************************************************************************
 StructuralMeshMovingElem2DNonlin::StructuralMeshMovingElem2DNonlin(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
-      //mJold(1.0)
+
 {
 }
 
@@ -104,6 +106,7 @@ void StructuralMeshMovingElem2DNonlin::CalculateRightHandSide(VectorType& rRight
 {
     KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
 }
+
 
 
 //***************************Build up system matrices*********************************
@@ -131,11 +134,11 @@ void StructuralMeshMovingElem2DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
     boost::numeric::ublas::bounded_matrix<double,3,6> B;
     boost::numeric::ublas::bounded_matrix<double,3,2> DeltaPosition;
 
+
     array_1d<double,3> N;
     array_1d<double,6> temp_vec_np;
     Vector detJ;
     double Area;
-
 
     //==========================================================================
     //                  Getting data for the given geometry
@@ -144,6 +147,7 @@ void StructuralMeshMovingElem2DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
 
     GetGeometry().DeterminantOfJacobian(detJ);
 
+
     //==========================================================================
     //                     Plane strain constitutive matrix
     //==========================================================================
@@ -151,19 +155,30 @@ void StructuralMeshMovingElem2DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
 
     //#################################
     // Material parameters
-    double rYoungModulus = 200000;
-    double rPoissonCoefficient = 0.30;
-    //double lambda = 9.7*pow(10,10);
-    //double mue = 7.6*pow(10,10);
+    double YoungsModulus = 200000;
+    double PoissonCoefficient = 0.3;
+
+    //==========================================================================
+    //Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
+    //==========================================================================
+    mJ0 = 100;          //Factor influences how far the displacement is spread into the fluid mesh
+    mxi = 1.5;          //Exponent influences stiffening of smaller elements; 0 = no stiffening
+    double detJtest = fabs(detJ[0]);
+    double quotient = mJ0 / fabs(detJtest);
+    YoungsModulus *= (detJtest *  pow(quotient,mxi));
+
+    double lambda = (YoungsModulus* PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
+    double mue = YoungsModulus/(2*(1-PoissonCoefficient));
     //#################################
 
-    ConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2*rPoissonCoefficient)));
-    ConstitutiveMatrix ( 1 , 1 ) = ConstitutiveMatrix ( 0 , 0 );
+    ConstitutiveMatrix ( 0 , 0 ) = lambda + 2*mue;
+    ConstitutiveMatrix ( 1 , 1 ) = lambda + 2*mue;
 
-    ConstitutiveMatrix ( 2 , 2 ) = ConstitutiveMatrix ( 0 , 0 )*(1-2*rPoissonCoefficient)/(2*(1.0-rPoissonCoefficient));
+    ConstitutiveMatrix ( 2 , 2 ) = mue;
 
-    ConstitutiveMatrix ( 0 , 1 ) = ConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient/(1.0-rPoissonCoefficient);
-    ConstitutiveMatrix ( 1 , 0 ) = ConstitutiveMatrix ( 0 , 1 );
+    ConstitutiveMatrix ( 0 , 1 ) = lambda;
+    ConstitutiveMatrix ( 1 , 0 ) = lambda;
+
 
 
     //==========================================================================
@@ -224,14 +239,14 @@ void StructuralMeshMovingElem2DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
 
     noalias(rLeftHandSideMatrix) = prod(intermediateMatrix,B);
 
-   //==========================================================================
-   //Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
-   //==========================================================================
-    mJ0 = 1;
-    mxi = 1.5;
-    double detJtest = fabs(detJ[0]);
-    double quotient = mJ0 / fabs(detJtest);
-    rLeftHandSideMatrix *= detJtest *  pow(quotient,mxi);
+    //==========================================================================
+    //              Prefactor to smoothen shearing deformation
+    //==========================================================================
+
+//    double prefactor = lambda + (2/dimension)*mue;
+
+//    rLeftHandSideMatrix *= prefactor;
+
 
 
     //==========================================================================
@@ -241,6 +256,7 @@ void StructuralMeshMovingElem2DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
     {
         array_1d<double,3>& disp_actual = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,0);
         array_1d<double,3>& disp_old    = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
 
          // Dirichlet contribution
         temp_vec_np[i*2] = disp_actual[0] - disp_old[0];
@@ -267,6 +283,7 @@ void StructuralMeshMovingElem2DNonlin::EquationIdVector(EquationIdVectorType& rR
     if(rResult.size() != mat_size)
         rResult.resize(mat_size,false);
 
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = i * dimension;
@@ -282,6 +299,7 @@ void StructuralMeshMovingElem2DNonlin::GetDofList(DofsVectorType& ElementalDofLi
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
+
     if(ElementalDofList.size() != 0)
         ElementalDofList.resize(0);
 
@@ -289,9 +307,25 @@ void StructuralMeshMovingElem2DNonlin::GetDofList(DofsVectorType& ElementalDofLi
     {
         ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
         ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+
     }
 }
 
+
+//*****************************Calculate maximum of three values**********************
+//************************************************************************************
+
+double StructuralMeshMovingElem2DNonlin::CalculateMaximum(double k, double l, double m )
+{
+double maximum = m;
+
+if(k > maximum) maximum = k;
+
+if(l > maximum) maximum = l;
+
+return maximum;
+
+}
 
 
 } // Namespace Kratos

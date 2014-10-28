@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2013-08-30 10:30:31 $
+//   Last modified by:    $Author: AMini $
+//   Date:                $Date: Oct 2014 $
 //   Revision:            $Revision: 1.2 $
 //
 //
@@ -69,7 +69,7 @@ namespace Kratos
 
 
 
-//************************************************************************************
+//**************************************Constructor***********************************
 //************************************************************************************
 StructuralMeshMovingElem3D::StructuralMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
@@ -77,31 +77,38 @@ StructuralMeshMovingElem3D::StructuralMeshMovingElem3D(IndexType NewId, Geometry
     //DO NOT ADD DOFS HERE!!!
 }
 
-//************************************************************************************
+//**************************************Constructor***********************************
 //************************************************************************************
 StructuralMeshMovingElem3D::StructuralMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
+//*********************************Element Pointer************************************
+//************************************************************************************
 Element::Pointer StructuralMeshMovingElem3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new StructuralMeshMovingElem3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+//***************************************Destructor***********************************
+//************************************************************************************
 StructuralMeshMovingElem3D::~StructuralMeshMovingElem3D()
 {
 }
 
-//************************************************************************************
+//*********************************Build up system matrices***************************
 //************************************************************************************
 void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // Inizialize matrices
-    unsigned int number_of_points = 4;
-    const unsigned int mat_size = number_of_points*3;
+    //=============================================================================
+    //                          Define matrices and variables
+    //=============================================================================
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension =  GetGeometry().WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes * dimension;
 
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -110,24 +117,46 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
         rRightHandSideVector.resize(mat_size,false);
 
     boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-    array_1d<double,4> N;
-    array_1d<double,12> ms_temp_vec_np;
-
-    // Getting data for the given geometry
-    double Area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-    // Plane strain constitutive matrix:
     boost::numeric::ublas::bounded_matrix<double,6,6>  ConstitutiveMatrix;
+    boost::numeric::ublas::bounded_matrix<double,6,12>  B;
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_nodes,number_of_nodes);
+    noalias(rRightHandSideVector) = ZeroVector(number_of_nodes);
+
+    array_1d<double,4> N;
+    array_1d<double,12> temp_vec_np;
+    Vector detJ;
+    double Area;
+
+    //=============================================================================
+    //                    Getting data for the given geometry
+    //=============================================================================
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
+    GetGeometry().DeterminantOfJacobian(detJ);
+
+    //============================================================================
+    //                       Constitutive matrix
+    //============================================================================
     ConstitutiveMatrix = ZeroMatrix(6,6);
 
+    //#################################
     // Material parameters
-    double rYoungModulus = 200000;
-    double rPoissonCoefficient =  0.3;
+    double YoungsModulus = 200000;
+    double PoissonCoefficient = 0.3;
 
-    double C00 = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2*rPoissonCoefficient)));
-    double C33 = C00*(1-2*rPoissonCoefficient)/(2.0*(1.0-rPoissonCoefficient));
-    double C01 = C00*rPoissonCoefficient/(1.0-rPoissonCoefficient);
+    //==========================================================================
+    //Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
+    //==========================================================================
+    mJ0 = 100;          //Factor influences how far the displacement is spread into the fluid mesh
+    mxi = 1.5;          //Exponent influences stiffening of smaller elements; 0 = no stiffening
+    double detJtest = fabs(detJ[0]);
+    double quotient = mJ0 / fabs(detJtest);
+    YoungsModulus *= (detJtest *  pow(quotient,mxi));
+    //#################################
+
+
+    double C00 = (YoungsModulus*(1.0-PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2*PoissonCoefficient)));
+    double C33 = C00*(1-2*PoissonCoefficient)/(2.0*(1.0-PoissonCoefficient));
+    double C01 = C00*PoissonCoefficient/(1.0-PoissonCoefficient);
 
     ConstitutiveMatrix ( 0 , 0 ) = C00;
     ConstitutiveMatrix ( 1 , 1 ) = C00;
@@ -143,16 +172,12 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     ConstitutiveMatrix ( 1 , 2 ) = C01;
     ConstitutiveMatrix ( 2 , 1 ) = C01;
 
-
-
-
-
-
-    // Setting up B-matrix
-    boost::numeric::ublas::bounded_matrix<double,6,12>  B;
+    //==========================================================================
+    //                          Setting up B-matrix
+    //==========================================================================
     B = ZeroMatrix(6,12);
 
-    for(unsigned int i=0; i<number_of_points; i++)
+    for(unsigned int i=0; i<number_of_nodes; i++)
     {
         // Spatial derivatives of shape function i
         double D_X = DN_DX(i,0);
@@ -171,39 +196,50 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
         B ( 5 , 3*i+2 ) = D_X;
     }
 
-    // Compute lefthand side
+    //==========================================================================
+    //                          Compute LHS
+    //==========================================================================
     boost::numeric::ublas::bounded_matrix<double,12,6> intermediateMatrix = prod(trans(B),ConstitutiveMatrix);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
     noalias(rLeftHandSideMatrix) = prod(intermediateMatrix,B);
 
-    // Compute dirichlet contribution
-    for(unsigned int i=0; i<4; i++)
+
+    //==========================================================================
+    //         Compute dirichlet contribution from structural displacements
+    //==========================================================================
+    for(unsigned int i=0; i<number_of_nodes; i++)
     {
         array_1d<double,3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-        // Dirichlet contribution
-        ms_temp_vec_np[i*3] = disp[0];
-        ms_temp_vec_np[i*3+1] = disp[1];
-        ms_temp_vec_np[i*3+2] = disp[2];
+        temp_vec_np[i*3] = disp[0];
+        temp_vec_np[i*3+1] = disp[1];
+        temp_vec_np[i*3+2] = disp[2];
     }
 
-    // Compute RS
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,ms_temp_vec_np);
+    //==========================================================================
+    //              Prefactor to smoothen shearing deformation
+    //==========================================================================
 
-    //note that no multiplication by area is performed,
-    //this makes smaller elements more rigid and minimizes the mesh deformation
+//    double prefactor = lambda + (2/dimension)*mue;
+
+//    rLeftHandSideMatrix *= prefactor;
+
+
+    //==========================================================================
+    //                                  Compute RHS
+    //==========================================================================
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,temp_vec_np);
+
 
     KRATOS_CATCH("");
 }
 
-//************************************************************************************
+//*************************Generate Equation ID Vector********************************
 //************************************************************************************
 void StructuralMeshMovingElem3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int mat_size = number_of_nodes * 3;
+    unsigned int dimension =  GetGeometry().WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes * dimension;
     if(rResult.size() != mat_size)
         rResult.resize(mat_size,false);
 
@@ -216,7 +252,7 @@ void StructuralMeshMovingElem3D::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 
-//************************************************************************************
+//***********************************Get Dof List*************************************
 //************************************************************************************
 void StructuralMeshMovingElem3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {

@@ -92,8 +92,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class implements a laplacian mesh-updating scheme in 2D
+/** This class solves the Laplace equation in order to update the mesh. It uses the L2 norm of the non-linear Euler Almansi strain tensor
+    to distribute the motion of the structure into the fluid flow domain.
 */
 class LaplacianComponentwiseMeshMovingElem2DStrainbased
     : public Element
@@ -130,12 +131,10 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
 
     ///@}
     ///@name Access
@@ -208,12 +207,6 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-
-
-    /*		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-      		static array_1d<double,3> msN; //dimension = number of nodes
-      		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
-
     ///@}
     ///@name Member Variables
     ///@{

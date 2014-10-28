@@ -86,8 +86,8 @@ BOOST_PYTHON_MODULE(KratosALEApplication)
     AddCustomUtilitiesToPython();
 
     //registering variables in python
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_INTERFACE);
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
+
+
 
 
 }

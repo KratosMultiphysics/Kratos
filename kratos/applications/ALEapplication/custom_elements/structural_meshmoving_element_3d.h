@@ -92,8 +92,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class implements a structural mesh-updating scheme in 3D using non-linear kinematics
+/**
+ *Implements a mesh-updating scheme in 3D treating the mesh as a structure using a linear elastic
+ *material law. The kinemematics are implemented linearly. In Addition the solver
+ *can be stabilized by an exponential law using an exponential law containing the
+ *Jacobi determinant.
 */
 class StructuralMeshMovingElem3D
     : public Element
@@ -205,14 +209,12 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-      		static array_1d<double,4> msN; //dimension = number of nodes
-      		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes*/
-
     ///@}
     ///@name Member Variables
     ///@{
-
+        double mJold;
+        double mJ0;
+        double mxi;
 
     ///@}
     ///@name Serialization

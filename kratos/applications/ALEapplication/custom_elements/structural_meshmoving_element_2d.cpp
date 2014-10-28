@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last modified by:    $Author: AMini $
-//   Date:                $Date: 2013-11-15 $
+//   Date:                $Date: Oct 14 $
 //   Revision:            $Revision: 1.3 $
 //
 //
@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-//************************************************************************************
+//**************************************Constructor***********************************
 //************************************************************************************
 StructuralMeshMovingElem2D::StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
@@ -76,7 +76,7 @@ StructuralMeshMovingElem2D::StructuralMeshMovingElem2D(IndexType NewId, Geometry
     //DO NOT ADD DOFS HERE!!!
 }
 
-//************************************************************************************
+//**************************************Constructor***********************************
 //************************************************************************************
 StructuralMeshMovingElem2D::StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
@@ -84,32 +84,31 @@ StructuralMeshMovingElem2D::StructuralMeshMovingElem2D(IndexType NewId, Geometry
 {
 }
 
+//*********************************Element Pointer************************************
+//************************************************************************************
 Element::Pointer StructuralMeshMovingElem2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new StructuralMeshMovingElem2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+//***************************************Destructor***********************************
+//************************************************************************************
 StructuralMeshMovingElem2D::~StructuralMeshMovingElem2D()
 {
 }
 
-//************************************************************************************
-//************************************************************************************
-void StructuralMeshMovingElem2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
-}
-
-
-//************************************************************************************
+//*********************************Build up system matrices***************************
 //************************************************************************************
 void StructuralMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    // Initialize matrices
-    unsigned int number_of_points = 3;
-    const unsigned int mat_size = number_of_points*3;
+    //=============================================================================
+    //                          Define matrices and variables
+    //=============================================================================
+    unsigned int number_of_nodes = GetGeometry().PointsNumber();
+     unsigned int dimension =  GetGeometry().WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes*dimension;
 
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -118,192 +117,164 @@ void StructuralMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideM
         rRightHandSideVector.resize(mat_size,false);
 
     boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+    boost::numeric::ublas::bounded_matrix<double,2,2> F;
+    boost::numeric::ublas::bounded_matrix<double,6,6>  ConstitutiveMatrix;
+    boost::numeric::ublas::bounded_matrix<double,6,9>  B;
+    boost::numeric::ublas::bounded_matrix<double,3,2> DeltaPosition;
+
+
     array_1d<double,3> N;
     array_1d<double,9> temp_vec_np;
-
-    // Getting data for the given geometry
-    double Area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
     Vector detJ;
+    double Area;
+
+    //=============================================================================
+    //                    Getting data for the given geometry
+    //=============================================================================
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
     GetGeometry().DeterminantOfJacobian(detJ);
 
-    //print out determinant of Jacobean and Area to compare them for debugging
-    //if (detJ[0]<=0)  std::cout <<Id() << " "<< Area<<" "<< detJ[0]<< std::endl;
+    //============================================================================
+    //                     Plane strain constitutive matrix
+    //============================================================================
+    ConstitutiveMatrix = ZeroMatrix(3,3);
 
-
-    // Plane strain constitutive matrix:
-    boost::numeric::ublas::bounded_matrix<double,6,6>  ConstitutiveMatrix;
-    ConstitutiveMatrix = ZeroMatrix(6,6);
-
+    //#################################
     // Material parameters
+    double YoungsModulus = 200000;
+    double PoissonCoefficient = 0.3;
 
-    double rYoungModulus = 1;
-    double rPoissonCoefficient = 0.45;
-
-    double prefactor = rYoungModulus/((1+rPoissonCoefficient)*(1-2*rPoissonCoefficient));
-
-    double C00 = prefactor*(1-rPoissonCoefficient);
-    double C55 = prefactor*(1-2*rPoissonCoefficient);
-    double C01 = prefactor*rPoissonCoefficient;
-
-    ConstitutiveMatrix ( 0 , 0 ) = C00;
-    ConstitutiveMatrix ( 1 , 1 ) = C00;
-    ConstitutiveMatrix ( 2 , 2 ) = C00;
-    ConstitutiveMatrix ( 5 , 5 ) = C55;
-
-    ConstitutiveMatrix ( 0 , 1 ) = C01;
-    ConstitutiveMatrix ( 1 , 0 ) = C01;
-
-    // Setting up B-matrix linear part
-    boost::numeric::ublas::bounded_matrix<double,6,9>  B;
-    B = ZeroMatrix(6,9);
-
-
-    for(unsigned int i=0; i<number_of_points; i++)
-    {
-        // Spatial derivatives of shape function i
-        double D_X = DN_DX(i,0);
-        double D_Y = DN_DX(i,1);
-
-        // Insert derivatives in B
-        B ( 0 , 3*i ) = D_X;
-        B ( 1 , 3*i+1 ) = D_Y;
-        B ( 2 , 3*i+2 ) = 0;
-        B ( 3 , 3*i ) = D_Y;
-        B ( 3 , 3*i+1 ) = D_X;
-        B ( 4 , 3*i+1 ) = 0;
-        B ( 4 , 3*i+2 ) = D_Y;
-        B ( 5 , 3*i ) = 0;
-        B ( 5 , 3*i+2 ) = D_X;
-    }
-
-    // Setting up B-matrix non-linear part
-    boost::numeric::ublas::bounded_matrix<double,6,9> B_NL;
-    B_NL = ZeroMatrix(6,9);
-
-    for(unsigned int i=0; i<number_of_points; i++)
-    {
-
-
-        //Get increment of deformations
-        array_1d<double,3>& disp_actual = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,0);
-        array_1d<double,3>& disp_old    = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        //Derivatives of deformations
-        array_1d<double,3> u_x;
-        array_1d<double,3> u_y;
-        array_1d<double,3> u_z;
-
-        u_x[i] = DN_DX(0,i) * (disp_actual[0] - disp_old[0]);
-        u_y[i] = DN_DX(1,i) * (disp_actual[1] - disp_old[1]);
-        u_z[i] = DN_DX(2,i) * (disp_actual[2] - disp_old[2]);
-
-
-        //Spatial derivatives of shape function i
-        double D_X = DN_DX(i,0);
-        double D_Y = DN_DX(i,1);
-        double D_Z = DN_DX(i,2);
-
-        //Building up non-linear part of B-Matrix
-
-        B_NL (0,3*i)   = u_x[0] * D_X;
-        B_NL (0,3*i+1) = u_y[0] * D_X;
-        B_NL (0,3*i+2) = u_z[0] * D_X;
-
-        B_NL (1,3*i)   = u_x[1] * D_Y;
-        B_NL (1,3*i+1) = u_y[1] * D_Y;
-        B_NL (1,3*i+2) = u_z[1] * D_Y;
-
-        B_NL (2,3*i)   = u_x[2] * D_Z;
-        B_NL (2,3*i+1) = u_y[2] * D_Z;
-        B_NL (2,3*i+2) = u_z[2] * D_Z;
-
-        B_NL (3,3*i)   = u_x[0] * D_Y - u_x[1] * D_X;
-        B_NL (3,3*i+1) = u_y[0] * D_Y - u_y[1] * D_X;
-        B_NL (3,3*i+2) = u_z[0] * D_Y - u_z[1] * D_X;
-
-        B_NL (4,3*i)   = u_x[1] * D_Z - u_x[2] * D_Y;
-        B_NL (4,3*i+1) = u_y[1] * D_Z - u_y[2] * D_Y;
-        B_NL (4,3*i+2) = u_z[1] * D_Z - u_z[2] * D_Y;
-
-        B_NL (5,3*i)   = u_x[2] * D_X - u_x[0] * D_Z;
-        B_NL (5,3*i+1) = u_y[2] * D_X - u_y[0] * D_Z;
-        B_NL (5,3*i+2) = u_z[2] * D_X - u_z[0] * D_Z;
-
-    }
-
-      //Add Linear and non-linear B Matrix
-         B = B;
-
-
-    // Compute lefthand side
-    boost::numeric::ublas::bounded_matrix<double,9,6> intermediateMatrix = prod(trans(B),ConstitutiveMatrix);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
-    noalias(rLeftHandSideMatrix) = prod(intermediateMatrix,B);
-
-
-
-  // Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
-    mJ0 = 1;
-    mxi = 2.0;
+    //==========================================================================
+    //Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
+    //==========================================================================
+    mJ0 = 100;          //Factor influences how far the displacement is spread into the fluid mesh
+    mxi = 1.5;          //Exponent influences stiffening of smaller elements; 0 = no stiffening
     double detJtest = fabs(detJ[0]);
     double quotient = mJ0 / fabs(detJtest);
-    rLeftHandSideMatrix *= detJtest *  pow(quotient,mxi);
+    YoungsModulus *= (detJtest *  pow(quotient,mxi));
+
+    double lambda = (YoungsModulus* PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
+    double mue = YoungsModulus/(2*(1-PoissonCoefficient));
+    //#################################
+
+    ConstitutiveMatrix ( 0 , 0 ) = lambda + 2*mue;
+    ConstitutiveMatrix ( 1 , 1 ) = ConstitutiveMatrix ( 0 , 0 );
+    ConstitutiveMatrix ( 2 , 2 ) = mue;
+    ConstitutiveMatrix ( 0 , 1 ) = lambda;
+    ConstitutiveMatrix ( 1 , 0 ) = lambda;
+
+    //==========================================================================
+    //                     Compute Delta position
+    //==========================================================================
+    DeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+
+    }
+
+    //==========================================================================
+    //                  Calculate Deformation Gradient
+    //==========================================================================
+    F = identity_matrix<double> ( dimension );
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            F ( 0 , 0 ) += DeltaPosition(i,0)*DN_DX ( i , 0 );
+            F ( 0 , 1 ) += DeltaPosition(i,0)*DN_DX ( i , 1 );
+            F ( 1 , 0 ) += DeltaPosition(i,1)*DN_DX ( i , 0 );
+            F ( 1 , 1 ) += DeltaPosition(i,1)*DN_DX ( i , 1 );
+        }
 
 
-    // Compute dirichlet contribution
-    for(unsigned int i=0; i<number_of_points; i++)
+    //==========================================================================
+    //                          Setting up B-matrix
+    //==========================================================================
+    B = ZeroMatrix(3,6);
+    for(unsigned int i=0; i<number_of_nodes; i++)
+    {
+
+        // Insert derivatives in B
+        unsigned int index = 2 * i;
+
+        B( 0, index + 0 ) = DN_DX( i, 0 );
+        B( 0, index + 1 ) = 0.0;
+        B( 1, index + 0 ) = 0.0;
+        B( 1, index + 1 ) = DN_DX( i, 1 );
+        B( 2, index + 0 ) = DN_DX( i, 1 );
+        B( 2, index + 1 ) = DN_DX( i, 0 );
+    }
+
+    //==========================================================================
+    //                          Compute LHS
+    //==========================================================================
+    boost::numeric::ublas::bounded_matrix<double,6,3> intermediateMatrix = prod(trans(B),ConstitutiveMatrix);
+
+    noalias(rLeftHandSideMatrix) = prod(intermediateMatrix,B);
+
+    //==========================================================================
+    //              Prefactor to smoothen shearing deformation
+    //==========================================================================
+
+//    double prefactor = lambda + (2/dimension)*mue;
+
+//    rLeftHandSideMatrix *= prefactor;
+
+
+
+    //==========================================================================
+    //         Compute dirichlet contribution from structural displacements
+    //==========================================================================
+    for(unsigned int i=0; i< number_of_nodes; i++)
     {
         array_1d<double,3>& disp_actual = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,0);
         array_1d<double,3>& disp_old    = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-         // Dirichlet contribution
-        temp_vec_np[i*3] = disp_actual[0] - disp_old[0];
-        temp_vec_np[i*3+1] = disp_actual[1] - disp_old[1];
-        temp_vec_np[i*3+2] = disp_actual[2] - disp_old[2];
+        temp_vec_np[i*2] = disp_actual[0] - disp_old[0];
+        temp_vec_np[i*2+1] = disp_actual[1] - disp_old[1];
     }
 
-    // Compute RS
-    noalias(rRightHandSideVector) = ZeroVector(number_of_points);
+    //==========================================================================
+    //                                  Compute RHS
+    //==========================================================================
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,temp_vec_np);
-
 
 
     KRATOS_CATCH("");
 }
 
-//void StructuralMeshMovingElem2D::FinalizeSolutionStep(ProcessInfo &CurrentProcessInfo)
-//{
-//    Vector detJ;
-//    GetGeometry().DeterminantOfJacobian(detJ);
-//    mJold=detJ[0];
-//}
 
-
-//************************************************************************************
+//*************************Generate Equation ID Vector********************************
 //************************************************************************************
 void StructuralMeshMovingElem2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int mat_size = number_of_nodes * 3;
+    unsigned int dimension =  GetGeometry().WorkingSpaceDimension();
+    const unsigned int mat_size = number_of_nodes * dimension;
     if(rResult.size() != mat_size)
         rResult.resize(mat_size,false);
 
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        int index = i * 3;
+        int index = i * dimension;
         rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
         rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
     }
 }
 
-//************************************************************************************
+//***********************************Get Dof List*************************************
 //************************************************************************************
 void StructuralMeshMovingElem2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
+
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     if(ElementalDofList.size() != 0)
@@ -313,12 +284,9 @@ void StructuralMeshMovingElem2D::GetDofList(DofsVectorType& ElementalDofList,Pro
     {
         ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
         ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-        ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
     }
 }
 
 
 
 } // Namespace Kratos
-
-
