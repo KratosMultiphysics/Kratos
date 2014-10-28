@@ -25,7 +25,8 @@
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
-#include "spatial_containers/spatial_search.h"
+#include "custom_utilities/point_point_search.h"
+
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "../../DEM_application/DEM_application.h"
@@ -84,6 +85,7 @@ typedef ModelPart::ElementsContainerType::iterator   ElementIteratorType;
 typedef ModelPart::NodesContainerType                NodesArrayType;
 typedef NodesArrayType::ContainerType                ResultNodesContainerType;
 typedef std::vector<ResultNodesContainerType>        VectorResultNodesContainerType;
+typedef std::vector<Node<3>::Pointer>                NodalPointersContainerType;
 typedef ModelPart::NodesContainerType::iterator      NodeIteratorType;
 
 
@@ -100,7 +102,7 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
 
 /// Default constructor.
 //----------------------------------------------------------------
-//                       key for coupling_type
+//                       Key for coupling_type
 //----------------------------------------------------------------
 //        Averaged variables       |  Fluid Fraction
 //   Fluid-to-DEM | DEM-to-fluid   |
@@ -113,15 +115,10 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
 
 BinBasedDEMFluidCoupledMapping(double min_fluid_fraction,
                                const int coupling_type,
-                               typename SpatialSearch::Pointer pSpSearch,
                                const int n_particles_per_depth_distance = 1)
                              : mMinFluidFraction(min_fluid_fraction),
                                mCouplingType(coupling_type),
-                               mParticlesPerDepthDistance(n_particles_per_depth_distance),
-                               mpSpSearch(pSpSearch),
-                               mOldSize(0),
-                               mOldSearchRadius(-1.0)
-
+                               mParticlesPerDepthDistance(n_particles_per_depth_distance)
 {
     if (TDim == 3){
         mParticlesPerDepthDistance = 1;
@@ -321,25 +318,27 @@ void HomogenizeFromDEMMesh(
         SearchParticleNodalNeighbours(r_fluid_model_part, r_dem_model_part, search_radius);
     }
 
-    else { // we keep the old neighbours
-        RecalculateDistances(r_fluid_model_part, r_dem_model_part);
-    }
+    FillVectorOfSwimmingSpheres(r_dem_model_part);
+
+    if (!must_search) { // we keep the old neighbours
+        RecalculateDistances(r_dem_model_part);
+    }   
 
     // calculating weights for each particle's nodal contributions
 
     DensityFunctionPolynomial<3> weighing_function(search_radius, shape_factor);
 
     #pragma omp parallel for
-    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
         weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfDistances[i]);
     }
 
     // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
-    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
 
-        CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i]);
+        CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i]);
     }
 
     #pragma omp parallel for
@@ -354,10 +353,10 @@ void HomogenizeFromDEMMesh(
 
     for (unsigned int j = 0; j != mFluidCouplingVariables.size(); ++j){
 
-        for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); ++i){
+        for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
             NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
 
-            ComputeHomogenizedNodalVariable(*(i_particle.base()), mVectorsOfNeighNodes[i], mVectorsOfDistances[i], mFluidCouplingVariables[j]);
+            ComputeHomogenizedNodalVariable(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], mFluidCouplingVariables[j]);
         }
     }
 
@@ -495,6 +494,7 @@ protected:
 ///@{
 vector<unsigned int> mElementsPartition;
 vector<unsigned int> mNodesPartition;
+
 ///@}
 ///@name Protected Inquiry
 ///@{
@@ -519,12 +519,11 @@ int mCouplingType;
 int mParticlesPerDepthDistance;
 VariablesList mDEMCouplingVariables;
 VariablesList mFluidCouplingVariables;
-typename SpatialSearch::Pointer mpSpSearch; // it is not be used for some interpolation options
+PointPointSearch::Pointer mpPointPointSearch;
 
 // neighbour lists (for mCouplingType = 3)
-std::vector<double> mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
-unsigned int mOldSize; // it is used to keep track of any changes in the number of particles
-double mOldSearchRadius;
+std::vector<double>  mSearchRadii; // list of nodal search radii (filter radii). It is a vector since spatial search is designed for varying radius
+std::vector<SphericSwimmingParticle*> mSwimmingSphereElementPointers;
 VectorResultNodesContainerType mVectorsOfNeighNodes; // list of arrays of pointers to the particle's nodal neighbours
 VectorDistanceType mVectorsOfDistances; // list of arrays of distances to the particle's neighbours
 
@@ -603,34 +602,53 @@ void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part,
                                    ModelPart& r_dem_model_part,
                                    const double& search_radius)
 {
-  if (mOldSize != r_dem_model_part.Nodes().size())  {
-      mOldSize = r_dem_model_part.Nodes().size();
-      mSearchRadii.resize(mOldSize);
-      mVectorsOfNeighNodes.resize(mOldSize);
-      mVectorsOfDistances.resize(mOldSize);
-  }
+    unsigned int n_nodes = r_dem_model_part.Nodes().size();
+    mSearchRadii.resize(0);
+    mVectorsOfNeighNodes.resize(0);
+    mVectorsOfDistances.resize(0);
+    mSearchRadii.resize(n_nodes);
+    mVectorsOfNeighNodes.resize(n_nodes);
+    mVectorsOfDistances.resize(n_nodes);
+    VectorResultNodesContainerType vector1; // list of arrays of pointers to the particle's nodal neighbours
+    VectorDistanceType vector2;
+    vector1.clear();
+    vector2.clear();
+    vector1.resize(n_nodes);
+    vector2.resize(n_nodes);
 
-  if (mOldSearchRadius != search_radius){
+    for (int i = 0; i != (int)n_nodes; ++i){
+        mSearchRadii[i] = search_radius; // spatial search is designed for varying radius
+    }
 
-      for (unsigned int i = 0; i != r_dem_model_part.Nodes().size(); ++i){
-          mSearchRadii[i] = search_radius; // spatial search is designed for varying radius
-      }
-  }
+    NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
+    NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
+    mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, vector1, vector2);
 
-  mpSpSearch->SearchNodesInRadiusExclusive(r_fluid_model_part, r_dem_model_part.NodesArray(), mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+    for (int i = 0; i != (int)n_nodes; ++i){
+        KRATOS_WATCH(mSearchRadii[i])
+        KRATOS_WATCH(vector1[i].size())
+        KRATOS_WATCH(vector2[i].size())
+        for (int j = 0; j != (int)vector2[i].size(); ++j){
+            //KRATOS_WATCH(mVectorsOfDistances[i][j])
+        }
+    }
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-void RecalculateDistances(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part){
+void RecalculateDistances(ModelPart& r_dem_model_part){
 
-    for (unsigned int i = 0; i != r_dem_model_part.Nodes().size(); ++i){
-        NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_particle = *(i_particle.base());
+    int n_particles = (int)mSwimmingSphereElementPointers.size();
+    mVectorsOfDistances.resize(n_particles);
 
-        for (unsigned int j = 0; j != mVectorsOfDistances[i].size(); ++j){
-            mVectorsOfDistances[i][j] = CalculateDistance(mVectorsOfNeighNodes[i][j], p_particle); // spatial search is designed for varying radius
+    for (int i = 0; i != n_particles; ++i){
+        SphericSwimmingParticle* p_particle = mSwimmingSphereElementPointers[i];
+        int n_neighbours = (int)p_particle->mNeighbourNodes.size();
+        mVectorsOfDistances[i].resize(n_neighbours);
+
+        for (int j = 0; j != n_neighbours; ++j){
+            mVectorsOfDistances[i][j] = CalculateDistance(p_particle->mNeighbourNodes[j], p_particle); // spatial search is designed for varying radius
         }
     }
 }
@@ -1400,14 +1418,38 @@ inline unsigned int GetNearestNode(const array_1d<double, TDim + 1>& N)
 //***************************************************************************************************************
 //***************************************************************************************************************
 
-double inline CalculateDistance(Node<3>::Pointer a, Node<3>::Pointer b){
+void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part){
+
+    mSwimmingSphereElementPointers.resize(r_dem_model_part.Elements().size());
+    unsigned int i = 0;
+
+    for (ElementsArrayType::iterator i_elem = r_dem_model_part.ElementsBegin(); i_elem != r_dem_model_part.ElementsEnd(); ++i_elem){
+        mSwimmingSphereElementPointers[i] = &(dynamic_cast<Kratos::SphericSwimmingParticle&>(*i_elem));
+        std::vector<Node<3>::Pointer> particle_neighbours = mSwimmingSphereElementPointers[i]->mNeighbourNodes;
+        std::vector<Node<3>::Pointer> neighbours = mVectorsOfNeighNodes[i];
+        unsigned int neigh_size = neighbours.size();
+        particle_neighbours.resize(neigh_size);
+
+        for (int j = 0; j < (int)neigh_size; ++j){
+            particle_neighbours[j] = neighbours[j];
+        }
+
+        ++i;
+    }
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
+double inline CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle* b){
     array_1d<double, 3> coor_a = a->Coordinates();
-    array_1d<double, 3> coor_b = b->Coordinates();
+    array_1d<double, 3> coor_b = b->GetGeometry()[0].Coordinates();
     return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));
 }
 
 //***************************************************************************************************************
 //***************************************************************************************************************
+
 
 ///@}
 ///@name Private Operators
