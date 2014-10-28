@@ -109,7 +109,7 @@ def Var_Translator(variable):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, fem_model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, creator_destructor, Param):
 
         # Initialization of member variables
 
