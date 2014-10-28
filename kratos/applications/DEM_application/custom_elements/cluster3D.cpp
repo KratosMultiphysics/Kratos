@@ -67,13 +67,13 @@ namespace Kratos {
         //bool mBallsModelPartHasRotation(false);
        
         std::string ElementNameString = "SphericParticle3D";
-                
+            
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString); //crea una spheric particle y la guarda como ref a un Element
         
         Node<3>& lele = GetGeometry()[0]; //NODE
-    
+        
         //PropertiesProxy* p_fast_properties = NULL;
-       
+        
         array_1d<double, 3> pepito;
         
         double r, s, t, R;
@@ -101,10 +101,9 @@ namespace Kratos {
             pepito[2] = lele.Coordinates()[2] + t;
             
             R = 0.5 * (double) rand() / (RAND_MAX);
-            //KRATOS_WATCH(R)
-                
+             
             p_creator_destructor->ElementCreatorForClusters(dem_model_part,
-            40000 + 3*i, R, pepito, 100.0, this->pGetProperties(), r_reference_element);
+            i, R, pepito, 100.0, this->pGetProperties(), r_reference_element);
         }
                 
         //KRATOS_WATCH(*this->pGetProperties())
