@@ -458,7 +458,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
+                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3DStrainbased(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -498,7 +498,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
+                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3DStrainbased(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );

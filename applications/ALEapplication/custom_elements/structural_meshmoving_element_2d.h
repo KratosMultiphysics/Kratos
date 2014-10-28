@@ -44,9 +44,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2007-08-30 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: AMini $
+//   Date:                $Date: Oct 13 $
+//   Revision:            $Revision: 1.3 $
 //
 //
 
@@ -92,8 +92,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class implements a structural structural-meshsolver in 2D using non-linear kinematics
+/**
+ *Implements a mesh-solver in 2D treating the mesh as a structure using a linear elastic
+ *material law. The kinemematics are implemented linearly. In Addition the solver
+ *can be stabilized by an exponential law using an exponential law containing the
+ *Jacobi determinant.
 */
 class StructuralMeshMovingElem2D
     : public Element
@@ -129,9 +133,6 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
@@ -210,12 +211,6 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-
-
-    /*		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-      		static array_1d<double,3> msN; //dimension = number of nodes
-      		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
-
     ///@}
     ///@name Member Variables
     ///@{

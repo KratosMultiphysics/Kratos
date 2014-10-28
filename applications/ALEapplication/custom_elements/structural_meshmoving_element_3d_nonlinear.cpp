@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last modified by:    $Author: AMini $
-//   Date:                $Date: Nov 2013 $
+//   Date:                $Date: Oct 2014 $
 //   Revision:            $Revision: 1.0 $
 //
 //
@@ -142,29 +142,40 @@ void StructuralMeshMovingElem3DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
 
     //#################################
     // Material parameters
-    double rYoungModulus = 2000;
-    double rPoissonCoefficient = 0.30;
-    //double lambda = 9.7*pow(10,10);
-    //double mue = 7.6*pow(10,10);
+    double YoungsModulus = 200000;
+    double PoissonCoefficient = 0.30;
+
+
+    //==========================================================================
+    //Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
+    //==========================================================================
+    mJ0 = 100;          //Factor influences how far the displacement is spread into the fluid mesh
+    mxi = 1.5;          //Exponent influences stiffening of smaller elements; 0 = no stiffening
+    double detJtest = fabs(detJ[0]);
+    double quotient = mJ0 / fabs(detJtest);
+    YoungsModulus *= detJtest *  pow(quotient,mxi);
+
+    double lambda = (YoungsModulus* PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
+    double mue = YoungsModulus/(2*(1-PoissonCoefficient));
     //#################################
 
 
-    ConstitutiveMatrix ( 0 , 0 ) = 1/rYoungModulus;
-    ConstitutiveMatrix ( 0 , 1 ) = -rPoissonCoefficient/rYoungModulus;
-    ConstitutiveMatrix ( 0 , 2 ) = -rPoissonCoefficient/rYoungModulus;
+    ConstitutiveMatrix ( 0 , 0 ) = lambda + 2*mue;
+    ConstitutiveMatrix ( 0 , 1 ) = lambda;
+    ConstitutiveMatrix ( 0 , 2 ) = lambda;
 
-    ConstitutiveMatrix ( 1 , 0 ) = -rPoissonCoefficient/rYoungModulus;
-    ConstitutiveMatrix ( 1 , 1 ) = 1/rYoungModulus;
-    ConstitutiveMatrix ( 1 , 2 ) = -rPoissonCoefficient/rYoungModulus;
+    ConstitutiveMatrix ( 1 , 0 ) = lambda;
+    ConstitutiveMatrix ( 1 , 1 ) = lambda + 2*mue;
+    ConstitutiveMatrix ( 1 , 2 ) = lambda;
 
-    ConstitutiveMatrix ( 2 , 0 ) = -rPoissonCoefficient/rYoungModulus;
-    ConstitutiveMatrix ( 2 , 1 ) = -rPoissonCoefficient/rYoungModulus;
-    ConstitutiveMatrix ( 2 , 2 ) = 1/rYoungModulus;
+    ConstitutiveMatrix ( 2 , 0 ) = lambda;
+    ConstitutiveMatrix ( 2 , 1 ) = lambda;
+    ConstitutiveMatrix ( 2 , 2 ) = lambda + 2*mue;
 
 
-    ConstitutiveMatrix ( 3 , 3 ) = 2*(1+rPoissonCoefficient)/rYoungModulus;
-    ConstitutiveMatrix ( 4 , 4 ) = 2*(1+rPoissonCoefficient)/rYoungModulus;
-    ConstitutiveMatrix ( 5 , 5 ) = 2*(1+rPoissonCoefficient)/rYoungModulus;
+    ConstitutiveMatrix ( 3 , 3 ) = mue;
+    ConstitutiveMatrix ( 4 , 4 ) = mue;
+    ConstitutiveMatrix ( 5 , 5 ) = mue;
 
 
     //==========================================================================
@@ -234,8 +245,6 @@ void StructuralMeshMovingElem3DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
     }
 
 
-
-
     //==========================================================================
     //                          Compute LHS
     //==========================================================================
@@ -243,16 +252,13 @@ void StructuralMeshMovingElem3DNonlin::CalculateLocalSystem(MatrixType& rLeftHan
 
     noalias(rLeftHandSideMatrix) = prod(intermediateMatrix,B);
 
-
     //==========================================================================
-    //Stiffening of elements using Jacobean determinants and exponent between 0.0 and 2.0
+    //              Prefactor to smoothen shearing deformation
     //==========================================================================
-//     mJ0 = 1;
-//     mxi = 1.5;
-//     double detJtest = fabs(detJ[0]);
-//     double quotient = mJ0 / fabs(detJtest);
-//     rLeftHandSideMatrix *= detJtest *  pow(quotient,mxi);
 
+//    double prefactor = lambda + (2/dimension)*mue;
+
+//    rLeftHandSideMatrix *= prefactor;
 
 
     //==========================================================================

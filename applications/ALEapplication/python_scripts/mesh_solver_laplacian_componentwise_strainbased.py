@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ALEApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 CheckForPreviousImport()
 
 
@@ -36,10 +37,15 @@ class MeshSolver:
         self.neighbour_search = FindNodalNeighboursProcess(model_part, number_of_avg_elems, number_of_avg_nodes)
 
         # definition of the solvers
-        pILUPrecond = ILU0Preconditioner()
-        self.linear_solver = DeflatedCGSolver(1e-6, 3000, True, 1000)
+        tol = 1e-8
+        max_it = 1000
+        verbosity = 1
+        m = 100
+        self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI, AMGCLIterativeSolverType.BICGSTAB, tol, max_it, verbosity, m)
+        #pILUPrecond = ILU0Preconditioner()
+        #self.linear_solver = DeflatedCGSolver(1e-6, 3000, True, 1000)
         # self.linear_solver =  BICGSTABSolver(1e-3, 300,pILUPrecond)
-        self.linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
+        #self.linear_solver = ScalingSolver(DeflatedCGSolver(1e-6, 3000, True, 1000), True)
 
     def Initialize(self):
         (self.neighbour_search).Execute()

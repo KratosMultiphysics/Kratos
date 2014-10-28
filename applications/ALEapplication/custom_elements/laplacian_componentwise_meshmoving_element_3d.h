@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: jwolf $
-//   Date:                $Date: 2013-08-30 10:30:31 $
+//   Last modified by:    $Author: AMini $
+//   Date:                $Date: Oct 2013  $
 //   Revision:            $Revision: 1.2 $
 //
 //
@@ -92,8 +92,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class implements a laplacian mesh-updating scheme in 3D
+/** This class solves the Laplace equation in order to update the mesh. It uses the L2 norm of the linear strain tensor
+    to distribute the motion of the structure into the fluid flow domain.
 */
 class LaplacianComponentwiseMeshMovingElem3D
     : public Element
@@ -205,10 +206,6 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    /*		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-      		static array_1d<double,4> msN; //dimension = number of nodes
-      		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes*/
-
     ///@}
     ///@name Member Variables
     ///@{

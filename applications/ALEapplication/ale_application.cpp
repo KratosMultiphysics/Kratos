@@ -1,8 +1,8 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2013-09-30 15:11:09 $
-//   Revision:            $Revision: 1.3 $
+//   Last Modified by:    $Author: AMini $
+//   Date:                $Date: Oct 2014 $
+//   Revision:            $Revision: 1.4 $
 //
 //
 
@@ -26,9 +26,9 @@
 
 namespace Kratos
 {
-//Example
-//	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
-//	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
+//Create variables
+
+
 //
 
 KratosALEApplication::KratosALEApplication():
@@ -39,6 +39,7 @@ KratosALEApplication::KratosALEApplication():
     mStructuralMeshMovingElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mStructuralMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mLaplacianComponentwiseMeshMovingElem2DStrainbased(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mLaplacianComponentwiseMeshMovingElem3DStrainbased(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mStructuralMeshMovingElem2DNonlin(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mStructuralMeshMovingElem3DNonlin(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {}
@@ -50,8 +51,6 @@ void KratosALEApplication::Register()
     KratosApplication::Register();
     std::cout << "Initializing KratosALEApplication... " << std::endl;
 
-//		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
-//		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 
     KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElem2D", mLaplacianMeshMovingElem2D);
     KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElemt3D", mLaplacianMeshMovingElem3D);
@@ -59,6 +58,7 @@ void KratosALEApplication::Register()
     KRATOS_REGISTER_ELEMENT("LaplacianComponentwiseMeshMovingElemt3D", mLaplacianComponentwiseMeshMovingElem3D);
     KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt2D", mStructuralMeshMovingElem2D);
     KRATOS_REGISTER_ELEMENT("LaplacianComponentwiseMeshMovingElemt2D", mLaplacianComponentwiseMeshMovingElem2DStrainbased);
+    KRATOS_REGISTER_ELEMENT("LaplacianComponentwiseMeshMovingElemt3D", mLaplacianComponentwiseMeshMovingElem3DStrainbased);
     KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt2DNonlin", mStructuralMeshMovingElem2DNonlin);
     KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt3DNonlin", mStructuralMeshMovingElem3DNonlin);
 

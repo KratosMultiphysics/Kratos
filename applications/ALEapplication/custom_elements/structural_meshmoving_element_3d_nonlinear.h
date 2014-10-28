@@ -92,11 +92,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This class implements a structural structural-meshsolver in 3D using non-linear kinematics
+/// This class implements a structural mesh-updating scheme in 3D using non-linear kinematics
 /**
- *Implements a mesh-solver in 3D treating the mesh as a structure using a linear elastic
- *material law. The kinemematics are implemented non-linear. In Addition the solver
- *can be stabilized by an exponential law using an exponential law containing the
+ *Implements a mesh-updating in 3D treating the mesh as a structure using a linear elastic
+ *material law. The kinemematics are implemented non-linearly. In Addition the solver
+ *can be stabilised by an exponential law using an exponential law containing the
  *Jacobi determinant.
 */
 class StructuralMeshMovingElem3DNonlin
