@@ -117,7 +117,7 @@ namespace Kratos
          * Must be called before any calculation is done!
          */
         virtual void Initialize();
-        virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
+        
         /**
          * this is called during the assembling process in order
          * to calculate all elemental contributions to the global system
