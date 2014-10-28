@@ -52,48 +52,9 @@ namespace Kratos {
     LineCluster3D::~LineCluster3D() {}
 
       
-    void LineCluster3D::Initialize() {}
-        
+    void LineCluster3D::Initialize() {} 
+    
       
-    void LineCluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part) {
-          
-        KRATOS_TRY 
-          
-//        KRATOS_WATCH("CREATING THE PARTICLES OF THE CLUSTER..........................")
-//                
-//        unsigned int& max_Id = p_creator_destructor->mMaxNodeId; 
-//        
-//	bool mBallsModelPartHasSphericity(false);        
-//        bool mBallsModelPartHasRotation(false);
-//       
-//        std::string ElementNameString = "SphericParticle3D";
-//                
-//        const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString); //crea una spheric particle y la guarda como ref a un Element
-//        
-//        Node<3>& lele = GetGeometry()[0]; //NODE
-//    
-//        PropertiesProxy* p_fast_properties = NULL;
-//       
-//        array_1d<double, 3> pepito;
-//        
-//        for (int i = 1; i <= 10; i++) {    
-//            pepito[0] = lele.Coordinates()[0] + 2*i;
-//            pepito[1] = lele.Coordinates()[1];
-//            pepito[2] = lele.Coordinates()[2];
-//
-//            p_creator_destructor->ElementCreatorForClusters(dem_model_part,
-//            40000 + 3*i, 1.0, pepito, 100.0, this->pGetProperties(), r_reference_element);
-//        }
-//
-//        KRATOS_WATCH(*this->pGetProperties())
-//        KRATOS_WATCH(pepito)
-//        KRATOS_WATCH(max_Id)
-        //max_Id++;
-        KRATOS_CATCH("")
-        
-    }
-      
-
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
