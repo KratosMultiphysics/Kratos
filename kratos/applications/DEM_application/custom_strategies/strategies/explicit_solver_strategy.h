@@ -376,9 +376,7 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
-          
-          InitializeClusters();
-          
+                    
           // Omp initializations
           GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
           mNeighbourCounter.resize(this->GetNumberOfThreads());
@@ -387,31 +385,21 @@ namespace Kratos
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
           
           CreatePropertiesProxies();
-          
-          int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-
-          GetResults().resize(number_of_elements);
-          GetResultsDistances().resize(number_of_elements);          
-                    
-          GetRigidFaceResults().resize(number_of_elements);
-          GetRigidFaceResultsDistances().resize(number_of_elements);
-
+                   
           GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           InitializeSolutionStep();
-          InitializeElements();
-          
+          InitializeElements();                    
           InitializeFEMElements();
+          InitializeClusters(); /// This adds elements to the balls modelpart
 
           mInitializeWasPerformed = true;
           
           ApplyPrescribedBoundaryConditions();
           
-          // 0. Set search radius
-          
+          // Search Neighbours and related operations                             
           SetOriginalRadius(r_model_part);
-          SetSearchRadius(r_model_part, 1.0);
-          
+          SetSearchRadius(r_model_part, 1.0);          
           SearchNeighbours();
           
           if(mDeltaOption == 2)
@@ -423,11 +411,10 @@ namespace Kratos
           
           ComputeNewNeighboursHistoricalData();  
           
-          ///Cfeng RigidFace search
           SearchRigidFaceNeighbours();
           ComputeNewRigidFaceNeighboursHistoricalData();
           
-          // 3. Finding overlapping of initial configurations
+          // Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
@@ -1116,7 +1103,12 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();        
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        if(!number_of_elements) return;     
+        if(!number_of_elements) return;    
+        
+        GetResults().resize(number_of_elements);
+        GetResultsDistances().resize(number_of_elements);                              
+        GetRigidFaceResults().resize(number_of_elements);
+        GetRigidFaceResultsDistances().resize(number_of_elements);
         
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
         
