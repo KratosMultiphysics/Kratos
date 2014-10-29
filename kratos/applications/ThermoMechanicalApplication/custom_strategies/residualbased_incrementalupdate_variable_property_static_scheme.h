@@ -338,7 +338,7 @@ public:
             }
             else
             {
-                const double conductivity_var = rDiffusionVar_table.GetValue(unknown_val);
+	      //const double conductivity_var = rDiffusionVar_table.GetValue(unknown_val);
                 const double specific_heat_air = 1000.0;
                 ind->FastGetSolutionStepValue(rDensityVar) = 1.0; //density_var;  //1.0;
                 ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = specific_heat_air;

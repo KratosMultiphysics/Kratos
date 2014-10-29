@@ -357,7 +357,7 @@ public:
 		// First guess in correction
 		double correction = volume_difference/cutted_area;
 		double correction_old=correction;
-		double signcorrection=sign(correction);
+		//double signcorrection=sign(correction);
 		//Maximum signed correction
 		double maximum_signed_correction=fabs(max_correction)*(sign(correction)); //Way of obtaining sign(x)
 		// If correction is greater than signed correction, we keep the maximum correction.If the wet volume exceeds the correction, then we start from maximum_signed_correction
