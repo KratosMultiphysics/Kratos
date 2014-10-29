@@ -58,8 +58,9 @@ class BoundaryNormalsCalculationUtilities
 public:
 	/**@name Type Definitions */
 	/*@{ */
-	typedef ModelPart::NodesContainerType NodesArrayType;
-	typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+	typedef ModelPart::NodesContainerType               NodesArrayType;
+	typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+  	typedef ModelPart::MeshType                               MeshType;
 	/*@} */
 	/**@name Life Cycle
 	 */
@@ -92,9 +93,40 @@ public:
 	 */
  
 
+
 	/// Calculates the area normal (unitary vector oriented as the normal).
 
-        void CalculateBoundaryNormals(ModelPart& rModelPart, int dimension, int EchoLevel = 0)
+        void CalculateUnitBoundaryNormals(ModelPart& rModelPart, int EchoLevel = 0)
+	{
+
+	  mEchoLevel = EchoLevel;
+	  unsigned int start = 0;
+	  unsigned int NumberOfMeshes = rModelPart.NumberOfMeshes();
+
+	  if(NumberOfMeshes>1) 
+	    start=1;
+
+	  //By the way: set meshes options from bools
+	  for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	    {
+       
+	      this->CalculateMeshUnitBoundaryNormals(rModelPart, MeshId, EchoLevel);
+		
+	      if(mEchoLevel > 1) 
+		std::cout<<"   Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
+	    }
+	    
+
+	  // For MPI: correct values on partition boundaries
+	  rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+
+	}
+	
+
+
+	/// Calculates the area normal (unitary vector oriented as the normal) and weight the normal to shrink
+
+        void CalculateBoundaryNormals(ModelPart& rModelPart, int EchoLevel = 0)
 	{
 
 	  mEchoLevel = EchoLevel;
@@ -102,25 +134,17 @@ public:
 	  unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
 	  if(NumberOfMeshes>1) 
 	    start=1;
-	  
+
 	  //By the way: set meshes options from bools
 	  for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	    {
-	      	      
-	        //Reset Body Normal Variables:
- 	        this->ResetBodyNormals(rModelPart,MeshId);
-
-		this->CalculateBoundaryNormals(rModelPart.Conditions(MeshId),dimension);
-
-		//standard assignation // fails in sharp edges angle<90
-		//AddNormalsToNodes(rModelPart.Conditions(MeshId));
-			
-		//solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
-		AddNormalsAndShrink(rModelPart,dimension,MeshId);
-
-		if(mEchoLevel > 1) 
-		  std::cout<<"   Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
+       
+	      this->CalculateMeshBoundaryNormals(rModelPart, MeshId, EchoLevel);
+		
+	      if(mEchoLevel > 1) 
+		std::cout<<"   Boundary Normals Set MESH ["<<MeshId<<"] "<<std::endl;			
 	    }
+	
 
 
 	  // For MPI: correct values on partition boundaries
@@ -130,144 +154,75 @@ public:
 	}
 		
 
-
-	/// Calculates the normals of the BOUNDARY nodes using a consistent way: SOTO & CODINA
-	// fails in sharp edges angle<90
-       void CalculateBoundaryNormals(ModelPart& rModelPart, int EchoLevel = 0)
+       /// Calculates the normals of the BOUNDARY for a mesh given by MeshId
+       void CalculateMeshUnitBoundaryNormals(ModelPart& rModelPart, int MeshId, int EchoLevel = 0)
 	{
-		KRATOS_TRY
+	  KRATOS_TRY
 
-	  unsigned int start=0;
-	  unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
-	  if(NumberOfMeshes>1) 
-	    start=1;
+	    
+	  //Reset Body Normal Variables:
+	  this->ResetBodyNormals(rModelPart,MeshId);
+		
+	  const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
+
+	  if( dimension == 2 ) {
+	    	
+	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);
+	    
+	    this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
+	    
+	  }
+	  else if ( dimension == 3 ){
+	    
+	    MeshType& rMesh = rModelPart.GetMesh(MeshId);
+	    
+	    this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
+	    
+	  }
 	  
-	  //By the way: set meshes options from bools
-	  for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-	    {
+	  //standard assignation // fails in sharp edges angle<90
+	  AddNormalsToNodes(rModelPart.Conditions(MeshId));
+		
 
-		//Reset normals
-		ModelPart::NodesContainerType&    rNodes = rModelPart.Nodes(MeshId);
-		ModelPart::ElementsContainerType& rElems = rModelPart .Elements(MeshId);
-
-
-		bool neighsearch=true;
-	
-		for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-		{
-   		        (in->GetSolutionStepValue(NORMAL)).clear();
-	    
-			if(neighsearch){
-				//*************  Neigbours of nodes search  ************//
-				WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-				rE.erase(rE.begin(),rE.end() );
-				in->Reset(BOUNDARY);
-				//*************  Neigbours of nodes search ************//
-			}
-		}
-
-
-		if(neighsearch){
-			//*************  Neigbours of nodes search ************//
-			//add the neighbour elements to all the nodes in the mesh
-			for(ModelPart::ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
-			{
-				Element::GeometryType& pGeom = ie->GetGeometry();
-				for(unsigned int i = 0; i < pGeom.size(); i++)
-				{
-					(pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
-				}
-			}
-			//*************  Neigbours of nodes search ************//
-		}
-
-		//calculating the normals and storing it on nodes
-
-		Vector An(3);
-		Element::IntegrationMethod mIntegrationMethod = Element::GeometryDataType::GI_GAUSS_1; //one gauss point
-		int PointNumber = 0; //one gauss point
-		unsigned int dimension;
-		Matrix J;
-		Matrix InvJ;
-		double detJ;
-		Matrix  DN_DX;
-
-		//int boundarycounter=0;
-		for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-		{
-			An.clear();
-
-			//if(in->Is(BOUNDARY)){
-	      
-			WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-
-			for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ie++)
-			{
-				Element::GeometryType& rGeom = ie->GetGeometry();
-				dimension = rGeom.WorkingSpaceDimension();
-
-				//********** Compute the element integral ******//
-				const Element::GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mIntegrationMethod );
-				const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mIntegrationMethod );
-
-
-				J.resize( dimension, dimension );
-				J = rGeom.Jacobian( J, PointNumber , mIntegrationMethod );
-
-				InvJ.clear();
-				detJ=0;
-				//Calculating the inverse of the jacobian and the parameters needed
-				MathUtils<double>::InvertMatrix( J, InvJ, detJ);
-		  
-
-				//Compute cartesian derivatives for one gauss point
-				DN_DX = prod( DN_De[PointNumber] , InvJ );
-
-				double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
-
-		  
-				for(unsigned int i = 0; i < rGeom.size(); i++)
-				{
-					if(in->Id() == rGeom[i].Id()){
-
-						for(unsigned int d=0; d<dimension; d++)
-						{		    
-							An[d] += DN_DX(i,d)*IntegrationWeight;
-						}
-					}
-				}
-		  
-				//********** Compute the element integral ******//
-
-			}
-
-	      
-			if(norm_2(An)>1e-12){
-				noalias(in->FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
-				if(neighsearch){
-					in->Set(BOUNDARY);
-				}
-			}
-			else{
-			        (in->FastGetSolutionStepValue(NORMAL)).clear();
-				std::cout<<" ERROR: normal not set "<<std::endl;
-			}
-
-	    
-			//boundarycounter++;
-			//}
-		}
-
-
-	    }
-
-	  // For MPI: correct values on partition boundaries
-	  rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
-	  //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
 	  KRATOS_CATCH( "" )
 
 	}
 
+
+
+       /// Calculates the normals of the BOUNDARY for a mesh given by MeshId
+       void CalculateMeshBoundaryNormals(ModelPart& rModelPart, int MeshId, int EchoLevel = 0)
+	{
+	  KRATOS_TRY
+
+	    
+	  //Reset Body Normal Variables:
+	  this->ResetBodyNormals(rModelPart,MeshId);
+		
+	  const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
+
+	  if( dimension == 2 ) {
+	    	
+	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);
+	    
+	    this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
+	    
+	  }
+	  else if ( dimension == 3 ){
+	    
+	    MeshType& rMesh = rModelPart.GetMesh(MeshId);
+	    
+	    this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
+	    
+	  }
+	  
+	  //solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
+	  AddNormalsAndShrink(rModelPart,dimension,MeshId);
+
+	  KRATOS_CATCH( "" )
+
+	}
+       
 
 
 	/*@} */
@@ -309,7 +264,7 @@ private:
 
 	//this function adds the Contribution of one of the geometries
 	//to the corresponding nodes
-	static void CalculateUnityNormal2D(ConditionsArrayType::iterator it, array_1d<double,3>& An)
+	static void CalculateUnityNormal2D(ConditionsContainerType::iterator it, array_1d<double,3>& An)
 	{
 		Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
 
@@ -323,7 +278,7 @@ private:
 		// 				(it)->SetValue(NORMAL,An);
 	}
 
-	static void CalculateUnityNormal3D(ConditionsArrayType::iterator it, array_1d<double,3>& An,
+	static void CalculateUnityNormal3D(ConditionsContainerType::iterator it, array_1d<double,3>& An,
 					   array_1d<double,3>& v1,array_1d<double,3>& v2 )
 	{
 		Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
@@ -340,6 +295,7 @@ private:
 		An *= 0.5;
 
 		array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+
 		noalias(normal) = An/norm_2(An);
 		// 				noalias((it)->GetValue(NORMAL)) = An;
 	}
@@ -362,37 +318,37 @@ private:
 	}
 
 
-    /// Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
-    /** This is done on the base of the Conditions provided which should be
-      * understood as the surface elements of the area of interest.
-      * @param rConditions A set of conditions defining the "skin" of a model
-      * @param dimension Spatial dimension (2 or 3)
-      * @note This function is not recommended for distributed (MPI) runs, as
-      * the user has to ensure that the calculated normals are assembled between
-      * processes. The overload of this function that takes a ModelPart is
-      * preferable in this case, as it performs the required communication.
-      */
-	void CalculateBoundaryNormals(ConditionsArrayType& rConditions,
-				      int dimension)
+       /// Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
+       /** This is done on the base of the Conditions provided which should be
+        * understood as the surface elements of the area of interest.
+        * @param rConditions A set of conditions defining the "skin" of a model
+        * @param dimension Spatial dimension (2 or 3)
+        * @note This function is not recommended for distributed (MPI) runs, as
+        * the user has to ensure that the calculated normals are assembled between
+        * processes. The overload of this function that takes a ModelPart is
+        * preferable in this case, as it performs the required communication.
+        */
+        void CalculateMeshBoundaryNormals(ConditionsContainerType& rConditions, int EchoLevel = 0)
 				      
 	{
 		KRATOS_TRY
 
 	        //resetting the normals
-		for(ConditionsArrayType::iterator it =  rConditions.begin();
-		    it !=rConditions.end(); it++)
+		for(ConditionsContainerType::iterator it =  rConditions.begin();
+		    it != rConditions.end(); it++)
 		{
 			Element::GeometryType& rNodes = it->GetGeometry();
 			for(unsigned int in = 0; in<rNodes.size(); in++)
  			    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
 		}
 
+		const unsigned int dimension = (rConditions.begin())->WorkingSpaceDimension();
 
 		//calculating the normals and storing on the conditions
 		array_1d<double,3> An;
 		if(dimension == 2)
 		{
-			for(ConditionsArrayType::iterator it =  rConditions.begin();
+			for(ConditionsContainerType::iterator it =  rConditions.begin();
 			    it !=rConditions.end(); it++)
 			{
 			  if(it->IsNot(CONTACT) && it->Is(BOUNDARY) )
@@ -403,7 +359,7 @@ private:
 		{
 			array_1d<double,3> v1;
 			array_1d<double,3> v2;
-			for(ConditionsArrayType::iterator it =  rConditions.begin();
+			for(ConditionsContainerType::iterator it =  rConditions.begin();
 			    it !=rConditions.end(); it++)
 			{
 				//calculate the normal on the given condition
@@ -417,11 +373,145 @@ private:
 
 
 
-	void AddNormalsToNodes(ConditionsArrayType& rConditions)
+       /// Calculates the normals of the BOUNDARY nodes of a given MeshId
+       //  using a consistent way: SOTO & CODINA
+       //  fails in sharp edges angle<90
+       void CalculateMeshBoundaryNormals(MeshType& rMesh, int EchoLevel = 0)
+       {
+	  KRATOS_TRY
+
+	    
+	  //Reset normals
+	  ModelPart::NodesContainerType&    rNodes = rMesh.Nodes();
+	  ModelPart::ElementsContainerType& rElems = rMesh.Elements();
+	  
+	  
+	  bool neighsearch=true;
+	  
+	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+	    {
+	      (in->GetSolutionStepValue(NORMAL)).clear();
+	      
+	      if(neighsearch){
+		//*************  Neigbours of nodes search  ************//
+		WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+		rE.erase(rE.begin(),rE.end() );
+		in->Reset(BOUNDARY);
+		//*************  Neigbours of nodes search ************//
+	      }
+	    }
+	  
+	  
+	  if(neighsearch){
+	    //*************  Neigbours of nodes search ************//
+	    //add the neighbour elements to all the nodes in the mesh
+	    for(ModelPart::ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
+	      {
+		Element::GeometryType& pGeom = ie->GetGeometry();
+		for(unsigned int i = 0; i < pGeom.size(); i++)
+		  {
+		    (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+		  }
+	      }
+	    //*************  Neigbours of nodes search ************//
+	  }
+
+	  //calculating the normals and storing it on nodes
+
+	  Vector An(3);
+	  Element::IntegrationMethod mIntegrationMethod = Element::GeometryDataType::GI_GAUSS_1; //one gauss point
+	  int PointNumber = 0; //one gauss point
+	  unsigned int dimension;
+	  Matrix J;
+	  Matrix InvJ;
+	  double detJ;
+	  Matrix  DN_DX;
+	  
+	  int not_assigned = 0;
+	  
+	  //int boundarycounter=0;
+	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+	    {
+	      An.clear();
+
+	      //if(in->Is(BOUNDARY)){
+	      
+	      WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+
+	      for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ie++)
+		{
+		  Element::GeometryType& rGeom = ie->GetGeometry();
+		  dimension = rGeom.WorkingSpaceDimension();
+
+		  //********** Compute the element integral ******//
+		  const Element::GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mIntegrationMethod );
+		  const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mIntegrationMethod );
+
+
+		  J.resize( dimension, dimension );
+		  J = rGeom.Jacobian( J, PointNumber , mIntegrationMethod );
+
+		  InvJ.clear();
+		  detJ=0;
+		  //Calculating the inverse of the jacobian and the parameters needed
+		  MathUtils<double>::InvertMatrix( J, InvJ, detJ);
+		  
+
+		  //Compute cartesian derivatives for one gauss point
+		  DN_DX = prod( DN_De[PointNumber] , InvJ );
+
+		  double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
+
+		  
+		  for(unsigned int i = 0; i < rGeom.size(); i++)
+		    {
+		      if(in->Id() == rGeom[i].Id()){
+
+			for(unsigned int d=0; d<dimension; d++)
+			  {		    
+			    An[d] += DN_DX(i,d)*IntegrationWeight;
+			  }
+		      }
+		    }
+		  
+		  //********** Compute the element integral ******//
+
+		}
+
+	      
+	      if(norm_2(An)>1e-12){
+		noalias(in->FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
+		if(neighsearch){
+		  in->Set(BOUNDARY);
+		}
+	      }
+	      else{
+		(in->FastGetSolutionStepValue(NORMAL)).clear();
+		//std::cout<<" ERROR: normal not set "<<std::endl;
+		not_assigned +=1;
+	      }
+
+	    
+	      //boundarycounter++;
+	      //}
+	    }
+
+	  if(mEchoLevel >= 0) 
+	    std::cout<<"  [ Boundary normal NOT ASSIGNED:"<<not_assigned<<" ]"<<std::endl;
+
+	  
+	  //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
+	  KRATOS_CATCH( "" )
+
+	}
+
+        //*****************************
+
+	void AddNormalsToNodes(ConditionsContainerType& rConditions)
 	{
 			
 		//adding the normals to the nodes
-		for(ConditionsArrayType::iterator it =  rConditions.begin();
+		for(ConditionsContainerType::iterator it =  rConditions.begin();
 		    it !=rConditions.end(); it++)
 		{
 			Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
@@ -438,7 +528,9 @@ private:
 
 	}
 
-       void AddNormalsAndShrink(ModelPart& rModelPart,int &dimension,ModelPart::IndexType MeshId=0)
+        //*****************************
+
+        void AddNormalsAndShrink(ModelPart& rModelPart,const unsigned int &dimension, int MeshId=0)
 	{
 
 			
@@ -462,7 +554,7 @@ private:
 
 		      for(unsigned int i = 0; i < pGeom.size(); i++)
 			{
-			  if( mEchoLevel == 2 ){
+			  if( mEchoLevel > 2 ){
 			    std::cout<<" Condition ID "<<ic->Id()<<" id "<<id<<std::endl;
 			    if(Ids.size()<=pGeom[i].Id())
 			      std::cout<<" Shrink node in geom "<<pGeom[i].Id()<<" number of nodes "<<Ids.size()<<std::endl;
@@ -508,6 +600,8 @@ private:
 		
 		ModelPart::NodesContainerType::iterator boundary_nodes_begin = BoundaryNodes.begin();
 		int Np = BoundaryNodes.size();
+		
+		int not_assigned = 0;
 
 		int pn=0;
 		// #pragma omp parallel for private(pn,storenorm,tipnormal)
@@ -529,7 +623,7 @@ private:
 
 		    unsigned int normals_size = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]].size();
 				
-		    if( mEchoLevel == 2 )
+		    if( mEchoLevel > 2 )
 		      std::cout<<" Id "<<Ids[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<std::endl;
 
 		    storenorm.resize(normals_size);
@@ -828,21 +922,28 @@ private:
 
 		    if(shrink_factor!=0)
 		      {
-			if( mEchoLevel == 2 )
+			if( mEchoLevel > 2 )
 			  std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<std::endl;
 			Normal/=shrink_factor;
+
 		      }
 		    else{
 
-		      if( mEchoLevel == 2 )
+		      if( mEchoLevel > 2 )
 			std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
 			
+		      Normal.clear();
 		      shrink_factor=1;
-		      std::cout<<" ERROR: normal shrinkage calculation failed "<<std::endl;
+
+		      //std::cout<<" ERROR: normal shrinkage calculation failed "<<std::endl;
+		      not_assigned +=1;
 		    }
 
 		    
-	      }
+		  }
+
+		if(mEchoLevel >= 0) 
+		  std::cout<<"  [ Shrinkage NOT ASSIGNED:"<<not_assigned<<" ][Mesh:"<<MeshId<<"]"<<std::endl;
 	}
 
 

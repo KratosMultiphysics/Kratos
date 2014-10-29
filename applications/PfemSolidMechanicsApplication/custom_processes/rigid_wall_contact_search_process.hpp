@@ -6,7 +6,7 @@
 //
 //
 
-#if !defined(KRATOS_RIGID_CONTACT_SEARCH_PROCESS_H_INCLUDED )
+#if !defined(KRATOS_RIGID_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED )
 #define  KRATOS_RIGID_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED
 
 
@@ -22,6 +22,7 @@
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
 #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
+#include "custom_conditions/rigid_body_point_rigid_contact_condition.hpp"
 
 #include "pfem_solid_mechanics_application.h"
 
@@ -34,7 +35,7 @@ namespace Kratos
 
 /// The base class for all processes in Kratos.
 /** The process is the base class for all processes and defines a simple interface for them.
-    Execute method is used to execute the Process algorithms. While the parameters of this method
+  Execute method is used to execute the Process algorithms. While the parameters of this method
   can be very different from one Process to other there is no way to create enough overridden
   versions of it. For this reason this method takes no argument and all Process parameters must
   be passed at construction time. The reason is that each constructor can take different set of
@@ -136,6 +137,24 @@ public:
 
       }
 
+      //Check ModelPart meshes for Rigid Domains and set BOUNDARY flag to nodes
+      ModelPart::MeshesContainerType& rMeshes = mrModelPart.GetMeshes();
+      bool RigidBodyPresent = false;
+      for(unsigned int m=0; m<rMeshes.size(); m++){
+	
+	if( rMeshes[m].Is(RIGID) ){
+	  RigidBodyPresent = true;
+	  for(ModelPart::ElementsContainerType::iterator ie = rMeshes[m].ElementsBegin(); ie!=rMeshes[m].ElementsEnd(); ie++){
+	    
+	    for( unsigned int i=0; i<ie->GetGeometry().size(); i++ )
+	      {
+		ie->GetGeometry()[i].Set(BOUNDARY,true);
+	      }
+	  }
+	}
+      }
+      
+
       //Check RIGID walls and search contacts
 
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
@@ -166,54 +185,95 @@ public:
 	  // if( (*nd)->Is(BOUNDARY) )
 	  //std::cout<<" Node "<<(*nd)->Id()<<" Is boundary "<<std::endl;
 
-	  //if( (*nd)->Is(BOUNDARY) ){
-	  //if( (*nd)->IsNot(RIGID) ){
-	  if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(RIGID) ){
+	  //if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(RIGID) ){
+	  if( (*nd)->Is(BOUNDARY) ){
 
-	    if( mpRigidWall->IsInside(Point,Time) ){
+	    if( (*nd)->IsNot(RIGID) ){//rigid wall contacting with a deformable body 
+	      
+	      if( mpRigidWall->IsInside(Point,Time) ){
 
-	      //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
+		//std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
 
-	      int number_properties = mrModelPart.NumberOfProperties();
+		int number_properties = mrModelPart.NumberOfProperties();
 
-	      PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
+		PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
-	      ConditionType::Pointer p_cond;
+		ConditionType::Pointer p_cond;
 
-	      if( mpRigidWall->GetDimension() == 2 ){
+		if( mpRigidWall->GetDimension() == 2 ){
 
-		GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
 
-		if( mpRigidWall->Axisymmetric() == true ){
-		  p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		  if( mpRigidWall->Axisymmetric() == true ){
+		    p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		  }
+		  else{
+		    p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		  }
 		}
-		else{
-		  p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		else if( mpRigidWall->GetDimension() == 3 ){
+		
+		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+
+		  //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+
+		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		
+		  p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+
+		  //std::cout<<" Set Contact 3D condition "<<std::endl;
 		}
-	      }
-	      else if( mpRigidWall->GetDimension() == 3 ){
-		
-		GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
-
-		//p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-
-		//p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-		
-		p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-
-		//std::cout<<" Set Contact 3D condition "<<std::endl;
-	      }
 		      
-	      //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
+		//pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
 
-	      mrModelPart.Conditions(MeshId).push_back(p_cond);
+		mrModelPart.Conditions(MeshId).push_back(p_cond);
 
-	      id +=1;
+		id +=1;
+	      }
+	    }
+	    else{
+	      
+	      if( RigidBodyPresent ){  //rigid wall contacting with a rigid body
+
+		if( mpRigidWall->IsInside(Point,Time) ){
+		
+		  //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
+		
+		  int number_properties = mrModelPart.NumberOfProperties();
+
+		  PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
+
+		  ConditionType::Pointer p_cond;
+
+		
+		  if( mpRigidWall->GetDimension() == 2 ){
+		
+		    //rigid wall contacting with a 2D rigid body
+		    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+
+		  }
+		  else if( mpRigidWall->GetDimension() == 3 ){
+			  
+		    //rigid wall contacting with a 3D rigid body
+		    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+
+		    p_cond= ModelPart::ConditionType::Pointer(new RigidBodyPointRigidContactCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		
+		  }
+
+
+		  mrModelPart.Conditions(MeshId).push_back(p_cond);
+		
+		  id +=1;
+
+		}
+	      }
+	      
 	    }
 	  }
 	}
       
-      if( mEchoLevel >= 0 )
+      if( mEchoLevel > 0 )
 	std::cout<<"  [ Rigid Contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
 
       KRATOS_CATCH( "" )
@@ -394,6 +454,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RIGID_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_RIGID_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined 
 
 

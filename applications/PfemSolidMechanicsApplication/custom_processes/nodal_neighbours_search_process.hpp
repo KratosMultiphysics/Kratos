@@ -140,6 +140,7 @@ public:
             WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
             rN.erase(rN.begin(),rN.end() );
         }
+	
     }
 
     ///@}
@@ -280,6 +281,7 @@ private:
 		
         }
 
+	//std::cout<<"  [ Node Neighbours CLEAN ] "<<std::endl;
     }
 
 

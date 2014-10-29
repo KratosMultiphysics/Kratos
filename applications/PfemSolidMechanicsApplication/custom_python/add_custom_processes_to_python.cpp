@@ -27,8 +27,10 @@
 #include "custom_processes/model_volume_calculation_process.hpp"
 
 //Modeler Bounding Boxes
-#include "custom_modelers/rigid_wall_bounding_box.hpp"
-
+#include "custom_modelers/spatial_bounding_box.hpp"
+#include "custom_modelers/rigid_nose_wall_bounding_box.hpp"
+#include "custom_modelers/rigid_circle_wall_bounding_box.hpp"
+#include "custom_modelers/rigid_plane_wall_bounding_box.hpp"
 namespace Kratos
 {
 	
@@ -64,7 +66,7 @@ namespace Kratos
 
       class_<BoundarySkinBuildProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "BuildBoundarySkin", init<ModelPart&, unsigned int, unsigned int, int>()
+	 "BuildBoundarySkin", init<ModelPart&, int, int, int>()
 	 )
 	;
 
@@ -72,12 +74,29 @@ namespace Kratos
       //********WALL CONTACT SEARCH*********//
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
-	(
-	 "RigidWallContactSearch", init<RigidWallBoundingBox::Pointer, ModelPart&, int>()
-	 )
-	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
-	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
-	;
+      	(
+      	 "RigidNoseWallContactSearch", init<RigidNoseWallBoundingBox::Pointer, ModelPart&, int>()
+      	 )
+      	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
+      	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
+      	;
+
+      class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "RigidCircleWallContactSearch", init<RigidCircleWallBoundingBox::Pointer, ModelPart&, int>()
+      	 )
+      	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
+      	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
+      	;
+
+      class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "RigidPlaneWallContactSearch", init<RigidPlaneWallBoundingBox::Pointer, ModelPart&, int>()	 
+      	 )
+      	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
+      	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
+      	;
+
 
 
       //********MODEL VOLUME CALCULATION*********//

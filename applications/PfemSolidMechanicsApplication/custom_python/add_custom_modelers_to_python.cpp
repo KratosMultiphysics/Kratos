@@ -23,8 +23,9 @@
 
 // Bounding Boxes
 #include "custom_modelers/spatial_bounding_box.hpp"
-#include "custom_modelers/rigid_wall_bounding_box.hpp"
-
+#include "custom_modelers/rigid_nose_wall_bounding_box.hpp"
+#include "custom_modelers/rigid_circle_wall_bounding_box.hpp"
+#include "custom_modelers/rigid_plane_wall_bounding_box.hpp"
 
 namespace Kratos
 {
@@ -32,17 +33,17 @@ namespace Kratos
 namespace Python
 {
   //////////////////////////////////////////////////////////////////////////////////////////
-  //											//
-  //				ADAPTIVE 3D MESHER					//
-  //											//
+  //										  	  //
+  //				ADAPTIVE 3D MESHER					  //
+  //											  //
   //////////////////////////////////////////////////////////////////////////////////////////
 
   //tetrahedron mesher
 
   //////////////////////////////////////////////////////////////////////////////////////////
-  //											//
-  //				ADAPTIVE 2D MESHER					//
-  //											//
+  //											  //
+  //				ADAPTIVE 2D MESHER					  //
+  //											  //
   //////////////////////////////////////////////////////////////////////////////////////////
 
   //triangle mesher
@@ -77,10 +78,23 @@ namespace Python
 			   critical_radius, reference_error, domain);
   }
 
-  void SetRigidWall(TriangularMesh2DModeler& Mesher,RigidWallBoundingBox::Pointer pRigidWall)
+
+  void SetRigidNoseWall(TriangularMesh2DModeler& Mesher,RigidNoseWallBoundingBox::Pointer pRigidWall)
   {
     Mesher.SetRigidWall(pRigidWall);
   }
+
+
+  void SetRigidCircleWall(TriangularMesh2DModeler& Mesher,RigidCircleWallBoundingBox::Pointer pRigidWall)
+  {
+    Mesher.SetRigidWall(pRigidWall);
+  }
+
+  void SetRigidPlaneWall(TriangularMesh2DModeler& Mesher,RigidPlaneWallBoundingBox::Pointer pRigidWall)
+  {
+    Mesher.SetRigidWall(pRigidWall);
+  }
+
 
   void SetRefiningBox(TriangularMesh2DModeler& Mesher,double radius, Vector center, Vector velocity)
   {
@@ -104,9 +118,9 @@ namespace Python
 
 
   //////////////////////////////////////////////////////////////////////////////////////////
-  //											//
-  //				CONTACT MESHER			                        //
-  //											//
+  //											  //
+  //				CONTACT MESHER			                          //
+  //											  //
   //////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -124,7 +138,9 @@ namespace Python
       .def("SetInitialMeshData",SetInitialDataOnMesher)
       .def("SetRemeshData",SetRemeshDataOnMesher)
       .def("SetRefineData",SetRefineDataOnMesher)
-      .def("SetRigidWall",SetRigidWall)
+      .def("SetRigidWall",SetRigidNoseWall)
+      .def("SetRigidWall",SetRigidCircleWall)
+      .def("SetRigidWall",SetRigidPlaneWall)
       .def("SetRefiningBox",SetRefiningBox)
       .def("SetMeshRefiningBox",SetMeshRefiningBox)
       .def("GenerateMesh",GenerateTriangleMesh)
@@ -148,13 +164,31 @@ namespace Python
       .def("SetDimension",&SpatialBoundingBox::SetDimension)
       ;
 
-    class_<RigidWallBoundingBox, boost::noncopyable > 
-      ( "RigidWallBoundingBox", 
+    //nose-wall
+    class_<RigidNoseWallBoundingBox, boost::noncopyable > 
+      ( "RigidNoseWallBoundingBox", 
 	init<int, Vector, Vector, Vector, Vector, Matrix, Vector, Vector, Vector>() )
-      .def("SetAxisymmetric",&RigidWallBoundingBox::SetAxisymmetric)
-      .def("SetDimension",&RigidWallBoundingBox::SetDimension)
+      .def("SetAxisymmetric",&RigidNoseWallBoundingBox::SetAxisymmetric)
+      .def("SetDimension",&RigidNoseWallBoundingBox::SetDimension)
       ;
-	
+    
+    //circle-wall
+    class_<RigidCircleWallBoundingBox, boost::noncopyable > 
+      ( "RigidCircleWallBoundingBox", 
+	init<int, int, double, Vector, Vector, Vector, Vector>() )
+      .def("SetAxisymmetric",&RigidCircleWallBoundingBox::SetAxisymmetric)
+      .def("SetDimension",&RigidCircleWallBoundingBox::SetDimension)
+      ;
+
+    //plane-wall
+    class_<RigidPlaneWallBoundingBox, boost::noncopyable > 
+      ( "RigidPlaneWallBoundingBox", 
+	init<int, int, Vector, Vector, Vector, Vector, Vector>() )
+      .def("SetAxisymmetric",&RigidPlaneWallBoundingBox::SetAxisymmetric)
+      .def("SetDimension",&RigidPlaneWallBoundingBox::SetDimension)
+      ;
+
+
      
   }
 

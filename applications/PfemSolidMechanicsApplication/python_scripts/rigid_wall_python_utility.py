@@ -10,7 +10,7 @@ class RigidWallUtility:
 
     def __init__(self, model_part, domain_size, wall_configuration):
 
-        self.model_part = model_part
+        self.model_part  = model_part
         self.domain_size = domain_size
 
         # definition of the echo level
@@ -21,92 +21,153 @@ class RigidWallUtility:
         self.rigid_wall_active = wall_configuration.rigid_wall
         self.number_of_walls = wall_configuration.number_of_walls
 
-        # material parameters
-        self.penalty_parameter = wall_configuration.penalty_parameter
-
-        # geometry parameters
+         # geometry parameters
         size_scale = wall_configuration.size_scale
+       
+        # material parameters
+        self.penalty_parameters     = []
 
-        self.wall_labels = wall_configuration.wall_labels
-        self.noses_per_wall = Vector(self.number_of_walls)
-        for sizek in range(0, self.number_of_walls):
-            self.noses_per_wall[sizek] = 0
+        # rigid walls
+        self.rigid_wall_bbox        = []
 
-        for sizei in range(0, self.number_of_walls):
-            for sizej in range(0, len(self.wall_labels)):
-                if(self.wall_labels[sizej] == sizei + 1):
-                    self.noses_per_wall[sizei] = self.noses_per_wall[sizei] + 1
-
-        self.rigid_wall_bbox = []
+        # contact processes
         self.contact_search_process = []
 
-        for sizei in range(0, self.number_of_walls):
+        if(self.rigid_wall_active):
 
-            self.number_of_noses = int(self.noses_per_wall[sizei])
-            self.tip_radius = Vector(self.number_of_noses)
-            self.rake_angles = Vector(self.number_of_noses)
-            self.clearance_angles = Vector(self.number_of_noses)
-            self.convexities = Vector(self.number_of_noses)
-            self.tip_centers = Matrix(self.number_of_noses, 3)
+            sizei = 0
 
-            self.wall_velocity = Vector(3)
-            self.wall_angular_velocity = Vector(3)
-            self.wall_reference_point = Vector(3)
+            for conditions in wall_configuration.wall_conditions:
 
-            counter = 0
+                dimension = 2
+                axisymmetric = False
+                if(conditions["ContactCondition"] == "Axisymmetric"):
+                    axisymmetric = True
+                if(conditions["ContactCondition"] == "3D"):
+                    dimension = 3
+                
+                if( conditions["WallType"] == "NOSE-WALL" ): 
+                    
+                    number_of_noses  = int(conditions["NumberOfNoses"])
+                    tip_radius       = Vector(number_of_noses)
+                    rake_angles      = Vector(number_of_noses)
+                    clearance_angles = Vector(number_of_noses)
+                    convexities      = Vector(number_of_noses)
+                    tip_centers      = Matrix(number_of_noses, 3)
+                
+                    wall_velocity         = Vector(3)
+                    wall_angular_velocity = Vector(3)
+                    wall_reference_point  = Vector(3)
 
-            for sizej in range(0, len(wall_configuration.wall_movement_labels)):
-                if(wall_configuration.wall_movement_labels[sizej] == sizei + 1):
-                    for sizek in range(0, 3):
-                        self.wall_velocity[sizek] = wall_configuration.wall_velocity[sizej][sizek]
+                    wall_noses = conditions["WallNoses"]
+                    counter = 0
+                    for nose in wall_noses:
+                        tip_radius[counter]       = nose["TipRadius"] * size_scale
+                        rake_angles[counter]      = nose["RakeAngle"]
+                        clearance_angles[counter] = nose["ClearanceAngle"]
+                        convexities[counter]      = nose["Convexity"]
+                        for size in range(0, 3):
+                            tip_centers[counter, size] = nose["TipCenter"][size] * size_scale
+                        counter +=1
+                    
+                    for size in range(0, 3):
+                        wall_velocity[size]         = conditions["LinearVelocity"][size]
+                        wall_angular_velocity[size] = conditions["AngularVelocity"][size]
+                        wall_reference_point[size]  = conditions["RotationCenter"][size]
 
-            for sizej in range(0, len(wall_configuration.wall_rotation_labels)):
-                if(wall_configuration.wall_rotation_labels[sizej] == sizei + 1):
-                    for sizek in range(0, 3):
-                        self.wall_angular_velocity[sizek] = wall_configuration.wall_angular_velocity[sizej][sizek]
-                        self.wall_reference_point[sizek] = wall_configuration.reference_point[sizej][sizek]
+                    self.rigid_wall_bbox.append(RigidNoseWallBoundingBox(int(conditions["Subdomain"]), convexities, tip_radius, rake_angles, clearance_angles, tip_centers, wall_velocity, wall_angular_velocity, wall_reference_point))
 
-            for sizej in range(0, len(self.wall_labels)):
+                    self.penalty_parameters.append(conditions["PenaltyParameter"])
+                    self.rigid_wall_bbox[sizei].SetDimension(dimension)
+                    if(axisymmetric):
+                        self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
-                if(self.wall_labels[sizej] == sizei + 1):
+                    # rigid wall contact search process
+                    self.contact_search_process.append(RigidNoseWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
-                    self.tip_radius[counter] = wall_configuration.tip_radius[sizej] * size_scale
-                    self.rake_angles[counter] = wall_configuration.rake_angles[sizej]
-                    self.clearance_angles[counter] = wall_configuration.clearance_angles[sizej]
-                    self.convexities[counter] = wall_configuration.nose_convexities[sizej]
-                    for sizek in range(0, 3):
-                        self.tip_centers[counter, sizek] = wall_configuration.tip_centers[sizej][sizek] * size_scale
-                    counter = counter + 1
+                elif(conditions["WallType"] == "PLANE"):
+                    
+                    wall_point  = Vector(3)
+                    wall_normal = Vector(3)
+                    
+                    wall_velocity         = Vector(3)
+                    wall_angular_velocity = Vector(3)
+                    wall_reference_point  = Vector(3)
+                    
+                    wall_plane = conditions["WallPlane"]                        
+                    convexity = wall_plane["Convexity"]
+                    
+                    for size in range(0, 3):
+                        wall_point[size]            = wall_plane["WallPoint"][size]
+                        wall_normal[size]           = wall_plane["WallNormal"][size]
+                        wall_velocity[size]         = conditions["LinearVelocity"][size]
+                        wall_angular_velocity[size] = conditions["AngularVelocity"][size]
+                        wall_reference_point[size]  = conditions["RotationCenter"][size]
+                        
+                    self.rigid_wall_bbox.append(RigidPlaneWallBoundingBox(int(conditions["Subdomain"]), convexity, wall_point, wall_normal, wall_velocity, wall_angular_velocity, wall_reference_point))
 
-            if(self.rigid_wall_active):
-                # rigid wall bounding box
-                wall_label = sizei + 1
-                self.rigid_wall_bbox.append(RigidWallBoundingBox(int(wall_label), self.convexities, self.tip_radius, self.rake_angles, self.clearance_angles, self.tip_centers, self.wall_velocity, self.wall_angular_velocity, self.wall_reference_point))
+                    self.penalty_parameters.append(conditions["PenaltyParameter"])
+                    self.rigid_wall_bbox[sizei].SetDimension(dimension)
+                    if(axisymmetric):
+                        self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
-                if(wall_configuration.contact_condition == "2D"):
-                    self.rigid_wall_bbox[sizei].SetDimension(2)
-                elif(wall_configuration.contact_condition == "Axisymmetric"):
-                    self.rigid_wall_bbox[sizei].SetDimension(2)
-                    self.rigid_wall_bbox[sizei].SetAxisymmetric()
-                elif(wall_configuration.contact_condition == "3D"):
-                    self.rigid_wall_bbox[sizei].SetDimension(3)             
+                    # rigid wall contact search process
+                    self.contact_search_process.append(RigidPlaneWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
 
-                # rigid wall contact search process
-                self.contact_search_process.append(RigidWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
+                        
+                elif(conditions["WallType"] == "CIRCLE"):
+                    
+                    wall_center  = Vector(3)
+                    
+                    wall_velocity         = Vector(3)
+                    wall_angular_velocity = Vector(3)
+                    wall_reference_point  = Vector(3)
+    
+                    wall_circle = conditions["WallCircle"]                        
+                    radius = wall_circle["Radius"]
+                    convexity = wall_circle["Convexity"]
 
+                    for size in range(0, 3):
+                        wall_center[size]           = wall_circle["Center"][size]
+                        wall_velocity[size]         = conditions["LinearVelocity"][size]
+                        wall_angular_velocity[size] = conditions["AngularVelocity"][size]
+                        wall_reference_point[size]  = conditions["RotationCenter"][size]
+
+                    self.rigid_wall_bbox.append(RigidCircleWallBoundingBox(int(conditions["Subdomain"]), convexity, radius, center, wall_velocity, wall_angular_velocity, wall_reference_point))
+
+                    self.penalty_parameters.append(conditions["PenaltyParameter"])
+                    self.rigid_wall_bbox[sizei].SetDimension(dimension)
+                    if(axisymmetric):
+                        self.rigid_wall_bbox[sizei].SetAxisymmetric()
+
+                    # rigid wall contact search process
+                    self.contact_search_process.append(RigidCircleWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part, self.echo_level))
+
+                sizei += 1
+
+    #
+    def GetPenaltyParameter(self):
+        
+        penalty_parameter = 0
+        for size in range(0,len(self.penalty_parameters)):
+            if((penalty_parameter < self.penalty_parameters[size]) or penalty_parameter == 0):
+                penalty_parameter = self.penalty_parameters[size]
+        
+        return penalty_parameter
     #
     def ExecuteContactSearch(self):
         if(self.rigid_wall_active):
             # set properties for rigid wall conditions
-            self.model_part.Properties[1].SetValue(PENALTY_PARAMETER, self.penalty_parameter)
-            for sizei in range(0, self.number_of_walls):
-                self.contact_search_process[sizei].ExecuteInitializeSolutionStep()
+            penalty_parameter = self.GetPenaltyParameter()
+            self.model_part.Properties[1].SetValue(PENALTY_PARAMETER, penalty_parameter)
+            for size in range(0, self.number_of_walls):
+                self.contact_search_process[size].ExecuteInitializeSolutionStep()
 
     #
     def UpdatePosition(self):
         if(self.rigid_wall_active):
-            for sizei in range(0, self.number_of_walls):
-                self.contact_search_process[sizei].ExecuteFinalizeSolutionStep()
+            for size in range(0, self.number_of_walls):
+                self.contact_search_process[size].ExecuteFinalizeSolutionStep()
 
     #
     def RigidWallActive(self):

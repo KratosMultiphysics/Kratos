@@ -1205,7 +1205,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool ModelerUtilities::CheckNodeCloseWallTip(std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor)
+  bool ModelerUtilities::CheckNodeCloseWallTip(std::vector<SpatialBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor)
   {
     KRATOS_TRY
     

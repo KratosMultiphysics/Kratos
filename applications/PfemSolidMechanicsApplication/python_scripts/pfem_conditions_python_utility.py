@@ -99,30 +99,30 @@ class ConditionsUtility:
                 ImposedRotation[2] = Rotation[2];
                 Rotation[2] = 0;
 
-            node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation);
+            node.SetSolutionStepValue(IMPOSED_ROTATION, ImposedRotation)
 
             # set to buffer variables to zero
-            node.SetSolutionStepValue(ROTATION, Rotation);
+            node.SetSolutionStepValue(ROTATION, Rotation)
 
     #
     def SetIncrementalWeight(self, incr_steps, time_step):
 
         for node in self.model_part.Nodes:
-                gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
-                WaterPressure = node.GetSolutionStepValue( WATER_PRESSURE )
-                #print (gravetat )
-		if (gravetat[1] == 0):
-		   gravetat[1] = -0.10;
-                #for dim in range(0, len(gravetat)):
-                #     gravetat[dim] = gravetat[dim] / (time_step * (incr_steps + 1e-8))
-                #gravetat = gravetat * time_step * (incr_steps + 1)
-                gravetat[1] = gravetat[1] - 0.01
-                if (gravetat[1] < -10.0):
-		    gravetat[1] = -10.0;
-                node.SetSolutionStepValue(VOLUME_ACCELERATION, gravetat);
-                #if(node.IsFixed(WATER_PRESSURE) == 1):
-                #    WaterPressure = WaterPressure - 1.0;
+            gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
+            WaterPressure = node.GetSolutionStepValue( WATER_PRESSURE )
+            #print (gravetat )
+            if(gravetat[1] == 0):
+                gravetat[1] = -0.10;
+            #for dim in range(0, len(gravetat)):
+            #     gravetat[dim] = gravetat[dim] / (time_step * (incr_steps + 1e-8))
+            #gravetat = gravetat * time_step * (incr_steps + 1)
+            gravetat[1] = gravetat[1] - 0.01
+            if (gravetat[1] < -10.0):
+                gravetat[1] = -10.0;
 
+            node.SetSolutionStepValue(VOLUME_ACCELERATION, gravetat)
+            #if(node.IsFixed(WATER_PRESSURE) == 1):
+            #    WaterPressure = WaterPressure - 1.0;
 
 
 
