@@ -1230,6 +1230,8 @@ namespace Kratos
     {
 
         KRATOS_TRY
+        std::vector<double> indentations_list;
+        indentations_list.resize(mListOfSphericParticles.size());
                 
         #pragma omp parallel for
         for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
@@ -1238,9 +1240,13 @@ namespace Kratos
             double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
             mListOfSphericParticles[i]->CalculateMaxBallToFaceIndentation(indentation);
             max_indentation = std::max(max_indentation, indentation);
-            
-            mListOfSphericParticles[i]->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= max_indentation;
-            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - max_indentation); 
+            indentations_list[i] = max_indentation;
+        }
+        
+        #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
+        for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
+            mListOfSphericParticles[i]->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
+            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - indentations_list[i]); 
         }
         
         KRATOS_CATCH("")
