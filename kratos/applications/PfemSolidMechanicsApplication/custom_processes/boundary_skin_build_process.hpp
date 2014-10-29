@@ -25,6 +25,10 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+
+#include "geometries/line_2d_2.h"
+#include "geometries/triangle_3d_3.h"
+
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 #include "pfem_solid_mechanics_application.h"
 
@@ -81,18 +85,18 @@ namespace Kratos
 		// { 
 		// 	std::cout<<" Reference Condition "<<mr_reference_condition<<std::endl;
 		// 	m_preserve = preserve;
-		// 	mdim=dim;
+		// 	mDimension=dim;
 		// }
   
 		//second constructor
 		BoundarySkinBuildProcess(ModelPart& model_part,
-					 unsigned int dim = 2,
-					 unsigned int preserve = 1,
+					 int dimension,
+					 int preserve = 1,
 					 int echo_level = 0)
 			: mr_model_part(model_part)
 		{ 
-			m_preserve = preserve;
-			mdim=dim;
+		        m_preserve = preserve;
+			mDimension=dimension;
 			mEchoLevel = echo_level;
 		}
 
@@ -140,7 +144,7 @@ namespace Kratos
 			      }
 			    else
 			      {
-				if( mEchoLevel > 1 )
+				if( mEchoLevel >= 1 )
 				  std::cout<<"    [ Skin Search on Mesh["<<MeshId<<"] performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
 				//PrintSkin(MeshId);
 			      }
@@ -151,9 +155,9 @@ namespace Kratos
 
 			//ComputeBoundaryNormals BoundUtils;
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
-			BoundaryComputation.CalculateBoundaryNormals(mr_model_part, 2, mEchoLevel);
+			BoundaryComputation.CalculateBoundaryNormals(mr_model_part, mEchoLevel);
 			
-			if( mEchoLevel > 1 )
+			if( mEchoLevel >= 1 )
 			  std::cout<<" Boundary Normals Computed "<<std::endl;
 
 		};
@@ -162,7 +166,7 @@ namespace Kratos
 		void SetGlobalConditions()
 		{
 
-		  if( mEchoLevel > 1 )
+		  if( mEchoLevel >= 1 )
 		    std::cout<<" [ OLD TOTAL CONDITIONS: "<<mr_model_part.NumberOfConditions()<<"] "<<std::endl;
 
 		  //contact conditions are located on Mesh_0
@@ -209,7 +213,7 @@ namespace Kratos
       
 		  mr_model_part.Conditions().swap(KeepConditions);
 
-		  if( mEchoLevel > 1 )
+		  if( mEchoLevel >= 1 )
 		    std::cout<<" [ NEW TOTAL CONDITIONS: "<<mr_model_part.NumberOfConditions()<<"] "<<std::endl;
 
 		}
@@ -432,7 +436,7 @@ namespace Kratos
 		//Condition& mr_reference_condition;
 		ConditionsContainerType m_conditions;
 		unsigned int m_preserve;
-		unsigned int mdim;
+		unsigned int mDimension;
 		int mEchoLevel;
 
 		///@}
@@ -476,7 +480,7 @@ namespace Kratos
 		bool FindCondition(Geometry< Node<3> >& rConditionGeom,Geometry< Node<3> >& rGeom , boost::numeric::ublas::matrix<unsigned int>& lpofa, unsigned int& i)
 		{
 			//2D edges:
-			if(mdim==2)
+			if(mDimension==2)
 			{
 				if( (   rConditionGeom[0].Id() == rGeom[lpofa(1,i)].Id() 
 					&& rConditionGeom[1].Id() == rGeom[lpofa(2,i)].Id() ) || 
@@ -488,7 +492,7 @@ namespace Kratos
 			}
       
 			//3D faces:
-			if(mdim==3)
+			if(mDimension==3)
 			{
 				if( (   rConditionGeom[0].Id() == rGeom[lpofa(1,i)].Id() 
 					&& rConditionGeom[1].Id() == rGeom[lpofa(2,i)].Id()
@@ -533,6 +537,9 @@ namespace Kratos
   		        int number_properties = mr_model_part.NumberOfProperties();
 			Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(number_properties-1);
 			
+			if( mEchoLevel >= 1 )
+			  std::cout<<" [ OLD_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
+
 			//Clear Previous Skin (preserve the conditions)
 			ClearConditions(MeshId);
 
@@ -632,7 +639,13 @@ namespace Kratos
 				    
 							id +=1;
 
-							Condition::GeometryType::Pointer vertices = Condition::GeometryType::Pointer(new Geometry< Node<3> >(face) );
+							
+							Condition::GeometryType::Pointer vertices;
+							if( mDimension == 2 )					  
+							  vertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(face) );
+							else if ( mDimension == 3 )
+							  vertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(face) );
+
 							Condition::Pointer p_cond;
 							if(condition_found)
 							{
@@ -713,7 +726,7 @@ namespace Kratos
 				all_assigned = false;
 			}
 
-			if( mEchoLevel > 1 ){
+			if( mEchoLevel >= 1 ){
 
 			  std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
 
@@ -733,6 +746,9 @@ namespace Kratos
 			//properties to be used in the generation
   		        int number_properties = mr_model_part.NumberOfProperties();
 			Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(number_properties-1);
+
+			if( mEchoLevel >= 1 )
+			  std::cout<<" [ OLD_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
 			
 			//Clear Previous Skin (preserve the conditions)
 			ClearConditions(MeshId);
@@ -810,7 +826,12 @@ namespace Kratos
 				    
 						id +=1;
 
-						Condition::GeometryType::Pointer vertices = Condition::GeometryType::Pointer(new Geometry< Node<3> >(face) );
+						Condition::GeometryType::Pointer vertices;
+						if( mDimension == 2 )					  
+						  vertices = Condition::GeometryType::Pointer(new Line2D2< Node<3> >(face) );
+						else if ( mDimension == 3 )
+						  vertices = Condition::GeometryType::Pointer(new Triangle3D3< Node<3> >(face) );
+
 						CompositeCondition::Pointer composite_cond =  CompositeCondition::Pointer(new CompositeCondition(id,vertices,properties) ); 
 						
 						//Get the correct ReferenceCondition
@@ -901,8 +922,10 @@ namespace Kratos
 			    if( PreservedConditions[i] == 0 )
 				all_assigned = false;
 			}
+			
+			
 
-			if( mEchoLevel > 1 ){
+			if( mEchoLevel >= 1 ){
 			  std::cout<<" [ NEW_CONDITIONS: "<<mr_model_part.NumberOfConditions(MeshId)<<"] "<<std::endl;
 
 			  if(all_assigned == true)

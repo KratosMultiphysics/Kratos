@@ -1,10 +1,14 @@
 *# Element and condition indices. We renumber them so each type is numbered from one.
 *set var ielem=0
 *set var icond=0
-*# Define a condition index, which will be used to enforce that condition numbering begins from 1 
+
+*# ModelPart block
+
 Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
+
+*# Property blocks
 
 Begin Properties 0
 End Properties
@@ -102,16 +106,21 @@ End Properties
 
 *endif
 *end materials
-*# Property blocks
 
+
+*# Mesh0 block
+
+*# Nodes block
 Begin Nodes
 *#// id	  X	Y	Z
 *loop nodes
 *format "%i%10.5e%10.5e%10.5e"
-*nodesnum	*NodesCoord(1)	*NodesCoord(2)	*NodesCoord(3)
+*NodesNum	*NodesCoord(1)	*NodesCoord(2)	*NodesCoord(3)
 *end nodes
 End Nodes
 
+
+*# Element blocks
 
 *Set cond surface_SpatialLagrangianElement2D3N *elems
 *if(CondNumEntities > 0)
@@ -124,7 +133,7 @@ Begin Elements SpatialLagrangianElement2D3N
 *format "%i%i%i%i%i%i%i%i"
 *ElemsNum *ElemsMat*\
 *for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
+ *ElemsConec(*i)*\
 *end
 
 *end elems
@@ -142,7 +151,7 @@ Begin Elements SpatialLagrangianUwPElement2D3N
 *format "%i%i%i%i%i%i%i%i"
 *ElemsNum *ElemsMat*\
 *for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
+ *ElemsConec(*i)*\
 *end
 
 *end elems
@@ -160,7 +169,7 @@ Begin Elements SpatialLagrangianUPElement2D3N
 *format "%i%i%i%i%i%i%i%i"
 *ElemsNum *ElemsMat*\
 *for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
+ *ElemsConec(*i)*\
 *end
 
 *end elems
@@ -178,7 +187,7 @@ Begin Elements AxisymSpatialLagrangianElement2D3N
 *format "%i%i%i%i%i%i%i%i"
 *ElemsNum *ElemsMat*\
 *for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
+ *ElemsConec(*i)*\
 *end
 
 *end elems
@@ -196,14 +205,14 @@ Begin Elements AxisymSpatialLagrangianUPElement2D3N
 *format "%i%i%i%i%i%i%i%i"
 *ElemsNum *ElemsMat*\
 *for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
+ *ElemsConec(*i)*\
 *end
 
 *end elems
 End Elements
 
 *endif
-*# Element blocks
+*# Condition Blocks
 
 *# Line Condition Blocks
 
@@ -234,7 +243,6 @@ End Conditions
 
 *endif
 
-
 *# Point Condition Blocks
 
 *Set cond point_PointLoad2DCondition *nodes
@@ -243,7 +251,7 @@ Begin Conditions PointLoad2DCondition
 *loop nodes *OnlyInCond
 *set var icond=operation(icond+1)
 *format "%i%i%i"
-*icond 0 *NodesNum
+*Tcl( setCondId *NodesNum 0 ) 0 *NodesNum
 *end nodes
 End Conditions
 
@@ -254,26 +262,34 @@ Begin Conditions PointLoadAxisym2DCondition
 *loop nodes *OnlyInCond
 *set var icond=operation(icond+1)
 *format "%i%i%i"
-*icond 0 *NodesNum
+*Tcl( setCondId *NodesNum 0 ) 0 *NodesNum
 *end nodes
 End Conditions
 
 *endif
-*Set cond line_WallCondition2D *elems
+*# Group Condition Blocks
+
+*# Set the start number for each condition:
+*set var RigidWallsstart  = icond
+
+*Set cond group_RigidWalls *groups
 *if(CondNumEntities > 0)
 Begin Conditions WallCondition2D
 *#// id prop_id	 n1	n2	n3	...
-*loop elems *OnlyInCond
+*loop groups *OnlyInCond
+*set group *GroupName *elems
+*loop elems *onlyingroup
 *set var icond=operation(icond+1)
 *set var i=0
 *set var j=ElemsNnode
 *format "%i%i%i%i"
 *icond *ElemsMat *\
 *for(i=1;i<=j;i=i+1)*\
-	*ElemsConec(*i)*\
+ *ElemsConec(*i)*\
 *end
 
 *end elems
+*end groups
 End Conditions
 
 *endif
@@ -694,99 +710,124 @@ Begin NodalData WALL_REFERENCE_POINT_Z
 End NodalData
 
 *endif
-*Set cond surface_RIGID_WALL *nodes
-*Add cond line_RIGID_WALL *nodes
+*Set cond group_RigidWalls *groups
 *if(CondNumEntities > 0)
 Begin NodalData RIGID_WALL
-*loop nodes *OnlyInCond
+*loop groups *OnlyInCond
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
 *format "%i%i%i"
-*NodesNum *cond(Fixed) *cond(RIGID_WALL,int)
+*NodesNum 1 *cond(Group_ID,int)
 *end nodes
+*endif
+*end groups
 End NodalData
 
 *endif
 
 
-*#Tcl( WriteMeshGroups *FileId ) *\
+*# Mesh Blocks
 
-*set var igroup=0
-*set var icond=0
-        
-*loop groups
-*if(strcmp(groupparentname,"Domains")==0)
-*set var igroup=operation(igroup+1)
-Begin Mesh *igroup
-*#groupnum "*GroupFullName" ("*groupname" parent:*groupparentnum) *groupcolorrgb
-*set group *GroupName *nodes
+
+*# Mesh Blocks for Domain Remeshing and Contact
+
+*Set cond group_DeformableBodies *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin Mesh *cond(Group_ID)
 
  Begin MeshNodes
-*if(GroupNumEntities)
-*#nodes: *GroupNumEntities
+*set group *GroupName *nodes
+*if(GroupNumEntities > 0)
 *loop nodes *onlyingroup
- *nodesnum
+ *NodesNum
 *end nodes
-*end if
+*endif
  End MeshNodes
 
  Begin MeshElements
-*if(strcmp(groupname,"RigidWall"))
 *set group *GroupName *elems 
-*if(GroupNumEntities) 
-*#elements: *GroupNumEntities 
+*if(GroupNumEntities > 0) 
 *loop elems *onlyingroup 
- *elemsnum
+*format "%i"
+ *ElemsNum
 *end elems
 *endif
-*endif
  End MeshElements
-
+      
  Begin MeshConditions
-*set var icond=0
-*# Element Condition Blocks
-*if(strcmp(groupname,"RigidWall"))
+*set group *GroupName *elems 
+*if(GroupNumEntities > 0) 
 *# Line Condition Blocks
 *set cond line_LineLoadCondition2D2N *OverFaceElements *CanRepeat
 *add cond line_LineLoadAxisymCondition2D2N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 *loop elems *onlyincond *onlyingroup
 *format "%i"
- *Tcl( getCondId *elemsnum *condelemface )
+ *Tcl( getCondId *ElemsNum *CondElemFace )
 *end elems
+*endif
 *endif
 *# Point Condition Blocks
 *set group *GroupName *nodes
+*if(GroupNumEntities > 0)
 *set cond point_PointLoad2DCondition *nodes
 *add cond point_PointLoadAxisym2DCondition *nodes
 *if(CondNumEntities > 0)	    
 *loop nodes *onlyincond *onlyingroup
-*set var icond=operation(icond+1)
+*set var point_conditions_num=operation(point_conditions_num+1)
 *format "%i"
- *icond
+ *Tcl( getCondId *NodesNum 0 )
 *end nodes
 *endif
-*else
-*set cond line_WallCondition2D *elems
-*if(CondNumEntities > 0)
-*loop elems *onlyincond *onlyingroup
-*set var icond=operation(icond+1)
-*format "%i"
- *icond
-*end elems
 *endif
+*Set cond group_DeformableBodies *groups
+ End MeshConditions
+
+End Mesh
+
+*end groups    
+*endif
+
+
+*# Set the start number for each element and condition:
+*set var RigidWallsNum  = RigidWallsStart
+
+*Set cond group_RigidWalls *groups
+*if(CondNumEntities > 0)
+*loop groups *OnlyInCond
+Begin Mesh *cond(Group_ID)
+
+ Begin MeshNodes
+*set group *GroupName *nodes
+*if(GroupNumEntities)
+*loop nodes *onlyingroup
+ *NodesNum
+*end nodes
+*endif
+ End MeshNodes
+
+ Begin MeshElements
+ End MeshElements
+      
+ Begin MeshConditions
+*set group *GroupName *elems 
+*if(GroupNumEntities) 
+*loop elems *onlyingroup 
+*set var RigidWallsNum=operation(RigidWallsNum+1)
+*format "%i"
+ *RigidWallsNum
+*end elems
 *endif
  End MeshConditions
 
 End Mesh
 
+*end groups        
 *endif
-*end groups              
- 
 
-*# Nodal Variable blocks
 
-*# Elemental Variable blocks
-
-*# Conditional Variable blocks
 
 *# Note: About elements/conditions: it is important that point elements/conditions are added AFTER regular points/conditions to keep numeration of elemental/conditional data consistent.
 *# This is why point elements/conditions get their own blocks.

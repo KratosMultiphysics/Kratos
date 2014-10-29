@@ -205,7 +205,7 @@ public:
 
     bool CheckContactActive    (GeometryType& rConditionGeometry, bool& rSemiActiveContact, std::vector<bool>& rSemiActiveNodes);
     
-    bool CheckNodeCloseWallTip (std::vector<RigidWallBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
+    bool CheckNodeCloseWallTip (std::vector<SpatialBoundingBox::Pointer>& rRigidWalls, PointType& rNode, ProcessInfo& rCurrentProcessInfo, double& rFactor);
 
     double CheckCriticalRadius (ModelPart& rModelPart, double& rCriticalRadius, unsigned int MeshId = 0);
 

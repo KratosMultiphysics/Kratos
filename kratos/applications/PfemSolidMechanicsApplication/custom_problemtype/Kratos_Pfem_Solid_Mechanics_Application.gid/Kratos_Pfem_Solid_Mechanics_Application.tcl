@@ -14,17 +14,32 @@ proc InitGIDProject {dir} {
 		kratos_splash $dir 1
 	}
 	GiDMenu::Create "Kratos Pfem Solid Mechanics Application" PRE
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Values"] 0 PRE "GidOpenConditions \"Nodal Values\"" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Elements"] 1 PRE "GidOpenConditions \"Elements\"" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Mixed U-P Elements"] 2 PRE "GidOpenConditions \"Mixed U-P Elements\"" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Conditions"] 3 PRE "GidOpenConditions \"Conditions\"" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 4 PRE "GidOpenMaterials \"Materials\"" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 5 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
-	# GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Data Units"] 6 PRE "GidOpenProblemData \"Data Units\"" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 6 PRE "" "" ""
-	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Status"] 7 PRE "cond_report" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Domains"] 0 PRE "GidOpenConditions \"Model Domains\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 1 PRE "" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Elements"] 2 PRE "GidOpenConditions \"Elements\"" "" ""
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Mixed U-P Elements"] 3 PRE "GidOpenConditions \"Mixed U-P Elements\"" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 4 PRE "" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Nodal Values"] 5 PRE "GidOpenConditions \"Nodal Values\"" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Conditions"] 6 PRE "GidOpenConditions \"Conditions\"" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Materials"] 7 PRE "GidOpenMaterials \"Materials\"" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 8 PRE "" "" ""
+	
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Problem Parameters"] 9 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
+
+	# GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Data Units"] 9 PRE "GidOpenProblemData \"Data Units\"" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "---"] 10 PRE "" "" ""
+
+	GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Model Status"] 11 PRE "cond_report" "" ""
 	if { [string match "unix" $::tcl_platform(platform)] } {
-		GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Change Kratos Path"] 8 PRE "GetKratosPath" "" ""
+		GiDMenu::InsertOption "Kratos Pfem Solid Mechanics Application" [list "Change Kratos Path"] 12 PRE "GetKratosPath" "" ""
 	}
 	GiDMenu::UpdateMenus
 	# Custom Menu
@@ -130,7 +145,11 @@ proc BeforeMeshGeneration {elementsize} {
 	    GiD_Process Mescape Meshing ElemType Default Volumes 1:end escape
 	    set vol_elemtype_check 0
 	}
-   
+  
+	cleanautomatic DeformableBodies Group
+	cleanautomatic RigidWalls Group
+	cleanautomatic RigidTubes Group
+
 	# End Reset Block
 	
 	# Volume Model Parts
@@ -894,47 +913,3 @@ proc getCondId { elemId faceId } {
   return [expr { $condId + 1 }]
 }
 
-proc WriteMeshGroups { channel } {
-
-    WarnWinText " Groups Write "
-    
-    #set basename [file tail [GiD_Info Project ModelName]]
-    #WarnWinText $basename
-    #set dir [GiD_Info Project ModelName] 
-    #set dirgid "${dir}.gid"
-    #WarnWinText $dirgid
-    #set filename [file join $dirgid "${basename}.dat"]
-    #set channel [open $filename a] 
-
-    if{![eof $channel]}{
-	puts [gets $channel]
-    }
-
-    WarnWinText [GiD_Info Project ModelName]
-
-    puts $channel " Begin Mesh  mesh_id "    
-
-    puts $channel " Begin MeshNodes "
-    # # node_id
-    puts $channel " End MeshNodes "
-    
-    puts $channel " Begin MeshElements "
-    # # element_id
-    puts $channel " End MeshElements "
-    
-    puts $channel " Begin MeshConditions "
-    # #condition_id
-    puts $channel " End MeshConditions "
-    
-    puts $channel " End Mesh "
-    
-    #close $channel
-
-
-    if {[file exists $channel] == 1} {
-	    WarnWinText "file $channel exists!";
-    } else {
-	    WarnWinText "file $channel do not exists!";
-    }
-
-}

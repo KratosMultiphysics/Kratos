@@ -268,7 +268,7 @@ protected:
        
       InfoVariables RemeshInfo;
 
-      std::vector<RigidWallBoundingBox::Pointer> RigidWalls;
+      std::vector<SpatialBoundingBox::Pointer> RigidWalls;
 
       BoundingBoxVariables BoundingBox;
  
@@ -422,7 +422,7 @@ public:
     /**
      * Walls of the domain are given to the modeler (refining properties)
      */
-    void SetRigidWall (RigidWallBoundingBox::Pointer pRigidWall);
+    void SetRigidWall (SpatialBoundingBox::Pointer pRigidWall);
 
 
     /**

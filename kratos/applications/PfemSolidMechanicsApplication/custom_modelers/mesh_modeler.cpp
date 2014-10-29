@@ -181,7 +181,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void MeshModeler::SetRigidWall ( RigidWallBoundingBox::Pointer pRigidWall )
+  void MeshModeler::SetRigidWall ( SpatialBoundingBox::Pointer pRigidWall )
   {
     KRATOS_TRY
 
@@ -288,7 +288,7 @@ namespace Kratos
 	  
 	  //Update Boundary Normals before Constrained Meshing
 	  // BoundaryNormalsCalculationUtilities BoundaryComputation;
-	  // BoundaryComputation.CalculateBoundaryNormals(rModelPart,2);
+	  // BoundaryComputation.CalculateBoundaryNormals(rModelPart);
 	}
 	
 	// check mesh size introduced :: warning must be shown
@@ -492,7 +492,7 @@ namespace Kratos
       //FindNodalH.Execute();
 
       //CONDITIONS MASTER_ELEMENTS and MASTER_NODES SEARCH
-      BoundarySkinBuildProcess BoundarySkinProcess(rModelPart);
+      BoundarySkinBuildProcess BoundarySkinProcess(rModelPart,2);
       for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	{
 	  BoundarySkinProcess.SearchConditionMasters(MeshId);
@@ -501,7 +501,7 @@ namespace Kratos
       //BOUNDARY NORMALS SEARCH // SHRINKAGE FACTOR
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateBoundaryNormals(rModelPart, 2, mEchoLevel);
+      BoundaryComputation.CalculateBoundaryNormals(rModelPart, mEchoLevel);
 
       //LAPLACIAN SMOOTHING
       for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)

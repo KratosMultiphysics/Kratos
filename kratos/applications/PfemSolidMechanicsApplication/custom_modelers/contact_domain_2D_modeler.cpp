@@ -92,7 +92,7 @@ namespace Kratos
 	
     //Update Boundary Normals before Contact Search
     BoundaryNormalsCalculationUtilities BoundaryComputation;
-    BoundaryComputation.CalculateBoundaryNormals(rModelPart, 2, mEchoLevel);
+    BoundaryComputation.CalculateBoundaryNormals(rModelPart, mEchoLevel);
 
     rModelPart.Conditions().Sort();
     rModelPart.Conditions().Unique();
@@ -480,7 +480,7 @@ namespace Kratos
     rMeshingVariables.RefiningOptions.Set(MeshModeler::SELECT_ELEMENTS);
     rMeshingVariables.RefiningOptions.Set(MeshModeler::CONTACT_SEARCH);
 
-    SelectMeshElements(rBoundaryNodes,rMeshingVariables,out);
+    this->SelectMeshElements(rBoundaryNodes,rMeshingVariables,out);
 
     rMeshingVariables.RefiningOptions.Reset(MeshModeler::SELECT_ELEMENTS);
     rMeshingVariables.RefiningOptions.Reset(MeshModeler::CONTACT_SEARCH);

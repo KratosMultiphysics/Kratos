@@ -1,4 +1,7 @@
+# Nodal variables assigned in points, lines, surfaces and volumes
+
 BOOK: Nodal Values
+
 CONDITION: point_DISPLACEMENT
 CONDTYPE: over points
 CONDMESHTYPE: over nodes
@@ -468,31 +471,6 @@ QUESTION: Z_Value
 VALUE: 0.0
 END CONDITION
 
-CONDITION: line_RIGID_WALL
-CONDTYPE: over lines
-CONDMESHTYPE: over nodes
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-QUESTION: Fixed#CB#(1,0)
-VALUE: 0
-STATE: HIDDEN
-QUESTION: RIGID_WALL#CB#(1,2,3,4,5,6,7,8,9,10)
-VALUE: 1
-END CONDITION
-
-CONDITION: surface_RIGID_WALL
-CONDTYPE: over surfaces
-CONDMESHTYPE: over nodes
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-QUESTION: Fixed#CB#(1,0)
-VALUE: 0
-STATE: HIDDEN
-QUESTION: RIGID_WALL#CB#(1,2,3,4,5,6,7,8,9,10)
-VALUE: 1
-END CONDITION
 
 # Nodal Values
 
@@ -540,10 +518,9 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-# Elements
 
 
-# Elemental Data
+# Classical conditions on points,lines and surfaces
 
 BOOK: Conditions
 CONDITION: point_PointLoad2DCondition
@@ -593,13 +570,107 @@ STATE: HIDDEN
 END CONDITION
 
 
-# Conditions
+# Conditions related to domain identification
+
+BOOK: Model Domains
+
+CONDITION: group_DeformableBodies
+CONDTYPE: over groups
+# CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces volumes elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Group_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+QUESTION: StructuralType#CB#(Beam,Shell,Membrane,Solid)
+VALUE: Solid
+DEPENDENCIES:(Solid,RESTORE,Remesh,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Remesh,#CURRENT#)
+QUESTION: Remesh#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,MeshingElement,#CURRENT#,RESTORE,Constrained,#CURRENT#,RESTORE,MeshSmoothing,#CURRENT#,RESTORE,JacobiSmoothing,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#,RESTORE,Refine,#CURRENT#)
+DEPENDENCIES:(False,HIDE,MeshingElement,#CURRENT#,HIDE,Constrained,#CURRENT#,HIDE,MeshSmoothing,#CURRENT#,HIDE,JacobiSmoothing,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#,HIDE,Refine,False)
+QUESTION: MeshingElement#CB#(SpatialLagrangianElement2D3N,SpatialLagrangianUPElement2D3N,AxisymSpatialLagrangianElement2D3N,AxisymSpatialLagrangianUPElement2D3N)
+VALUE: SpatialLagrangianUPElement2D3N
+QUESTION: Constrained#CB#(False,True)
+VALUE: True
+QUESTION: MeshSmoothing#CB#(False,True)
+VALUE: True
+QUESTION: JacobiSmoothing#CB#(False,True)
+VALUE: True
+QUESTION: Meshing_Frequency
+VALUE: 0.01
+QUESTION: Refine#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False)
+QUESTION: Critical_Mesh_Size
+VALUE: 0.025
+QUESTION: Critical_Dissipation
+VALUE: 100
+QUESTION: Critical_Error(%)
+VALUE: 2
+QUESTION: Tip_Radius_Refine#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Critical_Tip_Radius,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Critical_Tip_Radius,#CURRENT#)
+QUESTION: Critical_Tip_Radius
+VALUE: 0.0004
+QUESTION: Refine_on_box_only#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Center_box,#CURRENT#,RESTORE,Velocity_box,#CURRENT#,RESTORE,Radius_box,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Center_box,#CURRENT#,HIDE,Velocity_box,#CURRENT#,HIDE,Radius_box,#CURRENT#)
+QUESTION: Center_box
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Velocity_box
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Radius_box
+VALUE: 0
+END CONDITION
 
 
-# Conditional Data
-
-
-# Add Parts Here
-
-
-# Add Default Conditions Here
+CONDITION: group_RigidWalls
+CONDTYPE: over groups
+# CONDMESHTYPE: over body elements
+GROUPALLOW: lines surfaces elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+QUESTION: Group_ID#CB#(1,2,3,4,5,6,7,8,9,10)
+VALUE: 1
+QUESTION: Rigid_Wall_Contact#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,RESTORE,Imposed_Movement,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Imposed_Movement,False)
+QUESTION: Contact_Condition#CB#(3D,2D,Axisymmetric)
+VALUE: 3D
+QUESTION: Penalty_Parameter
+VALUE: 1000
+QUESTION: Wall_Type#CB#(PLANE,CIRCLE,NOSE-WALL)
+VALUE: PLANE
+DEPENDENCIES:(PLANE,RESTORE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#)
+DEPENDENCIES:(CIRCLE,HIDE,Wall_Plane,#CURRENT#,RESTORE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#)
+DEPENDENCIES:(NOSE-WALL,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#)
+QUESTION: Wall_Plane:(Px,Py,Pz,Nx,Ny,Nz,Convexity)
+VALUE: #N# 7 0 0 0 0 0 0 1 
+QUESTION: Wall_Circle:(Cx,Cy,Cz,Radius,Convexity)
+VALUE: #N# 5 0 0 0 0.004 1 
+QUESTION: Wall_Noses:(TipCx,TipCy,TipCz,Tip_Radius,Rake_Angle,Clearance_Angle,Convexity)
+VALUE: #N# 7 0 0 0 0.0004 5 5 1 
+QUESTION: Imposed_Movement#CB#(False,True)
+VALUE: False
+DEPENDENCIES:(True,RESTORE,Linear_Velocity,#CURRENT#,RESTORE,Angular_Velocity,#CURRENT#,RESTORE,Rotation_Center,#CURRENT#)
+DEPENDENCIES:(#DEFAULT#,HIDE,Linear_Velocity,#CURRENT#,HIDE,Angular_Velocity,#CURRENT#,HIDE,Rotation_Center,#CURRENT#)
+QUESTION: Linear_Velocity
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Angular_Velocity
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+QUESTION: Rotation_Center
+VALUE:  0 0 0
+TKWIDGET: GidUtils::TkwidgetGetVector3D
+END CONDITION

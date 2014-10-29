@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Activate it to import in the gdb path:
-# import sys
-# sys.path.append('/home/jmaria/kratos')
-# x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
+#Activate it to import in the gdb path:
+#import sys
+#sys.path.append('/home/jmaria/kratos')
+#x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
 
 #
 # ***************GENERAL MAIN OF THE ANALISYS****************###
@@ -24,29 +24,30 @@ import ProjectParameters as general_variables
 # setting the domain size for the problem to be solved
 domain_size = general_variables.domain_size
 
-# including kratos path
+#including kratos path
 from KratosMultiphysics import *
 
-# including Applications paths
+#including Applications paths
 from KratosMultiphysics.ExternalSolversApplication    import *
 from KratosMultiphysics.SolidMechanicsApplication     import *
 from KratosMultiphysics.MeshingApplication            import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
-# import the python utilities:
-import restart_utility           as restart_utils
-import gid_output_utility        as gid_utils
+#import the python utilities:
+import restart_utility              as restart_utils
+import gid_output_utility           as gid_utils
 
-import pfem_conditions_python_utility as condition_utils
-import list_files_python_utility as files_utils
+import pfem_conditions_python_utility    as condition_utils
+import list_files_python_utility    as files_utils
 
-import modeler_python_utility    as modeler_utils
-import rigid_wall_python_utility as wall_utils
-import graph_plot_python_utility as plot_utils
+import modeler_python_utility       as modeler_utils
+import rigid_wall_python_utility    as wall_utils
+import graph_plot_python_utility    as plot_utils
 
-import time_operation_utility    as operation_utils
-import solving_info_utility      as solving_info_utils
+import time_operation_utility       as operation_utils
+import solving_info_utility         as solving_info_utils
 
+#----------------
 # ------------------------#--FUNCTIONS START--#------------------#
 # ---------------------------------------------------------------#
 # --TIME MONITORING START--##################
@@ -74,8 +75,8 @@ def SetParallelSize(num_threads):
 
 # --SET NUMBER OF THREADS --#################
 
-# ------------------------#--FUNCTIONS END--#--------------------#
-# ---------------------------------------------------------------#
+#------------------------#--FUNCTIONS END--#--------------------#
+#---------------------------------------------------------------#
 
 # defining the type, the name and the path of the problem:
 echo_level   = general_variables.echo_level
@@ -113,19 +114,6 @@ if(echo_level>1):
     print("::[KPFEM Simulation]:: MESH DOMAINS :", len(general_variables.MeshConditions))
     for conditions in general_variables.MeshConditions:
         print("::[KPFEM Simulation]:: --> Domain [", conditions["Subdomain"], "] ", conditions["MeshElement"])
-
-# build mesh modeler
-modeler.BuildMeshModeler(general_variables.mesh_modeler_config)
-if(rigid_wall_contact_search):
-    modeler.SetRigidWall(rigid_wall)
-
-# --CONTACT SEARCH START--####################
-
-# build mesh modeler
-modeler.BuildContactModeler(general_variables.contact_modeler_config)
-
-# --CONTACT SEARCH END--######################
-
 
 # --SET MESH MODELER END--####################
 
@@ -191,15 +179,15 @@ main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
 
 # --START SOLUTION--######################
 #
-# initialize problem : load restart or initial start
-load_restart = general_variables.LoadRestart
-save_restart = general_variables.SaveRestart
+#initialize problem : load restart or initial start
+load_restart     = general_variables.LoadRestart
+save_restart     = general_variables.SaveRestart
 
-# set buffer size
+#set buffer size
 buffer_size = 3;
 
-# define problem variables:
-solver_constructor.AddVariables(model_part, SolverSettings)
+#define problem variables:
+solver_constructor.AddVariables( model_part, SolverSettings)
 
 # set PfemSolidApplicationVariables
 model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -219,46 +207,76 @@ model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
 model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
 model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
 
-# --- READ MODEL ------#
+
+#--- READ MODEL ------#
 if(load_restart == False):
+  
+  print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
 
-    print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
+  #remove results, restart, graph and list previous files
+  problem_restart.CleanPreviousFiles()
+  list_files.RemoveListFiles()
 
-    # remove results, restart, graph and list previous files
-    problem_restart.CleanPreviousFiles()
-    list_files.RemoveListFiles()
+  #reading the model
+  model_part_io = ModelPartIO(problem_name)
+  model_part_io.ReadModelPart(model_part)
+ 
+  #set the buffer size
+  model_part.SetBufferSize(buffer_size)
+  #Note: the buffer size should be set once the mesh is read for the first time
 
-    # reading the model
-    model_part_io = ModelPartIO(problem_name)
-    model_part_io.ReadModelPart(model_part)
+  print("::[KPFEM Simulation]:: Reading -END- ")
 
-    # set the buffer size
-    model_part.SetBufferSize(buffer_size)
-    # Note: the buffer size should be set once the mesh is read for the first time
+  #set the degrees of freedom
+  solver_constructor.AddDofs(model_part, SolverSettings)
 
-    print("::[KPFEM Simulation]:: Reading -END- ")
+  #set the constitutive law
+  import constitutive_law_python_utility as constitutive_law_utils
 
-    # set the degrees of freedom
-    solver_constructor.AddDofs(model_part, SolverSettings)
-
-    # set the constitutive law
-    import constitutive_law_python_utility as constitutive_law_utils
-
-    constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part, domain_size);
-    constitutive_law.Initialize();
+  constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size)
+  constitutive_law.Initialize()
 
 else:
 
-    print("::[KPFEM Simulation]:: Reading -RESTART- (RESTART FILE ",restart_step,")- ")
+  print("::[KPFEM Simulation]:: Reading -RESTART- (RESTART FILE ",restart_step,")- ")
 
-    # reading the model from the restart file
-    problem_restart.Load(restart_step);
+  #reading the model from the restart file
+  problem_restart.Load(restart_step);
 
-    print("::[KPFEM Simulation]:: Reading -END- ")
+  print("::[KPFEM Simulation]:: Reading -END- ")
 
-    # remove results, restart, graph and list posterior files
-    problem_restart.CleanPosteriorFiles(restart_step)
-    list_files.ReBuildListFiles()
+  #remove results, restart, graph and list posterior files
+  problem_restart.CleanPosteriorFiles(restart_step)
+  list_files.ReBuildListFiles()
+
+
+# --RIGID WALL OPTIONS START--################
+# set rigid wall contact if it is active:
+# activated instead of classical contact
+# set rigid wall configuration
+rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
+
+# --RIGID WALL OPTIONS END--##################
+
+
+
+# --BUILD MESH MODELER START--####################
+
+# build mesh modeler
+modeler.BuildMeshModeler(general_variables.mesh_modeler_config)
+# set rigid walls
+if(rigid_wall_contact_search):
+    modeler.SetRigidWall(rigid_wall)
+
+# --BUILD MESH MODELER END--####################
+
+# --CONTACT SEARCH START--####################
+
+# build mesh modeler
+modeler.BuildContactModeler(general_variables.contact_modeler_config)
+
+# --CONTACT SEARCH END--######################
+
 
 #--- MODELER INITIALIZATION---#
 
@@ -269,13 +287,12 @@ modeler.InitializeDomains();
 if(load_restart == False):
     modeler.SearchNodalH();
 
-# --- PRINT CONTROL ---#
+#--- PRINT CONTROL ---#
 
-if(echo_level > 1):
+if(echo_level>=1):
     print("")
     print(model_part)
     print(model_part.Properties[1])
-
 
 # --INITIALIZE--###########################
 #
@@ -305,11 +322,12 @@ else:
 
   conditions.Initialize(time_step);
 
-# initialize step operations
+#initialize step operations
 starting_step  = model_part.ProcessInfo[TIME_STEPS]
 starting_time  = model_part.ProcessInfo[TIME]
 ending_step    = general_variables.nsteps
 ending_time    = general_variables.nsteps * time_step
+
 
 output_print = operation_utils.TimeOperationUtility()
 gid_time_frequency = general_variables.GiDWriteFrequency
@@ -320,7 +338,7 @@ restart_time_frequency = general_variables.RestartFrequency
 restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
 
 mesh_generation = operation_utils.TimeOperationUtility()
-mesh_generation_frequency = general_variables.mesh_modeler_config.remesh_frequency
+mesh_generation_frequency = modeler.GetRemeshFrequency()
 mesh_generation.InitializeTime(starting_time, ending_time, time_step, mesh_generation_frequency)
 
 contact_search = operation_utils.TimeOperationUtility()
@@ -331,14 +349,14 @@ rigid_wall_contact_search = operation_utils.TimeOperationUtility()
 rigid_wall_contact_search_frequency = 0
 rigid_wall_contact_search.InitializeTime(starting_time, ending_time, time_step, rigid_wall_contact_search_frequency)
 
-# initialize graph plot variables for time integration
-if(plot_active):
-    mesh_id = 0  # general_variables.PlotMeshId
-    x_variable = "DISPLACEMENT"
-    y_variable = "REACTION"
-    graph_plot.Initialize(x_variable, y_variable, mesh_id)
+#initialize graph plot variables for time integration
+if( plot_active == True):
+  mesh_id     = 0 #general_variables.PlotMeshId
+  x_variable  = "DISPLACEMENT"
+  y_variable  = "CONTACT_FORCE"
+  graph_plot.Initialize(x_variable,y_variable,mesh_id)
 
-graph_write = operation_utils.TimeOperationUtility()
+graph_write= operation_utils.TimeOperationUtility()
 graph_write_frequency = general_variables.PlotFrequency
 graph_write.InitializeTime(starting_time, ending_time, time_step, graph_write_frequency)
 
@@ -348,8 +366,8 @@ solving_print.InitializeTime(starting_time, ending_time, time_step, solving_time
 
 # --TIME INTEGRATION--#######################
 #
-
-# writing a single file
+  
+#writing a single file
 gid_print.initialize_results(model_part)
 
 #initialize time integration variables
@@ -365,7 +383,7 @@ for step in range(0,buffer_size):
 
 # writing a initial state results file
 current_id = 0
-if(load_restart == False):  
+if(load_restart == False): 
     gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
     list_files.PrintListFiles(current_id);
 
@@ -402,33 +420,33 @@ while(current_time < ending_time):
   #solving the solid problem 
   clock_time = StartTimeMeasuring();
 
-  # solve time step non-linear system
+  #solve time step non-linear system
   main_step_solver.Solve()
 
-  StopTimeMeasuring(clock_time, "Solving", False);
+  StopTimeMeasuring(clock_time,"Solving", False);
 
-  # processes to be executed at the end of the solution step
+  #processes to be executed at the end of the solution step
   rigid_wall.UpdatePosition()
 
-  # plot graphs
+  #plot graphs
   if(plot_active):
     graph_plot.SetStepResult()
-
-  # incremental load
+    
+  #incremental load
   conditions.SetIncrementalLoad(current_step, time_step);
-
-  # print the results at the end of the step
+      
+  #print the results at the end of the step
   if(general_variables.WriteResults == "PreMeshing"):
-      execute_write = output_print.perform_time_operation(current_time)
-      if(execute_write):
-          clock_time = StartTimeMeasuring();
-          current_id = output_print.operation_id()
-          # print gid output file
-          gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
-          # print on list files
-          list_files.PrintListFiles(current_id);
-          solving_info.set_print_info(execute_write, current_id)
-          StopTimeMeasuring(clock_time, "Writing Results", False);
+    execute_write = output_print.perform_time_operation(current_time)
+    if(execute_write):
+      clock_time=StartTimeMeasuring();
+      current_id = output_print.operation_id()
+      #print gid output file
+      gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,current_id)
+      #print on list files
+      list_files.PrintListFiles(current_id);
+      solving_info.set_print_info(execute_write, current_id)
+      StopTimeMeasuring(clock_time,"Writing Results", False);
 
   # remesh domains
   execute_meshing = mesh_generation.perform_time_operation(current_time)
@@ -440,35 +458,38 @@ while(current_time < ending_time):
   if(execute_contact_search or execute_meshing):
     modeler.ContactSearch();
 
+
   # print the results at the end of the step
   if(general_variables.WriteResults == "PostMeshing"):
-      execute_write = output_print.perform_time_operation(current_time)
-      if(execute_write):
-          clock_time = StartTimeMeasuring();
-          current_id = output_print.operation_id()
-          # print gid output file
-          gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
-          # print on list files
-          list_files.PrintListFiles(current_id);
-          solving_info.set_print_info(execute_write, current_id)
-          StopTimeMeasuring(clock_time, "Writing Results", False);
+    execute_write = output_print.perform_time_operation(current_time)
+    if(execute_write):
+      clock_time=StartTimeMeasuring();
+      current_id = output_print.operation_id()
+      #print gid output file
+      gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,current_id)
+      #print on list files
+      list_files.PrintListFiles(current_id);
+      solving_info.set_print_info(execute_write, current_id)
+      StopTimeMeasuring(clock_time,"Writing Results", False);
+ 
 
   # plot graphs
   if(plot_active):
-      execute_plot = graph_write.perform_time_operation(current_time)
-      if(execute_plot):
-          current_id = output_print.operation_id()
-          graph_plot.Plot(current_id)
+    execute_plot = graph_write.perform_time_operation(current_time)
+    if(execute_plot):
+      current_id = output_print.operation_id()
+      graph_plot.Plot(current_id)
 
   # print restart file
   if(save_restart):
-      execute_save = restart_print.perform_time_operation(current_time)
-      if(execute_save):
-          clock_time = StartTimeMeasuring();
-          current_id = output_print.operation_id()
-          problem_restart.Save(current_time, current_step, current_id)
-          solving_info.set_restart_info(execute_save,current_id)
-          StopTimeMeasuring(clock_time, "Writing Restart", False);
+    execute_save = restart_print.perform_time_operation(current_time)
+    if(execute_save):
+      clock_time=StartTimeMeasuring();
+      current_id = output_print.operation_id()
+      problem_restart.Save(current_time,current_step,current_id)
+      solving_info.set_restart_info(execute_save,current_id)
+      StopTimeMeasuring(clock_time,"Writing Restart", False)
+
 
   solving_info.update_solving_info()
   if(print_info):

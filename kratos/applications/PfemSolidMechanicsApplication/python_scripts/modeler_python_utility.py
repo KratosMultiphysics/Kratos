@@ -34,28 +34,23 @@ class ModelerUtility:
             
 
         # mesh modeler parameters
-        self.alpha_shape = 2.4
-        self.h_factor = 0.5
-
-        self.remesh = False
-        self.refine = False
-        self.constrained = False
-        self.laplacian_smoothing = False
-        self.jacobi_smoothing = False
+        self.alpha_shape        = 2.4
+        self.h_factor           = 0.5
         self.avoid_tip_elements = False
-        self.offset_factor = 0
+        self.offset_factor      = 0
+        self.remesh_frequencies = []
 
         # contact modeler parameters
-        self.mu_static = 0.3
+        self.mu_static  = 0.3
         self.mu_dynamic = 0.2
 
-        self.initial_transfer = True
-        self.contact_alpha_shape = 1.4
-        self.contact_constrained = False
-        self.penalty_contact = False
-        self.friction_active = False
-        self.penalty_parameter = 1
-        self.stability_parameter = 1
+        self.initial_transfer      = True
+        self.contact_alpha_shape   = 1.4
+        self.contact_constrained   = False
+        self.penalty_contact       = False
+        self.friction_active       = False
+        self.penalty_parameter     = 1
+        self.stability_parameter   = 1
         self.contact_offset_factor = 0
 
         self.contact_condition = "ContactDomainLM2DCondition"
@@ -134,7 +129,7 @@ class ModelerUtility:
         normals_calculation = BoundaryNormalsCalculation()
 
         # execute calculation:
-        normals_calculation.CalculateBoundaryNormals(self.model_part, self.domain_size, self.echo_level)
+        normals_calculation.CalculateBoundaryNormals(self.model_part, self.echo_level)
         # normals_calculation.CalculateBoundaryUnitNormals(model_part, self.echo_level)
 
         print("::[Modeler_Utility]:: Boundary Normals computed ")
@@ -186,83 +181,71 @@ class ModelerUtility:
             # print("::[Modeler_Utility]:: Number of Domain Meshing Conditions and Meshes in model_part do not match " )
 
         # set the domains number to mesh modeler
-        self.mesh_modeler.SetInitialMeshData(configuration.number_domains)
+        
+        self.mesh_modeler.SetInitialMeshData(self.model_part.NumberOfMeshes())
+
+        # set modeler utilities
+        self.modeler_utils = ModelerUtilities()
 
         # set the domain labels to mesh modeler
-        self.modeler_utils = ModelerUtilities()
         self.modeler_utils.SetDomainLabels(self.model_part)
 
-        # set remesh-refine conditions to mesh modeler
-        critical_mesh_size = configuration.critical_mesh_size * configuration.size_scale
-
-        # set mesh refinement based on wall tip discretization size
-        if(configuration.tip_radius_refine):
-
-            # tip arch opening (in degrees = 5-7.5-10)
-            tool_arch_opening = 12
-            # tip surface length
-            tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
-
-            # critical mesh size based on wall tip
-            critical_mesh_size = tool_arch_length * configuration.critical_tip_radius * configuration.size_scale
-
-        if hasattr(configuration, 'box_refinement_only'):
-            box_refinement_only = configuration.box_refinement_only
-
+        mesh_id = 0
         for conditions in configuration.mesh_conditions:
 
-            if(conditions["Remesh"] == 1):
-                self.remesh = True
-            else:
-                self.remesh = False
+            mesh_id = int(conditions["Subdomain"])
 
-            if(conditions["Refine"] == 1):
-                self.refine = True
-            else:
-                self.refine = False
+            # set remesh-refine conditions to mesh modeler
+            critical_mesh_size = conditions["CriticalMeshSize"]
 
-            if(conditions["Constrained"] == 1):
-                self.constrained = True
-            else:
-                self.constrained = False
+            # set mesh refinement based on wall tip discretization size
+            if(conditions["TipRadiusRefine"]):
+                # tip arch opening (in degrees = 5-7.5-10)
+                tool_arch_opening = 12
+                # tip surface length
+                tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
+                # critical mesh size based on wall tip
+                critical_mesh_size = tool_arch_length * conditions["CriticalTipRadius"]
 
-            if(conditions["MeshSmoothing"] == 1):
-                self.laplacian_smoothing = True
-            else:
-                self.laplacian_smoothing = False
+            critical_mesh_size = critical_mesh_size * configuration.size_scale
 
-            if(conditions["JacobiSmoothing"] == 1):
-                self.jacobi_smoothing = True
-            else:
-                self.jacobi_smoothing = False
+            print("::[Modeler_Utility]:: DOMAIN MESH [ ID:",conditions["Subdomain"],"] [ Remesh:",conditions["Remesh"],"] [ Refine:",conditions["Refine"],"]" )
+            if( conditions["Remesh"] ):
+                print("(Type:",conditions["MeshElement"],")")
 
-            domain = 0
-            if(configuration.number_domains != 1):
-                domain = int(conditions["Subdomain"])
+            #remesh data
+            self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", conditions["Remesh"], conditions["Constrained"], conditions["MeshSmoothing"], conditions["JacobiSmoothing"], self.avoid_tip_elements, self.alpha_shape, self.offset_factor, mesh_id)
+            
+            #refine data
+            self.mesh_modeler.SetRefineData(conditions["Refine"], self.h_factor, conditions["CriticalDissipation"], critical_mesh_size, conditions["CriticalError"], mesh_id)
 
-            print("::[Modeler_Utility]:: SET MESH DOMAIN DATA")
-            print("::[Modeler_Utility]:: DOMAIN(",conditions["Subdomain"],") Remesh:",conditions["Remesh"],"(Type:",conditions["MeshElement"],")" )
-            # self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"Condition2D",self.remesh,,self.constrained,,self.laplacian_smoothing,,self.jacobi_smoothing,,self.avoid_tip_elements,,self.alpha_shape,domain);
-            self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", self.remesh, self.constrained, self.laplacian_smoothing, self.jacobi_smoothing, self.avoid_tip_elements, self.alpha_shape, self.offset_factor, domain)
-            print("::[Modeler_Utility]:: DOMAIN(", conditions["Subdomain"],") Refine:",conditions["Refine"] )
-
-            self.mesh_modeler.SetRefineData(self.refine, self.h_factor, configuration.critical_dissipation, critical_mesh_size, configuration.reference_error, domain)
+            box_refinement_only = conditions["RefineOnBoxOnly"]
 
             if(box_refinement_only):
 
+                radius_box = conditions["BoxRadius"] * configuration.size_scale
                 center_box = Vector(self.domain_size)
                 velocity_box = Vector(self.domain_size)
 
                 for size in range(0, self.domain_size):
-                    center_box[size] = configuration.box_center[size] * configuration.size_scale
-                    velocity_box[size] = configuration.box_velocity[size] * configuration.size_scale
+                    center_box[size] = conditions["BoxCenter"][size] * configuration.size_scale
+                    velocity_box[size] = conditions["BoxVelocity"][size] * configuration.size_scale
 
-                radius_box = configuration.box_radius * configuration.size_scale
+                self.mesh_modeler.SetMeshRefiningBox(radius_box, center_box, velocity_box, mesh_id)
 
-                self.mesh_modeler.SetRefiningBox(radius_box, center_box, velocity_box)
+            # set remesh frequency
+            self.remesh_frequencies.append(conditions["RemeshFrequency"])
 
-        # set remesh frequency
-        self.remesh_frequency = configuration.remesh_frequency
+    #
+    def GetRemeshFrequency(self):
+        
+        remesh_frequency = 0
+        for size in range(0,len(self.remesh_frequencies)):
+            if((remesh_frequency > self.remesh_frequencies[size]) or remesh_frequency == 0):
+                remesh_frequency = self.remesh_frequencies[size]
+        
+        return remesh_frequency
+            
 
     #
     def BuildContactModeler(self, contact_config):

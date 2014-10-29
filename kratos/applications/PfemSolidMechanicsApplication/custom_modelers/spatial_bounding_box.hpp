@@ -91,39 +91,6 @@ protected:
   } BoundingBoxVariables;
 
 
-  typedef struct
-  {
-    int    Convexity;      //1 or -1 if "in" is inside or outside respectively
-    
-    double Radius;         //nose radius
-    double RakeAngle;      //top angle,    from vertical axis       --> #RakeAngle      = (90-RakeAngle)
-    double ClearanceAngle; //bottom angle, from the horizontal axis --> #ClearanceAngle = (180-ClearanceAngle)
-      
-    double TangentRakeAngle;      //tan((pi/2)-#RakeAngle)
-    double TangentClearanceAngle; //tan((pi/2)-#ClearanceAngle)
-    
-    TPointType  OriginalCenter; // center original position
-    TPointType  Center;         // center current position
-    
-  public:
-    
-    void clear()
-    {
-      Convexity = 1;
-      Radius = 0;
-      RakeAngle = 0;
-      ClearanceAngle = 0;
-      
-      TangentRakeAngle = 0;
-      TangentClearanceAngle = 0;
-
-      OriginalCenter.clear();
-      Center.clear();
-    }
-
-
-  } BoxNoseVariables;
-
 
   typedef struct
   {
@@ -349,6 +316,7 @@ public:
     ///@name Operations
     ///@{
 
+
     virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime)
     {
       bool inside = true;
@@ -383,7 +351,28 @@ public:
     }
 
 
+    //************************************************************************************
+    //************************************************************************************
 
+    virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime, int& ContactFace)
+    {
+      ContactFace = 0;
+
+      return IsInside(rPoint,rCurrentTime);
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    {
+      std::cout<< "Calling empty method" <<std::endl;
+      return false;
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
     virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
     {
       std::cout<< "Calling empty method" <<std::endl;
