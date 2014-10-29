@@ -82,6 +82,9 @@ def ConstructListsOfVariables(pp):
     if (pp.virtual_mass_force_type > 0 and  pp.add_each_hydro_force_option):
         pp.dem_vars += [VIRTUAL_MASS_FORCE]
 
+    # clusters variables
+    pp.clusters_vars = []
+
     # fem-dem variables
     pp.fem_dem_vars = [VELOCITY, DISPLACEMENT, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]                  
 
@@ -95,6 +98,7 @@ def ConstructListsOfVariables(pp):
    
 def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
+    pp.clusters_nodal_results = []
 
     if (pp.dem.PostRadius):
         pp.dem_nodal_results += ["RADIUS"]
@@ -147,6 +151,7 @@ def ConstructListsOfResultsToPrint(pp):
     pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
     pp.dem_printing_vars = []
+    pp.clusters_printing_var = []
     pp.fluid_printing_vars = []
 
     for variable in pp.nodal_results:
@@ -154,6 +159,9 @@ def ConstructListsOfResultsToPrint(pp):
 
     for variable in pp.dem_nodal_results:
         pp.dem_printing_vars += [eval(variable)]
+
+    for variable in pp.clusters_nodal_results:
+        pp.clusters_printing_vars += [eval(variable)]
 
     for variable in pp.mixed_nodal_results:
         pp.dem_printing_vars += [eval(variable)]

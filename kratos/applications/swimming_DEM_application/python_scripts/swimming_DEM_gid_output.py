@@ -24,13 +24,14 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                  deformed_mesh,
                  write_conditions)
 
-    def initialize_swimming_DEM_results(self, DEM_model_part, FEM_DEM_model_part, mixed_model_part):
+    def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, FEM_DEM_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
             print("Singlefile option is not available for the swimming DEM application!")
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
+            self.io.WriteMesh(clusters_model_part.GetMesh())
             self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
             self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.FinalizeMesh()
@@ -56,10 +57,12 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
     def write_swimming_DEM_results(self, label,
                                   fluid_model_part,
                                   DEM_model_part,
+                                  clusters_model_part,
                                   FEM_DEM_model_part,
                                   mixed_model_part,
                                   fluid_nodal_variables,
                                   DEM_nodal_variables,
+                                  cluster_variables,
                                   mixed_nodal_variables,
                                   fluid_gp_variables):
        # label = str(label) #it should be a C double
@@ -73,6 +76,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self.io.InitializeMesh(label)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
+            self.io.WriteSphereMesh(clusters_model_part.GetMesh())
             self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
             self.io.FinalizeMesh()
@@ -85,6 +89,10 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         for var in DEM_nodal_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, DEM_model_part, kratos_variable)
+
+        for var in cluster_variables:
+            kratos_variable = globals()[var]
+            self._write_nodal_results(label, clusters_model_part, kratos_variable)
 
         for var in mixed_nodal_variables:
             kratos_variable = globals()[var]
