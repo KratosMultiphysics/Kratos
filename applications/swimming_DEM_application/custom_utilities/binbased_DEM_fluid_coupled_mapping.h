@@ -1245,7 +1245,7 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
         noalias(i_node->FastGetSolutionStepValue(FLUID_FRACTION_GRADIENT)) = ZeroVector(3);
     }
 
-    array_1d <double, 3> grad;
+    array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
     array_1d <double, TDim + 1> elemental_fluid_fractions;
     array_1d <double, TDim + 1> N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
@@ -1262,7 +1262,12 @@ void CalculateFluidFractionGradient(ModelPart& r_model_part)
             elemental_fluid_fractions[i] = geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
         }
 
-        noalias(grad) = prod(trans(DN_DX), elemental_fluid_fractions);
+        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_fluid_fractions); // its dimension may be 2
+
+        for (unsigned int i = 0; i < TDim; ++i){
+            grad[i] = grad_aux[i];
+        }
+
         double nodal_area = volume / (TDim + 1);
         grad *= nodal_area;
 

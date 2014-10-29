@@ -61,7 +61,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
         noalias(inode->FastGetSolutionStepValue(PRESSURE_GRADIENT)) = ZeroVector(3);
     }
 
-    array_1d <double, 3> grad;
+    array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
     array_1d <double, TDim + 1 > elemental_pressures;
     array_1d <double, TDim + 1 > N; // shape functions vector
     boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
@@ -79,7 +79,13 @@ void CalculatePressureGradient(ModelPart& r_model_part)
             elemental_pressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
         }
 
-        noalias(grad) = prod(trans(DN_DX), elemental_pressures);
+
+        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_pressures); // its dimension may be 2
+
+        for (unsigned int i = 0; i < TDim; ++i){
+            grad[i] = grad_aux[i];
+        }
+
         double nodal_area = Volume / static_cast<double>(TDim + 1);
         grad *= nodal_area;
 
