@@ -162,20 +162,29 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 #                               F L U I D    B L O C K    E N D S
 #_____________________________________________________________________________________________________________________________________
 
+# creating utilities from DEM_procedures
+DEM_proc = DEM_procedures.Procedures(DEM_explicit_solver_var)
+DEM_proc.PreProcessModel(DEM_explicit_solver_var)
+
 # defining model parts for the balls part and for the DEM-FEM interaction elements
 
 balls_model_part = ModelPart("SolidPart")
-fem_dem_model_part = ModelPart("RigidFace_Part");
+clusters_model_part    = ModelPart("Cluster_Part");
+rigid_faces_model_part = ModelPart("RigidFace_Part");
 
 print('Adding nodal variables to the balls_model_part')  # (memory allocation)
 sys.stdout.flush()
 
 vars_man.AddNodalVariables(balls_model_part, ProjectParameters.dem_vars)
-
-print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
+print('Adding nodal variables to the rigid_faces_model_part')  # (memory allocation)
 sys.stdout.flush()
 
-vars_man.AddNodalVariables(fem_dem_model_part, ProjectParameters.fem_dem_vars)
+vars_man.AddNodalVariables(clusters_model_part, ProjectParameters.clusters_vars)
+
+print('Adding nodal variables to the rigid_faces_model_part')  # (memory allocation)
+sys.stdout.flush()
+
+vars_man.AddNodalVariables(rigid_faces_model_part, ProjectParameters.fem_dem_vars)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
@@ -187,16 +196,23 @@ DEMSolverStrategy.AddVariables(balls_model_part, ProjectParameters.dem)
 model_part_io_solid = ModelPartIO(ProjectParameters.dem.problem_name + "DEM",True)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
+# reading the cluster model part
+clusters_mp_filename = ProjectParameters.dem.problem_name + "DEM_Clusters"
+model_part_io_clusters = ModelPartIO(clusters_mp_filename)
+model_part_io_clusters.ReadModelPart(clusters_model_part)
+
 # reading the fem-dem model part
 rigid_face_mp_filename = ProjectParameters.dem.problem_name + "DEM_FEM_boundary"
 model_part_io_solid = ModelPartIO(rigid_face_mp_filename)
-model_part_io_solid.ReadModelPart(fem_dem_model_part)
+model_part_io_solid.ReadModelPart(rigid_faces_model_part)
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 balls_model_part.SetBufferSize(1)
+clusters_model_part.SetBufferSize(1)
 
 # adding nodal degrees of freedom
 DEMSolverStrategy.AddDofs(balls_model_part)
+DEMSolverStrategy.AddDofs(clusters_model_part)
 
 # adding extra process info variables
 vars_man.AddingDEMProcessInfoVariables(ProjectParameters, balls_model_part)
@@ -286,7 +302,7 @@ swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_na
                                                                    ProjectParameters.GiDWriteMeshFlag,
                                                                    ProjectParameters.GiDWriteConditionsFlag)
 
-swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, fem_dem_model_part, mixed_model_part)
+swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part)
 
 #_____________________________________________________________________________________________________________________________________
 #
@@ -355,7 +371,7 @@ if (ProjectParameters.body_force_on_fluid_option):
         node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.dem.GravityY)
         node.SetSolutionStepValue(BODY_FORCE_Z, 0, ProjectParameters.dem.GravityZ)
 
-# applying changes to the physiscal properties of the model to adjust for
+# coarse-graining: applying changes to the physical properties of the model to adjust for
 # the similarity transformation if required (fluid effects only).
 swim_proc.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
 
@@ -364,7 +380,8 @@ post_utils = swim_proc.PostUtils(swimming_DEM_gid_io,
                                                ProjectParameters,
                                                fluid_model_part,
                                                balls_model_part,
-                                               fem_dem_model_part,
+                                               clusters_model_part,
+                                               rigid_faces_model_part,
                                                mixed_model_part)
 
 # creating an IOTools object to perform other printing tasks
@@ -387,7 +404,7 @@ if (ProjectParameters.projection_module_option):
     elif (balls_model_part.NumberOfElements(0) == 0):
         ProjectParameters.meso_scale_length = 1.0
 
-    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters)
+    projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, balls_model_part, rigid_faces_model_part, domain_size, ProjectParameters)
     projection_module.UpdateDatabase(h_min)
 
 # creating a custom functions calculator for the implementation of additional custom functions
@@ -398,15 +415,19 @@ creator_destructor = ParticleCreatorDestructor()
 max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
 creator_destructor.SetMaxNodeId(max_fluid_node_Id)
 
+# setting up a bounding box for the DEM balls (it is used for erasing remote balls)
+DEM_proc.SetBoundingBox(balls_model_part, creator_destructor)
+
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
-dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, ProjectParameters.dem)
+dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor, ProjectParameters.dem)
+
 # Initializing the DEM solver (must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part)
 dem_solver.Initialize()
 
 # creating a distance calculation process for the embedded technology
 # (used to calculate elemental distances defining the structure embedded in the fluid mesh)
 if (ProjectParameters.embedded_option):
-    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
+    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(rigid_faces_model_part, fluid_model_part)
     calculate_distance_process.Execute()
 
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
@@ -428,10 +449,9 @@ if (ProjectParameters.inlet_option):
     vars_man.AddingDEMProcessInfoVariables(ProjectParameters, DEM_inlet_model_part)
 
     for properties in DEM_inlet_model_part.Properties:
-
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
 
     # constructiong the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
@@ -450,7 +470,7 @@ if (ProjectParameters.make_results_directories_option):
 
 # renumerating IDs if required
 
-# swim_proc.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
+# swim_proc.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, rigid_faces_model_part)
 
 # Stepping and time settings
 
@@ -500,9 +520,11 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
 ######################################################################################################################################
 
-time_dem     = 0.0
-Dt_DEM       = ProjectParameters.dem.MaxTimeStep
 DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
+time_dem     = 0.0
+Dt_DEM       = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
+rigid_faces_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+clusters_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
 stationarity = False
 coupling_counter = swim_proc.Counter(10)
 stationarity_counter = swim_proc.Counter(ProjectParameters.time_steps_per_stationarity_step, 1)
@@ -522,18 +544,18 @@ while (time <= final_time):
 
     else:
         time_final_DEM_substepping = time
-        time_dem = time - Dt + Dt_DEM #S
+        time_dem = time - Dt + Dt_DEM
 
     # walls movement
-    mesh_motion.MoveAllMeshes(fem_dem_model_part, time)
+    mesh_motion.MoveAllMeshes(rigid_faces_model_part, time)
 
     # calculating elemental distances defining the structure embedded in the fluid mesh
-    if (ProjectParameters.embedded_option): #S
+    if (ProjectParameters.embedded_option):
         calculate_distance_process.Execute()
 
-    #embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
+    #embedded.MoveEmbeddedStructure(rigid_faces_model_part, time)
     # calculating elemental distances defining the structure embedded in the fluid mesh
-    #calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
+    #calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(rigid_faces_model_part, fluid_model_part)
     #calculate_distance_process.Execute()
     #calculate_DEM_distance_process.Execute()
 
