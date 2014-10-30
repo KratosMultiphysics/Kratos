@@ -291,26 +291,26 @@ public:
                                     Properties::Pointer r_params, 
                                     const Element& r_reference_element) {          
 
-      Node < 3 > ::Pointer pnew_node;
-            
-      NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params); 
-      
-      Geometry< Node < 3 > >::PointsArrayType nodelist;
-      nodelist.push_back(pnew_node);                                              
-      
-      Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);      
-      p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());      
-      
-      Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get()); 
-      
-      spheric_p_particle->SetRadius(radius);     
-      spheric_p_particle->SetSqrtOfRealMass(sqrt_of_cluster_mass);
-      
-      spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
-      spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
-      
-      r_modelpart.Elements().push_back(p_particle);          
-}    
+        Node <3> ::Pointer pnew_node;
+
+        NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
+
+        Geometry< Node <3> >::PointsArrayType nodelist;
+        nodelist.push_back(pnew_node);
+
+        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+        p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
+
+        Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());
+
+        spheric_p_particle->SetRadius(radius);
+        spheric_p_particle->SetSqrtOfRealMass(sqrt_of_cluster_mass);
+
+        spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
+        spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
+
+        r_modelpart.Elements().push_back(p_particle);
+    }
 
     void CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part, ModelPart& r_clusters_model_part, ModelPart& r_rigid_faces_model_part, double scale_factor, bool automatic)
     {
@@ -319,7 +319,7 @@ public:
             double ref_radius = 0.0;
 
             if (r_balls_model_part.NumberOfElements(0) == 0 && r_clusters_model_part.NumberOfElements(0) == 0 && r_rigid_faces_model_part.NumberOfElements(0) == 0){
-                KRATOS_ERROR(std::logic_error,  "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
+                KRATOS_ERROR(std::logic_error, "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
             }                        
 
             if (r_balls_model_part.NumberOfElements(0)){ // loop over spheric elements (balls)
@@ -359,9 +359,11 @@ public:
                 ModelPart::ConditionsContainerType::Pointer pConditions   = r_rigid_faces_model_part.GetCommunicator().LocalMesh().pConditions();
                 ModelPart::ConditionsContainerType Conditions             = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
 
-                array_1d<array_1d<double, 3>, space_dim + 1 > face_coor;
+                std::vector< <array_1d<double, 3> >face_coor;
+                std::size_t n_nodes = (*(Conditions.begin().base()))->GetGeometry().size();
+                face_coor.resize(n_nodes);
 
-                for (std::size_t i = 0; i < space_dim + 1; ++i){
+                for (std::size_t i = 0; i < n_nodes; ++i){
                     face_coor[i] = (*(Conditions.begin().base()))->GetGeometry()(i)->Coordinates();
                 }
 
@@ -371,8 +373,10 @@ public:
                 }
 
                 for (ModelPart::ConditionsContainerType::iterator particle_pointer_it = Conditions.begin(); particle_pointer_it != Conditions.end(); ++particle_pointer_it){
+                    std::size_t n_nodes = (*(particle_pointer_it.base()))->GetGeometry().size();
+                    face_coor.resize(n_nodes);
 
-                    for (std::size_t i = 0; i < space_dim + 1; ++i){
+                    for (std::size_t i = 0; i < n_nodes; ++i){
                         face_coor[i] = (*(particle_pointer_it.base()))->GetGeometry()(i)->Coordinates();
 
                         for (std::size_t j = 0; j < 3; j++){
@@ -404,7 +408,7 @@ public:
         }
 
         else {
-            mStrictHighPoint = mHighPoint;
+            mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
             mStrictLowPoint  = mLowPoint;
             mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
             mDiameter        = norm_2(mHighPoint - mLowPoint);
