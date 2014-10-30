@@ -32,6 +32,15 @@ if len(sys.argv) < 2:
 # including kratos path
 exec(open(sys.argv[1]).read())
 
+#TO REMOVE, ADDING TO PROJECT PARAMETERS STEEL MOULD PROPERTIES
+ProjectParameters.MOULD_DENSITY=7800.0
+ProjectParameters.MOULD_SPECIFIC_HEAT=500.0
+ProjectParameters.MOULD_THICKNESS=0.05
+ProjectParameters.MOULD_SFACT=1.0
+ProjectParameters.MOULD_VFACT=1.0
+ProjectParameters.MOULD_CONDUCTIVITY=30.0
+ProjectParameters.MOULD_HTC_ENVIRONMENT=100.0
+
 # setting the domain size for the problem to be solved
 domain_size = ProjectParameters.domain_size
 
@@ -380,19 +389,18 @@ fluid_solver.Initialize()
 # generate temperature model part
 modeler_util = ConnectivityPreserveModeler()
 print (thermal_model_part)
-
+print("OK1")
 if(domain_size == 2):
     modeler_util.GenerateModelPart(
         fluid_model_part, thermal_model_part, "SUPGConvDiff2D", "Condition2D")
 else:
-    modeler_util.GenerateModelPart(
-        fluid_model_part, thermal_model_part, "SUPGConvDiffPhaseChange3D", "EnvironmentContact3D")
+    modeler_util.GenerateModelPart(fluid_model_part, thermal_model_part, "SUPGConvDiffPhaseChange3DLinearized", "VirtualMouldElement3D")
     for cond in fluid_model_part.Conditions:
         if (cond.GetValue(IS_STRUCTURE) == 1):
             for node in cond.GetNodes():
                 node.SetSolutionStepValue(IS_BOUNDARY, 0, 1.0)
-    # AssignEnvironmentCondition().AssignCondition(thermal_model_part)
-
+				
+print("OK2")
 fluid_model_part.ProcessInfo.SetValue(
     AMBIENT_TEMPERATURE, mold_temp)
 #fluid_model_part.ProcessInfo.SetValue(
@@ -411,6 +419,15 @@ fluid_model_part.ProcessInfo.SetValue(
     HTC, (fluid_model_part.GetTable(7)).GetValue(ProjectParameters.AMBIENT_TEMPERATURE))
 fluid_model_part.ProcessInfo.SetValue(K0, ProjectParameters.MODULUS)
 fluid_model_part.ProcessInfo.SetValue(IS_GRAVITY_FILLING, is_gravity_filling)
+
+# Now we add the variables needed for the Virtual Mould
+fluid_model_part.ProcessInfo.SetValue( MOULD_DENSITY, ProjectParameters.MOULD_DENSITY)
+fluid_model_part.ProcessInfo.SetValue( MOULD_SPECIFIC_HEAT, ProjectParameters.MOULD_SPECIFIC_HEAT)
+fluid_model_part.ProcessInfo.SetValue( MOULD_THICKNESS, ProjectParameters.MOULD_THICKNESS)
+fluid_model_part.ProcessInfo.SetValue( MOULD_SFACT, ProjectParameters.MOULD_SFACT)
+fluid_model_part.ProcessInfo.SetValue( MOULD_VFACT, ProjectParameters.MOULD_VFACT)
+fluid_model_part.ProcessInfo.SetValue( MOULD_CONDUCTIVITY, ProjectParameters.MOULD_CONDUCTIVITY)
+fluid_model_part.ProcessInfo.SetValue( MOULD_HTC_ENVIRONMENT, ProjectParameters.MOULD_HTC_ENVIRONMENT)
 
 them_solver = convdiff_phasechange_solver.Solver(
     thermal_model_part, domain_size, my_settings)
@@ -681,7 +698,7 @@ if(FILLING == 1.0):
         thermal_utilities.BeforeThermalSolution(fluid_solver.max_distance)
 
 
-        thermal_model_part.ProcessInfo.SetValue(LATENT_HEAT,0.0)
+        #thermal_model_part.ProcessInfo.SetValue(LATENT_HEAT,0.0)
         them_solver.Solve()  
         
         
