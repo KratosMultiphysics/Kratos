@@ -279,35 +279,38 @@ class ProjectionDebugUtils:
         print()
 
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
-# the initial step at which Tick() returns True and weather it is active or not (Tick() returns False in this case).
-# Tick() adds 1 to the general counter and to the cycle counter every time it is called, returning True when the
-# cycling counter is back to the beggining of the cycle (and it is active) and False otherwise.
+# the step at which the cycle starts and weather it is active or not (Tick() returns False in this case).
+# Tick() adds 1 to the general counter and to the cycle counter every time it is called, returning True when
+# the general counter is greater than the 'begining_step' and cycling counter is back to the beggining of the cycle
+# (and it is active); and False otherwise.
 
 class Counter:
 
-    def __init__(self, steps_in_cicle = 1, initial_step = 1, is_active = True):
+    def __init__(self, steps_in_cycle = 1, begining_step = 1, is_active = True):
 
-        if (steps_in_cicle <= 0 or not isinstance(steps_in_cicle , int )):
+        if (steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int )):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
 
-        self.steps_in_cicle = steps_in_cicle
-        self.step = initial_step - 1
-        self.step_residual = initial_step % steps_in_cicle
-        self.is_active = is_active
+        self.begining_step  = begining_step
+        self.step           = 1
+        self.steps_in_cycle = steps_in_cycle
+        self.step_in_cycle  = steps_in_cycle
+        self.is_active      = is_active
 
     def Tick(self):           
-        self.step += 1
-        self.step_residual += 1
 
-        if (not self.is_active):
+        if (self.step < self.begining_step or not self.is_active):
+            self.step += 1
             return False
 
-        if (self.step_residual % self.steps_in_cicle == 1):
-            self.step_residual = 1
-
+        if (self.step_in_cycle  == self.steps_in_cycle):
+            self.step += 1
+            self.step_in_cycle = 1
             return True
 
         else:
+            self.step += 1
+            self.step_in_cycle = 1
             return False
 
     def SetActivation(self, is_active):
@@ -323,7 +326,7 @@ class Counter:
         return self.step
 
     def GetStepInCycle(self):
-        return self.step_residual
+        return self.step_in_cycle
 
 
 class PostUtils:
