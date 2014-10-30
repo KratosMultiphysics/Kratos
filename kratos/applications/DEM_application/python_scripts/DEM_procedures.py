@@ -144,7 +144,7 @@ class Procedures(object):
         # SIMULATION FLAGS
         self.rotation_OPTION               = Var_Translator(DEM_parameters.RotationOption)
         self.bounding_box_OPTION           = Var_Translator(DEM_parameters.BoundingBoxOption)
-        self.automatic_bounding_box_OPTION = Var_Translator(DEM_parameters.AutomaticBoundingBoxOption)      
+        self.automatic_bounding_box_OPTION = Var_Translator(DEM_parameters.AutomaticBoundingBoxOption)
         self.contact_mesh_OPTION           = Var_Translator(DEM_parameters.ContactMeshOption)
         #self.solver = solver
 
@@ -420,7 +420,7 @@ class Procedures(object):
         creator_destructor.SetHighNode(b_box_high)
 
         if (self.bounding_box_OPTION):
-            creator_destructor.CalculateSurroundingBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor,self. automatic_bounding_box_OPTION)
+            creator_destructor.CalculateSurroundingBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
             
             
     def PreProcessModel(self, DEM_parameters):
