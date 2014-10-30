@@ -48,7 +48,8 @@
         }
 
         Py_NoSiteFlag = 1;
-        Py_SetProgramName(wchar_argv[0]);   
+        Py_SetProgramName(wchar_argv[0]);
+        Py_SetPath(L"python33.zip;.");
      
         Py_Initialize();
 
