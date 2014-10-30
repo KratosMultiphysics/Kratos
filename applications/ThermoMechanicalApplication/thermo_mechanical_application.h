@@ -36,6 +36,7 @@
 #include "custom_elements/environment_contact.h"
 #include "custom_elements/SUPG_conv_diff_phase_change_2d.h"
 #include "custom_elements/SUPG_conv_diff_phase_change_3d.h"
+#include "custom_elements/SUPG_conv_diff_phase_change_3d_linearized.h"
 #include "custom_elements/SUPG_conv_2d.h"
 //#include "custom_elements/Poisson_3d.h"
 #include "custom_elements/environment_contact_3d.h"
@@ -239,6 +240,9 @@ private:
     const SUPGConvDiffPhaseChange3D  mSUPGConvDiffPhaseChange3D;  
     const SUPGConv2D  mSUPGConv2D;  
     const EnvironmentContact3DVirtualMould  mVirtualMouldElement3D;  
+	const SUPGConvDiffPhaseChange3DLinearized  mSUPGConvDiffPhaseChange3DLinearized;  
+
+
  //   const Poisson3D mPoisson3D;
     ///@}
     ///@name Private Operators
