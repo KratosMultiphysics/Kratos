@@ -112,7 +112,6 @@ void  AddCustomUtilitiesToPython(){
     
       class_<ParticleCreatorDestructor, boost::noncopyable >
         ("ParticleCreatorDestructor", init<>())
-        .def("InitializeForANewModelPart", &ParticleCreatorDestructor::InitializeForANewModelPart)               
         .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
         .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
         .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
@@ -125,6 +124,7 @@ void  AddCustomUtilitiesToPython(){
         .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
         .def("DestroyBallsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyBallsOutsideBoundingBox)
         .def("DestroyContactElementsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox)
+        .def("FindMaxNodeIdInModelPart", &ParticleCreatorDestructor::FindMaxNodeIdInModelPart)
         ;
       
       class_<DEM_Inlet, boost::noncopyable >
