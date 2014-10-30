@@ -265,28 +265,21 @@ namespace Kratos
           KRATOS_TRY
                     
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-                                        
-          std::vector<std::vector<T*> > partial_lists;
-          partial_lists.resize(this->GetNumberOfThreads());
           
+          rCustomListOfParticles.resize( pElements.size() );
           #pragma omp parallel for
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+            int elem_number = this->GetElementPartition()[k];
 
-            for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it){
-                
+            for (typename ElementsArrayType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++elem_number){
                 T* spheric_particle = dynamic_cast<T*>( &(*particle_pointer_it) );
-                partial_lists[OpenMPUtils::ThisThread()].push_back(spheric_particle);                                 
+                rCustomListOfParticles[elem_number] = spheric_particle;
             }                                
           }    
           
-          //We concatenate the partial lists of elements
-          rCustomListOfParticles.clear();
-          for (int k = 0; k < this->GetNumberOfThreads(); k++){                            
-              rCustomListOfParticles.insert(rCustomListOfParticles.end(), partial_lists[k].begin(), partial_lists[k].end());
-          }                    
           
           return;          
           KRATOS_CATCH("")
