@@ -312,62 +312,105 @@ public:
       r_modelpart.Elements().push_back(p_particle);          
 }    
 
-    void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor, bool automatic)
+    void CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part, ModelPart& r_clusters_model_part, ModelPart& r_rigid_faces_model_part, double scale_factor, bool automatic)
     {
         KRATOS_TRY
         if (automatic){
+            double ref_radius = 0.0;
 
-                if (r_model_part.NumberOfElements(0) == 0){
-                    KRATOS_ERROR(std::logic_error,  "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
+            if (r_balls_model_part.NumberOfElements(0) == 0 && r_clusters_model_part.NumberOfElements(0) == 0 && r_rigid_faces_model_part.NumberOfElements(0) == 0){
+                KRATOS_ERROR(std::logic_error,  "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
+            }                        
+
+            if (r_balls_model_part.NumberOfElements(0)){ // loop over spheric elements (balls)
+                Configure::ElementsContainerType::Pointer pElements = r_balls_model_part.GetCommunicator().LocalMesh().pElements();
+                Configure::ElementsContainerType Elements           = r_balls_model_part.GetCommunicator().LocalMesh().Elements();
+
+                ref_radius               = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                array_1d<double, 3> coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
+
+                mStrictLowPoint          = coor;
+                mStrictHighPoint         = coor;
+
+                for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
+                    coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
+                    double radius = particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                    ref_radius = (ref_radius < radius) ? radius : ref_radius;
+
+                    for (std::size_t i = 0; i < 3; i++){
+                        mStrictLowPoint[i]  = (mStrictLowPoint[i] > coor[i]) ? coor[i] : mStrictLowPoint[i];
+                        mStrictHighPoint[i] = (mStrictHighPoint[i] < coor[i]) ? coor[i] : mStrictHighPoint[i];
+                    }
                 }
 
-            //Type definitions
-            Configure::ElementsContainerType::Pointer pElements = r_model_part.GetCommunicator().LocalMesh().pElements();
-            Configure::ElementsContainerType Elements           = r_model_part.GetCommunicator().LocalMesh().Elements();
+                r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
+                r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
+                r_balls_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
+                r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[0]);
+                r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
+                r_balls_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
 
-            double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-            array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
-            mLowPoint                 = coor;
-            mHighPoint                = coor;
-            mStrictLowPoint           = coor;
-            mStrictHighPoint          = coor;
-
-            for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
-                coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
-
-                for (std::size_t i = 0; i < 3; i++){
-                    mStrictLowPoint[i]  = (mStrictLowPoint[i] > coor[i]) ? coor[i] : mStrictLowPoint[i];
-                    mStrictHighPoint[i] = (mStrictHighPoint[i] < coor[i]) ? coor[i] : mStrictHighPoint[i];
-                }
-
+                r_balls_model_part.GetCommunicator().MaxAll(ref_radius);
             }
-            
-            r_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
-            r_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
-            r_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
-            r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[0]);
-            r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
-            r_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
-            
-            r_model_part.GetCommunicator().MinAll(ref_radius);
 
-            array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
-            mHighPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
-            mLowPoint                     = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
+            if (r_clusters_model_part.NumberOfElements(0)){} // loop over clusters
+
+            if (r_rigid_faces_model_part.NumberOfElements(0)){ // loop over rigid faces
+                ModelPart::ConditionsContainerType::Pointer pConditions   = r_rigid_faces_model_part.GetCommunicator().LocalMesh().pConditions();
+                ModelPart::ConditionsContainerType Conditions             = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
+
+                array_1d<array_1d<double, 3>, space_dim + 1 > face_coor;
+
+                for (std::size_t i = 0; i < space_dim + 1; ++i){
+                    face_coor[i] = (*(Conditions.begin().base()))->GetGeometry()(i)->Coordinates();
+                }
+
+                if (r_balls_model_part.NumberOfElements(0) == 0){
+                    mStrictLowPoint  = face_coor[0];
+                    mStrictHighPoint = face_coor[0];
+                }
+
+                for (ModelPart::ConditionsContainerType::iterator particle_pointer_it = Conditions.begin(); particle_pointer_it != Conditions.end(); ++particle_pointer_it){
+
+                    for (std::size_t i = 0; i < space_dim + 1; ++i){
+                        face_coor[i] = (*(particle_pointer_it.base()))->GetGeometry()(i)->Coordinates();
+
+                        for (std::size_t j = 0; j < 3; j++){
+                            mStrictLowPoint[j]  = (mStrictLowPoint[j]  > face_coor[i][j]) ? face_coor[i][j] : mStrictLowPoint[j];
+                            mStrictHighPoint[j] = (mStrictHighPoint[j] < face_coor[i][j]) ? face_coor[i][j] : mStrictHighPoint[j];
+                        }
+                    }
+                }
+
+                r_rigid_faces_model_part.GetCommunicator().MinAll(mStrictLowPoint[0]);
+                r_rigid_faces_model_part.GetCommunicator().MinAll(mStrictLowPoint[1]);
+                r_rigid_faces_model_part.GetCommunicator().MinAll(mStrictLowPoint[2]);
+                r_rigid_faces_model_part.GetCommunicator().MaxAll(mStrictHighPoint[0]);
+                r_rigid_faces_model_part.GetCommunicator().MaxAll(mStrictHighPoint[1]);
+                r_rigid_faces_model_part.GetCommunicator().MaxAll(mStrictHighPoint[2]);
+            }
+
+            array_1d<double, 3> midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
+            mHighPoint                   = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
+            mLowPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
 
             for (std::size_t i = 0; i < 3; i++){
                 mLowPoint[i]  -= 2 * ref_radius;
                 mHighPoint[i] += 2 * ref_radius;
             }
-        }            
-        
-        mStrictHighPoint = mHighPoint;
-        mStrictLowPoint  =  mLowPoint;
-        mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
-        mDiameter        = norm_2(mHighPoint - mLowPoint);
-        
+
+            mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
+            mDiameter        = norm_2(mHighPoint - mLowPoint);
+        }
+
+        else {
+            mStrictHighPoint = mHighPoint;
+            mStrictLowPoint  = mLowPoint;
+            mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
+            mDiameter        = norm_2(mHighPoint - mLowPoint);
+        }
+               
         KRATOS_CATCH("")
-         
     }
 
     void DestroyParticles(ModelPart& r_model_part)
@@ -598,22 +641,22 @@ public:
         return (mLowPoint);
     }
 
-    array_1d<double, 3>& GetStrictHighNode()
+    array_1d<double, 3> GetStrictHighNode()
     {
         return (mHighPoint);
     }
 
-    array_1d<double, 3>& GetStrictLowNode()
+    array_1d<double, 3> GetStrictLowNode()
     {
         return (mLowPoint);
     }
 
-    double& GetDiameter()
+    double GetDiameter()
     {
         return (mDiameter);
     }
 
-    double& GetStrictDiameter()
+    double GetStrictDiameter()
     {
         return (mStrictDiameter);
     }
