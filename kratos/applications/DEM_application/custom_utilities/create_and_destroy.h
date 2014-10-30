@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 
 //Database includes
 #include "custom_utilities/discrete_particle_configure.h"
@@ -896,46 +897,56 @@ public:
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
         
-    void DettachElementsAndFindMaxId(ModelPart& r_modelpart, unsigned int& max_Id){    
+    void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id){    
                             
-        for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
-            
-            if(elem_it->IsNot(NEW_ENTITY)) continue;
-  
-            Kratos::SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*elem_it);
-          
-            Node < 3 > ::Pointer& node_it = elem_it->GetGeometry()(0);                  
-                                                   
-            bool still_touching=false;
+        vector<unsigned int> ElementPartition;
+        OpenMPUtils::CreatePartition( OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
+                
+        #pragma omp parallel for
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k];
+            typename ElementsArrayType::iterator it_end   = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k + 1];
 
-            for (unsigned int i = 0; i < spheric_particle.mNeighbourElements.size(); i++) {
-                SphericParticle* neighbour_iterator = spheric_particle.mNeighbourElements[i];
-                Node < 3 > ::Pointer& neighbour_node = neighbour_iterator->GetGeometry()(0); 
-                if( (node_it->IsNot(BLOCKED) && neighbour_node->Is(BLOCKED)) || (neighbour_node->IsNot(BLOCKED) && node_it->Is(BLOCKED)) ) {
-                    still_touching=true;
-                    break;
-                }              
-            }
-          
-            if(!still_touching){ 
-	      if(node_it->IsNot(BLOCKED)){//The ball must be freed
-                node_it->Set(DEMFlags::FIXED_VEL_X,false);
-                node_it->Set(DEMFlags::FIXED_VEL_Y,false);
-                node_it->Set(DEMFlags::FIXED_VEL_Z,false);
-                node_it->Set(DEMFlags::FIXED_ANG_VEL_X,false);
-                node_it->Set(DEMFlags::FIXED_ANG_VEL_Y,false);
-                node_it->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
-	        elem_it->Set(NEW_ENTITY,0);
-                node_it->Set(NEW_ENTITY,0);
-	      }
-	      else{
-	      //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.             
-	        node_it->Set(ACTIVE,false);
-	        elem_it->Set(ACTIVE,false);
-	      }
-            }
-          
-	} //loop nodes
+            for (ElementsArrayType::iterator elem_it = it_begin; elem_it != it_end; ++elem_it){
+         //   for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
+                            
+                if(elem_it->IsNot(NEW_ENTITY)) continue;
+
+                Kratos::SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*elem_it);
+
+                Node < 3 > ::Pointer& node_it = elem_it->GetGeometry()(0);                  
+
+                bool still_touching=false;
+
+                for (unsigned int i = 0; i < spheric_particle.mNeighbourElements.size(); i++) {
+                    SphericParticle* neighbour_iterator = spheric_particle.mNeighbourElements[i];
+                    Node < 3 > ::Pointer& neighbour_node = neighbour_iterator->GetGeometry()(0); 
+                    if( (node_it->IsNot(BLOCKED) && neighbour_node->Is(BLOCKED)) || (neighbour_node->IsNot(BLOCKED) && node_it->Is(BLOCKED)) ) {
+                        still_touching=true;
+                        break;
+                    }              
+                }
+
+                if(!still_touching){ 
+                  if(node_it->IsNot(BLOCKED)){//The ball must be freed
+                    node_it->Set(DEMFlags::FIXED_VEL_X,false);
+                    node_it->Set(DEMFlags::FIXED_VEL_Y,false);
+                    node_it->Set(DEMFlags::FIXED_VEL_Z,false);
+                    node_it->Set(DEMFlags::FIXED_ANG_VEL_X,false);
+                    node_it->Set(DEMFlags::FIXED_ANG_VEL_Y,false);
+                    node_it->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
+                    elem_it->Set(NEW_ENTITY,0);
+                    node_it->Set(NEW_ENTITY,0);
+                  }
+                  else{
+                  //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.             
+                    node_it->Set(ACTIVE,false);
+                    elem_it->Set(ACTIVE,false);
+                  }
+                }
+
+            } //loop nodes
+        } //loop threads
         
         mFirstTime=false;
         
@@ -946,7 +957,7 @@ public:
         //unsigned int max_Id=0; 
         unsigned int& max_Id=creator.mMaxNodeId; 
         
-        DettachElementsAndFindMaxId(r_modelpart, max_Id);                
+        DettachElements(r_modelpart, max_Id);                
                 
         int mesh_number=0;
         for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin()+1;
