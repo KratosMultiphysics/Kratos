@@ -310,13 +310,13 @@ class Counter:
         else:
             return False
 
-    def SetActivation(is_active):
+    def SetActivation(self, is_active):
         self.is_active = is_active
 
-    def Activate(activate):
+    def Activate(self, activate):
         self.is_active = self.is_active or activate
 
-    def Deactivate(deactivate):
+    def Deactivate(self, deactivate):
         self.is_active = self.is_active and deactivate
 
     def GetStep(self):
@@ -381,3 +381,21 @@ class PostUtils:
             f.write(tmp)
             f.flush()
             f.close()
+
+class StationarityAssessmentTool:
+
+    def __init__(self, max_pressure_variation_rate_tol, custom_functions_tool):
+        self.tol  = max_pressure_variation_rate_tol
+        self.tool = custom_functions_tool
+
+    def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
+        stationarity = self.tool.AssessStationarity(model_part, self.tol)
+
+        if (stationarity):
+            print("**************************************************************************************************")
+            print()
+            print("The model has reached a stationary state. The fluid calculation is suspended.")
+            print()
+            print("**************************************************************************************************")
+
+        return stationarity
