@@ -675,6 +675,14 @@ namespace Kratos
   Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
   VELOCITIES_Z( "Z-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 2 ) );
 
+  // for Vulcan application virtual mould properties
+  KRATOS_CREATE_VARIABLE(double,  MOULD_DENSITY)
+  KRATOS_CREATE_VARIABLE(double,  MOULD_SPECIFIC_HEAT)
+  KRATOS_CREATE_VARIABLE(double,  MOULD_THICKNESS)
+  KRATOS_CREATE_VARIABLE(double,  MOULD_SFACT)
+  KRATOS_CREATE_VARIABLE(double,  MOULD_VFACT)
+  KRATOS_CREATE_VARIABLE(double,  MOULD_CONDUCTIVITY)
+  KRATOS_CREATE_VARIABLE(double,  MOULD_HTC_ENVIRONMENT)
 
   //------------------------------------------------------------------------------//
   //------------------------------------------------------------------------------//
@@ -1276,6 +1284,15 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE( PRESSURES )
       KRATOS_REGISTER_VARIABLE( TEMPERATURES )
       KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITIES )
+
+	    // for Vulcan application virtual mould properties
+	  KRATOS_REGISTER_VARIABLE(  MOULD_DENSITY)
+	  KRATOS_REGISTER_VARIABLE(  MOULD_SPECIFIC_HEAT)
+	  KRATOS_REGISTER_VARIABLE(  MOULD_THICKNESS)
+	  KRATOS_REGISTER_VARIABLE(  MOULD_SFACT)
+	  KRATOS_REGISTER_VARIABLE(  MOULD_VFACT)
+	  KRATOS_REGISTER_VARIABLE(  MOULD_CONDUCTIVITY)
+	  KRATOS_REGISTER_VARIABLE(  MOULD_HTC_ENVIRONMENT)
 
 
       //--------------- Vulcan Application -------------------//
