@@ -280,7 +280,6 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
 
         r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
     }
-
 }
 
 //**************************************************************************************************************************************************
@@ -496,14 +495,14 @@ void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
 //**************************************************************************************************************************************************
 
 void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
-                                              double RelVel[3],
-                                              double LocalCoordSystem[3][3],
-                                              double OldLocalCoordSystem[3][3],
-                                              array_1d<double, 3>& other_to_me_vect,
-                                              const array_1d<double, 3>& vel,
-                                              const array_1d<double, 3>& delta_displ,
-                                              SphericParticle* p_neighbour,
-                                              double& distance)
+                                                double RelVel[3],
+                                                double LocalCoordSystem[3][3],
+                                                double OldLocalCoordSystem[3][3],
+                                                array_1d<double, 3>& other_to_me_vect,
+                                                const array_1d<double, 3>& vel,
+                                                const array_1d<double, 3>& delta_displ,
+                                                SphericParticle* p_neighbour,
+                                                double& distance)
 {
     // FORMING LOCAL CORDINATES
 
@@ -539,11 +538,11 @@ void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
 //**************************************************************************************************************************************************
 
 void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
-                                              double OldLocalCoordSystem[3][3],
-                                              const double& other_radius,
-                                              const double& dt,
-                                              const array_1d<double, 3>& ang_vel,
-                                              SphericParticle* p_neighbour)
+                                                double OldLocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& ang_vel,
+                                                SphericParticle* p_neighbour)
 {
     double velA[3]                    = {0.0};
     double velB[3]                    = {0.0};
@@ -766,7 +765,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
     if (iNeighborID == static_cast<int>(rObj_2->Id())){
 
-        for(std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
+        for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
             other_to_me_vel += rObj_2->GetGeometry()(inode)->FastGetSolutionStepValue(VELOCITY) * Weight[inode];
         }
     }
@@ -1207,7 +1206,7 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
     DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
 
-    ///Global stored contact force between rigid face and particle, used by fem elements
+    // Global stored contact force between rigid face and particle, used by fem elements
     std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
     std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
 
@@ -1298,11 +1297,9 @@ void SphericParticle::TangentialForceCalculation(const double normal_force, doub
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-double SphericParticle::GetInitialDelta(int index)
+double SphericParticle::GetInitialDelta(int index) //only available in continuum_particle
 {
-    double delta = 0.0; //only available in continuum_particle
-
-    return delta;
+    return 0.0;
 }
 
 //**************************************************************************************************************************************************
