@@ -169,10 +169,7 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-inlet_option                     = 1
-dem_inlet_element_type           = "SphericParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-
-if (inlet_option):
+if (DEM_parameters.dem_inlet_option):
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(balls_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
     if ( max_FEM_node_Id > max_node_Id):
@@ -201,7 +198,7 @@ if (inlet_option):
 
     # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, dem_inlet_element_type)
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, DEM_parameters.dem_inlet_element_type)
   
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
@@ -292,8 +289,8 @@ while ( time < DEM_parameters.FinalTime):
     #### TIME CONTROL ##################################
     
     # adding DEM elements by the inlet:
-    if (inlet_option):
-        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.              
+    if (DEM_parameters.dem_inlet_option):
+        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.              
 
     stepinfo = report.StepiReport(timer,time,step)
     if stepinfo:
