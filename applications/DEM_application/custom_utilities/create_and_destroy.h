@@ -901,11 +901,12 @@ public:
                             
         vector<unsigned int> ElementPartition;
         OpenMPUtils::CreatePartition( OpenMPUtils::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
-                
+        typedef ElementsArrayType::iterator ElementIterator;       
+
         #pragma omp parallel for
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-            typename ElementsArrayType::iterator it_begin = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k];
-            typename ElementsArrayType::iterator it_end   = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k + 1];
+            ElementIterator it_begin = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k];
+            ElementIterator it_end   = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k + 1];
 
             for (ElementsArrayType::iterator elem_it = it_begin; elem_it != it_end; ++elem_it){
          //   for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
