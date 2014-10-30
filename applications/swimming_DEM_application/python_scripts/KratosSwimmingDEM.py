@@ -426,7 +426,7 @@ creator_destructor.SetMaxNodeId(max_fluid_node_Id)
 DEM_proc.SetBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor)
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
-dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor, pp.dem)
+dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, rigid_faces_model_part, clusters_model_part, creator_destructor, pp.dem)
 # Initializing the DEM solver (must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part)
 dem_solver.Initialize()
 
