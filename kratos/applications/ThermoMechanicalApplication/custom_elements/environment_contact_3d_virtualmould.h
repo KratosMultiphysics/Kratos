@@ -254,69 +254,70 @@ protected:
 			if(htc<750.0){MOULD_MATERIAL=1;} // We guess the material depending on the htc
 			if(htc>2700.0){MOULD_MATERIAL=3;}// To be improved
 			
-			double VDENS= 0; 
-            double VSHEA= 0; 
-            double VTHIK= 0; 
-            double VFACT= 0;
-            double SFACT= 0;
-            double HTCCD= 0; 
-            double HTCCV= 0; 
-            double VCOND = 0; 
-           
-			switch(MOULD_MATERIAL)
-			{
-				case 1: // Sand
-					VDENS=1500; 
-					VSHEA= 1000; 
-					VTHIK= 0.30; 
-					VFACT= 1.0; //*
-					SFACT= 1.0; //*
-					HTCCD= 300; //*
-					HTCCV= 30; //*
-					VCOND = 1.0; //*
-					break;
-				case 2: // Steel
-					VDENS=7800; 
-					VSHEA= 500; 
-					VTHIK= 0.015; 
-					VFACT= 1.0; //*
-					SFACT= 1.0; //*
-					HTCCD= 1000.0; //*
-					HTCCV= 100.0; //*
-					VCOND = 30.0; //*
-					break;
-				case 3: // Copper
-					VDENS=8960; 
-					VSHEA= 400; 
-					VTHIK= 0.015; 
-					VFACT= 1.0; //*
-					SFACT= 1.0; //*
-					HTCCD= 3000.0; //*
-					HTCCV= 30.0; //*
-					VCOND = 400.0; //*
-					break;
-			}
+			const double VDENS= rCurrentProcessInfo[MOULD_DENSITY]; 
+            const double VSHEA= rCurrentProcessInfo[MOULD_SPECIFIC_HEAT]; 
+            const double VTHIK= rCurrentProcessInfo[MOULD_THICKNESS]; 
+            const double VFACT= rCurrentProcessInfo[MOULD_VFACT];
+            const double SFACT= rCurrentProcessInfo[MOULD_SFACT];
+            const double HTCCD= htc; 
+            const double HTCCV= rCurrentProcessInfo[MOULD_HTC_ENVIRONMENT]; 
+            const double VCOND = rCurrentProcessInfo[MOULD_CONDUCTIVITY]; 
 
-			
-			////default to sand mould
-   //         double VDENS=1500; 
-   //         double VSHEA= 1000; 
-   //         double VTHIK= 0.1; 
-   //         double VFACT= 1.0;
-   //         double SFACT= 1.0;
-   //         double HTCCD= 300; 
-   //         double HTCCV= 30; 
-   //         double VCOND = 1.0; 
-   //        
-   //         if(htc > 1100.0) //steel mould
-   //         {
-   //             VDENS=7800; 
-   //             VSHEA= 500; 
-   //             VTHIK= 0.1; 
-   //             HTCCD= 3000.0; 
-   //             HTCCV= 30.0; 
-   //             VCOND = 30.0;
-   //         }
+           
+			//switch(MOULD_MATERIAL)
+			//{
+			//	case 1: // Sand
+			//		VDENS=1500; 
+			//		VSHEA= 1000; 
+			//		VTHIK= 0.05; 
+			//		VFACT= 1.0; //*
+			//		SFACT= 1.0; //*
+			//		HTCCD= 300; //*
+			//		HTCCV= 30; //*
+			//		VCOND = 1.0; //*
+			//		break;
+			//	case 2: // Steel
+			//		VDENS=7800; 
+			//		VSHEA= 500; 
+			//		VTHIK= 0.05; 
+			//		VFACT= 1.0; //*
+			//		SFACT= 1.0; //*
+			//		HTCCD= 1000.0; //*
+			//		HTCCV= 100.0; //*
+			//		VCOND = 30.0; //*
+			//		break;
+			//	case 3: // Copper
+			//		VDENS=8960; 
+			//		VSHEA= 400; 
+			//		VTHIK= 0.05; 
+			//		VFACT= 1.0; //*
+			//		SFACT= 1.0; //*
+			//		HTCCD= 1500; //*
+			//		HTCCV= 30.0; //*
+			//		VCOND = 400.0; //*
+			//		break;
+			//}
+
+			//
+			//////default to sand mould
+   ////         double VDENS=1500; 
+   ////         double VSHEA= 1000; 
+   ////         double VTHIK= 0.1; 
+   ////         double VFACT= 1.0;
+   ////         double SFACT= 1.0;
+   ////         double HTCCD= 300; 
+   ////         double HTCCV= 30; 
+   ////         double VCOND = 1.0; 
+   ////        
+   ////         if(htc > 1100.0) //steel mould
+   ////         {
+   ////             VDENS=7800; 
+   ////             VSHEA= 500; 
+   ////             VTHIK= 0.1; 
+   ////             HTCCD= 3000.0; 
+   ////             HTCCV= 30.0; 
+   ////             VCOND = 30.0;
+   ////         }
 			const unsigned int virtual_mould_type=2;
 
 			// Linear virtual mould
