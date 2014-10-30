@@ -156,7 +156,7 @@ parallelutils.CalculateModelNewIds(balls_model_part)
 os.chdir(post_path)
 
 #Setting up the BoundingBox
-procedures.SetBoundingBox(balls_model_part, creator_destructor)
+procedures.SetBoundingBox(balls_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
 solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part, cluster_model_part, creator_destructor, DEM_parameters)
