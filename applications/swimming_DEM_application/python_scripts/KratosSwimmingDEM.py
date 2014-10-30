@@ -411,6 +411,9 @@ if (pp.projection_module_option):
 # creating a custom functions calculator for the implementation of additional custom functions
 custom_functions_tool = swim_proc.FunctionsCalculator(pp)
 
+# creating a stationarity assessment tool
+stationarity_tool = swim_proc.StationarityAssessmentTool(pp.max_pressure_variation_rate_tol, custom_functions_tool)
+
 # creating a debug tool
 dem_volume_tool = swim_proc.ProjectionDebugUtils(pp.fluid_domain_volume, fluid_model_part, balls_model_part, custom_functions_tool)
 
@@ -523,13 +526,6 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
 ######################################################################################################################################
 
-DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
-time_dem     = 0.0
-Dt_DEM       = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-rigid_faces_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
-clusters_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
-stationarity = False
-
 # setting up loop counters
 embedded_counter          = swim_proc.Counter(1, 3, pp.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter      = swim_proc.Counter(1, 1, pp.coupling_level_type == 1)
@@ -538,6 +534,13 @@ stationarity_counter      = swim_proc.Counter(pp.time_steps_per_stationarity_ste
 print_counter             = swim_proc.Counter(1, 1, out >= output_time)
 debug_info_counter        = swim_proc.Counter(20, 1, pp.print_debug_info_option)
 particles_results_counter = swim_proc.Counter(pp.print_particles_results_cycle, 1, pp.print_particles_results_option)
+
+DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool
+time_dem     = 0.0
+Dt_DEM       = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
+rigid_faces_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+clusters_model_part.ProcessInfo[DELTA_TIME] = Dt_DEM
+stationarity = False
 
 mesh_motion = DEMFEMUtilities()
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
@@ -581,20 +584,12 @@ while (time <= final_time):
 
         if (stationarity_counter.Tick()):
             print("Assessing Stationarity...")
+            stationarity = stationarity_tool.Assess(fluid_model_part)
             sys.stdout.flush()
-            stationarity = custom_functions_tool.AssessStationarity(fluid_model_part, pp.max_pressure_variation_rate_tol)  # in the first time step the 'old' pressure vector is created and filled
-
-            if (stationarity):
-                print("**************************************************************************************************")
-                print()
-                print("The model has reached a stationary state. The fluid calculation is suspended.")
-                print()
-                print("**************************************************************************************************")
-                sys.stdout.flush()
 
     # printing if required
 
-    if (pp.print_particles_results_option):
+    if (particles_results_counter.Tick()):
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
