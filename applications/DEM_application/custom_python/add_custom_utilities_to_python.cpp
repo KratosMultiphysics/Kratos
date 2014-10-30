@@ -119,6 +119,7 @@ void  AddCustomUtilitiesToPython(){
         .def("MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
         .def("GetHighNode", &ParticleCreatorDestructor::GetHighNode)
         .def("GetLowNode", &ParticleCreatorDestructor::GetLowNode)
+        .def("GetDiameter", &ParticleCreatorDestructor::GetDiameter)
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
