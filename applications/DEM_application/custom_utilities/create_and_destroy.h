@@ -239,40 +239,40 @@ public:
                                 double radius, 
                                 Properties& params)
     {
-        
-      double bx= reference_coordinates[0];
-      double cy= reference_coordinates[1];
-      double dz= reference_coordinates[2];
-      
 
-      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz);      //ACTUAL node creation and addition to model part
-                             
-      pnew_node->FastGetSolutionStepValue(RADIUS)                       = radius;
-      array_1d<double, 3 > null_vector(3,0.0);      
-      pnew_node->FastGetSolutionStepValue(VELOCITY)                     = null_vector;           
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
-      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];                  
-      
-      pnew_node->AddDof(VELOCITY_X,REACTION_X);
-      pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
-      pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
-      pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
-      pnew_node->AddDof(ANGULAR_VELOCITY_Y,REACTION_Y);
-      pnew_node->AddDof(ANGULAR_VELOCITY_Z,REACTION_Z);
-      
-      pnew_node->pGetDof(VELOCITY_X)->FixDof();
-      pnew_node->pGetDof(VELOCITY_Y)->FixDof();
-      pnew_node->pGetDof(VELOCITY_Z)->FixDof();           
-      pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
-      pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
-      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
-            
-      pnew_node->Set(DEMFlags::FIXED_VEL_X,true);
-      pnew_node->Set(DEMFlags::FIXED_VEL_Y,true);
-      pnew_node->Set(DEMFlags::FIXED_VEL_Z,true);
-      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X,true);
-      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y,true);
-      pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+        double bx= reference_coordinates[0];
+        double cy= reference_coordinates[1];
+        double dz= reference_coordinates[2];
+
+
+        pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz);      //ACTUAL node creation and addition to model part
+
+        pnew_node->FastGetSolutionStepValue(RADIUS)                       = radius;
+        array_1d<double, 3 > null_vector(3,0.0);
+        pnew_node->FastGetSolutionStepValue(VELOCITY)                     = null_vector;
+        pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
+        pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL)            = params[PARTICLE_MATERIAL];
+
+        pnew_node->AddDof(VELOCITY_X,REACTION_X);
+        pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
+        pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y,REACTION_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z,REACTION_Z);
+
+        pnew_node->pGetDof(VELOCITY_X)->FixDof();
+        pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+        pnew_node->pGetDof(VELOCITY_Z)->FixDof();
+        pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+        pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+        pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+
+        pnew_node->Set(DEMFlags::FIXED_VEL_X,true);
+        pnew_node->Set(DEMFlags::FIXED_VEL_Y,true);
+        pnew_node->Set(DEMFlags::FIXED_VEL_Z,true);
+        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X,true);
+        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+        pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
 
     }           
     
@@ -308,6 +308,7 @@ public:
     void CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part, ModelPart& r_clusters_model_part, ModelPart& r_rigid_faces_model_part, double scale_factor, bool automatic)
     {
         KRATOS_TRY
+
         if (automatic){
             double ref_radius = 0.0;
 
@@ -316,7 +317,7 @@ public:
             }                        
 
             if (r_balls_model_part.NumberOfElements(0)){ // loop over spheric elements (balls)
-                Configure::ElementsContainerType Elements           = r_balls_model_part.GetCommunicator().LocalMesh().Elements();
+                Configure::ElementsContainerType Elements = r_balls_model_part.GetCommunicator().LocalMesh().Elements();
 
                 ref_radius               = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
                 array_1d<double, 3> coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
@@ -338,8 +339,8 @@ public:
 
             if (r_clusters_model_part.NumberOfElements(0)){} // loop over clusters
 
-            if (r_rigid_faces_model_part.NumberOfElements(0)){ // loop over rigid faces
-                ModelPart::ConditionsContainerType Conditions           = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
+            if (r_rigid_faces_model_part.NumberOfConditions(0)){ // loop over rigid faces
+                ModelPart::ConditionsContainerType Conditions = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
 
                 std::vector <array_1d<double, 3> > face_coor;
                 std::size_t n_nodes = (*(Conditions.begin().base()))->GetGeometry().size();
@@ -434,7 +435,7 @@ public:
                     ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
                     (rNodes).push_back(pNode);
                 }
-	    }	
+            }
 
         }                           
         KRATOS_CATCH("")
