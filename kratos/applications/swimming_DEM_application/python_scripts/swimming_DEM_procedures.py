@@ -237,25 +237,18 @@ class ProjectionDebugUtils:
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
-       if (not particles_model_part.NumberOfNodes):
-
         self.granul_utils                    = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                   = domain_volume
         self.number_of_balls                 = self.balls_model_part.NumberOfElements(0)
         self.discr_domain_volume             = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
         self.proj_fluid_volume               = self.custom_utils.CalculateGlobalFluidVolume(self.fluid_model_part)
         self.solid_volume                    = self.granul_utils.solid_volume
+        self.balls_per_area                  = self.granul_utils.balls_per_area
         self.fluid_volume                    = domain_volume - self.solid_volume
         self.discr_fluid_volume              = self.discr_domain_volume - self.solid_volume
         self.proj_solid_volume               = self.discr_domain_volume - self.proj_fluid_volume
         self.global_fluid_fraction           = self.fluid_volume / self.domain_volume
         self.global_solid_fraction           = 1.0 - self.global_fluid_fraction
-
-        if (self.number_of_balls = 0):
-            self.balls_per_area = 0.0
-
-        else:
-            self.balls_per_area              = domain_volume / self.number_of_balls
         self.fluid_on_balls_total_force      = Array3()
         self.proj_balls_on_fluid_total_force = Array3()
         self.custom_utils.CalculateTotalHydrodynamicForceOnParticles(self.balls_model_part, self.fluid_on_balls_total_force)
