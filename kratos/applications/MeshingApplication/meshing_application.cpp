@@ -27,7 +27,7 @@ namespace Kratos
 {
 //KRATOS_CREATE_VARIABLE( double, WEIGHT_FATHER_NODES )
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-KRATOS_CREATE_VARIABLE(double, COUNTER)
+//KRATOS_CREATE_VARIABLE(double, COUNTER) //already put on variables.cpp (warning was appearing on Windows)
 
 KratosMeshingApplication::KratosMeshingApplication():
     mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -41,7 +41,7 @@ void KratosMeshingApplication::Register()
     KratosApplication::Register();
     std::cout << "Initializing Kratos MeshingApplication... " << std::endl;
 
-    KRATOS_REGISTER_VARIABLE(COUNTER);
+    //KRATOS_REGISTER_VARIABLE(COUNTER); //already put on variables.cpp (warning was appearing on Windows)
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);
