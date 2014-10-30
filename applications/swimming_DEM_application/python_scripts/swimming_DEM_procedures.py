@@ -230,13 +230,12 @@ class IOTools:
 class ProjectionDebugUtils:
 
     def __init__(self, domain_volume, fluid_model_part, particles_model_part, custom_functions_calculator):
-
         self.balls_model_part = particles_model_part
         self.fluid_model_part = fluid_model_part
         self.custom_utils = custom_functions_calculator
-        self.UpdateData(domain_volume)
+        self.UpdateDataAndPrint(domain_volume, False)
 
-    def UpdateData(self, domain_volume):
+    def UpdateDataAndPrint(self, domain_volume, is_time_to_print = True):
         self.granul_utils                    = DEM_procedures.GranulometryUtils(domain_volume, self.balls_model_part)
         self.domain_volume                   = domain_volume
         self.number_of_balls                 = self.balls_model_part.NumberOfElements(0)
@@ -254,7 +253,10 @@ class ProjectionDebugUtils:
         self.custom_utils.CalculateTotalHydrodynamicForceOnParticles(self.balls_model_part, self.fluid_on_balls_total_force)
         self.custom_utils.CalculateTotalHydrodynamicForceOnFluid(self.fluid_model_part, self.proj_balls_on_fluid_total_force)
 
-    def PrintCurrentData(self):
+        if (not is_time_to_print):
+            return
+
+        # printing
 
         tot_len = 32 # total length of each line, including spaces
         print()
@@ -276,19 +278,29 @@ class ProjectionDebugUtils:
         print("*****************************************************")
         print()
 
-# This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle and the initial step
-# Function Tick() adds 1 to the general counter and to the cycle counter, returning True when the cycling counter is back to the beggining of the cycle.
+# This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
+# the initial step at which Tick() returns True and weather it is active or not (Tick() returns False in this case).
+# Tick() adds 1 to the general counter and to the cycle counter every time it is called, returning True when the
+# cycling counter is back to the beggining of the cycle (and it is active) and False otherwise.
 
 class Counter:
 
-    def __init__(self, steps_in_cicle, initial_step = 0):
-        self.steps_in_cicle = steps_in_cicle
-        self.step = initial_step
-        self.step_residual = initial_step % steps_in_cicle
+    def __init__(self, steps_in_cicle = 1, initial_step = 1, is_active = True):
 
-    def Tick(self):
+        if (steps_in_cicle <= 0 or not isinstance(steps_in_cicle , int )):
+            raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
+
+        self.steps_in_cicle = steps_in_cicle
+        self.step = initial_step - 1
+        self.step_residual = initial_step % steps_in_cicle
+        self.is_active = is_active
+
+    def Tick(self):           
         self.step += 1
         self.step_residual += 1
+
+        if (not self.is_active):
+            return False
 
         if (self.step_residual % self.steps_in_cicle == 1):
             self.step_residual = 1
@@ -297,6 +309,15 @@ class Counter:
 
         else:
             return False
+
+    def SetActivation(is_active):
+        self.is_active = is_active
+
+    def Activate(activate):
+        self.is_active = self.is_active or activate
+
+    def Deactivate(deactivate):
+        self.is_active = self.is_active and deactivate
 
     def GetStep(self):
         return self.step
