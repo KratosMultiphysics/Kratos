@@ -71,6 +71,9 @@ class GranulometryUtils(object):
 
     def __init__(self, domain_volume, model_part):
 
+        if (domain_volume <= 0.0):
+            raise ValueError("Error: The input domain volume must be strictly positive")
+
         self.balls_model_part = model_part
         self.UpdateData(domain_volume)
 
@@ -80,7 +83,13 @@ class GranulometryUtils(object):
         self.number_of_balls    = self.balls_model_part.NumberOfElements(0)
         self.solid_volume       = self.physics_calculator.CalculateTotalVolume(self.balls_model_part)
         self.d_50               = self.physics_calculator.CalculateD50(self.balls_model_part)
-        self.balls_per_area     = domain_volume / self.number_of_balls
+
+        if (self.number_of_balls == 0):
+            self.balls_per_area = 0.0
+
+        else:
+            self.balls_per_area              = domain_volume / self.number_of_balls
+
         self.voids_volume       = domain_volume - self.solid_volume
         self.global_porosity    = self.voids_volume / domain_volume
 
