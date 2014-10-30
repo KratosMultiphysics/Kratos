@@ -396,7 +396,7 @@ class Procedures(object):
         return maxid
 
     
-    def SetBoundingBox(self, model_part, creator_destructor):
+    def SetBoundingBox(self, balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
         
         b_box_low = Array3()
         b_box_high = Array3()
@@ -411,7 +411,7 @@ class Procedures(object):
         creator_destructor.SetHighNode(b_box_high)
 
         if (self.bounding_box_OPTION):
-            creator_destructor.CalculateSurroundingBoundingBox(model_part, self.bounding_box_enlargement_factor,self. automatic_bounding_box_OPTION)
+            creator_destructor.CalculateSurroundingBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor,self. automatic_bounding_box_OPTION)
             
             
     def PreProcessModel(self, DEM_parameters):
