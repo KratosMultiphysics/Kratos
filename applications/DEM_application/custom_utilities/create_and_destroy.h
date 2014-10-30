@@ -352,7 +352,7 @@ public:
                 ModelPart::ConditionsContainerType::Pointer pConditions   = r_rigid_faces_model_part.GetCommunicator().LocalMesh().pConditions();
                 ModelPart::ConditionsContainerType Conditions             = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
 
-                std::vector< <array_1d<double, 3> >face_coor;
+                std::vector< array_1d<double, 3> >face_coor;
                 std::size_t n_nodes = (*(Conditions.begin().base()))->GetGeometry().size();
                 face_coor.resize(n_nodes);
 
