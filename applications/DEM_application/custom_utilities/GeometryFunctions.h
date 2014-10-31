@@ -91,8 +91,27 @@ namespace Kratos
             }
         }
     }
+    static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], const array_1d<double, 3 > & GlobalVector, array_1d<double, 3 > & LocalVector)
+    {
+        for (int i=0; i<3; i++) {
+            LocalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+            }
+        }
+    }
         
     static inline void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3])
+    {
+        for (int i=0; i<3; i++) {
+            GlobalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+            }
+        }                
+    }
+    
+    static inline void VectorLocal2Global(double LocalCoordSystem[3][3], const array_1d<double, 3 > & LocalVector, array_1d<double, 3 > & GlobalVector)
     {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
