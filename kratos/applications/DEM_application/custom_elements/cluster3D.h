@@ -1,6 +1,6 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: MSantasusana $
+//   Last Modified by:    $Author: Salva $
 //   Date:                $Date: 2014-09-25 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
@@ -35,33 +35,33 @@
 namespace Kratos
 {
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-    class Cluster3D : public Element
-    {
+    /// Short class definition.
+    /** Detail class definition.
+    */
+    class Cluster3D : public Element {
+        
     public:
-      ///@name Type Definitions
-      ///@{
+        ///@name Type Definitions
+        ///@{
       
-      /// Pointer definition of Cluster3D
+        /// Pointer definition of Cluster3D
         KRATOS_CLASS_POINTER_DEFINITION(Cluster3D);
   
-      ///@}
-      ///@name Life Cycle
-      ///@{ 
+        ///@}
+        ///@name Life Cycle
+        ///@{ 
       
         /// Default constructor.
         //Cluster3D() : Element() {}
     
         /**
-         * Constructor using an array of nodes
-         */
-//         Cluster3D(IndexType NewId, const NodesArrayType& ThisNodes) :
-//         Element(NewId, ThisNodes) 
-//         {
-//         }
-//         
+        * Constructor using an array of nodes
+        */
+        //         Cluster3D(IndexType NewId, const NodesArrayType& ThisNodes) :
+        //         Element(NewId, ThisNodes) 
+        //         {
+        //         }
+        //         
         Cluster3D( );
         Cluster3D( IndexType NewId, GeometryType::Pointer pGeometry );
         Cluster3D( IndexType NewId, NodesArrayType const& ThisNodes);
@@ -73,81 +73,82 @@ namespace Kratos
         /**
          * Constructor using Geometry
          */
-//         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry) :
-//         Element(NewId, pGeometry)
-//         {
-//         }
+        //         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry) :
+        //         Element(NewId, pGeometry)
+        //         {
+        //         }
 
         /**
          * Constructor using Properties
          */
-//         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
-//         Element(NewId, pGeometry , pProperties)
-//         {
-//         }
+        //         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+        //         Element(NewId, pGeometry , pProperties)
+        //         {
+        //         }
 
         /// Copy constructor.
-//         Cluster3D (Cluster3D const& rOther) : Element(rOther)
-//         {
-//         }
+        //         Cluster3D (Cluster3D const& rOther) : Element(rOther)
+        //         {
+        //         }
       
    
-      /// Destructor.
+        /// Destructor.
         virtual ~Cluster3D();
       
-      /*
-      virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
-      {
+        /*
+        virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+        {
         KRATOS_TRY
            return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("");
-      }
-      */
+        }
+        */
       
-      ///@}
-      ///@name Operators 
-      ///@{
+        ///@}
+        ///@name Operators 
+        ///@{
       
       
-      ///@}
-      ///@name Operations
-      ///@{
-      /**
-         * is called to initialize the element.
-         * Must be called before any calculation is done!
-         */
+        ///@}
+        ///@name Operations
+        ///@{
+        /**
+        * is called to initialize the element.
+        * Must be called before any calculation is done!
+        */
         virtual void Initialize();
         virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
+        virtual void UpdatePositionOfSpheres();
         /**
-         * this is called during the assembling process in order
-         * to calculate all elemental contributions to the global system
-         * matrix and the right hand side
-         * @param rLeftHandSideMatrix: the elemental left hand side matrix
-         * @param rRightHandSideVector: the elemental right hand side
-         * @param rCurrentProcessInfo: the current process info instance
-         */
+        * this is called during the assembling process in order
+        * to calculate all elemental contributions to the global system
+        * matrix and the right hand side
+        * @param rLeftHandSideMatrix: the elemental left hand side matrix
+        * @param rRightHandSideVector: the elemental right hand side
+        * @param rCurrentProcessInfo: the current process info instance
+        */
 
 
         /**
-         * this is called during the assembling process in order
-         * to calculate the elemental right hand side vector only
-         * @param rRightHandSideVector: the elemental right hand side vector
-         * @param rCurrentProcessInfo: the current process info instance
-         */
+        * this is called during the assembling process in order
+        * to calculate the elemental right hand side vector only
+        * @param rRightHandSideVector: the elemental right hand side vector
+        * @param rCurrentProcessInfo: the current process info instance
+        */
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                ProcessInfo& rCurrentProcessInfo);
+            ProcessInfo& rCurrentProcessInfo);
 
        
         virtual void EquationIdVector(EquationIdVectorType& rResult,
-                ProcessInfo& rCurrentProcessInfo);
+            ProcessInfo& rCurrentProcessInfo);
         
 
         /**
-         * this is called during the assembling process in order
-         * to calculate the elemental mass matrix
-         * @param rMassMatrix: the elemental mass matrix
-         * @param rCurrentProcessInfo: the current process info instance
-         */
+        * this is called during the assembling process in order
+        * to calculate the elemental mass matrix
+        * @param rMassMatrix: the elemental mass matrix
+        * @param rCurrentProcessInfo: the current process info instance
+        */
         virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
         
         
@@ -155,68 +156,66 @@ namespace Kratos
      
 
         virtual void GetDofList(DofsVectorType& ElementalDofList,
-                ProcessInfo& CurrentProcessInfo);
+            ProcessInfo& CurrentProcessInfo);
         
       
         /**
-         * this is called in the beginning of each solution step
-         */
+        * this is called in the beginning of each solution step
+        */
         virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
 
         /**
-         * this is called at the end of each solution step
-         */
+        * this is called at the end of each solution step
+        */
         virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
         
 
         /**
-         * deletes all obsolete data from memory
-         */
-   
-
+        * deletes all obsolete data from memory
+        */
 
         //output On integration points
         //calculate on element
 
         virtual void Calculate(const Variable<double>& rVariable,
-                double& Output,
-                const ProcessInfo& rCurrentProcessInfo);
+            double& Output,
+            const ProcessInfo& rCurrentProcessInfo);
     
 
         virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
-                array_1d<double, 3 > & Output,
-                const ProcessInfo& rCurrentProcessInfo);
+            array_1d<double, 3 > & Output,
+            const ProcessInfo& rCurrentProcessInfo);
     
         virtual void Calculate(const Variable<Vector >& rVariable,
-                Vector& Output,
-                const ProcessInfo& rCurrentProcessInfo);
+            Vector& Output,
+            const ProcessInfo& rCurrentProcessInfo);
      
 
         virtual void Calculate(const Variable<Matrix >& rVariable,
-                Matrix& Output,
-                const ProcessInfo& rCurrentProcessInfo);
+            Matrix& Output,
+            const ProcessInfo& rCurrentProcessInfo);
    
+        double GetSqrtOfRealMass();
 
 
 
 
 
 
-
-      ///@}
-      ///@name Access
-      ///@{ 
+        ///@}
+        ///@name Access
+        ///@{ 
       
       
-      ///@}
-      ///@name Inquiry
-      ///@{
+        ///@}
+        ///@name Inquiry
+        ///@{
       
       
-      ///@}      
-      ///@name Input and output
-      ///@{
+        ///@}      
+        ///@name Input and output
+        ///@{
 
         virtual std::string Info() const
         {
@@ -225,95 +224,107 @@ namespace Kratos
 	    return buffer.str();
         }
       
-      /// Print information about this object.
+        /// Print information about this object.
         virtual void PrintInfo(std::ostream& rOStream) const
         {
 	    rOStream << "Discrete Element #" << Id();
         }
       
-      /// Print object's data.
+        /// Print object's data.
         virtual void PrintData(std::ostream& rOStream) const
         {
-	  //mpGeometry->PrintData(rOStream);
+	    //mpGeometry->PrintData(rOStream);
         }
       
             
-      ///@}      
-      ///@name Friends
-      ///@{
+        ///@}      
+        ///@name Friends
+        ///@{
       
             
-      ///@}
+        ///@}
       
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
+        ///@name Protected static Member Variables 
+        ///@{ 
+
+        ///@} 
+        ///@name Protected member Variables 
+        ///@{
+        
+        double                               mSqrtOfRealMass;
+        std::vector< array_1d<double, 3> >   mVelocity;
+        std::vector< array_1d<double, 3> >   mTotalForces;
+        std::vector< array_1d<double, 3> >   mAngularVelocity;
+        std::vector< array_1d<double, 3> >   mParticleMoment;
+        std::vector< array_1d<double, 3> >   mPrincipalMomentsOfInertia;
+        std::vector< array_1d<double, 3> >   mEulerAngles;
+        
+        std::vector<double>                  mListOfRadii;
+        std::vector<double>                  mListOfCoordinates;
+        
+        std::vector<SphericParticle*>        mListOfSphericParticles;
         
         
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
+        ///@} 
+        ///@name Protected Operators
+        ///@{ 
         
         
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
+        ///@} 
+        ///@name Protected Operations
+        ///@{ 
         
         
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
+        ///@} 
+        ///@name Protected  Access 
+        ///@{ 
         
         
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
+        ///@}      
+        ///@name Protected Inquiry 
+        ///@{ 
         
         
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
+        ///@}    
+        ///@name Protected LifeCycle 
+        ///@{ 
       
             
-      ///@}
+        ///@}
       
     private:
-      ///@name Static Member Variables 
-      ///@{ 
+        ///@name Static Member Variables 
+        ///@{ 
         
         
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
+        ///@} 
+        ///@name Member Variables 
+        ///@{ 
         
         
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
+        ///@} 
+        ///@name Private Operators
+        ///@{ 
         
         
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
+        ///@} 
+        ///@name Private Operations
+        ///@{ 
         
         
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
+        ///@} 
+        ///@name Private  Access 
+        ///@{ 
         
         
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{
+        ///@}    
+        ///@name Private Inquiry 
+        ///@{
 
-      ///@}
-      ///@name Serialization
-      ///@{
+        ///@}
+        ///@name Serialization
+        ///@{
 
         friend class Serializer;
 
@@ -329,31 +340,29 @@ namespace Kratos
 
         
         
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{    
-      ///@}    
+        ///@}    
+        ///@name Un accessible methods 
+        ///@{    
+        ///@}    
         
     }; // Class Cluster3D
 
-  ///@} 
+    ///@} 
   
-  ///@name Type Definitions       
-  ///@{ 
+    ///@name Type Definitions       
+    ///@{ 
   
   
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
+    ///@} 
+    ///@name Input and output 
+    ///@{ 
         
  
-  /// input stream function
-    inline std::istream& operator >> (std::istream& rIStream, 
-                    Cluster3D& rThis);
+    /// input stream function
+    inline std::istream& operator >> (std::istream& rIStream, Cluster3D& rThis);
 
-  /// output stream function
-    inline std::ostream& operator << (std::ostream& rOStream, 
-                    const Cluster3D& rThis)
+    /// output stream function
+    inline std::ostream& operator << (std::ostream& rOStream, const Cluster3D& rThis)
     {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
@@ -361,9 +370,10 @@ namespace Kratos
 
         return rOStream;
     }
-  ///@}
+    ///@}
 
-  ///@} addtogroup block
+    ///@} addtogroup block
+    
 
 }  // namespace Kratos.
 
