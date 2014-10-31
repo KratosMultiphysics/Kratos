@@ -393,6 +393,9 @@ public:
         } // if (automatic)
 
         else {
+            for(int i=0;i<3;i++){
+                if(mHighPoint[i]<mLowPoint[i]) KRATOS_ERROR(std::logic_error,  "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." , "");
+            }
             mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
             mStrictLowPoint  = mLowPoint;
             mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
