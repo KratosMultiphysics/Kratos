@@ -2520,8 +2520,8 @@ namespace Kratos
 			for( unsigned int i = 0; i < rMeshingVariables.RigidWalls.size(); i++ )
 			  {
 			    if( rMeshingVariables.RigidWalls[i]->IsInside( Point, Time ) ){
-			      tool_radius = rMeshingVariables.RigidWalls[i]->Radius(Point);
-			      tip_center  = rMeshingVariables.RigidWalls[i]->Center(Point);
+			      tool_radius = rMeshingVariables.RigidWalls[i]->GetRadius();
+			      tip_center  = rMeshingVariables.RigidWalls[i]->GetCenter();
 			      break;
 			    }
 			  }
@@ -2762,8 +2762,8 @@ namespace Kratos
 			for( unsigned int i = 0; i < rMeshingVariables.RigidWalls.size(); i++ )
 			  {
 			    if( rMeshingVariables.RigidWalls[i]->IsInside( Point, Time ) ){
-			      tool_radius = rMeshingVariables.RigidWalls[i]->Radius(Point);
-			      tip_center  = rMeshingVariables.RigidWalls[i]->Center(Point);
+			      tool_radius = rMeshingVariables.RigidWalls[i]->GetRadius();
+			      tip_center  = rMeshingVariables.RigidWalls[i]->GetCenter();
 			      break;
 			    }
 			  }

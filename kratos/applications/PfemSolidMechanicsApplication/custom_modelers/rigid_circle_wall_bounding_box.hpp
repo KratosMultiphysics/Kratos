@@ -139,6 +139,15 @@ public:
     ///@name Operations
     ///@{
   
+    double GetRadius()
+    {
+        return mBox.Radius;
+    }
+
+    void SetRadius(double& rRadius)
+    {
+      //used to set a comparisson radius
+    }  
 
     virtual void UpdatePosition(double & rTime)
     {

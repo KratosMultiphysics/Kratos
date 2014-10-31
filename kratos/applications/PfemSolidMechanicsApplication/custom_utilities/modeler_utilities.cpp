@@ -1222,8 +1222,8 @@ namespace Kratos
       {
 	ContactFace = 0;
 	if( rRigidWalls[i]->IsInside( Point, rCurrentProcessInfo[TIME], ContactFace ) ){
-	  // tip_radius = rRigidWalls[i]->Radius(Point);
-	  // tip_center = rRigidWalls[i]->Center(Point);
+	  // tip_radius = rRigidWalls[i]->GetRadius();
+	  // tip_center = rRigidWalls[i]->GetCenter();
 	  break;
 	}
       }

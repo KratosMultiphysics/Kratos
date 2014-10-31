@@ -244,6 +244,16 @@ public:
     ///@name Operations
     ///@{
   
+    double GetRadius()
+    {
+        return mBox.Radius;
+    }
+
+    void SetRadius(double& rRadius)
+    {
+      //used to set a comparisson radius
+    }  
+
     bool CheckValidAngle( double& rAngle )
     {
       bool valid_angle = true;

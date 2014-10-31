@@ -15,6 +15,7 @@ class ModelerUtility:
         self.domain_size = domain_size
 
         # set remesh flags
+        self.modeler_active = False
         self.remesh_domains = remesh_domains
         self.contact_search = contact_search
         self.rigid_wall_contact_search = rigid_wall_contact_search
@@ -69,21 +70,22 @@ class ModelerUtility:
     #
     def InitializeDomains(self):
 
-        print("::[Modeler_Utility]:: Initialize Domains ")
+        if( self.modeler_active ):        
+            print("::[Modeler_Utility]:: Initialize Domains ")
+            
+            # set active search
+            self.search_active = False
 
-        # set active search
-        self.search_active = False
+            if(self.remesh_domains or self.contact_search or self.rigid_wall_contact_search):
+                self.search_active = True
 
-        if(self.remesh_domains or self.contact_search or self.rigid_wall_contact_search):
-            self.search_active = True
-
-        self.neighbours_set = False
-        if(self.search_active):
-            # find neighbours
-            self.SearchNeighbours()
-            # find skin and boundary normals
-            self.BuildBoundarySkin()
-            self.neighbours_set = True
+            self.neighbours_set = False
+            if(self.search_active):
+                # find neighbours
+                self.SearchNeighbours()
+                # find skin and boundary normals
+                self.BuildBoundarySkin()
+                self.neighbours_set = True
 
     #
     def SearchNeighbours(self):
@@ -97,10 +99,10 @@ class ModelerUtility:
         # set search options:
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        method = 0
+        mesh_id = 0
 
         # define search utility
-        nodal_neighbour_search = NodalNeighboursSearch(self.model_part, number_of_avg_elems, number_of_avg_nodes, method, self.echo_level)
+        nodal_neighbour_search = NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -112,10 +114,10 @@ class ModelerUtility:
 
         # set search options:
         number_of_avg_elems = 10
-        method = 0
-
+        mesh_id = 0
+         
         # define search utility
-        elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, number_of_avg_elems, method, self.echo_level)
+        elemental_neighbour_search = ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -129,7 +131,9 @@ class ModelerUtility:
         normals_calculation = BoundaryNormalsCalculation()
 
         # execute calculation:
+        #(scaled normals)
         normals_calculation.CalculateBoundaryNormals(self.model_part, self.echo_level)
+        #(unit normals)
         # normals_calculation.CalculateBoundaryUnitNormals(model_part, self.echo_level)
 
         print("::[Modeler_Utility]:: Boundary Normals computed ")
@@ -138,10 +142,10 @@ class ModelerUtility:
     def BuildBoundarySkin(self):
 
         # set building options:
-        preserve = 1
+        mesh_id = 0
 
         # define building utility
-        skin_build = BuildBoundarySkin(self.model_part, self.domain_size, preserve, self.echo_level)
+        skin_build = BuildBoundarySkin(self.model_part, self.domain_size, self.echo_level, mesh_id)
 
         # execute building:
         skin_build.Execute()
@@ -194,6 +198,9 @@ class ModelerUtility:
         for conditions in configuration.mesh_conditions:
 
             mesh_id = int(conditions["Subdomain"])
+            
+            if(conditions["StructuralType"] == "Solid"):
+                self.modeler_active = True
 
             # set remesh-refine conditions to mesh modeler
             critical_mesh_size = conditions["CriticalMeshSize"]

@@ -412,7 +412,7 @@ public:
         return mBox.LowPoint;
     }
 
-    TPointType& Center()
+    const TPointType& Center()
     {
         return mBox.Center;
     }
@@ -423,19 +423,24 @@ public:
         return mBox.OriginalCenter;
     }
 
-    double  Radius()
+    const double& Radius()
     {
         return mBox.Radius;
     }
 
-    virtual TPointType Center(const TPointType& rPoint)
+    virtual TPointType GetCenter()
     {
         return mBox.Center;
     }
 
-    virtual double Radius(const TPointType& rPoint)
+    virtual double GetRadius()
     {
         return mBox.Radius;
+    }
+
+    virtual void SetRadius(double& rRadius)
+    {
+        mBox.Radius = rRadius;
     }
 
     TPointType& Velocity()

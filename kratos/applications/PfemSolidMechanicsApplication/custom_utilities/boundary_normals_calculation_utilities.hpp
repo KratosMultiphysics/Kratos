@@ -159,7 +159,8 @@ public:
 	{
 	  KRATOS_TRY
 
-	    
+	  mEchoLevel = EchoLevel;
+
 	  //Reset Body Normal Variables:
 	  this->ResetBodyNormals(rModelPart,MeshId);
 		
@@ -195,6 +196,7 @@ public:
 	{
 	  KRATOS_TRY
 
+	  mEchoLevel = EchoLevel;
 	    
 	  //Reset Body Normal Variables:
 	  this->ResetBodyNormals(rModelPart,MeshId);
@@ -441,63 +443,67 @@ private:
 	      for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ie++)
 		{
 		  Element::GeometryType& rGeom = ie->GetGeometry();
-		  dimension = rGeom.WorkingSpaceDimension();
 
-		  //********** Compute the element integral ******//
-		  const Element::GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mIntegrationMethod );
-		  const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mIntegrationMethod );
+		  if( rGeom.EdgesNumber() > 1 ){
+
+		    dimension = rGeom.WorkingSpaceDimension();
+
+		    //********** Compute the element integral ******//
+		    const Element::GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mIntegrationMethod );
+		    const Element::GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( mIntegrationMethod );
 
 
-		  J.resize( dimension, dimension );
-		  J = rGeom.Jacobian( J, PointNumber , mIntegrationMethod );
+		    J.resize( dimension, dimension );
+		    J = rGeom.Jacobian( J, PointNumber , mIntegrationMethod );
 
-		  InvJ.clear();
-		  detJ=0;
-		  //Calculating the inverse of the jacobian and the parameters needed
-		  MathUtils<double>::InvertMatrix( J, InvJ, detJ);
+		    InvJ.clear();
+		    detJ=0;
+		    //Calculating the inverse of the jacobian and the parameters needed
+		    MathUtils<double>::InvertMatrix( J, InvJ, detJ);
 		  
 
-		  //Compute cartesian derivatives for one gauss point
-		  DN_DX = prod( DN_De[PointNumber] , InvJ );
+		    //Compute cartesian derivatives for one gauss point
+		    DN_DX = prod( DN_De[PointNumber] , InvJ );
 
-		  double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
+		    double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 
 		  
-		  for(unsigned int i = 0; i < rGeom.size(); i++)
-		    {
-		      if(in->Id() == rGeom[i].Id()){
+		    for(unsigned int i = 0; i < rGeom.size(); i++)
+		      {
+			if(in->Id() == rGeom[i].Id()){
 
-			for(unsigned int d=0; d<dimension; d++)
-			  {		    
-			    An[d] += DN_DX(i,d)*IntegrationWeight;
-			  }
+			  for(unsigned int d=0; d<dimension; d++)
+			    {		    
+			      An[d] += DN_DX(i,d)*IntegrationWeight;
+			    }
+			}
 		      }
-		    }
 		  
-		  //********** Compute the element integral ******//
+		    //********** Compute the element integral ******//
 
-		}
+		  }
 
 	      
-	      if(norm_2(An)>1e-12){
-		noalias(in->FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
-		if(neighsearch){
-		  in->Set(BOUNDARY);
-		}
-	      }
-	      else{
-		(in->FastGetSolutionStepValue(NORMAL)).clear();
-		//std::cout<<" ERROR: normal not set "<<std::endl;
-		not_assigned +=1;
-	      }
+		  if(norm_2(An)>1e-12){
+		    noalias(in->FastGetSolutionStepValue(NORMAL)) = An/norm_2(An);
+		    if(neighsearch){
+		      in->Set(BOUNDARY);
+		    }
+		  }
+		  else{
+		    (in->FastGetSolutionStepValue(NORMAL)).clear();
+		    //std::cout<<" ERROR: normal not set "<<std::endl;
+		    not_assigned +=1;
+		  }
 
+		}
 	    
 	      //boundarycounter++;
 	      //}
 	    }
 
-	  if(mEchoLevel >= 0) 
-	    std::cout<<"  [ Boundary normal NOT ASSIGNED:"<<not_assigned<<" ]"<<std::endl;
+	  if(mEchoLevel > 0) 
+	    std::cout<<"  [ Boundary normal NOT ASSIGNED nodes:"<<not_assigned<<" ]"<<std::endl;
 
 	  
 	  //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
@@ -942,8 +948,8 @@ private:
 		    
 		  }
 
-		if(mEchoLevel >= 0) 
-		  std::cout<<"  [ Shrinkage NOT ASSIGNED:"<<not_assigned<<" ][Mesh:"<<MeshId<<"]"<<std::endl;
+		if(mEchoLevel > 0) 
+		  std::cout<<"  [ Shrinkage NOT ASSIGNED nodes:"<<not_assigned<<" ][Mesh:"<<MeshId<<"]"<<std::endl;
 	}
 
 
