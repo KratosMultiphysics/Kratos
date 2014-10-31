@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: M.Santasusana $
+//   Last Modified by:    $Author: Salva $
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
 //
@@ -21,7 +21,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application_variables.h"
 #include "includes/kratos_flags.h"
-
+#include "includes/variables.h"
 
 namespace Kratos {
         
@@ -52,53 +52,55 @@ namespace Kratos {
     Cluster3D::~Cluster3D() {}
 
       
-    void Cluster3D::Initialize() {}
+    void Cluster3D::Initialize() {
+    
+        KRATOS_TRY
+
+        array_1d<double, 3> velocity                  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> totalforces               = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
+        double sqrt_of_mass                           = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
+        mSqrtOfRealMass                               = sqrt_of_mass;
+        array_1d<double, 3> angularvelocity           = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3> particlemoment            = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+        array_1d<double, 3> principalmomentsofinertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3> eulerangles               = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);
+                
+        KRATOS_CATCH("")
+    
+    }
         
       
     void Cluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part) {
           
         KRATOS_TRY 
           
-        KRATOS_WATCH("CREATING THE PARTICLES OF THE CLUSTER..........................")
-                
-        //unsigned int& max_Id = p_creator_destructor->mMaxNodeId; 
-        
-	//bool mBallsModelPartHasSphericity(false);        
-        //bool mBallsModelPartHasRotation(false);
-       
         std::string ElementNameString = "SphericParticle3D";
             
-        const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString); //crea una spheric particle y la guarda como ref a un Element
+        //We now create a spheric particle and keep it as a reference to an Element
+        const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
         Node<3>& lele = GetGeometry()[0]; //NODE
-        
-        //PropertiesProxy* p_fast_properties = NULL;
         
         array_1d<double, 3> pepito;
         
         double r, s, t, R;
         
         for (int i = 1; i <= 250; i++) {
-            
-            //KRATOS_WATCH("RANDOM NUMBERS ARE: *************************************")
                     
             r = ((double) rand() / (RAND_MAX)) + 1;
             s = ((double) rand() / (RAND_MAX)) + 1;
             t = r - s;
-            //KRATOS_WATCH(t)
-            pepito[0] = lele.Coordinates()[0] + t;
+            pepito[0]  = lele.Coordinates()[0] + t;
             
             r = ((double) rand() / (RAND_MAX)) + 1;
             s = ((double) rand() / (RAND_MAX)) + 1;
             t = r - s;
-            //KRATOS_WATCH(t)
-            pepito[1] = lele.Coordinates()[1] + t;
+            pepito[1]  = lele.Coordinates()[1] + t;
             
             r = ((double) rand() / (RAND_MAX)) + 1;
             s = ((double) rand() / (RAND_MAX)) + 1;
             t = r - s;
-            //KRATOS_WATCH(t)
-            pepito[2] = lele.Coordinates()[2] + t;
+            pepito[2]  = lele.Coordinates()[2] + t;
             
             R = 0.5 * (double) rand() / (RAND_MAX);
              
@@ -106,15 +108,11 @@ namespace Kratos {
             i, R, pepito, 100.0, this->pGetProperties(), r_reference_element);
         }
                 
-        //KRATOS_WATCH(*this->pGetProperties())
-        //KRATOS_WATCH(pepito)
-        //KRATOS_WATCH(max_Id)
-        //max_Id++;
         KRATOS_CATCH("")
         
     }
       
-
+    void Cluster3D::UpdatePositionOfSpheres() {}
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
@@ -201,6 +199,10 @@ namespace Kratos {
 
     void Cluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
     void Cluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+    
+    double Cluster3D::GetSqrtOfRealMass()                                                       { return mSqrtOfRealMass; }
+    //mListOfCoordinates         = GetClusterCoordinates();
+    //mListOfRadii               = GetClusterRadii();
     
 
 }  // namespace Kratos.
