@@ -58,19 +58,25 @@ namespace Kratos
             
       
       void Calculate(ModelPart& model_part) {
+          
           KRATOS_TRY
           
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-          
           NodesArrayType& pLocalNodes = model_part.GetCommunicator().LocalMesh().Nodes();
           NodesArrayType& pGhostNodes = model_part.GetCommunicator().GhostMesh().Nodes();
-
           CalculateTranslationalMotion(model_part,pLocalNodes);
           CalculateTranslationalMotion(model_part,pGhostNodes);
-
-          if(rCurrentProcessInfo[ROTATION_OPTION]!=0) {
-             CalculateRotationalMotion(model_part,pLocalNodes);
-             CalculateRotationalMotion(model_part,pGhostNodes);
+          
+          if( !rCurrentProcessInfo[CONTAINS_CLUSTERS] ){                                          
+                if(rCurrentProcessInfo[ROTATION_OPTION]!=0) {
+                   CalculateRotationalMotion(model_part,pLocalNodes);
+                   CalculateRotationalMotion(model_part,pGhostNodes);
+                }
+          }
+          else {
+              if(rCurrentProcessInfo[ROTATION_OPTION]!=0) {
+                   CalculateRotationalMotionOfClusters(model_part);
+                }                
           }
           
           KRATOS_CATCH(" ")
@@ -261,7 +267,123 @@ namespace Kratos
           
           KRATOS_CATCH(" ")
           
-      }//rotational_motion
+      }//rotational_motion            
+      
+      
+      void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part) { //must be done AFTER the translational motion!
+          
+          KRATOS_TRY
+          
+          typedef ModelPart::ElementsContainerType ElementsArrayType;
+          ProcessInfo& rCurrentProcessInfo  = rcluster_model_part.GetProcessInfo();
+          
+          double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+          bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];          
+          bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
+          double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
+          
+          vector<unsigned int> element_partition;
+          ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements(); 
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);                    
+          
+          #pragma omp parallel for
+          for(int k=0; k<(int)OpenMPUtils::GetNumThreads()      ; k++) {
+              typename ElementsArrayType::iterator i_begin = pElements.ptr_begin()+element_partition[k];
+              typename ElementsArrayType::iterator i_end = pElements.ptr_begin()+element_partition[k+1];
+          
+              for (ElementsArrayType::iterator it = i_begin; it != i_end; ++it) {      
+                  Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);   
+                  Node<3>& i = cluster_element.GetGeometry()[0];
+                                    
+                  array_1d<double, 3 >& PMomentOfInertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);                
+
+                  array_1d<double, 3 > & AngularVel             = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                  array_1d<double, 3 > & RotaMoment             = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
+                  array_1d<double, 3 > & Rota_Displace          = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);                  
+                  array_1d<double, 3 > delta_rotation_displ;                    
+                  double Orientation_real;
+                  array_1d<double, 3 >  Orientation_imag;                  
+                  bool If_Fix_Rotation[3] = {false, false, false};
+                  
+                  If_Fix_Rotation[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
+                  If_Fix_Rotation[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
+                  If_Fix_Rotation[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
+                  
+                  for(std::size_t iterator = 0 ; iterator < 3; iterator++) {
+                      if(If_Fix_Rotation[iterator] == false) {
+                          double RotaAcc = 0.0;                          
+                          RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia[iterator]); //WRONG!
+
+                          if(if_virtual_mass_option) {
+                                    RotaAcc = RotaAcc * ( 1 - coeff );
+                          }
+                        
+                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
+                          AngularVel[iterator] += RotaAcc * delta_t;                          
+                          Rota_Displace[iterator] +=  delta_rotation_displ[iterator];                         
+                      }                   
+
+                      else {
+                          AngularVel[iterator] = 0.0;
+                          delta_rotation_displ[iterator]= 0.0;                                            
+                      }
+                  }
+                             
+                  if(if_trihedron_option) {
+                      double theta[3] = {0.0};
+                      
+                      theta[0] = Rota_Displace[0] * 0.5;
+                      theta[1] = Rota_Displace[1] * 0.5;
+                      theta[2] = Rota_Displace[2] * 0.5;                
+
+                      double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
+                      if(thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON){  //Taylor: low angle                      
+                          Orientation_real = 1 + thetaMag * thetaMag / 2;
+                          Orientation_imag[0] = theta[0] * ( 1 - thetaMag * thetaMag / 6 );
+                          Orientation_imag[1] = theta[1] * ( 1 - thetaMag * thetaMag / 6 );
+                          Orientation_imag[2] = theta[2] * ( 1 - thetaMag * thetaMag / 6 );
+                      }
+                      
+                      else {
+                          Orientation_real = cos (thetaMag);
+                          Orientation_imag[0] = (theta[0] / thetaMag) * sin (thetaMag);
+                          Orientation_imag[1] = (theta[1] / thetaMag) * sin (thetaMag);
+                          Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);
+                      }
+                      
+                      array_1d<double,3>& EulerAngles       = i.FastGetSolutionStepValue(EULER_ANGLES);    
+                  
+                      double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
+                      
+                      if ( test > 0.49999999 ) {              // singularity at north pole                     
+                          EulerAngles[0] = 2 * atan2 ( Orientation_imag[0] , Orientation_real );
+                          EulerAngles[1] = pi;
+                          EulerAngles[2] = 0.0;
+                      }
+                      
+                      else if (test < -0.49999999 ){          // singularity at south pole                                       
+                          EulerAngles[0] = -2 * atan2 ( Orientation_imag[0] , Orientation_real );
+                          EulerAngles[1] = -pi;
+                          EulerAngles[2] = 0.0;
+                      }
+
+                      else {                              
+                          EulerAngles[0] = atan2( 2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2] , 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1] );
+                          EulerAngles[1] = asin ( 2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0] );
+                          EulerAngles[2] = -atan2( 2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1] , 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2] );
+                      }                      
+                    }// Trihedron Option                  
+              
+                  
+                  
+                  
+                  //double rotation_matrix[3][3];              
+                  //cluster_element.UpdatePositionOfSpheres(rotation_matrix);   
+              }
+          }
+          
+          KRATOS_CATCH(" ")          
+      }//rotational_motion             
     
 
       /// Turn back information as a string.
