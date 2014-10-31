@@ -494,6 +494,7 @@ public:
 
             pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
         }
+	
 
         if (this->GetEchoLevel() == 3) //if it is needed to print the debug info
         {

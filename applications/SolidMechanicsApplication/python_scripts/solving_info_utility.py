@@ -101,7 +101,7 @@ class SolvingInfoUtility(object):
             if( num_iters < self.max_iters ):
                 total_info = "  [ ITERS="+str(num_iters)
             else:
-                total_info = "  [ NO CONVERGED|ITERS="+str(self.max_iters)
+                total_info = "  [ NOT CONVERGED|ITERS="+str(self.max_iters)
  
             total_info = total_info+"|AVG-ITERS="+str(average_iters)
             total_info = total_info+"|RATIO=%.4e" % convergence_ratio
