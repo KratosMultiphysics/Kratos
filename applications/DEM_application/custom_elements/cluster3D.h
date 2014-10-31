@@ -118,7 +118,7 @@ namespace Kratos
         */
         virtual void Initialize();
         virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
-        virtual void UpdatePositionOfSpheres();
+        virtual void UpdatePositionOfSpheres(double RotationMatrix[3][3]);
         /**
         * this is called during the assembling process in order
         * to calculate all elemental contributions to the global system
