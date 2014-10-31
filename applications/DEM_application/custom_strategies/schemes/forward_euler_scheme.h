@@ -270,6 +270,39 @@ namespace Kratos
       }//rotational_motion            
       
       
+      void GetRotationMatrix(const array_1d<double, 3 > & EulerAngles, double rotation_matrix[3][3]){
+          
+          /** this conversion uses NASA standard aeroplane conventions as described on page:
+            *   http://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
+            *   Coordinate System: right hand
+            *   Positive angle: right hand
+            *   Order of euler angles: heading first, then attitude, then bank
+            *   matrix row column ordering:
+            *   [m00 m01 m02]
+            *   [m10 m11 m12]
+            *   [m20 m21 m22]*/
+            // Assuming the angles are in radians.
+            double ch = cos(EulerAngles[0]);
+            double sh = sin(EulerAngles[0]);
+            double ca = cos(EulerAngles[1]);
+            double sa = sin(EulerAngles[1]);
+            double cb = cos(EulerAngles[2]);
+            double sb = sin(EulerAngles[2]);
+
+            rotation_matrix[0][0] = ch * ca;
+            rotation_matrix[0][1] = sh*sb - ch*sa*cb;
+            rotation_matrix[0][2] = ch*sa*sb + sh*cb;
+            rotation_matrix[1][0] = sa;
+            rotation_matrix[1][1] = ca*cb;
+            rotation_matrix[1][2] = -ca*sb;
+            rotation_matrix[2][0] = -sh*ca;
+            rotation_matrix[2][1] = sh*sa*cb + ch*sb;
+            rotation_matrix[2][2] = -sh*sa*sb + ch*cb;
+            
+            return;
+      }
+      
+      
       void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part) { //must be done AFTER the translational motion!
           
           KRATOS_TRY
@@ -295,12 +328,26 @@ namespace Kratos
                   Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);   
                   Node<3>& i = cluster_element.GetGeometry()[0];
                                     
-                  array_1d<double, 3 >& PMomentOfInertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);                
+                  array_1d<double, 3 >& PMomentsOfInertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);                
 
                   array_1d<double, 3 > & AngularVel             = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
                   array_1d<double, 3 > & RotaMoment             = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
-                  array_1d<double, 3 > & Rota_Displace          = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);                  
+                  array_1d<double, 3 > & Rota_Displace          = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);  
+                  array_1d<double, 3 > & EulerAngles            = i.FastGetSolutionStepValue(EULER_ANGLES);                  
                   array_1d<double, 3 > delta_rotation_displ;                    
+                  
+                  double rotation_matrix[3][3];    
+                  GetRotationMatrix(EulerAngles,rotation_matrix);
+                  
+                  array_1d<double, 3 > LocalAngularVel;
+                  array_1d<double, 3 > LocalRotaAcc;                  
+                  array_1d<double, 3 > LocalRotaMoment;
+                  array_1d<double, 3 > GlobalRotaAcc;
+                  
+                  //Angular velocity and torques are saved in the local framework:
+                  GeometryFunctions::VectorGlobal2Local(rotation_matrix, RotaMoment, LocalRotaMoment);
+                  GeometryFunctions::VectorGlobal2Local(rotation_matrix, AngularVel, LocalAngularVel);
+                  
                   double Orientation_real;
                   array_1d<double, 3 >  Orientation_imag;                  
                   bool If_Fix_Rotation[3] = {false, false, false};
@@ -308,26 +355,29 @@ namespace Kratos
                   If_Fix_Rotation[0] = i.Is(DEMFlags::FIXED_ANG_VEL_X);
                   If_Fix_Rotation[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
                   If_Fix_Rotation[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
-                  
-                  for(std::size_t iterator = 0 ; iterator < 3; iterator++) {
-                      if(If_Fix_Rotation[iterator] == false) {
-                          double RotaAcc = 0.0;                          
-                          RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia[iterator]); //WRONG!
-
-                          if(if_virtual_mass_option) {
-                                    RotaAcc = RotaAcc * ( 1 - coeff );
-                          }
-                        
-                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-                          AngularVel[iterator] += RotaAcc * delta_t;                          
-                          Rota_Displace[iterator] +=  delta_rotation_displ[iterator];                         
-                      }                   
-
-                      else {
-                          AngularVel[iterator] = 0.0;
-                          delta_rotation_displ[iterator]= 0.0;                                            
-                      }
+                                        
+                  for(int i = 0 ; i < 3; i++) {
+                      //Euler equations in Explicit (Forward Euler) scheme:
+                      LocalRotaAcc[i] = ( LocalRotaMoment[i] - ( LocalAngularVel[(i+1)%3]*PMomentsOfInertia[(i+2)%3]*LocalAngularVel[(i+2)%3] - LocalAngularVel[(i+2)%3]*PMomentsOfInertia[(i+1)%3]*LocalAngularVel[(i+1)%3] ) ) / PMomentsOfInertia[i];                          
+                      if(if_virtual_mass_option) {
+                          LocalRotaAcc[i] = LocalRotaAcc[i] * ( 1 - coeff );
+                      }                                                                                                                                       
                   }
+                  
+                  //Angular acceleration is saved in the Global framework:
+                  GeometryFunctions::VectorLocal2Global(rotation_matrix, LocalRotaAcc, GlobalRotaAcc);
+                  
+                  for(int i = 0 ; i < 3; i++) {     
+                      if(If_Fix_Rotation[i] == false) {
+                          delta_rotation_displ[i] = AngularVel[i] * delta_t;
+                          AngularVel[i] += GlobalRotaAcc[i] * delta_t;                          
+                          Rota_Displace[i] +=  delta_rotation_displ[i];   
+                      }
+                      else {
+                          AngularVel[i] = 0.0;
+                          delta_rotation_displ[i]= 0.0;                                            
+                      }
+                  }                                                      
                              
                   if(if_trihedron_option) {
                       double theta[3] = {0.0};
@@ -349,9 +399,7 @@ namespace Kratos
                           Orientation_imag[0] = (theta[0] / thetaMag) * sin (thetaMag);
                           Orientation_imag[1] = (theta[1] / thetaMag) * sin (thetaMag);
                           Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);
-                      }
-                      
-                      array_1d<double,3>& EulerAngles       = i.FastGetSolutionStepValue(EULER_ANGLES);    
+                      }                                              
                   
                       double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
                       
@@ -373,12 +421,8 @@ namespace Kratos
                           EulerAngles[2] = -atan2( 2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1] , 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2] );
                       }                      
                     }// Trihedron Option                  
-              
-                  
-                  
-                  
-                  //double rotation_matrix[3][3];              
-                  //cluster_element.UpdatePositionOfSpheres(rotation_matrix);   
+                                                                                                
+                    cluster_element.UpdatePositionOfSpheres(rotation_matrix);   
               }
           }
           
