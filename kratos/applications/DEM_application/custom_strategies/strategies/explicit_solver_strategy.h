@@ -362,6 +362,21 @@ namespace Kratos
           KRATOS_CATCH("")
       }
       
+      void SendProcessInfoToClustersModelPart(){
+          
+          ProcessInfo& rCurrentProcessInfo         = mpDem_model_part->GetProcessInfo();
+          ProcessInfo& rClustersCurrentProcessInfo = mpCluster_model_part->GetProcessInfo();
+          
+          rCurrentProcessInfo[CONTAINS_CLUSTERS] = false;
+          rClustersCurrentProcessInfo[CONTAINS_CLUSTERS] = true;
+                  
+          rClustersCurrentProcessInfo[ROTATION_OPTION]     = rCurrentProcessInfo[ROTATION_OPTION];    
+          rClustersCurrentProcessInfo[DELTA_TIME]          = rCurrentProcessInfo[DELTA_TIME];
+          rClustersCurrentProcessInfo[VIRTUAL_MASS_OPTION] = rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+          rClustersCurrentProcessInfo[TRIHEDRON_OPTION]    = rCurrentProcessInfo[TRIHEDRON_OPTION];
+          rClustersCurrentProcessInfo[NODAL_MASS_COEFF]    = rCurrentProcessInfo[NODAL_MASS_COEFF];                        
+      }
+      
       virtual void Initialize()
       {
           KRATOS_TRY
@@ -369,6 +384,7 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+          SendProcessInfoToClustersModelPart();          
                     
           // Omp initializations
           GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
@@ -620,6 +636,7 @@ namespace Kratos
           ModelPart& r_model_part = BaseType::GetModelPart();
 
           GetScheme()->Calculate(r_model_part);
+          GetScheme()->Calculate(*mpCluster_model_part);
 
           KRATOS_CATCH("")
       }
