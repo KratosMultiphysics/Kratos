@@ -51,7 +51,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double,DUMMY_DEBUG_DOUBLE)
   KRATOS_DEFINE_VARIABLE(int, DUMMY_DEBUG_INT)
   KRATOS_DEFINE_VARIABLE(int, PARTICLE_ID)
-  
+  KRATOS_DEFINE_VARIABLE(bool, CONTAINS_CLUSTERS)
     
 
   // *************** Continuum only BEGIN *************
