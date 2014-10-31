@@ -24,7 +24,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                  deformed_mesh,
                  write_conditions)
 
-    def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, FEM_DEM_model_part, mixed_model_part):
+    def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
             print("Singlefile option is not available for the swimming DEM application!")
@@ -32,7 +32,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.InitializeMesh(mesh_name)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
             self.io.WriteMesh(clusters_model_part.GetMesh())
-            self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
+            self.io.WriteMesh(rigid_faces_model_part.GetMesh())
             self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(mesh_name, mixed_model_part.GetMesh())
@@ -58,7 +58,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                                   fluid_model_part,
                                   DEM_model_part,
                                   clusters_model_part,
-                                  FEM_DEM_model_part,
+                                  rigid_faces_model_part,
                                   mixed_model_part,
                                   fluid_nodal_variables,
                                   DEM_nodal_variables,
@@ -76,25 +76,30 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self.io.InitializeMesh(label)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
-            self.io.WriteSphereMesh(clusters_model_part.GetMesh())
             self.io.WriteMesh(mixed_model_part.GetMesh())
-            self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
+            self.io.WriteMesh(rigid_faces_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(label, mixed_model_part.GetMesh())
-
+        print("FLUID  ..................................................")
         for var in fluid_nodal_variables:
+            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, fluid_model_part, kratos_variable)
 
+        print("DEM  ..................................................")
+
         for var in DEM_nodal_variables:
+            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, DEM_model_part, kratos_variable)
-
+        print("clusters  ..................................................")
         for var in cluster_variables:
+            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, clusters_model_part, kratos_variable)
-
+        print("mixed  ..................................................")
         for var in mixed_nodal_variables:
+            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, mixed_model_part, kratos_variable)
 
