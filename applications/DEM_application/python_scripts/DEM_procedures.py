@@ -745,10 +745,11 @@ class DEMIo(object):
         for mfilelist in self.multifilelists:
             mfilelist.file.write("Multiple\n")
 
-    def PrintMultifileLists(self,time):
+    def PrintMultifileLists(self,time, post_path):
         for mfilelist in self.multifilelists:
             if mfilelist.index == mfilelist.step:
-                mfilelist.file.write(mfilelist.name+"_"+str(time)+".post.bin\n")
+                mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(time)+".post.bin\n")
+                mfilelist.file.flush()
                 mfilelist.index = 0
             mfilelist.index += 1
 
