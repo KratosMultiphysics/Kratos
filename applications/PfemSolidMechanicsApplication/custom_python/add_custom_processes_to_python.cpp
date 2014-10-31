@@ -49,14 +49,14 @@ namespace Kratos
       
       class_<NodalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "NodalNeighboursSearch", init<ModelPart&, unsigned int, unsigned int, unsigned int, int>()
+	 "NodalNeighboursSearch", init<ModelPart&, int, int, int, int>()
 	 )
 	.def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
 	;
       
       class_<ElementalNeighboursSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "ElementalNeighboursSearch", init<ModelPart&, unsigned  int, unsigned int, unsigned int, int>()
+	 "ElementalNeighboursSearch", init<ModelPart&, int, int, int, int>()
 	 )
 	.def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
 	;

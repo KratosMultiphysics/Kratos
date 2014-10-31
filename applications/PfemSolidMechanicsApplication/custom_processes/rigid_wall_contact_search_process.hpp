@@ -143,7 +143,9 @@ public:
       for(unsigned int m=0; m<rMeshes.size(); m++){
 	
 	if( rMeshes[m].Is(RIGID) ){
+
 	  RigidBodyPresent = true;
+
 	  for(ModelPart::ElementsContainerType::iterator ie = rMeshes[m].ElementsBegin(); ie!=rMeshes[m].ElementsEnd(); ie++){
 	    
 	    for( unsigned int i=0; i<ie->GetGeometry().size(); i++ )
@@ -152,11 +154,10 @@ public:
 	      }
 	  }
 	}
+
       }
-      
 
       //Check RIGID walls and search contacts
-
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
 	  if( (*nd)->SolutionStepsDataHas(RIGID_WALL) ){
@@ -188,8 +189,12 @@ public:
 	  //if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(RIGID) ){
 	  if( (*nd)->Is(BOUNDARY) ){
 
-	    if( (*nd)->IsNot(RIGID) ){//rigid wall contacting with a deformable body 
+	    if( (*nd)->IsNot(RIGID) && !RigidBodyPresent ){//rigid wall contacting with a deformable body 
 	      
+	      //to perform contact with a tube radius must be set
+	      mpRigidWall->SetRadius( (*nd)->GetValue(MEAN_RADIUS) );
+
+
 	      if( mpRigidWall->IsInside(Point,Time) ){
 
 		//std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
@@ -213,7 +218,7 @@ public:
 		}
 		else if( mpRigidWall->GetDimension() == 3 ){
 		
-		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));		  
 
 		  //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 
@@ -231,9 +236,15 @@ public:
 		id +=1;
 	      }
 	    }
-	    else{
+	    else{ //rigid wall contacting with a rigid body 
 	      
-	      if( RigidBodyPresent ){  //rigid wall contacting with a rigid body
+
+	      if( (*nd)->IsNot(RIGID) ){
+		
+		//to perform contact with a tube radius must be set
+		double radius = 0;
+		mpRigidWall->SetRadius( radius );
+
 
 		if( mpRigidWall->IsInside(Point,Time) ){
 		
@@ -265,14 +276,15 @@ public:
 		  mrModelPart.Conditions(MeshId).push_back(p_cond);
 		
 		  id +=1;
-
 		}
+		  
 	      }
 	      
 	    }
 	  }
 	}
-      
+
+           
       if( mEchoLevel > 0 )
 	std::cout<<"  [ Rigid Contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
 

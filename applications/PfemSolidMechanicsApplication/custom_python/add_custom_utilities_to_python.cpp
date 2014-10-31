@@ -60,15 +60,17 @@ namespace Kratos
       //***************NORMALS**************//
 
       // This is required to recognize the different overloads 
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalcBoundShrinkage)(ModelPart&, int);
-      typedef  void (BoundaryNormalsCalculationUtilities::*CalcBoundClassical)(ModelPart&, int); 
+      typedef  void (BoundaryNormalsCalculationUtilities::*CalculateMeshBoundaryNormals)(ModelPart&, int, int);
+      typedef  void (BoundaryNormalsCalculationUtilities::*CalculateMeshUnitBoundaryNormals)(ModelPart&, int, int); 
 
-      CalcBoundShrinkage      CalcBoundNormals_Shrinkage     = &BoundaryNormalsCalculationUtilities::CalculateBoundaryNormals;
-      CalcBoundClassical      CalcBoundNormals_Classical     = &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals;
+      CalculateMeshBoundaryNormals          CalculateMeshNormals     = &BoundaryNormalsCalculationUtilities::CalculateMeshBoundaryNormals;
+      CalculateMeshUnitBoundaryNormals      CalculateMeshUnitNormals = &BoundaryNormalsCalculationUtilities::CalculateMeshUnitBoundaryNormals;
       
       class_<BoundaryNormalsCalculationUtilities > ("BoundaryNormalsCalculation", init<>())
-	.def("CalculateBoundaryNormals", CalcBoundNormals_Shrinkage)
-	.def("CalculateBoundaryUnitNormals", CalcBoundNormals_Classical)
+	.def("CalculateBoundaryNormals", &BoundaryNormalsCalculationUtilities::CalculateBoundaryNormals)
+	.def("CalculateBoundaryUnitNormals", &BoundaryNormalsCalculationUtilities::CalculateUnitBoundaryNormals)
+	.def("CalculateMeshBoundaryNormals", CalculateMeshNormals)
+	.def("CalculateMeshBoundaryUnitNormals", CalculateMeshUnitNormals)
 	;
 
 

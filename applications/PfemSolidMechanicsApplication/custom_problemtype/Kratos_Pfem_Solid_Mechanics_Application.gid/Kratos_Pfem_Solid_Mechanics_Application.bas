@@ -274,23 +274,29 @@ End Conditions
 
 *Set cond group_RigidWalls *groups
 *if(CondNumEntities > 0)
-Begin Conditions WallCondition2D
-*#// id prop_id	 n1	n2	n3	...
 *loop groups *OnlyInCond
+*if(strcmp(cond(Contact_Condition),"3D")==0)
+Begin Conditions WallCondition3D
+*else
+Begin Conditions WallCondition2D
+*endif
+*#// id prop_id	 n1	n2	n3	...
 *set group *GroupName *elems
 *loop elems *onlyingroup
 *set var icond=operation(icond+1)
 *set var i=0
 *set var j=ElemsNnode
-*format "%i%i%i%i"
+*format "%i%i%i%i%i"
 *icond *ElemsMat *\
 *for(i=1;i<=j;i=i+1)*\
  *ElemsConec(*i)*\
 *end
 
 *end elems
-*end groups
 End Conditions
+
+*end groups
+
 
 *endif
 *# Variable Blocks

@@ -128,7 +128,7 @@ VALUE: False
 DEPENDENCIES:(False,HIDE,List_Files,#CURRENT#)
 DEPENDENCIES:(True,RESTORE,List_Files,#CURRENT#)
 QUESTION: List_Files:(File_Intervals)
-VALUE: #N# 1 10
+VALUE: #N# 1 2
 QUESTION: Print_Restart#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(False,HIDE,Restart_Frequency,#CURRENT#)
