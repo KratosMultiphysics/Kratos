@@ -85,13 +85,13 @@ def ConstructListsOfVariables(pp):
     # clusters variables
     pp.clusters_vars = []
 
-    # fem-dem variables
-    pp.fem_dem_vars = [VELOCITY, DISPLACEMENT, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]                  
+    # rigid faces variables
+    pp.rigid_faces_vars = [VELOCITY, DISPLACEMENT, ELASTIC_FORCES, PRESSURE, TANGENTIAL_ELASTIC_FORCES, SHEAR_STRESS, NODAL_AREA]
 
     if (pp.embedded_option):
-        pp.fem_dem_vars += [FORCE]
-        pp.fem_dem_vars += [POSITIVE_FACE_PRESSURE]
-        pp.fem_dem_vars += [NEGATIVE_FACE_PRESSURE]
+        pp.rigid_faces_vars += [FORCE]
+        pp.rigid_faces_vars += [POSITIVE_FACE_PRESSURE]
+        pp.rigid_faces_vars += [NEGATIVE_FACE_PRESSURE]
 
     # inlet variables
     pp.inlet_vars = pp.dem_vars
@@ -176,6 +176,7 @@ def ConstructListsOfResultsToPrint(pp):
         pp.nodal_results.remove("PRESSURE")
 
     EliminateRepeatedValuesFromList(pp.nodal_results)
+    EliminateRepeatedValuesFromList(pp.dem_nodal_results)
     EliminateRepeatedValuesFromList(pp.mixed_nodal_results)
 
 def ConstructListsOfVariablesForCoupling(pp):

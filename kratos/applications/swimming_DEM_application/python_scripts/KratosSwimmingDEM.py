@@ -78,7 +78,8 @@ pp.print_BODY_FORCE_option                = 1
 pp.print_HYDRODYNAMIC_REACTION_option     = 1
 pp.print_HYDRODYNAMIC_FORCE_option        = 1
 pp.print_PRESSURE_option                  = 1
-pp.print_particles_results_cycle          = 10
+pp.print_particles_results_cycle          = 1 # number of 'ticks' per printing cycle
+pp.debug_tool_cycle                       = 10 # number of 'ticks' per bebug computations cycle
 pp.similarity_transformation_type         = 0 # no transformation (0), Tsuji (1)
 pp.dem_inlet_element_type                 = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 pp.fluid_model_type                       = 0 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)
@@ -186,7 +187,7 @@ vars_man.AddNodalVariables(clusters_model_part, pp.clusters_vars)
 print('Adding nodal variables to the rigid_faces_model_part')  # (memory allocation)
 sys.stdout.flush()
 
-vars_man.AddNodalVariables(rigid_faces_model_part, pp.fem_dem_vars)
+vars_man.AddNodalVariables(rigid_faces_model_part, pp.rigid_faces_vars)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
@@ -532,7 +533,7 @@ DEM_to_fluid_counter      = swim_proc.Counter(1, 1, pp.coupling_level_type == 1)
 pressure_gradient_counter = swim_proc.Counter(1, 1, pp.projection_module_option)
 stationarity_counter      = swim_proc.Counter(pp.time_steps_per_stationarity_step, 1, pp.stationary_problem_option)
 print_counter             = swim_proc.Counter(1, 1, out >= output_time)
-debug_info_counter        = swim_proc.Counter(20, 1, pp.print_debug_info_option)
+debug_info_counter        = swim_proc.Counter(pp.debug_tool_cycle , 1, pp.print_debug_info_option)
 particles_results_counter = swim_proc.Counter(pp.print_particles_results_cycle, 1, pp.print_particles_results_option)
 
 DEM_step     = 0      # necessary to get a good random insertion of particles   # relevant to the stationarity assessment tool

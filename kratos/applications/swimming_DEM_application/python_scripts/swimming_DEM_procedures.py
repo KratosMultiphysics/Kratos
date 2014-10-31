@@ -8,7 +8,7 @@ from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
 
-def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_model_part):
+def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
     max_id = 1
     renumerate = False
@@ -32,7 +32,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_m
         for node in dem_model_part.Nodes:
             node.Id += max_id
 
-        for node in fem_dem_model_part.Nodes:
+        for node in rigid_faces_model_part.Nodes:
             node.Id += max_id
 
 def SetModelPartSolutionStepValue(model_part, var, value):
@@ -337,17 +337,17 @@ class PostUtils:
                  fluid_model_part,
                  balls_model_part,
                  clusters_model_part,
-                 fem_dem_model_part,
+                 rigid_faces_model_part,
                  mixed_model_part):
 
-        self.gid_io              = gid_io
-        self.fluid_model_part    = fluid_model_part
-        self.balls_model_part    = balls_model_part
-        self.clusters_model_part = clusters_model_part
-        self.fem_dem_model_part  = fem_dem_model_part
-        self.mixed_model_part    = mixed_model_part
-        self.pp                  = project_parameters
-        self.post_utilities      = PostUtilities()
+        self.gid_io                 = gid_io
+        self.fluid_model_part       = fluid_model_part
+        self.balls_model_part       = balls_model_part
+        self.clusters_model_part    = clusters_model_part
+        self.rigid_faces_model_part = rigid_faces_model_part
+        self.mixed_model_part       = mixed_model_part
+        self.pp                     = project_parameters
+        self.post_utilities         = PostUtilities()
 
     def Writeresults(self, time):
 
@@ -360,10 +360,10 @@ class PostUtils:
             self.mixed_model_part.Nodes.clear()
             # here order is important!
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.balls_model_part)
-            self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fem_dem_model_part)
+            self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fluid_model_part)
 
-        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.fem_dem_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
+        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.rigid_faces_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
