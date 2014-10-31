@@ -329,7 +329,7 @@ while ( time < DEM_parameters.FinalTime):
         #properties_list = ProceduresMonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
         os.chdir(list_path)
-        demio.PrintMultifileLists(time)
+        demio.PrintMultifileLists(time,post_path)
         os.chdir(main_path)
 
         os.chdir(post_path)
