@@ -683,12 +683,16 @@ class DEMIo(object):
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.ball_variables)
      
     def AddFEMBoundaryVariables(self):
-        pass
+        #pass
         #self.PushPrintVar(DEM_parameters.PostWallsElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
         #self.PushPrintVar(DEM_parameters.PostWallsPressure,                PRESSURE, self.fem_boundary_variables)
         #self.PushPrintVar(DEM_parameters.PostWallsTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         #self.PushPrintVar(DEM_parameters.PostWallsShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
         #self.PushPrintVar(DEM_parameters.PostWallsNodalArea,               NODAL_AREA, self.fem_boundary_variables)
+        self.PushPrintVar( 1,                                               ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar( 1,                                               PRESSURE, self.fem_boundary_variables)
+        self.PushPrintVar( 1,                                               TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar( 1,                                               SHEAR_STRESS, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
         pass
