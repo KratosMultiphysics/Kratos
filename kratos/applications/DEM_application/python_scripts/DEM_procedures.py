@@ -165,9 +165,25 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
         if(DEM_parameters.PostGroupId):
-            model_part.AddNodalSolutionStepVariable(GROUP_ID)
+            model_part.AddNodalSolutionStepVariable(GROUP_ID)            
+     
+    def AddClusterVariables(self, model_part, DEM_parameters):
+            # KINEMATIC
+        model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        
+        # FORCES
+        model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+        
+        model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
+        model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)     
+        model_part.AddNodalSolutionStepVariable(RADIUS) #should be CARACTERISTIC_LENGTH
+
 
     def AddMpiVariables(self, model_part):
         pass
@@ -770,7 +786,7 @@ class DEMIo(object):
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
-            self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
+            #self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(0.0) 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
@@ -791,14 +807,14 @@ class DEMIo(object):
             if (self.contact_mesh_option == "ON"):                
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
-            self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
+            #self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
 
             self.gid_io.InitializeMesh(time) 
             self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteSphereMesh(cluster_model_part.GetCommunicator().LocalMesh())
+            #self.gid_io.WriteSphereMesh(cluster_model_part.GetCommunicator().LocalMesh())
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
