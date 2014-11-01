@@ -96,7 +96,7 @@ public:
     
     int FindMaxNodeIdInModelPart(ModelPart& r_modelpart){
         
-        unsigned int max_Id = 0;
+        unsigned int max_Id = 1; //GID accepts Id's >= 1
         for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.GetCommunicator().LocalMesh().NodesBegin(); node_it != r_modelpart.GetCommunicator().LocalMesh().NodesEnd(); node_it++){
 	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
 	}      
@@ -274,10 +274,11 @@ public:
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_X,true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Y,true);
         pnew_node->Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+        pnew_node->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
 
     }           
     
-    void ElementCreatorForClusters( ModelPart& r_modelpart, 
+    Kratos::SphericParticle* ElementCreatorForClusters( ModelPart& r_modelpart, 
                                     int r_Elem_Id, 
                                     double radius,
                                     array_1d<double, 3 >& reference_coordinates, 
@@ -304,6 +305,7 @@ public:
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
 
         r_modelpart.Elements().push_back(p_particle);
+        return spheric_p_particle;
     }
 
     void CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part, ModelPart& r_clusters_model_part, ModelPart& r_rigid_faces_model_part, double scale_factor, bool automatic)
@@ -540,6 +542,8 @@ public:
       
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
+          
+          if( (*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER) ) continue;
 
           array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()(0)->Coordinates();
           bool include=true;            
@@ -558,6 +562,7 @@ public:
       for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin();
               node_pointer_it != rNodes.ptr_end(); ++node_pointer_it){
 
+          if( (*node_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER) ) continue;
           array_1d<double, 3 > coor = (*node_pointer_it)->Coordinates();
           bool include=true;            
           
@@ -605,7 +610,7 @@ public:
       KRATOS_CATCH("")
     }
     
-    void DestroyBallsOutsideBoundingBox(ModelPart& r_model_part)
+    void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part)
     {
        MarkDistantParticlesForErasing(r_model_part);
        DestroyParticles( r_model_part);
@@ -662,6 +667,12 @@ public:
     {
         mLowPoint = node;
     }
+    
+    unsigned int GetCurrentMaxNodeId()
+    {
+        return mMaxNodeId;
+    }
+    
     void SetMaxNodeId(unsigned int id)
     {
         mMaxNodeId = id;
