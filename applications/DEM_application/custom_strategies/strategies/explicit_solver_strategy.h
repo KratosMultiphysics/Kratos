@@ -377,6 +377,16 @@ namespace Kratos
           rClustersCurrentProcessInfo[NODAL_MASS_COEFF]    = rCurrentProcessInfo[NODAL_MASS_COEFF];                        
       }
       
+      void UpdateMaxIdOfCreatorDestructor(){
+          ModelPart& r_model_part            = BaseType::GetModelPart();
+          int max_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( r_model_part );
+          int max_FEM_Id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart( *mpFem_model_part );
+          
+          max_Id = std::max(max_Id, max_FEM_Id);                    
+          mpParticleCreatorDestructor->SetMaxNodeId(max_Id);
+          
+      }
+      
       virtual void Initialize()
       {
           KRATOS_TRY
@@ -400,6 +410,7 @@ namespace Kratos
           InitializeSolutionStep();
           InitializeElements();                    
           InitializeFEMElements();
+          UpdateMaxIdOfCreatorDestructor();
           InitializeClusters(); /// This adds elements to the balls modelpart
 
           mInitializeWasPerformed = true;
@@ -672,9 +683,9 @@ namespace Kratos
       {
           KRATOS_TRY
           
-          ModelPart& r_model_part = BaseType::GetModelPart();
-          mpParticleCreatorDestructor->MarkDistantParticlesForErasing(r_model_part);
-          mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+          ModelPart& r_model_part = BaseType::GetModelPart();          
+          mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(r_model_part);
+          mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox(*mpCluster_model_part);
 
           KRATOS_CATCH("")
       }
