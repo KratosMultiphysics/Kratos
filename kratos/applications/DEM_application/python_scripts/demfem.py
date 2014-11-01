@@ -426,7 +426,7 @@ while ( time < DEM_parameters.FinalTime):
 
     if ( time_to_print >= DEM_parameters.OutputTimeStep):
         
-        creator_destructor.DestroyBallsOutsideBoundingBox(dem_model_part)
+        creator_destructor.DestroyParticlesOutsideBoundingBox(dem_model_part)
         if (DEM_parameters.ContactMeshOption == "ON"):
             creator_destructor.DestroyContactElementsOutsideBoundingBox(dem_model_part,contact_model_part)
         
