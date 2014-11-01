@@ -996,6 +996,53 @@ namespace Kratos
         return If_Conact;
           
      }
+    
+     static inline void GetRotationMatrix(const array_1d<double, 3 > & EulerAngles, double rotation_matrix[3][3]){                    
+         
+            double cosA=cos(EulerAngles[0]);
+            double sinA=sin(EulerAngles[0]);
+            double cosB=cos(EulerAngles[1]);
+            double sinB=sin(EulerAngles[1]);
+            double cosC=cos(EulerAngles[2]);
+            double sinC=sin(EulerAngles[2]);
+         
+            rotation_matrix[0][0] = cosC*cosA - cosB*sinA*sinC;
+            rotation_matrix[0][1] = -sinC*cosA - cosB*sinA*cosC;
+            rotation_matrix[0][2] = sinB*sinA;
+            rotation_matrix[1][0] = cosC*sinA + cosB*cosA*sinC;
+            rotation_matrix[1][1] = -sinC*sinA + cosB*cosA*cosC;
+            rotation_matrix[1][2] = -sinB*cosA;
+            rotation_matrix[2][0] = sinC*sinB;
+            rotation_matrix[2][1] = cosC*sinB;
+            rotation_matrix[2][2] = cosB;
+
+            return;
+      }
+     
+      static inline void GetEulerAngles(const double rotation_matrix[3][3], array_1d<double, 3 > & EulerAngles){
+          
+            if (rotation_matrix[2][2] < 1.0) {
+                if (rotation_matrix[2][2] > -1.0) {
+                    EulerAngles[0] = atan2(rotation_matrix[0][2], -rotation_matrix[1][2]);
+                    EulerAngles[1] = acos(rotation_matrix[2][2]);
+                    EulerAngles[2] = atan2(rotation_matrix[2][0], rotation_matrix[2][1]);
+                } else // r22 = -1
+                {
+                    // Not a unique solution: thetaZ1 - thetaZ0 = atan2(-r01,r00)
+                    EulerAngles[0] = -atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
+                    EulerAngles[1] = KRATOS_M_PI;
+                    EulerAngles[2] = 0;
+                }
+            } else // r22 = +1
+            {
+                // Not a unique solution: thetaZ1 + thetaZ0 = atan2(-r01,r00)
+                EulerAngles[0] = atan2(-rotation_matrix[0][1], rotation_matrix[0][0]);
+                EulerAngles[1] = 0;
+                EulerAngles[2] = 0;
+            }
+            
+            return;
+      }
      
     
     } //namespace GeometryFunctions
