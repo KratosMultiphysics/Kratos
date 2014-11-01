@@ -122,7 +122,7 @@ void  AddCustomUtilitiesToPython(){
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
-        .def("DestroyBallsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyBallsOutsideBoundingBox)
+        .def("DestroyParticlesOutsideBoundingBox", &ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox)
         .def("DestroyContactElementsOutsideBoundingBox", &ParticleCreatorDestructor::DestroyContactElementsOutsideBoundingBox)
         .def("FindMaxNodeIdInModelPart", &ParticleCreatorDestructor::FindMaxNodeIdInModelPart)
         ;
