@@ -252,18 +252,17 @@ namespace Kratos
         ///@name Protected member Variables 
         ///@{
         
-        double                               mSqrtOfRealMass;
-        std::vector< array_1d<double, 3> >   mVelocity;
-        std::vector< array_1d<double, 3> >   mTotalForces;
-        std::vector< array_1d<double, 3> >   mAngularVelocity;
-        std::vector< array_1d<double, 3> >   mParticleMoment;
-        std::vector< array_1d<double, 3> >   mPrincipalMomentsOfInertia;
-        std::vector< array_1d<double, 3> >   mEulerAngles;
+        double                             mSqrtOfRealMass;
+        array_1d<double, 3>                mVelocity;
+        array_1d<double, 3>                mTotalForces;
+        array_1d<double, 3>                mAngularVelocity;
+        array_1d<double, 3>                mParticleMoment;
+        array_1d<double, 3>                mPrincipalMomentsOfInertia;
+        array_1d<double, 3>                mEulerAngles;
         
-        std::vector<double>                  mListOfRadii;
-        std::vector<double>                  mListOfCoordinates;
-        
-        std::vector<SphericParticle*>        mListOfSphericParticles;
+        std::vector<double>                mListOfRadii;
+        std::vector<array_1d<double, 3> >  mListOfCoordinates;        
+        std::vector<SphericParticle*>      mListOfSphericParticles;
         
         
         ///@} 

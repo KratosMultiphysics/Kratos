@@ -52,67 +52,70 @@ namespace Kratos {
     Cluster3D::~Cluster3D() {}
 
       
-    void Cluster3D::Initialize() {
-    
-        KRATOS_TRY
-
-        array_1d<double, 3> velocity                  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3> totalforces               = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
-        double sqrt_of_mass                           = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-        mSqrtOfRealMass                               = sqrt_of_mass;
-        array_1d<double, 3> angularvelocity           = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3> particlemoment            = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-        array_1d<double, 3> principalmomentsofinertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-        array_1d<double, 3> eulerangles               = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);
-                
-        KRATOS_CATCH("")
-    
-    }
+    void Cluster3D::Initialize() {}
         
       
-    void Cluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part) {
-          
+    void Cluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part){
+        
         KRATOS_TRY 
+                
+        unsigned int max_Id=p_creator_destructor->GetCurrentMaxNodeId();  //must have been found
           
         std::string ElementNameString = "SphericParticle3D";
             
         //We now create a spheric particle and keep it as a reference to an Element
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
-        Node<3>& lele = GetGeometry()[0]; //NODE
+        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         
-        array_1d<double, 3> pepito;
+        array_1d<double, 3> coordinates_of_sphere;
+        array_1d<double, 3> global_relative_coordinates;
+        double radius_of_sphere;
         
-        double r, s, t, R;
-        
-        for (int i = 1; i <= 250; i++) {
-                    
-            r = ((double) rand() / (RAND_MAX)) + 1;
-            s = ((double) rand() / (RAND_MAX)) + 1;
-            t = r - s;
-            pepito[0]  = lele.Coordinates()[0] + t;
+        double rotation_matrix[3][3];
+        GeometryFunctions::GetRotationMatrix(mEulerAngles, rotation_matrix);
+                
+        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             
-            r = ((double) rand() / (RAND_MAX)) + 1;
-            s = ((double) rand() / (RAND_MAX)) + 1;
-            t = r - s;
-            pepito[1]  = lele.Coordinates()[1] + t;
+            GeometryFunctions::VectorLocal2Global(rotation_matrix, mListOfCoordinates[i], global_relative_coordinates);
+            coordinates_of_sphere[0]= central_node.Coordinates()[0] + global_relative_coordinates[0];
+            coordinates_of_sphere[1]= central_node.Coordinates()[1] + global_relative_coordinates[1];
+            coordinates_of_sphere[2]= central_node.Coordinates()[2] + global_relative_coordinates[2];    
             
-            r = ((double) rand() / (RAND_MAX)) + 1;
-            s = ((double) rand() / (RAND_MAX)) + 1;
-            t = r - s;
-            pepito[2]  = lele.Coordinates()[2] + t;
-            
-            R = 0.5 * (double) rand() / (RAND_MAX);
+            radius_of_sphere = mListOfRadii[i];   
+            max_Id++;
              
-            p_creator_destructor->ElementCreatorForClusters(dem_model_part,
-            i, R, pepito, 100.0, this->pGetProperties(), r_reference_element);
+            Kratos::SphericParticle* new_sphere = p_creator_destructor->ElementCreatorForClusters  (dem_model_part, 
+                                                                                                    max_Id, 
+                                                                                                    radius_of_sphere, 
+                                                                                                    coordinates_of_sphere, 
+                                                                                                    mSqrtOfRealMass, 
+                                                                                                    this->pGetProperties(), 
+                                                                                                    r_reference_element);
+            
+            p_creator_destructor->SetMaxNodeId(max_Id);       
+            mListOfSphericParticles[i] = new_sphere;
+            
         }
                 
         KRATOS_CATCH("")
-        
     }
       
-    void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3]) {}
+    void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3]) {
+        
+        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
+        array_1d<double, 3> global_relative_coordinates;
+        
+        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+            
+            GeometryFunctions::VectorLocal2Global(RotationMatrix, mListOfCoordinates[i], global_relative_coordinates);
+            array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
+            sphere_position[0]= central_node.Coordinates()[0] + global_relative_coordinates[0];
+            sphere_position[1]= central_node.Coordinates()[1] + global_relative_coordinates[1];
+            sphere_position[2]= central_node.Coordinates()[2] + global_relative_coordinates[2];                        
+            
+        }                        
+    }
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
