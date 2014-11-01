@@ -71,7 +71,7 @@ procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 SolverStrategy.AddFEMVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
 procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
-SolverStrategy.AddClusterVariables(cluster_model_part, DEM_parameters)
+procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
 procedures.AddMpiVariables(cluster_model_part)
 
 # Reading the model_part
@@ -315,12 +315,13 @@ while ( time < DEM_parameters.FinalTime):
 
     if ( time_to_print >= DEM_parameters.OutputTimeStep):
         
-        creator_destructor.DestroyBallsOutsideBoundingBox(balls_model_part)
+        creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
         if (DEM_parameters.ContactMeshOption == "ON"):
             creator_destructor.DestroyContactElementsOutsideBoundingBox(balls_model_part,contact_model_part)
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(balls_model_part.NumberOfElements(0)) + " elements)")
+        KRATOSprint("                        ("+ str(balls_model_part.NumberOfNodes(0)) + " nodes)")
         KRATOSprint("")
         sys.stdout.flush()
 
