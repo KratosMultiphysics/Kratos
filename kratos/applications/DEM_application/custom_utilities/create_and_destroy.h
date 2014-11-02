@@ -284,7 +284,8 @@ public:
                                     array_1d<double, 3 >& reference_coordinates, 
                                     double sqrt_of_cluster_mass,
                                     Properties::Pointer r_params, 
-                                    const Element& r_reference_element) {          
+                                    const Element& r_reference_element,
+                                    const int cluster_id) {          
 
         Node <3> ::Pointer pnew_node;
 
@@ -303,6 +304,7 @@ public:
 
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
+        spheric_p_particle->SetClusterId(cluster_id);
 
         r_modelpart.Elements().push_back(p_particle);
         return spheric_p_particle;

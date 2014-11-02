@@ -58,6 +58,8 @@ namespace Kratos {
     void Cluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part){
         
         KRATOS_TRY 
+        
+        int cluster_id = (int) this->Id();
                 
         unsigned int max_Id=p_creator_destructor->GetCurrentMaxNodeId();  //must have been found
           
@@ -91,7 +93,8 @@ namespace Kratos {
                                                                                                     coordinates_of_sphere, 
                                                                                                     mSqrtOfRealMass, 
                                                                                                     this->pGetProperties(), 
-                                                                                                    r_reference_element);
+                                                                                                    r_reference_element,
+                                                                                                    cluster_id);
             
             p_creator_destructor->SetMaxNodeId(max_Id);       
             mListOfSphericParticles[i] = new_sphere;
@@ -104,17 +107,60 @@ namespace Kratos {
     void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3]) {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
-        array_1d<double, 3> global_relative_coordinates;
+        array_1d<double, 3> global_relative_coordinates;      
+        array_1d<double, 3> linear_vel_due_to_rotation;
+        array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3>& cluster_angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             
             GeometryFunctions::VectorLocal2Global(RotationMatrix, mListOfCoordinates[i], global_relative_coordinates);
             array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
-            sphere_position[0]= central_node.Coordinates()[0] + global_relative_coordinates[0];
-            sphere_position[1]= central_node.Coordinates()[1] + global_relative_coordinates[1];
-            sphere_position[2]= central_node.Coordinates()[2] + global_relative_coordinates[2];                        
+            sphere_position= central_node.Coordinates() + global_relative_coordinates;
+            
+            GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
+            
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = cluster_velocity + linear_vel_due_to_rotation;
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) = cluster_angular_velocity;
             
         }                        
+    }
+    
+    void Cluster3D::CollectForcesAndTorquesFromSpheres() {
+        
+        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
+        array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);        
+        array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+        center_forces[0]= center_forces[1]= center_forces[2]= center_torque[0]= center_torque[1]= center_torque[2]= 0.0;
+        
+        array_1d<double, 3> center_to_sphere_vector;
+        array_1d<double, 3> additional_torque;
+        
+        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+            
+            array_1d<double, 3>& particle_forces = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);  
+            center_forces += particle_forces;                      
+            //center_torque += mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+                        
+            //Now adding the torque due to the eccentric forces (spheres are not on the center of the cluster)
+            array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
+            center_to_sphere_vector = sphere_position - central_node.Coordinates();
+            GeometryFunctions::CrossProduct( center_to_sphere_vector, particle_forces, additional_torque );
+            center_torque += additional_torque;
+            
+        }
+        
+    }
+    
+    void  Cluster3D::GetClustersForce( const array_1d<double,3>& gravity ) {
+        
+        CollectForcesAndTorquesFromSpheres();
+        ComputeAdditionalForces( gravity );
+    }
+    
+    void  Cluster3D::ComputeAdditionalForces( const array_1d<double,3>& gravity ){
+        double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+        GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) += mass * gravity;                        
     }
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
