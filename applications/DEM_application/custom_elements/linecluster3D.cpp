@@ -54,38 +54,33 @@ namespace Kratos {
       
     void LineCluster3D::Initialize() {
         
-        int number_of_spheres=4;
+        int number_of_spheres=6;
         mListOfRadii.resize(number_of_spheres);
         mListOfCoordinates.resize(number_of_spheres);
         mListOfSphericParticles.resize(number_of_spheres);
         
         mListOfRadii[0]=0.1;
-        mListOfRadii[1]=0.15;
-        mListOfRadii[2]=0.13;   
-        mListOfRadii[3]=0.12;
+        mListOfRadii[1]=0.1;
+        mListOfRadii[2]=0.1;   
+        mListOfRadii[3]=0.1;
+        mListOfRadii[4]=0.1;
+        mListOfRadii[5]=0.1;
         
-        mListOfCoordinates[0][0] =-0.3; mListOfCoordinates[0][1] = 0.0; mListOfCoordinates[0][2] = 0.0;
-        mListOfCoordinates[1][0] = 0.0; mListOfCoordinates[1][1] = 0.0; mListOfCoordinates[1][2] = 0.0;
-        mListOfCoordinates[2][0] = 0.4; mListOfCoordinates[2][1] = 0.0; mListOfCoordinates[2][2] = 0.0;
-        mListOfCoordinates[3][0] = 0.0; mListOfCoordinates[3][1] = 0.0; mListOfCoordinates[3][2] = 0.35;
-        
-        array_1d<double, 3> vector_of_zeros; vector_of_zeros[0]=0.0; vector_of_zeros[1]=0.0; vector_of_zeros[2]=0.0;
-
+        mListOfCoordinates[0][0] =-0.35; mListOfCoordinates[0][1] = 0.0; mListOfCoordinates[0][2] = 0.0;
+        mListOfCoordinates[1][0] =-0.25; mListOfCoordinates[1][1] = 0.0; mListOfCoordinates[1][2] = 0.0;
+        mListOfCoordinates[2][0] =-0.10; mListOfCoordinates[2][1] = 0.0; mListOfCoordinates[2][2] = 0.0;
+        mListOfCoordinates[3][0] = 0.10; mListOfCoordinates[3][1] = 0.0; mListOfCoordinates[3][2] = 0.0; 
+        mListOfCoordinates[4][0] = 0.25; mListOfCoordinates[4][1] = 0.0; mListOfCoordinates[4][2] = 0.0;  
+        mListOfCoordinates[5][0] = 0.35; mListOfCoordinates[5][1] = 0.0; mListOfCoordinates[5][2] = 0.0;  
                         
-        mVelocity                  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = vector_of_zeros;
-        mTotalForces               = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) = vector_of_zeros;
+        mVelocity                  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        mTotalForces               = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
         double sqrt_of_mass        = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
         mSqrtOfRealMass            = sqrt_of_mass;
-        mAngularVelocity           = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) = vector_of_zeros;
-        mParticleMoment            = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT) = vector_of_zeros;
+        mAngularVelocity           = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY); 
+        mParticleMoment            = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
         mPrincipalMomentsOfInertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         mEulerAngles               = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);                    
-    
-        
-        //GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2]=10.0; 
-        //GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0]=10.0; 
-        //GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1]=10.0;
-        GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2]=10.0;
     
     } 
         

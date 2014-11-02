@@ -113,6 +113,9 @@ void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const Process
 void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
 void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
+int   GetClusterId();
+void  SetClusterId(const int Id);
+
 double GetRadius();
 void   SetRadius(double radius);
 double GetSqrtOfRealMass();
@@ -308,6 +311,8 @@ std::vector< array_1d<double, 3> > mOldNeighbourTotalContactForces;
 
 std::vector<int> mFemOldNeighbourIds;
 std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
+
+int mClusterId;
 
 ///@name Protected static Member Variables
 ///@{

@@ -471,6 +471,33 @@ namespace Kratos
           KRATOS_CATCH("")
         
       }
+
+        virtual void GetClustersForce() {
+
+            KRATOS_TRY
+                    
+            ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
+            const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY]; 
+
+            ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
+
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+            typename ElementsArrayType::iterator it_end = pElements.ptr_end();
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
+
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                
+                cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
+                cluster_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
+                
+                (cluster_element).GetClustersForce( gravity );
+                
+            }
+
+            KRATOS_CATCH("")
+        }
+        
       
       virtual double Solve()
       {
@@ -522,6 +549,8 @@ namespace Kratos
           // 3. Get and Calculate the forces
           GetForce();
           //FastGetForce();
+          
+          GetClustersForce();
           
           Calculate_Conditions_RHS_and_Add();
           
@@ -1139,6 +1168,7 @@ namespace Kratos
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it){
                 Element* p_neighbour_element = (*neighbour_it).get();
                 SphericParticle* p_spheric_neighbour_particle = dynamic_cast<SphericParticle*>( p_neighbour_element );
+                if ( mListOfSphericParticles[i]->Is(DEMFlags::BELONGS_TO_A_CLUSTER) &&  ( mListOfSphericParticles[i]->GetClusterId() == p_spheric_neighbour_particle->GetClusterId() ) ) continue;
                 mListOfSphericParticles[i]->mNeighbourElements.push_back( p_spheric_neighbour_particle );
             }
             this->GetResults()[i].clear();

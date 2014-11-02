@@ -364,9 +364,9 @@ namespace Kratos
                         array_1d<double, 3 > new_axes3;
                         array_1d<double, 3 > axis;
 
-                        axis[0] = delta_rotation_displ[0] / ang;
-                        axis[1] = delta_rotation_displ[1] / ang;
-                        axis[2] = delta_rotation_displ[2] / ang;
+                        axis[0] = -delta_rotation_displ[0] / ang;
+                        axis[1] = -delta_rotation_displ[1] / ang;
+                        axis[2] = -delta_rotation_displ[2] / ang;
 
                         double cang = cos(ang);
                         double sang = sin(ang);
