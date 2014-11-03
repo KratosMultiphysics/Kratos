@@ -434,9 +434,8 @@ class Procedures(object):
                
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
-
-        if (self.bounding_box_OPTION):
-            creator_destructor.CalculateSurroundingBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
+        
+        creator_destructor.CalculateSurroundingBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
             
             
     def PreProcessModel(self, DEM_parameters):
