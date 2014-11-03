@@ -71,16 +71,7 @@ namespace Kratos {
         mListOfCoordinates[2][0] =-0.10; mListOfCoordinates[2][1] = 0.0; mListOfCoordinates[2][2] = 0.0;
         mListOfCoordinates[3][0] = 0.10; mListOfCoordinates[3][1] = 0.0; mListOfCoordinates[3][2] = 0.0; 
         mListOfCoordinates[4][0] = 0.25; mListOfCoordinates[4][1] = 0.0; mListOfCoordinates[4][2] = 0.0;  
-        mListOfCoordinates[5][0] = 0.35; mListOfCoordinates[5][1] = 0.0; mListOfCoordinates[5][2] = 0.0;  
-                        
-        mVelocity                  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-        mTotalForces               = GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);
-        double sqrt_of_mass        = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-        mSqrtOfRealMass            = sqrt_of_mass;
-        mAngularVelocity           = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY); 
-        mParticleMoment            = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
-        mPrincipalMomentsOfInertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-        mEulerAngles               = GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES);                    
+        mListOfCoordinates[5][0] = 0.35; mListOfCoordinates[5][1] = 0.0; mListOfCoordinates[5][2] = 0.0;                                           
     
     } 
         
@@ -110,27 +101,6 @@ namespace Kratos {
     //**************************************************************************************************************************************************
 
     void LineCluster3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) {
-        
-        KRATOS_TRY
-
-        ElementalDofList.resize(0);
-
-//      for (unsigned int i = 0; i < GetGeometry().size(); i++){
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
-//          if (GetGeometry().WorkingSpaceDimension() == 3) {
-//              ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
-//          }
-// 
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_X));
-//          ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_Y));
-//          if (GetGeometry().WorkingSpaceDimension() == 3) {
-//              ElementalDofList.push_back(GetGeometry()[i].pGetDof(ANGULAR_VELOCITY_Z));
-//          }
-// 
-//      }
-
-        KRATOS_CATCH("")
         
     }
 

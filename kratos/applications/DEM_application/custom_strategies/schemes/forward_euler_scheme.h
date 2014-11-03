@@ -334,9 +334,9 @@ namespace Kratos
                     If_Fix_Rotation[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
                     for (int i = 0; i < 3; i++) {
-                        if (If_Fix_Rotation[i] == false) {
-                            delta_rotation_displ[i] = AngularVel[i] * delta_t;
+                        if (If_Fix_Rotation[i] == false) {                            
                             AngularVel[i] += GlobalRotaAcc[i] * delta_t;
+                            delta_rotation_displ[i] = AngularVel[i] * delta_t; // TODO: CHECK ORDER HERE. DONE DIFFERENTLY IN PARTICLES If I calculate delta_rotation_displ before updating AngularVel, and is always 0!!
                             Rota_Displace[i] += delta_rotation_displ[i];
                         } else {
                             AngularVel[i] = 0.0;
@@ -352,21 +352,21 @@ namespace Kratos
                         
 
                         e1[0] = rotation_matrix[0][0];
-                        e1[1] = rotation_matrix[1][0];
-                        e1[2] = rotation_matrix[2][0];
+                        e1[1] = rotation_matrix[0][1];
+                        e1[2] = rotation_matrix[0][2];
                         
-                        e2[0] = rotation_matrix[0][1];
+                        e2[0] = rotation_matrix[1][0];
                         e2[1] = rotation_matrix[1][1];
-                        e2[2] = rotation_matrix[2][1];                        
+                        e2[2] = rotation_matrix[1][2];                        
                         
                         array_1d<double, 3 > new_axes1;
                         array_1d<double, 3 > new_axes2;
                         array_1d<double, 3 > new_axes3;
                         array_1d<double, 3 > axis;
 
-                        axis[0] = -delta_rotation_displ[0] / ang;
-                        axis[1] = -delta_rotation_displ[1] / ang;
-                        axis[2] = -delta_rotation_displ[2] / ang;
+                        axis[0] = delta_rotation_displ[0] / ang;
+                        axis[1] = delta_rotation_displ[1] / ang;
+                        axis[2] = delta_rotation_displ[2] / ang;
 
                         double cang = cos(ang);
                         double sang = sin(ang);
@@ -382,33 +382,22 @@ namespace Kratos
                         GeometryFunctions::CrossProduct(new_axes1, new_axes2, new_axes3);
 
                         rotation_matrix[0][0] = new_axes1[0];
-                        rotation_matrix[1][0] = new_axes1[1];
-                        rotation_matrix[2][0] = new_axes1[2];
+                        rotation_matrix[0][1] = new_axes1[1];
+                        rotation_matrix[0][2] = new_axes1[2];
 
-                        rotation_matrix[0][1] = new_axes2[0];
+                        rotation_matrix[1][0] = new_axes2[0];
                         rotation_matrix[1][1] = new_axes2[1];
-                        rotation_matrix[2][1] = new_axes2[2];
+                        rotation_matrix[1][2] = new_axes2[2];
 
-                        rotation_matrix[0][2] = new_axes3[0];
-                        rotation_matrix[1][2] = new_axes3[1];
+                        rotation_matrix[2][0] = new_axes3[0];
+                        rotation_matrix[2][1] = new_axes3[1];
                         rotation_matrix[2][2] = new_axes3[2]; 
-                        
-                        
-                        GeometryFunctions::GetEulerAngles(rotation_matrix,EulerAngles);
-
-                        
-
-
-                    } //if ang
-                    
-                    
-                    
-                    
-                    
-
+                                                
+                        GeometryFunctions::GetEulerAngles(rotation_matrix,EulerAngles);                        
+                    } //if ang                                                                                                    
 
                     //GeometryFunctions::GetRotationMatrix(EulerAngles, rotation_matrix); //we get the new rotation matrix after having updated the Euler angles
-                    cluster_element.UpdatePositionOfSpheres(rotation_matrix);
+                    cluster_element.UpdatePositionOfSpheres(rotation_matrix, delta_t);
                 } //for Elements
             } //for number of threads
             //} //End of parallel region
