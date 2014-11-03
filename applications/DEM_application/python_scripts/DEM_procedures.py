@@ -182,7 +182,7 @@ class Procedures(object):
         
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)     
-        model_part.AddNodalSolutionStepVariable(RADIUS) #should be CARACTERISTIC_LENGTH
+        model_part.AddNodalSolutionStepVariable(RADIUS) #TODO: should be CARACTERISTIC_LENGTH
 
 
     def AddMpiVariables(self, model_part):
@@ -669,7 +669,7 @@ class DEMIo(object):
         self.PushPrintVar(DEM_parameters.PostDisplacement, DISPLACEMENT,    self.global_variables)
         self.PushPrintVar(DEM_parameters.PostVelocity,     VELOCITY,        self.global_variables)
         self.PushPrintVar(DEM_parameters.PostTotalForces,  TOTAL_FORCES,    self.global_variables)
-
+        
     def AddBallVariables(self):
         # Balls Variables
         self.PushPrintVar(DEM_parameters.PostAppliedForces,    EXTERNAL_APPLIED_FORCE, self.ball_variables)
