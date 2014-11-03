@@ -29,17 +29,9 @@ if len(sys.argv) < 2:
     print ("example:")
     print ("    KratosFastFill.exe ProjectParameters.conf")
     sys.exit()
+	
 # including kratos path
 exec(open(sys.argv[1]).read())
-
-#TO REMOVE, ADDING TO PROJECT PARAMETERS STEEL MOULD PROPERTIES
-ProjectParameters.MOULD_DENSITY=7800.0
-ProjectParameters.MOULD_SPECIFIC_HEAT=500.0
-ProjectParameters.MOULD_THICKNESS=0.05
-ProjectParameters.MOULD_SFACT=1.0
-ProjectParameters.MOULD_VFACT=1.0
-ProjectParameters.MOULD_CONDUCTIVITY=30.0
-ProjectParameters.MOULD_HTC_ENVIRONMENT=100.0
 
 # setting the domain size for the problem to be solved
 domain_size = ProjectParameters.domain_size
@@ -54,14 +46,69 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-#from KratosMultiphysics.Click2CastApplication import *
+from KratosMultiphysics.Click2CastApplication import *
 
-#verifyp = Click2CastVerifyProcess(sys.argv[0])
+verifyp = Click2CastVerifyProcess(sys.argv[0])
+verifyp.Execute()
 
-#verifyp.Execute()
-#
+
 # assign inlet velocity
 
+# def ComputeAreaToNode(reference_node,ThisModelPart):
+    # area=Vector(3)
+    # for condition in ThisModelPart.Conditions:
+        # for node in condition.GetNodes():
+            # if node.Id==reference_node.Id:
+                # normal = condition.GetValue(NORMAL)
+                # #normal_size = math.sqrt(normal * normal)
+                # area=area + normal #_size
+    # return area
+        
+# def ApplyInlet(InletConditions, ThisModelPart):
+    # inlet_velocity = 0.00
+    # current_time = 0.00
+    # #Set velocities to 0.
+    # for condition in InletConditions:
+        
+        # for node in condition.GetNodes():
+            # velocity = Vector(3)
+            # velocity[0]=0.0
+            # velocity[1]=0.0
+            # velocity[2]=0.0
+            # node.SetSolutionStepValue(VELOCITY, velocity)
+            
+    # if(hasattr(ProjectParameters, "InletTableId")):
+        # inlet_velocity = ThisModelPart.GetTable(
+            # ProjectParameters.InletTableId).GetValue(current_time)
+    # else:
+        # inlet_velocity = ProjectParameters.inlet_velocity
+    # for condition in InletConditions:
+        # normal = condition.GetValue(NORMAL)
+        # normal_size = math.sqrt(normal * normal)
+
+        # for node in condition.GetNodes():
+            # print("node ____")
+            # print(node.Id)
+            # inc_velocity=node.GetSolutionStepValue(VELOCITY)
+            # #print(ComputeAreaToNode(node,ThisModelPart))
+            # projection=1.0/(ComputeAreaToNode(node,ThisModelPart)*normal/normal_size)
+            # velocity = inc_velocity+(inlet_velocity *  (normal * projection))
+            # node.SetSolutionStepValue(VELOCITY, velocity)
+            # node.SetSolutionStepValue(
+                # TEMPERATURE, ProjectParameters.FLUID_TEMPERATURE)
+            # node.Fix(VELOCITY_X)
+            # node.Fix(VELOCITY_Y)
+            # node.Fix(VELOCITY_Z)
+            # node.Fix(TEMPERATURE)
+            # # node.SetSolutionStepValue(DISTANCE,0,-1.0)
+            # # node.Fix(DISTANCE)
+            # node.SetValue(Y_WALL, 0.000)
+            # node.SetSolutionStepValue(IS_SLIP, 0, 0.0)
+            # node.SetSolutionStepValue(IS_STRUCTURE, 0, 0.0)
+            # node.Set(INLET)
+
+            # node.SetValue(IS_STRUCTURE, 0.0)
+    # return inlet_velocity
 
 def ApplyInlet(InletConditions, ThisModelPart):
     inlet_velocity = 0.00
@@ -71,7 +118,6 @@ def ApplyInlet(InletConditions, ThisModelPart):
             ProjectParameters.InletTableId).GetValue(current_time)
     else:
         inlet_velocity = ProjectParameters.inlet_velocity
-
     for condition in InletConditions:
         normal = condition.GetValue(NORMAL)
         normal_size = math.sqrt(normal * normal)
@@ -86,8 +132,6 @@ def ApplyInlet(InletConditions, ThisModelPart):
             node.Fix(VELOCITY_Y)
             node.Fix(VELOCITY_Z)
             node.Fix(TEMPERATURE)
-            # node.SetSolutionStepValue(DISTANCE,0,-1.0)
-            # node.Fix(DISTANCE)
             node.SetValue(Y_WALL, 0.000)
             node.SetSolutionStepValue(IS_SLIP, 0, 0.0)
             node.SetSolutionStepValue(IS_STRUCTURE, 0, 0.0)
@@ -95,6 +139,7 @@ def ApplyInlet(InletConditions, ThisModelPart):
 
             node.SetValue(IS_STRUCTURE, 0.0)
     return inlet_velocity
+    
 
 
 def ApplyInletVelocity(InletConditions, ThisModelPart, Step, MaxEdge):
@@ -127,10 +172,7 @@ def ApplyInletVelocity(InletConditions, ThisModelPart, Step, MaxEdge):
                     surfaceNode[0] = xx
                     surfaceNode[1] = yy
                     surfaceNode[2] = zz
-##        print (surfaceNode)
-##        print (inlet_node)
-##        surfaceNode -= inlet_node
-##        print (surfaceNode)
+
         Effective_height = -(surfaceNode[0] * ProjectParameters.body_force_x + surfaceNode[1] * ProjectParameters.body_force_y +
                              surfaceNode[2] * ProjectParameters.body_force_z)
         print("''''''''''''''''''''''")
@@ -162,18 +204,12 @@ def ApplyInletVelocity(InletConditions, ThisModelPart, Step, MaxEdge):
         for node in condition.GetNodes():
             velocity = 1.0 * inlet_velocity / normal_size * \
                 normal
-##            print(node.Id, " -> ", node.GetSolutionStepValue(VELOCITY))
-# node.Free(VELOCITY_X)
-# node.Free(VELOCITY_Y)
-# node.Free(VELOCITY_Z)
-##            print ("VELOSCITY    IS      :  ",velocity)
             node.SetSolutionStepValue(VELOCITY, velocity)
             if(step < 3 or 1 == 1):
                 node.SetSolutionStepValue(VELOCITY, 1, velocity)
                 node.SetSolutionStepValue(VELOCITY, 2, velocity)
                 node.SetSolutionStepValue(MESH_VELOCITY, 1, zero_vel)
                 node.SetSolutionStepValue(MESH_VELOCITY, 2, zero_vel)
-##            print(node.Id, " -> ", node.GetSolutionStepValue(VELOCITY))
             node.Fix(VELOCITY_X)
             node.Fix(VELOCITY_Y)
             node.Fix(VELOCITY_Z)
@@ -230,7 +266,6 @@ fluid_model_part.AddNodalSolutionStepVariable(FRONT_MEETING)
 fluid_model_part.AddNodalSolutionStepVariable(MACRO_POROSITY)
 fluid_model_part.AddNodalSolutionStepVariable(SHRINKAGE_POROSITY)
 fluid_model_part.AddNodalSolutionStepVariable(FILLTIME)
-#fluid_model_part.AddNodalSolutionStepVariable(DP_ALPHA1)
 fluid_model_part.AddNodalSolutionStepVariable(REACTION)
 if(hasattr(ProjectParameters, "SI_UNITS")):
     if(ProjectParameters.SI_UNITS == 0):
@@ -252,7 +287,6 @@ gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.SingleFile
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly  # WriteConditions
-# gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag,
 # write_conditions)
 gid_io = GidIO(input_file_name + "_F_k", gid_mode,
                multifile, deformed_mesh_flag, write_conditions)
@@ -299,7 +333,6 @@ if(ProjectParameters.max_time > 1.0):  # gravity_filling
     air_exit_flag = False
     is_gravity_filling = 0
     corrected_rho2 = 1.0  # 0.04*mat_density
-    #0.98 * ProjectParameters.SOLID_TEMPERATURE
     mold_temp = ProjectParameters.AMBIENT_TEMPERATURE
 else:
     y_wall_val = ProjectParameters.wall_law_y
@@ -360,7 +393,6 @@ for condition in fluid_model_part.Conditions:
             node.SetSolutionStepValue(DISTANCE, 0, -100.0)
             node.Fix(DISTANCE)
 
-# elif(SolverType == "monolithic_solver_eulerian"):
 fluid_solver = dpg_monolithic_solver_eulerian.MonolithicSolver(
     fluid_model_part, domain_size)
 oss_swith = 0
@@ -368,13 +400,10 @@ dynamic_tau = 0.0
 fluid_solver.oss_switch = oss_swith
 fluid_solver.dynamic_tau_fluid = dynamic_tau
 fluid_solver.dynamic_tau_levelset = 0.001
-# fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);
-# fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
 fluid_solver.max_iter = max_itr_solver
 fluid_solver.echo_level = 0
 fluid_solver.CalculateReactionFlag = False
 fluid_solver.ReformDofSetAtEachStep = False
-# fluid_solver.linear_solver =  SuperLUIterativeSolver()
 fluid_solver.use_slip_conditions = True
 fluid_solver.volume_correction_switch = volume_correction_switch
 fluid_solver.redistance_frequency = 1
@@ -389,7 +418,7 @@ fluid_solver.Initialize()
 # generate temperature model part
 modeler_util = ConnectivityPreserveModeler()
 print (thermal_model_part)
-print("OK1")
+
 if(domain_size == 2):
     modeler_util.GenerateModelPart(
         fluid_model_part, thermal_model_part, "SUPGConvDiff2D", "Condition2D")
@@ -400,16 +429,13 @@ else:
             for node in cond.GetNodes():
                 node.SetSolutionStepValue(IS_BOUNDARY, 0, 1.0)
 				
-print("OK2")
+
 fluid_model_part.ProcessInfo.SetValue(
     AMBIENT_TEMPERATURE, mold_temp)
-#fluid_model_part.ProcessInfo.SetValue(
-    #FLUID_TEMPERATURE, 613.0)
 fluid_model_part.ProcessInfo.SetValue(
     SOLID_TEMPERATURE, ProjectParameters.SOLID_TEMPERATURE)
 fluid_model_part.ProcessInfo.SetValue(
     LATENT_HEAT, ProjectParameters.LATENT_HEAT)
-#fluid_model_part.ProcessInfo.SetValue(DP_K, ProjectParameters.Alpha)
 
 fluid_model_part.ProcessInfo.SetValue(
     DENSITY, (fluid_model_part.GetTable(1)).GetValue(ProjectParameters.AMBIENT_TEMPERATURE))
@@ -441,7 +467,6 @@ for condition in fluid_model_part.Conditions:
         inlet_conditions.append(condition)
 
 inlet_vel = ApplyInlet(inlet_conditions, fluid_model_part)
-# print "fluid solver created"
 
 input_discharge = ProjectParameters.input_discharge
 fill_time = ProjectParameters.max_time
@@ -450,16 +475,15 @@ max_Dt = 5.0 * ProjectParameters.max_time_step
 nominal_inlet_vel = ProjectParameters.inlet_velocity
 inlet_area = input_discharge / nominal_inlet_vel
 input_discharge = inlet_vel * inlet_area
-fill_time = tot_volume / input_discharge
+print("Fill Time")
+print(fill_time)
+#fill_time = tot_volume / input_discharge
 max_Dt = fill_time / 200.0
 
 
-# settings to be changed
-##max_Dt = 5.0 * ProjectParameters.max_time_step
-# Dt= ProjectParameters.output_dt/5.0
+
 full_Dt = max_Dt
 initial_Dt = 1.0 * full_Dt  # 0.05 #0.01
-#final_time = ProjectParameters.max_time
 output_step = 1.0
 
 out = output_step
@@ -475,27 +499,8 @@ print ("The C_SMAG is: ", C_SMAG)
 for elem in fluid_model_part.Elements:
     elem.SetValue(C_SMAGORINSKY, C_SMAG)
 
-
-# Assign exits on edges
-# exits_counter = 0
-# for node in fluid_model_part.Nodes:
-        # slip_flag = node.GetSolutionStepValue(IS_SLIP)
-        # if( slip_flag == 20.0 or slip_flag == 30.0):
-    # node.SetValue(IS_STRUCTURE,0.0)
-    # node.SetValue(Y_WALL,y_wall_val*y_wall_fac)
-    # node.Fix(PRESSURE)
-    # node.SetSolutioOpenAirExitInFarDryZonenStepValue(PRESSURE,0,0.0)
-    # node.GetSolutioNStepValue(PRESSURE,0,0.0)
-    # node.Fix(PRESSURE)
-    # exits_counter +=1
-        # if( slip_flag == 10.0 ):
-    # node.SetValue(Y_WALL,y_wall_val)
-    # node.Free(PRESSURE)
-    # node.SetValue(IS_STRUCTURE,0.0)
-
 time = 0.0
 step = 0
-
 
 def OpenAirExitInFarDryZone(model_part, bx, by, bz):
     body_force = Vector(3)
@@ -553,13 +558,8 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
                             node.SetSolutionStepValue(PRESSURE, 0, 0.0)
                             node.SetValue(IS_STRUCTURE, 0.0)
                             node.SetValue(Y_WALL, 100.0 * y_wall_val)
-                        else:
-                             
+                        else:                             
                             node.SetValue(IS_STRUCTURE, 1.0)
-                            #node.SetSolutionStepValue(VELOCITY,0,zero)   #newly added
-                            #node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
-                            #node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
-                            
                     else:
                         out_skin_list.append(node)
                         node.SetValue(IS_STRUCTURE, 1.0)
@@ -581,25 +581,9 @@ def OpenAirExitInFarDryZone(model_part, bx, by, bz):
             d = node.GetSolutionStepValue(DISTANCE)
             if(d > dlimit):
                 node.Fix(PRESSURE)
-                #node.SetSolutionStepValue(VELOCITY,0,zero)  #newly added
-                #node.SetSolutionStepValue(VELOCITY,1,zero)   #newly added
-                #node.SetSolutionStepValue(VELOCITY,2,zero)   #newly added
                 node.SetSolutionStepValue(PRESSURE, 0, 0.0)
                 node.SetValue(IS_STRUCTURE, 0.0)
                 node.SetSolutionStepValue(IS_FREE_SURFACE, 0, 20.0)
-
-        #farthest_node = 0
-        #max_d = 0.0
-        # for node in out_skin_list:
-            #d = node.GetSolutionStepValue(DISTANCE)
-            # if(d > max_d):
-                #max_d = d
-                #farthest_node = node
-
-        # farthest_node.Fix(PRESSURE)
-        #farthest_node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-        #farthest_node.SetValue(IS_STRUCTURE, 0.0)
-
 
 all_exits_blocked = 1
 temp_time = 0.0
@@ -612,7 +596,6 @@ screen_output_dt = 1
 next_screen_output = screen_output_dt
 time_output_dt = 10.00 * screen_output_dt
 next_time_output = time_output_dt
-#percent_done = 0.0
 filled_percent = 0.0
 net_volume = 0.0
 fluid_model_part.ProcessInfo.SetValue(NET_INPUT_MATERIAL, 0.0)
@@ -624,19 +607,9 @@ if(hasattr(ProjectParameters, "SI_UNITS")):
 
 timer.Stop("Initialization")
 
-# fluid_model_part.CloneTimeStep(time)
-#time = time + 1e-6
-# fluid_model_part.CloneTimeStep(time)
-#time = time + 1e-6
-
-
-
 import thermal_solution_utilities
 thermal_utilities = thermal_solution_utilities.ThermalSolutionUtilities(thermal_model_part,ProjectParameters)
 
-
-# import create_outlet
-# create_outlet.AssignOutlet(fluid_model_part, 0.0)
 if(FILLING == 1.0):
     print("Click2cast running state: Start FILLING solver")
     sys.stdout.flush()
@@ -668,17 +641,11 @@ if(FILLING == 1.0):
 
     time = time + max_Dt * 0.0001
     fluid_model_part.CloneTimeStep(time)
-    #time = time + max_Dt*0.0001
-    # fluid_model_part.CloneTimeStep(time)
     
     done_once = False
 
     while(filled_percent <= 99.5 and is_dry == 1.0 and is_hot == 1.0 and too_low == 0.0):
 
-            # if(step < 5):
-                # Dt = initial_Dt
-            # else:
-                # Dt = full_Dt
         if(hasattr(ProjectParameters, "TiltPouring")):
             tilt_pouring_process.Execute()
         #percent_done = 100.00 * (time / final_time)
@@ -718,8 +685,6 @@ if(FILLING == 1.0):
         
 
         BiphasicFillingUtilities().ComputeNetInletVolume(fluid_model_part)
-##        fluid_model_part.ProcessInfo[NET_INPUT_MATERIAL] = input_discharge * time
-
         timer.Start("Fluid Solve")
         gravity = Vector(3)
         if(hasattr(ProjectParameters, "TiltPouring")):
@@ -739,15 +704,11 @@ if(FILLING == 1.0):
             fluid_model_part, gravity[0], gravity[1], gravity[2])
         too_low = ApplyInletVelocity(
             inlet_conditions, fluid_model_part, step, fluid_solver.maxmin[0])
-        #IncreaseWallLawInSolidifiedZone(fluid_model_part, y_wall_val)
         
         #Open air escape after all edge exits are closed
-        #is_dry = BiphasicFillingUtilities().CreateAutoExitAssignAirSmagorinsky(fluid_model_part,100.0*y_wall_val,C_SMAG)
         
         fluid_solver.Solve(step)
         
-
-
         max_acceptable_acc_norm = 6.0 * ProjectParameters.inlet_velocity / max_Dt
         BiphasicFillingUtilities().ApplyVelocityLimitation(
             fluid_model_part, max_acceptable_acc_norm)
@@ -763,7 +724,9 @@ if(FILLING == 1.0):
             wet_vol = fluid_model_part.ProcessInfo[WET_VOLUME]
             time_fact = wet_vol / tot_volume
             #time_crt = fill_time * time_fact
-            time_crt = time
+            time_crt = fill_time*time_fact
+            print("//// Corrections: wet_vol = %e" % wet_vol, " tot_volume= %e" % tot_volume)
+            print("//// Corrections: time = %e" % time, " time_crt= %e" % time_crt, " time_fact = %e" % time_fact)
 
         timer.Start("Air entrapment")
         # Air entrapment
@@ -777,21 +740,10 @@ if(FILLING == 1.0):
         # filled_percent=BiphasicFillingUtilities().AssignSmoothBoundaryAirExit(fluid_model_part,air_exit_flag,y_wall_val,y_wall_fac)
         filled_percent = BiphasicFillingUtilities().ComputeFillPercentage(
             fluid_model_part, time_crt)
-        
-
-            
-
-        # OpenAirExitInFarDryZone(fluid_model_part,fluid_solver.max_distance)
-
+ 
         ## Open air escape after all edge exits are closed
-        #is_dry = BiphasicFillingUtilities().CreateAutoExitAssignAirSmagorinsky(fluid_model_part,100.0*y_wall_val,C_SMAG)
-
-
-                
+                 
         if(int(filled_percent) >= int(next_screen_output)):
-            # print "--------------------------------------------------------------------------------"
-            # print "%.2f" % percent_done,"% done, current time = ",time, ",
-            # delta time =", Dt
             print ()
             print ("Filled %.0f" % filled_percent, "% \t", "%e" %
                    time, "\t", "%e" % Dt, "\t", elapsed_time)
@@ -810,7 +762,7 @@ if(FILLING == 1.0):
                 
         # if(out == output_step):
         if(time_crt >= next_output_time):
-            #verifyp.Execute()
+            verifyp.Execute()
             timer.Start("Write Results")
                 
             timer.Start("Copy IO variables")
@@ -818,9 +770,7 @@ if(FILLING == 1.0):
             
             timer.Stop("Copy IO variables")
             if(hasattr(ProjectParameters, "TiltPouring")):
-                tilt_pouring_process.ExecuteBeforeOutputStep()
-                
-
+                tilt_pouring_process.ExecuteBeforeOutputStep()              
 
             gid_io.WriteNodalResults(
                 VELOCITY, fluid_model_part.Nodes, time_crt, 0)
@@ -918,8 +868,14 @@ if(FILLING == 1.0):
     for node in fluid_model_part.Nodes:
         Last_temperature.write(str(node.Id) + "\t" + str(
             node.GetSolutionStepValue(TEMPERATURE)) + "\n")
-    Last_temperature.close()
+    
+    gid_io.Flush()
     sys.stdout.flush()
+    Last_temperature.close()
+    gid_io.Flush()
+    sys.stdout.flush()
+
+    
 gid_io = 0
 
 
@@ -930,17 +886,15 @@ if(SOLIDIFICATION == 1.0 and FILLING==0):
         node.SetSolutionStepValue(TEMPERATURE,0,T)
         node.SetSolutionStepValue(TEMPERATURE,1,T)
         node.SetSolutionStepValue(TEMPERATURE,2,T)
-        #print(node.GetSolutionStepValue(TEMPERATURE))
-        #print(node.GetSolutionStepValue(DENSITY))    
+ 
 
 if(SOLIDIFICATION == 1.0):
-    #verifyp.Execute()
+    verifyp.Execute()
     print ("Click2cast running state: Start SOLIDIFICATION-COOLING solver")
     sys.stdout.flush()
     gid_io = GidIO(input_file_name + "_S_k", gid_mode,
                    multifile, deformed_mesh_flag, write_conditions)
-    
-    
+
     fluid_model_part.ProcessInfo.SetValue(LATENT_HEAT, ProjectParameters.LATENT_HEAT)
 
     # mesh to be printed
@@ -958,10 +912,7 @@ if(SOLIDIFICATION == 1.0):
         for node in cond.GetNodes():
             node.SetSolutionStepValue(IS_BOUNDARY, 0, 1.0)
             node.SetSolutionStepValue(DISTANCE, 0, -1.0)
-# AssignEnvironmentCondition().AssignCondition(solidification_model_part)
-
-
-    
+# AssignEnvironmentCondition().AssignCondition(solidification_model_part)  
     
     BiphasicFillingUtilities().ComputeNodalVolume(solidification_model_part) 
     
@@ -993,9 +944,6 @@ if(SOLIDIFICATION == 1.0):
             fluid_model_part.Nodes[int(nd_id)].SetSolutionStepValue(
                 TEMPERATURE, float(nd_temp))
         filling_temp.close()
-        
-        
-
 
     cooled_precent = 0.0
     solidification_model_part.ProcessInfo.SetValue(IS_SOLIDIFIED, 0)
@@ -1044,7 +992,7 @@ if(SOLIDIFICATION == 1.0):
             next_screen_output += screen_output_dt
 
         if(time >= next_output_time):
-            #verifyp.Execute()
+            verifyp.Execute()
             copy_solidification_variables_process.Execute()
             gid_io.WriteNodalResults(
                 TEMPERATURES, fluid_model_part.Nodes, time, 0)
