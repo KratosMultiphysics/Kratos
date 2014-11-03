@@ -69,13 +69,14 @@ namespace Kratos {
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
-        
+        const array_1d<double, 3> & euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
+        const double sqrt_of_mass = central_node.FastGetSolutionStepValue(SQRT_OF_MASS);
         array_1d<double, 3> coordinates_of_sphere;
         array_1d<double, 3> global_relative_coordinates;
         double radius_of_sphere;
         
         double rotation_matrix[3][3];
-        GeometryFunctions::GetRotationMatrix(mEulerAngles, rotation_matrix);
+        GeometryFunctions::GetRotationMatrix(euler_angles, rotation_matrix);
                 
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             
@@ -91,7 +92,7 @@ namespace Kratos {
                                                                                                     max_Id, 
                                                                                                     radius_of_sphere, 
                                                                                                     coordinates_of_sphere, 
-                                                                                                    mSqrtOfRealMass, 
+                                                                                                    sqrt_of_mass, 
                                                                                                     this->pGetProperties(), 
                                                                                                     r_reference_element,
                                                                                                     cluster_id);
@@ -104,23 +105,35 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
       
-    void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3]) {
+    void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt) {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3> global_relative_coordinates;      
         array_1d<double, 3> linear_vel_due_to_rotation;
-        array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        //array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& cluster_angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        
+        array_1d<double, 3> previous_position;
         
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             
             GeometryFunctions::VectorLocal2Global(RotationMatrix, mListOfCoordinates[i], global_relative_coordinates);
             array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
+            array_1d<double, 3>& deta_displacement = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            previous_position = sphere_position;
             sphere_position= central_node.Coordinates() + global_relative_coordinates;
+            deta_displacement = sphere_position - previous_position;
             
             GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
             
-            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = cluster_velocity + linear_vel_due_to_rotation;
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = deta_displacement[0] / dt;
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = deta_displacement[1] / dt;
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = deta_displacement[2] / dt;
+            
+            //mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = cluster_velocity + linear_vel_due_to_rotation;
+            
+            
+            
             mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) = cluster_angular_velocity;
             
         }                        
@@ -140,7 +153,7 @@ namespace Kratos {
             
             array_1d<double, 3>& particle_forces = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);  
             center_forces += particle_forces;                      
-            //center_torque += mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+            center_torque += mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
                         
             //Now adding the torque due to the eccentric forces (spheres are not on the center of the cluster)
             array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
@@ -159,7 +172,8 @@ namespace Kratos {
     }
     
     void  Cluster3D::ComputeAdditionalForces( const array_1d<double,3>& gravity ){
-        double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+        const double sqrt_of_mass = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
+        double mass = sqrt_of_mass * sqrt_of_mass;
         GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) += mass * gravity;                        
     }
     //**************************************************************************************************************************************************
@@ -247,12 +261,7 @@ namespace Kratos {
     //**************************************************************************************************************************************************
 
     void Cluster3D::Calculate(const Variable<Vector>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-    void Cluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
-    
-    double Cluster3D::GetSqrtOfRealMass()                                                       { return mSqrtOfRealMass; }
-    //mListOfCoordinates         = GetClusterCoordinates();
-    //mListOfRadii               = GetClusterRadii();
-    
+    void Cluster3D::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}       
 
 }  // namespace Kratos.
 

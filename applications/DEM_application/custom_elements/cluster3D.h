@@ -118,7 +118,7 @@ namespace Kratos
         */
         virtual void Initialize();
         virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
-        virtual void UpdatePositionOfSpheres(double RotationMatrix[3][3]);
+        virtual void UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt);
         virtual void GetClustersForce( const array_1d<double,3>& gravity );
         virtual void CollectForcesAndTorquesFromSpheres();
         virtual void ComputeAdditionalForces( const array_1d<double,3>& gravity );
@@ -254,15 +254,7 @@ namespace Kratos
         ///@} 
         ///@name Protected member Variables 
         ///@{
-        
-        double                             mSqrtOfRealMass;
-        array_1d<double, 3>                mVelocity;
-        array_1d<double, 3>                mTotalForces;
-        array_1d<double, 3>                mAngularVelocity;
-        array_1d<double, 3>                mParticleMoment;
-        array_1d<double, 3>                mPrincipalMomentsOfInertia;
-        array_1d<double, 3>                mEulerAngles;
-        
+                
         std::vector<double>                mListOfRadii;
         std::vector<array_1d<double, 3> >  mListOfCoordinates;        
         std::vector<SphericParticle*>      mListOfSphericParticles;
