@@ -46,7 +46,7 @@ class TrilinosMeshSolverStructuralSimilarity:
         # Define solver
         import PressureMultiLevelSolver
         pressure_nit_max = 1000
-        pressure_linear_tol = 1
+        pressure_linear_tol = 1e-6
         self.linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol, pressure_nit_max)
 
     def Initialize(self):
