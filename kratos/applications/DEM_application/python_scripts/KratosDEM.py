@@ -156,7 +156,8 @@ parallelutils.CalculateModelNewIds(balls_model_part)
 os.chdir(post_path)
 
 #Setting up the BoundingBox
-procedures.SetBoundingBox(balls_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
+if(DEM_parameters.BoundingBoxOption == "ON"):
+    procedures.SetBoundingBox(balls_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
 solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part, cluster_model_part, creator_destructor, DEM_parameters)
@@ -314,10 +315,11 @@ while ( time < DEM_parameters.FinalTime):
     time_to_print = time - time_old_print
 
     if ( time_to_print >= DEM_parameters.OutputTimeStep):
-        
-        creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
-        if (DEM_parameters.ContactMeshOption == "ON"):
-            creator_destructor.DestroyContactElementsOutsideBoundingBox(balls_model_part,contact_model_part)
+       
+        if(DEM_parameters.BoundingBoxOption == "ON"):
+            creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+            if (DEM_parameters.ContactMeshOption == "ON"):
+                creator_destructor.DestroyContactElementsOutsideBoundingBox(balls_model_part,contact_model_part)
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(balls_model_part.NumberOfElements(0)) + " elements)")
