@@ -287,7 +287,7 @@ public:
                                     const Element& r_reference_element,
                                     const int cluster_id) {          
 
-        Node <3> ::Pointer pnew_node;
+        Node<3> ::Pointer pnew_node;
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
@@ -319,7 +319,17 @@ public:
 
             if (r_balls_model_part.NumberOfElements(0) == 0 && r_clusters_model_part.NumberOfElements(0) == 0 && r_rigid_faces_model_part.NumberOfElements(0) == 0){
                 KRATOS_ERROR(std::logic_error, "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
-            }                        
+            }
+
+            if (scale_factor < 0.0){
+                KRATOS_ERROR(std::logic_error, "The enlargement factor for the automatic calculation of the bounding box must be a positive value." , "");
+            }
+
+            if (scale_factor < 1.0){
+                std::cout << "\n WARNING" + std::string( 2, '\n' );
+                std::cout << "The enlargement factor for the automatic calculation of the bounding box is less than 1!. \n";
+                std::cout << "It is not guaranteed that the model fits inside of it." + std::string( 2, '\n' );
+            }
 
             if (r_balls_model_part.NumberOfElements(0)){ // loop over spheric elements (balls)
                 Configure::ElementsContainerType Elements = r_balls_model_part.GetCommunicator().LocalMesh().Elements();
@@ -336,7 +346,7 @@ public:
                     ref_radius = (ref_radius < radius) ? radius : ref_radius;
 
                     for (std::size_t i = 0; i < 3; i++){
-                        mStrictLowPoint[i]  = (mStrictLowPoint[i] > coor[i]) ? coor[i] : mStrictLowPoint[i];
+                        mStrictLowPoint[i]  = (mStrictLowPoint[i]  > coor[i]) ? coor[i] : mStrictLowPoint[i];
                         mStrictHighPoint[i] = (mStrictHighPoint[i] < coor[i]) ? coor[i] : mStrictHighPoint[i];
                     }
                 }
@@ -355,7 +365,7 @@ public:
                     face_coor[i] = (*(Conditions.begin().base()))->GetGeometry()(i)->Coordinates();
                 }
 
-                if (r_balls_model_part.NumberOfElements(0) == 0){
+                if (r_balls_model_part.NumberOfElements(0) == 0){ // initialize if not initialized already
                     mStrictLowPoint  = face_coor[0];
                     mStrictHighPoint = face_coor[0];
                 }
@@ -397,9 +407,13 @@ public:
         } // if (automatic)
 
         else {
-            for(int i=0;i<3;i++){
-                if(mHighPoint[i]<mLowPoint[i]) KRATOS_ERROR(std::logic_error,  "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." , "");
+            for (int i = 0; i < 3; ++i){
+
+                if (mHighPoint[i] < mLowPoint[i]){
+                    KRATOS_ERROR(std::logic_error,  "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates." , "");
+                }
             }
+
             mStrictHighPoint = mHighPoint; // mHighPoint and mLowPoint have been set as an input value
             mStrictLowPoint  = mLowPoint;
             mStrictDiameter  = norm_2(mStrictHighPoint - mStrictLowPoint);
@@ -820,6 +834,7 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
 
     /// Assignment operator.
     ParticleCreatorDestructor & operator=(ParticleCreatorDestructor const& rOther);
