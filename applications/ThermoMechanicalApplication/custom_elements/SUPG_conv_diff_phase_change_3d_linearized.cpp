@@ -280,9 +280,9 @@ void SUPGConvDiffPhaseChange3DLinearized::CalculateLocalSystem(MatrixType& rLeft
             //note that the temperature at the end of the previous step is stored in the database without history
             //since it is purely a temporary variable
             const double Tstage1 = GetGeometry()[i].GetValue(TEMPERATURE);
-            const double specific_heat = GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
-            const double dT = (temperatures[i] - Tstage1);
-            const double Dsolid_frac_Dt = (GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE) ) ;                     
+            //const double specific_heat = GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
+            //const double dT = (temperatures[i] - Tstage1);
+            //const double Dsolid_frac_Dt = (GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE) ) ;                     
             //DH_Dt[i] = BDFVector[0]*(specific_heat*dT - Dsolid_frac_Dt*latent_heat);
             //DH_Dt[i] = BDFVector[0]*(
             //                              GetGeometry()[i].FastGetSolutionStepValue(ENTHALPY)
