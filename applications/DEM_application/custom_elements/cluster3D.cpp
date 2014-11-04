@@ -49,7 +49,16 @@ namespace Kratos {
     }      
 
     // Destructor
-    Cluster3D::~Cluster3D() {}
+    Cluster3D::~Cluster3D() {
+    
+        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+            mListOfSphericParticles[i]->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
+            mListOfSphericParticles[i]->Set(TO_ERASE, true);
+            mListOfSphericParticles.clear();
+            mListOfCoordinates.clear();  
+            mListOfRadii.clear();              
+        }    
+    }
 
       
     void Cluster3D::Initialize() {}
