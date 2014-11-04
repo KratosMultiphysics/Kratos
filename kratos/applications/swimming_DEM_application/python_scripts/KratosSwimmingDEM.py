@@ -58,8 +58,8 @@ pp.flow_in_porous_medium_option           = 0 # the porosity is an imposed field
 pp.flow_in_porous_DEM_medium_option       = 0 # the DEM part is kept static
 pp.embedded_option                        = 1 # the embedded domain tools are to be used
 pp.make_results_directories_option        = 1 # results are written into a folder (../results) inside the problem folder
-pp.body_force_on_fluid_option             = 1
-pp.print_debug_info_option                = 1 # print a summary of global physical measures
+pp.body_force_on_fluid_option             = 0
+pp.print_debug_info_option                = 0 # print a summary of global physical measures
 pp.print_REYNOLDS_NUMBER_option           = 1
 pp.print_PRESSURE_GRAD_PROJECTED_option   = 1
 pp.print_FLUID_VEL_PROJECTED_option       = 1
@@ -79,18 +79,18 @@ pp.print_HYDRODYNAMIC_REACTION_option     = 1
 pp.print_HYDRODYNAMIC_FORCE_option        = 1
 pp.print_PRESSURE_option                  = 1
 pp.print_particles_results_cycle          = 1 # number of 'ticks' per printing cycle
-pp.debug_tool_cycle                       = 10 # number of 'ticks' per bebug computations cycle
+pp.debug_tool_cycle                       = 10 # number of 'ticks' per debug computations cycle
 pp.similarity_transformation_type         = 0 # no transformation (0), Tsuji (1)
 pp.dem_inlet_element_type                 = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 pp.fluid_model_type                       = 0 # untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)
-pp.coupling_level_type                    = DEM_explicit_solver_var.project_from_particles_option # one way coupling (0), two way coupling (1)
+pp.coupling_level_type                    = pp.dem.project_from_particles_option # one way coupling (0), two way coupling (1)
 pp.coupling_scheme_type                   = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 pp.coupling_weighing_type                 = 2 # {fluid_to_DEM, DEM_to_fluid, fluid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2), averaging method (3)
 pp.buoyancy_force_type                    = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
 pp.drag_force_type                        = 2 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4), Newtonian Regime (5)
 pp.virtual_mass_force_type                = 0 # null virtual mass force (0)
-pp.lift_force_type                        = DEM_explicit_solver_var.consider_lift_force_option # null lift force (0)
-pp.drag_modifier_type                     = DEM_explicit_solver_var.drag_modifier_type # Hayder (2), Chien (3) # problemtype option
+pp.lift_force_type                        = pp.dem.consider_lift_force_option # null lift force (0)
+pp.drag_modifier_type                     = pp.dem.drag_modifier_type # Hayder (2), Chien (3) # problemtype option
 pp.interaction_start_time                 = 0
 pp.min_fluid_fraction                     = 0.4
 pp.initial_drag_force                     = 0.0   # problemtype option
@@ -166,8 +166,8 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 #_____________________________________________________________________________________________________________________________________
 
 # creating utilities from DEM_procedures
-DEM_proc = DEM_procedures.Procedures(DEM_explicit_solver_var)
-DEM_proc.PreProcessModel(DEM_explicit_solver_var)
+DEM_proc = DEM_procedures.Procedures(pp.dem)
+DEM_proc.PreProcessModel(pp.dem)
 
 # defining model parts for the balls part and for the DEM-FEM interaction elements
 
@@ -175,25 +175,21 @@ balls_model_part = ModelPart("SolidPart")
 clusters_model_part    = ModelPart("Cluster_Part");
 rigid_faces_model_part = ModelPart("RigidFace_Part");
 
-print('Adding nodal variables to the balls_model_part')  # (memory allocation)
-sys.stdout.flush()
+import sphere_strategy as DEMSolverStrategy
 
+DEM_proc.AddCommonVariables(balls_model_part, pp.dem)
+DEM_proc.AddBallsVariables(balls_model_part, pp.dem)
+DEM_proc.AddMpiVariables(balls_model_part)
 vars_man.AddNodalVariables(balls_model_part, pp.dem_vars)
-print('Adding nodal variables to the rigid_faces_model_part')  # (memory allocation)
-sys.stdout.flush()
-
-vars_man.AddNodalVariables(clusters_model_part, pp.clusters_vars)
-
-print('Adding nodal variables to the rigid_faces_model_part')  # (memory allocation)
-sys.stdout.flush()
-
-vars_man.AddNodalVariables(rigid_faces_model_part, pp.rigid_faces_vars)
+DEM_proc.AddCommonVariables(rigid_faces_model_part, pp.dem)
+DEM_proc.AddFEMVariables(rigid_faces_model_part, pp.dem)
+DEM_proc.AddMpiVariables(rigid_faces_model_part)
+DEM_proc.AddCommonVariables(clusters_model_part, pp.dem)
+DEM_proc.AddClusterVariables(clusters_model_part, pp.dem)
+DEM_proc.AddMpiVariables(clusters_model_part)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
-
-import sphere_strategy as DEMSolverStrategy
-DEMSolverStrategy.AddVariables(balls_model_part, pp.dem)
 
 # reading the balls model part
 model_part_io_solid = ModelPartIO(pp.dem.problem_name + "DEM",True)
@@ -442,8 +438,12 @@ if (pp.embedded_option):
 if (pp.inlet_option):
     DEM_inlet_model_part = ModelPart("DEMInletPart")
     DEM_Inlet_filename = pp.dem.problem_name + "DEM_Inlet"
-    DEMSolverStrategy.AddVariables(DEM_inlet_model_part, pp.dem)
+    
+    DEM_proc.AddCommonVariables(DEM_inlet_model_part, pp.dem)
+    DEM_proc.AddBallsVariables(DEM_inlet_model_part, pp.dem)
+    DEM_proc.AddMpiVariables(DEM_inlet_model_part)
     vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
+    
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
@@ -591,6 +591,11 @@ while (time <= final_time):
     # printing if required
 
     if (particles_results_counter.Tick()):
+        # eliminating remote balls
+        
+        if (pp.dem.BoundingBoxOption == "ON"):
+            creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+            
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
@@ -639,11 +644,7 @@ while (time <= final_time):
         # adding DEM elements by the inlet
 
         if (pp.inlet_option):
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, pp.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.
-
-        # eliminating remote balls
-
-        creator_destructor.DestroyBallsOutsideBoundingBox(balls_model_part)
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, pp.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
 
         first_dem_iter = False
 
@@ -667,6 +668,12 @@ while (time <= final_time):
     # printing if required
 
     if (particles_results_counter.Tick()):
+        
+        # eliminating remote balls
+        
+        if (pp.dem.BoundingBoxOption == "ON"):
+            creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+            
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)

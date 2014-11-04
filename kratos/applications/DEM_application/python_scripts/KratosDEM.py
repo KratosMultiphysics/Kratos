@@ -65,10 +65,11 @@ contact_model_part    = ""
 
 # Add variables
 procedures.AddCommonVariables(balls_model_part, DEM_parameters)
-SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
+procedures.AddBallsVariables(balls_model_part, DEM_parameters)
 procedures.AddMpiVariables(balls_model_part)
+SolverStrategy.AddAdditionalVariables(balls_model_part, DEM_parameters)
 procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-SolverStrategy.AddFEMVariables(rigid_face_model_part, DEM_parameters)
+procedures.AddFEMVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
 procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
 procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
@@ -178,8 +179,11 @@ if (DEM_parameters.dem_inlet_option):
     creator_destructor.SetMaxNodeId(max_node_Id)
         
     DEM_inlet_model_part = ModelPart("DEMInletPart")
-    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
-    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
+    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"    
+    procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
+    procedures.AddBallsVariables(DEM_inlet_model_part, DEM_parameters)
+    SolverStrategy.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
+    
     os.chdir(main_path)
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)

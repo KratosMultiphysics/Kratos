@@ -11,62 +11,7 @@ def Var_Translator(variable):
     else:
         variable = 1
 
-    return variable
-
-
-def AddVariables(model_part, Param):
-
-    # KINEMATIC
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-    
-    # FORCES
-    model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-    model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-    model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
-
-    # BASIC PARTICLE PROPERTIES
-    model_part.AddNodalSolutionStepVariable(RADIUS)
-    model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
-
-    # ROTATION RELATED PROPERTIES
-
-    if (Var_Translator(Param.RotationOption)):
-        #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
-        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
-        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
-
-    # OTHER PROPERTIES
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-
-    # LOCAL AXIS
-    if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
-        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
-
-    # FLAGS
-
-    if(Var_Translator(Param.PostGroupId)):
-        model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
-
-#    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
-
-    # ONLY VISUALIZATION
-    if (Var_Translator(Param.PostExportSkinSphere) ):
-        model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
-        model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
-    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-
-    if (Var_Translator(Param.PostGroupId)):
-        model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
-
-    print("Variables for the explicit solver added correctly")
-    
+    return variable    
 
 def AddDofs(model_part):
 
@@ -79,14 +24,9 @@ def AddDofs(model_part):
         node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
 
     print("DOFs for the DEM solution added correctly")
-
-def AddFEMVariables(model_part, Param):
-
-    model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-    model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
-    model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    
+def AddAdditionalVariables(balls_model_part, DEM_parameters):
+    pass
     
 class ExplicitStrategy:
 
