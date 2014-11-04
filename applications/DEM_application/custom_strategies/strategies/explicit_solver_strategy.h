@@ -263,7 +263,7 @@ namespace Kratos
       void RebuildListOfSphericParticles(ElementsArrayType& pElements, std::vector<T*>& rCustomListOfParticles){
           
           KRATOS_TRY
-                    
+              
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
           
           rCustomListOfParticles.resize( pElements.size() );

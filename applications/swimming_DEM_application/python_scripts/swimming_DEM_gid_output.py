@@ -80,26 +80,20 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.WriteMesh(rigid_faces_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(label, mixed_model_part.GetMesh())
-        print("FLUID  ..................................................")
+            
         for var in fluid_nodal_variables:
-            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, fluid_model_part, kratos_variable)
 
-        print("DEM  ..................................................")
-
         for var in DEM_nodal_variables:
-            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, DEM_model_part, kratos_variable)
-        print("clusters  ..................................................")
+            
         for var in cluster_variables:
-            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, clusters_model_part, kratos_variable)
-        print("mixed  ..................................................")
+            
         for var in mixed_nodal_variables:
-            print(var)
             kratos_variable = globals()[var]
             self._write_nodal_results(label, mixed_model_part, kratos_variable)
 
