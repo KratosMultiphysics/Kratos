@@ -36,7 +36,7 @@ def ConstructSolver(configuration):
     linear_solver = None
 
     #
-    if(solver_type == "Conjugate gradient"):
+    if(solver_type == "Conjugate gradient" or solver_type == "Conjugate_gradient"):
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
         tol = configuration.tolerance
@@ -45,7 +45,7 @@ def ConstructSolver(configuration):
         else:
             linear_solver = CGSolver(tol, max_it, precond)
     #
-    elif(solver_type == "BiConjugate gradient stabilized"):
+    elif(solver_type == "BiConjugate gradient stabilized" or solver_type == "BiConjugate_gradient_stabilized"):
         precond = ConstructPreconditioner(configuration)
         max_it = configuration.max_iteration
         tol = configuration.tolerance
@@ -66,7 +66,7 @@ def ConstructSolver(configuration):
             linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver(
                 tol, max_it, precond)
     #
-    elif(solver_type == "Deflated Conjugate gradient"):
+    elif(solver_type == "Deflated Conjugate gradient" or solver_type == "Deflated_Conjugate_gradient"):
         max_it = configuration.max_iteration
         tol = configuration.tolerance
 
@@ -84,7 +84,7 @@ def ConstructSolver(configuration):
             assume_constant_structure,
             max_reduced_size)
     #
-    elif(solver_type == "GMRES-UP Block"):
+    elif(solver_type == "GMRES-UP Block" or solver_type == "GMRES-UP_Block" ):
         velocity_linear_solver = ConstructSolver(
             configuration.velocity_block_configuration)
         pressure_linear_solver = ConstructSolver(
@@ -99,10 +99,10 @@ def ConstructSolver(configuration):
             max_it,
             m)
     #
-    elif(solver_type == "Skyline LU factorization"):
+    elif(solver_type == "Skyline LU factorization" or solver_type == "Skyline_LU_factorization"):
         linear_solver = SkylineLUFactorizationSolver()
     #
-    elif(solver_type == "Super LU"):
+    elif(solver_type == "Super LU" or solver_type == "Super_LU"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver(
         )
@@ -215,7 +215,7 @@ def ConstructSolver(configuration):
         linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(
             amgcl_smoother, amgcl_krylov_type, tol, max_it, verbosity, m)
     #
-    elif (solver_type == "Parallel MKL Pardiso"):
+    elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
         import KratosMultiphysics.MKLSolversApplication
         linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(
         )
