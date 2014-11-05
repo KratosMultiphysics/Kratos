@@ -557,14 +557,14 @@ public:
 
     virtual bool HasIntersection( const GeometryType& ThisGeometry )
     {
-       KRATOS_ERROR( std::logic_error, "Calling base class HasIntersection method instead of drived class one. Please check the definition of derived class." , *this ); 
+       KRATOS_ERROR( std::logic_error, "Calling base class HasIntersection method instead of derived class one. Please check the definition of derived class." , *this ); 
         return false;
     }
 
     /// Interseciones con la geometrias y cajas en 3D
     virtual bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint )
     {
-        KRATOS_ERROR( std::logic_error, "Calling base class HasIntersection method instead of drived class one. Please check the definition of derived class." , *this ); 
+        KRATOS_ERROR( std::logic_error, "Calling base class HasIntersection method instead of derived class one. Please check the definition of derived class." , *this ); 
         return false;
     }
 
@@ -714,7 +714,7 @@ public:
     virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class PointsLocalCoordinates method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class PointsLocalCoordinates method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -834,7 +834,7 @@ public:
     virtual SizeType EdgesNumber() const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class EdgesNumber method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class EdgesNumber method instead of derived class one. Please check the definition of derived class." , *this );
 
         return SizeType();
     }
@@ -854,7 +854,7 @@ public:
     virtual GeometriesArrayType Edges( void )
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Edges method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Edges method instead of derived class one. Please check the definition of derived class." , *this );
 
         return GeometriesArrayType();
     }
@@ -873,7 +873,7 @@ public:
 //       virtual Pointer Edge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR(std::logic_error,
-//          "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this);
+//          "Calling base class Edge method instead of derived class one. Please check the definition of derived class." , *this);
 
 //  }
 
@@ -888,7 +888,7 @@ public:
     virtual SizeType FacesNumber() const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class FacesNumber method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class FacesNumber method instead of derived class one. Please check the definition of derived class." , *this );
 
         return SizeType();
     }
@@ -904,7 +904,7 @@ public:
     virtual GeometriesArrayType Faces( void )
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Faces method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Faces method instead of derived class one. Please check the definition of derived class." , *this );
 
         return GeometriesArrayType();
     }
@@ -913,13 +913,13 @@ public:
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class NumberNodesInFaces method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class NumberNodesInFaces method instead of derived class one. Please check the definition of derived class." , *this );
     }
 
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class NodesInFaces method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class NodesInFaces method instead of derived class one. Please check the definition of derived class." , *this );
     }
 
 
@@ -935,7 +935,7 @@ public:
 //       virtual Pointer Edge(IndexType EdgeIndex)
 //  {
 //    KRATOS_ERROR(std::logic_error,
-//          "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this);
+//          "Calling base class Edge method instead of derived class one. Please check the definition of derived class." , *this);
 
 //  }
 
@@ -949,7 +949,7 @@ public:
 //       virtual NormalType NormalEdge(const PointsArrayType& EdgePoints)
 //  {
 //    KRATOS_ERROR(std::logic_error,
-//          "Calling base class NormalEdge method instead of drived class one. Please check the definition of derived class." , *this);
+//          "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." , *this);
 
 //    return NormalType();
 //  }
@@ -965,7 +965,7 @@ public:
 //       virtual NormalType NormalEdge(IndexType EdgeIndex)
 //  {
 //    KRATOS_ERROR(std::logic_error,
-//          "Calling base class NormalEdge method instead of drived class one. Please check the definition of derived class." , *this);
+//          "Calling base class NormalEdge method instead of derived class one. Please check the definition of derived class." , *this);
 
 //    return NormalType();
 //  }
@@ -1075,7 +1075,7 @@ public:
     virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Jacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1099,7 +1099,7 @@ public:
     virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Jacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1143,7 +1143,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Jacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1170,7 +1170,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix& DeltaPosition ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Jacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1188,7 +1188,7 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Jacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1223,7 +1223,7 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class DeterminantOfJacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1269,7 +1269,7 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class DeterminantOfJacobian method instead of derived class one. Please check the definition of derived class." , *this );
 
         return 0;
     }
@@ -1290,7 +1290,7 @@ public:
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class DeterminantOfJacobian method instead of derived class one. Please check the definition of derived class." , *this );
 
         return 0;
     }
@@ -1330,7 +1330,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class InverseOfJacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class InverseOfJacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1374,7 +1374,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class InverseOfJacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class InverseOfJacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1392,7 +1392,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class InverseOfJacobian method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class InverseOfJacobian method instead of derived class one. Please check the definition of derived class." , *this );
         return rResult;
     }
 
@@ -1522,7 +1522,7 @@ public:
     virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex, const CoordinatesArrayType& rCoordinates ) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class ShapeFunctionValue method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class ShapeFunctionValue method instead of derived class one. Please check the definition of derived class." , *this );
 
         return 0;
     }
