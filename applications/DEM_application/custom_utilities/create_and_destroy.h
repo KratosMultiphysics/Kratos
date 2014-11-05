@@ -308,6 +308,8 @@ public:
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
         spheric_p_particle->SetClusterId(cluster_id);
 
+        spheric_p_particle->SetFastProperties(); 
+        
         r_modelpart.Elements().push_back(p_particle);
         return spheric_p_particle;
     }
