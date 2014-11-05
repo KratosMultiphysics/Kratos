@@ -112,7 +112,7 @@ public:
 	 */
 	bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
-		KRATOS_WATCH(__LINE__);
+	        //KRATOS_WATCH(__LINE__);
 				
 		int state = solvePASTIX(mverbosity, rA.size1(), rA.value_data().size(), rA.value_data().begin(), &(rA.index1_data()[0]), &(rA.index2_data()[0]), &rX[0], &rB[0]
 		,mmax_it,mTol,mincomplete,mlevel_of_fill,mndof,msymmetric);
@@ -211,7 +211,7 @@ public:
 		else
 			mndof = ndof;
 			
-		KRATOS_WATCH(mndof);
+	//KRATOS_WATCH(mndof);
 
 
     }
