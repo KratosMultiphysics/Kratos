@@ -86,11 +86,11 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
-    {
-		//only needed 
-		const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+      {
+	//only needed 
+	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
 		
-		//2.-Total Deformation Gradient
+	//2.-Total Deformation Gradient
         Matrix TotalDeformationGradientF0 = DeformationGradientF;
 
         //4.-Right Cauchy Green
@@ -100,7 +100,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
         //E= 0.5*(FT*F-1)
         this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
-    }
+      }
 
     //7.-Calculate Total PK2 stress
 
@@ -165,17 +165,22 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
-    {
+      {
+	//1.-Compute total deformation gradient
+        Matrix& DeformationGradientF0      = rValues.GetDeformationGradientF0();
+
+	Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+	TotalDeformationGradientF0         = this->DeformationGradient3D( TotalDeformationGradientF0 );
 
         //2.-Push-Forward Left Cauchy-Green tensor b to the new configuration
-        Matrix LeftCauchyGreenMatrix = prod(DeformationGradientF,trans(DeformationGradientF));
+        Matrix LeftCauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
         //3.-Almansi Strain:
 
         // e= 0.5*(1-invFT*invF)
         this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
 
-    }
+      }
 
     //7.-Calculate total Kirchhoff stress
 
