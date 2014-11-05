@@ -163,7 +163,9 @@ class MechanicalSolver:
         if(self.time_integration_method == "Explicit"):
 
           self.mechanical_solver = ExplicitStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
-     
+          
+          self.mechanical_solver.SetRebuildLevel(0) # 1 to recompute the mass matrix in each explicit step 
+
         (self.mechanical_solver).SetEchoLevel(self.echo_level)
 
         # check if everything is assigned correctly

@@ -516,6 +516,7 @@ public:
 
         //update results
         rDofSet = pBuilderAndSolver->GetDofSet();
+
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
@@ -647,6 +648,8 @@ public:
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+
+
         pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
         //Cleaning memory after the solution

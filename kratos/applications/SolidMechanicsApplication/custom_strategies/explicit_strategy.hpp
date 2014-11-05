@@ -115,10 +115,11 @@ public:
         mSolutionStepIsInitialized  = false;
         mInitializeWasPerformed     = false;
 
-        //set EchoLevel to the default value (only time is displayed)
+        //set EchoLevel to the deffault value (only time is displayed)
         SetEchoLevel(1);
 
-        BaseType::SetRebuildLevel(0);   //JM 1 // # if (BaseType::mRebuildLevel > 0) re escriure la matriu de massa. com ho fem, aixo esta dintre el esquema. com modifiquem el valor a 1 des de python??
+	//set RebuildLevel to the deffault value 
+	BaseType::SetRebuildLevel(0);  
 
         KRATOS_CATCH( "" )
     }
@@ -233,6 +234,8 @@ public:
         
         mInitializeWasPerformed = true;
 
+	//std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
+
         KRATOS_CATCH( "" )
     }
 
@@ -312,6 +315,12 @@ public:
 //         }
 
         pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
+
+	//calculate reactions if required
+        // if (mCalculateReactionsFlag == true)
+        // {
+        //     pBuilderAndSolver->CalculateReactions(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
+        // }
 
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the

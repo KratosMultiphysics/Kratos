@@ -404,6 +404,18 @@ namespace Kratos
 	      array_1d<double,3>& middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
 
 	      array_1d<double,3>& current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
+	      
+
+	      //Set previous displacement:
+	      array_1d<double,3>& previous_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT,1);
+	      previous_displacement = i->FastGetSolutionStepValue(DISPLACEMENT);
+
+	      array_1d<double,3>& previous_velocity        = i->FastGetSolutionStepValue(VELOCITY,1);
+	      previous_velocity = i->FastGetSolutionStepValue(VELOCITY);
+
+	      array_1d<double,3>& previous_acceleration    = i->FastGetSolutionStepValue(ACCELERATION,1);
+	      previous_acceleration =  i->FastGetSolutionStepValue(ACCELERATION);
+
 
 	      //Solution of the explicit equation:
 	      current_acceleration = current_residual/nodal_mass;
@@ -459,11 +471,14 @@ namespace Kratos
 
 
 	      }
-            }
+
+	    }
+
         }
 
       mTime.Previous = mTime.Current;
       mTime.PreviousMiddle = mTime.Middle;
+
 
       KRATOS_CATCH("")
     }
@@ -480,7 +495,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-        int thread = OpenMPUtils::ThisThread();
+      int thread = OpenMPUtils::ThisThread();
 
       //basic operations for the element considered
       (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
@@ -490,7 +505,7 @@ namespace Kratos
         {
 	  (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
 
-	  AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread],/* mMatrix.M[thread],*/ rCurrentProcessInfo);
+	  AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
 
         }
 
@@ -624,7 +639,7 @@ namespace Kratos
       //    {
       //         (rCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
 
-      //         AddDynamicsToRHS (rCurrentCondition, RHS_Contribution, mMatrix.D[thread],/* mMatrix.M[thread],*/ rCurrentProcessInfo);
+      //         AddDynamicsToRHS (rCurrentCondition, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
       //    }
 
 
