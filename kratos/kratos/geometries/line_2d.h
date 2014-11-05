@@ -608,6 +608,13 @@ public:
     }
 
 
+    /** EdgesNumber
+    @return SizeType containes number of this geometry edges.
+    */
+    virtual SizeType EdgesNumber() const
+    {
+        return 2;
+    }
 
     ///@}
     ///@name Shape Function

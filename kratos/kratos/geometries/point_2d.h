@@ -543,6 +543,13 @@ public:
     //	}
 
 
+    /** EdgesNumber
+    @return SizeType containes number of this geometry edges.
+    */
+    virtual SizeType EdgesNumber() const
+    {
+        return 1;
+    }
 
     ///@}
     ///@name Shape Function
@@ -782,76 +789,5 @@ const GeometryData Point2D<TPointType>::msGeometryData( 2,
 }  // namespace Kratos.
 
 #endif // KRATOS_LINE_2D_H_INCLUDED  defined 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
