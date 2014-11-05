@@ -72,6 +72,12 @@ namespace Kratos {
             mParticleMaterial  = props.pGetParticleMaterial();
                   
             return *this;
+        } 
+        
+        void CreateAllPropertiesProxies(ModelPart& rBallsModelPart, ModelPart& rInletModelPart, ModelPart& rClustersModelPart){
+            
+            
+            
         }
            
     private:

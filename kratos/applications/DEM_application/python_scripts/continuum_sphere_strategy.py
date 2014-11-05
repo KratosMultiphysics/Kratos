@@ -57,7 +57,7 @@ def Var_Translator(variable):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, fem_model_part, cluster_model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part creator_destructor, Param):
 
         # Initialization of member variables
 
@@ -132,6 +132,7 @@ class ExplicitStrategy:
         self.contact_model_part = ModelPart("ContactModelPart")  # funcio kratos
         # self.contact_model_part.Nodes       = self.model_part.Nodes; #This is not necessary, elements point at the nodes of the balls_model_part already. It is also problematic when summing modelparts!
         self.cluster_model_part = cluster_model_part
+        self.inlet_model_part = inlet_model_part        
         self.domain_size = Param.Dimension
 
 

@@ -151,7 +151,7 @@ namespace Kratos
           .def_readwrite("contact_model_part",&ExplicitSolverSettings::contact_model_part)
           .def_readwrite("fem_model_part",&ExplicitSolverSettings::fem_model_part)
           .def_readwrite("cluster_model_part",&ExplicitSolverSettings::cluster_model_part)
-          .def_readwrite("mapping_model_part",&ExplicitSolverSettings::mapping_model_part)
+          .def_readwrite("inlet_model_part",&ExplicitSolverSettings::inlet_model_part)
           ;
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>

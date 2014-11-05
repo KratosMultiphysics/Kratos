@@ -223,6 +223,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
         
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
@@ -814,8 +815,14 @@ class DEMIo(object):
 
     def PrintMultifileLists(self,time, post_path):
         for mfilelist in self.multifilelists:
+            
             if mfilelist.index == mfilelist.step:
-                mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(time)+".post.bin\n")
+                
+                if (self.encoding == GiDPostMode.GiD_PostBinary):
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(time)+".post.bin\n")
+                else:
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(time)+".post.msh\n")
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(time)+".post.res\n")
                 mfilelist.file.flush()
                 mfilelist.index = 0
             mfilelist.index += 1
