@@ -96,10 +96,12 @@ public:
     
     int FindMaxNodeIdInModelPart(ModelPart& r_modelpart){
         
-        unsigned int max_Id = 1; //GID accepts Id's >= 1
+        int max_Id = 1; //GID accepts Id's >= 1
+        //TODO: should we parallelize this?
         for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.GetCommunicator().LocalMesh().NodesBegin(); node_it != r_modelpart.GetCommunicator().LocalMesh().NodesEnd(); node_it++){
-	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
-	}      
+	  if( (int)(node_it->Id()) > max_Id ) max_Id = node_it->Id();
+	}              
+        r_modelpart.GetCommunicator().MaxAll( max_Id );
         return max_Id;
     }
     
