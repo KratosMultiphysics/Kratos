@@ -61,6 +61,7 @@ balls_model_part      = ModelPart("SpheresPart");
 rigid_face_model_part = ModelPart("RigidFace_Part");  
 mixed_model_part      = ModelPart("Mixed_Part");
 cluster_model_part    = ModelPart("Cluster_Part");
+DEM_inlet_model_part  = ModelPart("DEMInletPart")
 contact_model_part    = ""
 
 # Add variables
@@ -74,6 +75,10 @@ procedures.AddMpiVariables(rigid_face_model_part)
 procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
 procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
 procedures.AddMpiVariables(cluster_model_part)
+procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
+procedures.AddBallsVariables(DEM_inlet_model_part, DEM_parameters)
+SolverStrategy.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+
 
 # Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
@@ -85,23 +90,27 @@ model_part_io_spheres = ModelPartIO(spheres_mp_filename,True)
 model_part_io_spheres.ReadModelPart(balls_model_part)
 
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-
 model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
 model_part_io_fem.ReadModelPart(rigid_face_model_part)
 
 clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
 model_part_io_clusters = ModelPartIO(clusters_mp_filename)
-
 model_part_io_clusters.ReadModelPart(cluster_model_part)
+
+DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
+model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
 
 # Setting up the buffer size
 balls_model_part.SetBufferSize(1)
 cluster_model_part.SetBufferSize(1)
+DEM_inlet_model_part.SetBufferSize(1)
 
 # Adding dofs
 SolverStrategy.AddDofs(balls_model_part)
 SolverStrategy.AddDofs(cluster_model_part)
+SolverStrategy.AddDofs(DEM_inlet_model_part)
 
 # Constructing a creator/destructor object
 creator_destructor = ParticleCreatorDestructor()
@@ -161,7 +170,7 @@ if(DEM_parameters.BoundingBoxOption == "ON"):
     procedures.SetBoundingBox(balls_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
-solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part, cluster_model_part, creator_destructor, DEM_parameters)
+solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, balls_model_part)
 
 solver.Initialize()
@@ -171,30 +180,16 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-if (DEM_parameters.dem_inlet_option):
+
+if (DEM_parameters.dem_inlet_option):    
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(balls_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
+
     if ( max_FEM_node_Id > max_node_Id):
         max_node_Id = max_FEM_node_Id
-    creator_destructor.SetMaxNodeId(max_node_Id)
+    
+    creator_destructor.SetMaxNodeId(max_node_Id)                            
         
-    DEM_inlet_model_part = ModelPart("DEMInletPart")
-    DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"    
-    procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-    procedures.AddBallsVariables(DEM_inlet_model_part, DEM_parameters)
-    SolverStrategy.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)
-    
-    os.chdir(main_path)
-    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
-    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
-
-    # setting up the buffer size:
-    DEM_inlet_model_part.SetBufferSize(1)
-
-    # adding nodal degrees of freedom
-    SolverStrategy.AddDofs(DEM_inlet_model_part)
-    DEM_inlet_parameters = DEM_inlet_model_part.Properties
-    
     for properties in DEM_inlet_model_part.Properties:
             
             DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];

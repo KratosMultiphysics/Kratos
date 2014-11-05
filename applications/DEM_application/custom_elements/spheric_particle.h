@@ -137,6 +137,7 @@ void   SetParticleMaterialFromProperties(int* particle_material);
 
 PropertiesProxy* GetFastProperties();
 void             SetFastProperties(PropertiesProxy* pProps);
+void             SetFastProperties();
 
 double SlowGetYoung();
 double SlowGetRollingFriction();

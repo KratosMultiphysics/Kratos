@@ -217,7 +217,7 @@ public:
       
       Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());       
           
-      spheric_p_particle->SetFastProperties(p_fast_properties) ;
+      spheric_p_particle->SetFastProperties(); 
             
       double density = spheric_p_particle->GetDensity();
       spheric_p_particle->SetRadius(radius);      
@@ -892,12 +892,16 @@ public:
     void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString){
         
         unsigned int& max_Id=creator.mMaxNodeId;         	
-        
-        CreateInletPropertiesProxies(r_modelpart);
-        
+               
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        
-        if(r_modelpart.GetProcessInfo()[ROTATION_OPTION] )              mBallsModelPartHasRotation   = true;
+        if(r_modelpart.GetProcessInfo()[ROTATION_OPTION] ) {
+            mBallsModelPartHasRotation   = true;
+            InletModelPart.GetProcessInfo()[ROTATION_OPTION] = true;            
+        }
+        else {
+            InletModelPart.GetProcessInfo()[ROTATION_OPTION] = false;             
+        }
         
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
@@ -1070,56 +1074,7 @@ public:
            } //if (number_of_particles_to_insert)
             
         } // for mesh_it
-    }    //CreateElementsFromInletMesh
-    
-    void CreateInletPropertiesProxies(ModelPart& r_balls_model_part){
-          KRATOS_TRY
-          typedef PointerVectorSet<Properties, IndexedObject>      PropertiesContainerType;
-          typedef PropertiesContainerType::iterator                PropertiesIterator;
-                            
-          int number_of_properties = InletModelPart.NumberOfProperties();
-          mFastProperties.resize(number_of_properties);
-          
-          PropertiesProxy aux_props;
-          int i = 0;
-                    
-          for (PropertiesIterator props_it = InletModelPart.GetMesh(0).PropertiesBegin(); 
-                                  props_it!= InletModelPart.GetMesh(0).PropertiesEnd();   props_it++ )
-          {
-              aux_props.SetId( props_it->GetId() );
-
-              double* aux_pointer = &( props_it->GetValue(YOUNG_MODULUS) );
-              aux_props.SetYoungFromProperties( aux_pointer );
-              
-              aux_pointer = &( props_it->GetValue(POISSON_RATIO) );
-              aux_props.SetPoissonFromProperties(aux_pointer);
-              if ( r_balls_model_part.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
-                aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
-                aux_props.SetRollingFrictionFromProperties(aux_pointer);
-              }
-              else {
-                aux_props.SetRollingFrictionFromProperties(NULL);
-              }
-              
-              aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
-              aux_props.SetTgOfFrictionAngleFromProperties(aux_pointer);
-              
-              aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
-              aux_props.SetLnOfRestitCoeffFromProperties(aux_pointer);
-              
-              aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
-              aux_props.SetDensityFromProperties(aux_pointer);
-              
-              int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
-              aux_props.SetParticleMaterialFromProperties(int_aux_pointer);
-              
-              mFastProperties[i] = aux_props;
-              i++;
-              
-      }               
-         return;          
-         KRATOS_CATCH("")
-      }
+    }    //CreateElementsFromInletMesh       
             
 };
 
