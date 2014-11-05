@@ -324,7 +324,8 @@ namespace Kratos
   //For the DEM_Clusters Element
   KRATOS_CREATE_VARIABLE(double, CLUSTER_MASS)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRINCIPAL_MOMENTS_OF_INERTIA)
-
+  KRATOS_CREATE_VARIABLE(double, CHARACTERISTIC_LENGTH)
+          
   //  For DEM_FEM condition
 //  KRATOS_CREATE_VARIABLE( Vector, RESIDUAL_VECTOR )
 //  KRATOS_CREATE_VARIABLE( Vector, EXTERNAL_FORCES_VECTOR )
@@ -392,6 +393,7 @@ namespace Kratos
   mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
   mCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mLineCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mCubeCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mMapCon3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
   {}
     
@@ -704,7 +706,8 @@ namespace Kratos
     // For the DEM_Clusters Element
     KRATOS_REGISTER_VARIABLE(CLUSTER_MASS)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PRINCIPAL_MOMENTS_OF_INERTIA)
-
+    KRATOS_REGISTER_VARIABLE(CHARACTERISTIC_LENGTH)
+            
     //For DEM_FEM Condition
 //    KRATOS_REGISTER_VARIABLE( RESIDUAL_VECTOR )
 //    KRATOS_REGISTER_VARIABLE( EXTERNAL_FORCES_VECTOR )
@@ -758,6 +761,7 @@ namespace Kratos
 
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("LineCluster3D", mLineCluster3D)
+    KRATOS_REGISTER_ELEMENT("CubeCluster3D", mCubeCluster3D)
 
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
