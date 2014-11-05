@@ -21,7 +21,6 @@
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "../custom_utilities/properties_proxies.h"
 
 namespace Kratos {
 
