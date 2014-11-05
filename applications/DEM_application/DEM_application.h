@@ -35,6 +35,7 @@
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/linecluster3D.h"
+#include "custom_elements/cubecluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
@@ -192,6 +193,7 @@ private:
     const RigidEdge3D  mRigidEdge3D2N;
     const Cluster3D  mCluster3D;
     const LineCluster3D  mLineCluster3D;
+    const CubeCluster3D  mCubeCluster3D;
     const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
