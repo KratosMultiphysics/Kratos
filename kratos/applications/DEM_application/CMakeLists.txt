@@ -24,7 +24,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
                 ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/dem_wall.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp 
-		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp 
+		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cubecluster3D.cpp
 )
 
 ###############################################################
