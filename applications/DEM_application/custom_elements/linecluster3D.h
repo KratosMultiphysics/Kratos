@@ -197,11 +197,7 @@ namespace Kratos
                 Matrix& Output,
                 const ProcessInfo& rCurrentProcessInfo);
    
-
-
-
-
-
+        double SlowGetDensity();    
 
 
       ///@}
