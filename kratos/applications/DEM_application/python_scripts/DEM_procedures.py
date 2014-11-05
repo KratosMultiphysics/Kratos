@@ -190,7 +190,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
             if( Var_Translator(Param.RollingFrictionOption)):
-              model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
+                model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
@@ -219,7 +219,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
      
     def AddClusterVariables(self, model_part, DEM_parameters):
-            # KINEMATIC
+        # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
@@ -231,8 +231,9 @@ class Procedures(object):
         
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)     
-        model_part.AddNodalSolutionStepVariable(RADIUS) #TODO: should be CARACTERISTIC_LENGTH
-
+        model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
+        model_part.AddNodalSolutionStepVariable(RADIUS)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
 
     def AddMpiVariables(self, model_part):
         pass
