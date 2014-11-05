@@ -165,12 +165,12 @@ namespace Kratos
       {
           KRATOS_TRY   
 
-          ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-          double delta_t =  rCurrentProcessInfo[DELTA_TIME];
-          bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+          ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
+          double delta_t                   = rCurrentProcessInfo[DELTA_TIME];
+          bool if_virtual_mass_option      = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
           vector<unsigned int> node_partition;
-          bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
-          double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
+          bool if_trihedron_option         = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
+          double coeff                     = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
           unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
           OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
@@ -183,14 +183,14 @@ namespace Kratos
               
               for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
 
-                  double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);                
+                  double PMomentOfInertia                       = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);                
 
                   array_1d<double, 3 > & AngularVel             = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                   array_1d<double, 3 > & RotaMoment             = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                  array_1d<double, 3 > & Rota_Displace          = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);                  
+                  array_1d<double, 3 > & Rota_Displace          = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
                   array_1d<double, 3 > delta_rotation_displ;                    
                   double Orientation_real;
-                  array_1d<double, 3 >  Orientation_imag;                  
+                  array_1d<double, 3 > Orientation_imag;                  
                   bool If_Fix_Rotation[3] = {false, false, false};
                   
                   If_Fix_Rotation[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
@@ -262,8 +262,7 @@ namespace Kratos
                       }                      
                     }// Trihedron Option                  
               }//for Node                  
-          }//for OMP
-                        
+          }//for OMP            
           
           KRATOS_CATCH(" ")
           
@@ -274,7 +273,7 @@ namespace Kratos
           
           KRATOS_TRY
 
-                    typedef ModelPart::ElementsContainerType ElementsArrayType;
+            typedef ModelPart::ElementsContainerType ElementsArrayType;
             typedef ElementsArrayType::iterator ElementIterator;
             ProcessInfo& rCurrentProcessInfo = rcluster_model_part.GetProcessInfo();
 
@@ -349,7 +348,6 @@ namespace Kratos
                         
                         array_1d<double, 3 > e1;
                         array_1d<double, 3 > e2;
-                        
 
                         e1[0] = rotation_matrix[0][0];
                         e1[1] = rotation_matrix[0][1];
