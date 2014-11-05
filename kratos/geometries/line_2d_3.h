@@ -690,6 +690,14 @@ public:
         KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
     }
 
+    /** EdgesNumber
+    @return SizeType containes number of this geometry edges.
+    */
+    virtual SizeType EdgesNumber() const
+    {
+        return 2;
+    }
+
     ///@}
     ///@name Shape Function
     ///@{
