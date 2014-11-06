@@ -174,6 +174,7 @@ DEM_proc.PreProcessModel(pp.dem)
 balls_model_part = ModelPart("SolidPart")
 clusters_model_part    = ModelPart("Cluster_Part");
 rigid_faces_model_part = ModelPart("RigidFace_Part");
+DEM_inlet_model_part = ModelPart("DEMInletPart")
 
 import sphere_strategy as DEMSolverStrategy
 
@@ -187,6 +188,10 @@ DEM_proc.AddMpiVariables(rigid_faces_model_part)
 DEM_proc.AddCommonVariables(clusters_model_part, pp.dem)
 DEM_proc.AddClusterVariables(clusters_model_part, pp.dem)
 DEM_proc.AddMpiVariables(clusters_model_part)
+DEM_proc.AddCommonVariables(DEM_inlet_model_part, pp.dem)
+DEM_proc.AddBallsVariables(DEM_inlet_model_part, pp.dem)
+DEM_proc.AddMpiVariables(DEM_inlet_model_part)
+vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
 
 # defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
@@ -203,14 +208,20 @@ model_part_io_clusters.ReadModelPart(clusters_model_part)
 rigid_face_mp_filename = pp.dem.problem_name + "DEM_FEM_boundary"
 model_part_io_solid = ModelPartIO(rigid_face_mp_filename)
 model_part_io_solid.ReadModelPart(rigid_faces_model_part)
+# reading the dem inlet model part
+DEM_Inlet_filename = pp.dem.problem_name + "DEM_Inlet"
+model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 balls_model_part.SetBufferSize(1)
 clusters_model_part.SetBufferSize(1)
+DEM_inlet_model_part.SetBufferSize(1)
 
 # adding nodal degrees of freedom
 DEMSolverStrategy.AddDofs(balls_model_part)
 DEMSolverStrategy.AddDofs(clusters_model_part)
+DEMSolverStrategy.AddDofs(DEM_inlet_model_part)
 
 # adding extra process info variables
 vars_man.AddingDEMProcessInfoVariables(pp, balls_model_part)
@@ -416,14 +427,12 @@ dem_volume_tool = swim_proc.ProjectionDebugUtils(pp.fluid_domain_volume, fluid_m
 
 # creating a CreatorDestructor object, responsible for any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
-max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
-creator_destructor.SetMaxNodeId(max_fluid_node_Id)
 
 # setting up a bounding box for the DEM balls (it is used for erasing remote balls)
 DEM_proc.SetBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor)
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
-dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, rigid_faces_model_part, clusters_model_part, creator_destructor, pp.dem)
+dem_solver = DEMSolverStrategy.ExplicitStrategy(balls_model_part, rigid_faces_model_part, clusters_model_part, DEM_inlet_model_part, creator_destructor, pp.dem) 
 # Initializing the DEM solver (must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part)
 dem_solver.Initialize()
 
@@ -436,24 +445,18 @@ if (pp.embedded_option):
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
 if (pp.inlet_option):
-    DEM_inlet_model_part = ModelPart("DEMInletPart")
-    DEM_Inlet_filename = pp.dem.problem_name + "DEM_Inlet"
     
-    DEM_proc.AddCommonVariables(DEM_inlet_model_part, pp.dem)
-    DEM_proc.AddBallsVariables(DEM_inlet_model_part, pp.dem)
-    DEM_proc.AddMpiVariables(DEM_inlet_model_part)
-    vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
-    
-    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
-    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
-
-    # setting up the buffer size:
-    DEM_inlet_model_part.SetBufferSize(1)
-
-    # adding nodal degrees of freedom
-    DEMSolverStrategy.AddDofs(DEM_inlet_model_part)
-    DEM_inlet_parameters = DEM_inlet_model_part.Properties
     vars_man.AddingDEMProcessInfoVariables(pp, DEM_inlet_model_part)
+    max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(balls_model_part)
+    max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_faces_model_part)
+    max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
+
+    if ( max_FEM_node_Id > max_node_Id):
+        max_node_Id = max_FEM_node_Id
+    if ( max_fluid_node_Id > max_node_Id):
+        max_node_Id = max_FEM_node_Id
+    
+    creator_destructor.SetMaxNodeId(max_node_Id)      
 
     for properties in DEM_inlet_model_part.Properties:
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
