@@ -84,9 +84,6 @@ namespace Kratos {
         mListOfCoordinates[9][0] =  0.45 * cl; mListOfCoordinates[9][1] = 0.0; mListOfCoordinates[9][2] = 0.0;
         
         double particle_density = this->SlowGetDensity();
-        
-        KRATOS_WATCH("***************************************************************")
-        KRATOS_WATCH(particle_density)
          
         double cluster_volume = 1.33333333333 * KRATOS_M_PI * 0.1 * 0.1 * 0.1 * cl * cl * cl
                                               + KRATOS_M_PI * 0.1 * 0.1 * 0.9 * cl * cl * cl;
