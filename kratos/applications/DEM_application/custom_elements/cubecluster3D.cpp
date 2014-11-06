@@ -92,9 +92,6 @@ namespace Kratos {
         
         double particle_density = this->SlowGetDensity();
         
-        KRATOS_WATCH("***************************************************************")
-        KRATOS_WATCH(particle_density)
-        
         double cluster_volume = 1.0 * 1.0 * 1.0 * cl * cl * cl;
         
         double cluster_mass = particle_density * cluster_volume;
