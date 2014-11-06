@@ -202,7 +202,7 @@ class Procedures(object):
         # FLAGS
 
         if(Var_Translator(Param.PostGroupId)):
-            model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
+            model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differenced groups for plotting, etc..
         # ONLY VISUALIZATION
         if (Var_Translator(Param.PostExportId)):
            model_part.AddNodalSolutionStepVariable(EXPORT_ID)
@@ -761,7 +761,7 @@ class DEMIo(object):
 
     def AddClusterVariables(self):
         pass
-
+    
     def AddContactVariables(self):
         # Contact Elements Variables
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
