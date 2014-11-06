@@ -257,8 +257,8 @@ void SUPGConvDiffPhaseChange3DLinearized::CalculateLocalSystem(MatrixType& rLeft
         }
 
         //compute "tangent" specific heat
-        const double liquidus_temperature = rCurrentProcessInfo[FLUID_TEMPERATURE];
-        const double solidus_temperature = rCurrentProcessInfo[SOLID_TEMPERATURE];
+        //const double liquidus_temperature = rCurrentProcessInfo[FLUID_TEMPERATURE];
+        //const double solidus_temperature = rCurrentProcessInfo[SOLID_TEMPERATURE];
         const double latent_heat = rCurrentProcessInfo[LATENT_HEAT];
 		for(unsigned int i=0; i<4; i++)
         {
@@ -279,7 +279,7 @@ void SUPGConvDiffPhaseChange3DLinearized::CalculateLocalSystem(MatrixType& rLeft
         {
             //note that the temperature at the end of the previous step is stored in the database without history
             //since it is purely a temporary variable
-            const double Tstage1 = GetGeometry()[i].GetValue(TEMPERATURE);
+            //const double Tstage1 = GetGeometry()[i].GetValue(TEMPERATURE);
             //const double specific_heat = GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
             //const double dT = (temperatures[i] - Tstage1);
             //const double Dsolid_frac_Dt = (GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE) ) ;                     
