@@ -185,7 +185,8 @@ namespace Kratos
 			    }	
 			 mean_interface_temp /= cnt_intr;
 
-			 double min_wet_temp = mrModelPart.GetProcessInfo()[FLUID_TEMPERATURE];
+			 double min_wet_temp = mrModelPart.GetProcessInfo()[FLUID_TEMPERATURE]; // TO-DO someday change the temperature in the inlet
+			 min_wet_temp=1000000.0; // this a temporal fixing
 			 double max_wet_temp = mrModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
 
 			 #pragma omp parallel for
@@ -208,7 +209,7 @@ namespace Kratos
 
 
 
-			(mrUnits == 1) ? SIUnitsOutput(distance_norm_inverse, min_wet_temp) : USUnitsOutput(distance_norm_inverse, min_wet_temp);
+			(mrUnits == 1) ? SIUnitsOutput(distance_norm_inverse,min_wet_temp, min_wet_temp-(max_wet_temp-min_wet_temp)*0.10) : USUnitsOutput(distance_norm_inverse, min_wet_temp, min_wet_temp-(max_wet_temp-min_wet_temp)*0.10);
 
 
 
@@ -263,7 +264,7 @@ namespace Kratos
 
 			}
            /////////////////////////////////////////
-			void SIUnitsOutput(double distance_norm_inverse, double min_wet_temp)
+			void SIUnitsOutput(double distance_norm_inverse, double min_wet_temp, double const print_temperature)
 			{
 
 			 #pragma omp parallel for
@@ -303,7 +304,7 @@ namespace Kratos
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
 					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = mean_interface_temp-10.0;
 					// i_node->FastGetSolutionStepValue(TEMPERATURES) = 0.95*min_wet_temp;
-					 i_node->FastGetSolutionStepValue(TEMPERATURES) = 0.998*min_wet_temp;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES) = print_temperature; //0.998*min_wet_temp;
 					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
 // 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
 				 }
@@ -313,7 +314,7 @@ namespace Kratos
 
 			}
          ////////////////////////////////////////////////////
-			void USUnitsOutput(double distance_norm_inverse, double min_wet_temp)
+			void USUnitsOutput(double distance_norm_inverse, double min_wet_temp, double const print_temperature)
 			{
 				min_wet_temp = min_wet_temp* 1.8 + 32.0;
 
@@ -344,7 +345,7 @@ namespace Kratos
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
-					 i_node->FastGetSolutionStepValue(TEMPERATURES_US) = 0.998 * min_wet_temp ;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES_US) = (1.8 * print_temperature + 32.0) ;
 					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
 				 }
 
