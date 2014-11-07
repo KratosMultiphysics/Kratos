@@ -87,11 +87,13 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
+
 	//only needed 
 	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
 		
 	//2.-Total Deformation Gradient
         Matrix TotalDeformationGradientF0 = DeformationGradientF;
+
 
         //4.-Right Cauchy Green
         Matrix RightCauchyGreen = prod(trans(TotalDeformationGradientF0),TotalDeformationGradientF0);
@@ -100,6 +102,28 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
         //E= 0.5*(FT*F-1)
         this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
+
+
+	if( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION )  || Options.Is( ConstitutiveLaw::FINAL_CONFIGURATION )){
+
+	  //2.-Total Deformation Gradient
+	  Matrix& DeformationGradientF0   = rValues.GetDeformationGradientF0();
+
+	  TotalDeformationGradientF0      = prod(DeformationGradientF, DeformationGradientF0);
+	  
+	  //3.-Left Cauchy Green
+	  Matrix LeftCauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
+	  
+	  //4.-Almansi Strain
+	  // e= 0.5*(1-invbT*invb)
+	  this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
+ 
+	  //5.-Pull-back Almansi Strain
+	  this->TransformStrains(StrainVector,DeformationGradientF,StrainMeasure_Almansi,StrainMeasure_GreenLagrange);
+	  
+	}
+
+
       }
 
     //7.-Calculate Total PK2 stress
