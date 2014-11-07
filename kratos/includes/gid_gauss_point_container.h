@@ -111,8 +111,8 @@ public:
     bool AddCondition( const ModelPart::ConditionsContainerType::iterator pCondIt )
     {
         KRATOS_TRY
-        if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
-                && pCondIt->GetGeometry().IntegrationPoints().size() == mSize )
+        if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily &&
+            pCondIt->GetGeometry().IntegrationPoints(pCondIt->GetIntegrationMethod()).size() == mSize )
         {
             mMeshConditions.push_back( *(pCondIt.base() ) );
             return true;
@@ -450,7 +450,7 @@ public:
                 GiD_fWriteGaussPoint3D( MeshFile, 0.13819660,0.13819660,0.13819660 );
                 GiD_fEndGaussPoint(MeshFile);
             }
-            if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
+            else if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
             {
                 GiD_fBeginGaussPoint( MeshFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
                 GiD_fWriteGaussPoint3D( MeshFile, 1.0/6.0, 1.0/6.0, 1.0/6.0 );
@@ -504,9 +504,13 @@ public:
             }
             else
             {
-                GiD_fBeginGaussPoint(MeshFile, mGPTitle, mGidElementFamily, NULL,
-                                     mSize, 0, 1);
+                GiD_fBeginGaussPoint(MeshFile, mGPTitle, mGidElementFamily, NULL, mSize, 0, 1);
                 GiD_fEndGaussPoint(MeshFile);
+                /* NOTE: for linear elements, GiD gauss point coordinates are equispaced, visualization coordinates
+                 * are wrong. Is there a GiD_fWriteGaussPoint2D equivalent for lines? Not according to documentation!
+                 * gidpost documentation does not list one,
+                 * GiD 12 explicitly states in the post format documentation that line coordinates cannot be given.
+                 */
             }
         }
     }
