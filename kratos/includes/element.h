@@ -980,6 +980,11 @@ public:
     {
         return *mpProperties;
     }
+    
+    void SetProperties(PropertiesType::Pointer pProperties)
+    {
+        mpProperties = pProperties;
+    }
 
     ///@}
     ///@name Elemental Data
