@@ -10,11 +10,9 @@
 
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "custom_utilities/properties_proxies.h"
 
 namespace Kratos
 {
-    
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
   
@@ -348,7 +346,6 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, SHEAR_STRESS)
   
   //OPTIMIZATION
-  KRATOS_DEFINE_VARIABLE(PropertiesProxy*, PROPERTIES_PROXY_POINTER)
   
 
 

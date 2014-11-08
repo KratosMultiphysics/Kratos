@@ -112,8 +112,6 @@ namespace Kratos
     void DEM_FEM_Particle::SetInitialBallNeighbor()
     {
 		
-        //ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
-        //unsigned int new_size                = rNeighbours.size();
         unsigned int new_size                 = mNeighbourElements.size();
 	   
 	maInitialBallNeighborID.resize(new_size);
@@ -139,14 +137,12 @@ namespace Kratos
 
     void DEM_FEM_Particle::SetInitialRigidFaceNeighbor() {
 
-        //ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
         std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
         unsigned int new_size = rNeighbours.size();
 
         maInitialRigidFaceNeighborID.resize(new_size);
         maInitialRigidFaceNeighborFailureType.resize(new_size);
 
-        //for (ConditionWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++) {
         for (unsigned int i=0; i<rNeighbours.size(); i++) { 
 
             maInitialRigidFaceNeighborID[i] = static_cast<int> (rNeighbours[i]->Id());
@@ -205,15 +201,10 @@ namespace Kratos
                                                           array_1d<double, 3>& rInitialRotaMoment,
                                                           double dt,
                                                           ProcessInfo& rCurrentProcessInfo)
-      {
-		  
-		  
+      {		  		  
           KRATOS_TRY
-
-          //ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
-
+          
           // KINEMATICS
-
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 
@@ -225,7 +216,6 @@ namespace Kratos
           double InitialRotaMoment[3]            = {0.0};
 
 
-          //if (mRotationOption){
           if (this->Is(DEMFlags::HAS_ROTATION) ) {
               RotaAcc[0]                         = ang_vel[0] * dt_i;
               RotaAcc[1]                         = ang_vel[1] * dt_i;
@@ -237,12 +227,8 @@ namespace Kratos
           }
 		  
 
-          //LOOP OVER NEIGHBOURS BEGINS
-		  
-          size_t i_neighbour_count = 0;
-
-          //for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++) {		 
-          
+          //LOOP OVER NEIGHBOURS BEGINS		  
+          size_t i_neighbour_count = 0;          
           for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
               SphericParticle* neighbour_iterator = mNeighbourElements[i];   
               // BASIC CALCULATIONS              
@@ -251,18 +237,11 @@ namespace Kratos
                                                           other_to_me_vect[1] * other_to_me_vect[1] +
                                                           other_to_me_vect[2] * other_to_me_vect[2]);
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
- 
-              //double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-              double radius_sum                       = mRadius + other_radius;
-			  
-			  
+              double radius_sum                       = mRadius + other_radius;			  			  
               double equiv_radius                     = radius_sum * 0.5;
-             // double indentation                      = radius_sum - distance;
 	      double kn;
-	      double kt;
-              
-              double equiv_area                       =  KRATOS_M_PI * equiv_radius * equiv_radius;
-			  
+	      double kt;              
+              double equiv_area                       =  KRATOS_M_PI * equiv_radius * equiv_radius;			  
 			  
 	      double other_cohesion = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
 	      double other_tension  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_TENSION );
@@ -280,14 +259,9 @@ namespace Kratos
               double LocalDeltDisp[3]                  = {0.0};
               double RelVel[3]                         = {0.0};
               double LocalRelVel[3]                    = {0.0};
-              //double NormalDir[3]                      = {0.0};
-              //double OldNormalDir[3]                   = {0.0};
               double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
               double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
 			  
-			  
-	      //const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-	      //const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
               const double other_young       = neighbour_iterator->GetYoung();
 	      const double other_poisson     = neighbour_iterator->GetPoisson();
 	      double equiv_young              = (GetYoung() + other_young) * 0.5;
@@ -297,12 +271,11 @@ namespace Kratos
 	      kt                              = equiv_shearM * equiv_area / radius_sum;
 			  
 
-              EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir,*/ LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
+              EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
-              //if (mRotationOption)
               if (this->Is(DEMFlags::HAS_ROTATION) )
 			  {
-                  DisplacementDueToRotation(DeltDisp, /*NormalDir,*/ LocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                  DisplacementDueToRotation(DeltDisp, LocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
 			  }
 
 
@@ -467,11 +440,9 @@ namespace Kratos
         KRATOS_TRY
 
 
-        //ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
         std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
 
         double mTimeStep = rCurrentProcessInfo[DELTA_TIME];
-        /////int CalRotateOption = rCurrentProcessInfo[RIGID_FACE_FLAG];
 
         double Friction = GetTgOfFrictionAngle();
         double young = GetYoung();
@@ -620,7 +591,6 @@ namespace Kratos
 
             ///Global stored contact force between rigid face and particle, used by fem elements
 
-            //Vector& neighbour_rigid_faces_elastic_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);
             std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
             neighbour_rigid_faces_elastic_contact_force[3 * i + 0] = GlobalContactForce[0];
             neighbour_rigid_faces_elastic_contact_force[3 * i + 1] = GlobalContactForce[1];

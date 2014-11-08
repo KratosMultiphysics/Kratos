@@ -219,7 +219,7 @@ public:
       
       Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());       
           
-      spheric_p_particle->SetFastProperties(); 
+      spheric_p_particle->SetFastProperties(p_fast_properties); 
             
       double density = spheric_p_particle->GetDensity();
       spheric_p_particle->SetRadius(radius);      
@@ -307,8 +307,6 @@ public:
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
         spheric_p_particle->SetClusterId(cluster_id);
-
-        spheric_p_particle->SetFastProperties(); 
         
         r_modelpart.Elements().push_back(p_particle);
         return spheric_p_particle;
@@ -895,7 +893,9 @@ public:
         
     void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString){
         
-        unsigned int& max_Id=creator.mMaxNodeId;         	
+        unsigned int& max_Id=creator.mMaxNodeId;       
+        
+        CreatePropertiesProxies(mFastProperties, InletModelPart);      
                
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        

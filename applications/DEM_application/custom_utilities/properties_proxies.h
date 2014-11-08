@@ -15,12 +15,14 @@
 
 // External includes
 // Project includes
+#include "includes/model_part.h"
 
 #include "../kratos/includes/define.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "../DEM_application_variables.h"
 
 namespace Kratos {
 
@@ -28,7 +30,7 @@ namespace Kratos {
             
     public:
       
-        int     GetId()                                                          { return mId;                                 }
+        unsigned int     GetId()                                                          { return mId;                                 }
         void    SetId(int id)                                                    { mId = id;                                   }
        
         double  GetYoung()                                                       { return *mYoung;                             }
@@ -72,15 +74,10 @@ namespace Kratos {
                   
             return *this;
         } 
-        
-        void CreateAllPropertiesProxies(ModelPart& rBallsModelPart, ModelPart& rInletModelPart, ModelPart& rClustersModelPart){
-            
-            
-            
-        }
+                
            
     private:
-        int     mId;
+        unsigned int     mId;
         double* mYoung;
         double* mPoisson;
         double* mRollingFriction;
@@ -95,28 +92,98 @@ namespace Kratos {
         virtual void save(Serializer& rSerializer) const {
 
             rSerializer.save("mId",mId);
-            rSerializer.save("mYoung",mYoung);
+            /*rSerializer.save("mYoung",mYoung);
             rSerializer.save("mPoisson",mPoisson);
             rSerializer.save("mRollingFriction",mRollingFriction);
             rSerializer.save("mTgOfFrictionAngle",mTgOfFrictionAngle);
             rSerializer.save("mLnOfRestitCoeff",mLnOfRestitCoeff);
             rSerializer.save("mDensity",mDensity);
-            rSerializer.save("mParticleMaterial",mParticleMaterial);
+            rSerializer.save("mParticleMaterial",mParticleMaterial);*/
         }
 
         virtual void load(Serializer& rSerializer) {
             
             rSerializer.load("mId",mId);
-            rSerializer.load("mYoung",mYoung);
+            /*rSerializer.load("mYoung",mYoung);
             rSerializer.load("mPoisson",mPoisson);
             rSerializer.load("mRollingFriction",mRollingFriction);
             rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
             rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);
             rSerializer.load("mDensity",mDensity);
-            rSerializer.load("mParticleMaterial",mParticleMaterial);          
+            rSerializer.load("mParticleMaterial",mParticleMaterial);  */        
         }
       
     };
+    
+    inline void AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies, ModelPart& rModelPart, int& properties_counter){
+        
+          typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
+          typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+                    
+          for (PropertiesIterator props_it = rModelPart.GetMesh(0).PropertiesBegin(); props_it!= rModelPart.GetMesh(0).PropertiesEnd();   props_it++ ) {
+              
+              vector_of_proxies[properties_counter].SetId( props_it->GetId() );
+
+              double* aux_pointer = &( props_it->GetValue(YOUNG_MODULUS) );
+              vector_of_proxies[properties_counter].SetYoungFromProperties( aux_pointer );
+              
+              aux_pointer = &( props_it->GetValue(POISSON_RATIO) );
+              vector_of_proxies[properties_counter].SetPoissonFromProperties(aux_pointer);
+                                          
+              aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
+              vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(aux_pointer);
+              
+              //MA: I commented out the following part because the Initialization of the Proxies is done before the initialization of the inlet (where ProcessInfo for that ModelPart is set)
+              /*if ( rModelPart.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
+                aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
+                vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(aux_pointer);
+              }
+              else {
+                vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(NULL);
+              }*/
+              
+              aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
+              vector_of_proxies[properties_counter].SetTgOfFrictionAngleFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
+              vector_of_proxies[properties_counter].SetLnOfRestitCoeffFromProperties(aux_pointer);
+              
+              aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
+              vector_of_proxies[properties_counter].SetDensityFromProperties(aux_pointer);
+              
+              int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
+              vector_of_proxies[properties_counter].SetParticleMaterialFromProperties(int_aux_pointer);
+                                         
+              properties_counter++;
+                            
+          }      
+     }    
+    
+    inline void CreatePropertiesProxies(std::vector<PropertiesProxy>& vector_of_proxies, ModelPart& balls_mp, ModelPart& inlet_mp, ModelPart& clusters_mp){
+          KRATOS_TRY
+          
+          vector_of_proxies.clear();    
+          vector_of_proxies.resize( balls_mp.NumberOfProperties() + inlet_mp.NumberOfProperties() + clusters_mp.NumberOfProperties() );
+          int properties_counter = 0;
+          AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, balls_mp,    properties_counter);          
+          AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, inlet_mp,    properties_counter);           
+          AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, clusters_mp, properties_counter);                    
+          
+          return;          
+          KRATOS_CATCH("")
+    }
+    
+    inline void CreatePropertiesProxies(std::vector<PropertiesProxy>& vector_of_proxies, ModelPart& r_model_part){
+          KRATOS_TRY
+          
+          vector_of_proxies.clear();    
+          vector_of_proxies.resize( r_model_part.NumberOfProperties() );
+          int properties_counter = 0;
+          AddPropertiesProxiesFromModelPartProperties(vector_of_proxies, r_model_part,    properties_counter);          
+          
+          return;          
+          KRATOS_CATCH("")
+    }
     
 } // namespace Kratos.
 

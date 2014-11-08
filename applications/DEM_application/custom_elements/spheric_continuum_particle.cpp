@@ -75,18 +75,8 @@ namespace Kratos
             * 
             * These 3 classes do NOT coincide at t=0!
 
-          */
-
-            // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
-
-            //ParticleWeakVectorType& mrNeighbours                  = this->GetValue(NEIGHBOUR_ELEMENTS);            
-            //ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-            //vector<int>& r_continuum_ini_neighbours_ids          = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS);            
-            
-            //r_continuum_ini_neighbours.clear();
+          */                  
             mContinuumIniNeighbourElements.clear(); ///////////////////////
-            //r_continuum_ini_neighbours_ids.clear();
-            //mContinuumIniNeighbourIds.clear();
                         
             size_t ini_size = 0;
             size_t continuum_ini_size =0;
@@ -96,7 +86,6 @@ namespace Kratos
 
             size_t cont_ini_mapping_index= 0;
             
-            //unsigned int neighbours_size = mrNeighbours.size();
             unsigned int neighbours_size = mNeighbourElements.size(); //////////////////////
             mIniNeighbourIds.resize(neighbours_size);
             mIniNeighbourToIniContinuum.resize(neighbours_size);
@@ -139,15 +128,9 @@ namespace Kratos
 
                 continuum_ini_size++;
                 cont_ini_mapping_index++;
-
-                //r_continuum_ini_neighbours.push_back(*neighbour_iterator);
-                //r_continuum_ini_neighbours.push_back(neighbour_iterator);
+                
                 mContinuumIniNeighbourElements.push_back(neighbour_iterator);
-
-                //r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
-
-                //mMapping_New_Cont.resize(continuum_ini_size);
-                //mMapping_New_Cont[continuum_ini_size - 1] = -1;
+                
                 mMapping_New_Cont.push_back(-1);
 
                 mHistory.resize(continuum_ini_size);
@@ -156,17 +139,7 @@ namespace Kratos
                 mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
                 mHistory[continuum_ini_size - 1][2] = 0.0; //acumulated_damage
                 mHistory[continuum_ini_size - 1][3] = 1.0; //degradation factor for G reducing in Dempack;
-
-                //r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*neighbour_iterator).lock())->Id();
-                //r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = neighbour_iterator->Id();
-                //mContinuumIniNeighbourIds.push_back( neighbour_iterator->Id() );
-
-                //if (mContactMeshOption) {
-
-                  //  (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
-
-                //} //if(mContactMeshOption) 
-
+                
             }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
 
         } //end for: ParticleWeakIteratorType ineighbour
@@ -214,9 +187,6 @@ namespace Kratos
     
     void SphericContinuumParticle::SetInitialFemContacts() 
     {   
-        
-        //Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
-        //ConditionWeakVectorType& rFemNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
         std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
         std::vector<DEMWall*>& rFemNeighbours = this->mNeighbourRigidFaces;
         
@@ -225,9 +195,7 @@ namespace Kratos
         mFemIniNeighbourIds.resize(fem_neighbours_size);
         mFemMappingNewIni.resize(fem_neighbours_size);
         mFemIniNeighbourDelta.resize(fem_neighbours_size);
-        
-        //for(ConditionWeakIteratorType ineighbour = rFemNeighbours.begin(); ineighbour != rFemNeighbours.end(); ineighbour++)
-        //{           
+                 
         for(unsigned int i=0; i<rFemNeighbours.size(); i++) 
         {            
           int ino1               = i * 16;          
@@ -240,70 +208,7 @@ namespace Kratos
           mFemIniNeighbourDelta[i] = initial_delta;
         }
       
-    }//SetInitialFemContacts
-      
-        void SphericContinuumParticle::NeighNeighMapping( ProcessInfo& rCurrentProcessInfo  ) 
-        {
-          
-//         ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-// 
-//         int my_id = this->Id();
-//         
-//         vector<int> my_index_from_my_neigh;
-//         
-//         my_index_from_my_neigh.resize(r_continuum_ini_neighbours.size());
-//         
-//         KRATOS_WATCH("   ")
-//         KRATOS_WATCH(this->Id())
-//                  
-//         int cont_ini_neighbour_counter = 0;
-//                 
-//         for(ParticleWeakIteratorType cont_ini_neighbour_iterator = r_continuum_ini_neighbours.begin();
-//             cont_ini_neighbour_iterator != r_continuum_ini_neighbours.end(); cont_ini_neighbour_iterator++)
-//         {
-//              
-//               KRATOS_WATCH(cont_ini_neighbour_iterator->Id())
-//               
-//           
-//               ParticleWeakVectorType& r_continuum_ini_neighbours_of_my_continuum_ini_neighbour    = cont_ini_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-// 
-//               //KRATOS_WATCH(r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.size())
-//               /*
-//               int index_me_from_my_neigh = 0;
-//               
-//                 for(ParticleWeakIteratorType cont_ini_neighbour_of_my_cont_ini_neigh_iterator = r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.begin();
-//                   cont_ini_neighbour_of_my_cont_ini_neigh_iterator != r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.end(); cont_ini_neighbour_of_my_cont_ini_neigh_iterator++)
-//               {
-//           
-//                 if( cont_ini_neighbour_of_my_cont_ini_neigh_iterator->Id() == my_id)
-//                 {
-//                                   
-//                 my_index_from_my_neigh[cont_ini_neighbour_counter] = index_me_from_my_neigh;
-//                                 
-//                 break;  
-//                 }
-//                 
-//                 index_me_from_my_neigh++;
-//                
-//               } //neighbours of my neighbour
-//              */ 
-//         } //my neighbours      
-//         
-//         
-//         //checks:
-//         //loop veins ini cont
-//           //vei->trencat?
-//           
-//           //vei->vei(jo)->trencat?
-//         
-//         
-//         
-//         KRATOS_WATCH(my_index_from_my_neigh)
-//         
-        
-      }// 
-      
-
+    }//SetInitialFemContacts              
       
       void SphericContinuumParticle::ContactAreaWeighting3D( ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
@@ -802,96 +707,7 @@ namespace Kratos
 
           KRATOS_CATCH("")
 
-      } //ApplyLocalMomentsDamping
-
-      void SphericContinuumParticle::CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo ) //MSIMSI 9: aixo pot ser %veins trencats...
-      {  
-
-          KRATOS_TRY
-
-          // SETTING THE CARACHTERISTIC FAILURE TYPE OF THE PARTICLE (THE DOMINANT ONE) FOR VISUALITZATION.
-
-            /* ContactFailureId = 2 (partially detached) it's never considerer in a contact, but it can be a desired output on the visualitzation.
-             *
-             * If the particle has no neighbour, but it is not from ContinuumGroup = 0 its becouse it has lost all the neighbours,
-             * we are not interested in its global failure type but in its neighbours failure type. See: //// DETECTING A COHESIVE PARTICLE THAT HAS BEEN COMPLETELY DETACHED. in AfterForceCalculation.
-             *
-             * If one of the failure types completely dominates over the others this is the FailureId choosen for the particle
-             *
-             * If its partially detached by some type(s) of failure but the dominant contact state is "still atached", so failureId =0, we chose FailureId = 2.
-             *
-             * If the particle is not simulating the continuum, the failure type is 1 (default set from the particle whose ContinuumGroup is 0); It won't be printed as output.
-             *
-             */
-
-            /*
-             *   mFailureId values:
-             *      0 := all neighbours attached
-             *      1 := General detachment (all neighbours lost or no initial continuum case)
-             *      2 := Partially detached and no dominance
-             *      3 := tensile dominating on the contact detachment
-             *      4 := shear dominating on the contact detachment
-             */
-
-
-          int tempType[5] = {0,0,0,0,0};
-
-          if (mFailureId != 1)  // for mFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
-          {
-              vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
-
-              int ini_neighbours_size = r_initial_neighbours_id.size();
-              
-     
-              for(int index = 0; index < ini_neighbours_size; index++)    //loop over neighbours, just to run the index.
-              {    
-                  if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 0)  //MA: GetValue(PARTICLE_INITIAL_FAILURE_ID) must be stored locally with a reference to save time
-                  {
-                      tempType[0]++;
-                  }
-                  else if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 1)
-                  {
-                      tempType[1]++;
-                  }
-
-                  // mContactFailureId == 2 intentionally skipped!
-
-                  else if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 3)
-                  {
-                      tempType[3]++;
-                  }
-                  else if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 4)
-                  {
-                      tempType[4]++;
-                  }
-              }
-
-              if ( tempType[0] == 0)  //no neighbour is attached
-              {
-                  mFailureId = 1;
-              }   // no one neighbour is attached (but maybe still contacting).
-              else if( (tempType[3] > tempType[4]) ) //some neighbour attached but failure 3 dominates over 4.
-              {
-                  mFailureId = 3;
-              }
-              else if( (tempType[4] > tempType[3]) ) // the same but 4 dominates over 3.
-              {
-                  mFailureId = 4;
-              }
-              else if ( (tempType[4] > 0) || (tempType[3] > 0) ) // no 3 neither 4 dominates but one of them may exist.
-              {
-                  mFailureId = 2;  // Partially detached / mix case.
-              }
-              else
-              {
-                  mFailureId = 0;  // last option: no one detached.
-              }
-
-          }// if (mFailureId != 1)
-
-          KRATOS_CATCH("")
-
-      } //CharacteristicParticleFailureId
+      } //ApplyLocalMomentsDamping      
 
      
     void SphericContinuumParticle::SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo)   //MSIMSI10
@@ -1647,26 +1463,17 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     {
           //const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
 
-
           if(mTriaxialOption && *mSkinSphere) //could be applified to selected particles.
           {
-
-            ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
-            
-
-          }
-        
-   
-          
+            ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);            
+          }                     
                 
           //if( mRotationOption != 0 && mRotationSpringOption != 0 )
           /*if( this->Is(DEMFlags::HAS_ROTATION) && this->Is(DEMFlags::HAS_ROTATION_SPRING)  )             
           {
               //ComputeParticleRotationSpring(); MSI: #C2
           }*/
-          
-          //CharacteristicParticleFailureId(rCurrentProcessInfo);
-          
+                   
           double mass = mSqrtOfRealMass * mSqrtOfRealMass;
           additionally_applied_force[0] += mass * gravity[0];
           additionally_applied_force[1] += mass * gravity[1];

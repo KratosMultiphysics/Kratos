@@ -136,8 +136,8 @@ int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
 
 PropertiesProxy* GetFastProperties();
-void             SetFastProperties(PropertiesProxy* pProps);
-void             SetFastProperties();
+void   SetFastProperties(PropertiesProxy* pProps);
+void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
 double SlowGetYoung();
 double SlowGetRollingFriction();

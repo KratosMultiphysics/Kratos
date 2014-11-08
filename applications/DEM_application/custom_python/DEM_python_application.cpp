@@ -375,7 +375,6 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHEAR_STRESS)       
             
     //OPTIMIZATION                     
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(PROPERTIES_PROXY_POINTER)     //impossible for Python! 
   
     
 }
