@@ -75,7 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
     //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
     extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*);
-};
+}
 
 
 
