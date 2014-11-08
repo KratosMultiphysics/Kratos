@@ -60,15 +60,30 @@ namespace Kratos
                              const int    delta_option,
                              const double search_tolerance,
                              const double coordination_number,
-                             //const bool delta_option,
-                             //const bool continuum_simulating_option,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
-      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, cluster_model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
+      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, cluster_model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch)
       {
 
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
+      }
+      
+      ContinuumExplicitSolverStrategy(
+                             ExplicitSolverSettings& settings,
+                             const double max_delta_time,
+                             const double n_step_search,
+                             const double safety_factor,
+                             const bool move_mesh_flag,//TODO: is this variable used??
+                             const int delta_option,
+                             const double search_tolerance,
+                             const double coordination_number,
+                             typename ParticleCreatorDestructor::Pointer p_creator_destructor,
+                             typename IntegrationScheme::Pointer pScheme,
+                             typename SpatialSearch::Pointer pSpSearch)
+      :ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(settings, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch)
+      {                    
+          BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;                            
       }
 
       /// Destructor.
@@ -107,7 +122,13 @@ namespace Kratos
         rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
         this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
 
-        BaseType::CreatePropertiesProxies();
+        CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *BaseType::mpInlet_model_part, *BaseType::mpCluster_model_part);
+        
+        BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles); 
+        BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles); 
+        
+        BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
+        BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);        
         
         mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
         
@@ -167,9 +188,6 @@ namespace Kratos
         
         }
         
-        BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
-        BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
-        
         //the search radius is modified for the next steps.
         BaseType::SetSearchRadius(r_model_part, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
 
@@ -210,6 +228,9 @@ namespace Kratos
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
+          
+          BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles); 
+          BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles); 
           
           BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
           BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
@@ -335,7 +356,7 @@ namespace Kratos
           //When our particle has a higher ID than the neighbour we also create a pointer to the (previously) created contact element.
           //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
                      
-        Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
+        Properties::Pointer properties =  (*BaseType::mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
         
         #pragma omp parallel for 
         for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
@@ -358,7 +379,7 @@ namespace Kratos
                 
                 #pragma omp critical
                 {
-                    mcontacts_model_part.Elements().push_back(p_contact_element);
+                    (*BaseType::mpContact_model_part).Elements().push_back(p_contact_element);
                     index_new_ids++;
                 }
                 
@@ -404,7 +425,7 @@ namespace Kratos
 
         //CONTACT MODEL PART
       
-        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+        ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);
       
         vector<unsigned int> contact_element_partition;
 
@@ -435,8 +456,8 @@ namespace Kratos
    void ContactInitializeSolutionStep()
     {
        
-          ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);      
-          ProcessInfo& rCurrentProcessInfo  = mcontacts_model_part.GetProcessInfo();
+          ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);      
+          ProcessInfo& rCurrentProcessInfo  = (*BaseType::mpContact_model_part).GetProcessInfo();
          
           vector<unsigned int> contact_element_partition;
           
@@ -460,7 +481,7 @@ namespace Kratos
    void PrepareContactElementsForPrinting()
     {
        
-        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+        ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);
                
         vector<unsigned int> contact_element_partition;
 
@@ -498,9 +519,9 @@ namespace Kratos
                     
           p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
-              p_creator_destructor->MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
+              p_creator_destructor->MarkContactElementsForErasing(r_model_part, *BaseType::mpContact_model_part);
           p_creator_destructor->DestroyParticles(r_model_part);
-          p_creator_destructor->DestroyContactElements(mcontacts_model_part);
+          p_creator_destructor->DestroyContactElements(*BaseType::mpContact_model_part);
 
           KRATOS_CATCH("")
       }
@@ -512,7 +533,7 @@ namespace Kratos
         VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
         
-        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+        ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);
               
         vector<unsigned int> contact_element_partition;
           
@@ -539,9 +560,9 @@ namespace Kratos
     void Contact_Debug()
     {
        
-      ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+      ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);
       
-      ProcessInfo& rCurrentProcessInfo  = mcontacts_model_part.GetProcessInfo();
+      ProcessInfo& rCurrentProcessInfo  = *BaseType::mpContact_model_part.GetProcessInfo();
       
       double Output = 0.0;
       
@@ -734,8 +755,6 @@ namespace Kratos
 
     protected:
     
-    ModelPart& mcontacts_model_part;
-    //bool   mdelta_option;
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
     bool   mDempackOption;

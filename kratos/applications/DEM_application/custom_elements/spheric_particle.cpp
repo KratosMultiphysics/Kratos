@@ -664,10 +664,10 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
         if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;        
         if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
-        if (this->SlowGetParticleMaterial() == ineighbour->SlowGetParticleMaterial()) {
+        /*if (this->SlowGetParticleMaterial() == ineighbour->SlowGetParticleMaterial()) {
             cohesion = 0; } //made up cohesion value. This value should come from Properties by using SlowGetCohesion()
         else {
-            cohesion = 0; } //made up cohesion value. This value should come from Properties by using SlowGetCohesion()
+            cohesion = 0; } //made up cohesion value. This value should come from Properties by using SlowGetCohesion()*/
                 
         // BASIC CALCULATIONS
         array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
@@ -744,7 +744,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
     double Weight[4] = {0.0};
 
-    //Vector & RF_Pram= this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
     std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 
     int ino1 = ino * 16;
@@ -1423,7 +1422,12 @@ void   SphericParticle::SetParticleMaterialFromProperties(int* particle_material
 
 PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                          }
 void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                        }
-void   SphericParticle::SetFastProperties()                                              { SetFastProperties(GetProperties()[PROPERTIES_PROXY_POINTER]);                    }
+void   SphericParticle::SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies) { for (unsigned int j=0;j<list_of_proxies.size(); j++){
+                                                                                                if( list_of_proxies[j].GetId() == GetProperties().Id() ) { 
+                                                                                                    SetFastProperties(&list_of_proxies[j]); 
+                                                                                                    return;
+                                                                                                }
+                                                                                            }                                                                                }
 
 double SphericParticle::SlowGetYoung()                                                   { return GetProperties()[YOUNG_MODULUS];                                           }
 double SphericParticle::SlowGetRollingFriction()                                         { return GetProperties()[ROLLING_FRICTION_OPTION];                                 }

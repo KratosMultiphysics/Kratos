@@ -203,16 +203,14 @@ namespace Kratos
            if ( mpFem_model_part == NULL )
             KRATOS_ERROR(std::runtime_error,"Undefined settings.fem_model_part in ExplicitSolverStrategy constructor","")
          
-         mpCluster_model_part              = &(*(settings.cluster_model_part));
+          mpCluster_model_part              = &(*(settings.cluster_model_part));
            if ( mpCluster_model_part == NULL )
             KRATOS_ERROR(std::runtime_error,"Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor","")
             
           mpInlet_model_part              = &(*(settings.inlet_model_part));
            if ( mpInlet_model_part == NULL )
             KRATOS_ERROR(std::runtime_error,"Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor","")
-            
-
-        
+                   
       }
 
       ExplicitSolverStrategy(ModelPart& r_model_part,
@@ -275,85 +273,21 @@ namespace Kratos
                 T* spheric_particle = dynamic_cast<T*>( &(*particle_pointer_it) );
                 rCustomListOfParticles[elem_number] = spheric_particle;
             }                                
-          }    
-          
-          
-          return;          
-          KRATOS_CATCH("")
-          
-      }
-      
-      void AddPropertiesProxiesFromModelPartProperties(ModelPart& rModelPart, int& properties_counter){
-          
-          
-          PropertiesProxy aux_props;
-          
-          for (PropertiesIterator props_it = rModelPart.GetMesh(0).PropertiesBegin(); props_it!= rModelPart.GetMesh(0).PropertiesEnd();   props_it++ ) {
-              
-              aux_props.SetId( props_it->GetId() );
-
-              double* aux_pointer = &( props_it->GetValue(YOUNG_MODULUS) );
-              aux_props.SetYoungFromProperties( aux_pointer );
-              
-              aux_pointer = &( props_it->GetValue(POISSON_RATIO) );
-              aux_props.SetPoissonFromProperties(aux_pointer);
-                                          
-              aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
-              aux_props.SetRollingFrictionFromProperties(aux_pointer);
-              
-              //MA: I commented out the following part because the Initialization of the Proxies is done before the initialization of the inlet (where ProcessInfo for that ModelPart is set)
-              /*if ( rModelPart.GetProcessInfo()[ROLLING_FRICTION_OPTION] )  {
-                aux_pointer = &( props_it->GetValue(ROLLING_FRICTION) );
-                aux_props.SetRollingFrictionFromProperties(aux_pointer);
-              }
-              else {
-                aux_props.SetRollingFrictionFromProperties(NULL);
-              }*/
-              
-              aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
-              aux_props.SetTgOfFrictionAngleFromProperties(aux_pointer);
-              
-              aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
-              aux_props.SetLnOfRestitCoeffFromProperties(aux_pointer);
-              
-              aux_pointer = &( props_it->GetValue(PARTICLE_DENSITY) );
-              aux_props.SetDensityFromProperties(aux_pointer);
-              
-              int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
-              aux_props.SetParticleMaterialFromProperties(int_aux_pointer);
-              
-              mFastProperties[properties_counter] = aux_props;
-              
-              props_it->GetValue(PROPERTIES_PROXY_POINTER) = &mFastProperties[properties_counter];
-              
-              properties_counter++;
-                            
-          }
-      
-      }
-            
-      void CreatePropertiesProxies(){
-          KRATOS_TRY
-                        
-          mFastProperties.clear();    
-          mFastProperties.resize( mpDem_model_part->NumberOfProperties() + mpInlet_model_part->NumberOfProperties() + mpCluster_model_part->NumberOfProperties() );
-          int properties_counter = 0;
-          AddPropertiesProxiesFromModelPartProperties(*mpDem_model_part, properties_counter);          
-          AddPropertiesProxiesFromModelPartProperties(*mpInlet_model_part, properties_counter);           
-          AddPropertiesProxiesFromModelPartProperties(*mpCluster_model_part, properties_counter);                    
+          }              
           
           return;          
           KRATOS_CATCH("")
-      }
+          
+      }                        
+      
       void RebuildPropertiesProxyPointers(std::vector<SphericParticle*>& rCustomListOfSphericParticles){
-          //This function is called for the local mesh and the local mesh, so mListOfSphericElements must not be used here.
+          //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
           KRATOS_TRY         
-                 
+                                  
           #pragma omp parallel for
           for(int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){  
-              rCustomListOfSphericParticles[i]->SetFastProperties();                                      
-          }   
-          
+              rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);                         
+          }                     
           return;            
           KRATOS_CATCH("")
       }
@@ -383,6 +317,49 @@ namespace Kratos
           
       }
       
+      void RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles){                   
+          
+          bool found = false;    
+          //#pragma omp parallel for
+          for (int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){
+                            
+              int own_properties_id = rCustomListOfSphericParticles[i]->GetProperties().Id();  
+              
+              for (PropertiesIterator props_it = mpDem_model_part->GetMesh(0).PropertiesBegin(); props_it!= mpDem_model_part->GetMesh(0).PropertiesEnd();   props_it++ ) {
+                  int model_part_id = props_it->GetId();
+                  if (own_properties_id == model_part_id) {
+                      rCustomListOfSphericParticles[i]->SetProperties( *(props_it.base()) );
+                      found = true;
+                      break;
+                  }                  
+              }
+              
+              if(found) continue;
+              
+              for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it!= mpInlet_model_part->GetMesh(0).PropertiesEnd();   props_it++ ) {
+                  int model_part_id = props_it->GetId();
+                  if (own_properties_id == model_part_id) {
+                      rCustomListOfSphericParticles[i]->SetProperties( *(props_it.base()) );
+                      found = true;
+                      break;
+                  }                  
+              }
+              
+              if(found) continue;
+              
+              for (PropertiesIterator props_it = mpCluster_model_part->GetMesh(0).PropertiesBegin(); props_it!= mpCluster_model_part->GetMesh(0).PropertiesEnd();   props_it++ ) {
+                  int model_part_id = props_it->GetId();
+                  if (own_properties_id == model_part_id) {
+                      rCustomListOfSphericParticles[i]->SetProperties( *(props_it.base()) );
+                      found = true;
+                      break;
+                  }                  
+              }
+              
+              if(!found) KRATOS_ERROR(std::logic_error, "This particle could not find its properties!!" , "");
+          }                                                                   
+      }
+      
       virtual void Initialize()
       {
           KRATOS_TRY
@@ -399,7 +376,11 @@ namespace Kratos
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
           
-          CreatePropertiesProxies();
+          CreatePropertiesProxies(mFastProperties, *mpDem_model_part, *mpInlet_model_part, *mpCluster_model_part);
+          
+          RepairPointersToNormalProperties(mListOfSphericParticles);  //The particles sent to this partition have their own copy of the Kratos properties they were using in the previous partition!!
+          RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+          
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
                    

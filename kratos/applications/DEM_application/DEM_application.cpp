@@ -357,7 +357,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, SHEAR_STRESS)
           
   //OPTIMIZATION
-  KRATOS_CREATE_VARIABLE(PropertiesProxy*,    PROPERTIES_PROXY_POINTER)
  
   //FLAGS
   KRATOS_CREATE_LOCAL_FLAG(DEMFlags,HAS_ROTATION, 0);
@@ -404,7 +403,13 @@ namespace Kratos
     // Calling base class register to register Kratos components
 
     KratosApplication::Register();
-    std::cout << "Initializing KratosDEMApplication... " << std::endl;
+    
+    std::cout <<std::endl;
+    std::cout << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
+    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
+    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
+    std::cout << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "<< std::endl<< std::endl;
+    std::cout << "Initializing DEMApplication..." << std::endl;
 
     
     KRATOS_REGISTER_VARIABLE (CONTINUUM_INI_NEIGHBOUR_ELEMENTS )
@@ -739,7 +744,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(SHEAR_STRESS)
        
     //OPTIMIZATION 
-    KRATOS_REGISTER_VARIABLE(PROPERTIES_PROXY_POINTER)
 
     //FOR RECAREY FORMULAE
     KRATOS_REGISTER_VARIABLE(TOTAL_CONTACT_DISTANCES)

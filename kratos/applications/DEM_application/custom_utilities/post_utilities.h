@@ -189,28 +189,18 @@ public:
             ElementsArrayType::iterator it_end   = pContactElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-              
-             
-                             
+                                                        
               Element::GeometryType& geom = it->GetGeometry();
               
-//              if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false && 
-//                  geom(1)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Z)->IsFixed() == false)
               if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) &&
-                  geom(1)->IsNot(DEMFlags::FIXED_VEL_X) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Z) )
-              {
-                
+                  geom(1)->IsNot(DEMFlags::FIXED_VEL_X) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Z) ) {                
    
-                contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);
-                
+                contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);                
                 double module = 0.0;
                 GeometryFunctions::module(contact_forces, module);
-                total_elastic_force += module;
-                
-              }
-              
-            } 
- 
+                total_elastic_force += module;                
+              }              
+            }  
         }
    
         if(total_elastic_force != 0.0)

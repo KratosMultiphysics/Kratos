@@ -106,6 +106,7 @@ model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 balls_model_part.SetBufferSize(1)
 cluster_model_part.SetBufferSize(1)
 DEM_inlet_model_part.SetBufferSize(1)
+#TODO: what about the buffersize of the rigid_face_model_part??
 
 # Adding dofs
 SolverStrategy.AddDofs(balls_model_part)

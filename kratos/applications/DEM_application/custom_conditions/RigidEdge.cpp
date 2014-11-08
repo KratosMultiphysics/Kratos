@@ -134,27 +134,20 @@ RigidEdge3D::~RigidEdge3D()
         }
 	rRightHandSideVector = ZeroVector(MatSize); 
 
-
-	//ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE);
         std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-
 	
-	//for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++)
         for(unsigned int i=0; i<rNeighbours.size(); i++)    
 	{       
-            //ConditionWeakVectorType& rRFnei = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES);
             std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
 
 		for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
-		{
-          
+		{          
 			if( rRFnei[i_nei]->Id() == this->Id() )
 			{
                     double weight[4] = {0.0};
                     double ContactForce[3] = {0.0};
 
                     unsigned int ino = 16 * i_nei;
-				//Vector& neighbour_rigid_faces_pram = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
                     std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
 
                     weight[0] = neighbour_rigid_faces_pram[ino + 10];
@@ -164,7 +157,6 @@ RigidEdge3D::~RigidEdge3D()
 
                     ino = 3 * i_nei;
 
-                                //Vector& neighbour_rigid_faces_contact_force = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_ELASTIC_CONTACT_FORCE);        
                     std::vector<double>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce;
                     ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
                     ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];

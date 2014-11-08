@@ -210,7 +210,6 @@ namespace Kratos
       ///@name Friends
       ///@{
       std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
-      //std::vector<int> mContinuumIniNeighbourIds;
       std::vector<Particle_Contact_Element*> mBondElements;
       
       //member variables DEM_CONTINUUM
@@ -222,7 +221,6 @@ namespace Kratos
 
        SphericContinuumParticle();
         
-        void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
         
         virtual void ContactAreaWeighting2D();
@@ -241,19 +239,12 @@ namespace Kratos
                                                     ProcessInfo& rCurrentProcessInfo, 
                                                     double dt,
                                                     const bool multi_stage_RHS);         
-        //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
-        //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
         void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);
         
-        //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
-        void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
-        //void CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo );
-        //void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
-        
-        
+        void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );                
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring();

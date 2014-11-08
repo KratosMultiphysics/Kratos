@@ -130,7 +130,6 @@ class ExplicitStrategy:
         self.model_part = model_part
         self.fem_model_part = fem_model_part
         self.contact_model_part = ModelPart("ContactModelPart")  # funcio kratos
-        # self.contact_model_part.Nodes       = self.model_part.Nodes; #This is not necessary, elements point at the nodes of the balls_model_part already. It is also problematic when summing modelparts!
         self.cluster_model_part = cluster_model_part
         self.inlet_model_part = inlet_model_part        
         self.domain_size = Param.Dimension
@@ -330,10 +329,14 @@ class ExplicitStrategy:
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
-
-        # self.cluster_model_part = ModelPart("Dummy")
-        
-        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
+        self.settings = ExplicitSolverSettings()
+        self.settings.r_model_part = self.model_part
+        self.settings.contact_model_part = self.contact_model_part
+        self.settings.fem_model_part = self.fem_model_part
+        self.settings.inlet_model_part = self.inlet_model_part   
+        self.settings.cluster_model_part = self.cluster_model_part
+                
+        self.solver = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                       self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
                                                     
                                                       
