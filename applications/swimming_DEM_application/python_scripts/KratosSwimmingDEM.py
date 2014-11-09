@@ -648,7 +648,11 @@ while (time <= final_time):
 
         if (pp.inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, pp.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
+        
+        # eliminating remote balls
 
+        creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+        
         first_dem_iter = False
 
     # measuring mean velocities in a certain control volume (the 'velocity trap')
