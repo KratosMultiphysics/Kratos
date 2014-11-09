@@ -36,7 +36,7 @@ void ComputeHydrodynamicForces(ModelPart& r_model_part)
 
     for (ModelPart::ElementIterator i_elem = r_model_part.ElementsBegin(); i_elem != r_model_part.ElementsEnd(); ++i_elem){
         Kratos::SphericParticle& particle = static_cast<Kratos::SphericParticle&>(*i_elem);
-        particle.SetFastProperties();
+        particle.SetFastProperties(mFastProperties);
         particle.Initialize();
         particle.MemberDeclarationFirstStep(r_model_part.GetProcessInfo());
         particle.GetGeometry()[0].Set(INSIDE, true);
@@ -83,10 +83,7 @@ void AddPropertiesProxiesFromModelPartProperties(ModelPart& rModelPart, int& pro
 
         int* int_aux_pointer = &( props_it->GetValue(PARTICLE_MATERIAL) );
         aux_props.SetParticleMaterialFromProperties(int_aux_pointer);
-
-        mFastProperties[properties_counter] = aux_props;
-
-        props_it->GetValue(PROPERTIES_PROXY_POINTER) = &mFastProperties[properties_counter];
+        mFastProperties[properties_counter].SetParticleMaterialFromProperties(int_aux_pointer);
 
         properties_counter++;
 
