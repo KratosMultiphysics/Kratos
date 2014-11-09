@@ -193,6 +193,8 @@ std::vector<double>           mNeighbourRigidFacesElasticContactForce;
 ///@}
 ///@name Friends
 ///@{
+virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
+virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 
 protected:
 
@@ -205,7 +207,6 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
 virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 void CalculateKineticEnergy(double& rKineticEnergy);
 void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
 void CalculateMomentum(array_1d<double, 3>& rMomentum);
@@ -258,8 +259,6 @@ virtual void ComputeMoments(double normalLocalElasticContactForce,
 virtual void CustomInitialize();
 
 virtual double GetInitialDelta(int index);
-
-virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double LocalCoordSystem[3][3],
