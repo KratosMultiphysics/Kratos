@@ -48,9 +48,9 @@ SphericSwimmingParticle::~SphericSwimmingParticle(){}
 //**************************************************************************************************************************************************
 
 void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force,
-                                                    array_1d<double, 3>& additionally_applied_moment,
-                                                    ProcessInfo& rCurrentProcessInfo,
-                                                    const array_1d<double,3>& gravity)
+                                                      array_1d<double, 3>& additionally_applied_moment,
+                                                      ProcessInfo& rCurrentProcessInfo,
+                                                      const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
 
@@ -115,7 +115,6 @@ void SphericSwimmingParticle::UpdateNodalValues(const array_1d<double, 3>& hydro
 
 void SphericSwimmingParticle::ComputeBuoyancy(array_1d<double, 3>& buoyancy, const double& fluid_density, const array_1d<double, 3>& gravity, ProcessInfo& rCurrentProcessInfo)
 {
-
     if (mBuoyancyForceType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){ // case of identically null buoyancy
         noalias(buoyancy) = ZeroVector(3);
         return;
