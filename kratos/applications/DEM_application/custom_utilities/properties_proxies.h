@@ -118,7 +118,7 @@ namespace Kratos {
     inline void AddPropertiesProxiesFromModelPartProperties(std::vector<PropertiesProxy>& vector_of_proxies, ModelPart& rModelPart, int& properties_counter){
         
           typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
-          typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+          typedef PropertiesContainerType::iterator                PropertiesIterator;
                     
           for (PropertiesIterator props_it = rModelPart.GetMesh(0).PropertiesBegin(); props_it!= rModelPart.GetMesh(0).PropertiesEnd();   props_it++ ) {
               
