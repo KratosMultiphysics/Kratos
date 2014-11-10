@@ -264,21 +264,32 @@ def GetColumsMaxWidths(lines, margin):
         widths[i] += margin
 
     return widths
-        
+   
+def Norm(v):
+    return math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
+    
 def Distance(v1, v2):
     return math.sqrt((v1[0] - v2 [0]) ** 2 + (v1[1] - v2 [1]) ** 2 + (v1[2] - v2 [2]) ** 2)
 
-def Normalize(v, length = 1.0):
+def Normalize(v, modulus = 1.0):
     
-    if (v[0] == 0.0 and v[1] == 0.0 and v[1] == 0.0):
+    if (Norm(v) == 0.0):
         return
     
     else:
-        norm = math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2)
-        v[0] *= length * norm
-        v[1] *= length * norm
-        v[2] *= length * norm
+        coeff = modulus / Norm(v)
+        v[0] *= coeff
+        v[1] *= coeff
+        v[2] *= coeff
         
+def RandomVector(modulus = 1.0):
+    v = Array3()
+    v[0] = random.choice([-1, 1]) * random.random()
+    v[1] = random.choice([-1, 1]) * random.random()
+    v[2] = random.choice([-1, 1]) * random.random()
+    Normalize(v, modulus)
+    
+    return v
     
 def PrintResults(title, tests):
     lines = []
@@ -334,6 +345,14 @@ class Benchmark:
 
         print ("=" * total_width)
         print()
+     
+    @staticmethod  
+    def ErrorMetric(v1, v2):
+        if (Norm(v1) == 0.0 and Norm(v2) == 0.0):
+            return 0.0
+            
+        else:
+            return Distance(v1, v2) / (Norm(v1) + Norm(v2))
     
     
 class BuoyancyBenchmark(Benchmark):    
@@ -354,7 +373,7 @@ class BuoyancyBenchmark(Benchmark):
             
         return [str(results[0]), str(results[1]), str(results[2]), word, str(results[4])]
     
-    def __init__(self, model_part, pp, buoyancy_force_type, drag_force_type, pressure_gradient, target_buoyancy, description):
+    def __init__(self, pp, buoyancy_force_type, drag_force_type, pressure_gradient, description):
         self.pp = copy.deepcopy(pp) 
         self.buoyancy_tol = 10e-5 * self.pp.sqrt_of_mass
 
@@ -366,21 +385,21 @@ class BuoyancyBenchmark(Benchmark):
         self.pp.drag_force_type = drag_force_type
         self.pp.buoyancy_force_type = buoyancy_force_type
         
-        self.target_buoyancy = target_buoyancy
         self.description = description
         self.has_results = False
         
         BuoyancyBenchmark.tests += [self]
         Benchmark.tests += [self]
      
-    def Test(self, model_part, benchmark_utils):
+    def Test(self, model_part, benchmark_utils, target_buoyancy):
+        self.target_buoyancy = target_buoyancy
         InitializeVariables(model_part, self.pp)
         benchmark_utils.ComputeHydrodynamicForces(model_part)
 
         for node in model_part.Nodes:
             buoyancy = node.GetSolutionStepValue(BUOYANCY)
                   
-        error = Distance(buoyancy, self.target_buoyancy)
+        error = Benchmark.ErrorMetric(buoyancy, self.target_buoyancy)
         
         if (error < self.buoyancy_tol):
             veredict = True
@@ -410,36 +429,55 @@ class DragBenchmark(Benchmark):
             
         return [str(results[0]), str(results[1]), str(results[2]), word, str(results[4])]
         
-    def __init__(self, model_part, pp, drag_force_type, velocity, viscosity, fluid_fraction, target_drag, description):
+    def __init__(self, pp, drag_force_type, particle_reynolds, fluid_fraction, sphericity, description):
         self.pp = copy.deepcopy(pp) 
-        self.drag_tol = 10e-5 * self.pp.sqrt_of_mass
-        self.target_drag = target_drag
-        
-        self.pp.buoyancy_force_type = 0
         self.pp.drag_force_type = drag_force_type 
-        self.pp.virtual_mass_force_type = 0
-        self.pp.lift_force_type = 0      
-        self.pp.velocity_x = velocity[0]
-        self.pp.velocity_y = velocity[1]
-        self.pp.velocity_z = velocity[2]        
         self.pp.fluid_fraction = fluid_fraction
-        self.pp.kinematic_viscosity = viscosity
-        
-        self.target_drag = target_drag
+        self.pp.sphericity = sphericity
         self.description = description
-        self.has_results = False
-        
+
+        self.drag_tol = 10e-6
+        self.pp.buoyancy_force_type = 0
+        self.pp.virtual_mass_force_type = 0
+        self.pp.lift_force_type = 0    
+        self.CalculateFlowVariables(reynolds)
+
+        self.has_results = False        
         DragBenchmark.tests += [self]
         Benchmark.tests += [self]
+    
+    def CalculateFlowVariables(self, reynolds):
         
-    def Test(self, model_part, benchmark_utils):
+        if (reynolds < 0):
+            raise ValueError("The particle's Reynolds number should be non-negative")
+        
+        elif (reynolds == 0.0):
+            pass
+            
+        else:
+            velocity = RandomVector()
+            fluid_velocity = RandomVector()
+            self.pp.velocity_x = velocity[0]
+            self.pp.velocity_y = velocity[1]
+            self.pp.velocity_z = velocity[2]
+            self.pp.fluid_velocity_x = fluid_velocity[0]
+            self.pp.fluid_velocity_y = fluid_velocity[1]
+            self.pp.fluid_velocity_z = fluid_velocity[2]
+            slip_vel = fluid_velocity - velocity
+            r = self.pp.radius
+            dens = self.pp.fluid_density
+           
+            self.pp.kinematic_viscosity = 2 * r * dens * Norm(slip_vel) / reynolds
+            
+    def Test(self, model_part, benchmark_utils, target_drag):
+        self.target_drag = target_drag  
         InitializeVariables(model_part, self.pp)
         benchmark_utils.ComputeHydrodynamicForces(model_part)
 
         for node in model_part.Nodes:
             drag = node.GetSolutionStepValue(DRAG_FORCE)
                   
-        error = Distance(drag, self.target_drag)
+        error = Benchmark.ErrorMetric(drag, self.target_drag)
         
         if (error < self.drag_tol):
             veredict = True
@@ -463,77 +501,83 @@ AddDofs(model_part)
 benchmark_utils = BenchmarkUtils()
 
 # Buoyancy
+#***************************************************************************************************************************
+#***************************************************************************************************************************
 
-pressure_gradient = Array3()
-pressure_gradient[0] = random.random()
-pressure_gradient[1] = random.random()
-pressure_gradient[2] = random.random()
-Normalize(pressure_gradient)
+pressure_gradient = RandomVector()
 
-fluid_vel = Array3()
-fluid_vel[0] = 1.0
-fluid_vel[1] = -2.0
-fluid_vel[2] = 3.0
+#***************************************************************************************************************************
+buoyancy_test_0 = BuoyancyBenchmark(pp, 0, 1, pressure_gradient, "Inactive")
 
-buoyancy_target_0 = Array3()
-buoyancy_target_0[0] = 0.0
-buoyancy_target_0[1] = 0.0
-buoyancy_target_0[2] = 0.0
+buoyancy_target_0 = RandomVector(0)
+
+buoyancy_test_0.Test(model_part, benchmark_utils, buoyancy_target_0)
+
+#***************************************************************************************************************************
+buoyancy_test_1 = BuoyancyBenchmark(pp, 1, 1, pressure_gradient, "Standard")
 
 buoyancy_target_1 = Array3()
-buoyancy_target_1_norm = 4/3 * math.pi
-buoyancy_target_1[0] = - buoyancy_target_1_norm * pressure_gradient[0]
-buoyancy_target_1[1] = - buoyancy_target_1_norm * pressure_gradient[1]
-buoyancy_target_1[2] = - buoyancy_target_1_norm * pressure_gradient[2]
+buoyancy_target_1[0] = - 4/3 * math.pi * pressure_gradient[0]
+buoyancy_target_1[1] = - 4/3 * math.pi * pressure_gradient[1]
+buoyancy_target_1[2] = - 4/3 * math.pi * pressure_gradient[2]
+
+buoyancy_test_1.Test(model_part, benchmark_utils, buoyancy_target_1)
+
+#***************************************************************************************************************************
+buoyancy_test_2 = BuoyancyBenchmark(pp, 1, 2, pressure_gradient, "Weatherford: hydrostatic buoyancy")
 
 buoyancy_target_2 = Array3()
 buoyancy_target_2[0] = 0.0
 buoyancy_target_2[1] = 0.0
 buoyancy_target_2[2] = 9.81 * 4/3 * math.pi
 
-buoyancy_test_0 = BuoyancyBenchmark(model_part, pp, 0, 1, pressure_gradient, buoyancy_target_0, "Inactive")
-buoyancy_test_1 = BuoyancyBenchmark(model_part, pp, 1, 1, pressure_gradient, buoyancy_target_1, "Standard")
-buoyancy_test_2 = BuoyancyBenchmark(model_part, pp, 1, 2, pressure_gradient, buoyancy_target_2, "Weatherford: hydrostatic buoyancy")
-
-buoyancy_test_0.Test(model_part, benchmark_utils)
-buoyancy_test_1.Test(model_part, benchmark_utils)
-buoyancy_test_2.Test(model_part, benchmark_utils)
+buoyancy_test_2.Test(model_part, benchmark_utils, buoyancy_target_2)
 
 BuoyancyBenchmark.PrintResults()
 
 # Drag
+#***************************************************************************************************************************
+#***************************************************************************************************************************
 
-viscosity = 10e-2
-fluid_fraction = 1.0
-fluid_vel = Array3()
-fluid_vel[0] = random.random()
-fluid_vel[1] = random.random()
-fluid_vel[2] = random.random()
-Normalize(fluid_vel)
+viscosity = 10e-4
+fluid_fraction = 0.5
+reynolds = 0.0
+sphericity = 1.0
 
-drag_target_0 = Array3()
-drag_target_0[0] = 0.0
-drag_target_0[1] = 0.0
-drag_target_0[2] = 0.0
+#***************************************************************************************************************************
 
-drag_target_1 = fluid_vel
-fluid_vel_norm = 0.01
-drag_target_1_norm = 6 * math.pi * viscosity * fluid_vel_norm
-Normalize(fluid_vel, fluid_vel_norm)
-Normalize(drag_target_1, drag_target_1_norm)
-drag_target_1[0] = fluid_vel[0]
-drag_target_1[1] = fluid_vel[1]
-drag_target_1[2] = fluid_vel[2]
+drag_test_0 = DragBenchmark(pp, 0, reynolds, fluid_fraction, sphericity, "Inactive")
 
-drag_test_0 = DragBenchmark(model_part, pp, 0, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
-drag_test_1 = DragBenchmark(model_part, pp, 1, fluid_vel, viscosity, fluid_fraction, drag_target_1, "Stokes")
+drag_target_0 = RandomVector(0)
 
-drag_test_2 = DragBenchmark(model_part, pp, 2, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
-drag_test_3 = DragBenchmark(model_part, pp, 3, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
-drag_test_4 = DragBenchmark(model_part, pp, 4, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
-drag_test_5 = DragBenchmark(model_part, pp, 5, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
+drag_test_0.Test(model_part, benchmark_utils, drag_target_0)
 
-drag_test_0.Test(model_part, benchmark_utils)
-drag_test_1.Test(model_part, benchmark_utils)
+#***************************************************************************************************************************
+reynolds = 1.0
+drag_test_1 = DragBenchmark(pp, 1, reynolds, fluid_fraction, sphericity, "Stokes")
+
+viscosity = drag_test_1.pp.kinematic_viscosity
+density = drag_test_1.pp.fluid_density
+radius = drag_test_1.pp.radius
+slip_vel = Array3()
+slip_vel[0] = drag_test_1.pp.fluid_velocity_x - drag_test_1.pp.velocity_x
+slip_vel[1] = drag_test_1.pp.fluid_velocity_y - drag_test_1.pp.velocity_y
+slip_vel[2] = drag_test_1.pp.fluid_velocity_z - drag_test_1.pp.velocity_z
+drag_target_1 = 6 * math.pi * viscosity * radius * slip_vel
+
+drag_test_1.Test(model_part, benchmark_utils, drag_target_1)
+
+#***************************************************************************************************************************
+drag_test_2 = DragBenchmark(pp, 5, reynolds, fluid_fraction, sphericity, "Newtonian Regime, sphericity = " + str(sphericity))
+
+# calculating target
+slip_vel[0] = drag_test_2.pp.fluid_velocity_x - drag_test_2.pp.velocity_x
+slip_vel[1] = drag_test_2.pp.fluid_velocity_y - drag_test_2.pp.velocity_y
+slip_vel[2] = drag_test_2.pp.fluid_velocity_z - drag_test_2.pp.velocity_z
+density = drag_test_2.pp.fluid_density
+radius = drag_test_2.pp.radius
+drag_target_2 = 0.44 * 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+
+drag_test_2.Test(model_part, benchmark_utils, drag_target_2)
 
 DragBenchmark.PrintResults()
