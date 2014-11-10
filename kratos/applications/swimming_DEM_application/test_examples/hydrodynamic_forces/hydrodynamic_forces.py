@@ -374,7 +374,7 @@ class BuoyancyBenchmark(Benchmark):
         Benchmark.tests += [self]
      
     def Test(self, model_part, benchmark_utils):
-
+        InitializeVariables(model_part, self.pp)
         benchmark_utils.ComputeHydrodynamicForces(model_part)
 
         for node in model_part.Nodes:
@@ -433,7 +433,7 @@ class DragBenchmark(Benchmark):
         Benchmark.tests += [self]
         
     def Test(self, model_part, benchmark_utils):
-
+        InitializeVariables(model_part, self.pp)
         benchmark_utils.ComputeHydrodynamicForces(model_part)
 
         for node in model_part.Nodes:
@@ -495,14 +495,8 @@ buoyancy_test_0 = BuoyancyBenchmark(model_part, pp, 0, 1, pressure_gradient, buo
 buoyancy_test_1 = BuoyancyBenchmark(model_part, pp, 1, 1, pressure_gradient, buoyancy_target_1, "Standard")
 buoyancy_test_2 = BuoyancyBenchmark(model_part, pp, 1, 2, pressure_gradient, buoyancy_target_2, "Weatherford: hydrostatic buoyancy")
 
-
-InitializeVariables(model_part, buoyancy_test_0.pp)
 buoyancy_test_0.Test(model_part, benchmark_utils)
-
-InitializeVariables(model_part, buoyancy_test_1.pp)
 buoyancy_test_1.Test(model_part, benchmark_utils)
-
-InitializeVariables(model_part, buoyancy_test_2.pp)
 buoyancy_test_2.Test(model_part, benchmark_utils)
 
 BuoyancyBenchmark.PrintResults()
@@ -539,10 +533,7 @@ drag_test_3 = DragBenchmark(model_part, pp, 3, fluid_vel, viscosity, fluid_fract
 drag_test_4 = DragBenchmark(model_part, pp, 4, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
 drag_test_5 = DragBenchmark(model_part, pp, 5, fluid_vel, viscosity, fluid_fraction, drag_target_0, "Inactive")
 
-InitializeVariables(model_part, drag_test_0.pp)
 drag_test_0.Test(model_part, benchmark_utils)
-
-InitializeVariables(model_part, drag_test_1.pp)
 drag_test_1.Test(model_part, benchmark_utils)
 
 DragBenchmark.PrintResults()
