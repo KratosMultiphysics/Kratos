@@ -83,14 +83,6 @@ namespace Kratos
       /// Destructor.
       virtual ~SphericContinuumParticle();
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
        
       void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
       void SetInitialFemContacts();
@@ -121,75 +113,21 @@ namespace Kratos
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
                                               double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
 
-      virtual void ComputeStressStrain(   double mStressTensor[3][3],
-                                          ProcessInfo& rCurrentProcessInfo,
+      virtual void ComputeStressStrain(   ProcessInfo& rCurrentProcessInfo,
                                           double& rRepresentative_Volume);
       
             
-      virtual void StressTensorOperations(double mStressTensor[3][3],
-                                          double GlobalElasticContactForce[3],
+      virtual void StressTensorOperations(double GlobalElasticContactForce[3],
                                           array_1d<double,3> &other_to_me_vect,
                                           const double &distance,
                                           const double &radius_sum,
                                           const double &corrected_area,
-                                          //ParticleWeakIteratorType neighbour_iterator,
                                           SphericParticle* neighbour_iterator,
                                           ProcessInfo& rCurrentProcessInfo,
                                           double &rRepresentative_Volume);
       
-      virtual void AddPoissonContribution(double LocalCoordSystem[3][3],
-                                          double GlobalContactForce[3],
-                                          double GlobalElasticContactForce[3],
-                                          //double ViscoDampingGlobalContactForce[3],
-                                          array_1d<double, 3>& rContactForce,
-                                          array_1d<double,3>& damp_forces);
+      virtual void AddPoissonContribution( const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
 
-      
-      //virtual void InitializeContactElements(ParticleWeakIteratorType neighbour_iterator, double& corrected_area);
-
-      ///***********************************************////////////// AIXO ES DECLARA AKI O LA INITIALITZACIÓ.
-
-      //l'he de definir aqui aquest???
- 
-       //std::size_t& GetNumberOfNeighbours(){return(GetGeometry()(0)->FastGetSolutionStepValue(NUMBER_OF_NEIGHBOURS));};
-
-       
-       //double mInitialDelta;
-       //vector<int> mVectorContactFailureId;
-       //int mContactFailureId;
-
-       //vector< double > mVectorContactInitialDelta; R: cal cridar-ho cada cop per no fer copia!!
-       //double mContactInitialDelta;
-
-       //vector<array_1d<double,3> > mVectorContactForces;
-       //array_1d<double,3>& mContactForces;
-
-
-
-       //auxiliar variables
-/*
-       double mOld_Displacement_X;
-       double mOld_Displacement_Y;
-       double mOld_Displacement_Z;
-       double mDisplacement_X;
-       double mDisplacement_Y;
-       double mDisplacement_Z;
-*/
-      // std::vector<double>   mInitialDelta = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_CONTACT_INITIAL_DELTA);
-      // std::vector<int>  mContactFailureId = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_CONTACT_FAILURE_ID);
-       ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
       /// Turn back information as a string.
       virtual std::string Info() const
