@@ -147,10 +147,10 @@ void SphericSwimmingParticle::ComputeDragForce(array_1d<double, 3>& drag_force, 
     else {
         const array_1d<double, 3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         const array_1d<double, 3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+        const double fluid_fraction             = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
         array_1d<double, 3> slip_vel;
 
-        if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
-            const double fluid_fraction         = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
+        if (mFluidModelType == 0){ // fluid velocity is modified as a post-process            
             noalias(slip_vel)                   = fluid_vel / fluid_fraction - particle_vel;
         }
 
@@ -563,10 +563,10 @@ double SphericSwimmingParticle::ComputeNewtonRegimeDragCoefficient(const double&
 {
     const double sphericity = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
     const double radius     = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-    double drag_coeff       = 0.25 * KRATOS_M_PI * radius * radius * fluid_density * norm_of_slip_vel;
+    double drag_coeff       = 0.5 * KRATOS_M_PI * radius * radius * fluid_density * norm_of_slip_vel;
 
     if (sphericity >= 1.0){
-        drag_coeff *= 44.0;
+        drag_coeff *= 0.44;
 
         return drag_coeff;
     }
