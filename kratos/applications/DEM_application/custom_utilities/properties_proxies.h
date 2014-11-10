@@ -26,9 +26,10 @@
 
 namespace Kratos {
 
-    class PropertiesProxy {
+    class PropertiesProxy {        
             
     public:
+        PropertiesProxy(){} //only used by serializer!
       
         unsigned int     GetId()                                                          { return mId;                                 }
         void    SetId(int id)                                                    { mId = id;                                   }
