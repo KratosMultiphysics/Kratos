@@ -350,6 +350,7 @@ public:
         int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
 
 		// First we compute the Total Volume of the Fluid
+		// First we compute the Total Volume of the Fluid
         ComputeWetVolumeAndCuttedArea(ThisModelPart, wet_volume, cutted_area);
 
 		// Now we compute the difference between the Total Volume and the volume that has enetered through the inlet
@@ -431,7 +432,9 @@ public:
 			{
 			correction_old=correction;
 			wet_volume_old=wet_volume;
-			correction=((wet_volume_right-fabs(Net_volume))*lower_correction-(wet_volume_left-fabs(Net_volume))*upper_correction)/(wet_volume_right-wet_volume_left);
+			double aux_vol_r=wet_volume_right-fabs(Net_volume);
+			double aux_vol_l=wet_volume_left-fabs(Net_volume);
+			correction=(aux_vol_r*lower_correction-aux_vol_l*upper_correction)/(wet_volume_right-wet_volume_left);
 			if((correction<lower_correction)||(correction>upper_correction)){KRATOS_WATCH("!!!!!!!!!!!!!!!!ERROR CORRECTING VOLUME IN VOLUMECORRECTION!!!!!!!!!!!!!!!");}
 			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
 			volume_difference = fabs(Net_volume) - wet_volume;
