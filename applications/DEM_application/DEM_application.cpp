@@ -772,6 +772,7 @@ namespace Kratos
 
     // SERIALIZER
     Serializer::Register( "VariablesList", mVariablesList );
+    Serializer::Register( "PropertiesProxy", PropertiesProxy() );
 
   }
 
