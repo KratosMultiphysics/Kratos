@@ -23,6 +23,14 @@
 #include "../applications/DEM_application/custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application.h"
 
+#define SWIMMING_COPY_SECOND_TO_FIRST_3(a, b)            a[0]  = b[0]; a[1]  = b[1]; a[2]  = b[2];
+#define SWIMMING_ADD_SECOND_TO_FIRST(a, b)               a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
+#define SWIMMING_SET_COMPONENTS_TO_ZERO_3(a)             a[0]  = 0.0;  a[1]  = 0.0;  a[2]  = 0.0;
+#define SWIMMING_SET_COMPONENTS_TO_ZERO_3x3(a)           a[0][0] = 0.0; a[0][1] = 0.0; a[0][2] = 0.0; a[1][0] = 0.0; a[1][1] = 0.0; a[1][2] = 0.0; a[2][0] = 0.0; a[2][1] = 0.0; a[2][2] = 0.0;
+#define SWIMMING_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
+#define SWIMMING_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+#define SWIMMING_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+
 namespace Kratos
 {
 
@@ -158,7 +166,7 @@ void SphericSwimmingParticle::ComputeDragForce(array_1d<double, 3>& drag_force, 
             noalias(slip_vel)                   = fluid_vel - particle_vel;
         }
 
-        const double norm_of_slip_vel           = MathUtils<double>::Norm3(slip_vel);
+        const double norm_of_slip_vel           = SWIMMING_MODULUS_3(slip_vel);
         double drag_coeff;
 
         // calculating the 'dimensional' drag coefficient, i.e., the factor by which the slip velocity must be multiplied to yield the drag force
@@ -183,11 +191,21 @@ void SphericSwimmingParticle::ComputeDragForce(array_1d<double, 3>& drag_force, 
             drag_coeff = ComputeNewtonRegimeDragCoefficient(norm_of_slip_vel, fluid_density);
         }
 
+        else if (mDragForceType == 6){ // Intermediate regime (Re ~ 0.5 - 1000), formulation of Schiller and Naumann (1933)
+            drag_coeff = ComputeIntermediateRegimeDragCoefficient(norm_of_slip_vel, fluid_density);
+        }
+
+        else if (mDragForceType == 7){ // All regimes (Re ~ 0 - 250000), formulation of Haider and Levenspiel (1989)
+            drag_coeff = ComputeHaiderDragCoefficient(norm_of_slip_vel, fluid_density);
+        }
+
         else {
             std::cout << "The integer value designating the drag coefficient calculation model" << std::endl;
             std::cout << " (mDragForceType = " << mDragForceType << "), is not supported" << std::endl << std::flush;
             return;
         }
+
+        ApplyDragPorosityModification(drag_coeff, norm_of_slip_vel, fluid_density);
 
         noalias(drag_force) = drag_coeff * slip_vel;
     }
@@ -204,6 +222,8 @@ void SphericSwimmingParticle::ComputeVirtualMassForce(array_1d<double, 3>& virtu
     }
 
     else {
+        const double radius                     = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        double volume                           = 1.3333333333333333333333 *  KRATOS_M_PI * radius * radius * radius;
         const double delta_t_inv                = 1 / rCurrentProcessInfo[DELTA_TIME];
         array_1d<double, 3> fluid_acc           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY) - GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 1));
@@ -224,7 +244,25 @@ void SphericSwimmingParticle::ComputeVirtualMassForce(array_1d<double, 3>& virtu
         virtual_mass_coeff = 0.5 + 1.5 * (1 - fluid_fraction);
     }
 
-    noalias(virtual_mass_force) = virtual_mass_coeff * fluid_density * slip_acc;
+    if (mVirtualMassForceType == 3){ // Odar and Hamilton, 1964
+        const array_1d<double, 3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+        const array_1d<double, 3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> slip_vel;
+
+        if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
+            noalias(slip_vel)                   = fluid_vel / fluid_fraction - particle_vel;
+        }
+
+        else {
+            noalias(slip_vel)                   = fluid_vel - particle_vel;
+        }
+
+        double acc_number;
+        ComputeParticleAccelerationNumber(slip_vel, slip_acc, radius, acc_number);
+        virtual_mass_coeff *= 2.1 - 0.132 / (acc_number * acc_number + 0.12);
+    }
+
+    noalias(virtual_mass_force) = virtual_mass_coeff * fluid_density * volume * slip_acc;
     }
 }
 
@@ -255,8 +293,8 @@ void SphericSwimmingParticle::ComputeLiftForce(array_1d<double, 3>& lift_force, 
 
         const double& shear_rate                      = GetGeometry()(0)->FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
         const array_1d<double, 3> vorticity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
-        const double vorticity_norm                   = MathUtils<double>::Norm3(vorticity);
-        const double norm_of_slip_vel                 = MathUtils<double>::Norm3(minus_slip_vel);
+        const double vorticity_norm                   = SWIMMING_MODULUS_3(vorticity);
+        const double norm_of_slip_vel                 = SWIMMING_MODULUS_3(minus_slip_vel);
         const array_1d<double, 3> vort_cross_slip_vel = MathUtils<double>::CrossProduct(vorticity, minus_slip_vel);
         double lift_coeff;
 
@@ -285,6 +323,16 @@ void SphericSwimmingParticle::ComputeParticleReynoldsNumber(double norm_of_slip_
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+void SphericSwimmingParticle::ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_vel, const array_1d<double, 3>& slip_acc, const double& radius, double& acc_number)
+{
+    const double norm_of_slip_vel_2 = SWIMMING_INNER_PRODUCT_3(slip_vel, slip_vel);
+    const double norm_of_derivative_of_slip_vel = 2 * SWIMMING_INNER_PRODUCT_3(slip_vel, slip_acc);
+    acc_number = norm_of_slip_vel_2 / ( 2 * radius * norm_of_derivative_of_slip_vel);
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 void SphericSwimmingParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == REYNOLDS_NUMBER){
@@ -307,7 +355,7 @@ void SphericSwimmingParticle::AdditionalCalculate(const Variable<double>& rVaria
             noalias(slip_vel)                   = fluid_vel - particle_vel;
         }
 
-        const double norm_of_slip_vel           = MathUtils<double>::Norm3(slip_vel);
+        const double norm_of_slip_vel           = SWIMMING_MODULUS_3(slip_vel);
         const double kinematic_viscosity        = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
         ComputeParticleReynoldsNumber(norm_of_slip_vel, kinematic_viscosity, Output);
         }
@@ -320,9 +368,8 @@ void SphericSwimmingParticle::AdditionalCalculate(const Variable<double>& rVaria
 double SphericSwimmingParticle::ComputeStokesDragCoefficient(const double fluid_density, ProcessInfo& rCurrentProcessInfo)
 {
     const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-    const double fluid_fraction      = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
 
-    double  drag_coeff  = 6.0 * KRATOS_M_PI * kinematic_viscosity * fluid_density * fluid_fraction * mRadius;
+    double  drag_coeff  = 6.0 * KRATOS_M_PI * kinematic_viscosity * fluid_density * mRadius;
 
     return drag_coeff;
 }
@@ -384,7 +431,7 @@ double SphericSwimmingParticle::ComputeWeatherfordDragCoefficient(const double& 
 
         if (!manually_imposed_drag_law_option){
             F0 = 4.0 * gel_strength * area; //initial value
-            beta = (MathUtils<double>::Norm3(weight) - MathUtils<double>::Norm3(buoyancy) - F0) / shahs_term_vel; //S
+            beta = (SWIMMING_MODULUS_3(weight) - SWIMMING_MODULUS_3(buoyancy) - F0) / shahs_term_vel; //S
         }
 
         else {
@@ -561,28 +608,50 @@ double SphericSwimmingParticle::ComputeIshiiDragCoefficient(const double& norm_o
 
 double SphericSwimmingParticle::ComputeNewtonRegimeDragCoefficient(const double& norm_of_slip_vel, const double fluid_density)
 {
+    const double radius     = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+    double drag_coeff       = 0.5 * KRATOS_M_PI * radius * radius * fluid_density * norm_of_slip_vel;
+
+    drag_coeff *= 0.44;
+
+    return drag_coeff;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double SphericSwimmingParticle::ComputeIntermediateRegimeDragCoefficient(const double& norm_of_slip_vel, const double fluid_density)
+{
+    const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+    const double radius              = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+    double reynolds;
+    double drag_coeff                = 0.5 * KRATOS_M_PI * radius * radius * fluid_density * norm_of_slip_vel;
+    ComputeParticleReynoldsNumber(norm_of_slip_vel, kinematic_viscosity, reynolds);
+
+    drag_coeff *= 24 / reynolds * (1 + 0.15 * pow(reynolds, 0.687));
+
+    return drag_coeff;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double SphericSwimmingParticle::ComputeHaiderDragCoefficient(const double& norm_of_slip_vel, const double fluid_density)
+{
     const double sphericity = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
     const double radius     = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
     double drag_coeff       = 0.5 * KRATOS_M_PI * radius * radius * fluid_density * norm_of_slip_vel;
 
-    if (sphericity >= 1.0){
-        drag_coeff *= 0.44;
+    const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+    double A = exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity * sphericity);
+    double B = 0.0964 + 0.5565 * sphericity;
+    double C = exp(4.905  - 13.8944 * sphericity + 18.4222 * sphericity * sphericity - 10.2599 * sphericity * sphericity * sphericity);
+    double D = exp(1.4681 + 12.2584 * sphericity - 20.7322 * sphericity * sphericity + 15.8855 * sphericity * sphericity * sphericity);
+    double particle_reynolds;
+    ComputeParticleReynoldsNumber(norm_of_slip_vel, kinematic_viscosity, particle_reynolds);
 
-        return drag_coeff;
-    }
+    drag_coeff *= (24.0 * (1.0 + A * pow(particle_reynolds, B))) / particle_reynolds + C * particle_reynolds / (particle_reynolds + D);
 
-    else {
-        const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-        double A = exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity * sphericity);
-        double B = 0.0964 + 0.5565 * sphericity;
-        double C = exp(4.905  - 13.8944 * sphericity + 18.4222 * sphericity * sphericity - 10.2599 * sphericity * sphericity * sphericity);
-        double D = exp(1.4681 + 12.2584 * sphericity - 20.7322 * sphericity * sphericity + 15.8855 * sphericity * sphericity * sphericity);
-        double particle_reynolds;
-        ComputeParticleReynoldsNumber(norm_of_slip_vel, kinematic_viscosity, particle_reynolds);
-        drag_coeff *= (24.0 * (1.0 + A * pow(particle_reynolds, B))) / particle_reynolds + C * particle_reynolds / (particle_reynolds + D);
-
-        return drag_coeff;
-    }
+    return drag_coeff;
 }
 
 //**************************************************************************************************************************************************
@@ -600,6 +669,47 @@ double SphericSwimmingParticle::ComputeNewtonRegimeDragCoefficient(const double&
 
      k_2 = pow(10.0, 1.8148 * pow(- log10(sphericity), 0.5743));
  }
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff, const double& norm_of_slip_vel, const double& fluid_density)
+{
+    if (mPorosityCorrectionType == 0){
+        return;
+    }
+
+    else if (mPorosityCorrectionType == 1){ // Richardson and Zaki, 1954 (fluid fraction ~ 0.01 - 0.2)
+        const double kinematic_viscosity = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+        double reynolds;
+        ComputeParticleReynoldsNumber(norm_of_slip_vel, kinematic_viscosity, reynolds);
+        double K;
+
+        if (reynolds > 500){
+            K = 2.39;
+        }
+
+        else if (reynolds > 1){
+            K = 4.45 * pow(reynolds, - 0.1);
+        }
+
+        else if (reynolds > 0.2){
+            K = 4.35 * pow(reynolds, - 0.03);
+        }
+
+        else {
+            K = 4.65;
+        }
+
+        const double fluid_fraction = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
+        drag_coeff *= pow(fluid_fraction, 1 - 2 * K);
+    }
+
+    else if (mPorosityCorrectionType == 2){
+
+    }
+
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -641,11 +751,12 @@ double SphericSwimmingParticle::ComputeNewtonRegimeDragCoefficient(const double&
 
  void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info)
  {
-     mBuoyancyForceType    = r_process_info[BUOYANCY_FORCE_TYPE];
-     mDragForceType        = r_process_info[DRAG_FORCE_TYPE];
-     mVirtualMassForceType = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
-     mLiftForceType        = r_process_info[LIFT_FORCE_TYPE];
-     mFluidModelType       = r_process_info[FLUID_MODEL_TYPE];
+     mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
+     mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
+     mVirtualMassForceType   = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
+     mLiftForceType          = r_process_info[LIFT_FORCE_TYPE];
+     mFluidModelType         = r_process_info[FLUID_MODEL_TYPE];
+     mPorosityCorrectionType = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
  }
 
 //**************************************************************************************************************************************************

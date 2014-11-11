@@ -132,6 +132,7 @@ namespace Kratos
         void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeLiftForce(array_1d<double, 3>& lift_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleReynoldsNumber(double rNormOfSlipVel, double rViscosity, double& rReynolds);
+        void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_vel, const array_1d<double, 3>& slip_acc, const double& radius, double& acc_number);
         void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
@@ -182,7 +183,10 @@ namespace Kratos
         double ComputeGanserDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         double ComputeIshiiDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         double ComputeNewtonRegimeDragCoefficient(const double& norm_of_slip_vel, const double fluid_density);
+        double ComputeIntermediateRegimeDragCoefficient(const double& norm_of_slip_vel, const double fluid_density);
+        double ComputeHaiderDragCoefficient(const double& norm_of_slip_vel, const double fluid_density);
         void ComputeGanserParameters(const int isometric_shape, const double sphericity, const double dn, double& k_1, double& k_2);
+        void ApplyDragPorosityModification(double& drag_coeff, const double& norm_of_slip_vel, const double& fluid_density);
         double ComputeSaffmanLiftCoefficient(const double& norm_of_slip_vel, const double fluid_density, const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& rCurrentProcessInfo);
         void CustomInitialize();
         ///@name Static Member Variables
@@ -201,6 +205,7 @@ namespace Kratos
       int mVirtualMassForceType;
       int mLiftForceType;
       int mFluidModelType;
+      int mPorosityCorrectionType;
 
       ///@}
       ///@name Private Operators
