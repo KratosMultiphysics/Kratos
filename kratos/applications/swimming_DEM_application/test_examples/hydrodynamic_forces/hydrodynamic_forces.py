@@ -61,8 +61,7 @@ def InitializeNodalVariables(model_part, pp):
         
         node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_X, pp.pressure_gradient_x)
         node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Y, pp.pressure_gradient_y)
-        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pp.pressure_gradient_z)
-                    
+        node.SetSolutionStepValue(PRESSURE_GRAD_PROJECTED_Z, pp.pressure_gradient_z)                    
         
         node.SetSolutionStepValue(RADIUS, pp.radius)
         node.SetSolutionStepValue(PARTICLE_SPHERICITY, pp.sphericity)
@@ -168,6 +167,7 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
     model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.drag_force_type)
     model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
     model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.lift_force_type)
+    model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.drag_porosity_correction_type)
     model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
     model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, pp.manually_imposed_drag_law_option)
     model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, pp.drag_modifier_type)
@@ -271,6 +271,9 @@ def Norm(v):
 def Distance(v1, v2):
     return math.sqrt((v1[0] - v2 [0]) ** 2 + (v1[1] - v2 [1]) ** 2 + (v1[2] - v2 [2]) ** 2)
 
+def Dot(v1, v2):
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+    
 def Normalize(v, modulus = 1.0):
     
     if (Norm(v) == 0.0):
@@ -369,7 +372,7 @@ class BuoyancyBenchmark(Benchmark):
         if results[3]:
             word = "OK"
         else:
-            word = "Failed"
+            word = "Fail"
             
         return [str(results[0]), str(results[1]), str(results[2]), word, str(results[4])]
     
@@ -425,7 +428,7 @@ class DragBenchmark(Benchmark):
         if results[3]:
             word = "OK"
         else:
-            word = "Failed"
+            word = "Fail"
             
         return [str(results[0]), str(results[1]), str(results[2]), word, str(results[4])]
         
@@ -488,7 +491,97 @@ class DragBenchmark(Benchmark):
         self.results = [self.target_drag, drag, error, veredict, self.description] 
         self.string_results = DragBenchmark.ConvertToStrings(self.results)
         self.has_results = True
+
     
+class VirtualMassBenchmark(Benchmark):    
+    title = "Virtual mass force test results"
+    tests = []
+    
+    @staticmethod
+    def PrintResults():
+        Benchmark.PrintResults(VirtualMassBenchmark.title, VirtualMassBenchmark.tests)
+        
+    @staticmethod
+    def ConvertToStrings(results):
+         
+        if results[3]:
+            word = "OK"
+        else:
+            word = "Fail"
+            
+        return [str(results[0]), str(results[1]), str(results[2]), word, str(results[4])]
+    
+    def __init__(self, pp, virtual_mass_force_type, acceleration_number, description):
+        self.pp = copy.deepcopy(pp) 
+        self.virtual_mass_tol = 10e-5 * self.pp.sqrt_of_mass
+
+        self.pp.buoyancy_force_type = 0
+        self.pp.lift_force_type = 0
+        self.pp.drag_force_type = 0
+        self.pp.virtual_mass_force_type = virtual_mass_force_type
+        
+        self.description = description
+        self.has_results = False
+        
+        VirtualMassBenchmark.tests += [self]
+        Benchmark.tests += [self]
+        
+    def CalculateFlowVariables(self, acceleration_number):
+        
+        if (acceleration_number < 0):
+            raise ValueError("The particle's Reynolds number should be non-negative")
+        
+        elif (acceleration_number == 0.0):
+            pass
+            
+        else:
+            velocity = RandomVector()
+            fluid_velocity = RandomVector()
+            acceleration = RandomVector()
+            fluid_acceleration = RandomVector()
+            self.pp.velocity_x = velocity[0]
+            self.pp.velocity_y = velocity[1]
+            self.pp.velocity_z = velocity[2]
+            self.pp.accel_x = acceleration[0]
+            self.pp.accel_y = acceleration[1]
+            self.pp.accel_z = acceleration[2]                        
+            self.pp.fluid_velocity_x = fluid_velocity[0]
+            self.pp.fluid_velocity_y = fluid_velocity[1]
+            self.pp.fluid_velocity_z = fluid_velocity[2]
+            self.pp.fluid_acceleration_x = fluid_acceleration[0]
+            self.pp.fluid_acceleration_y = fluid_acceleration[1]
+            self.pp.fluid_acceleration_z = fluid_acceleration[2]            
+            
+            slip_vel = fluid_velocity - velocity
+            slip_accel = fluid_acceleration - acceleration
+            self.pp.radius = Dot(slip_vel, slip_vel) / abs(4 * Dot(slip_vel, slip_accel) * acceleration_number)
+
+    def Test(self, model_part, benchmark_utils, target_virtual_mass):
+        self.target_virtual_mass = target_virtual_mass
+        InitializeVariables(model_part, self.pp)
+        benchmark_utils.ComputeHydrodynamicForces(model_part)
+
+        for node in model_part.Nodes:
+            virtual_mass = node.GetSolutionStepValue(VIRTUAL_MASS_FORCE)
+                  
+        error = Benchmark.ErrorMetric(virtual_mass, self.target_virtual_mass)
+        
+        if (error < self.virtual_mass_tol):
+            veredict = True
+            
+        else:
+            veredict = False
+            
+        self.results = [self.target_virtual_mass, virtual_mass, error, veredict, self.description] 
+        self.string_results = VirtualMassBenchmark.ConvertToStrings(self.results)
+        self.has_results = True   
+        
+#***************************************************************************************************************************
+   
+# BENCHMARKS
+
+#***************************************************************************************************************************  
+
 pp = ProjectParameters.Parameters()
 model_part = ModelPart("OneBallModelPart")
 AddVariables(model_part)
@@ -568,7 +661,7 @@ drag_target_1 = 6 * math.pi * viscosity * radius * slip_vel
 drag_test_1.Test(model_part, benchmark_utils, drag_target_1)
 
 #***************************************************************************************************************************
-drag_test_2 = DragBenchmark(pp, 5, reynolds, fluid_fraction, sphericity, "Newtonian Regime, sphericity = " + str(sphericity))
+drag_test_2 = DragBenchmark(pp, 5, reynolds, fluid_fraction, sphericity, "Newtonian regime")
 
 # calculating target
 slip_vel[0] = drag_test_2.pp.fluid_velocity_x - drag_test_2.pp.velocity_x
@@ -576,8 +669,102 @@ slip_vel[1] = drag_test_2.pp.fluid_velocity_y - drag_test_2.pp.velocity_y
 slip_vel[2] = drag_test_2.pp.fluid_velocity_z - drag_test_2.pp.velocity_z
 density = drag_test_2.pp.fluid_density
 radius = drag_test_2.pp.radius
-drag_target_2 = 0.44 * 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+drag_target_2 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+drag_target_2 *= 0.44 
 
 drag_test_2.Test(model_part, benchmark_utils, drag_target_2)
 
+#***************************************************************************************************************************
+reynolds = 1.0
+drag_test_3 = DragBenchmark(pp, 6, reynolds, fluid_fraction, sphericity, "Intermediate regime, Re = " + str(reynolds))
+
+# calculating target
+slip_vel[0] = drag_test_3.pp.fluid_velocity_x - drag_test_3.pp.velocity_x
+slip_vel[1] = drag_test_3.pp.fluid_velocity_y - drag_test_3.pp.velocity_y
+slip_vel[2] = drag_test_3.pp.fluid_velocity_z - drag_test_3.pp.velocity_z
+density = drag_test_3.pp.fluid_density
+radius = drag_test_3.pp.radius
+drag_target_3 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+drag_target_3 *= 24 / reynolds * (1.0 + 0.15 * math.pow(reynolds, 0.687))
+
+drag_test_3.Test(model_part, benchmark_utils, drag_target_3)
+
+#***************************************************************************************************************************
+reynolds = 250
+drag_test_31 = DragBenchmark(pp, 6, reynolds, fluid_fraction, sphericity, "Intermediate regime, Re = " + str(reynolds))
+
+# calculating target
+slip_vel[0] = drag_test_31.pp.fluid_velocity_x - drag_test_31.pp.velocity_x
+slip_vel[1] = drag_test_31.pp.fluid_velocity_y - drag_test_31.pp.velocity_y
+slip_vel[2] = drag_test_31.pp.fluid_velocity_z - drag_test_31.pp.velocity_z
+density = drag_test_31.pp.fluid_density
+radius = drag_test_31.pp.radius
+drag_target_31 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+drag_target_31 *= 24 / reynolds * (1.0 + 0.15 * math.pow(reynolds, 0.687))
+
+drag_test_31.Test(model_part, benchmark_utils, drag_target_31)
+
+#***************************************************************************************************************************
+reynolds = 250
+sphericity = 1.0
+drag_test_4 = DragBenchmark(pp, 7, reynolds, fluid_fraction, sphericity, "Haider and Levenspiel, Re = " + str(reynolds) + ", sphericity = " + str(sphericity))
+
+# calculating target
+slip_vel[0] = drag_test_4.pp.fluid_velocity_x - drag_test_4.pp.velocity_x
+slip_vel[1] = drag_test_4.pp.fluid_velocity_y - drag_test_4.pp.velocity_y
+slip_vel[2] = drag_test_4.pp.fluid_velocity_z - drag_test_4.pp.velocity_z
+density = drag_test_4.pp.fluid_density
+radius = drag_test_4.pp.radius
+drag_target_4 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+A = math.exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity ** 2)
+B = 0.0964 + 0.5565 * sphericity
+C = math.exp(4.905 - 13.8944 * sphericity + 18.4222 * sphericity ** 2 - 10.2599 * sphericity ** 3)
+D = math.exp(1.4681 + 12.2584 * sphericity - 20.7322 * sphericity ** 2 + 15.8855 * sphericity ** 3)
+drag_target_4 *= (24 / reynolds * (1.0 + A * math.pow(reynolds, B)) + C / (1 + D / reynolds))
+
+drag_test_4.Test(model_part, benchmark_utils, drag_target_4)
+
+#***************************************************************************************************************************
+reynolds = 250
+sphericity = 0.3
+drag_test_41 = DragBenchmark(pp, 7, reynolds, fluid_fraction, sphericity, "Haider and Levenspiel, Re = " + str(reynolds) + ", sphericity = " + str(sphericity))
+
+# calculating target
+slip_vel[0] = drag_test_41.pp.fluid_velocity_x - drag_test_41.pp.velocity_x
+slip_vel[1] = drag_test_41.pp.fluid_velocity_y - drag_test_41.pp.velocity_y
+slip_vel[2] = drag_test_41.pp.fluid_velocity_z - drag_test_41.pp.velocity_z
+density = drag_test_41.pp.fluid_density
+radius = drag_test_41.pp.radius
+drag_target_41 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_vel
+A = math.exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity ** 2)
+B = 0.0964 + 0.5565 * sphericity
+C = math.exp(4.905 - 13.8944 * sphericity + 18.4222 * sphericity ** 2 - 10.2599 * sphericity ** 3)
+D = math.exp(1.4681 + 12.2584 * sphericity - 20.7322 * sphericity ** 2 + 15.8855 * sphericity ** 3)
+drag_target_41 *= (24 / reynolds * (1.0 + A * math.pow(reynolds, B)) + C / (1 + D / reynolds))
+
+drag_test_41.Test(model_part, benchmark_utils, drag_target_41)
+
 DragBenchmark.PrintResults()
+
+# Virtual Mass
+#***************************************************************************************************************************
+#***************************************************************************************************************************
+
+acceleration_number = 1.0
+virtual_mass_test_0 = VirtualMassBenchmark(pp, 0, acceleration_number, "Inactive")
+
+virtual_mass_target_0 = RandomVector(0)
+
+virtual_mass_test_0.Test(model_part, benchmark_utils, virtual_mass_target_0)
+
+#***************************************************************************************************************************
+
+virtual_mass_test_1 = VirtualMassBenchmark(pp, 1, acceleration_number, "Stokes regime")
+
+virtual_mass_target_1 = RandomVector(0)
+
+virtual_mass_test_1.Test(model_part, benchmark_utils, virtual_mass_target_1)
+
+#***************************************************************************************************************************
+
+VirtualMassBenchmark.PrintResults()
