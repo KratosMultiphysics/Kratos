@@ -23,6 +23,7 @@ def AddingDEMProcessInfoVariables(pp, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, pp.initial_drag_force)
     dem_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, pp.drag_law_slope)
     dem_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, pp.power_law_tol)
+    dem_model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.drag_porosity_correction_type)
 
 # constructing lists of variables to add
 # * Performing modifications to the input parameters for concistency (provisional until interface does it)
