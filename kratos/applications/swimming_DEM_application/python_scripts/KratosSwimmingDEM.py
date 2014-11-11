@@ -91,6 +91,7 @@ pp.drag_force_type                        = 2 # null drag (0), Stokes (1), Weath
 pp.virtual_mass_force_type                = 0 # null virtual mass force (0)
 pp.lift_force_type                        = pp.dem.consider_lift_force_option # null lift force (0)
 pp.drag_modifier_type                     = pp.dem.drag_modifier_type # Hayder (2), Chien (3) # problemtype option
+pp.drag_porosity_correction_type          = 0 # No correction (0), Richardson and Zaki (1)
 pp.interaction_start_time                 = 0
 pp.min_fluid_fraction                     = 0.4
 pp.initial_drag_force                     = 0.0   # problemtype option
