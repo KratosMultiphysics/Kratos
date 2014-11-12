@@ -71,12 +71,12 @@ namespace Kratos
             Vector[2] = Vector[2] * inv_distance;
     }     
       
-    static inline void module( array_1d<double,3> Vector, double& distance)
+    static inline void module( const array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
     }
     
-    static inline double module( array_1d<double,3> Vector)
+    static inline double module( const array_1d<double,3>& Vector)
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             return distance;
@@ -127,7 +127,7 @@ namespace Kratos
         return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
     }
 
-    static inline double DotProduct(const array_1d<double,3> Vector1, const array_1d<double,3> Vector2)
+    static inline double DotProduct(const array_1d<double,3>& Vector1, const array_1d<double,3>& Vector2)
     {
         return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
     }
