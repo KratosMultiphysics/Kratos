@@ -918,7 +918,7 @@ void ASGSCompressible2D::CalculateArtifitialViscosity(double& Vel_art_visc ,doub
     if( div_vel < 0.0)
     {
         CalculateCharectristicLength(H,DN_DX,norm_grad_p);
-        Vel_art_visc =  0.8* abs(div_vel) * pow(H,2);  //Noh: 1d 0.4 2d 0.65 Sedov_2d 0.5  last:20.0 * 0.5
+        Vel_art_visc =  0.8* std::abs(div_vel) * pow(H,2);  //Noh: 1d 0.4 2d 0.65 Sedov_2d 0.5  last:20.0 * 0.5
 
         Pr_art_visc = 0.6*sqrt(norm_grad_p/density) * pow(H,1.5);  //Noh: 1d 0.3  2d 0.3 sedov_2d 0.3 last 10.0 * 0.3
     }
