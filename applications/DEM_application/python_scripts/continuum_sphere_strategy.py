@@ -6,9 +6,9 @@ from KratosMultiphysics.DEMApplication import *
 def AddAdditionalVariables(model_part, Param):
 
     model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
+    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     
-    if(Var_Translator(Param.StressStrainOption)): 
-      model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+    if(Var_Translator(Param.StressStrainOption)):       
       model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
       model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
       model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
