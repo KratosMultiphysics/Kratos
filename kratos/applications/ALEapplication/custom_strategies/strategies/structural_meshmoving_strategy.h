@@ -15,7 +15,7 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -24,9 +24,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_elements/structural_meshmoving_element_2d.h"
-#include "custom_elements/structural_meshmoving_element_3d.h"
-#include "ale_application.h"
+#include "custom_elements/structural_meshmoving_element.h"
+//#include "ale_application.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 
@@ -62,25 +61,6 @@ namespace Kratos
 
 /// Short class definition.
 /**   Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
 */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
@@ -126,7 +106,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         int dimension = 3,
         int velocity_order = 1,
-        bool reform_dof_at_every_step = true
+        bool reform_dof_at_every_step = false
 
 
     )
@@ -158,7 +138,6 @@ public:
 
         BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
         mstrategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(*mpMeshModelPart,pscheme,pNewLinearSolver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
-        mstrategy->SetEchoLevel(2);
 
 
         KRATOS_CATCH("")
@@ -180,36 +159,20 @@ public:
     {
         KRATOS_TRY
 
-        // Mesh has to be regenerated in each solving step
-        ReGenerateMeshPart();
-
-        ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
-
-        // Updating the time
-        rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
-        rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-        
-        //set before each solve the displacements to the value at the beginning of the latest step if they are
-        //not fixed
-        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
-                    i != (*mpMeshModelPart).NodesEnd() ; ++i)
-        {
-            array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-            
-            if(i->IsFixed(DISPLACEMENT_X) == false) disp[0] = dispold[0];
-            if(i->IsFixed(DISPLACEMENT_Y) == false) disp[1] = dispold[1];
-            if(i->IsFixed(DISPLACEMENT_Z) == false) disp[2] = dispold[2];
-            
-            noalias(i->Coordinates()) = i->GetInitialPosition();
-            noalias(i->Coordinates()) += disp;
-        }
+	// Setting mesh to initial configuration                                                                               
+	for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd() ; ++i)
+	  {
+	    (i)->X() = (i)->X0();
+	    (i)->Y() = (i)->Y0();
+	    (i)->Z() = (i)->Z0();
+	  }
 
         // Solve for the mesh movement
         mstrategy->Solve();
 
         // Update FEM-base
-        MoveNodes();
+	CalculateMeshVelocities();
+	BaseType::MoveMesh();
 
         // Clearing the system if needed
         if(mreform_dof_at_every_step == true)
@@ -247,32 +210,20 @@ public:
         }
         else //mesh velocity calculated as (3*x(n+1)-4*x(n)+x(n-1))/(2*Dt)
         {
-            double Dt = (*mpMeshModelPart).GetProcessInfo()[DELTA_TIME];
-            double OldDt = (*mpMeshModelPart).GetProcessInfo().GetPreviousTimeStepInfo(1)[DELTA_TIME];
-KRATOS_WATCH(Dt)
-KRATOS_WATCH(OldDt)
+	  double c1 = 1.50*coeff;
+	  double c2 = -2.0*coeff;
+	  double c3 = 0.50*coeff;
 
-            double Rho = OldDt / Dt;
-            double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
-
-            double c1 = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
-            double c2 = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-            double c3 = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
-            
-//             double c1 = 1.50*coeff;
-//             double c2 = -2.0*coeff;
-//             double c3 = 0.50*coeff;
-
-            for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
-                    i != (*mpMeshModelPart).NodesEnd() ; ++i)
+	  for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
+	      i != (*mpMeshModelPart).NodesEnd() ; ++i)
             {
-                array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-                noalias(mesh_v) =  c1 * (i)->FastGetSolutionStepValue(DISPLACEMENT);
-                noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-                noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(DISPLACEMENT,2);
+	      array_1d<double,3>& mesh_v = (i)->FastGetSolutionStepValue(MESH_VELOCITY);
+	      noalias(mesh_v) =  c1 * (i)->FastGetSolutionStepValue(DISPLACEMENT);
+	      noalias(mesh_v) += c2 * (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+	      noalias(mesh_v) += c3 * (i)->FastGetSolutionStepValue(DISPLACEMENT,2);
             }
         }
-
+	
         KRATOS_CATCH("")
     }
 
@@ -368,8 +319,6 @@ private:
     int mdimension;
     int mvel_order;
     bool mreform_dof_at_every_step;
-    double mtol;
-    int mmax_it;
 
     /*@} */
     /**@name Private Operators*/
@@ -383,16 +332,10 @@ private:
     {
         mpMeshModelPart = ModelPart::Pointer( new ModelPart("MeshPart",1) );
 
-        mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
-        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
-        mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
-
-        // Initializing mesh nodes
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
-
+	
+	mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
+        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
 
         // Creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
@@ -402,7 +345,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
+                pElem = Element::Pointer(new StructuralMeshMovingElement<2>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -412,51 +355,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-    }
-
-    void ReGenerateMeshPart()
-    {
-        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
-
-        mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
-        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
-        mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
-
-        // Initializing mesh nodes
-        mpMeshModelPart->Nodes().clear();
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        //creating mesh elements
-        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-        Element::Pointer pElem;
-
-        MeshElems.clear();
-        MeshElems.reserve( MeshElems.size() );
-
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
-
-        if(mdimension == 2)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-        else if(mdimension == 3)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
+                pElem = Element::Pointer(new StructuralMeshMovingElement<3>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
