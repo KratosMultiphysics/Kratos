@@ -226,6 +226,13 @@ public:
 	{
 		KRATOS_TRY;
 
+		const array_1d<double,3>& rNormal = this->GetValue(NORMAL);
+		if (norm_2(rNormal) == 0.0)
+		  {
+		    std::cout << "error on condition -> " << this->Id() << std::endl;
+		    KRATOS_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
+		  }
+
 		if (mInitializeWasPerformed)
 		{
 		        return;
