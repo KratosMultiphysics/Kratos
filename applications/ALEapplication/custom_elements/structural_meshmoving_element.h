@@ -1,7 +1,5 @@
 /*
 ==============================================================================
-KratosALEApplication
-A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
@@ -51,8 +49,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED )
-#define  KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED )
+#define  KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED
 
 
 
@@ -60,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -73,72 +70,105 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
+  ///@name Kratos Globals
+  ///@{
+  
+  ///@}
+  ///@name Type Definitions
+  ///@{
+  
+  ///@}
+  ///@name  Enum's
+  ///@{
+  
+  ///@}
+  ///@name  Functions
+  ///@{
+  
+  ///@}
+  ///@name Kratos Classes
+  ///@{
+  
+  /// A mesh motion solver using a linear-elastic structural model
+  /**
+   */
+  template< unsigned int TDim >
+    class StructuralMeshMovingElement : public Element
+    {
+    public:
+      ///@name Type Definitions
+      ///@{
+      
+      /// Pointer definition of StructuralMeshMovingElement
+      KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
 
-///@}
-///@name Type Definitions
-///@{
+      typedef Element BaseType;
 
-///@}
-///@name  Enum's
-///@{
+      typedef BaseType::GeometryType GeometryType;
 
-///@}
-///@name  Functions
-///@{
+      typedef BaseType::NodesArrayType NodesArrayType;
 
-///@}
-///@name Kratos Classes
-///@{
+      typedef BaseType::PropertiesType PropertiesType;
 
-/// This class implements a structural structural-meshsolver in 2D using non-linear kinematics
-/**
- *Implements a mesh-solver in 2D treating the mesh as a structure using a linear elastic
- *material law. The kinemematics are implemented linearly. In Addition the solver
- *can be stabilized by an exponential law using an exponential law containing the
- *Jacobi determinant.
-*/
-class StructuralMeshMovingElem2D
-    : public Element
-{
-public:
-    ///@name Type Definitions
-    ///@{
+      typedef BaseType::IndexType IndexType;
 
-    /// Counted pointer of StructuralMeshMovingElem2D
-    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElem2D);
+      typedef BaseType::SizeType SizeType;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+      typedef BaseType::MatrixType MatrixType;
 
-    /// Default constructor.
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+      typedef BaseType::VectorType VectorType;
 
-    /// Destructor.
-    virtual ~StructuralMeshMovingElem2D();
+      typedef BaseType::EquationIdVectorType EquationIdVectorType;
+
+      typedef BaseType::DofsVectorType DofsVectorType;
+
+      ///@}
+      ///@name Life Cycle
+      ///@{
+      
+      /// Constructor.
+      StructuralMeshMovingElement(IndexType NewId, 
+				  GeometryType::Pointer pGeometry) :
+      Element(NewId, pGeometry)
+	{}
+      
+      StructuralMeshMovingElement(IndexType NewId, 
+				  GeometryType::Pointer pGeometry,  
+				  PropertiesType::Pointer pProperties) :
+      Element(NewId, pGeometry, pProperties)
+	{}
+
+      /// Destructor.
+      virtual ~StructuralMeshMovingElement() 
+	{}
 
 
-    ///@}
-    ///@name Operators
-    ///@{
+      ///@}
+      ///@name Operators
+      ///@{
+      
 
+      ///@}
+      ///@name Operations
+      ///@{
 
-    ///@}
-    ///@name Operations
-    ///@{
+      BaseType::Pointer Create(IndexType NewId, 
+			      NodesArrayType const& rThisNodes,  
+			      PropertiesType::Pointer pProperties) const
+	{
+	  const GeometryType& rGeom = this->GetGeometry();
+	  return BaseType::Pointer(new StructuralMeshMovingElement(NewId, rGeom.Create(rThisNodes), pProperties));
+	}
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
+				VectorType& rRightHandSideVector, 
+				ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+      void EquationIdVector(EquationIdVectorType& rResult, 
+			    ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-
-    //void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+      void GetDofList(DofsVectorType& rElementalDofList, 
+		      ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -190,6 +220,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void GetDisplacementValues(VectorType& rValues,
+			       const int Step = 0);
+
 
     ///@}
     ///@name Protected  Access
@@ -214,9 +247,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        double mJold;
-        double mJ0;
-        double mxi;
 
     ///@}
     ///@name Serialization
@@ -224,7 +254,7 @@ private:
 
     friend class Serializer;
 
-    StructuralMeshMovingElem2D() {}
+    StructuralMeshMovingElement() {}
 
     ///@}
     ///@name Private Operators
@@ -250,16 +280,9 @@ private:
     ///@{
 
 
-    /// Assignment operator.
-    //StructuralMeshMovingElem2D& operator=(const StructuralMeshMovingElem2D& rOther);
-
-    /// Copy constructor.
-    //StructuralMeshMovingElem2D(const StructuralMeshMovingElem2D& rOther);
-
-
     ///@}
 
-}; // Class StructuralMeshMovingElem2D
+}; // Class StructuralMeshMovingElement
 
 ///@}
 
@@ -272,24 +295,10 @@ private:
 ///@{
 
 
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-                    StructuralMeshMovingElem2D& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-                    const StructuralMeshMovingElem2D& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGULAR_LAPLACIAN_MESHMOVING_ELEM_2D_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED
 
 

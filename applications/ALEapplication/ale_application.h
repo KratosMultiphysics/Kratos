@@ -28,8 +28,7 @@
 #include "custom_elements/laplacian_meshmoving_element_3d.h"
 #include "custom_elements/laplacian_componentwise_meshmoving_element_2d.h"
 #include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
-#include "custom_elements/structural_meshmoving_element_2d.h"
-#include "custom_elements/structural_meshmoving_element_3d.h"
+#include "custom_elements/structural_meshmoving_element.h"
 #include "custom_elements/laplacian_componentwise_meshmoving_element_2d_strainbased.h"
 
 //#include "custom_elements/laplacian_componentwise_meshmoving_element_3d_strainbased.h"
@@ -205,8 +204,8 @@ private:
     const LaplacianMeshMovingElem3D   mLaplacianMeshMovingElem3D;
     const LaplacianMeshMovingElem2D   mLaplacianComponentwiseMeshMovingElem2D;
     const LaplacianMeshMovingElem3D   mLaplacianComponentwiseMeshMovingElem3D;
-    const StructuralMeshMovingElem2D  mStructuralMeshMovingElem2D;
-    const StructuralMeshMovingElem3D  mStructuralMeshMovingElem3D;
+    const StructuralMeshMovingElement<2> mStructuralMeshMovingElement2D;
+    const StructuralMeshMovingElement<3> mStructuralMeshMovingElement3D;
     const LaplacianComponentwiseMeshMovingElem2DStrainbased mLaplacianComponentwiseMeshMovingElem2DStrainbased;
     //const LaplacianComponentwiseMeshMovingElem3DStrainbased mLaplacianComponentwiseMeshMovingElem3DStrainbased;
     const StructuralMeshMovingElem2DNonlin  mStructuralMeshMovingElem2DNonlin;

@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.TrilinosApplication import *
-from KratosMultiphysics.MetisApplication import *
+#from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.mpi import *
 CheckForPreviousImport()
 
@@ -51,7 +51,7 @@ class TrilinosMeshSolverStructuralSimilarityNonlin:
         # Define solver
         import MonolithicMultiLevelSolver
         pressure_nit_max = 1000
-        pressure_linear_tol = 1e-4
+        pressure_linear_tol = 1e-6
         self.linear_solver = MonolithicMultiLevelSolver.LinearSolver(pressure_linear_tol, pressure_nit_max)
 
     def Initialize(self):

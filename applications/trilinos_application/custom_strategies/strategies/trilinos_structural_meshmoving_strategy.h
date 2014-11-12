@@ -15,7 +15,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -24,9 +23,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "../ALEapplication/ale_application.h"
-#include "../ALEapplication/custom_elements/structural_meshmoving_element_2d.h"
-#include "../ALEapplication/custom_elements/structural_meshmoving_element_3d.h"
+#include "../ALEapplication/custom_elements/structural_meshmoving_element.h"
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
@@ -65,24 +62,6 @@ namespace Kratos
 /// Short class definition.
 /**   Detail class definition.
 
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
 */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
@@ -100,22 +79,6 @@ public:
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
-    typedef typename BaseType::TDataType TDataType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
-
-    typedef typename BaseType::DofsArrayType DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-
-
     /*@} */
     /**@name Life Cycle
     */
@@ -129,7 +92,7 @@ public:
         typename TLinearSolver::Pointer pNewLinearSolver,
         int dimension = 3,
         int velocity_order = 1,
-        bool reform_dof_at_every_step = true
+        bool reform_dof_at_every_step = false
     )
         : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part)
     {
@@ -155,11 +118,9 @@ public:
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
 
         typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
-
         BuilderSolverTypePointer builderSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(Comm, guess_row_size, pNewLinearSolver) );
 
         mstrategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >(*mpMeshModelPart,pscheme,pNewLinearSolver,builderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-        mstrategy->SetEchoLevel(2);
 
         KRATOS_CATCH("")
     }
@@ -180,14 +141,13 @@ public:
     {
         KRATOS_TRY
 
-        // Mesh has to be regenerated in each solving step
-        ReGenerateMeshPart();
-
-        ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
-
-        // Updating the time
-        rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
-        rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+	// Setting mesh to initial configuration
+	for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd() ; ++i)
+	  {
+	    (i)->X() = (i)->X0();
+            (i)->Y() = (i)->Y0();
+            (i)->Z() = (i)->Z0();
+	  }
 
         // Solve for mesh movement
         mstrategy->Solve();
@@ -361,25 +321,10 @@ private:
         // Setup new auxiliary model part
         mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
         mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
-        mpMeshModelPart->SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
-        mpMeshModelPart->SetProperties(BaseType::GetModelPart().pProperties());
 
         // Create a communicator for the new model part and copy the partition information about nodes.
-        Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
         typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
-        pMeshMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
-        pMeshMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-        pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
-        pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
-        pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
 
-        // Setup communication plan
-        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
-        {
-            pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
-            pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
-            pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
-        }
         mpMeshModelPart->SetCommunicator( pMeshMPIComm );
 
         // Creating mesh elements
@@ -390,7 +335,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
+                pElem = Element::Pointer(new StructuralMeshMovingElement<2>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -400,7 +345,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
+                pElem = Element::Pointer(new StructuralMeshMovingElement<3>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -410,68 +355,6 @@ private:
         // Optimize communicaton plan
         ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
         CommunicatorGeneration.Execute();
-    }
-
-    void ReGenerateMeshPart()
-    {
-        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
-
-        //reinitializing new auxiliary model part
-        mpMeshModelPart->Nodes().clear();
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        // Create a communicator for the new model part and copy the partition information about nodes.
-        Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
-        typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
-        pMeshMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
-        pMeshMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-        pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
-        pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
-        pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
-
-        // Setup communication plan
-        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
-        {
-            pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
-            pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
-            pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
-        }
-        mpMeshModelPart->SetCommunicator( pMeshMPIComm );
-
-        // Creating mesh elements
-        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-        Element::Pointer pElem;
-
-        MeshElems.clear();
-        MeshElems.reserve( MeshElems.size() );
-
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
-
-        if(mdimension == 2)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-        else if(mdimension == 3)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-
-            // Optimize communicaton plan
-            ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
-            CommunicatorGeneration.Execute();
     }
 
     /*@} */
