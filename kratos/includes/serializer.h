@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <set>
@@ -440,9 +441,15 @@ public:
     template<class TDataType>
     bool IsDerived(TDataType * pValue)
     {
-        bool is_derived = (typeid(TDataType) != typeid(*pValue));
+      if (strcmp(typeid(TDataType).name(), typeid(*pValue).name()) != 0) {
+	return true;
+      }
+      else {
+	return false;
+      }
+      // bool is_derived = (typeid(TDataType) != typeid(*pValue));
 //    std::cout << "for TDataType : " << typeid(TDataType).name() << " and *pValue type : " << typeid(*pValue).name() << " is derived : " << is_derived << std::endl;
-        return is_derived;
+      //return is_derived;
     }
 
 
