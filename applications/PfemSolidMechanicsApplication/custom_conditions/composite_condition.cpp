@@ -162,7 +162,7 @@ CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod()
       return cn->GetIntegrationMethod();
     }
   
-  return this->GetIntegrationMethod();
+  return Condition::GetIntegrationMethod();
 }
 
 

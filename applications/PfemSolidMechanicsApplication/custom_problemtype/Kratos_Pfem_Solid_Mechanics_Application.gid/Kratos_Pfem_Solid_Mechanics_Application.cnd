@@ -561,15 +561,6 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: line_WallCondition2D
-CONDTYPE: over lines
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-
 # Conditions related to domain identification
 
 BOOK: Model Domains

@@ -724,7 +724,7 @@ Begin NodalData RIGID_WALL
 *if(GroupNumEntities)
 *loop nodes *onlyingroup
 *format "%i%i%i"
-*NodesNum 1 *cond(Group_ID,int)
+*NodesNum 0 *cond(Group_ID,int)
 *end nodes
 *endif
 *end groups

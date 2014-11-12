@@ -237,7 +237,7 @@ center.append(*cond(Wall_Circle,2))
 center.append(*cond(Wall_Circle,3))
 radius = *cond(Wall_Circle,4)
 convexity = *cond(Wall_Circle,5)
-WallCircle = {"Center": point, "Radius": , "Convexity": convexity}
+WallCircle = {"Center": center, "Radius": radius, "Convexity": convexity}
 *endif
 
 string = "*cond(Linear_Velocity)" 

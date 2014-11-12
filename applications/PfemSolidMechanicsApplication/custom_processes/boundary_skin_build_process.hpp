@@ -555,9 +555,6 @@ namespace Kratos
     bool SkinSearch( int MeshId = 0 )
     {
 
-      if( mrModelPart.NumberOfElements() )
-	return true;
-
       //properties to be used in the generation
       int number_properties = mrModelPart.NumberOfProperties();
       Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
@@ -772,9 +769,6 @@ namespace Kratos
 
     bool UniqueSkinConditions( int MeshId = 0 )
     {
-
-      if( mrModelPart.NumberOfElements() )
-	return true;
 	
       //properties to be used in the generation
       int number_properties = mrModelPart.NumberOfProperties();

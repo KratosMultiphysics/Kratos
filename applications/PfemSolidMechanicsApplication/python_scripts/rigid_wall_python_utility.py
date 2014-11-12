@@ -133,7 +133,7 @@ class RigidWallUtility:
                         wall_angular_velocity[size] = conditions["AngularVelocity"][size]
                         wall_reference_point[size]  = conditions["RotationCenter"][size]
 
-                    self.rigid_wall_bbox.append(RigidCircleWallBoundingBox(int(conditions["Subdomain"]), convexity, radius, center, wall_velocity, wall_angular_velocity, wall_reference_point))
+                    self.rigid_wall_bbox.append(RigidCircleWallBoundingBox(int(conditions["Subdomain"]), convexity, radius, wall_center, wall_velocity, wall_angular_velocity, wall_reference_point))
 
                     self.penalty_parameters.append(conditions["PenaltyParameter"])
                     self.rigid_wall_bbox[sizei].SetDimension(dimension)
