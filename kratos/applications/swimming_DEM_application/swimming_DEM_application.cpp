@@ -26,7 +26,7 @@
 namespace Kratos
 {
         
-  KRATOS_CREATE_VARIABLE(int, TRACK_SUBSCALES)
+  //KRATOS_CREATE_VARIABLE(int, TRACK_SUBSCALES)
   
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
