@@ -215,7 +215,7 @@ void MonolithicDEMCoupled<2>::GetValueOnIntegrationPoints( const Variable<array_
     }
     else if (rVariable == SUBSCALE_VELOCITY)
     {
-        if( this->GetValue(TRACK_SUBSCALES) == 1 )
+        if(0) //this->GetValue(TRACK_SUBSCALES) == 1 )
         {
             rOutput.resize(1);
             const MonolithicDEMCoupled<Dim,NumNodes>* const_this = static_cast< const MonolithicDEMCoupled<Dim,NumNodes>* >(this);
@@ -304,7 +304,7 @@ void MonolithicDEMCoupled<3>::GetValueOnIntegrationPoints( const Variable<array_
     }
     else if(rVariable == SUBSCALE_VELOCITY)
     {
-        if( this->GetValue(TRACK_SUBSCALES) == 1 )
+        if(0) //this->GetValue(TRACK_SUBSCALES) == 1 )
         {
             rOutput.resize(1);
             const MonolithicDEMCoupled<Dim,NumNodes>* const_this = static_cast< const MonolithicDEMCoupled<Dim,NumNodes>* >(this);
