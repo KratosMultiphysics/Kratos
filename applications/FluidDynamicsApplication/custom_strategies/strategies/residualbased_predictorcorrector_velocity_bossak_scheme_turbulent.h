@@ -549,10 +549,10 @@ namespace Kratos {
         //*************************************************************************************
         //*************************************************************************************
 
-        void InitializeSolutionStep(ModelPart& r_model_part,
-                                    TSystemMatrixType& A,
-                                    TSystemVectorType& Dx,
-                                    TSystemVectorType& b)
+        virtual void InitializeSolutionStep(ModelPart& r_model_part,
+                                            TSystemMatrixType& A,
+                                            TSystemVectorType& Dx,
+                                            TSystemVectorType& b)
         {
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -771,7 +771,7 @@ namespace Kratos {
         //****************************************************************************
 
         /**
-        Kdyn = a0*M + D + a1*K
+        Kdyn = am*M + D + a1*K
          */
         void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
                               LocalSystemMatrixType& D,
