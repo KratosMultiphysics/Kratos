@@ -85,7 +85,7 @@ BOOST_PYTHON_MODULE(KratosSwimmingDEMApplication)
 
     //registering variables in python
    
-   KRATOS_REGISTER_IN_PYTHON_VARIABLE(TRACK_SUBSCALES)
+   //KRATOS_REGISTER_IN_PYTHON_VARIABLE(TRACK_SUBSCALES)
 
 }
 

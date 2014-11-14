@@ -42,7 +42,7 @@ void KratosSwimmingDEMApplication::Register()
   KratosApplication::Register();
   std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
                 
-  KRATOS_REGISTER_VARIABLE(TRACK_SUBSCALES)
+  //KRATOS_REGISTER_VARIABLE(TRACK_SUBSCALES)
 
   /* Define In Global variables.cpp */
 

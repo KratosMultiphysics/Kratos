@@ -2312,17 +2312,17 @@ protected:
 
         // Element lengths
         array_1d<double,3> Delta(3,0.0);
-        Delta[0] = abs(rGeom[TNumNodes-1].X()-rGeom[0].X());
-        Delta[1] = abs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
-        Delta[2] = abs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
+        Delta[0] = fabs(rGeom[TNumNodes-1].X()-rGeom[0].X());
+        Delta[1] = fabs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
+        Delta[2] = fabs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
 
         for (unsigned int n = 1; n < TNumNodes; n++)
         {
-            double hx = abs(rGeom[n].X()-rGeom[n-1].X());
+            double hx = fabs(rGeom[n].X()-rGeom[n-1].X());
             if (hx > Delta[0]) Delta[0] = hx;
-            double hy = abs(rGeom[n].Y()-rGeom[n-1].Y());
+            double hy = fabs(rGeom[n].Y()-rGeom[n-1].Y());
             if (hy > Delta[1]) Delta[1] = hy;
-            double hz = abs(rGeom[n].Z()-rGeom[n-1].Z());
+            double hz = fabs(rGeom[n].Z()-rGeom[n-1].Z());
             if (hz > Delta[2]) Delta[2] = hz;
         }
 
