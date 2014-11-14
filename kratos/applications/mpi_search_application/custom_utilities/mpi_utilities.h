@@ -370,7 +370,7 @@ namespace Kratos
           KRATOS_CATCH("")
       }
     
-      void ParallelPartitioning(ModelPart& rModelPart, bool extension_option, int CalculateBoundry)
+      void ParallelPartitioning(ModelPart& rModelPart, bool extension_option, int CalculateBoundary)
       {
           KRATOS_TRY
                     
@@ -390,7 +390,7 @@ namespace Kratos
               }
           
           LloydParallelPartitioner<Configure> partitioner;
-          partitioner.LloydsBasedParitioner(rModelPart,MaxNodeRadius,CalculateBoundry);
+          partitioner.LloydsBasedPartitioner(rModelPart,MaxNodeRadius,CalculateBoundary);
           
           MigrateElements(rModelPart);
       

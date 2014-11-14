@@ -175,7 +175,7 @@ public:
     Vector Dot;
     
     //Lloyd based partitioning
-    void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundry)
+    void LloydsBasedPartitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundary)
     {
         //Elements
         ContainerType& pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
