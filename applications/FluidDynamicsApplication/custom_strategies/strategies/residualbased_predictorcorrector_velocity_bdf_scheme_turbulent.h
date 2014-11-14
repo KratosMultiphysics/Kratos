@@ -267,15 +267,23 @@ namespace Kratos {
                     
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     
+                    
+                    
+                    
                     const array_1d<double,3>& aux = it->FastGetSolutionStepValue(VELOCITY,1);
                     
                     noalias(dv) = aux;
                     noalias(dv) -= it->FastGetSolutionStepValue(VELOCITY,2);
                     
                     array_1d<double,3>& v = it->FastGetSolutionStepValue(VELOCITY);
-
-                    noalias(v) = aux;
-                    noalias( v ) += (Dt/OldDt) * dv;
+                    
+                    const double dt_ratio = Dt/OldDt;
+                    if(it->IsFixed(VELOCITY_X) == false) v[0] = aux[0] + dt_ratio*dv[0];
+                    if(it->IsFixed(VELOCITY_Y) == false) v[1] = aux[1] + dt_ratio*dv[1];
+                    if(it->IsFixed(VELOCITY_Z) == false) v[2] = aux[2] + dt_ratio*dv[2];
+                    
+                    //noalias(v) = aux;
+                    //noalias( v ) += () * dv;
                 }
             }
             else
