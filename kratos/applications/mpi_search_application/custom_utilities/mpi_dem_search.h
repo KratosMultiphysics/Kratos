@@ -367,10 +367,10 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
 
           unsigned int NumberOfRanks = mCommunicator.GetNumberOfColors();
 
-          ModelPart::ElementsContainerType    ETempGhost[NumberOfRanks];
-          ModelPart::ElementsContainerType    ETempLocal[NumberOfRanks];
-          ModelPart::NodesContainerType       NTempGhost[NumberOfRanks];
-          ModelPart::NodesContainerType       NTempLocal[NumberOfRanks];
+          std::vector<ModelPart::ElementsContainerType> ETempGhost(NumberOfRanks);
+          std::vector<ModelPart::ElementsContainerType> ETempLocal(NumberOfRanks);
+          std::vector<ModelPart::NodesContainerType>    NTempGhost(NumberOfRanks);
+          std::vector<ModelPart::NodesContainerType>    NTempLocal(NumberOfRanks);
 
           //Clean the ghost(i) and local(i) meshes
 
