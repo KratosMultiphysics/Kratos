@@ -17,6 +17,7 @@ def AddingDEMProcessInfoVariables(pp, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, pp.drag_force_type)
     dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
     dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.lift_force_type)
+    dem_model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, pp.magnus_force_type)
     dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
     dem_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, pp.manually_imposed_drag_law_option)
     dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, pp.drag_modifier_type)
