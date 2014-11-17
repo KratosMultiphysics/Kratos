@@ -127,14 +127,17 @@ namespace Kratos
     protected:
 
         SphericSwimmingParticle();
-        void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const double& fluid_density, const array_1d<double,3>& gravity, ProcessInfo& rCurrentProcessInfo);
-        void ComputeDragForce(array_1d<double, 3>& drag_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
-        void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
-        void ComputeLiftForce(array_1d<double, 3>& lift_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
-        void ComputeParticleReynoldsNumber(double rNormOfSlipVel, double rViscosity, double& rReynolds);
-        void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_vel, const array_1d<double, 3>& slip_acc, const double& radius, double& acc_number);
-        void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
-        void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+        void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, ProcessInfo& r_current_process_info);
+        void ComputeDragForce(array_1d<double, 3>& drag_force, ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, ProcessInfo& r_current_process_info);
+        void ComputeSaffmanLiftForce(array_1d<double, 3>& lift_force, ProcessInfo& r_current_process_info);
+        void ComputeMagnusLiftForce(array_1d<double, 3>& lift_force, ProcessInfo& r_current_process_info);
+        void ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, ProcessInfo& r_current_process_info);
+        void ComputeParticleReynoldsNumber(double& r_reynolds);
+        void ComputeParticleRotationReynoldsNumber(double r_norm_of_slip_rot, double& r_reynolds);
+        void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
+        void AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
+        void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
 
       ///@name Protected static Member Variables
       ///@{
@@ -174,20 +177,20 @@ namespace Kratos
 
     private:
 
-        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& lift_force);
-        double ComputeStokesDragCoefficient(const double fluid_density, ProcessInfo& rCurrentProcessInfo);
-        double ComputeWeatherfordDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
-        void CalculateNewtonianDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
-        double CalculateDragCoeffFromSphericity(const double Reynolds, double Sphericity, int DragModifierType);
-        double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
-        double ComputeGanserDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
-        double ComputeIshiiDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
-        double ComputeNewtonRegimeDragCoefficient(const double& norm_of_slip_vel, const double fluid_density);
-        double ComputeIntermediateRegimeDragCoefficient(const double& norm_of_slip_vel, const double fluid_density);
-        double ComputeHaiderDragCoefficient(const double& norm_of_slip_vel, const double fluid_density);
-        void ComputeGanserParameters(const int isometric_shape, const double sphericity, const double dn, double& k_1, double& k_2);
-        void ApplyDragPorosityModification(double& drag_coeff, const double& norm_of_slip_vel, const double& fluid_density);
-        double ComputeSaffmanLiftCoefficient(const double& norm_of_slip_vel, const double fluid_density, const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& rCurrentProcessInfo);
+        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force);
+        double ComputeStokesDragCoefficient(ProcessInfo& r_current_process_info);
+        double ComputeWeatherfordDragCoefficient(ProcessInfo& r_current_process_info);
+        void CalculateNewtonianDragCoefficient(int non_newtonian_option, const double reynolds, const double sphericity, double& r_drag_coeff, int drag_modifier_type);
+        double CalculateDragCoeffFromSphericity(const double reynolds, double sphericity, int drag_modifier_type);
+        double CalculateShahsTerm(double power_law_n,double power_law_k, double power_law_tol, const double& particle_density, double sphericity, int drag_modifier_type);
+        double ComputeGanserDragCoefficient(ProcessInfo& r_current_process_info);
+        double ComputeIshiiDragCoefficient(ProcessInfo& r_current_process_info);
+        double ComputeNewtonRegimeDragCoefficient();
+        double ComputeIntermediateRegimeDragCoefficient();
+        double ComputeHaiderDragCoefficient();
+        void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
+        void ApplyDragPorosityModification(double& drag_coeff);
+        double ComputeSaffmanLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& r_current_process_info);
         void CustomInitialize();
         ///@name Static Member Variables
       ///@{
@@ -203,9 +206,16 @@ namespace Kratos
       int mBuoyancyForceType;
       int mDragForceType;
       int mVirtualMassForceType;
-      int mLiftForceType;
+      int mSaffmanForceType;
+      int mMagnusForceType;
       int mFluidModelType;
       int mPorosityCorrectionType;
+      double mFluidDensity;
+      double mFluidFraction;
+      double mKinematicViscosity;
+      double mSphericity;
+      double mNormOfSlipVel;
+      array_1d<double, 3> mSlipVel;
 
       ///@}
       ///@name Private Operators
