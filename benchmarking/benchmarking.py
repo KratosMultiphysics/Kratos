@@ -358,7 +358,7 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
     else:
         if sys.version_info >= (3, 0):
             os.system(
-                "python 3" +
+                "python3 " +
                 ExamplePath +
                 " -u --benchmarking | grep \"" +
                 Header +
