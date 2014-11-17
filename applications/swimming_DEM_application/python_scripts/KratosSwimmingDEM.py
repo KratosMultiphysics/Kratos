@@ -89,7 +89,8 @@ pp.coupling_weighing_type                 = 2 # {fluid_to_DEM, DEM_to_fluid, flu
 pp.buoyancy_force_type                    = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
 pp.drag_force_type                        = 2 # null drag (0), Stokes (1), Weatherford (2), Ganser (3), Ishii (4), Newtonian Regime (5)
 pp.virtual_mass_force_type                = 0 # null virtual mass force (0)
-pp.lift_force_type                        = pp.dem.consider_lift_force_option # null lift force (0)
+pp.lift_force_type                        = pp.dem.consider_lift_force_option # null lift force (0), Saffman (1)
+pp.magnus_force_type                      = 0 # null magnus force (0), Rubinow adn Keller (1), Oesterle and Bui Dihn (2)
 pp.drag_modifier_type                     = pp.dem.drag_modifier_type # Hayder (2), Chien (3) # problemtype option
 pp.drag_porosity_correction_type          = 0 # No correction (0), Richardson and Zaki (1)
 pp.interaction_start_time                 = 0
@@ -215,9 +216,15 @@ model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-balls_model_part.SetBufferSize(1)
-clusters_model_part.SetBufferSize(1)
-DEM_inlet_model_part.SetBufferSize(1)
+if pp.virtual_mass_force_type > 0:
+    buffer_size = 2
+
+else:
+    buffer_size = 1
+
+balls_model_part.SetBufferSize(buffer_size)
+clusters_model_part.SetBufferSize(buffer_size)
+DEM_inlet_model_part.SetBufferSize(buffer_size)
 
 # adding nodal degrees of freedom
 DEMSolverStrategy.AddDofs(balls_model_part)
@@ -374,7 +381,7 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
 #_____________________________________________________________________________________________________________________________________
 
 # setting fluid's body force to the same as DEM's
-if (pp.body_force_on_fluid_option):
+if pp.body_force_on_fluid_option:
 
     for node in fluid_model_part.Nodes:
         node.SetSolutionStepValue(BODY_FORCE_X, 0, pp.dem.GravityX)
@@ -405,13 +412,13 @@ pp.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # only relevant
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
-if (pp.projection_module_option):
+if pp.projection_module_option:
 
-    if (pp.meso_scale_length <= 0.0  and balls_model_part.NumberOfElements(0) > 0):
+    if pp.meso_scale_length <= 0.0  and balls_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(balls_model_part, RADIUS)
         pp.meso_scale_length = 20 * biggest_size
 
-    elif (balls_model_part.NumberOfElements(0) == 0):
+    elif balls_model_part.NumberOfElements(0) == 0:
         pp.meso_scale_length = 1.0
 
     projection_module = CFD_DEM_coupling.ProjectionModule(fluid_model_part, balls_model_part, rigid_faces_model_part, domain_size, pp)
@@ -445,16 +452,16 @@ if (pp.embedded_option):
 
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
-if (pp.inlet_option):
+if pp.inlet_option:
     
     vars_man.AddingDEMProcessInfoVariables(pp, DEM_inlet_model_part)
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(balls_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_faces_model_part)
     max_fluid_node_Id = swim_proc.FindMaxNodeIdInFLuid(fluid_model_part)
 
-    if ( max_FEM_node_Id > max_node_Id):
+    if max_FEM_node_Id > max_node_Id:
         max_node_Id = max_FEM_node_Id
-    if ( max_fluid_node_Id > max_node_Id):
+    if max_fluid_node_Id > max_node_Id:
         max_node_Id = max_FEM_node_Id
     
     creator_destructor.SetMaxNodeId(max_node_Id)      
@@ -471,7 +478,7 @@ if (pp.inlet_option):
 # creating problem directories
 directories = ['results']
 
-if (pp.make_results_directories_option):
+if pp.make_results_directories_option:
     dir_path_dictionary = io_tools.CreateProblemDirectories(current_script_path, directories)
 
 #_____________________________________________________________________________________________________________________________________
@@ -499,7 +506,7 @@ step = 0
 #                               F L U I D    B L O C K    E N D S
 #_____________________________________________________________________________________________________________________________________
 
-if (pp.flow_in_porous_medium_option):
+if pp.flow_in_porous_medium_option:
     fluid_frac_util = swim_proc.FluidFractionFieldUtility(fluid_model_part, pp.min_fluid_fraction)
 
     for field in pp.fluid_fraction_fields:
@@ -507,12 +514,12 @@ if (pp.flow_in_porous_medium_option):
 
     fluid_frac_util.AddFluidFractionField()
 
-if (pp.flow_in_porous_DEM_medium_option):
+if pp.flow_in_porous_DEM_medium_option:
     swim_proc.FixModelPart(balls_model_part)
 
 # choosing the directory in which we want to work (print to)
 
-if (pp.make_results_directories_option):
+if pp.make_results_directories_option:
     os.chdir(dir_path_dictionary['results'])
 
 def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
@@ -550,7 +557,7 @@ stationarity = False
 mesh_motion = DEMFEMUtilities()
 swim_proc.InitializeVariablesWithNonZeroValues(fluid_model_part, balls_model_part) # all variables are set to 0 by default
 
-while (time <= final_time):
+while time <= final_time:
 
     time = time + Dt
     step += 1
@@ -558,7 +565,7 @@ while (time <= final_time):
     print("\n", "TIME = ", time)
     sys.stdout.flush()
 
-    if (pp.coupling_scheme_type == "UpdatedDEM"):
+    if pp.coupling_scheme_type == "UpdatedDEM":
         time_final_DEM_substepping = time + Dt
 
     else:
@@ -569,16 +576,16 @@ while (time <= final_time):
     mesh_motion.MoveAllMeshes(rigid_faces_model_part, time)
 
     # calculating elemental distances defining the structure embedded in the fluid mesh
-    if (pp.embedded_option):
+    if pp.embedded_option:
         calculate_distance_process.Execute()
 
-    if (embedded_counter.Tick()):
+    if embedded_counter.Tick():
         embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
         embedded.ApplyEmbeddedBCsToBalls(balls_model_part, pp.dem)
 
     # solving the fluid part
 
-    if (step >= 3 and not stationarity):
+    if step >= 3 and not stationarity:
 
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )")
         sys.stdout.flush()
@@ -587,26 +594,26 @@ while (time <= final_time):
 
     # assessing stationarity
 
-        if (stationarity_counter.Tick()):
+        if stationarity_counter.Tick():
             print("Assessing Stationarity...")
             stationarity = stationarity_tool.Assess(fluid_model_part)
             sys.stdout.flush()
 
     # printing if required
 
-    if (particles_results_counter.Tick()):
+    if particles_results_counter.Tick():
         # eliminating remote balls
         
-        if (pp.dem.BoundingBoxOption == "ON"):
+        if pp.dem.BoundingBoxOption == "ON":
             creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
             
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if (output_time <= out and pp.coupling_scheme_type == "UpdatedDEM"):
+    if output_time <= out and pp.coupling_scheme_type == "UpdatedDEM":
 
-        if (pp.projection_module_option):
+        if pp.projection_module_option:
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
@@ -615,7 +622,7 @@ while (time <= final_time):
     # solving the DEM part
     pressure_gradient_counter.Deactivate(time < pp.interaction_start_time)
 
-    if (pressure_gradient_counter.Tick()):
+    if pressure_gradient_counter.Tick():
         custom_functions_tool.CalculatePressureGradient(fluid_model_part)
 
     print("Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)")
@@ -630,9 +637,9 @@ while (time <= final_time):
 
         # applying fluid-to-DEM coupling if required
 
-        if (time >= pp.interaction_start_time and pp.projection_module_option and (pp.project_at_every_substep_option or first_dem_iter)):
+        if time >= pp.interaction_start_time and pp.projection_module_option and (pp.project_at_every_substep_option or first_dem_iter):
 
-            if (pp.coupling_scheme_type == "UpdatedDEM"):
+            if pp.coupling_scheme_type == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
             else:
@@ -642,12 +649,12 @@ while (time <= final_time):
 
         balls_model_part.CloneTimeStep(time_dem)
 
-        if (not pp.flow_in_porous_DEM_medium_option): # in porous flow particles remain static
+        if not pp.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
             dem_solver.Solve()
 
         # adding DEM elements by the inlet
 
-        if (pp.inlet_option):
+        if pp.inlet_option:
             DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, pp.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
         
         # eliminating remote balls
@@ -658,37 +665,37 @@ while (time <= final_time):
 
     # measuring mean velocities in a certain control volume (the 'velocity trap')
 
-    if (pp.velocity_trap_option):
+    if pp.velocity_trap_option:
         post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time_dem)
 
     # applying DEM-to-fluid coupling
 
-    if (DEM_to_fluid_counter.Tick() and time >= pp.interaction_start_time):
+    if DEM_to_fluid_counter.Tick() and time >= pp.interaction_start_time:
         print("Projecting from particles to the fluid...")
         sys.stdout.flush()
         projection_module.ProjectFromParticles()
 
     # coupling checks (debugging)
 
-    if (debug_info_counter.Tick()):
+    if debug_info_counter.Tick():
         dem_volume_tool.UpdateDataAndPrint(pp.fluid_domain_volume)
 
     # printing if required
 
-    if (particles_results_counter.Tick()):
+    if particles_results_counter.Tick():
         
         # eliminating remote balls
         
-        if (pp.dem.BoundingBoxOption == "ON"):
+        if pp.dem.BoundingBoxOption == "ON":
             creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
             
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if (output_time <= out and pp.coupling_scheme_type == "UpdatedFluid"):
+    if output_time <= out and pp.coupling_scheme_type == "UpdatedFluid":
 
-        if (pp.projection_module_option):
+        if pp.projection_module_option:
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
