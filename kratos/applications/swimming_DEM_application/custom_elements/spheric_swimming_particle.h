@@ -190,7 +190,8 @@ namespace Kratos
         double ComputeHaiderDragCoefficient();
         void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
         void ApplyDragPorosityModification(double& drag_coeff);
-        double ComputeSaffmanLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& r_current_process_info);
+        double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& r_current_process_info);
+        double ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear);
         void CustomInitialize();
         ///@name Static Member Variables
       ///@{

@@ -268,16 +268,25 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
         return;
     }
 
-    else if (mSaffmanForceType == 1){
+    else if (mSaffmanForceType >= 1){
         const double& shear_rate                       = GetGeometry()(0)->FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
         const array_1d<double, 3>& vorticity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
-        const array_1d<double, 3>& vort_cross_slip_vel = MathUtils<double>::CrossProduct(vorticity, - mSlipVel);
+        const array_1d<double, 3>& vort_cross_slip_vel = MathUtils<double>::CrossProduct(mSlipVel, vorticity);
         const double vorticity_norm                    = SWIMMING_MODULUS_3(vorticity);
 
         double lift_coeff;
 
         if (mSaffmanForceType == 1){ // El Samni, E.A. (1949), see paper by R. K. Clark (1994)
-            lift_coeff = ComputeSaffmanLiftCoefficient(shear_rate, vorticity_norm, r_current_process_info);
+            lift_coeff = ComputeElSamniLiftCoefficient(shear_rate, vorticity_norm, r_current_process_info);
+        }
+
+        if (mSaffmanForceType == 2){ // Mei, 1992 (Re ~ 0.1 - 100)
+            double reynolds;
+            double reynolds_shear;
+            ComputeParticleReynoldsNumber(reynolds);
+            const double norm_of_vort = SWIMMING_MODULUS_3(vorticity);
+            ComputeParticleRotationReynoldsNumber(norm_of_vort, reynolds_shear);
+            lift_coeff = ComputeMeiLiftCoefficient(reynolds, reynolds_shear);
         }
 
         else {
@@ -287,9 +296,6 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
         }
 
         noalias(lift_force) = lift_coeff * vort_cross_slip_vel; // the direction is given by the vorticity x (- slip_vel) (Jackson, 2000), which is normalized here
-    }
-
-    else if (mSaffmanForceType == 2){
     }
 }
 
@@ -746,7 +752,7 @@ void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
- double SphericSwimmingParticle::ComputeSaffmanLiftCoefficient(const double norm_of_shear_rate,
+ double SphericSwimmingParticle::ComputeElSamniLiftCoefficient(const double norm_of_shear_rate,
                                                                const double vorticity_norm,
                                                                ProcessInfo& r_current_process_info)
  {
@@ -759,6 +765,34 @@ void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff)
          const double coeff          = std::max(0.09 * mNormOfSlipVel, 5.82 * sqrt(0.5 * mNormOfSlipVel * equivalent_viscosity /  mFluidDensity));
          const double lift_coeff     = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * coeff * mNormOfSlipVel / vorticity_norm;
          return(lift_coeff);
+     }
+
+     else {
+         return 0.0;
+     }
+ }
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+ double SphericSwimmingParticle::ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear)
+ {
+     if (reynolds != 0.0 && reynolds_shear != 0.0 ){
+         double sqrt_beta = sqrt(0.5 * reynolds_shear / reynolds);
+         double C;
+
+         if (reynolds < 40){
+             C = (1 - 0.3314 * sqrt_beta) * exp(- 0.1 * reynolds) + 0.3314 * sqrt_beta;
+         }
+
+         else {
+             C = 0.0524 * sqrt_beta * sqrt(reynolds);
+         }
+
+         C *= 4.1126 / sqrt(reynolds_shear);
+
+         double lift_coeff = mFluidDensity * KRATOS_M_PI * SWIMMING_POW_3(mRadius) * C;
+
+         return lift_coeff;
      }
 
      else {
