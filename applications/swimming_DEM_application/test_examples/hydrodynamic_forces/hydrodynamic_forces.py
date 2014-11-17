@@ -614,7 +614,7 @@ class SaffmanBenchmark(Benchmark):
         
         self.pp.buoyancy_force_type = 0
         self.pp.lift_force_type = saffman_force_type
-        self.magnus_force_type = 0     
+        self.pp.magnus_force_type = 0     
         self.pp.drag_force_type = 0
         self.pp.fluid_fraction = fluid_fraction
         self.description = description
@@ -709,7 +709,6 @@ buoyancy_test_0 = BuoyancyBenchmark(pp, 0, 1, pressure_gradient, "Inactive")
 buoyancy_target_0 = RandomVector(0)
 
 buoyancy_test_0.Test(model_part, benchmark_utils, buoyancy_target_0)
-
 #***************************************************************************************************************************
 buoyancy_test_1 = BuoyancyBenchmark(pp, 1, 1, pressure_gradient, "Standard")
 
@@ -719,7 +718,6 @@ buoyancy_target_1[1] = - 4/3 * math.pi * pressure_gradient[1]
 buoyancy_target_1[2] = - 4/3 * math.pi * pressure_gradient[2]
 
 buoyancy_test_1.Test(model_part, benchmark_utils, buoyancy_target_1)
-
 #***************************************************************************************************************************
 buoyancy_test_2 = BuoyancyBenchmark(pp, 1, 2, pressure_gradient, "Weatherford: hydrostatic buoyancy")
 
@@ -729,6 +727,7 @@ buoyancy_target_2[1] = 0.0
 buoyancy_target_2[2] = 9.81 * 4/3 * math.pi
 
 buoyancy_test_2.Test(model_part, benchmark_utils, buoyancy_target_2)
+#***************************************************************************************************************************
 
 BuoyancyBenchmark.PrintResults()
 
@@ -742,13 +741,11 @@ reynolds = 0.0
 sphericity = 1.0
 
 #***************************************************************************************************************************
-
 drag_test_0 = DragBenchmark(pp, 0, reynolds, fluid_fraction, sphericity, "Inactive")
 
 drag_target_0 = RandomVector(0)
 
 drag_test_0.Test(model_part, benchmark_utils, drag_target_0)
-
 #***************************************************************************************************************************
 reynolds = 1.0
 drag_test_1 = DragBenchmark(pp, 1, reynolds, fluid_fraction, sphericity, "Stokes regime")
@@ -763,7 +760,6 @@ slip_vel[2] = drag_test_1.pp.fluid_velocity_z - drag_test_1.pp.velocity_z
 drag_target_1 = 6 * math.pi * viscosity * radius * slip_vel
 
 drag_test_1.Test(model_part, benchmark_utils, drag_target_1)
-
 #***************************************************************************************************************************
 drag_test_2 = DragBenchmark(pp, 5, reynolds, fluid_fraction, sphericity, "Newtonian regime")
 
@@ -777,7 +773,6 @@ drag_target_2 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_ve
 drag_target_2 *= 0.44 
 
 drag_test_2.Test(model_part, benchmark_utils, drag_target_2)
-
 #***************************************************************************************************************************
 reynolds = 1.0
 drag_test_3 = DragBenchmark(pp, 6, reynolds, fluid_fraction, sphericity, "Intermediate regime, Re = " + str(reynolds))
@@ -792,7 +787,6 @@ drag_target_3 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_ve
 drag_target_3 *= 24.0 / reynolds * (1.0 + 0.15 * math.pow(reynolds, 0.687))
 
 drag_test_3.Test(model_part, benchmark_utils, drag_target_3)
-
 #***************************************************************************************************************************
 reynolds = 250
 drag_test_31 = DragBenchmark(pp, 6, reynolds, fluid_fraction, sphericity, "Intermediate regime, Re = " + str(reynolds))
@@ -807,7 +801,6 @@ drag_target_31 = 0.5 * math.pi * radius ** 2 * density * Norm(slip_vel) * slip_v
 drag_target_31 *= 24.0 / reynolds * (1.0 + 0.15 * math.pow(reynolds, 0.687))
 
 drag_test_31.Test(model_part, benchmark_utils, drag_target_31)
-
 #***************************************************************************************************************************
 reynolds = 250
 sphericity = 1.0
@@ -827,7 +820,6 @@ D = math.exp(1.4681 + 12.2584 * sphericity - 20.7322 * sphericity ** 2 + 15.8855
 drag_target_4 *= (24.0 / reynolds * (1.0 + A * math.pow(reynolds, B)) + C / (1 + D / reynolds))
 
 drag_test_4.Test(model_part, benchmark_utils, drag_target_4)
-
 #***************************************************************************************************************************
 reynolds = 250
 sphericity = 0.3
@@ -847,6 +839,7 @@ D = math.exp(1.4681 + 12.2584 * sphericity - 20.7322 * sphericity ** 2 + 15.8855
 drag_target_41 *= (24.0 / reynolds * (1.0 + A * math.pow(reynolds, B)) + C / (1 + D / reynolds))
 
 drag_test_41.Test(model_part, benchmark_utils, drag_target_41)
+#***************************************************************************************************************************
 
 DragBenchmark.PrintResults()
 
@@ -860,9 +853,7 @@ virtual_mass_test_0 = VirtualMassBenchmark(pp, 0, acceleration_number, fluid_fra
 virtual_mass_target_0 = RandomVector(0)
 
 virtual_mass_test_0.Test(model_part, benchmark_utils, virtual_mass_target_0)
-
 #***************************************************************************************************************************
-
 virtual_mass_test_1 = VirtualMassBenchmark(pp, 1, acceleration_number, fluid_fraction, "Stokes regime")
 slip_accel = Array3()
 slip_accel[0] = virtual_mass_test_1.pp.fluid_acceleration_x - virtual_mass_test_1.pp.accel_x
@@ -873,9 +864,7 @@ virtual_mass_coeff = 0.5;
 virtual_mass_target_1 = virtual_mass_coeff * virtual_mass_test_1.pp.fluid_density * volume * slip_accel
 
 virtual_mass_test_1.Test(model_part, benchmark_utils, virtual_mass_target_1)
-
 #***************************************************************************************************************************
-
 fluid_fraction = 0.6
 virtual_mass_test_2 = VirtualMassBenchmark(pp, 2, acceleration_number, fluid_fraction, "Zuber, fluid fraction = " + str(fluid_fraction))
 slip_accel = Array3()
@@ -887,9 +876,7 @@ virtual_mass_coeff = 0.5 + 1.5 * (1 - fluid_fraction);
 virtual_mass_target_2 = virtual_mass_coeff * virtual_mass_test_2.pp.fluid_density * volume * slip_accel
 
 virtual_mass_test_2.Test(model_part, benchmark_utils, virtual_mass_target_2)
-
 #***************************************************************************************************************************
-
 acceleration_number = 3.6
 virtual_mass_test_3 = VirtualMassBenchmark(pp, 3, acceleration_number, fluid_fraction, "Odar and Hamilton, acceleration number = " + str(acceleration_number))
 slip_accel = Array3()
@@ -902,9 +889,7 @@ virtual_mass_coeff *= 2.1 - 0.132 / (acceleration_number ** 2 + 0.12);
 virtual_mass_target_3 = virtual_mass_coeff * virtual_mass_test_3.pp.fluid_density * volume * slip_accel
 
 virtual_mass_test_3.Test(model_part, benchmark_utils, virtual_mass_target_3)
-
 #***************************************************************************************************************************
-
 fluid_fraction = 0.6
 acceleration_number = 3.6
 virtual_mass_test_4 = VirtualMassBenchmark(pp, 4, acceleration_number, fluid_fraction, "Odar + Zuber; fluid frac. = " + str(fluid_fraction) + ", acc. num. = " + str(acceleration_number))
@@ -918,6 +903,7 @@ virtual_mass_coeff *= 2.1 - 0.132 / (acceleration_number ** 2 + 0.12);
 virtual_mass_target_4 = virtual_mass_coeff * virtual_mass_test_4.pp.fluid_density * volume * slip_accel
 
 virtual_mass_test_4.Test(model_part, benchmark_utils, virtual_mass_target_4)
+#***************************************************************************************************************************
 
 VirtualMassBenchmark.PrintResults()
 
@@ -932,5 +918,14 @@ saffman_test_0 = SaffmanBenchmark(pp, 0, reynolds, reynolds_shear, "Inactive")
 saffman_target_0 = RandomVector(0)
 
 saffman_test_0.Test(model_part, benchmark_utils, saffman_target_0)
+
+#***************************************************************************************************************************
+reynolds = 1.0
+reynolds_shear = 1.0
+saffman_test_1 = SaffmanBenchmark(pp, 2, reynolds, reynolds_shear, "Mei, Re = " + str(reynolds) + ", Re_shear = " + str(reynolds_shear))
+
+saffman_target_1 = RandomVector(0)
+
+saffman_test_1.Test(model_part, benchmark_utils, saffman_target_1)
 
 SaffmanBenchmark.PrintResults()
