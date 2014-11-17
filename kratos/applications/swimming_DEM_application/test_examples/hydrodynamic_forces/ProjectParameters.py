@@ -25,6 +25,10 @@ class Parameters:
         self.velocity_y = 0.0
         self.velocity_z = 0.0
         
+        self.velocity_old_x = 0.0
+        self.velocity_old_y = 0.0
+        self.velocity_old_z = 0.0
+        
         self.accel_x = 0.0
         self.accel_y = 0.0
         self.accel_z = 0.0                
@@ -74,6 +78,7 @@ class Parameters:
         self.drag_force_type = 1
         self.virtual_mass_force_type = 1
         self.lift_force_type = 1
+        self.magnus_force_type = 1        
         self.drag_porosity_correction_type = 0
 
         self.gel_strength = 1.0
