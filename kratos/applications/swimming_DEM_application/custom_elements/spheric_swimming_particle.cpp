@@ -289,7 +289,8 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
         noalias(lift_force) = lift_coeff * vort_cross_slip_vel; // the direction is given by the vorticity x (- slip_vel) (Jackson, 2000), which is normalized here
     }
 
-    else if (mSaffmanForceType == 2)
+    else if (mSaffmanForceType == 2){
+    }
 }
 
 //**************************************************************************************************************************************************
