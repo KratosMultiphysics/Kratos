@@ -781,7 +781,7 @@ class MagnusBenchmark(Benchmark):
 
 
 class TorqueBenchmark(Benchmark):    
-    title = "Torque force test results"
+    title = "Torque test results"
     tests = []
     
     @staticmethod
@@ -1302,7 +1302,7 @@ torque_target_0 = RandomVector(0)
 torque_test_0.Test(model_part, benchmark_utils, torque_target_0)
 #***************************************************************************************************************************
 reynolds_rot = 1.0
-torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds))
+torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds_rot))
 
 vort = Array3()
 ang_vel = Array3()
@@ -1334,7 +1334,7 @@ torque_target_1 = 0.5 * dens * r ** 5 * C * norm_of_slip_rot * slip_rot
 torque_test_1.Test(model_part, benchmark_utils, torque_target_1)
 #***************************************************************************************************************************
 reynolds_rot = 500
-torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds))
+torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds_rot))
 
 vort = Array3()
 ang_vel = Array3()
