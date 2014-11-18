@@ -5,7 +5,7 @@ class Parameters:
         
         self.delta_time = 0.000001
         
-        self.radius = 1.0
+        self.radius = 1.2
         self.sphericity = 1.0
         self.sqrt_of_mass = 1.0
         self.inertia = CalculateInertiaOfBall(self.radius, self.sqrt_of_mass)
@@ -79,6 +79,7 @@ class Parameters:
         self.virtual_mass_force_type = 1
         self.lift_force_type = 1
         self.magnus_force_type = 1        
+        self.hydro_torque_type = 1                
         self.drag_porosity_correction_type = 0
 
         self.gel_strength = 1.0
