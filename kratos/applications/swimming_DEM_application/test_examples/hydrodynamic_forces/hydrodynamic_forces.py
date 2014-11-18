@@ -128,6 +128,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REYNOLDS_NUMBER)
     model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
     model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_FORCE)
+    model_part.AddNodalSolutionStepVariable(HYDRODYNAMIC_MOMENT)    
     model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
     model_part.AddNodalSolutionStepVariable(FLUID_ACCEL_PROJECTED)
     model_part.AddNodalSolutionStepVariable(FLUID_FRACTION_PROJECTED)
@@ -172,6 +173,7 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
     model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
     model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.lift_force_type)
     model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, pp.magnus_force_type)
+    model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.hydro_torque_type)    
     model_part.ProcessInfo.SetValue(DRAG_POROSITY_CORRECTION_TYPE, pp.drag_porosity_correction_type)
     model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
     model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, pp.manually_imposed_drag_law_option)
@@ -249,7 +251,7 @@ def PadWithSpaces(lines):
 def GetColumsMaxWidths(lines, margin):
     widths = []
     
-    if (not len(lines)):
+    if not len(lines):
         return widths    
         
     for entry in lines[0]:
@@ -260,7 +262,7 @@ def GetColumsMaxWidths(lines, margin):
         
         for entry in line:
             
-            if (len(str(entry)) > widths[i]):
+            if len(str(entry)) > widths[i]:
                 widths[i] = len(str(entry))              
                 
             i += 1
@@ -281,7 +283,7 @@ def Dot(v1, v2):
     
 def Normalize(v, modulus = 1.0):
     
-    if (Norm(v) == 0.0):
+    if Norm(v) == 0.0:
         return
     
     else:
@@ -289,6 +291,14 @@ def Normalize(v, modulus = 1.0):
         v[0] *= coeff
         v[1] *= coeff
         v[2] *= coeff
+        
+def Cross(u, v):
+    w = Array3()
+    w[0] = u[1] * v[2] - u[2] * v[1]
+    w[1] = u[2] * v[0] - u[0] * v[2]
+    w[2] = u[0] * v[1] - u[1] * v[0]
+    
+    return w
         
 def RandomVector(modulus = 1.0):
     v = Array3()
@@ -336,7 +346,7 @@ class Benchmark:
         i_test = 0
         
         for test in tests:
-            if (test.has_results):
+            if test.has_results:
                 lines += [[str(i_test)] + test.string_results]            
                 i_test += 1
 
@@ -356,7 +366,7 @@ class Benchmark:
      
     @staticmethod  
     def ErrorMetric(v1, v2):
-        if (Norm(v1) == 0.0 and Norm(v2) == 0.0):
+        if Norm(v1) == 0.0 and Norm(v2) == 0.0:
             return 0.0
             
         else:
@@ -410,7 +420,7 @@ class BuoyancyBenchmark(Benchmark):
                   
         error = Benchmark.ErrorMetric(buoyancy, self.target_buoyancy)
         
-        if (error < self.buoyancy_tol):
+        if error < self.buoyancy_tol:
             veredict = True
             
         else:
@@ -458,10 +468,10 @@ class DragBenchmark(Benchmark):
     
     def CalculateFlowVariables(self, reynolds):
         
-        if (reynolds < 0):
+        if reynolds < 0:
             raise ValueError("The particle's Reynolds number should be non-negative")
         
-        elif (reynolds == 0.0):
+        elif reynolds == 0.0:
             pass
             
         else:
@@ -489,7 +499,7 @@ class DragBenchmark(Benchmark):
                   
         error = Benchmark.ErrorMetric(drag, self.target_drag)
         
-        if (error < self.drag_tol):
+        if error < self.drag_tol:
             veredict = True
             
         else:
@@ -537,10 +547,10 @@ class VirtualMassBenchmark(Benchmark):
         
     def CalculateFlowVariables(self, acceleration_number):
         
-        if (acceleration_number < 0):
+        if acceleration_number < 0:
             raise ValueError("The particle's Reynolds number should be non-negative")
         
-        elif (acceleration_number == 0.0):
+        elif acceleration_number == 0.0:
             pass
             
         else:
@@ -579,7 +589,7 @@ class VirtualMassBenchmark(Benchmark):
                   
         error = Benchmark.ErrorMetric(virtual_mass, self.target_virtual_mass)
         
-        if (error < self.virtual_mass_tol):
+        if error < self.virtual_mass_tol:
             veredict = True
             
         else:
@@ -627,10 +637,10 @@ class SaffmanBenchmark(Benchmark):
         
     def CalculateFlowVariables(self, reynolds, reynolds_shear):
         
-        if (reynolds < 0 or reynolds_shear < 0):
+        if reynolds < 0 or reynolds_shear < 0:
             raise ValueError("The particle's Reynold's number and shear Reynold's numbers should be non-negative")
         
-        elif (reynolds_shear * reynolds == 0.0):
+        elif reynolds_shear * reynolds == 0.0:
             pass
             
         else:
@@ -641,19 +651,15 @@ class SaffmanBenchmark(Benchmark):
             
             self.pp.velocity_x = velocity[0]
             self.pp.velocity_y = velocity[1]
-            self.pp.velocity_z = velocity[2]
-            self.ang_vel_x = ang_velocity[0]
-            self.ang_vel_y = ang_velocity[1]
-            self.ang_vel_z = ang_velocity[2]                                   
+            self.pp.velocity_z = velocity[2]                                
             self.pp.fluid_velocity_x = fluid_velocity[0]
             self.pp.fluid_velocity_y = fluid_velocity[1]
             self.pp.fluid_velocity_z = fluid_velocity[2]    
             
             slip_vel = fluid_velocity - velocity
-            slip_vort = vorticity - ang_velocity
             r = self.pp.radius
             dens = self.pp.fluid_density
-            self.pp.kinematic_viscosity = 2 * r * dens * Norm(slip_vel) / reynolds
+            self.pp.kinematic_viscosity = 2.0 * r * dens * Norm(slip_vel) / reynolds
             vorticity_norm = self.pp.kinematic_viscosity * reynolds_shear / (dens * 4 * r ** 2 )
             Normalize(vorticity, vorticity_norm)
             self.pp.fluid_vorticity_x = vorticity[0]
@@ -666,20 +672,204 @@ class SaffmanBenchmark(Benchmark):
         benchmark_utils.ComputeHydrodynamicForces(model_part)
 
         for node in model_part.Nodes:
-            saffman = node.GetSolutionStepValue(LIFT_FORCE)
+            lift = node.GetSolutionStepValue(LIFT_FORCE)
                   
-        error = Benchmark.ErrorMetric(saffman, self.target_saffman)
+        error = Benchmark.ErrorMetric(lift, self.target_saffman)
         
-        if (error < self.saffman_tol):
+        if error < self.saffman_tol:
             veredict = True
             
         else:
             veredict = False
             
-        self.results = [self.target_saffman, saffman, error, veredict, self.description] 
+        self.results = [self.target_saffman, lift, error, veredict, self.description] 
         self.string_results = SaffmanBenchmark.ConvertToStrings(self.results)
         self.has_results = True  
+
+
+class MagnusBenchmark(Benchmark):    
+    title = "Magnus force test results"
+    tests = []
+    
+    @staticmethod
+    def PrintResults():
+        Benchmark.PrintResults(MagnusBenchmark.title, MagnusBenchmark.tests)
         
+    @staticmethod
+    def ConvertToStrings(results):
+         
+        if results[3]:
+            word = "OK"
+        else:
+            word = "Fail"
+            
+        return [str(results[0]), str(results[1]), "{:.2e}".format(results[2]), word, str(results[4])]
+    
+    def __init__(self, pp, magnus_force_type, reynolds, reynolds_rot, description):
+        self.pp = copy.deepcopy(pp) 
+        self.magnus_tol = 10e-6
+        
+        self.pp.buoyancy_force_type = 0
+        self.pp.lift_force_type = 0
+        self.pp.magnus_force_type = magnus_force_type               
+        self.pp.drag_force_type = 0
+        self.pp.fluid_fraction = fluid_fraction
+        self.description = description
+        
+        self.has_results = False
+        self.CalculateFlowVariables(reynolds, reynolds_rot)
+        
+        MagnusBenchmark.tests += [self]
+        Benchmark.tests += [self]
+        
+    def CalculateFlowVariables(self, reynolds, reynolds_rot):
+        
+        if reynolds < 0 or reynolds_rot < 0:
+            raise ValueError("The particle's Reynold's number and shear Reynold's numbers should be non-negative")
+        
+        elif reynolds_rot * reynolds == 0.0:
+            pass
+            
+        else:
+            velocity = RandomVector()
+            fluid_velocity = RandomVector()
+            ang_velocity = RandomVector()
+            vorticity = RandomVector()
+            
+            self.pp.velocity_x = velocity[0]
+            self.pp.velocity_y = velocity[1]
+            self.pp.velocity_z = velocity[2]                               
+            self.pp.fluid_velocity_x = fluid_velocity[0]
+            self.pp.fluid_velocity_y = fluid_velocity[1]
+            self.pp.fluid_velocity_z = fluid_velocity[2]    
+            
+            slip_vel = fluid_velocity - velocity
+            slip_rot = 0.5 * vorticity - ang_velocity
+            r = self.pp.radius
+            dens = self.pp.fluid_density
+            self.pp.kinematic_viscosity = 2.0 * r * dens * Norm(slip_vel) / reynolds
+            slip_rot_norm = self.pp.kinematic_viscosity * reynolds_rot / (dens * 4 * r ** 2 )
+            Normalize(ang_velocity, slip_rot_norm)
+            Normalize(vorticity, slip_rot_norm)
+            self.ang_vel_x = ang_velocity[0]
+            self.ang_vel_y = ang_velocity[1]
+            self.ang_vel_z = ang_velocity[2] 
+            self.pp.fluid_vorticity_x = vorticity[0]
+            self.pp.fluid_vorticity_y = vorticity[1]
+            self.pp.fluid_vorticity_z = vorticity[2]  
+
+    def Test(self, model_part, benchmark_utils, target_magnus):
+        self.target_magnus = target_magnus
+        InitializeVariables(model_part, self.pp)
+        benchmark_utils.ComputeHydrodynamicForces(model_part)
+
+        for node in model_part.Nodes:
+            lift = node.GetSolutionStepValue(LIFT_FORCE)
+                  
+        error = Benchmark.ErrorMetric(lift, self.target_magnus)
+        
+        if error < self.magnus_tol:
+            veredict = True
+            
+        else:
+            veredict = False
+            
+        self.results = [self.target_magnus, lift, error, veredict, self.description] 
+        self.string_results = MagnusBenchmark.ConvertToStrings(self.results)
+        self.has_results = True  
+
+
+
+class TorqueBenchmark(Benchmark):    
+    title = "Torque force test results"
+    tests = []
+    
+    @staticmethod
+    def PrintResults():
+        Benchmark.PrintResults(TorqueBenchmark.title, TorqueBenchmark.tests)
+        
+    @staticmethod
+    def ConvertToStrings(results):
+         
+        if results[3]:
+            word = "OK"
+        else:
+            word = "Fail"
+            
+        return [str(results[0]), str(results[1]), "{:.2e}".format(results[2]), word, str(results[4])]
+    
+    def __init__(self, pp, hydro_torque_type, reynolds_rot, description):
+        self.pp = copy.deepcopy(pp) 
+        self.torque_tol = 10e-6
+        
+        self.pp.buoyancy_force_type = 0
+        self.pp.drag_force_type = 0
+        self.pp.lift_force_type = 0
+        self.pp.magnus_force_type = 0        
+        self.pp.hydro_torque_type = hydro_torque_type  
+        self.pp.fluid_fraction = fluid_fraction
+        self.description = description
+        
+        self.has_results = False
+        self.CalculateFlowVariables(reynolds, reynolds_rot)
+        
+        TorqueBenchmark.tests += [self]
+        Benchmark.tests += [self]
+        
+    def CalculateFlowVariables(self, reynolds, reynolds_rot):
+        
+        if reynolds < 0 or reynolds_rot < 0:
+            raise ValueError("The particle's Reynold's number and shear Reynold's numbers should be non-negative")
+        
+        elif reynolds_rot * reynolds == 0.0:
+            pass
+            
+        else:
+            velocity = RandomVector()
+            fluid_velocity = RandomVector()
+            ang_velocity = RandomVector()
+            vorticity = RandomVector()
+            
+            self.pp.velocity_x = velocity[0]
+            self.pp.velocity_y = velocity[1]
+            self.pp.velocity_z = velocity[2]                               
+            self.pp.fluid_velocity_x = fluid_velocity[0]
+            self.pp.fluid_velocity_y = fluid_velocity[1]
+            self.pp.fluid_velocity_z = fluid_velocity[2]    
+            
+            slip_rot = 0.5 * vorticity - ang_velocity
+            r = self.pp.radius
+            dens = self.pp.fluid_density
+            self.pp.kinematic_viscosity = 2 * r * dens * Norm(slip_vel) / reynolds
+            slip_rot_norm = self.pp.kinematic_viscosity * reynolds_rot / (dens * 4 * r ** 2 )
+            Normalize(ang_velocity, slip_rot_norm)
+            Normalize(vorticity, slip_rot_norm)
+            self.ang_vel_x = ang_velocity[0]
+            self.ang_vel_y = ang_velocity[1]
+            self.ang_vel_z = ang_velocity[2] 
+            self.pp.fluid_vorticity_x = vorticity[0]
+            self.pp.fluid_vorticity_y = vorticity[1]
+            self.pp.fluid_vorticity_z = vorticity[2]  
+
+    def Test(self, model_part, benchmark_utils, target_torque):
+        self.target_torque = target_torque
+        InitializeVariables(model_part, self.pp)
+        benchmark_utils.ComputeHydrodynamicForces(model_part)
+
+        for node in model_part.Nodes:
+            torque = node.GetSolutionStepValue(HYDRODYNAMIC_MOMENT)
+                  
+        error = Benchmark.ErrorMetric(torque, self.target_torque)
+        
+        if error < self.torque_tol:
+            veredict = True
+            
+        else:
+            veredict = False
+            
+        self.results = [self.target_torque, torque, error, veredict, self.description] 
+        self.string_results = TorqueBenchmark.ConvertToStrings(self.results)
+        self.has_results = True          
 #***************************************************************************************************************************
    
 # BENCHMARKS
@@ -910,7 +1100,6 @@ VirtualMassBenchmark.PrintResults()
 # Saffman
 #***************************************************************************************************************************
 #***************************************************************************************************************************
-
 reynolds = 1.0
 reynolds_shear = 1.0
 saffman_test_0 = SaffmanBenchmark(pp, 0, reynolds, reynolds_shear, "Inactive")
@@ -918,14 +1107,263 @@ saffman_test_0 = SaffmanBenchmark(pp, 0, reynolds, reynolds_shear, "Inactive")
 saffman_target_0 = RandomVector(0)
 
 saffman_test_0.Test(model_part, benchmark_utils, saffman_target_0)
-
 #***************************************************************************************************************************
 reynolds = 1.0
 reynolds_shear = 1.0
 saffman_test_1 = SaffmanBenchmark(pp, 2, reynolds, reynolds_shear, "Mei, Re = " + str(reynolds) + ", Re_shear = " + str(reynolds_shear))
 
-saffman_target_1 = RandomVector(0)
+vel = Array3()
+fluid_vel = Array3()
+vort = Array3()
+vel[0] = saffman_test_1.pp.velocity_x
+vel[1] = saffman_test_1.pp.velocity_y
+vel[2] = saffman_test_1.pp.velocity_z
+
+fluid_vel[0] = saffman_test_1.pp.fluid_velocity_x
+fluid_vel[1] = saffman_test_1.pp.fluid_velocity_y
+fluid_vel[2] = saffman_test_1.pp.fluid_velocity_z
+
+vort[0] = saffman_test_1.pp.fluid_vorticity_x
+vort[1] = saffman_test_1.pp.fluid_vorticity_y
+vort[2] = saffman_test_1.pp.fluid_vorticity_z
+
+slip_vel = fluid_vel - vel
+norm_of_slip_vel = Norm(slip_vel)
+norm_of_vort = Norm(vort)
+r = saffman_test_1.pp.radius
+visc = saffman_test_1.pp.kinematic_viscosity
+dens = saffman_test_1.pp.fluid_density
+
+reynolds = 2 * r * norm_of_slip_vel /  visc
+reynolds_shear = 4 * r ** 2 * norm_of_vort /  visc
+
+beta = 0.5 * reynolds_shear / reynolds
+
+if reynolds < 40:
+    mei_correction = (1 - 0.3314 * math.sqrt(beta)) * math.exp(- 0.1 * reynolds) + 0.3314 * math.sqrt(beta)
+else:
+    mei_correction = 0.0524 * math.sqrt(beta * reynolds)
+
+mei_correction *= 4.1126 / math.sqrt(reynolds_shear)
+saffman_target_1 = math.pi * dens * r ** 3 * mei_correction * Cross(slip_vel, vort)
 
 saffman_test_1.Test(model_part, benchmark_utils, saffman_target_1)
+#***************************************************************************************************************************
+reynolds = 90
+reynolds_shear = 3.0
+saffman_test_2 = SaffmanBenchmark(pp, 2, reynolds, reynolds_shear, "Mei, Re = " + str(reynolds) + ", Re_shear = " + str(reynolds_shear))
+
+vel = Array3()
+fluid_vel = Array3()
+vort = Array3()
+vel[0] = saffman_test_2.pp.velocity_x
+vel[1] = saffman_test_2.pp.velocity_y
+vel[2] = saffman_test_2.pp.velocity_z
+
+fluid_vel[0] = saffman_test_2.pp.fluid_velocity_x
+fluid_vel[1] = saffman_test_2.pp.fluid_velocity_y
+fluid_vel[2] = saffman_test_2.pp.fluid_velocity_z
+
+vort[0] = saffman_test_2.pp.fluid_vorticity_x
+vort[1] = saffman_test_2.pp.fluid_vorticity_y
+vort[2] = saffman_test_2.pp.fluid_vorticity_z
+
+slip_vel = fluid_vel - vel
+norm_of_slip_vel = Norm(slip_vel)
+norm_of_vort = Norm(vort)
+r = saffman_test_2.pp.radius
+visc = saffman_test_2.pp.kinematic_viscosity
+dens = saffman_test_2.pp.fluid_density
+
+reynolds = 2 * r * norm_of_slip_vel /  visc
+reynolds_shear = 4 * r ** 2 * norm_of_vort /  visc
+
+beta = 0.5 * reynolds_shear / reynolds
+
+if reynolds < 40:
+    mei_correction = (1 - 0.3314 * math.sqrt(beta)) * math.exp(- 0.1 * reynolds) + 0.3314 * math.sqrt(beta)
+else:
+    mei_correction = 0.0524 * math.sqrt(beta * reynolds)
+
+mei_correction *= 4.1126 / math.sqrt(reynolds_shear)
+saffman_target_2 = math.pi * dens * r ** 3 * mei_correction * Cross(slip_vel, vort)
+
+saffman_test_2.Test(model_part, benchmark_utils, saffman_target_2)
+#***************************************************************************************************************************
 
 SaffmanBenchmark.PrintResults()
+
+# Magnus
+#***************************************************************************************************************************
+#***************************************************************************************************************************
+reynolds = 1.0
+reynolds_rot = 1.0
+magnus_test_0 = MagnusBenchmark(pp, 0, reynolds, reynolds_rot, "Inactive")
+
+magnus_target_0 = RandomVector(0)
+
+magnus_test_0.Test(model_part, benchmark_utils, magnus_target_0)
+#***************************************************************************************************************************
+reynolds = 1.0
+reynolds_rot = 1.0
+magnus_test_1 = MagnusBenchmark(pp, 2, reynolds, reynolds_rot, "Oesterle, Re = " + str(reynolds) + ", Re_rot = " + str(reynolds_rot))
+
+vel = Array3()
+fluid_vel = Array3()
+vort = Array3()
+ang_vel = Array3()
+
+vel[0] = magnus_test_1.pp.velocity_x
+vel[1] = magnus_test_1.pp.velocity_y
+vel[2] = magnus_test_1.pp.velocity_z
+
+fluid_vel[0] = magnus_test_1.pp.fluid_velocity_x
+fluid_vel[1] = magnus_test_1.pp.fluid_velocity_y
+fluid_vel[2] = magnus_test_1.pp.fluid_velocity_z
+
+vort[0] = magnus_test_1.pp.fluid_vorticity_x
+vort[1] = magnus_test_1.pp.fluid_vorticity_y
+vort[2] = magnus_test_1.pp.fluid_vorticity_z
+
+ang_vel[0] = magnus_test_1.pp.ang_vel_x
+ang_vel[1] = magnus_test_1.pp.ang_vel_y
+ang_vel[2] = magnus_test_1.pp.ang_vel_z
+
+slip_vel = fluid_vel - vel
+slip_rot = 0.5 * vort - ang_vel
+norm_of_slip_vel = Norm(slip_vel)
+norm_of_slip_rot = Norm(slip_rot)
+r = magnus_test_1.pp.radius
+visc = magnus_test_1.pp.kinematic_viscosity
+dens = magnus_test_1.pp.fluid_density
+
+reynolds = 2 * r * norm_of_slip_vel / visc
+reynolds_rot = 4 * r ** 2 * norm_of_slip_rot / visc
+
+C = 0.45 + (reynolds_rot / reynolds - 0.45) * math.exp(- 0.05684 * reynolds_rot ** 0.4 * reynolds ** 0.3)
+
+magnus_target_1 = 0.5 * math.pi * dens * r ** 2 * C * norm_of_slip_vel / norm_of_slip_rot * Cross(slip_rot , slip_vel)
+
+magnus_test_1.Test(model_part, benchmark_utils, magnus_target_1)
+#***************************************************************************************************************************
+reynolds = 110.0
+reynolds_rot = 3.0
+magnus_test_2 = MagnusBenchmark(pp, 2, reynolds, reynolds_rot, "Oesterle, Re = " + str(reynolds) + ", Re_rot = " + str(reynolds_rot))
+
+vel = Array3()
+fluid_vel = Array3()
+vort = Array3()
+ang_vel = Array3()
+
+vel[0] = magnus_test_2.pp.velocity_x
+vel[1] = magnus_test_2.pp.velocity_y
+vel[2] = magnus_test_2.pp.velocity_z
+
+fluid_vel[0] = magnus_test_2.pp.fluid_velocity_x
+fluid_vel[1] = magnus_test_2.pp.fluid_velocity_y
+fluid_vel[2] = magnus_test_2.pp.fluid_velocity_z
+
+vort[0] = magnus_test_2.pp.fluid_vorticity_x
+vort[1] = magnus_test_2.pp.fluid_vorticity_y
+vort[2] = magnus_test_2.pp.fluid_vorticity_z
+
+ang_vel[0] = magnus_test_2.pp.ang_vel_x
+ang_vel[1] = magnus_test_2.pp.ang_vel_y
+ang_vel[2] = magnus_test_2.pp.ang_vel_z
+
+slip_vel = fluid_vel - vel
+slip_rot = 0.5 * vort - ang_vel
+norm_of_slip_vel = Norm(slip_vel)
+norm_of_slip_rot = Norm(slip_rot)
+r = magnus_test_2.pp.radius
+visc = magnus_test_2.pp.kinematic_viscosity
+dens = magnus_test_2.pp.fluid_density
+
+reynolds = 2 * r * norm_of_slip_vel /  visc
+reynolds_rot = 4 * r ** 2 * norm_of_slip_rot /  visc
+
+C = 0.45 + (reynolds_rot / reynolds - 0.45) * math.exp(-0.05684 * reynolds_rot ** 0.4 * reynolds ** 0.3)
+
+magnus_target_2 = 0.5 * math.pi * dens * r ** 2 * C * norm_of_slip_vel / norm_of_slip_rot * Cross(slip_rot , slip_vel)
+
+magnus_test_2.Test(model_part, benchmark_utils, magnus_target_2)
+#***************************************************************************************************************************
+
+MagnusBenchmark.PrintResults()
+
+# Torque
+#***************************************************************************************************************************
+#***************************************************************************************************************************
+reynolds_rot = 1.0
+torque_test_0 = TorqueBenchmark(pp, 0, reynolds_rot, "Inactive")
+
+torque_target_0 = RandomVector(0)
+
+torque_test_0.Test(model_part, benchmark_utils, torque_target_0)
+#***************************************************************************************************************************
+reynolds_rot = 1.0
+torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds))
+
+vort = Array3()
+ang_vel = Array3()
+
+vort[0] = torque_test_1.pp.fluid_vorticity_x
+vort[1] = torque_test_1.pp.fluid_vorticity_y
+vort[2] = torque_test_1.pp.fluid_vorticity_z
+
+ang_vel[0] = torque_test_1.pp.ang_vel_x
+ang_vel[1] = torque_test_1.pp.ang_vel_y
+ang_vel[2] = torque_test_1.pp.ang_vel_z
+
+slip_rot = 0.5 * vort - ang_vel
+norm_of_slip_rot = Norm(slip_rot)
+r = torque_test_1.pp.radius
+visc = torque_test_1.pp.kinematic_viscosity
+dens = torque_test_1.pp.fluid_density
+
+reynolds = 2 * r * norm_of_slip_vel / visc
+reynolds_rot = 4 * r ** 2 * norm_of_slip_rot / visc
+
+if reynolds_rot > 32:
+    C = 12.9 / math.sqrt(reynolds_rot) + 128.4 / reynolds_rot
+else:
+    C = 64 * math.pi / reynolds_rot
+    
+torque_target_1 = 0.5 * dens * r ** 5 * C * norm_of_slip_rot * slip_rot
+
+torque_test_1.Test(model_part, benchmark_utils, torque_target_1)
+#***************************************************************************************************************************
+reynolds_rot = 500
+torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds))
+
+vort = Array3()
+ang_vel = Array3()
+
+vort[0] = torque_test_1.pp.fluid_vorticity_x
+vort[1] = torque_test_1.pp.fluid_vorticity_y
+vort[2] = torque_test_1.pp.fluid_vorticity_z
+
+ang_vel[0] = torque_test_1.pp.ang_vel_x
+ang_vel[1] = torque_test_1.pp.ang_vel_y
+ang_vel[2] = torque_test_1.pp.ang_vel_z
+
+slip_rot = 0.5 * vort - ang_vel
+norm_of_slip_rot = Norm(slip_rot)
+r = torque_test_1.pp.radius
+visc = torque_test_1.pp.kinematic_viscosity
+dens = torque_test_1.pp.fluid_density
+
+reynolds = 2 * r * norm_of_slip_vel /  visc
+reynolds_rot = 4 * r ** 2 * norm_of_slip_rot /  visc
+
+if reynolds_rot > 32:
+    C = 12.9 / math.sqrt(reynolds_rot) + 128.4 / reynolds_rot
+else:
+    C = 64 * math.pi / reynolds_rot
+    
+torque_target_1 = 0.5 * dens * r ** 5 * C * norm_of_slip_rot * slip_rot
+
+torque_test_1.Test(model_part, benchmark_utils, torque_target_1)
+#***************************************************************************************************************************
+
+TorqueBenchmark.PrintResults()
