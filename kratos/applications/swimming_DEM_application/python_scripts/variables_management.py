@@ -18,6 +18,7 @@ def AddingDEMProcessInfoVariables(pp, dem_model_part):
     dem_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, pp.virtual_mass_force_type)
     dem_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, pp.lift_force_type)
     dem_model_part.ProcessInfo.SetValue(MAGNUS_FORCE_TYPE, pp.magnus_force_type)
+    dem_model_part.ProcessInfo.SetValue(HYDRO_TORQUE_TYPE, pp.hydro_torque_type)
     dem_model_part.ProcessInfo.SetValue(FLUID_MODEL_TYPE, pp.fluid_model_type)
     dem_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, pp.manually_imposed_drag_law_option)
     dem_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, pp.drag_modifier_type)
@@ -118,6 +119,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if (pp.print_HYDRODYNAMIC_FORCE_option):
             pp.dem_nodal_results += ["HYDRODYNAMIC_FORCE"]
+
+        if (pp.print_HYDRODYNAMIC_MOMENT_option):
+            pp.dem_nodal_results += ["HYDRODYNAMIC_MOMENT"]
 
         if (pp.print_FLUID_VEL_PROJECTED_option):
             pp.dem_nodal_results += ["FLUID_VEL_PROJECTED"]
@@ -223,6 +227,7 @@ def ConstructListsOfVariablesForCoupling(pp):
         pp.coupling_dem_vars += [PRESSURE_GRAD_PROJECTED]
         pp.coupling_dem_vars += [FLUID_VISCOSITY_PROJECTED]
         pp.coupling_dem_vars += [HYDRODYNAMIC_FORCE]
+        pp.coupling_dem_vars += [HYDRODYNAMIC_MOMENT]
 
     if (pp.coupling_level_type == 1 or pp.fluid_model_type == 0):
         pp.coupling_dem_vars += [FLUID_FRACTION_PROJECTED]
