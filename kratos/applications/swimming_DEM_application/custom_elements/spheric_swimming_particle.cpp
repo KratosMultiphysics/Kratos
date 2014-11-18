@@ -30,6 +30,7 @@
 #define SWIMMING_MULTIPLY_BY_SCALAR_3(a, b)              a[0] = b * a[0]; a[1] = b * a[1]; a[2] = b * a[2];
 #define SWIMMING_MODULUS_3(a)                            sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
 #define SWIMMING_INNER_PRODUCT_3(a, b)                       (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+#define SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(a, b, c)    c[0] = a[1] * b[2] - a[2] * b[1]; c[1] = a[2] * b[0] - a[0] * b[2]; c[2] = a[0] * b[1] - a[1] * b[0];
 #define SWIMMING_POW_2(a)                                a * a
 #define SWIMMING_POW_3(a)                                a * a * a
 #define SWIMMING_POW_4(a)                                a * a * a * a
@@ -103,7 +104,7 @@ void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& addit
 
     additionally_applied_force = drag_force + virtual_mass_force + saffman_lift_force + magnus_lift_force;
 
-    UpdateNodalValues(additionally_applied_force, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force);
+    UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force);
 
     additionally_applied_force += buoyancy + mass * gravity;
 
@@ -115,25 +116,30 @@ void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& addit
 // Here nodal values are modified to record DEM forces that we want to print. In Kratos this is an exception since nodal values are meant to be modified only outside the element. Here it was not possible.
 
 void SphericSwimmingParticle::UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force,
+                                                const array_1d<double, 3>& hydrodynamic_moment,
                                                 const array_1d<double, 3>& buoyancy,
                                                 const array_1d<double, 3>& drag_force,
                                                 const array_1d<double, 3>& virtual_mass_force,
                                                 const array_1d<double, 3>& saffman_lift_force,
                                                 const array_1d<double, 3>& magnus_lift_force)
 {
-    GetGeometry()(0)->FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)     = hydrodynamic_force;
-    GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY)               = buoyancy;
+    GetGeometry()(0)->FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)      = hydrodynamic_force;
+    GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY)                = buoyancy;
+
+    if (mHasHydroMomentNodalVar){
+        GetGeometry()(0)->FastGetSolutionStepValue(HYDRODYNAMIC_MOMENT) = hydrodynamic_moment;
+    }
 
     if (mHasDragForceNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE)         = drag_force;
+        GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE)          = drag_force;
     }
 
     if (mHasVirtualMassForceNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(VIRTUAL_MASS_FORCE) = virtual_mass_force;
+        GetGeometry()(0)->FastGetSolutionStepValue(VIRTUAL_MASS_FORCE)  = virtual_mass_force;
     }
 
     if (mHasLiftForceNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(LIFT_FORCE)         = saffman_lift_force + magnus_lift_force;
+        GetGeometry()(0)->FastGetSolutionStepValue(LIFT_FORCE)          = saffman_lift_force + magnus_lift_force;
     }
 }
 
@@ -271,7 +277,8 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
     else if (mSaffmanForceType >= 1){
         const double& shear_rate                       = GetGeometry()(0)->FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
         const array_1d<double, 3>& vorticity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
-        const array_1d<double, 3>& vort_cross_slip_vel = MathUtils<double>::CrossProduct(mSlipVel, vorticity);
+        array_1d<double, 3> vort_cross_slip_vel;
+        SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(mSlipVel, vorticity, vort_cross_slip_vel)
         const double vorticity_norm                    = SWIMMING_MODULUS_3(vorticity);
 
         double lift_coeff;
@@ -290,7 +297,7 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
         }
 
         else {
-            std::cout << "The integer value designating the lift coefficient calculation model" << std::endl;
+            std::cout << "The integer value designating the Saffman lift coefficient calculation model" << std::endl;
             std::cout << " (mSaffmanForceType = " << mSaffmanForceType << "), is not supported" << std::endl << std::flush;
             return;
         }
@@ -311,9 +318,12 @@ void SphericSwimmingParticle::ComputeMagnusLiftForce(array_1d<double, 3>& lift_f
     }
 
     const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    array_1d<double, 3> slip_rot_cross_slip_vel;
+    SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, mSlipVel, slip_rot_cross_slip_vel)
 
     if (mMagnusForceType == 1){ // Rubinow and Keller, 1961 (very small Re)
-        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) *  mFluidDensity * MathUtils<double>::CrossProduct(slip_rot, mSlipVel);
+
+        lift_force = KRATOS_M_PI * SWIMMING_POW_3(mRadius) *  mFluidDensity * slip_rot_cross_slip_vel;
     }
 
     else if (mMagnusForceType == 2){ // Oesterle and Bui Dihn, 1998 Re < 140
@@ -329,8 +339,14 @@ void SphericSwimmingParticle::ComputeMagnusLiftForce(array_1d<double, 3>& lift_f
 
         else {
             const double lift_coeff = 0.45  + (rot_reynolds / reynolds - 0.45) * exp(- 0.05684 * pow(rot_reynolds, 0.4) * pow(reynolds, 0.3));
-            lift_force = 0.5 *  mFluidDensity * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot / norm_of_slip_rot;
+            lift_force = 0.5 *  mFluidDensity * KRATOS_M_PI * SWIMMING_POW_2(mRadius) * lift_coeff * mNormOfSlipVel * slip_rot_cross_slip_vel / norm_of_slip_rot;
         }
+    }
+
+    else {
+        std::cout << "The integer value designating the magnus lift coefficient calculation model" << std::endl;
+        std::cout << " (mMagnusForceType = " << mSaffmanForceType << "), is not supported" << std::endl << std::flush;
+        return;
     }
 }
 
@@ -339,21 +355,36 @@ void SphericSwimmingParticle::ComputeMagnusLiftForce(array_1d<double, 3>& lift_f
 
 void SphericSwimmingParticle::ComputeHydrodynamicTorque(array_1d<double, 3>& hydro_torque, ProcessInfo& r_current_process_info)
 {
-    const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
-    double rot_reynolds;
-    ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
-    double rotational_coeff;
+    if (mHydrodynamicTorqueType == 0 || GetGeometry()[0].IsNot(INSIDE) || GetGeometry()[0].Is(BLOCKED)){
+        noalias(hydro_torque) = ZeroVector(3);
 
-    if (rot_reynolds > 32){ // Rubinow and Keller, 1961 (Re_rot ~ 32 - 1000)
-        rotational_coeff = 12.9 / sqrt(rot_reynolds) + 128.4 / rot_reynolds;
+        return;
     }
 
-    else { // Rubinow and Keller, 1961 (Re_rot < 32)
-        rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
+    else if (mHydrodynamicTorqueType == 1){
+        const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
+        double rot_reynolds;
+        ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
+        double rotational_coeff;
+
+        if (rot_reynolds > 32){ // Rubinow and Keller, 1961 (Re_rot ~ 32 - 1000)
+            rotational_coeff = 12.9 / sqrt(rot_reynolds) + 128.4 / rot_reynolds;
+        }
+
+        else { // Rubinow and Keller, 1961 (Re_rot < 32)
+            rotational_coeff = 64 * KRATOS_M_PI / rot_reynolds;
+        }
+
+        hydro_torque = 0.5 *  mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
     }
 
-    hydro_torque = 0.5 *  mFluidDensity * SWIMMING_POW_5(mRadius) * rotational_coeff * norm_of_slip_rot * slip_rot;
+    else {
+        std::cout << "The integer value designating the magnus lift coefficient calculation model" << std::endl;
+        std::cout << " (mMagnusForceType = " << mSaffmanForceType << "), is not supported" << std::endl << std::flush;
+        return;
+    }
+
 }
 
 //**************************************************************************************************************************************************
@@ -369,7 +400,7 @@ void SphericSwimmingParticle::ComputeParticleReynoldsNumber(double& reynolds)
 
 void SphericSwimmingParticle::ComputeParticleRotationReynoldsNumber(double norm_of_slip_rot, double& reynolds)
 {
-    reynolds = 4 * mRadius * norm_of_slip_rot /  mKinematicViscosity;
+    reynolds = 4 * SWIMMING_POW_2(mRadius) * norm_of_slip_rot /  mKinematicViscosity;
 }
 
 //**************************************************************************************************************************************************
@@ -752,11 +783,11 @@ void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
- double SphericSwimmingParticle::ComputeElSamniLiftCoefficient(const double norm_of_shear_rate,
-                                                               const double vorticity_norm,
-                                                               ProcessInfo& r_current_process_info)
- {
-     if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
+double SphericSwimmingParticle::ComputeElSamniLiftCoefficient(const double norm_of_shear_rate,
+                                                       const double vorticity_norm,
+                                                       ProcessInfo& r_current_process_info)
+{
+    if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
          const double yield_stress   = 0.0; // we are considering a Bingham type fluid
          const double power_law_K    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
          const double power_law_n    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
@@ -765,15 +796,16 @@ void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff)
          const double coeff          = std::max(0.09 * mNormOfSlipVel, 5.82 * sqrt(0.5 * mNormOfSlipVel * equivalent_viscosity /  mFluidDensity));
          const double lift_coeff     = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * coeff * mNormOfSlipVel / vorticity_norm;
          return(lift_coeff);
-     }
+    }
 
-     else {
-         return 0.0;
-     }
- }
+    else {
+        return 0.0;
+    }
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
+
  double SphericSwimmingParticle::ComputeMeiLiftCoefficient(const double reynolds, const double reynolds_shear)
  {
      if (reynolds != 0.0 && reynolds_shear != 0.0 ){
@@ -803,28 +835,29 @@ void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
- void SphericSwimmingParticle::CustomInitialize()
- {
-     mHasDragForceNodalVar        = GetGeometry()(0)->SolutionStepsDataHas(DRAG_FORCE);
-     mHasVirtualMassForceNodalVar = GetGeometry()(0)->SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
-     mHasLiftForceNodalVar        = GetGeometry()(0)->SolutionStepsDataHas(LIFT_FORCE);
-     mSphericity                  = GetGeometry()(0)->SolutionStepsDataHas(PARTICLE_SPHERICITY);
-
- }
+void SphericSwimmingParticle::CustomInitialize()
+{
+    mHasDragForceNodalVar        = GetGeometry()(0)->SolutionStepsDataHas(DRAG_FORCE);
+    mHasHydroMomentNodalVar      = GetGeometry()(0)->SolutionStepsDataHas(HYDRODYNAMIC_MOMENT);
+    mHasVirtualMassForceNodalVar = GetGeometry()(0)->SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
+    mHasLiftForceNodalVar        = GetGeometry()(0)->SolutionStepsDataHas(LIFT_FORCE);
+    mSphericity                  = GetGeometry()(0)->SolutionStepsDataHas(PARTICLE_SPHERICITY);
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
- void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info)
- {
-     mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
-     mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
-     mVirtualMassForceType   = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
-     mSaffmanForceType       = r_process_info[LIFT_FORCE_TYPE];
-     mMagnusForceType        = r_process_info[MAGNUS_FORCE_TYPE];
-     mFluidModelType         = r_process_info[FLUID_MODEL_TYPE];
-     mPorosityCorrectionType = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
- }
+void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info)
+{
+    mBuoyancyForceType      = r_process_info[BUOYANCY_FORCE_TYPE];
+    mDragForceType          = r_process_info[DRAG_FORCE_TYPE];
+    mVirtualMassForceType   = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
+    mSaffmanForceType       = r_process_info[LIFT_FORCE_TYPE];
+    mMagnusForceType        = r_process_info[MAGNUS_FORCE_TYPE];
+    mFluidModelType         = r_process_info[FLUID_MODEL_TYPE];
+    mPorosityCorrectionType = r_process_info[DRAG_POROSITY_CORRECTION_TYPE];
+    mHydrodynamicTorqueType = r_process_info[HYDRO_TORQUE_TYPE];
+}
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

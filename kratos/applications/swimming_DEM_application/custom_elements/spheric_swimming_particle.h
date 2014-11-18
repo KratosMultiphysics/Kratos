@@ -177,7 +177,7 @@ namespace Kratos
 
     private:
 
-        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force);
+        void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force);
         double ComputeStokesDragCoefficient(ProcessInfo& r_current_process_info);
         double ComputeWeatherfordDragCoefficient(ProcessInfo& r_current_process_info);
         void CalculateNewtonianDragCoefficient(int non_newtonian_option, const double reynolds, const double sphericity, double& r_drag_coeff, int drag_modifier_type);
@@ -201,6 +201,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
+      bool mHasHydroMomentNodalVar;
       bool mHasDragForceNodalVar;
       bool mHasVirtualMassForceNodalVar;
       bool mHasLiftForceNodalVar;
@@ -211,6 +212,7 @@ namespace Kratos
       int mMagnusForceType;
       int mFluidModelType;
       int mPorosityCorrectionType;
+      int mHydrodynamicTorqueType;
       double mFluidDensity;
       double mFluidFraction;
       double mKinematicViscosity;
