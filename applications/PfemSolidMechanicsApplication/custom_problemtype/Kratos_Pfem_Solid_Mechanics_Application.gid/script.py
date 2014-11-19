@@ -198,6 +198,8 @@ model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR);
 model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
 model_part.AddNodalSolutionStepVariable(NODAL_H);
 
+model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+
 # if hasattr(SolverSettings, "RigidWalls"):
     # if SolverSettings.RigidWalls == True:
 model_part.AddNodalSolutionStepVariable(RIGID_WALL);
@@ -205,7 +207,7 @@ model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
 model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
 
 model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
-model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
+
 
 
 #--- READ MODEL ------#
