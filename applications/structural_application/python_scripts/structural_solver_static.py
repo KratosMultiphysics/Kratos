@@ -5,7 +5,7 @@ from KratosMultiphysics.StructuralApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):
+def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_OLD)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_NULL)
@@ -28,7 +28,7 @@ def AddVariables(model_part):
     print("variables for the dynamic structural solution added correctly")
 
 
-def AddDofs(model_part):
+def AddDofs(model_part, config=None):
     for node in model_part.Nodes:
         # adding dofs
         node.AddDof(DISPLACEMENT_X, REACTION_X);
@@ -82,3 +82,12 @@ class StaticStructuralSolver:
     #
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
+
+def CreateSolver(model_part, config):
+    solver = StaticStructuralSolver(model_part, config.domain_size)
+
+    import linear_solver_factory
+    if(hasattr(config, "linear_solver_config")):
+        solver.structure_linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
+
+    return solver
