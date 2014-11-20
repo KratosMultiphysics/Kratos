@@ -182,7 +182,6 @@ public:
         array_1d<double,3> contact_forces;
         double total_elastic_force = 0.0;
         
-        //#pragma omp parallel for
         #pragma omp parallel for reduction(+:total_elastic_force)
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
             ElementsArrayType::iterator it_begin = pContactElements.ptr_begin() + this->GetElementPartition()[k];
