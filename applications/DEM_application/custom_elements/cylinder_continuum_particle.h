@@ -132,7 +132,7 @@ namespace Kratos
       
       void Initialize();
       virtual void ContactAreaWeighting2D();
-      void StressTensorOperations(double mStressTensor[3][3],    
+      void AddNeighbourContributionToStressTensor(double mStressTensor[3][3],    
                                                             double GlobalElasticContactForce[3],
                                                             array_1d<double,3> &other_to_me_vect,
                                                             const double &distance,

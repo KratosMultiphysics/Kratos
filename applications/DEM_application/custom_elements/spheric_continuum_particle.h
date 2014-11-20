@@ -29,38 +29,10 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
-
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
+    
   class SphericContinuumParticle : public SphericParticle
     {
     public:
-
-
-      ///@name Type Definitions
-      ///@{
       
       /// Pointer definition of SphericContinuumParticle
       KRATOS_CLASS_POINTER_DEFINITION(SphericContinuumParticle);
@@ -68,11 +40,7 @@ namespace Kratos
       typedef WeakPointerVector<Element> ParticleWeakVectorType;
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
       typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-      
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
+
       /// Default constructor. 
       SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       SphericContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
@@ -82,57 +50,42 @@ namespace Kratos
          
       /// Destructor.
       virtual ~SphericContinuumParticle();
-
        
       void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
       void SetInitialFemContacts();
-      void CreateContinuumConstitutiveLaws();
-
-      void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-    
-      void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-      
-      void ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
- 
+      void CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo);
+      void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);    
+      void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);     
+      void ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo); 
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
-      
-      void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-                                                       std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
-      void ComputeNewRigidFaceNeighboursHistoricalData();
-      
+      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);      
+      void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, 
+                                              std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
+                                              std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
+      virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
       virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) ;
-
-
-      virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
-      
-      void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo);
-      
+      virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);      
+      virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo);      
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
                                               double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
 
-      virtual void ComputeStressStrain(   ProcessInfo& rCurrentProcessInfo,
-                                          double& rRepresentative_Volume);
-      
-            
-      virtual void StressTensorOperations(double GlobalElasticContactForce[3],
-                                          array_1d<double,3> &other_to_me_vect,
-                                          const double &distance,
-                                          const double &radius_sum,
-                                          const double &corrected_area,
-                                          SphericParticle* neighbour_iterator,
-                                          ProcessInfo& rCurrentProcessInfo,
-                                          double &rRepresentative_Volume);
-      
+      virtual void FinalOperationsStresTensor(ProcessInfo& rCurrentProcessInfo, double& rRepresentative_Volume);                  
+      virtual void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
+                                                          array_1d<double,3> &other_to_me_vect,
+                                                          const double &distance,
+                                                          const double &radius_sum,
+                                                          const double &corrected_area,
+                                                          SphericParticle* neighbour_iterator,
+                                                          ProcessInfo& rCurrentProcessInfo,
+                                                          double &rRepresentative_Volume);     
       virtual void AddPoissonContribution( const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
-
 
       /// Turn back information as a string.
       virtual std::string Info() const
       {
-    std::stringstream buffer;
+        std::stringstream buffer;
         buffer << "SphericContinuumParticle" ;
         return buffer.str();
       }
@@ -142,16 +95,14 @@ namespace Kratos
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
+
       
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
-      std::vector<Particle_Contact_Element*> mBondElements;
       
       //member variables DEM_CONTINUUM
       int mContinuumGroup;
+      std::vector<SphericContinuumParticle*> mContinuumIniNeighbourElements;
+      std::vector<Particle_Contact_Element*> mBondElements;
+      std::vector<int> mIniNeighbourIds;
             
       ///@}
       
@@ -159,31 +110,23 @@ namespace Kratos
 
        SphericContinuumParticle();
         
-        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
-        
+        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
         virtual void ContactAreaWeighting2D();
         void ContactAreaWeighting3D( ProcessInfo& rCurrentProcessInfo );
-        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
-        
-        virtual void CustomInitialize();
-	
-        virtual double GetInitialDelta(int index);
-      
+        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );        
+        virtual void CustomInitialize();	
+        virtual double GetInitialDelta(int index);      
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
-        void ComputeBallToBallContactForce(   //array_1d<double, 3>& rContactForce, 
-                                                    //array_1d<double, 3>& rContactMoment, 
-                                                    array_1d<double, 3>& rElasticForce, 
-                                                    array_1d<double, 3>& InitialRotaMoment, 
-                                                    ProcessInfo& rCurrentProcessInfo, 
-                                                    double dt,
-                                                    const bool multi_stage_RHS);         
-        
+        void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce, 
+                                           array_1d<double, 3>& InitialRotaMoment, 
+                                           ProcessInfo& rCurrentProcessInfo, 
+                                           double dt,
+                                           const bool multi_stage_RHS);         
+
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);
-        
+        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);        
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );                
-        
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring();
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
@@ -239,7 +182,7 @@ namespace Kratos
         //sphere neighbour information
         
         Vector mcont_ini_neigh_area;
-        std::vector<int> mIniNeighbourIds;
+        
         Vector mIniNeighbourDelta;
 
         vector<int> mIniNeighbourFailureId;
@@ -273,8 +216,7 @@ namespace Kratos
         std::vector<int> mFemTempNeighboursIds;
         
         
-        //std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
-        //std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
 
         
         //Non-linear
@@ -290,113 +232,31 @@ namespace Kratos
         
         void ComputeParticleBlockContactForce_With_Rotation();
         void ComputeParticleBlockContactForce_Without_Rotation();
-        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);
-
-        
-        //double mDampType;
-        //double mTimeStep;
+        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);       
 
         double distances_squared;
-
-
-        //std::vector<double> mForce;
-
-
-        ///@name Protected static Member Variables
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
       
-            
-      ///@}
-      
+        
     private:
 
-
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-     
-
-       
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{
-
-
-      ///@}
-      ///@name Serialization
-      ///@{
 
       friend class Serializer;
 
       virtual void save(Serializer& rSerializer) const
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
-          rSerializer.save("mContinuumGroup",mContinuumGroup);
-          //rSerializer.save("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
-          //rSerializer.save("mBondElements",mBondElements);                              
+          //rSerializer.save("mContinuumGroup",mContinuumGroup);
+          //rSerializer.save("mIniNeighbourIds",mIniNeighbourIds);
+          //rSerializer.save("mSymmStressTensor",mSymmStressTensor);
       }
 
       virtual void load(Serializer& rSerializer)
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
-          rSerializer.load("mContinuumGroup",mContinuumGroup);
-          //rSerializer.load("mContinuumIniNeighbourElements",mContinuumIniNeighbourElements);
-          //rSerializer.load("mBondElements",mBondElements);
+          //rSerializer.load("mContinuumGroup",mContinuumGroup);
+          //rSerializer.load("mIniNeighbourIds",mIniNeighbourIds);
+          //rSerializer.load("mSymmStressTensor",mSymmStressTensor);
+          mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
       }
       
       

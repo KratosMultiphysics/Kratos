@@ -336,15 +336,15 @@ public:
             if (r_balls_model_part.NumberOfElements(0)){ // loop over spheric elements (balls)
                 Configure::ElementsContainerType Elements = r_balls_model_part.GetCommunicator().LocalMesh().Elements();
 
-                ref_radius               = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                array_1d<double, 3> coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
+                ref_radius               = (*(Elements.begin().base()))->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+                array_1d<double, 3> coor = (*(Elements.begin().base()))->GetGeometry()[0].Coordinates();
 
                 mStrictLowPoint          = coor;
                 mStrictHighPoint         = coor;
 
                 for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
-                    coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
-                    double radius = particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                    coor = (*(particle_pointer_it.base()))->GetGeometry()[0].Coordinates();
+                    double radius = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                     ref_radius = (ref_radius < radius) ? radius : ref_radius;
 
                     for (std::size_t i = 0; i < 3; i++){
@@ -452,7 +452,7 @@ public:
         //Add the ones not marked with TO_ERASE
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){	  
             
-            if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
+            if( !(*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE) && !(*particle_pointer_it)->Is(TO_ERASE)) {
                 (rElements).push_back(*particle_pointer_it); //adding the elements
 
                 for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
@@ -493,6 +493,37 @@ public:
         KRATOS_CATCH("")
     }
 
+        
+    void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part){
+        KRATOS_TRY
+        
+        typedef ModelPart::ElementsContainerType                          ElementsArrayType;
+        typedef ElementsArrayType::iterator                               ElementsIterator;
+        
+        ElementsArrayType& rElements        = r_model_part.GetCommunicator().LocalMesh().Elements();                       
+       
+        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin(); particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it) {	
+            
+            if( !(*particle_pointer_it)->Is(TO_ERASE) ) continue;
+            
+            Element* p_element = particle_pointer_it->get();
+            SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>( p_element );
+                        
+            for(unsigned int i=0; i<p_continuum_spheric_particle->mContinuumIniNeighbourElements.size(); i++) {
+                SphericContinuumParticle* neighbour_i = p_continuum_spheric_particle->mContinuumIniNeighbourElements[i];
+                if(neighbour_i == NULL) continue;
+                for(unsigned int j=0; j<neighbour_i->mContinuumIniNeighbourElements.size(); j++) {
+                    if(neighbour_i->mContinuumIniNeighbourElements[j] == p_continuum_spheric_particle) {
+                        neighbour_i->mContinuumIniNeighbourElements[j] = NULL;
+                        break;
+                    }
+                }
+            }
+
+        }                    
+        
+        KRATOS_CATCH("")
+    }
 
     void MarkDistantParticlesForErasing(ModelPart& r_model_part)
     {
@@ -511,13 +542,13 @@ public:
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
 
-          const double& i_value     = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
+          const double& i_value     = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
           bool include=true;             // = (erase_flag < 0.5);
 
           include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
 
           if(include) 
-              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);
+              (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
 
       }
 
@@ -535,14 +566,14 @@ public:
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
 
-          array_1d<double, 3 >& i_var = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
+          array_1d<double, 3 >& i_var = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
           double i_value              = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
           bool include=true;              //  = (erase_flag < 0.5);
 
           include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
 
           if(include) 
-              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);
+              (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE);
 
       }
 
@@ -563,7 +594,7 @@ public:
           
           if( (*particle_pointer_it)->Is(DEMFlags::BELONGS_TO_A_CLUSTER) ) continue;
 
-          array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()(0)->Coordinates();
+          array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()[0].Coordinates();
           bool include=true;            
           
           for (unsigned int i = 0; i < 3; i++){
@@ -571,7 +602,7 @@ public:
           }
           
           if(!include) {
-              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE); 
+              (*particle_pointer_it)->GetGeometry()[0].Set(TO_ERASE); 
               (*particle_pointer_it)->Set(TO_ERASE); 
           }
 
@@ -609,16 +640,17 @@ public:
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
           
-          if( (*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) )   {
+          if( (*particle_pointer_it)->GetGeometry()[0].Is(TO_ERASE) )   {
 
               Element* p_element = particle_pointer_it->get();
               SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>( p_element );    
               std::vector<Particle_Contact_Element*>& node_to_neigh_element_pointer = p_continuum_spheric_particle->mBondElements;
               unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
-              for(unsigned int i = 0; i < number_of_contact_elements; i++)
-              {
+              for(unsigned int i = 0; i < number_of_contact_elements; i++) {
                   Particle_Contact_Element* p_to_contact_element = node_to_neigh_element_pointer[i];
-                  p_to_contact_element->Set(TO_ERASE);
+                  if(p_to_contact_element != NULL){ //NULL happens when the initial neighbour was a ghost and had a lower Id than others.
+                      p_to_contact_element->Set(TO_ERASE);
+                  }
               }
                             
           }       
@@ -631,6 +663,13 @@ public:
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part)
     {
        MarkDistantParticlesForErasing(r_model_part);
+       DestroyParticles( r_model_part);
+    }
+    
+    void DestroyContinuumParticlesOutsideBoundingBox(ModelPart& r_model_part)
+    {
+       MarkDistantParticlesForErasing(r_model_part);
+       MarkInitialNeighboursThatAreBeingRemoved(r_model_part);
        DestroyParticles( r_model_part);
     }
     
@@ -948,39 +987,38 @@ public:
             ElementIterator it_end   = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + ElementPartition[k + 1];
 
             for (ElementsArrayType::iterator elem_it = it_begin; elem_it != it_end; ++elem_it){
-         //   for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
                             
                 if(elem_it->IsNot(NEW_ENTITY)) continue;
 
                 Kratos::SphericParticle& spheric_particle = dynamic_cast<Kratos::SphericParticle&>(*elem_it);
 
-                Node < 3 > ::Pointer& node_it = elem_it->GetGeometry()(0);                  
+                Node<3>& node_it = elem_it->GetGeometry()[0];                  
 
                 bool still_touching=false;
 
                 for (unsigned int i = 0; i < spheric_particle.mNeighbourElements.size(); i++) {
                     SphericParticle* neighbour_iterator = spheric_particle.mNeighbourElements[i];
-                    Node < 3 > ::Pointer& neighbour_node = neighbour_iterator->GetGeometry()(0); 
-                    if( (node_it->IsNot(BLOCKED) && neighbour_node->Is(BLOCKED)) || (neighbour_node->IsNot(BLOCKED) && node_it->Is(BLOCKED)) ) {
+                    Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0]; 
+                    if( (node_it.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED)) || (neighbour_node.IsNot(BLOCKED) && node_it.Is(BLOCKED)) ) {
                         still_touching=true;
                         break;
                     }              
                 }
 
                 if(!still_touching){ 
-                  if(node_it->IsNot(BLOCKED)){//The ball must be freed
-                    node_it->Set(DEMFlags::FIXED_VEL_X,false);
-                    node_it->Set(DEMFlags::FIXED_VEL_Y,false);
-                    node_it->Set(DEMFlags::FIXED_VEL_Z,false);
-                    node_it->Set(DEMFlags::FIXED_ANG_VEL_X,false);
-                    node_it->Set(DEMFlags::FIXED_ANG_VEL_Y,false);
-                    node_it->Set(DEMFlags::FIXED_ANG_VEL_Z,false);
+                  if(node_it.IsNot(BLOCKED)){//The ball must be freed
+                    node_it.Set(DEMFlags::FIXED_VEL_X,false);
+                    node_it.Set(DEMFlags::FIXED_VEL_Y,false);
+                    node_it.Set(DEMFlags::FIXED_VEL_Z,false);
+                    node_it.Set(DEMFlags::FIXED_ANG_VEL_X,false);
+                    node_it.Set(DEMFlags::FIXED_ANG_VEL_Y,false);
+                    node_it.Set(DEMFlags::FIXED_ANG_VEL_Z,false);
                     elem_it->Set(NEW_ENTITY,0);
-                    node_it->Set(NEW_ENTITY,0);
+                    node_it.Set(NEW_ENTITY,0);
                   }
                   else{
                   //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.             
-                    node_it->Set(ACTIVE,false);
+                    node_it.Set(ACTIVE,false);
                     elem_it->Set(ACTIVE,false);
                   }
                 }

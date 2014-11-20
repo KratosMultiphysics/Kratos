@@ -43,7 +43,7 @@ namespace Kratos {
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-#pragma omp parallel for shared(delta_t) 
+        #pragma omp parallel for shared(delta_t)
         for (int k = 0; k < (int) number_of_threads; k++) {
             NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
             NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];

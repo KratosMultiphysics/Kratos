@@ -401,11 +401,8 @@ namespace Kratos
           SetSearchRadius(r_model_part, 1.0);          
           SearchNeighbours();
           
-          if(mDeltaOption == 2)
-          {
-            
-            SetCoordinationNumber(r_model_part);
-            
+          if(mDeltaOption == 2) {            
+            SetCoordinationNumber(r_model_part);            
           }
           
           ComputeNewNeighboursHistoricalData();  
@@ -418,7 +415,6 @@ namespace Kratos
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
           }
-
           
            // 5. Finalize Solution Step.
           //FinalizeSolutionStep();
@@ -732,40 +728,28 @@ namespace Kratos
       double out_coordination_number = ComputeCoordinationNumber();
       int iteration = 0;
       int maxiteration = 100;
+      
+      std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
  
-      if(in_coordination_number <= 0.0)
-      {
+      if(in_coordination_number <= 0.0) {
         KRATOS_ERROR(std::runtime_error,"The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
       }
-      else
-      {
-          while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 )
-          {              
-            if(iteration>=maxiteration)   break;
-              
-            iteration++;
+      
+      while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 ) {              
+          if(iteration>=maxiteration)   break;
+          iteration++;
+          mSearchTolerance *= in_coordination_number/out_coordination_number;
+          SetSearchRadius(r_model_part, 1.0);
+          SearchNeighbours();
+          out_coordination_number = ComputeCoordinationNumber();
+      }//while
 
-            mSearchTolerance *= in_coordination_number/out_coordination_number;
-            
-            SetSearchRadius(r_model_part, 1.0);
-            
-            SearchNeighbours();
-             
-            out_coordination_number = ComputeCoordinationNumber();
-   
-          }//while
-
-          if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << mSearchTolerance <<". "<<"\n"<<std::endl;
-          else
-            {   
-              std::cout<<"Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
-              
-              KRATOS_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
-              
-              //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
-            }
-            
-      }
+      if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << mSearchTolerance <<". "<<"\n"<<std::endl;
+      else {   
+          std::cout<<"Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
+          KRATOS_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
+          //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
+      }                  
       
     } //SetCoordinationNumber
     
@@ -846,41 +830,13 @@ namespace Kratos
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it){
                 (it)->Initialize();
-                CalculateNormals(it);
             }
         }
 
         KRATOS_CATCH("")
     }
     
-    //DEMFEM
-    
-    void CalculateNormals(ConditionsArrayType::iterator it) {
 
-        KRATOS_TRY
-        
-        array_1d<double, 3>& NormalToCondition = it->GetValue(NORMAL);
-         
-        //Calculate the normal vector to an element
-        
-        array_1d<double, 3> v1, v2;
-        
-        v1[0] = it->GetGeometry()[1].X() - it->GetGeometry()[0].X();
-        v1[1] = it->GetGeometry()[1].Y() - it->GetGeometry()[0].Y();
-        v1[2] = it->GetGeometry()[1].Z() - it->GetGeometry()[0].Z();
-
-        v2[0] = it->GetGeometry()[2].X() - it->GetGeometry()[0].X();
-        v2[1] = it->GetGeometry()[2].Y() - it->GetGeometry()[0].Y();
-        v2[2] = it->GetGeometry()[2].Z() - it->GetGeometry()[0].Z();
-
-        MathUtils<double>::CrossProduct(NormalToCondition, v1, v2);
-        
-        NormalToCondition /= MathUtils<double>::Norm3(NormalToCondition);
-    
-        KRATOS_CATCH("")
-    }
-    
-    
     void Calculate_Conditions_RHS_and_Add() {
       
         KRATOS_TRY
@@ -906,7 +862,9 @@ namespace Kratos
                 Condition::GeometryType& geom = it->GetGeometry();            
                 double Element_Area = geom.Area();                     
                 it->CalculateRightHandSide(rhs_cond, CurrentProcessInfo);           
-                array_1d<double, 3> Normal_to_Element = it->GetValue(NORMAL);                                                                       
+                DEMWall* p_wall = dynamic_cast<DEMWall*>(&(*it));
+                array_1d<double, 3> Normal_to_Element;
+                p_wall->CalculateNormal(Normal_to_Element);                                                                                       
                 const unsigned int& dim = geom.WorkingSpaceDimension();
                 
                 for (unsigned int i = 0; i <geom.size(); i++) { //talking about each of the three nodes of the condition  
@@ -914,10 +872,10 @@ namespace Kratos
                     index = i * dim;    //*2;                 
                     geom(i)->SetLock();                    
                     
-                    array_1d<double, 3>& node_rhs = geom(i)->GetSolutionStepValue(ELASTIC_FORCES); 
-                    array_1d<double, 3>& node_rhs_tang = geom(i)->GetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-                    double& node_pressure = geom(i)->GetSolutionStepValue(PRESSURE);                  
-                    double& node_area = geom(i)->GetSolutionStepValue(NODAL_AREA);
+                    array_1d<double, 3>& node_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES); 
+                    array_1d<double, 3>& node_rhs_tang = geom(i)->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+                    double& node_pressure = geom(i)->FastGetSolutionStepValue(PRESSURE);                  
+                    double& node_area = geom(i)->FastGetSolutionStepValue(NODAL_AREA);
                     array_1d<double, 3> rhs_cond_comp;
                     
                     for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
@@ -1100,7 +1058,7 @@ namespace Kratos
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
 
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS));
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS));
 
         }
 
@@ -1120,7 +1078,7 @@ namespace Kratos
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
 
-            this->GetOriginalRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+            this->GetOriginalRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
 
         }
 
@@ -1153,7 +1111,7 @@ namespace Kratos
             }
             this->GetResults()[i].clear();
             this->GetResultsDistances()[i].clear();        
-        }
+        }                
                 
         KRATOS_CATCH("")
     }           
@@ -1243,7 +1201,7 @@ namespace Kratos
                     for(unsigned int j=0; j<mListOfSphericParticles[i]->mNeighbourRigidFaces.size(); j++) 
                     {
                         DEMWall* p_wall = mListOfSphericParticles[i]->mNeighbourRigidFaces[j];
-                        #pragma omp critical //TODO: What about doing this with locks?
+                        #pragma omp critical
                         {
                             p_wall->mNeighbourSphericParticles.push_back(mListOfSphericParticles[i]);                                                                                      
                         }
@@ -1276,7 +1234,7 @@ namespace Kratos
         
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
         for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
-            mListOfSphericParticles[i]->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
+            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
             mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - indentations_list[i]); 
         }
         

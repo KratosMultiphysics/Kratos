@@ -161,9 +161,9 @@ public:
       double Weight[4]              = {0.0, 0.0, 0.0, 0.0};
       double DistPToB               = 0.0;
       double Particle_Coord[3] = {0.0};
-      Particle_Coord[0] = rObj_1->GetGeometry()(0)->Coordinates()[0];
-      Particle_Coord[1] = rObj_1->GetGeometry()(0)->Coordinates()[1];
-      Particle_Coord[2] = rObj_1->GetGeometry()(0)->Coordinates()[2];
+      Particle_Coord[0] = rObj_1->GetGeometry()[0].Coordinates()[0];
+      Particle_Coord[1] = rObj_1->GetGeometry()[0].Coordinates()[1];
+      Particle_Coord[2] = rObj_1->GetGeometry()[0].Coordinates()[2];
 
 	    double rad = Radius;
 
@@ -171,7 +171,7 @@ public:
       int i_size = rObj_2->GetGeometry().size();
       double d_size = (double) i_size;
       double inv_d_size = 1.0 / d_size;
-      array_1d<double, 3>& coordinates_obj2_0 = rObj_2->GetGeometry()(0)->Coordinates();
+      array_1d<double, 3>& coordinates_obj2_0 = rObj_2->GetGeometry()[0].Coordinates();
       array_1d<double, 3>& coordinates_obj2_1 = rObj_2->GetGeometry()(1)->Coordinates();
       
       for(int inode = 0; inode < i_size; inode++)

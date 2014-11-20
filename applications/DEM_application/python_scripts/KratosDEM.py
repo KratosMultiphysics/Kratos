@@ -257,7 +257,7 @@ post_utils = DEM_procedures.PostUtils(DEM_parameters, balls_model_part)
 a = 50
 step = 0  
 while ( time < DEM_parameters.FinalTime):
-
+    #print("TIME STEP BEGINS. STEP:"+str(step)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     dt   = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
 
@@ -337,12 +337,11 @@ while ( time < DEM_parameters.FinalTime):
 
         os.chdir(post_path)
 
-        demio.PrintResults(mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time)
-        
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
-            demio.PrintingContactElementsVariables(contact_model_part, time)
-
+        
+        demio.PrintResults(mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time)
+                
         os.chdir(main_path)
 
         time_old_print = time
@@ -353,7 +352,7 @@ while ( time < DEM_parameters.FinalTime):
       #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
           #MaterialTest.OrientationStudy(contact_model_part, step)
     
-
+    #print("TIME STEP ENDS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 ##############################################################################
 #                                                                            #
 #    FINALIZATION                                                            #

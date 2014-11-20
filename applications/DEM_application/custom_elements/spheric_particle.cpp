@@ -81,7 +81,7 @@ void SphericParticle::Initialize()
     double mass               = 4 *  KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
     sqrt_of_mass              = sqrt(mass);
     mSqrtOfRealMass           = sqrt_of_mass;
-    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
+    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();    
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION) ){
@@ -136,7 +136,7 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
     ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt, multi_stage_RHS);
 
     if (mFemOldNeighbourIds.size() > 0){
-        ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info);
+        ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt);
     }
     
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
@@ -184,7 +184,7 @@ void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process
     std::fill(neighbour_rigid_faces_total_contact_force.begin(), neighbour_rigid_faces_total_contact_force.end(), 0.0);
 
     if (mFemOldNeighbourIds.size() > 0){
-        ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info);
+        ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt);
     }
 
     KRATOS_CATCH( "" )
@@ -520,6 +520,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
     const array_1d<double,3> old_coord_neigh       = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
 
     array_1d<double,3> old_other_to_me_vect = old_coord_target - old_coord_neigh;
+
     const double old_distance = DEM_MODULUS_3(old_other_to_me_vect);
 
     GeometryFunctions::ComputeContactLocalCoordSystem(old_other_to_me_vect, old_distance, OldLocalCoordSystem); //Old Local Coord System
@@ -780,14 +781,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                        array_1d<double, 3>& rInitialRotaMoment,
-                                                       ProcessInfo& r_current_process_info)
+                                                       ProcessInfo& r_current_process_info,
+                                                       double mTimeStep)
 {
 
     KRATOS_TRY
 
     std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
-
-    double mTimeStep         = r_current_process_info[DELTA_TIME]; //TODO: to be removed and sent as an argument
     double myYoung           = GetYoung();
     double myPoisson         = GetPoisson();
     double area              = KRATOS_M_PI * mRadius * mRadius;
@@ -963,11 +963,30 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         if (this->Is(DEMFlags::HAS_ROTATION)){
             ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbour!!
         }
+        
+        
     }
 
     KRATOS_CATCH("")
 
 }// ComputeBallToRigidFaceContactForce
+
+
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+
+void SphericParticle::CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_current_process_info)
+{
+
+    mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+    mDiscontinuumConstitutiveLaw->Initialize(r_current_process_info);
+
+}
+
+
+
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

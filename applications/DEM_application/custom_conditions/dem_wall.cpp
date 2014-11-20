@@ -129,6 +129,25 @@ void DEMWall::CalculateRightHandSide(
     
  }
 
+void DEMWall::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
+}
+
+void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
+    
+    array_1d<double, 3> v1, v2;
+        
+    v1[0] = GetGeometry()[1].X() - GetGeometry()[0].X();
+    v1[1] = GetGeometry()[1].Y() - GetGeometry()[0].Y();
+    v1[2] = GetGeometry()[1].Z() - GetGeometry()[0].Z();
+
+    v2[0] = GetGeometry()[2].X() - GetGeometry()[0].X();
+    v2[1] = GetGeometry()[2].Y() - GetGeometry()[0].Y();
+    v2[2] = GetGeometry()[2].Z() - GetGeometry()[0].Z();
+
+    MathUtils<double>::CrossProduct(rnormal, v1, v2);
+
+    rnormal /= MathUtils<double>::Norm3(rnormal);
+}
   
  void DEMWall::AddExplicitContribution(const VectorType& rRHS,
                          const Variable<VectorType>& rRHSVariable,

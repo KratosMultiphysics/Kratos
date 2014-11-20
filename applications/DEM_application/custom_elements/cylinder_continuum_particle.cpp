@@ -53,16 +53,16 @@ namespace Kratos
           KRATOS_TRY
 
           mDimension                = 2;
-          mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+          mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
           double density            = GetDensity();
-          double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+          double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
           double mass               = KRATOS_M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
           mSqrtOfRealMass           = sqrt_of_mass;
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
             double moment_of_inertia = 0.5 * mass * mRadius * mRadius;   
-            GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }                                                                        
 
           CustomInitialize();
@@ -95,7 +95,7 @@ namespace Kratos
         for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
             ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
         {   
-            double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
             double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
             //double equiv_area       = (0.25)*KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
             total_equiv_perimeter  += equiv_radius;
@@ -152,15 +152,15 @@ namespace Kratos
       } //Contact Area Weighting
       
       
-      void CylinderContinuumParticle::StressTensorOperations(double mStressTensor[3][3],    
-                                                            double GlobalElasticContactForce[3],
-                                                            array_1d<double,3> &other_to_me_vect,
-                                                            const double &distance,
-                                                            const double &radius_sum,
-                                                            const double &calculation_area,
-                                                            ParticleWeakIteratorType neighbour_iterator, 
-                                                            ProcessInfo& rCurrentProcessInfo, 
-                                                            double &rRepresentative_Volume)
+      void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double mStressTensor[3][3],    
+                                                                            double GlobalElasticContactForce[3],
+                                                                            array_1d<double,3> &other_to_me_vect,
+                                                                            const double &distance,
+                                                                            const double &radius_sum,
+                                                                            const double &calculation_area,
+                                                                            ParticleWeakIteratorType neighbour_iterator, 
+                                                                            ProcessInfo& rCurrentProcessInfo, 
+                                                                            double &rRepresentative_Volume)
       {
 
         double gap                  = distance - radius_sum;
@@ -191,7 +191,7 @@ namespace Kratos
         }
 
           
-      } //StressTensorOperations
+      } //AddNeighbourContributionToStressTensor
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************

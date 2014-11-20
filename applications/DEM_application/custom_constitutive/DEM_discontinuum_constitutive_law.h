@@ -5,6 +5,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
+#include "../custom_utilities/properties_proxies.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "containers/flags.h"
@@ -26,19 +27,42 @@ namespace Kratos
       
       DEMDiscontinuumConstitutiveLaw( const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
       
-      int Initialize();
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
       
-      void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+    virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
       
       virtual ~DEMDiscontinuumConstitutiveLaw();
       
-      DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
+    virtual DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
 
+    virtual void CalculateContactForces(double LocalElasticContactForce[3],
+                                        double indentation,
+                                        double kn_el,
+                                        double LocalDeltDisp[3],
+                                        double kt_el,
+                                        int& neighbour_failure_id,
+                                        double equiv_tg_of_fri_ang);
 
-      virtual void CalculateContactForces(double LocalElasticContactForce[3],double indentation); //, SphericParticle *neighbour_iterator
+    virtual void PlasticityAndDamage(double LocalElasticContactForce[3],
+                                     double kn_el,
+                                     double equiv_young,
+                                     double indentation,
+                                     double calculation_area,
+                                     double radius_sum_i,
+                                     double& failure_criterion_state,
+                                     double& acumulated_damage,
+                                     int i_neighbour_count,
+                                     int mapping_new_cont,
+                                     int mapping_new_ini,
+                                     int time_steps);
 
-      virtual void PlasticityAndDamage(double LocalElasticContactForce[3], double kn_el, double equiv_young, double indentation, double      calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);
-
+    virtual void CalculateViscoDamping(double LocalRelVel[3],
+                                       double ViscoDampingLocalContactForce[3],
+                                       double indentation,
+                                       double equiv_visco_damp_coeff_normal,
+                                       double equiv_visco_damp_coeff_tangential,
+                                       bool sliding,
+                                       int mDampType);
     
    
   private:
@@ -57,9 +81,9 @@ namespace Kratos
           KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Flags )
           //rSerializer.load("MyMemberName",myMember);
 
-      }  
+    }
 
-  };  
+};
 
 
 KRATOS_DEFINE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)

@@ -114,8 +114,9 @@ public:
     virtual void Initialize();
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );		
     virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-    
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);  
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);          
+    virtual void CalculateNormal(array_1d<double, 3>& rnormal);   
     virtual void AddExplicitContribution(const VectorType& rRHS,
                                  const Variable<VectorType>& rRHSVariable,
                                  Variable<array_1d<double,3> >& rDestinationVariable,
@@ -123,6 +124,7 @@ public:
 
     double mTgOfFrictionAngle;
     std::vector<SphericParticle*> mNeighbourSphericParticles;
+    
     
     /**
      * This function provides the place to perform checks on the completeness of the input.
