@@ -308,12 +308,12 @@ class Benchmark:
     @staticmethod
     def PrintResults(title, tests, debug_mode = True):
         lines = []
-        
+
         if debug_mode:
             lines += [["Test id", "Description", "Target", "Calculated", "Error", "Veredict"]]
         
         else:
-             lines += [["Test id", "Description", "Veredict"]]
+            lines += [["Test id", "Description", "Veredict"]]
         # gathering spacing and numbering results
         
         i_test = 0
@@ -324,7 +324,8 @@ class Benchmark:
                 
                 if not debug_mode:                    
                     lines += [[str(i_test)] + [test.string_results[0], test.string_results[4]]]  
-                else :
+                    
+                else:
                     lines += [[str(i_test)] + test.string_results]            
                 i_test += 1
 
@@ -342,13 +343,9 @@ class Benchmark:
         for i in range(1, i_test + 1):
             string_to_print += lines[i] + "\n"
         
-        string_to_print += "=" * total_width + "\n"
-         
-        if debug_mode:
-            print(string_to_print)
-        
-        else:
-            Benchmark.text_to_print += string_to_print + "\n"
+        string_to_print += "=" * total_width
+
+        Benchmark.text_to_print += string_to_print + "\n"
      
     @staticmethod  
     def ErrorMetric(v1, v2):
@@ -1293,5 +1290,3 @@ def Run(debug_mode = False):
     TorqueBenchmark.PrintResults(debug_mode)
     
     return Benchmark.text_to_print
-
-Run(True)
