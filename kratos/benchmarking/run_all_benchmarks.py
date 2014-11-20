@@ -68,6 +68,10 @@ os.chdir(ApplicationsRoot + "trilinos_application/test_examples")
 import trilinos_benchmarks
 Text += trilinos_benchmarks.Run()
 
+# SwimmingDem application
+os.chdir(ApplicationsRoot + "swimming_DEM_application/test_examples/hydrodynamic_forces")
+import hydrodynamic_forces
+Text += hydrodynamic_forces.Run()
 # Add other directories here
 
 # print Text
