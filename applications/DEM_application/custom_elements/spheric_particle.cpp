@@ -78,7 +78,7 @@ void SphericParticle::Initialize()
     mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
     double density            = GetDensity();
     double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-    double mass               = 1.33333333333333333 * KRATOS_M_PI * density * mRadius * mRadius * mRadius;
+    double mass               = 4 *  KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
     sqrt_of_mass              = sqrt(mass);
     mSqrtOfRealMass           = sqrt_of_mass;
     GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
