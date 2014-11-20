@@ -393,7 +393,7 @@ class BuoyancyBenchmark(Benchmark):
     
     def __init__(self, pp, buoyancy_force_type, drag_force_type, pressure_gradient, description):
         self.pp = copy.deepcopy(pp) 
-        self.buoyancy_tol = 10e-6
+        self.buoyancy_tol = 10e-12
 
         self.pp.virtual_mass_force_type = 0
         self.pp.lift_force_type = 0
@@ -455,7 +455,7 @@ class DragBenchmark(Benchmark):
         self.pp.sphericity = sphericity
         self.description = description
 
-        self.drag_tol = 10e-6
+        self.drag_tol = 10e-12
         self.pp.buoyancy_force_type = 0
         self.pp.virtual_mass_force_type = 0
         self.pp.lift_force_type = 0  
@@ -530,7 +530,7 @@ class VirtualMassBenchmark(Benchmark):
     
     def __init__(self, pp, virtual_mass_force_type, acceleration_number, fluid_fraction, description):
         self.pp = copy.deepcopy(pp) 
-        self.virtual_mass_tol = 10e-6
+        self.virtual_mass_tol = 10e-12 / self.pp.delta_time
         
         self.pp.buoyancy_force_type = 0
         self.pp.lift_force_type = 0
@@ -577,7 +577,7 @@ class VirtualMassBenchmark(Benchmark):
             
             slip_vel = fluid_velocity - velocity
             slip_accel = fluid_acceleration - acceleration
-            self.pp.radius = Dot(slip_vel, slip_vel) / abs(4 * Dot(slip_vel, slip_accel) * acceleration_number)
+            self.pp.radius = Norm(slip_vel) ** 3 / abs(2 * acceleration_number * Dot(slip_vel, slip_accel))
 
     def Test(self, model_part, benchmark_utils, target_virtual_mass):
         self.target_virtual_mass = target_virtual_mass
@@ -620,7 +620,7 @@ class SaffmanBenchmark(Benchmark):
     
     def __init__(self, pp, saffman_force_type, reynolds, reynolds_shear, description):
         self.pp = copy.deepcopy(pp) 
-        self.saffman_tol = 10e-6
+        self.saffman_tol = 10e-12
         
         self.pp.buoyancy_force_type = 0
         self.pp.lift_force_type = saffman_force_type
@@ -707,7 +707,7 @@ class MagnusBenchmark(Benchmark):
     
     def __init__(self, pp, magnus_force_type, reynolds, reynolds_rot, description):
         self.pp = copy.deepcopy(pp) 
-        self.magnus_tol = 10e-6
+        self.magnus_tol = 10e-12
         
         self.pp.buoyancy_force_type = 0
         self.pp.lift_force_type = 0
@@ -800,7 +800,7 @@ class TorqueBenchmark(Benchmark):
     
     def __init__(self, pp, hydro_torque_type, reynolds_rot, description):
         self.pp = copy.deepcopy(pp) 
-        self.torque_tol = 10e-6
+        self.torque_tol = 10e-12
         
         self.pp.buoyancy_force_type = 0
         self.pp.drag_force_type = 0
@@ -915,7 +915,7 @@ volume = 4/3 * math.pi * buoyancy_test_2.pp.radius ** 3
 buoyancy_target_2 = Array3()
 buoyancy_target_2[0] = 0.0
 buoyancy_target_2[1] = 0.0
-buoyancy_target_2[2] = 9.81 * volume
+buoyancy_target_2[2] = - buoyancy_test_2.pp.gravity_z * volume
 
 buoyancy_test_2.Test(model_part, benchmark_utils, buoyancy_target_2)
 #***************************************************************************************************************************

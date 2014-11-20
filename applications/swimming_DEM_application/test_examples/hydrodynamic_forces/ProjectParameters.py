@@ -3,7 +3,7 @@ import math
 class Parameters:
     def __init__(self):
         
-        self.delta_time = 0.000001
+        self.delta_time = 0.00000001
         
         self.radius = 1.2
         self.sphericity = 1.0
