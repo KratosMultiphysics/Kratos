@@ -903,18 +903,19 @@ buoyancy_test_0.Test(model_part, benchmark_utils, buoyancy_target_0)
 buoyancy_test_1 = BuoyancyBenchmark(pp, 1, 1, pressure_gradient, "Standard")
 
 buoyancy_target_1 = Array3()
-buoyancy_target_1[0] = - 4/3 * math.pi * pressure_gradient[0]
-buoyancy_target_1[1] = - 4/3 * math.pi * pressure_gradient[1]
-buoyancy_target_1[2] = - 4/3 * math.pi * pressure_gradient[2]
+volume = 4.0/3.0 * math.pi * buoyancy_test_1.pp.radius ** 3
+buoyancy_target_1[0] = - volume * pressure_gradient[0]
+buoyancy_target_1[1] = - volume * pressure_gradient[1]
+buoyancy_target_1[2] = - volume * pressure_gradient[2]
 
 buoyancy_test_1.Test(model_part, benchmark_utils, buoyancy_target_1)
 #***************************************************************************************************************************
 buoyancy_test_2 = BuoyancyBenchmark(pp, 1, 2, pressure_gradient, "Weatherford: hydrostatic buoyancy")
-
+volume = 4/3 * math.pi * buoyancy_test_2.pp.radius ** 3
 buoyancy_target_2 = Array3()
 buoyancy_target_2[0] = 0.0
 buoyancy_target_2[1] = 0.0
-buoyancy_target_2[2] = 9.81 * 4/3 * math.pi
+buoyancy_target_2[2] = 9.81 * volume
 
 buoyancy_test_2.Test(model_part, benchmark_utils, buoyancy_target_2)
 #***************************************************************************************************************************
