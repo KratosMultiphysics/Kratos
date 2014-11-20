@@ -293,7 +293,7 @@ class Benchmark:
         pass
     
     tests = []
-    text_to_print = ""
+    text_to_print ="========== Swimming DEM Aplication ==========\n" + "\nRunning Verification Tests...\n"
     
     @staticmethod
     def ConvertToStrings(results):
