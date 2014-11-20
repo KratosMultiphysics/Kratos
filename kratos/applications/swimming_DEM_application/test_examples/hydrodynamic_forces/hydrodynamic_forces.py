@@ -288,6 +288,15 @@ def RandomVector(modulus = 1.0):
     
     return v
 
+def CleanStaticVars():
+    del Benchmark.tests[:]
+    del BuoyancyBenchmark.tests[:]
+    del DragBenchmark.tests[:]
+    del VirtualMassBenchmark.tests[:]
+    del SaffmanBenchmark.tests[:]
+    del MagnusBenchmark.tests[:]
+    del TorqueBenchmark.tests[:]
+
 class Benchmark:
     def __init__(self):
         pass
@@ -795,6 +804,7 @@ class TorqueBenchmark(Benchmark):
 #***************************************************************************************************************************  
 
 def Run(debug_mode = False):
+    CleanStaticVars()
     pp = ProjectParameters.Parameters()
     model_part = ModelPart("OneBallModelPart")
     AddVariables(model_part)
