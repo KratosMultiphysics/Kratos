@@ -725,10 +725,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
    
    
-    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
-      {
-
-          //this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID) = double(this->GetValue(PARTICLE_FAILURE_ID)); //temporarily unused          
+    void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
+        
           if(rCurrentProcessInfo[PRINT_SKIN_SPHERE]==1) {            
             this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(*mSkinSphere);              
           }
