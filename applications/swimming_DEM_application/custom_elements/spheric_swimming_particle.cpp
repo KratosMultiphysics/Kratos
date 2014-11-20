@@ -154,7 +154,7 @@ void SphericSwimmingParticle::ComputeBuoyancy(array_1d<double, 3>& buoyancy, con
     }
 
     else {
-        const double volume = 1.333333333333333 * KRATOS_M_PI * SWIMMING_POW_2(mRadius);
+        const double volume = 4 * KRATOS_M_PI_3 * SWIMMING_POW_3(mRadius);
 
         if (mDragForceType == 2){ // Weatherford
             noalias(buoyancy) =  - gravity *  mFluidDensity * volume;
@@ -233,7 +233,7 @@ void SphericSwimmingParticle::ComputeVirtualMassForce(array_1d<double, 3>& virtu
     }
 
     else {
-        const double volume                     = 1.3333333333333333333333 *  KRATOS_M_PI * SWIMMING_POW_3(mRadius);
+        const double volume                     = 4 * KRATOS_M_PI_3 * SWIMMING_POW_3(mRadius);
         const double delta_t_inv                = 1 / r_current_process_info[DELTA_TIME];
         const array_1d<double, 3>& fluid_acc    = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
         const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY) - GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 1));
@@ -256,10 +256,10 @@ void SphericSwimmingParticle::ComputeVirtualMassForce(array_1d<double, 3>& virtu
     if (mVirtualMassForceType == 3 || mVirtualMassForceType == 4){ // Odar and Hamilton, 1964
         double acc_number;
         ComputeParticleAccelerationNumber(slip_acc, acc_number);
-        virtual_mass_coeff *= 2.1 - 0.132 / (acc_number * acc_number + 0.12);
+        virtual_mass_coeff *= 2.1 - 0.132 / (SWIMMING_POW_2(acc_number) + 0.12);
     }
 
-    noalias(virtual_mass_force) = virtual_mass_coeff *  mFluidDensity * volume * slip_acc;
+    noalias(virtual_mass_force) = virtual_mass_coeff * mFluidDensity * volume * slip_acc;
     }
 }
 
@@ -392,7 +392,7 @@ void SphericSwimmingParticle::ComputeHydrodynamicTorque(array_1d<double, 3>& hyd
 
 void SphericSwimmingParticle::ComputeParticleReynoldsNumber(double& reynolds)
 {
-    reynolds = 2 * mRadius * mNormOfSlipVel /  mKinematicViscosity;
+    reynolds = 2 * mRadius * mNormOfSlipVel / mKinematicViscosity;
 }
 
 //**************************************************************************************************************************************************
@@ -400,7 +400,7 @@ void SphericSwimmingParticle::ComputeParticleReynoldsNumber(double& reynolds)
 
 void SphericSwimmingParticle::ComputeParticleRotationReynoldsNumber(double norm_of_slip_rot, double& reynolds)
 {
-    reynolds = 4 * SWIMMING_POW_2(mRadius) * norm_of_slip_rot /  mKinematicViscosity;
+    reynolds = 4 * SWIMMING_POW_2(mRadius) * norm_of_slip_rot / mKinematicViscosity;
 }
 
 //**************************************************************************************************************************************************
@@ -408,9 +408,7 @@ void SphericSwimmingParticle::ComputeParticleRotationReynoldsNumber(double norm_
 
 void SphericSwimmingParticle::ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number)
 {
-    const double norm_of_slip_vel_2 = SWIMMING_POW_2(mNormOfSlipVel);
-    const double norm_of_derivative_of_slip_vel = 2 * SWIMMING_INNER_PRODUCT_3(mSlipVel, slip_acc);
-    acc_number = norm_of_slip_vel_2 / (2 * mRadius * norm_of_derivative_of_slip_vel);
+    acc_number = SWIMMING_POW_3(mNormOfSlipVel) / fabs(2 * mRadius * SWIMMING_INNER_PRODUCT_3(mSlipVel, slip_acc));
 }
 
 //**************************************************************************************************************************************************
