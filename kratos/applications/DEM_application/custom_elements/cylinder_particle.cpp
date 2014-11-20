@@ -52,16 +52,16 @@ namespace Kratos
           KRATOS_TRY
 
           mDimension                = 2;
-          mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          /*mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
-          mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-          mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-          mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-          double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);*/
+          mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+          /*mYoung                    = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);         
+          mPoisson                  = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+          mTgOfFrictionAngle        = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_FRICTION);
+          mLnOfRestitCoeff          = GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+          double& density           = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_DENSITY);*/
           double density            = GetDensity();
-          //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-          double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-          double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          //double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+          double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
+          double& moment_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
           double mass               = KRATOS_M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
@@ -72,7 +72,7 @@ namespace Kratos
           //if (mRotationOption){
           if (this->Is(DEMFlags::HAS_ROTATION) ){
             double moment_of_inertia = 0.5 * mass * mRadius * mRadius;   
-            GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+            GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }                                                                        
 
           CustomInitialize();
@@ -106,7 +106,7 @@ namespace Kratos
           //Cfeng,RigidFace
           if( mFemOldNeighbourIds.size() > 0)
           {
-            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo);
+            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt);
           }
               
           ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);

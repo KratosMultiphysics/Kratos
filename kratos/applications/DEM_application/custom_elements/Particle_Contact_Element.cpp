@@ -104,44 +104,44 @@ std::string Particle_Contact_Element::Info() const
 
 
 
-void Particle_Contact_Element::Initialize()
-{
+void Particle_Contact_Element::Initialize() {
     KRATOS_TRY
     
-    this->GetValue(LOW_POISSON_FORCE) = 0.0;  
-    this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
-    //this->GetValue(MEAN_CONTACT_AREA) = 0.0;   
-    mMeanContactArea = 0.0;
-    this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
-    mFailureCriterionState = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+    mMeanContactArea = 0.0;    
+    mFailureCriterionState = 0.0;    
     mLocalContactAreaLow  = 0.0;
     mLocalContactAreaHigh = 0.0;
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
-
+    mUnidimendionalDamage = 0.0;
+    this->GetValue(LOW_POISSON_FORCE) = 0.0;  
+    this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
+    this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+    this->GetValue(CONTACT_SIGMA)          = 0.0;
+    this->GetValue(CONTACT_TAU)            = 0.0;
+    this->GetValue(CONTACT_FAILURE)        = 0.0;
+    this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
+    this->GetValue(UNIDIMENSIONAL_DAMAGE)  = 0.0; 
    
     KRATOS_CATCH( "" )
 }
 
-void Particle_Contact_Element::PrepareForPrinting()
-{
+void Particle_Contact_Element::PrepareForPrinting() {
     KRATOS_TRY
             
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = mLocalContactForce[0];
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = mLocalContactForce[1];
     this->GetValue(LOCAL_CONTACT_FORCE)[2] = mLocalContactForce[2];
-    this->GetValue(CONTACT_SIGMA)          = mContactSigma;
+    this->GetValue(CONTACT_SIGMA)          = mContactSigma;    
     this->GetValue(CONTACT_TAU)            = mContactTau;
     this->GetValue(CONTACT_FAILURE)        = mContactFailure;
     this->GetValue(FAILURE_CRITERION_STATE)= mFailureCriterionState;
     this->GetValue(UNIDIMENSIONAL_DAMAGE)  = mUnidimendionalDamage; 
     
-    KRATOS_CATCH( "" )
-    
+    KRATOS_CATCH( "" )    
 }
 
 void Particle_Contact_Element::CalculateMeanContactArea(const bool has_mpi)
@@ -158,64 +158,21 @@ void Particle_Contact_Element::CalculateMeanContactArea(const bool has_mpi)
 
 void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    
-    
-    if(rVariable == LOCAL_CONTACT_FORCE)   //3D VARIABLE WITH COMPONENTS
-    {
-       
         
+    //if(rVariable == LOCAL_CONTACT_FORCE) {  //3D VARIABLE WITH COMPONENTS                   
         rOutput.resize(1);
-        const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); 
+        const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); //To ensure we don't set the value here
         rOutput[0][0] = const_this->GetValue(rVariable)[0];
         rOutput[0][1] = const_this->GetValue(rVariable)[1];
-        rOutput[0][2] = const_this->GetValue(rVariable)[2];
-        
-  
-        //mlocalcontactforcehigh[0] = const_this->GetValue(rVariable)[0];
-        //mlocalcontactforcehigh[1] = const_this->GetValue(rVariable)[1];
-        //mlocalcontactforcehigh[2] = const_this->GetValue(rVariable)[2];
-        
-    }
-    
-
+        rOutput[0][2] = const_this->GetValue(rVariable)[2];        
+    //}    
 }
-
  
-  void Particle_Contact_Element::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
-    {
-        
+  void Particle_Contact_Element::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo) {        
         Output.resize(1);
-        const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); 
-        
- 
-              
-        /*
-        if (rVariable == CONTACT_FAILURE)
-        {      
-            
-            if(const_this->GetValue(CONTACT_FAILURE) == 1)
-                  {
-                      KRATOS_WATCH("HEEEEEY")
-                   } 
-        }
-           */     
-        
-        
-        Output[0] = double(const_this->GetValue(rVariable));
-      
-
-      /*
-          if (rVariable == CONTACT_FAILURE)
-        {      
-            
-                    if(Output[0]== 1.0)
-                    {
-                        KRATOS_WATCH("HEEEEEY")
-                     }
-          }
-  */
-
-    } 
+        const Particle_Contact_Element* const_this = dynamic_cast< const Particle_Contact_Element* >(this); //To ensure we don't set the value here                
+        Output[0] = double(const_this->GetValue(rVariable)); 
+  } 
     
 
 
@@ -231,30 +188,14 @@ void Particle_Contact_Element::CalculateRightHandSide( VectorType& rRightHandSid
 
 void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
-     
-    /*this->GetValue(CONTACT_TAU) = 0.0;  
-    
-    this->GetValue(CONTACT_SIGMA) = 0.0;
-    
-    
-    if (this->GetValue(FAILURE_CRITERION_STATE)<1.0)
-    {
-        this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
-    }
-        
-    this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;*/
-   
-    mContactTau = 0.0;
-    mContactSigma = 0.0;
-     if (mFailureCriterionState<1.0)
-    {
-        mFailureCriterionState = 0.0;
-    }
+    mContactTau           = 0.0;
+    mContactSigma         = 0.0;    
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
+    if (mFailureCriterionState<1.0) {
+        mFailureCriterionState = 0.0;
+    }
 
 }
 

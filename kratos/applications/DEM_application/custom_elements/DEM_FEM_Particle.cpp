@@ -104,8 +104,8 @@ namespace Kratos
 		SetInitialRigidFaceNeighbor();
 
         //Extra functions;
-		mfcohesion = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
-		mftension  = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_TENSION );
+		mfcohesion = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COHESION);
+		mftension  = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_TENSION );
 		
     }
 
@@ -167,10 +167,10 @@ namespace Kratos
 		if (CurrentProcessInfo[VIRTUAL_MASS_OPTION])
 		{
 	
-                  double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                  double& moment_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 		  
 		  double mass  = GetYoung() * KRATOS_M_PI * mRadius; 
-                  GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
+                  GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
 		  
 		  //if(mRotationOption)
                   if (this->Is(DEMFlags::HAS_ROTATION) )
@@ -208,10 +208,10 @@ namespace Kratos
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 
-          const array_1d<double, 3>& vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-          const array_1d<double, 3>& delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-          const array_1d<double, 3>& ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          const double moment_of_inertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          const array_1d<double, 3>& vel         = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3>& delta_displ = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double, 3>& ang_vel     = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          const double moment_of_inertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double RotaAcc[3]                      = {0.0};
           double InitialRotaMoment[3]            = {0.0};
 
@@ -232,19 +232,19 @@ namespace Kratos
           for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
               SphericParticle* neighbour_iterator = mNeighbourElements[i];   
               // BASIC CALCULATIONS              
-              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
               double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                           other_to_me_vect[1] * other_to_me_vect[1] +
                                                           other_to_me_vect[2] * other_to_me_vect[2]);
-              const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              const double &other_radius              = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
               double radius_sum                       = mRadius + other_radius;			  			  
               double equiv_radius                     = radius_sum * 0.5;
 	      double kn;
 	      double kt;              
               double equiv_area                       =  KRATOS_M_PI * equiv_radius * equiv_radius;			  
 			  
-	      double other_cohesion = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
-	      double other_tension  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_TENSION );
+	      double other_cohesion = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COHESION);
+	      double other_tension  = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_TENSION );
 		  
 	      double equiv_cohesion = (mfcohesion + other_cohesion) * 0.5;
 	      double equiv_tension  = (mftension  + other_tension ) * 0.5;
@@ -435,19 +435,20 @@ namespace Kratos
                                                           array_1d<double, 3>& rContactMoment,
                                                           array_1d<double, 3>& rElasticForce,
                                                           array_1d<double, 3>& rInitialRotaMoment,
-                                                          ProcessInfo& rCurrentProcessInfo) {
+                                                          ProcessInfo& rCurrentProcessInfo,
+                                                          double mTimeStep) {
 
         KRATOS_TRY
 
 
         std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
 
-        double mTimeStep = rCurrentProcessInfo[DELTA_TIME];
+        //double mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
         double Friction = GetTgOfFrictionAngle();
         double young = GetYoung();
         double poisson = GetPoisson();
-        double radius = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        double radius = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
         double area = KRATOS_M_PI * radius * radius;
         double kn = young * area / (2.0 * radius);
         double ks = kn / (2.0 * (1.0 + poisson));
@@ -462,7 +463,7 @@ namespace Kratos
             double GlobalContactForce[3] = {0.0};
             double GlobalContactForceOld[3] = {0.0};
 
-            array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 > vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
             array_1d<double, 3 > other_to_me_vel;
             noalias(other_to_me_vel) = ZeroVector(3);
@@ -497,7 +498,7 @@ namespace Kratos
                 double velA[3] = {0.0};
                 double dRotaDisp[3] = {0.0};
 
-                array_1d<double, 3 > AngularVel = GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3 > AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 double Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
                 GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
@@ -640,9 +641,9 @@ void DEM_FEM_Particle::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 		  
 		  
 		  
-		  double local_damp_ratio   = this->GetGeometry()(0)->FastGetSolutionStepValue(LOCAL_DAMP_RATIO);
-		  array_1d<double,3> vel      = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-		  array_1d<double,3> rota_vel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+		  double local_damp_ratio   = this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_DAMP_RATIO);
+		  array_1d<double,3> vel      = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		  array_1d<double,3> rota_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 		  
 		  
 		 // KRATOS_WATCH(rRightHandSideVector[1])

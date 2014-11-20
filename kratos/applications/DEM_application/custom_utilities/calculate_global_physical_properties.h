@@ -66,7 +66,7 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  const double& particle_radius = (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  const double& particle_radius = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                   added_volume += 4.0 / 3 * pi * particle_radius * particle_radius * particle_radius;
               }
 
@@ -89,7 +89,7 @@ class SphericElementGlobalPhysicsCalculator
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        if (!it_begin->GetGeometry()(0)->SolutionStepsDataHas(r_variable)){
+        if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
             KRATOS_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
           }
 
@@ -110,7 +110,7 @@ class SphericElementGlobalPhysicsCalculator
             elem_counter = mElementsPartition[k];
 
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                max_values[k] = std::max(max_values[k], (it)->GetGeometry()(0)->FastGetSolutionStepValue(r_variable));
+                max_values[k] = std::max(max_values[k], (it)->GetGeometry()[0].FastGetSolutionStepValue(r_variable));
                 elem_counter++;
 
               }
@@ -139,7 +139,7 @@ class SphericElementGlobalPhysicsCalculator
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
-        if (!it_begin->GetGeometry()(0)->SolutionStepsDataHas(r_variable)){
+        if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
             KRATOS_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", r_variable);
           }
 
@@ -160,7 +160,7 @@ class SphericElementGlobalPhysicsCalculator
             elem_counter = mElementsPartition[k];
 
             for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                min_values[k] = std::min(min_values[k], (it)->GetGeometry()(0)->FastGetSolutionStepValue(r_variable));
+                min_values[k] = std::min(min_values[k], (it)->GetGeometry()[0].FastGetSolutionStepValue(r_variable));
                 elem_counter++;
 
               }
@@ -193,7 +193,7 @@ class SphericElementGlobalPhysicsCalculator
               particle_counter = mElementsPartition[k];
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  radii[particle_counter] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  radii[particle_counter] = (it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                   particle_counter++;
                 }
 
@@ -224,7 +224,7 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+                  double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
                   added_mass += particle_mass * particle_mass;
                 }
 
@@ -249,11 +249,11 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+                  double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
                   particle_mass *= particle_mass;
-                  cm_x += particle_mass * (it)->GetGeometry()(0)->Coordinates()[0];
-                  cm_y += particle_mass * (it)->GetGeometry()(0)->Coordinates()[1];
-                  cm_z += particle_mass * (it)->GetGeometry()(0)->Coordinates()[2];
+                  cm_x += particle_mass * (it)->GetGeometry()[0].Coordinates()[0];
+                  cm_y += particle_mass * (it)->GetGeometry()[0].Coordinates()[1];
+                  cm_z += particle_mass * (it)->GetGeometry()[0].Coordinates()[2];
                 }
 
             }
@@ -378,7 +378,7 @@ class SphericElementGlobalPhysicsCalculator
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   array_1d<double, 3> particle_momentum;
                   array_1d<double, 3> particle_local_angular_momentum;
-                  array_1d<double, 3> center_of_mass_to_particle = (it)->GetGeometry()(0)->Coordinates() - center_of_mass;
+                  array_1d<double, 3> center_of_mass_to_particle = (it)->GetGeometry()[0].Coordinates() - center_of_mass;
 
                   (it)->Calculate(MOMENTUM, particle_momentum, r_model_part.GetProcessInfo());
                   (it)->Calculate(ANGULAR_MOMENTUM, particle_local_angular_momentum, r_model_part.GetProcessInfo());

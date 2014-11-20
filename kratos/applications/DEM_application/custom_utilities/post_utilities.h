@@ -90,15 +90,15 @@ public:
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                  
-                 array_1d<double, 3 > coor = (it)->GetGeometry()(0)->Coordinates();                  
+                 array_1d<double, 3 > coor = (it)->GetGeometry()[0].Coordinates();                  
                             
                  if( coor[0] >= low_point[0] && coor[0] <= high_point[0]  && 
                      coor[1] >= low_point[1] && coor[1] <= high_point[1]  && 
                      coor[2] >= low_point[2] && coor[2] <= high_point[2] ) {
                      
-                     velocity_X += (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X);
-                     velocity_Y += (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y);
-                     velocity_Z += (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z);
+                     velocity_X += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+                     velocity_Y += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+                     velocity_Z += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
                      number_of_elements ++;
                  }
                   

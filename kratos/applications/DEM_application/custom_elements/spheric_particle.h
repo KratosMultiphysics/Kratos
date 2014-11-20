@@ -202,7 +202,8 @@ SphericParticle();
 
 virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
                                           array_1d<double, 3>& InitialRotaMoment,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          ProcessInfo& rCurrentProcessInfo,
+                                          double mTimeStep);
 
 virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
 
@@ -281,6 +282,7 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     array_1d<double, 3> &rElasticForce,
                     const double &iRigidFaceNeighbour);
 
+virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& rCurrentProcessInfo);
 
 virtual void CalculateViscoDamping(double LocalRelVel[3],
                                       double ViscoDampingLocalContactForce[3],
@@ -291,6 +293,9 @@ virtual void CalculateViscoDamping(double LocalRelVel[3],
 
 virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+
+      DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
+
 
 const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
 int mDimension;
