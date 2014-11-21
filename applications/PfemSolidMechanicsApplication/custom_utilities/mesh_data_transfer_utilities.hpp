@@ -82,6 +82,14 @@ namespace Kratos
 
     } //
 
+
+    /// Copy constructor.
+    MeshDataTransferUtilities(MeshDataTransferUtilities const& rOther)
+    :mEchoLevel(rOther.mEchoLevel)
+    {
+    } //
+
+
     /// Destructor.
     virtual ~MeshDataTransferUtilities() {}
 

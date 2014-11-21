@@ -1270,7 +1270,7 @@ namespace Kratos
 	    //*******************************************************************
 	    //1) Store Preserved elements in an array of vertices (Geometry<Node<3> > vertices;)
 
-	    mDataTransferUtilities.CalculateCenterAndSearchRadius( vertices[0].X(), vertices[0].Y(),
+	    this->mDataTransferUtilities.CalculateCenterAndSearchRadius( vertices[0].X(), vertices[0].Y(),
 								   vertices[1].X(), vertices[1].Y(),
 								   vertices[2].X(), vertices[2].Y(),
 								   xc, yc, radius );
@@ -1336,8 +1336,7 @@ namespace Kratos
 
     //*******************************************************************
     //6) Pass  rReferenceElement and transfer variables
-    MeshDataTransferUtilities    MeshDataTransfer;
-    MeshDataTransfer.TransferData (rModelPart,rReferenceElement,list_of_element_centers,list_of_element_vertices,MeshDataTransferUtilities::ELEMENT_TO_ELEMENT,MeshId);
+    this->mDataTransferUtilities.TransferData (rModelPart,rReferenceElement,list_of_element_centers,list_of_element_vertices,MeshDataTransferUtilities::ELEMENT_TO_ELEMENT,MeshId);
     //*******************************************************************
 
 
@@ -4171,7 +4170,7 @@ namespace Kratos
 
 	    //find the center and "radius" of the element
 	    double xc,  yc, radius;
-	    mDataTransferUtilities.CalculateCenterAndSearchRadius( x1[0], x1[1],
+	    this->mDataTransferUtilities.CalculateCenterAndSearchRadius( x1[0], x1[1],
 								   x2[0], x2[1],
 								   x3[0], x3[1],
 								   xc,yc,radius);
@@ -4192,7 +4191,7 @@ namespace Kratos
 	      {
 		//if((*it_found)->IsNot(STRUCTURE)){
 		bool is_inside = false;
-		is_inside = mDataTransferUtilities.CalculatePosition( x1[0], x1[1],
+		is_inside = this->mDataTransferUtilities.CalculatePosition( x1[0], x1[1],
 								      x2[0], x2[1],
 								      x3[0], x3[1],
 								      (*it_found)->X(), (*it_found)->Y(), N );
@@ -4200,7 +4199,7 @@ namespace Kratos
 
 		if(is_inside == true)
 		  {
-		    mDataTransferUtilities.Interpolate( geom, N, step_data_size, *(it_found ) );
+		    this->mDataTransferUtilities.Interpolate( geom, N, step_data_size, *(it_found ) );
 		  }
 		//}
 	      }
