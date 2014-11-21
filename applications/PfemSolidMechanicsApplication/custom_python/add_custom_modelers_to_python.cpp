@@ -71,11 +71,16 @@ namespace Python
 			  avoid_tip_elements, alpha_shape, offset_factor, domain );
   }
 
-  void SetRefineDataOnMesher(TriangularMesh2DModeler& Mesher, bool refine, double h_factor, double critical_dissipation, double critical_radius, double reference_error, int domain)
+  void SetRefineDataOnMesher(TriangularMesh2DModeler& Mesher, bool refine, double h_factor, double critical_radius, char* DissipationName, double critical_dissipation, char* ErrorName, double reference_error, int domain)
   {
     //this is the maximum number of parameters to compile successfully
-    Mesher.SetRefineData ( refine, h_factor, critical_dissipation,
-			   critical_radius, reference_error, domain);
+    Mesher.SetRefineData ( refine, h_factor, 
+			   critical_radius,
+			   KratosComponents<Variable<double> >::Get(DissipationName),
+			   critical_dissipation,
+			   KratosComponents<Variable<double> >::Get(ErrorName),
+			   reference_error, 
+			   domain);
   }
 
 

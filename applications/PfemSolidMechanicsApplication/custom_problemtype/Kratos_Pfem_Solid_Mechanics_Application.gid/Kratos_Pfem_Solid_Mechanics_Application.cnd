@@ -594,12 +594,16 @@ QUESTION: Meshing_Frequency
 VALUE: 0.01
 QUESTION: Refine#CB#(False,True)
 VALUE: False
-DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#)
-DEPENDENCIES:(False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False)
+DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Dissipation_Variable,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Error_Variable,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#)
+DEPENDENCIES:(False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Dissipation_Variable,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Error_Variable,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False)
 QUESTION: Critical_Mesh_Size
 VALUE: 0.025
+QUESTION: Dissipation_Variable#CB#(PLASTIC_DISSIPATION,PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS)
+VALUE: PLASTIC_DISSIPATION
 QUESTION: Critical_Dissipation
 VALUE: 100
+QUESTION: Error_Variable#CB#(PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS,PLASTIC_DISSIPATION)
+VALUE: PLASTIC_STRAIN
 QUESTION: Critical_Error(%)
 VALUE: 2
 QUESTION: Tip_Radius_Refine#CB#(False,True)
