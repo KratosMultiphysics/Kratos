@@ -14,64 +14,101 @@ Text = "Status of Kratos examples:\n\n"
 os.chdir(ApplicationsRoot)
 
 # SolidMechanics application
-os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
-import solid_mechanics_run_all_benchmarks
-Text += solid_mechanics_run_all_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "SolidMechanicsApplication/test_examples")
+    import solid_mechanics_run_all_benchmarks
+    Text += solid_mechanics_run_all_benchmarks.Run()
+except:
+    pass
 
 # Fluid Dynamics application
-os.chdir(ApplicationsRoot + "FluidDynamicsApplication/test_examples")
-import fluid_dynamics_run_all_benchmarks
-Text += fluid_dynamics_run_all_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "FluidDynamicsApplication/test_examples")
+    import fluid_dynamics_run_all_benchmarks
+    Text += fluid_dynamics_run_all_benchmarks.Run()
+except:
+    pass    
 
 # DEM application
-os.chdir(ApplicationsRoot + "DEM_application/test_examples")
-import DEM_benchmarks
-Text += DEM_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "DEM_application/test_examples")
+    import DEM_benchmarks
+    Text += DEM_benchmarks.Run()
+except:
+    pass    
 
 # Structural application
-os.chdir(ApplicationsRoot + "structural_application/test_examples")
-import structural_benchmarks
-Text += structural_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "structural_application/test_examples")
+    import structural_benchmarks
+    Text += structural_benchmarks.Run()
+except:
+    pass    
 
 # Incompressible fluid application
-os.chdir(ApplicationsRoot + "incompressible_fluid_application/test_examples")
-import incompressible_benchmarks
-Text += incompressible_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "incompressible_fluid_application/test_examples")
+    import incompressible_benchmarks
+    Text += incompressible_benchmarks.Run()
+except:
+    pass    
 
 # Convection-Diffusion application
-os.chdir(ApplicationsRoot + "convection_diffusion_application/test_examples")
-import convection_diffusion_benchmarks
-Text += convection_diffusion_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "convection_diffusion_application/test_examples")
+    import convection_diffusion_benchmarks
+    Text += convection_diffusion_benchmarks.Run()
+except:
+    pass    
 
 # FSI application
-os.chdir(ApplicationsRoot + "FSIapplication/test_examples")
-import FSI_benchmarks
-Text += FSI_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "FSIapplication/test_examples")
+    import FSI_benchmarks
+    Text += FSI_benchmarks.Run()
+except:
+    pass    
 
 # PFEM application
-# os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
-# import pfem_benchmarks
-# Text += pfem_benchmarks.Run()
+#try:
+#   os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
+#   import pfem_benchmarks
+#   Text += pfem_benchmarks.Run()
+#except:
+#    pass
 
 # Thermo Mechanical application
-os.chdir(ApplicationsRoot + "ThermoMechanicalApplication/test_examples")
-import ThermoMechanical_benchmarks
-Text += ThermoMechanical_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "ThermoMechanicalApplication/test_examples")
+    import ThermoMechanical_benchmarks
+    Text += ThermoMechanical_benchmarks.Run()
+except:
+    pass
 
 # Meshing application
-os.chdir(ApplicationsRoot + "MeshingApplication/test_exemples")
-import meshing_benchmarks
-Text += meshing_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "MeshingApplication/test_exemples")
+    import meshing_benchmarks
+    Text += meshing_benchmarks.Run()
+except:
+    pass    
 
 # Trilinos application
-os.chdir(ApplicationsRoot + "trilinos_application/test_examples")
-import trilinos_benchmarks
-Text += trilinos_benchmarks.Run()
+try:
+    os.chdir(ApplicationsRoot + "trilinos_application/test_examples")
+    import trilinos_benchmarks
+    Text += trilinos_benchmarks.Run()
+except:
+    pass    
 
 # SwimmingDem application
-os.chdir(ApplicationsRoot + "swimming_DEM_application/test_examples/hydrodynamic_forces")
-import hydrodynamic_forces
-Text += hydrodynamic_forces.Run()
+try:
+    os.chdir(ApplicationsRoot + "swimming_DEM_application/test_examples/hydrodynamic_forces")
+    import hydrodynamic_forces
+    Text += hydrodynamic_forces.Run()
+except:
+    pass
+
 # Add other directories here
 
 # print Text
