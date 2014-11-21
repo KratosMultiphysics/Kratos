@@ -159,8 +159,13 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.SizeFactor          = SizeFactor; //nodal_h
     
-    mMeshingVariables[MeshId].Refine.SetDissipationVariable(DissipationVariable);
-    //mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_DISSIPATION);
+    std::cout<<" INPUT VARIABLE ["<<MeshId<<"]"<<DissipationVariable<<std::endl;    
+
+    //mMeshingVariables[MeshId].Refine.SetDissipationVariable(DissipationVariable); //still not working
+    mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_DISSIPATION);
+    //mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_STRAIN);
+
+    std::cout<<" VARIABLE ["<<MeshId<<"]"<<mMeshingVariables[MeshId].Refine.GetDissipationVariable()<<std::endl;
 
     mMeshingVariables[MeshId].Refine.CriticalDissipation = Dissipation; //40;  400;
 
@@ -168,8 +173,13 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.CriticalSide        = SideTolerance * Radius;  //0.02;
 
-    mMeshingVariables[MeshId].Refine.SetErrorVariable(ErrorVariable);
-    //mMeshingVariables[MeshId].Refine.SetErrorVariable(PLASTIC_STRAIN); //NORM_ISOCHORIC_STRESS;
+    std::cout<<" INPUT VARIABLE ["<<MeshId<<"]"<<ErrorVariable<<std::endl;    
+
+    //mMeshingVariables[MeshId].Refine.SetErrorVariable(ErrorVariable);
+    mMeshingVariables[MeshId].Refine.SetErrorVariable(PLASTIC_STRAIN);
+    //mMeshingVariables[MeshId].Refine.SetErrorVariable(NORM_ISOCHORIC_STRESS);
+
+    std::cout<<" VARIABLE ["<<MeshId<<"]"<<mMeshingVariables[MeshId].Refine.GetErrorVariable()<<std::endl;
 
     mMeshingVariables[MeshId].Refine.ReferenceError      = Error;  //2;
 
@@ -278,7 +288,7 @@ namespace Kratos
 	if( GetEchoLevel() > 0 ){
 	  std::cout<<"  GetRemeshData ["<<MeshId<<"]: [ RefineFlag: "<<mMeshingVariables[MeshId].RefineFlag<<"; RemeshFlag : "<<mMeshingVariables[MeshId].RemeshFlag<<" ] "<<std::endl;
 	}
-
+	
 	if(mMeshingVariables[MeshId].RemeshFlag)
 	  rModelPart.GetMesh(MeshId).Set( REMESH );
 	else
@@ -343,8 +353,6 @@ namespace Kratos
     // rModelPart.Nodes().Unique();
 
 
-    MeshDataTransferUtilities    MeshDataTransfer;
-    MeshDataTransfer.SetEchoLevel(GetEchoLevel());
     LaplacianSmoothing   MeshGeometricSmoothing(rModelPart);
     MeshGeometricSmoothing.SetEchoLevel(GetEchoLevel());
 	
@@ -373,7 +381,7 @@ namespace Kratos
 
 	//transfer DETERMINANT_F FOR VARIABLES SMOOTHING to nodes
 	if(mMeshingVariables[MeshId].JacobiSmoothingFlag){
-	  MeshDataTransfer.TransferElementalValuesToNodes(DETERMINANT_F,rModelPart,MeshId);
+	  mDataTransferUtilities.TransferElementalValuesToNodes(DETERMINANT_F,rModelPart,MeshId);
 	}
 	    
 	if(Meshes[MeshId].Is( REMESH )){
@@ -527,12 +535,12 @@ namespace Kratos
 	      double critical_value = mMeshingVariables[MeshId].Refine.CriticalDissipation * 0.1;
 
 	      //Smoothing performed only in critical elements (based on Plastic Energy Dissipation)
-	      MeshDataTransfer.TransferNodalValuesToElements(DETERMINANT_F,PLASTIC_DISSIPATION,critical_value,rModelPart,MeshId);
+	      mDataTransferUtilities.TransferNodalValuesToElements(DETERMINANT_F,PLASTIC_DISSIPATION,critical_value,rModelPart,MeshId);
 	    }
 	    else{
 
 	      //Smoothing performed to all mesh
-	      MeshDataTransfer.TransferNodalValuesToElements(DETERMINANT_F,rModelPart,MeshId);
+	      mDataTransferUtilities.TransferNodalValuesToElements(DETERMINANT_F,rModelPart,MeshId);
 
 	    }
 

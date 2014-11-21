@@ -79,6 +79,7 @@ protected:
       const Variable< double >* mpErrorVariable; 
 
     public: 
+
       int      NumberOfElements;     
       double   SizeFactor;          //nodal h  size factor
       double   CriticalRadius;      //critical area   size
@@ -223,6 +224,7 @@ protected:
 
     public:
 
+
       void SetReferenceElement   (const Element   & rElement)
       {
 	mpReferenceElement=&rElement;
@@ -358,6 +360,14 @@ public:
     /// Default constructor.
     MeshModeler() {}
 
+    /// Copy constructor.
+    MeshModeler(MeshModeler const& rOther)
+    :mEchoLevel(rOther.mEchoLevel)
+    ,mMeshingVariables(rOther.mMeshingVariables)
+    ,mModelerUtilities(rOther.mModelerUtilities)
+    ,mDataTransferUtilities(rOther.mDataTransferUtilities)
+    {};
+
     /// Destructor.
     virtual ~MeshModeler() {}
 
@@ -415,9 +425,9 @@ public:
      void SetRefineData( bool   RefineFlag  = false,
 			 double SizeFactor  = 0.5,
 			 double Radius      = 0.00004,
-			 Variable<double> DissipationVariable = PLASTIC_DISSIPATION,
+			 Variable<double>  DissipationVariable = PLASTIC_DISSIPATION,
 			 double Dissipation =40,
-			 Variable<double> ErrorVariable = PLASTIC_STRAIN,
+			 Variable<double>  ErrorVariable = PLASTIC_STRAIN,
 			 double Error       = 2,
 			 int    MeshId      = 0);
 
@@ -522,18 +532,14 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    /// Assignment operator.
-    MeshModeler& operator=(MeshModeler const& rOther);
-
-    /// Copy constructor.
-    MeshModeler(MeshModeler const& rOther){};
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    
+    /// Assignment operator.
+    MeshModeler& operator=(MeshModeler const& rOther);
+
 
    /**
      * Mesh Modeler :: Variables Transfer without remeshing
