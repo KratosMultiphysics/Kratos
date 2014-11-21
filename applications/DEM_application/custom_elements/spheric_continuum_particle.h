@@ -192,14 +192,14 @@ namespace Kratos
         std::vector<int> mMapping_New_Cont;
         std::vector<double> mNeighbourDelta;
         std::vector<int> mNeighbourFailureId;
-        ParticleWeakVectorType mTempNeighbours;
+        //ParticleWeakVectorType mTempNeighbours;
         
         std::vector<double>               mTempNeighboursDelta;
         std::vector<int>                  mTempNeighboursFailureId;
         std::vector<int>                  mTempNeighboursMapping;
         std::vector<int>                  mTempContNeighboursMapping;
         
-        Vector mHistDist;
+        //Vector mHistDist;
   
         
         //fem neighbour information

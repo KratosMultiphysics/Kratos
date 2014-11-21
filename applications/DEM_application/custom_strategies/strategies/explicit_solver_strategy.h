@@ -284,7 +284,7 @@ namespace Kratos
           //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
           KRATOS_TRY         
                                   
-          #pragma omp parallel for
+          //#pragma omp parallel for //TODO:
           for(int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){  
               rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);                         
           }                     

@@ -104,28 +104,37 @@ namespace Kratos
               for (int j=0; j<(int)mListOfSphericContinuumParticles[i]->mIniNeighbourIds.size(); j++) {
                   typename ElementsArrayType::iterator elem_iterator = r_local_elems.find(mListOfSphericContinuumParticles[i]->mIniNeighbourIds[j]);  
                   if (elem_iterator == r_local_elems.end()) {
-                      mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements[j] = mListOfSphericContinuumParticles[i]; //points to itself if it does not find the particle with this Id
+                      mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements[j] = NULL; //points to NULL if it does not find the particle with this Id
                       continue;
                   }
                   mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements[j] = dynamic_cast<SphericContinuumParticle*>( &(*elem_iterator) );
               }  
-          }
+          }                               
+      }
+      
+      void SearchNeighboursInContinuum() {
+          KRATOS_TRY
+                  
+          ModelPart& r_model_part           = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           
+          BaseType::SetSearchRadius(r_model_part, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
+          BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
+
+          this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
+          this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
+          this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
+          this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
+
+          BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
+          BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
+ 
+          BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
+          BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
+
+          RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's
           
-          /*ElementsArrayType& r_ghost_elems = r_model_part.GetCommunicator().GhostMesh().Elements();          
-          
-          #pragma omp parallel for
-          for ( int i=0; i<(int)mListOfGhostSphericContinuumParticles.size(); i++) {   
-              mListOfGhostSphericContinuumParticles[i]->mContinuumIniNeighbourElements.resize(mListOfGhostSphericContinuumParticles[i]->mIniNeighbourIds.size());
-              for (int j=0; j<(int)mListOfGhostSphericContinuumParticles[i]->mIniNeighbourIds.size(); j++) {
-                  typename ElementsArrayType::iterator elem_iterator = r_ghost_elems.find(mListOfGhostSphericContinuumParticles[i]->mIniNeighbourIds[j]);    
-                  if (elem_iterator == r_local_elems.end()) {
-                      mListOfGhostSphericContinuumParticles[i]->mContinuumIniNeighbourElements[j] = mListOfGhostSphericContinuumParticles[i]; //points to itself if it does not find the particle with this Id
-                      continue;
-                  }
-                  mListOfGhostSphericContinuumParticles[i]->mContinuumIniNeighbourElements[j] = dynamic_cast<SphericContinuumParticle*>( &(*elem_iterator) );
-              }      
-          }    */      
+          KRATOS_CATCH("")
       }
       
       virtual void Initialize()
@@ -197,11 +206,18 @@ namespace Kratos
             BaseType::SetCoordinationNumber(r_model_part);          
         }
         
-        
         this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
-        this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
+        this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
+
+        BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
+        BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
+
+        BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
+        BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
+
+        RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's        
         
         // 4. Set Initial Contacts        
         if( rCurrentProcessInfo[CASE_OPTION] !=0 ) {            
@@ -244,18 +260,7 @@ namespace Kratos
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           int time_step                     = rCurrentProcessInfo[TIME_STEPS];
-          mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
-          
-          this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
-          this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
-          this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
-          this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
-          
-          BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles); 
-          BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles); 
-          
-          BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
-          BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
+          mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];                    
                    
           // 0. Initialize step   /////////////////////////////////            
           BaseType::InitializeSolutionStep();
@@ -277,46 +282,40 @@ namespace Kratos
              }             
           }
 
-          
-          // 1. Search Neighbours /////////////////////////////////     
-          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
-          {
-              if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
-                  if (this->GetBoundingBoxOption() == 1)
-                  {
-                      this->BoundingBoxUtility();  
-                      this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
-                      this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
-                      this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
-                      this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);                                            
-                  }                  
-                  
-                   BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
-                   BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
-                   BaseType::ComputeNewNeighboursHistoricalData();
-    
-                   BaseType::SetOriginalRadius(r_model_part);  
-                   BaseType::SearchRigidFaceNeighbours();
-                   BaseType::ComputeNewRigidFaceNeighboursHistoricalData();   
-                   
-                   if (this->GetBoundingBoxOption() == 1) {                                            
-                      if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {   
-                        this->CreateContactElements();
-                        this->InitializeContactElements();
-                        rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
-                        this->Particle_Area_Calculate(); //first time;
-                        rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
-                        this->Contact_Calculate_Area();
-                        this->Particle_Area_Calculate(); //2nd time
-                      }
-                   }     
-                                                         
-              }
+            // 1. Search Neighbours /////////////////////////////////     
+            if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1) {
+                if ((time_step + 1) % this->GetNStepSearch() == 0 && time_step > 0) {
 
-          }   
-          
-          
+                    if (this->GetBoundingBoxOption() == 1) {
+                        this->BoundingBoxUtility();                        
+                    }
+
+                    SearchNeighboursInContinuum(); 
+
+                    BaseType::ComputeNewNeighboursHistoricalData();
+
+                    BaseType::SetOriginalRadius(r_model_part);
+                    BaseType::SearchRigidFaceNeighbours();
+                    BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+
+                    if (this->GetBoundingBoxOption() == 1) {
+                        if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {
+                            this->CreateContactElements();
+                            this->InitializeContactElements();
+                            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
+                            this->Particle_Area_Calculate(); //first time;
+                            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
+                            this->Contact_Calculate_Area();
+                            this->Particle_Area_Calculate(); //2nd time
+                        }
+                    }
+
+                }
+
+          }
+
+            
           // 2. Calculate forces   /////////////////////////////////            
           BaseType::GetForce();
           //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes          
@@ -397,14 +396,14 @@ namespace Kratos
                      
         Properties::Pointer properties =  (*BaseType::mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
         
-        #pragma omp parallel for // TODO:
+        //#pragma omp parallel for // TODO:
         for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
             for ( unsigned int j=0; j<mListOfSphericContinuumParticles[i]->mBondElements.size(); j++ ) {
                 mListOfSphericContinuumParticles[i]->mBondElements[j] = NULL;
             }            
         }                
         
-        #pragma omp parallel for // TODO:
+        //#pragma omp parallel for // TODO:
         for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){
                        
             std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;
@@ -439,7 +438,7 @@ namespace Kratos
       
         } //for all Spheric Continuum Particles
         
-        #pragma omp parallel for 
+        //#pragma omp parallel for 
         for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++) {
             
             std::vector<SphericContinuumParticle*> & r_continuum_ini_neighbours = mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements;
