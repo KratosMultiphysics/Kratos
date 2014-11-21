@@ -1459,6 +1459,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         KRATOS_TRY
 
         Particle_Contact_Element* bond = mBondElements[mapping_new_cont];
+        if(bond == NULL) return; //This bond was never created (happens in some MPI cases, see CreateContactElements() in explicit_solve_continumm.h)
 
         bond->mLocalContactForce[0] = LocalElasticContactForce[0];
         bond->mLocalContactForce[1] = LocalElasticContactForce[1];
