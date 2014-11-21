@@ -412,12 +412,14 @@ public:
     /**
      * Refine information is given to the modeler
      */
-    void SetRefineData (bool   RefineFlag  = false,
-			double SizeFactor  = 0.5,
-			double Dissipation = 40,
-			double Radius      = 0.00004,
-			double Error       = 2,
-			int    MeshId      = 0);
+     void SetRefineData( bool   RefineFlag  = false,
+			 double SizeFactor  = 0.5,
+			 double Radius      = 0.00004,
+			 Variable<double> DissipationVariable = PLASTIC_DISSIPATION,
+			 double Dissipation =40,
+			 Variable<double> ErrorVariable = PLASTIC_STRAIN,
+			 double Error       = 2,
+			 int    MeshId      = 0);
 
     /**
      * Walls of the domain are given to the modeler (refining properties)

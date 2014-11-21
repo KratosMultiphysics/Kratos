@@ -149,7 +149,7 @@ string = "*cond(Center_box)"
 BoxCenter*ndomains = [float(s) for s in string.split()]
 string = "*cond(Velocity_box)" 
 BoxVelocity*ndomains = [float(s) for s in string.split()]
-Conditions*ndomains = {"Subdomain":*cond(Group_ID), "StructuralType":"*cond(StructuralType)", "Remesh":*cond(Remesh), "Constrained":*cond(Constrained), "Refine":*cond(Refine), "MeshSmoothing":*cond(MeshSmoothing), "JacobiSmoothing":*cond(JacobiSmoothing), "MeshElement":"*cond(MeshingElement)", "CriticalMeshSize": *cond(Critical_Mesh_Size), "CriticalDissipation": *cond(Critical_Dissipation), "CriticalError": *cond(Critical_Error), "TipRadiusRefine": *cond(Tip_Radius_Refine), "CriticalTipRadius": *cond(Critical_Tip_Radius), "RefineOnBoxOnly":*cond(Refine_on_box_only), "BoxCenter": BoxCenter*ndomains, "BoxVelocity": BoxVelocity*ndomains, "BoxRadius": *cond(Radius_box), "RemeshFrequency": *cond(Meshing_Frequency) }
+Conditions*ndomains = {"Subdomain":*cond(Group_ID), "StructuralType":"*cond(StructuralType)", "Remesh":*cond(Remesh), "Constrained":*cond(Constrained), "Refine":*cond(Refine), "MeshSmoothing":*cond(MeshSmoothing), "JacobiSmoothing":*cond(JacobiSmoothing), "MeshElement":"*cond(MeshingElement)", "CriticalMeshSize": *cond(Critical_Mesh_Size), "DissipationVariable": "*cond(Dissipation_Variable)", "CriticalDissipation": *cond(Critical_Dissipation), "ErrorVariable": "*cond(Error_Variable)", "CriticalError": *cond(Critical_Error), "TipRadiusRefine": *cond(Tip_Radius_Refine), "CriticalTipRadius": *cond(Critical_Tip_Radius), "RefineOnBoxOnly":*cond(Refine_on_box_only), "BoxCenter": BoxCenter*ndomains, "BoxVelocity": BoxVelocity*ndomains, "BoxRadius": *cond(Radius_box), "RemeshFrequency": *cond(Meshing_Frequency) }
 MeshConditions.append(Conditions*ndomains)
 *end groups
 

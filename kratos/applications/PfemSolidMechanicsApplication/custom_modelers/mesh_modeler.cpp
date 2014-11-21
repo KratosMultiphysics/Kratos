@@ -140,8 +140,10 @@ namespace Kratos
 
   void MeshModeler::SetRefineData( bool   RefineFlag,
 				   double SizeFactor,
-				   double Dissipation,
 				   double Radius,
+				   Variable<double> DissipationVariable,
+				   double Dissipation,
+				   Variable<double> ErrorVariable,
 				   double Error,
 				   int    MeshId )
   {    
@@ -157,7 +159,8 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.SizeFactor          = SizeFactor; //nodal_h
     
-    mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_DISSIPATION);
+    mMeshingVariables[MeshId].Refine.SetDissipationVariable(DissipationVariable);
+    //mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_DISSIPATION);
 
     mMeshingVariables[MeshId].Refine.CriticalDissipation = Dissipation; //40;  400;
 
@@ -165,7 +168,8 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.CriticalSide        = SideTolerance * Radius;  //0.02;
 
-    mMeshingVariables[MeshId].Refine.SetErrorVariable(PLASTIC_STRAIN); //NORM_ISOCHORIC_STRESS;
+    mMeshingVariables[MeshId].Refine.SetErrorVariable(ErrorVariable);
+    //mMeshingVariables[MeshId].Refine.SetErrorVariable(PLASTIC_STRAIN); //NORM_ISOCHORIC_STRESS;
 
     mMeshingVariables[MeshId].Refine.ReferenceError      = Error;  //2;
 

@@ -224,7 +224,7 @@ class ModelerUtility:
             self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", conditions["Remesh"], conditions["Constrained"], conditions["MeshSmoothing"], conditions["JacobiSmoothing"], self.avoid_tip_elements, self.alpha_shape, self.offset_factor, mesh_id)
             
             #refine data
-            self.mesh_modeler.SetRefineData(conditions["Refine"], self.h_factor, conditions["CriticalDissipation"], critical_mesh_size, conditions["CriticalError"], mesh_id)
+            self.mesh_modeler.SetRefineData(conditions["Refine"], self.h_factor, critical_mesh_size, conditions["DissipationVariable"], conditions["CriticalDissipation"], conditions["ErrorVariable"], conditions["CriticalError"], mesh_id)
 
             box_refinement_only = conditions["RefineOnBoxOnly"]
 
