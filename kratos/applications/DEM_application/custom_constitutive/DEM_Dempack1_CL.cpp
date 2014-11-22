@@ -119,7 +119,12 @@ void DEM_Dempack1::CalculateContactForces(double mRadius,
     //double other_ln_of_restit_coeff  = neighbourProperties->GetLnOfRestitCoeff();
 
     equiv_young                       = 2.0 * myYoung * other_young / (myYoung + other_young);
-    equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+    
+    if((myPoisson + other_poisson)!= 0.0) {
+        equiv_poisson                 = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+    } else {
+        equiv_poisson = 0.0;
+    }
     //equiv_ln_of_restit_coeff          = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
 
     double calculation_area     = KRATOS_M_PI*rmin*rmin;

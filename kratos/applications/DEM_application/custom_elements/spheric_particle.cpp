@@ -363,7 +363,12 @@ void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy)
         const double other_poisson          = ineighbour->GetPoisson();
 
         equiv_young                         = 2.0 * myYoung * other_young / (myYoung + other_young);
-        equiv_poisson                       = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+        
+        if((myPoisson + other_poisson)!= 0.0) {
+            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+        } else {
+            equiv_poisson = 0.0;
+        }
 
         kn                                  = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
         kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
@@ -1091,7 +1096,11 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
     else {
         other_young = p_neighbour->GetYoung();
         other_poisson = p_neighbour->GetPoisson();
-        equiv_poisson = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+        if((myPoisson + other_poisson)!= 0.0) {
+            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+        } else {
+            equiv_poisson = 0.0;
+        }
         other_ln_of_restit_coeff = p_neighbour->GetLnOfRestitCoeff();
         equiv_ln_of_restit_coeff = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
         const double other_tg_of_fri_angle = p_neighbour->GetTgOfFrictionAngle();
