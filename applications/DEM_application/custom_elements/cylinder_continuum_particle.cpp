@@ -86,7 +86,7 @@ namespace Kratos
         ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
         int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
         
-        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);  //NOTE: Here we use "mcont_ini_neigh_area" just becouse in the general 3D particle this is the name used.ContactAreaWeighting2D
+        mcont_ini_neigh_area.resize(cont_ini_neighbours_size);  //NOTE: Here we use "mcont_ini_neigh_area" just because in the general 3D particle this is the name used.ContactAreaWeighting2D
         
         //computing the total equivalent area
         
