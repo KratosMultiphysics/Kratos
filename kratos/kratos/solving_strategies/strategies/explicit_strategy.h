@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #if !defined(EXPLICIT_STRATEGY)
-#define  KRATOS_EXPLICIT_STRATEGY
+#define  EXPLICIT_STRATEGY
 
 
 /* System includes */
@@ -327,5 +327,5 @@ void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 };
 
 } /* namespace Kratos.*/
-#endif /* KRATOS_EXPLICT_STRATEGY */
+#endif /* EXPLICT_STRATEGY */
 
