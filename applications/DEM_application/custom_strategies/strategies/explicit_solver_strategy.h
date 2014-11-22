@@ -284,7 +284,7 @@ namespace Kratos
           //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
           KRATOS_TRY         
                                   
-          //#pragma omp parallel for //TODO:
+          #pragma omp parallel for 
           for(int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){  
               rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);                         
           }                     
@@ -1100,7 +1100,7 @@ namespace Kratos
         
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
         
-        #pragma omp parallel for
+        #pragma omp parallel for 
         for (int i=0; i<(int)mListOfSphericParticles.size(); i++){
             mListOfSphericParticles[i]->mNeighbourElements.clear();
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it){
@@ -1111,13 +1111,12 @@ namespace Kratos
             }
             this->GetResults()[i].clear();
             this->GetResultsDistances()[i].clear();        
-        }                
+        }             
                 
         KRATOS_CATCH("")
     }           
     
-     void ComputeNewNeighboursHistoricalData()
-    {
+    virtual void ComputeNewNeighboursHistoricalData() {
         KRATOS_TRY  
 
         #pragma omp parallel
