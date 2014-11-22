@@ -1006,99 +1006,80 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      */
 
  
-      void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData()
-      {
+    void SphericContinuumParticle::ComputeNewRigidFaceNeighboursHistoricalData() {
         
-      //ConditionWeakVectorType& rFemNeighbours       = this->GetValue(NEIGHBOUR_RIGID_FACES);
-      std::vector<DEMWall*>& rFemNeighbours = this->mNeighbourRigidFaces;
-      
-      mFemTempNeighbours.swap(rFemNeighbours); 
-      
-      unsigned int fem_temp_size = mFemTempNeighbours.size();
-      
-      //unsigned int new_size                = rFemNeighbours.size();
-      
-      rFemNeighbours.clear();        
-      
-      unsigned int fem_neighbour_counter       = 0;
-            
-      std::vector<int>&                  fem_temp_neighbours_ids = mFemTempNeighboursIds;
-      std::vector<double>&               fem_temp_neighbours_delta = mFemTempNeighboursDelta;
-      std::vector<array_1d<double, 3> >& fem_temp_neighbours_contact_forces = mFemTempNeighboursContactForces;
-      std::vector<int>&                  fem_temp_neighbours_mapping = mFemTempNeighboursMapping;      
-      
-      fem_temp_neighbours_ids.resize(fem_temp_size);
-      fem_temp_neighbours_delta.resize(fem_temp_size);
-      fem_temp_neighbours_contact_forces.resize(fem_temp_size);
-      fem_temp_neighbours_mapping.resize(fem_temp_size);
+        std::vector<DEMWall*> mFemTempNeighbours;        
+        mFemTempNeighbours.swap(mNeighbourRigidFaces);       
+        unsigned int fem_temp_size = mFemTempNeighbours.size();           
+        mNeighbourRigidFaces.clear();              
+        unsigned int fem_neighbour_counter       = 0;
 
-      array_1d<double, 3> vector_of_zeros;
-      vector_of_zeros[0]                   = 0.0;
-      vector_of_zeros[1]                   = 0.0;
-      vector_of_zeros[2]                   = 0.0;
-      
-      //Vector & RF_Pram = this->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
-      std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
-           
-      //for (ConditionWeakIteratorType i = mFemTempNeighbours.begin(); i != mFemTempNeighbours.end(); i++)
-      for (unsigned int i=0; i<mFemTempNeighbours.size(); i++)    
-      {
-        
-          int ino1               = i * 16;
-          double DistPToB        = RF_Pram[ino1 + 9];
-          int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
-          double                ini_delta           = 0.0;
-          array_1d<double, 3>   neigh_forces        = vector_of_zeros;
-          double                mapping_new_ini     = -1;  
-          
-          for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) 
-          {
-            if (  iNeighborID == mFemIniNeighbourIds[k]) 
-            {                                                          
-              ini_delta  = mFemIniNeighbourDelta[k];                            
-              mapping_new_ini = k; 
-              break;
-            }
-          }
+        std::vector<int>                  fem_temp_neighbours_ids; //these temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
+        std::vector<double>               fem_temp_neighbours_delta;
+        std::vector<array_1d<double, 3> > fem_temp_neighbours_contact_forces;
+        std::vector<int>                  fem_temp_neighbours_mapping;      
 
-          for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++)  
-          {
-            
-            if ( static_cast<int>((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j])
-            {
-              neigh_forces = mFemOldNeighbourContactForces[j];
-              break;
+        fem_temp_neighbours_ids.resize(fem_temp_size);
+        fem_temp_neighbours_delta.resize(fem_temp_size);
+        fem_temp_neighbours_contact_forces.resize(fem_temp_size);
+        fem_temp_neighbours_mapping.resize(fem_temp_size);
+
+        array_1d<double, 3> vector_of_zeros;
+        vector_of_zeros[0]                   = 0.0;
+        vector_of_zeros[1]                   = 0.0;
+        vector_of_zeros[2]                   = 0.0;
+
+        std::vector<double>& RF_Pram = mNeighbourRigidFacesPram;
+
+        for (unsigned int i=0; i<mFemTempNeighbours.size(); i++) {        
+            int ino1               = i * 16;
+            double DistPToB        = RF_Pram[ino1 + 9];
+            int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
+            double                ini_delta           = 0.0;
+            array_1d<double, 3>   neigh_forces        = vector_of_zeros;
+            double                mapping_new_ini     = -1;  
+
+            for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) {
+              if (  iNeighborID == mFemIniNeighbourIds[k]) {                                                          
+                ini_delta  = mFemIniNeighbourDelta[k];                            
+                mapping_new_ini = k; 
+                break;
+              }
             }
-          }
-          
-          //Judge if its neighbour                  
-          double indentation = -(DistPToB - mRadius) - ini_delta;                    
-          
-          if ( indentation > 0.0 )  
-          {
-              //rFemNeighbours.push_back(*(i.base())); 
-              rFemNeighbours.push_back(mFemTempNeighbours[i]);
-              
-              fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((mFemTempNeighbours[i])->Id());
-              fem_temp_neighbours_mapping[fem_neighbour_counter]          = mapping_new_ini;
-              fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
-              fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
-              
-              fem_neighbour_counter++;              
-          }
-          
-      }//for ConditionWeakIteratorType i
-      
-      int final_size = rFemNeighbours.size();
-      fem_temp_neighbours_ids.resize(final_size);
-      fem_temp_neighbours_delta.resize(final_size);
-      fem_temp_neighbours_contact_forces.resize(final_size);
-      fem_temp_neighbours_mapping.resize(final_size);
-      
-      mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
-      mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
-      mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
-      mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
+
+            for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {            
+              if ( static_cast<int>((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
+                neigh_forces = mFemOldNeighbourContactForces[j];
+                break;
+              }
+            }
+
+            //Judge if its neighbour                  
+            double indentation = -(DistPToB - mRadius) - ini_delta;                    
+
+            if ( indentation > 0.0 ) {
+                mNeighbourRigidFaces.push_back(mFemTempNeighbours[i]);
+
+                fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((mFemTempNeighbours[i])->Id());
+                fem_temp_neighbours_mapping[fem_neighbour_counter]          = mapping_new_ini;
+                fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
+                fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
+
+                fem_neighbour_counter++;              
+            }
+
+        }//for ConditionWeakIteratorType i
+
+        int final_size = mNeighbourRigidFaces.size();
+        fem_temp_neighbours_ids.resize(final_size);
+        fem_temp_neighbours_delta.resize(final_size);
+        fem_temp_neighbours_contact_forces.resize(final_size);
+        fem_temp_neighbours_mapping.resize(final_size);
+
+        mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
+        mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
+        mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
+        mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
         
       }
       

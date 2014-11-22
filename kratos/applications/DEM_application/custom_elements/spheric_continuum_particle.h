@@ -181,43 +181,28 @@ namespace Kratos
 
         //sphere neighbour information
         
-        Vector mcont_ini_neigh_area;
-        
-        Vector mIniNeighbourDelta;
+        std::vector<double>         mcont_ini_neigh_area;        
+        std::vector<double>         mIniNeighbourDelta;
+        std::vector<int>            mIniNeighbourFailureId;
+        std::vector<int>            mIniNeighbourToIniContinuum;        
+        std::vector<int>            mMapping_New_Ini;
+        std::vector<int>            mMapping_New_Cont;
+        std::vector<double>         mNeighbourDelta;
+        std::vector<int>            mNeighbourFailureId;
 
-        vector<int> mIniNeighbourFailureId;
-        vector<int> mIniNeighbourToIniContinuum;
-        
-        std::vector<int> mMapping_New_Ini;
-        std::vector<int> mMapping_New_Cont;
-        std::vector<double> mNeighbourDelta;
-        std::vector<int> mNeighbourFailureId;
-        //ParticleWeakVectorType mTempNeighbours;
-        
+        std::vector<SphericParticle*>     mTempNeighbourElements;
         std::vector<double>               mTempNeighboursDelta;
         std::vector<int>                  mTempNeighboursFailureId;
         std::vector<int>                  mTempNeighboursMapping;
-        std::vector<int>                  mTempContNeighboursMapping;
-        
-        //Vector mHistDist;
-  
-        
+        std::vector<int>                  mTempContNeighboursMapping;                
+                  
         //fem neighbour information
-        std::vector<double>               mFemNeighbourDelta;
-        std::vector<double>               mFemTempNeighboursDelta;
-        
-        std::vector<DEMWall*>            mFemTempNeighbours;
-        
-        std::vector<int>                  mFemIniNeighbourIds;
-        Vector                            mFemIniNeighbourDelta;
-        std::vector<int>                  mFemMappingNewIni;
-        std::vector<int>                  mFemTempNeighboursMapping;
-        std::vector<array_1d<double, 3> > mFemTempNeighboursContactForces;
-        std::vector<int> mFemTempNeighboursIds;
-        
-        
+        std::vector<double>         mFemNeighbourDelta;                        
+        std::vector<int>            mFemIniNeighbourIds;
+        std::vector<double>         mFemIniNeighbourDelta;
+        std::vector<int>            mFemMappingNewIni;
+                        
         std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
-
         
         //Non-linear
          double mN1;
@@ -226,10 +211,8 @@ namespace Kratos
          double mC1;
          double mC2;
          double mC3;
-                            
-        
-        //FOR DEM_FEM APP
-        
+                                    
+        //FOR DEM_FEM APP        
         void ComputeParticleBlockContactForce_With_Rotation();
         void ComputeParticleBlockContactForce_Without_Rotation();
         void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);       

@@ -33,27 +33,27 @@ namespace Kratos
 // using namespace GeometryFunctions;
 
 SphericParticle::SphericParticle()
-    : DiscreteElement(), mParticleId(-1), mSqrtOfRealMass(0)
+    : DiscreteElement(), mSqrtOfRealMass(0)
 {
     mRadius = 0;
     mSqrtOfRealMass = 0;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-    : DiscreteElement(NewId, pGeometry), mParticleId(NewId), mSqrtOfRealMass(0){
+    : DiscreteElement(NewId, pGeometry), mSqrtOfRealMass(0){
     mRadius = 0;
     mSqrtOfRealMass = 0;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-    : DiscreteElement(NewId, pGeometry, pProperties), mParticleId(NewId), mSqrtOfRealMass(0)
+    : DiscreteElement(NewId, pGeometry, pProperties), mSqrtOfRealMass(0)
 {
     mRadius = 0;
     mSqrtOfRealMass = 0;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-    : DiscreteElement(NewId, ThisNodes), mParticleId(NewId), mSqrtOfRealMass(0)
+    : DiscreteElement(NewId, ThisNodes), mSqrtOfRealMass(0)
 {
     mRadius = 0;
     mSqrtOfRealMass = 0;
@@ -460,7 +460,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
     std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
     unsigned int new_size              = rNeighbours.size();
-    std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
+    std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
@@ -1330,13 +1330,7 @@ double SphericParticle::GetInitialDelta(int index) //only available in continuum
 void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info)
 {
     KRATOS_TRY
-
-    if (rVariable == PARTICLE_ID){
-        Output = mParticleId; // (NOT YET ACTIVE!!)
-
-        return;
-    }
-
+    
     //CRITICAL DELTA CALCULATION
 
     if (rVariable == DELTA_TIME){

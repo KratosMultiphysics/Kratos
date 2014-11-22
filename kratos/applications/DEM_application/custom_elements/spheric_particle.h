@@ -183,8 +183,6 @@ virtual void ComputeNewNeighboursHistoricalData( std::vector<int>& mTempNeighbou
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 
 std::vector<SphericParticle*> mNeighbourElements;
-std::vector<SphericParticle*> mTempNeighbourElements;
-
 std::vector<DEMWall*>         mNeighbourRigidFaces;
 std::vector<double>           mNeighbourRigidFacesPram;
 std::vector<double>           mNeighbourRigidFacesTotalContactForce;
@@ -297,7 +295,7 @@ virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Outp
       DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 
 
-const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
+//const int mParticleId; // (NOT YET ACTIVE!!) Identifies the particle biunivocally if it has been properly created (i.e., a non-repeated NewId is passed to the constructor)
 int mDimension;
 int mDampType;
 int mElasticityType;
