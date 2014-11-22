@@ -390,7 +390,13 @@ namespace Kratos
             double other_tg_of_fri_angle     = neighbour_iterator->GetTgOfFrictionAngle();
 
             equiv_young                       = 2.0 * myYoung * other_young / (myYoung + other_young);
-            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+            
+            if((myPoisson + other_poisson)!= 0.0) {
+                equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+            } else {
+                equiv_poisson = 0.0;
+            }
+            
             equiv_ln_of_restit_coeff          = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
             equiv_tg_of_fri_ang               = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
         
