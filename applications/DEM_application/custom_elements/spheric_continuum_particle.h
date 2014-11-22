@@ -61,9 +61,14 @@ namespace Kratos
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);      
-      void ComputeNewNeighboursHistoricalData(std::vector<int>& mTempNeighboursIds, 
+      void ComputeNewNeighboursHistoricalData(std::vector<int>&                  mTempNeighboursIds, 
                                               std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces,
-                                              std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces);
+                                              std::vector<array_1d<double, 3> >& mTempNeighbourTotalContactForces,
+                                              std::vector<SphericParticle*>&     mTempNeighbourElements,
+                                              std::vector<double>&               mTempNeighboursDelta,
+                                              std::vector<int>&                  mTempNeighboursFailureId,
+                                              std::vector<int>&                  mTempNeighboursMapping,
+                                              std::vector<int>&                  mTempContNeighboursMapping) ;
       virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
       virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) ;
       virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);      
@@ -188,13 +193,7 @@ namespace Kratos
         std::vector<int>            mMapping_New_Ini;
         std::vector<int>            mMapping_New_Cont;
         std::vector<double>         mNeighbourDelta;
-        std::vector<int>            mNeighbourFailureId;
-
-        std::vector<SphericParticle*>     mTempNeighbourElements;
-        std::vector<double>               mTempNeighboursDelta;
-        std::vector<int>                  mTempNeighboursFailureId;
-        std::vector<int>                  mTempNeighboursMapping;
-        std::vector<int>                  mTempContNeighboursMapping;                
+        std::vector<int>            mNeighbourFailureId;              
                   
         //fem neighbour information
         std::vector<double>         mFemNeighbourDelta;                        
