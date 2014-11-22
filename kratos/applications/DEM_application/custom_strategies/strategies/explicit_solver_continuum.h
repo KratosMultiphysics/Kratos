@@ -97,12 +97,13 @@ namespace Kratos
           
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ElementsArrayType& r_local_elems = r_model_part.GetCommunicator().LocalMesh().Elements();
+          r_local_elems.Sort(); //if Sort() is done before parallel region, local sorts won't do anything. If this Sort() is not done, the code crashes in the next parallel region!!)
           
-          //#pragma omp parallel for //TODO:
+          #pragma omp parallel for
           for ( int i=0; i<(int)mListOfSphericContinuumParticles.size(); i++) {   
               mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements.resize(mListOfSphericContinuumParticles[i]->mIniNeighbourIds.size());
               for (int j=0; j<(int)mListOfSphericContinuumParticles[i]->mIniNeighbourIds.size(); j++) {
-                  typename ElementsArrayType::iterator elem_iterator = r_local_elems.find(mListOfSphericContinuumParticles[i]->mIniNeighbourIds[j]);  
+                  typename ElementsArrayType::const_iterator elem_iterator = r_local_elems.find(mListOfSphericContinuumParticles[i]->mIniNeighbourIds[j]);  //using const_iterator saves doing another Sort() inside find()
                   if (elem_iterator == r_local_elems.end()) {
                       mListOfSphericContinuumParticles[i]->mContinuumIniNeighbourElements[j] = NULL; //points to NULL if it does not find the particle with this Id
                       continue;
