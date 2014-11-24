@@ -1,12 +1,14 @@
 import math
 
+
+
 class Parameters:
     def __init__(self):
         
         self.delta_time = 0.00000001
         
         self.radius = 1.2
-        self.sphericity = 1.0
+        self.sphericity = 1.8
         self.sqrt_of_mass = 1.0
         self.inertia = CalculateInertiaOfBall(self.radius, self.sqrt_of_mass)
         self.fluid_density = 1.0
