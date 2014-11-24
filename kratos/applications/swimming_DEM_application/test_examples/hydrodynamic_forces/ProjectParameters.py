@@ -1,19 +1,35 @@
 import math
+import random
 
+def RandomPositive(supremum = 1.0):
+    value = random.random() * supremum
+    
+    if value < 0.00000001:
+        value = 0.00000001
+    
+    return value
 
+def CalculateInertiaOfBall(r, sqrt_of_m):
+    return 0.4 * math.pi * r ** 2 * sqrt_of_m ** 2
 
 class Parameters:
     def __init__(self):
         
-        self.delta_time = 0.00000001
-        
-        self.radius = 1.2
-        self.sphericity = 1.8
-        self.sqrt_of_mass = 1.0
+        self.delta_time = RandomPositive()        
+        self.radius = RandomPositive()
+        self.sphericity = RandomPositive()
+        self.sqrt_of_mass = RandomPositive()
         self.inertia = CalculateInertiaOfBall(self.radius, self.sqrt_of_mass)
-        self.fluid_density = 1.0
-        self.kinematic_viscosity = 1.0
-        self.sphericity = 1.0
+        self.fluid_density = RandomPositive()
+        self.kinematic_viscosity = RandomPositive()
+        self.fluid_fraction = RandomPositive()
+        self.gel_strength = RandomPositive()
+        self.power_law_n = RandomPositive(3.0)
+        self.power_law_k = RandomPositive(1000)
+        self.yield_stress = RandomPositive(1000)
+        self.initial_drag_force = RandomPositive(1000)
+        self.drag_law_slope = RandomPositive(1000)
+        self.power_law_tol = RandomPositive(0.0001)
         
         self.coor_x = 0.0
         self.coor_y = 0.0
@@ -72,33 +88,21 @@ class Parameters:
         self.pressure_gradient_x = 0.0
         self.pressure_gradient_y = 0.0
         self.pressure_gradient_z = 0.0
-
-        self.fluid_fraction = 0.8
-        self.fluid_model_type = 1
         
-        self.buoyancy_force_type = 1
-        self.drag_force_type = 1
-        self.virtual_mass_force_type = 1
-        self.lift_force_type = 1
-        self.magnus_force_type = 1        
-        self.hydro_torque_type = 1                
-        self.drag_porosity_correction_type = 0
-
-        self.gel_strength = 1.0
-        self.power_law_n = 1.0
-        self.power_law_k = 1.0
-        self.yield_stress = 1.0
         self.non_newtonian_option = 1.0
-        self.initial_drag_force = 1.0
-        self.drag_law_slope = 1.0
-        self.power_law_tol = 0.0001
         self.manually_imposed_drag_law_option = 0
+        self.fluid_model_type = 1       
+        self.buoyancy_force_type = 0
+        self.drag_force_type = 0
+        self.virtual_mass_force_type = 0
+        self.lift_force_type = 0
+        self.magnus_force_type = 0        
+        self.hydro_torque_type = 0                
+        self.drag_porosity_correction_type = 0
         self.drag_modifier_type = 1
+
         self.nodal_mass_coeff = 1
 
         self.problem_name="suspended_particles"
         self.kratos_path="D:\Kratos"
-
-def CalculateInertiaOfBall(r, sqrt_of_m):
-    return 0.4 * math.pi * r ** 2 * sqrt_of_m ** 2
-    
+   

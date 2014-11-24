@@ -467,9 +467,8 @@ class DragBenchmark(Benchmark):
             self.pp.fluid_velocity_z = fluid_velocity[2]
             slip_vel = fluid_velocity - velocity
             r = self.pp.radius
-            dens = self.pp.fluid_density
            
-            self.pp.kinematic_viscosity = 2 * r * dens * Norm(slip_vel) / reynolds
+            self.pp.kinematic_viscosity = 2 * r * Norm(slip_vel) / reynolds
             
     def Test(self, model_part, benchmark_utils, target_drag):
         self.target_drag = target_drag  
@@ -858,7 +857,7 @@ def Run(debug_mode = False):
     buoyancy_target_2 = Array3()
     buoyancy_target_2[0] = 0.0
     buoyancy_target_2[1] = 0.0
-    buoyancy_target_2[2] = - buoyancy_test_2.pp.gravity_z * volume
+    buoyancy_target_2[2] = - buoyancy_test_2.pp.gravity_z * volume * buoyancy_test_2.pp.fluid_density
 
     buoyancy_test_2.Test(model_part, benchmark_utils, buoyancy_target_2)
     #***************************************************************************************************************************
@@ -891,7 +890,7 @@ def Run(debug_mode = False):
     slip_vel[0] = drag_test_1.pp.fluid_velocity_x - drag_test_1.pp.velocity_x
     slip_vel[1] = drag_test_1.pp.fluid_velocity_y - drag_test_1.pp.velocity_y
     slip_vel[2] = drag_test_1.pp.fluid_velocity_z - drag_test_1.pp.velocity_z
-    drag_target_1 = 6 * math.pi * viscosity * radius * slip_vel
+    drag_target_1 = 6 * math.pi * viscosity * density * radius * slip_vel
 
     drag_test_1.Test(model_part, benchmark_utils, drag_target_1)
     #***************************************************************************************************************************
