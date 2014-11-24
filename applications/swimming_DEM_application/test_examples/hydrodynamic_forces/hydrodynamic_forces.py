@@ -289,6 +289,7 @@ def RandomVector(modulus = 1.0):
     return v
 
 def CleanStaticVars():
+    Benchmark.number_of_fails = 0
     del Benchmark.tests[:]
     del BuoyancyBenchmark.tests[:]
     del DragBenchmark.tests[:]
@@ -302,6 +303,7 @@ class Benchmark:
         pass
     
     tests = []
+    number_of_fails = 0
     text_to_print ="\n========== Swimming DEM Aplication ==========\n" + "\nRunning verification tests...\n"
     
     @staticmethod
@@ -345,15 +347,21 @@ class Benchmark:
         string_to_print += " " * total_width + "\n"
         string_to_print += "=" * total_width + "\n"
         string_to_print += title + "\n"
-        string_to_print += "-" * total_width + "\n"        
-        string_to_print += lines[0] + "\n"
-        string_to_print += "-" * total_width + "\n"                
+        string_to_print += "-" * total_width + "\n"  
+        
+        for entry in lines[0]:
+            string_to_print += entry
+ 
+        string_to_print += "\n" + "-" * total_width + "\n"                
         
         for i in range(1, i_test + 1):
-            string_to_print += lines[i] + "\n"
-        
+            
+            for entry in lines[i]:
+                string_to_print += entry
+                
+            string_to_print += "\n"
+            
         string_to_print += "=" * total_width
-
         Benchmark.text_to_print += string_to_print + "\n"
      
     @staticmethod  
@@ -407,6 +415,7 @@ class BuoyancyBenchmark(Benchmark):
             veredict = True
             
         else:
+            Benchmark.number_of_fails += 1
             veredict = False
             
         self.results = [self.description, self.target_buoyancy, buoyancy, error, veredict] 
@@ -476,6 +485,7 @@ class DragBenchmark(Benchmark):
             veredict = True
             
         else:
+            Benchmark.number_of_fails += 1
             veredict = False
             
         self.results = [self.description, self.target_drag, drag, error, veredict] 
@@ -556,6 +566,7 @@ class VirtualMassBenchmark(Benchmark):
             veredict = True
             
         else:
+            Benchmark.number_of_fails += 1            
             veredict = False
             
         self.results = [self.description, self.target_virtual_mass, virtual_mass, error, veredict] 
@@ -632,6 +643,7 @@ class SaffmanBenchmark(Benchmark):
             veredict = True
             
         else:
+            Benchmark.number_of_fails += 1            
             veredict = False
             
         self.results = [self.description, self.target_saffman, lift, error, veredict] 
@@ -713,6 +725,7 @@ class MagnusBenchmark(Benchmark):
             veredict = True
             
         else:
+            Benchmark.number_of_fails += 1            
             veredict = False
             
         self.results = [self.description, self.target_magnus, lift, error, veredict] 
@@ -792,6 +805,7 @@ class TorqueBenchmark(Benchmark):
             veredict = True
             
         else:
+            Benchmark.number_of_fails += 1            
             veredict = False
             
         self.results = [self.description, self.target_torque, torque, error, veredict] 
@@ -1298,5 +1312,7 @@ def Run(debug_mode = False):
     #***************************************************************************************************************************
 
     TorqueBenchmark.PrintResults(debug_mode)
+    
+    Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"
     
     return Benchmark.text_to_print
