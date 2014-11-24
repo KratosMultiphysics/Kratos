@@ -256,17 +256,17 @@ private:
     ///@name Serialization
     ///@{
 
-    friend class Serializer;
+    //friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        rSerializer.save("mrModelPart",mrModelPart);
-    }
+    //virtual void save(Serializer& rSerializer) const
+    //{
+    //    rSerializer.save("mrModelPart",mrModelPart);
+    //}
 
-    virtual void load(Serializer& rSerializer)
-    {
-        rSerializer.load("mrModelPart",mrModelPart);
-    }
+    //virtual void load(Serializer& rSerializer)
+    //{
+    //    rSerializer.load("mrModelPart",mrModelPart);
+    //}
 
     ///@}
 
