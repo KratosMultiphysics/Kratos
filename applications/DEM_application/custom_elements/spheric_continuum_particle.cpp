@@ -536,16 +536,18 @@ namespace Kratos
                   
                 /* Evaluating Failure for the continuum contacts */
           
-                if(mNeighbourFailureId[i_neighbour_count] == 0)
-                {                
-                  /*
-                  mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
+                if(mNeighbourFailureId[i_neighbour_count] == 0) {                               
+                  /*mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
                   mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure tension
                   mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
-                  mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension
-                  */
-                  EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,calculation_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding, mapping_new_ini);
- 
+                  mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension*/
+                    double inv_calculation_area = 1/calculation_area;
+                  contact_tau = ShearForceNow * inv_calculation_area;
+                  contact_sigma = LocalElasticContactForce[2] * inv_calculation_area;
+                  
+                  EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
+                                          mFailureCriterionOption, mTauZero, mTanContactInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
+                                          mNeighbourFailureId[i_neighbour_count], mIniNeighbourFailureId[ mapping_new_ini], mTensionLimit);                            
                 }
                 
                 if(activate_search == 0)
@@ -1311,131 +1313,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }
       
       
-      void SphericContinuumParticle::EvaluateFailureCriteria(double LocalElasticContactForce[3],double ShearForceNow,double calculation_area, int i_neighbour_count,double& contact_sigma, double& contact_tau,double& failure_criterion_state, bool& sliding, int mapping_new_ini)
-      {             
-
-             //(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
       
-              if (mFailureCriterionOption==1)  //MOHR-COULOMB
-              {   
-                  contact_tau = ShearForceNow/(calculation_area);
-                  contact_sigma = LocalElasticContactForce[2]/(calculation_area);
-
-                  double sigma_max, sigma_min;
-
-                  if (LocalElasticContactForce[2]>=0)
-                  {
-                      sigma_max = contact_sigma;
-                      sigma_min = 0;
-                  }
-                  else 
-                  {
-                      sigma_max = 0;
-                      sigma_min = contact_sigma;
-                  }
-
-                  //change into principal stresses
-
-                  double centre = 0.5*(sigma_max + sigma_min);
-                  double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + contact_tau*contact_tau   ) ;
-
-                  double sigma_I = centre + radius;
-                  double sigma_II = centre - radius;
-                 
-                  // Check:
-                 
-                  double distance_to_failure = ( mTauZero/(mTanContactInternalFriccion) + centre )*mSinContactInternalFriccion;
-              
-                  failure_criterion_state = radius/distance_to_failure;
-    
-                  
-                if ( sigma_I - sigma_II >= 2*mTauZero*mCosContactInternalFriccion + (sigma_I + sigma_II)*mSinContactInternalFriccion )
-                  {
-                      //breaks
-
-                      mNeighbourFailureId[i_neighbour_count] = 5; //mohr coulomb   
-                      mIniNeighbourFailureId[ mapping_new_ini ] = 5;
-                      failure_criterion_state = 1.0;
-                      sliding = true ;
-
-                  }
-  
-                  
-              } //MOHR-COULOMB
-        
-              ///(2) UNCOUPLED FRACTURE
-                      
-              if (mFailureCriterionOption==2)//UNCOUPLED FRACTURE and DEMPACK
-              {    
- 
-                  contact_tau = ShearForceNow/(calculation_area);
-                  
-                  contact_sigma = LocalElasticContactForce[2]/(calculation_area);
-
-                  //double mTauZero = 0.5*sqrt(mCompressionLimit*mTensionLimit); 
-                               
-                  if (LocalElasticContactForce[2]>=0)
-                  {
-                      double tau_strength = mTauZero+mTanContactInternalFriccion*contact_sigma;
-                      
-                      failure_criterion_state = contact_tau/tau_strength;
-                      
-                      if(contact_tau>tau_strength)
-                      {
-                          mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
-                          mIniNeighbourFailureId[ mapping_new_ini ] = 2;
-                          failure_criterion_state = 1.0;
-                          sliding = true;
-                      }
-                  } //positive sigmas
-                  
-                  else //negative sigmas
-                  {
-  
-                        double tau_strength = mTauZero;
-
-                        failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/mTensionLimit) ;
-                        
-                        if(contact_tau > tau_strength)
-                        {
-                            mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure tension
-                            mIniNeighbourFailureId[ mapping_new_ini ] = 3;
-                            sliding = true;
-                            failure_criterion_state = 1.0;
-                      
-                          //Amb Dempack la fractura tracció és el limit del dany i es mira al calcul de forces...
-                          
-                            
-                         /*  
-                            
-                            if(contact_sigma<-mTensionLimit && mElasticityType<2)
-                            {
-                                mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension
-                                mIniNeighbourFailureId[ mapping_new_ini ] = 12;
-                                failure_criterion_state = 1.0;
-                            } //both shear and tension
-                          */
-                          
-                          
-                        }
-                        
-                      /*
-                        else if (contact_sigma<-mTensionLimit && mElasticityType<2)
-                        {
-                            mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
-                            mIniNeighbourFailureId[ mapping_new_ini ] = 4;
-                            sliding = true;
-                            failure_criterion_state = 1.0;
-                            
-                        }*/
-                     
-                      
-                  } //negative values of sigma              
-          
-              } //UNCOUPLED FRACTURE
-              if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
-    
-      }
       
       void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_cont, double LocalElasticContactForce[3], 
                                                           double  contact_sigma, double  contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {

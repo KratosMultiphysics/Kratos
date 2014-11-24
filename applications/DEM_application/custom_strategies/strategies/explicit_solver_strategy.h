@@ -588,7 +588,7 @@ namespace Kratos
           {
             Vector rhs_elem;
             rhs_elem.resize(6);
-            #pragma omp for
+            #pragma omp for schedule(guided)
             for(int i=0; i<(int)mListOfSphericParticles.size(); i++){              
                 mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);  
             }
@@ -1100,7 +1100,7 @@ namespace Kratos
         
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
         
-        #pragma omp parallel for 
+        #pragma omp parallel for schedule(guided)
         for (int i=0; i<(int)mListOfSphericParticles.size(); i++){
             mListOfSphericParticles[i]->mNeighbourElements.clear();
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it){
