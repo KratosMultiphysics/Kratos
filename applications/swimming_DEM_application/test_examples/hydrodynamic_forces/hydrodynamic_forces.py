@@ -77,8 +77,7 @@ def InitializeNodalVariables(model_part, pp):
         node.SetSolutionStepValue(POWER_LAW_N, pp.power_law_n)
         node.SetSolutionStepValue(POWER_LAW_K, pp.power_law_k)    
         node.SetSolutionStepValue(YIELD_STRESS, pp.yield_stress)   
-        node.SetSolutionStepValue(SHEAR_RATE_PROJECTED, pp.shear_rate_projected)
-           
+        node.SetSolutionStepValue(SHEAR_RATE_PROJECTED, pp.shear_rate_projected)           
     
 def AddVariables(model_part):
     # COMMON
@@ -372,8 +371,7 @@ class Benchmark:
             
         else:
             return Distance(v1, v2) / (Norm(v1) + Norm(v2))
-    
-    
+        
 class BuoyancyBenchmark(Benchmark):    
     title = "Buoyancy force test results"
     tests = []
@@ -385,10 +383,7 @@ class BuoyancyBenchmark(Benchmark):
     def __init__(self, pp, buoyancy_force_type, drag_force_type, pressure_gradient, description):
         self.pp = copy.deepcopy(pp) 
         self.buoyancy_tol = 10e-12
-
-        self.pp.virtual_mass_force_type = 0
-        self.pp.lift_force_type = 0
-        self.magnus_force_type = 0             
+       
         self.pp.pressure_gradient_x = pressure_gradient[0]
         self.pp.pressure_gradient_y = pressure_gradient[1]
         self.pp.pressure_gradient_z = pressure_gradient[2]
@@ -437,11 +432,7 @@ class DragBenchmark(Benchmark):
         self.pp.sphericity = sphericity
         self.description = description
 
-        self.drag_tol = 10e-12
-        self.pp.buoyancy_force_type = 0
-        self.pp.virtual_mass_force_type = 0
-        self.pp.lift_force_type = 0  
-        self.magnus_force_type = 0             
+        self.drag_tol = 10e-12       
         self.CalculateFlowVariables(particle_reynolds)
 
         self.has_results = False        
@@ -490,7 +481,6 @@ class DragBenchmark(Benchmark):
         self.results = [self.description, self.target_drag, drag, error, veredict] 
         self.string_results = Benchmark.ConvertToStrings(self.results)
         self.has_results = True
-
     
 class VirtualMassBenchmark(Benchmark):    
     title = "Virtual mass force test results"
@@ -504,10 +494,6 @@ class VirtualMassBenchmark(Benchmark):
         self.pp = copy.deepcopy(pp) 
         self.virtual_mass_tol = 10e-12 / self.pp.delta_time
         
-        self.pp.buoyancy_force_type = 0
-        self.pp.lift_force_type = 0
-        self.magnus_force_type = 0             
-        self.pp.drag_force_type = 0
         self.pp.virtual_mass_force_type = virtual_mass_force_type
         self.pp.fluid_fraction = fluid_fraction
         self.description = description
@@ -520,7 +506,7 @@ class VirtualMassBenchmark(Benchmark):
     def CalculateFlowVariables(self, acceleration_number):
         
         if acceleration_number < 0:
-            raise ValueError("The particle's Reynolds number should be non-negative")
+            raise ValueError("The particle's acceleration number should be non-negative")
         
         elif acceleration_number == 0.0:
             pass
@@ -571,8 +557,7 @@ class VirtualMassBenchmark(Benchmark):
         self.results = [self.description, self.target_virtual_mass, virtual_mass, error, veredict] 
         self.string_results = Benchmark.ConvertToStrings(self.results)
         self.has_results = True   
- 
-    
+     
 class SaffmanBenchmark(Benchmark):    
     title = "Saffman force test results"
     tests = []
@@ -585,10 +570,7 @@ class SaffmanBenchmark(Benchmark):
         self.pp = copy.deepcopy(pp) 
         self.saffman_tol = 10e-12
         
-        self.pp.buoyancy_force_type = 0
         self.pp.lift_force_type = saffman_force_type
-        self.pp.magnus_force_type = 0     
-        self.pp.drag_force_type = 0
         self.description = description
         
         self.has_results = False
@@ -649,7 +631,6 @@ class SaffmanBenchmark(Benchmark):
         self.string_results = Benchmark.ConvertToStrings(self.results)
         self.has_results = True  
 
-
 class MagnusBenchmark(Benchmark):    
     title = "Magnus force test results"
     tests = []
@@ -662,10 +643,7 @@ class MagnusBenchmark(Benchmark):
         self.pp = copy.deepcopy(pp) 
         self.magnus_tol = 10e-12
         
-        self.pp.buoyancy_force_type = 0
-        self.pp.lift_force_type = 0
         self.pp.magnus_force_type = magnus_force_type               
-        self.pp.drag_force_type = 0
         self.description = description
         
         self.has_results = False
@@ -677,7 +655,7 @@ class MagnusBenchmark(Benchmark):
     def CalculateFlowVariables(self, reynolds, reynolds_rot):
         
         if reynolds < 0 or reynolds_rot < 0:
-            raise ValueError("The particle's Reynold's number and shear Reynold's numbers should be non-negative")
+            raise ValueError("The particle's Reynold's number and rotation Reynold's numbers should be non-negative")
         
         elif reynolds_rot * reynolds == 0.0:
             pass
@@ -742,11 +720,7 @@ class TorqueBenchmark(Benchmark):
     def __init__(self, pp, hydro_torque_type, reynolds_rot, description):
         self.pp = copy.deepcopy(pp) 
         self.torque_tol = 10e-12
-        
-        self.pp.buoyancy_force_type = 0
-        self.pp.drag_force_type = 0
-        self.pp.lift_force_type = 0
-        self.pp.magnus_force_type = 0        
+    
         self.pp.hydro_torque_type = hydro_torque_type  
         self.description = description
         
