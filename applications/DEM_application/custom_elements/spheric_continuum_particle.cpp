@@ -390,13 +390,11 @@ namespace Kratos
             double other_tg_of_fri_angle     = neighbour_iterator->GetTgOfFrictionAngle();
 
             equiv_young                       = 2.0 * myYoung * other_young / (myYoung + other_young);
-            
             if((myPoisson + other_poisson)!= 0.0) {
-                equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
             } else {
                 equiv_poisson = 0.0;
             }
-            
             equiv_ln_of_restit_coeff          = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
             equiv_tg_of_fri_ang               = 0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle);
         
@@ -479,7 +477,9 @@ namespace Kratos
                 
                 if(mElasticityType < 2)
                 {
-                      NormalForceCalculation(LocalElasticContactForce[2],kn_el,indentation); //Error: should not be stored here (in LocalElasticContactForce)
+                      NormalForceCalculation(LocalElasticContactForce[2],
+                                             kn_el,
+                                             indentation); //Error: should not be stored here (in LocalElasticContactForce)
 
                 }
                 
@@ -487,27 +487,44 @@ namespace Kratos
                 
                
                     if (mapping_new_cont!=-1)
-                    {
-               
-                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, equiv_young, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini, rCurrentProcessInfo[TIME_STEPS] );
-                                        
+                    {                    
+                      PlasticityAndDamage1D(LocalElasticContactForce,
+                                            kn_el,
+                                            equiv_young,
+                                            indentation,
+                                            calculation_area,
+                                            radius_sum_i,
+                                            failure_criterion_state,
+                                            acumulated_damage,
+                                            i_neighbour_count,
+                                            mapping_new_cont,
+                                            mapping_new_ini,
+                                            mN1,
+                                            mN2,
+                                            mN3,
+                                            mYoungPlastic,
+                                            mPlasticityLimit,
+                                            mC1,
+                                            mC2,
+                                            mC3,
+                                            mTensionLimit,
+                                            mDamageMaxDisplacementFactor,
+                                            mHistory [mapping_new_cont],                              
+                                            mNeighbourFailureId[i_neighbour_count],
+                                            mIniNeighbourFailureId [mapping_new_ini],
+                                            rCurrentProcessInfo[TIME_STEPS] );                                       
                     }
                     
-                    else
-                    
-                    {
-                      NormalForceCalculation(LocalElasticContactForce[2],kn_el,indentation);//Error: should not be stored here (in LocalElasticContactForce)
-                      
-                    }
-                    
-                }//plasticity and damage for the initial continuum contacts only.
-
-            } //if compression or cohesive contact
+                    else{
+                        
+                        NormalForceCalculation(LocalElasticContactForce[2],
+                                               kn_el,
+                                               indentation);                    //Error: should not be stored here (in LocalElasticContactForce)
+                    }                   
+                }                                                               //plasticity and damage for the initial continuum contacts only.
+            }                                                                   //if compression or cohesive contact
                
-     
-            //Tangential. With degradation:
-            
-            double degradation = 1.0;
+            double degradation = 1.0;                                           //Tangential. With degradation:
 
             if(mDempack && (mapping_new_cont!= -1))
             {
@@ -544,7 +561,7 @@ namespace Kratos
                     double inv_calculation_area = 1/calculation_area;
                   contact_tau = ShearForceNow * inv_calculation_area;
                   contact_sigma = LocalElasticContactForce[2] * inv_calculation_area;
-                  
+ 
                   EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
                                           mFailureCriterionOption, mTauZero, mTanContactInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
                                           mNeighbourFailureId[i_neighbour_count], mIniNeighbourFailureId[ mapping_new_ini], mTensionLimit);                            
@@ -774,98 +791,101 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                                                                      std::vector<int>&                  mTempNeighboursFailureId,
                                                                      std::vector<int>&                  mTempNeighboursMapping,
                                                                      std::vector<int>&                  mTempContNeighboursMapping) {
-
+   
         mTempNeighbourElements.swap(mNeighbourElements);
-        unsigned int temp_size = mTempNeighbourElements.size();
 
-        mNeighbourElements.clear(); //////////////////////////////////////              
+    unsigned int temp_size = mTempNeighbourElements.size();
+    
+    mNeighbourElements.clear();//////////////////////////////////////              
+            
+    mTempNeighboursIds.resize(temp_size);
+    mTempNeighboursDelta.resize(temp_size);
+    mTempNeighboursFailureId.resize(temp_size);
+    mTempNeighbourElasticContactForces.resize(temp_size);
+    mTempNeighbourTotalContactForces.resize(temp_size);
+    mTempNeighboursMapping.resize(temp_size);
+    mTempContNeighboursMapping.resize(temp_size);
+    
 
-        mTempNeighboursIds.resize(temp_size);
-        mTempNeighboursDelta.resize(temp_size);
-        mTempNeighboursFailureId.resize(temp_size);
-        mTempNeighbourElasticContactForces.resize(temp_size);
-        mTempNeighbourTotalContactForces.resize(temp_size);
-        mTempNeighboursMapping.resize(temp_size);
-        mTempContNeighboursMapping.resize(temp_size);
-
-        array_1d<double, 3> vector_of_zeros;
+    array_1d<double, 3> vector_of_zeros;
         vector_of_zeros[0] = vector_of_zeros[1] = vector_of_zeros[2] = 0.0;
+    
+    unsigned int neighbour_counter       = 0; //Not increased at every iteration!! only if found as a real neighbour.
 
-        unsigned int neighbour_counter = 0; //Not increased at every iteration!! only if found as a real neighbour.
+    for (unsigned int i = 0; i < mTempNeighbourElements.size(); i++) {
+      SphericParticle* i_neighbour = mTempNeighbourElements[i];
 
-        for (unsigned int i = 0; i < mTempNeighbourElements.size(); i++) {
-            SphericParticle* i_neighbour = mTempNeighbourElements[i];
+      double                ini_delta           = 0.0;
+      int                   failure_id          = 1;
+      array_1d<double, 3>   neigh_elastic_forces        = vector_of_zeros;
+      array_1d<double, 3>   neigh_total_forces        = vector_of_zeros;
+      double                mapping_new_ini     = -1;  
+      double                mapping_new_cont    = -1;
 
-            double ini_delta = 0.0;
-            int failure_id = 1;
-            array_1d<double, 3> neigh_elastic_forces = vector_of_zeros;
-            array_1d<double, 3> neigh_total_forces = vector_of_zeros;
-            double mapping_new_ini = -1;
-            double mapping_new_cont = -1;
-
-            //Loop Over Initial Neighbours                
+      //Loop Over Initial Neighbours        
+        
             for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) {
                 if (static_cast<int> ((i_neighbour)->Id()) == mIniNeighbourIds[k]) {
-                    ini_delta = mIniNeighbourDelta[k];
-                    failure_id = mIniNeighbourFailureId[k];
-                    mapping_new_ini = k;
-                    mapping_new_cont = mIniNeighbourToIniContinuum[k];
-                    break;
-                }
-            }
-
-            //Loop Over Last time-step Neighbours
+          ini_delta  = mIniNeighbourDelta[k];
+          failure_id = mIniNeighbourFailureId[k];
+          mapping_new_ini = k; 
+          mapping_new_cont = mIniNeighbourToIniContinuum[k];
+          break;
+        }
+      }
+                  
+      //Loop Over Last time-step Neighbours
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((i_neighbour)->Id()) == mOldNeighbourIds[j]) {
-                    neigh_elastic_forces = mOldNeighbourElasticContactForces[j];
-                    neigh_total_forces = mOldNeighbourTotalContactForces[j];
-                    break;
-                }
-            }
+            neigh_elastic_forces = mOldNeighbourElasticContactForces[j];
+            neigh_total_forces   = mOldNeighbourTotalContactForces[j];
+            break;
+          }
+      }
+        
+        //Judge if its neighbour            
+        double other_radius                 = i_neighbour->GetRadius();
+        double radius_sum                   = mRadius + other_radius;
+        array_1d<double,3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
+        double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+        double indentation                  = radius_sum - distance - ini_delta;
+        
+        if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
+        {        
+            mNeighbourElements.push_back(i_neighbour);  ///////////////////////////////*/
+            
+            mTempNeighboursIds[neighbour_counter]              = static_cast<int>((i_neighbour)->Id());
+            mTempNeighboursMapping[neighbour_counter]          = mapping_new_ini;
+            mTempContNeighboursMapping[neighbour_counter]     = mapping_new_cont;                
+            mTempNeighboursDelta[neighbour_counter]            = ini_delta;
+            mTempNeighboursFailureId[neighbour_counter]       = failure_id;
+            mTempNeighbourElasticContactForces[neighbour_counter]   = neigh_elastic_forces;
+            mTempNeighbourTotalContactForces[neighbour_counter]   = neigh_total_forces;
+            
+            neighbour_counter++;
+            
+        }
 
-            //Judge if its neighbour            
-            double other_radius = i_neighbour->GetRadius();
-            double radius_sum = mRadius + other_radius;
-            array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
-            double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-            double indentation = radius_sum - distance - ini_delta;
-
-            if (indentation > 0.0 || failure_id == 0) //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
-            {
-                mNeighbourElements.push_back(i_neighbour); ///////////////////////////////*/
-
-                mTempNeighboursIds[neighbour_counter] = static_cast<int> ((i_neighbour)->Id());
-                mTempNeighboursMapping[neighbour_counter] = mapping_new_ini;
-                mTempContNeighboursMapping[neighbour_counter] = mapping_new_cont;
-                mTempNeighboursDelta[neighbour_counter] = ini_delta;
-                mTempNeighboursFailureId[neighbour_counter] = failure_id;
-                mTempNeighbourElasticContactForces[neighbour_counter] = neigh_elastic_forces;
-                mTempNeighbourTotalContactForces[neighbour_counter] = neigh_total_forces;
-
-                neighbour_counter++;
-
-            }
-
-        }//for ParticleWeakIteratorType i
-
-        int final_size = mNeighbourElements.size();
-        mTempNeighboursIds.resize(final_size);
-        mTempNeighboursDelta.resize(final_size);
-        mTempNeighboursFailureId.resize(final_size);
-        mTempNeighbourElasticContactForces.resize(final_size);
-        mTempNeighbourTotalContactForces.resize(final_size);
-        mTempNeighboursMapping.resize(final_size);
-        mTempContNeighboursMapping.resize(final_size);
-
-        mMapping_New_Ini.swap(mTempNeighboursMapping);
-        mMapping_New_Cont.swap(mTempContNeighboursMapping);
-        mOldNeighbourIds.swap(mTempNeighboursIds);
-        mNeighbourDelta.swap(mTempNeighboursDelta);
-        mNeighbourFailureId.swap(mTempNeighboursFailureId);
-        mOldNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
-        mOldNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
-
-    } //ComputeNewNeighboursHistoricalData
+      }//for ParticleWeakIteratorType i
+      
+      int final_size = mNeighbourElements.size();
+      mTempNeighboursIds.resize(final_size);
+      mTempNeighboursDelta.resize(final_size);
+      mTempNeighboursFailureId.resize(final_size);
+      mTempNeighbourElasticContactForces.resize(final_size);
+      mTempNeighbourTotalContactForces.resize(final_size);
+      mTempNeighboursMapping.resize(final_size);
+      mTempContNeighboursMapping.resize(final_size);
+      
+      mMapping_New_Ini.swap(mTempNeighboursMapping);
+      mMapping_New_Cont.swap(mTempContNeighboursMapping);
+      mOldNeighbourIds.swap(mTempNeighboursIds);
+      mNeighbourDelta.swap(mTempNeighboursDelta);
+      mNeighbourFailureId.swap(mTempNeighboursFailureId);
+      mOldNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
+      mOldNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
+    
+  } //ComputeNewNeighboursHistoricalData
   
   
   
@@ -1014,76 +1034,80 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
         std::vector<DEMWall*> mFemTempNeighbours;        
         mFemTempNeighbours.swap(mNeighbourRigidFaces);       
-        unsigned int fem_temp_size = mFemTempNeighbours.size();           
+      
+      unsigned int fem_temp_size = mFemTempNeighbours.size();
+      
         mNeighbourRigidFaces.clear();              
-        unsigned int fem_neighbour_counter       = 0;
-
+      
+      unsigned int fem_neighbour_counter       = 0;
+            
         std::vector<int>                  fem_temp_neighbours_ids; //these temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
         std::vector<double>               fem_temp_neighbours_delta;
         std::vector<array_1d<double, 3> > fem_temp_neighbours_contact_forces;
         std::vector<int>                  fem_temp_neighbours_mapping;      
+      
+      fem_temp_neighbours_ids.resize(fem_temp_size);
+      fem_temp_neighbours_delta.resize(fem_temp_size);
+      fem_temp_neighbours_contact_forces.resize(fem_temp_size);
+      fem_temp_neighbours_mapping.resize(fem_temp_size);
 
-        fem_temp_neighbours_ids.resize(fem_temp_size);
-        fem_temp_neighbours_delta.resize(fem_temp_size);
-        fem_temp_neighbours_contact_forces.resize(fem_temp_size);
-        fem_temp_neighbours_mapping.resize(fem_temp_size);
-
-        array_1d<double, 3> vector_of_zeros;
-        vector_of_zeros[0]                   = 0.0;
-        vector_of_zeros[1]                   = 0.0;
-        vector_of_zeros[2]                   = 0.0;
-
+      array_1d<double, 3> vector_of_zeros;
+      vector_of_zeros[0]                   = 0.0;
+      vector_of_zeros[1]                   = 0.0;
+      vector_of_zeros[2]                   = 0.0;
+      
         std::vector<double>& RF_Pram = mNeighbourRigidFacesPram;
-
+           
         for (unsigned int i=0; i<mFemTempNeighbours.size(); i++) {        
-            int ino1               = i * 16;
-            double DistPToB        = RF_Pram[ino1 + 9];
-            int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
-            double                ini_delta           = 0.0;
-            array_1d<double, 3>   neigh_forces        = vector_of_zeros;
-            double                mapping_new_ini     = -1;  
-
+        
+          int ino1               = i * 16;
+          double DistPToB        = RF_Pram[ino1 + 9];
+          int iNeighborID        = static_cast<int> (RF_Pram[ino1 + 14]);
+          double                ini_delta           = 0.0;
+          array_1d<double, 3>   neigh_forces        = vector_of_zeros;
+          double                mapping_new_ini     = -1;  
+          
             for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) {
               if (  iNeighborID == mFemIniNeighbourIds[k]) {                                                          
-                ini_delta  = mFemIniNeighbourDelta[k];                            
-                mapping_new_ini = k; 
-                break;
-              }
+              ini_delta  = mFemIniNeighbourDelta[k];                            
+              mapping_new_ini = k; 
+              break;
             }
+          }
 
             for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {            
               if ( static_cast<int>((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
-                neigh_forces = mFemOldNeighbourContactForces[j];
-                break;
-              }
+              neigh_forces = mFemOldNeighbourContactForces[j];
+              break;
             }
-
-            //Judge if its neighbour                  
-            double indentation = -(DistPToB - mRadius) - ini_delta;                    
-
+          }
+          
+          //Judge if its neighbour                  
+          double indentation = -(DistPToB - mRadius) - ini_delta;                    
+          
             if ( indentation > 0.0 ) {
                 mNeighbourRigidFaces.push_back(mFemTempNeighbours[i]);
-
-                fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((mFemTempNeighbours[i])->Id());
-                fem_temp_neighbours_mapping[fem_neighbour_counter]          = mapping_new_ini;
-                fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
-                fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
-
-                fem_neighbour_counter++;              
-            }
-
-        }//for ConditionWeakIteratorType i
-
+              
+              fem_temp_neighbours_ids[fem_neighbour_counter]              = static_cast<int>((mFemTempNeighbours[i])->Id());
+              fem_temp_neighbours_mapping[fem_neighbour_counter]          = mapping_new_ini;
+              fem_temp_neighbours_delta[fem_neighbour_counter]            = ini_delta;
+              fem_temp_neighbours_contact_forces[fem_neighbour_counter]   = neigh_forces;
+              
+              fem_neighbour_counter++;              
+          }
+          
+      }//for ConditionWeakIteratorType i
+      
         int final_size = mNeighbourRigidFaces.size();
-        fem_temp_neighbours_ids.resize(final_size);
-        fem_temp_neighbours_delta.resize(final_size);
-        fem_temp_neighbours_contact_forces.resize(final_size);
-        fem_temp_neighbours_mapping.resize(final_size);
-
-        mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
-        mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
-        mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
-        mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
+      fem_temp_neighbours_ids.resize(final_size);
+      fem_temp_neighbours_delta.resize(final_size);
+      fem_temp_neighbours_contact_forces.resize(final_size);
+      fem_temp_neighbours_mapping.resize(final_size);
+      
+      mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
+      mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
+      mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
+      mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
         
       }
       
@@ -1313,7 +1337,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }
       
       
-      
+
       
       void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_cont, double LocalElasticContactForce[3], 
                                                           double  contact_sigma, double  contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps) {
@@ -1448,191 +1472,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
      } //SphericContinuumParticle::ComputePressureForces
     
-
-    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double equiv_young, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps)
-    {
-
-      //VARIABLES
-      
-      // a guardar:
-  
-      double kn_b = kn_el / mN1;
-      double kn_c = kn_el / mN2;
-      double kn_d = kn_el / mN3;
-      double kp_el = mYoungPlastic/equiv_young * kn_el;
-      double Yields_el = mPlasticityLimit * calculation_area;
-        
-      double Ncstr1_el = mC1 * calculation_area;
-      double Ncstr2_el = mC2 * calculation_area;
-      double Ncstr3_el = mC3 * calculation_area;
-      double Ntstr_el  = mTensionLimit * calculation_area;
-      double u_max = mHistory[mapping_new_cont][0];
-      
-      double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force
-                
-      
-      if( indentation >= 0.0 ) //COMPRESSION
-      {
-        
-          fn = kn_el * indentation;
-          
-          double u_ela1 = Ncstr1_el/kn_el;;
-          double u_ela2 = u_ela1 + (Ncstr2_el-Ncstr1_el)/(kn_b);
-          double u_ela3 = u_ela2 + (Ncstr3_el-Ncstr2_el)/(kn_c);
-
-          if ( ( indentation > u_max ) || ( time_steps <= 1) )//maximum historical intentation OR first step  MSIMSI 0
-            
-          {
-
-            mHistory[mapping_new_cont][0]  = indentation;             // Guarda el treshold del màxim desplaçament
-            
-            
-            if (indentation > u_ela3) //4rt tram
-            {
-              
-              fn = Ncstr3_el + ( indentation - u_ela3 )*kn_d;
-              mHistory[mapping_new_cont][3] = kn_d/kn_el;
-              
-            }
-            else if (indentation > u_ela2) //3r tram
-            {
-              
-              fn = Ncstr2_el + ( indentation - u_ela2 )*kn_c;
-              mHistory[mapping_new_cont][3] = kn_c/kn_el;
-              
-            }
-            else
-            {    
-              if( indentation > u_ela1) //2n tram
-              {
-                fn = Ncstr1_el + (indentation - u_ela1)*kn_b;
-                mHistory[mapping_new_cont][3] = kn_b/kn_el;
-              
-              }
-              
-            }
-          
-          mHistory[mapping_new_cont][1] = fn; //actualitzar la força màxima a compressió.
-          
-          }
-          
-          else //Per sota del màxim.
-          {
-
-              if(mHistory[mapping_new_cont][1] > 0.0)  //Màxim en compressió. 
-              {
- 
-                  double u_plas;        //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
-
-                  if(Yields_el <= Ncstr1_el) //si el punt de plastificació està en la primera rama elastica.
-                  {
-                      u_plas = Yields_el/kn_el;
-
-                  }
-                  else
-                  {  
-                    if(Yields_el <= Ncstr2_el) //si està en la segona...
-                    {
-                        u_plas = u_ela1 + (Yields_el-Ncstr1_el)/(kn_b);
-
-                    }
-                     else if(Yields_el <= Ncstr3_el) //si està en la tercera...
-                    {
-                        u_plas = u_ela2 + (Yields_el-Ncstr2_el)/(kn_c);
-
-                    }
-                    
-                    else //en la quarta
-                    {
-
-                      u_plas = u_ela3 + (Yields_el-Ncstr3_el)/(kn_d);
-                    }
-                    
-                  }
-
-                  
-                  if ( u_plas < u_max ) //si nosaltres estem per sota del maxim pero ja estem plastificant 
-                  {
-                    fn = mHistory[mapping_new_cont][1] - kp_el*(u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
-                    mHistory[mapping_new_cont][3] = kp_el/kn_el;
-                    
-                    
-                  }
-                  else                                   // Esta en zona descarga elastica, ens despreocupem de la plasticitat
-                  {
-
-                    if ( indentation > u_ela3)  //en la 4a ramma
-                    {
-                      fn = Ncstr3_el + (indentation - u_ela3)*kn_d;
-                      
-                    }
-                    
-                    else if ( indentation > u_ela2)  //en la 3a ramma
-                    {
-                      fn = Ncstr2_el + (indentation - u_ela2)*kn_c;
-                      
-                    }
-                    
-                    else
-                    {
-                      if(indentation > u_ela1)  //en la 2a rama
-                      {
-                        fn = Ncstr1_el + (indentation-u_ela1)*kn_b;
-                      }
-            
-                    }
-            
-                  }
-
-              } //si tenim precàrrega en compressió.
-              
-          }//Per sota del màxim.
-
-
-      } //Compression
-              
-
-      else //tension
-      {
-        fn = kn_el * indentation; 
-        
-        double u1 = Ntstr_el / kn_el;
-
-        double u2 = u1*(1+ mDamageMaxDisplacementFactor);
- 
-          if(fabs(indentation) > u2)                  // FULL DAMAGE 
-          {
-            mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
-            mIniNeighbourFailureId[ mapping_new_ini ] = 4;
-            acumulated_damage = 1.0;
-            fn = 0.0;
-          }
-          else
-          {
-            if (fabs(indentation) > u1)  
-            {
-              double u_frac = (fabs(indentation) - u1)/(u2 - u1);
-              //failure_criterion_state = fabs(indentation)/u2;
-              acumulated_damage = u_frac;
-              
-              
-              if (u_frac > mHistory[mapping_new_cont][2])  
-              {
-                mHistory[mapping_new_cont][2] = u_frac;
-              }
-              
-            }
-            
-            fn = indentation * kn_el*(1.0 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
-            
-          }
-      
-        }//Tension
-     
-    }//PlasticityAndDamage1D
-    
-    
-    
+   
     void SphericContinuumParticle::ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo)
          
          {
