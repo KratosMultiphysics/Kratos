@@ -129,7 +129,7 @@ namespace Kratos
                                            const bool multi_stage_RHS);         
 
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);        
+        //void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);        
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );                
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
