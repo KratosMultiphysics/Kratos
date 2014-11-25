@@ -185,8 +185,8 @@ def ConstructSolver(configuration):
             elif(smoother_type == "SPAI0"):
                 amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.SPAI0
             else:
-                print("ERROR: smoother_type shall be one of ILU0, DAMPED_JACOBI, SPAI0")
-                return None
+                print("ERROR: smoother_type shall be one of \"ILU0\", \"DAMPED_JACOBI\", \"SPAI0\", got \"{0}\".\n\"ILU0\" will be used.".format(smoother_type))
+                amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
         else:
             print("WARNING: smoother_type not prescribed for AMGCL solver, setting it to ILU0")
             amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
@@ -202,8 +202,8 @@ def ConstructSolver(configuration):
             elif(krylov_type == "BICGSTAB_WITH_GMRES_FALLBACK"):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK             
             else:
-                print("ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG, BICGSTAB_WITH_GMRES_FALLBACK")
-                return None
+                print("ERROR: krylov_type shall be one of \"GMRES\", \"BICGSTAB\", \"CG\", \"BICGSTAB_WITH_GMRES_FALLBACK\", got \"{0}\".\n\"GMRES\" will be used".format(krylov_type))
+                amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
         else:
             print("WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES")
             amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
