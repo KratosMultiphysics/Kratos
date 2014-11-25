@@ -362,7 +362,20 @@ class Benchmark:
             
         string_to_print += "=" * total_width
         Benchmark.text_to_print += string_to_print + "\n"
-     
+    
+    @staticmethod  
+    def PrintFailedTestsParameters():
+        
+        my_string = ""
+        
+        for test in Benchmark.tests:
+
+            if not test.results[4]:
+                my_string += "\nTest with description '" + test.results[0] + "'" " failed with parameters:\n"
+                my_string += test.pp.GetParametersString() + "\n"
+                
+        return my_string
+    
     @staticmethod  
     def ErrorMetric(v1, v2):
         
@@ -1285,7 +1298,11 @@ def Run(debug_mode = False):
     #***************************************************************************************************************************
 
     TorqueBenchmark.PrintResults(debug_mode)
+    Benchmark.text_to_print += Benchmark.PrintFailedTestsParameters()
     
-    Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"
-    
+    if Benchmark.number_of_fails > 0:
+        Benchmark.text_to_print += "\n\nWARNING!!!\n"
+        
+    Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"   
+        
     return Benchmark.text_to_print

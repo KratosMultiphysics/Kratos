@@ -1,4 +1,5 @@
 import math
+import copy
 import random
 
 def RandomPositive(supremum = 1.0):
@@ -11,6 +12,25 @@ def RandomPositive(supremum = 1.0):
 
 def CalculateInertiaOfBall(r, sqrt_of_m):
     return 0.4 * math.pi * r ** 2 * sqrt_of_m ** 2
+
+def PadWithSpaces(lines):   
+    width = GetColumMaxWidth(lines, 2)
+    aux = copy.deepcopy(lines)
+
+    del lines[:]
+    
+    for line_aux in aux:        
+        lines += [line_aux.ljust(width)]
+    
+def GetColumMaxWidth(lines, margin):
+    width = 0
+
+    for line in lines:
+        width = max(width, len(line))
+        
+    width += margin
+    
+    return width
 
 class Parameters:
     def __init__(self):
@@ -106,3 +126,23 @@ class Parameters:
         self.problem_name="suspended_particles"
         self.kratos_path="D:\Kratos"
    
+    def GetParametersString(self):
+        my_string = ""
+        keys = []
+        values = []
+        
+        for var in vars(self).keys():
+            keys += [str(var)]
+        
+        PadWithSpaces(keys)
+        
+        for var in vars(self).values():
+            values += [str(var)]
+         
+        i = 0
+        
+        for var in keys:
+            my_string += "\n" + var + "= " + values[i]
+            i += 1
+            
+        return my_string
