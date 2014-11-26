@@ -46,6 +46,7 @@
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/dem_fem_utilities.h"
 #include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/inlet.h"
 
 #include "custom_elements/cluster3D.h"
 
