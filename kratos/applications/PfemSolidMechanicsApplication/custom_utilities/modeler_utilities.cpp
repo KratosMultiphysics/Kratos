@@ -51,7 +51,7 @@ namespace Kratos
   {
     //Mesh Id=0
 
-    std::cout<<" [ OLD TOTAL MESH (Elements: "<<rModelPart.NumberOfElements()<<" Nodes: "<<rModelPart.NumberOfNodes()<<" Conditions: "<<rModelPart.NumberOfConditions()<<" ] "<<std::endl;
+    std::cout<<"   [ START MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
 
     rModelPart.Nodes().clear();
     rModelPart.Elements().clear();
@@ -74,7 +74,7 @@ namespace Kratos
 
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
-	std::cout<<" [ CHILD MESH : ["<<MeshId<<"] (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<" ] "<<std::endl;
+	std::cout<<"    [ CHILD MESH [Id:"<<MeshId<<"] [Elems="<<rModelPart.NumberOfElements(MeshId)<<"|Nodes="<<rModelPart.NumberOfNodes(MeshId)<<"|Conds="<<rModelPart.NumberOfConditions(MeshId)<<"] ] "<<std::endl;
 
 
 	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(MeshId) ; i_elem != rModelPart.ElementsEnd(MeshId) ; i_elem++)
@@ -167,7 +167,7 @@ namespace Kratos
     rModelPart.Elements().Unique();
     rModelPart.Conditions().Unique();
       
-    std::cout<<" [ NEW TOTAL MESH (Elements: "<<rModelPart.NumberOfElements()<<" Nodes: "<<rModelPart.NumberOfNodes()<<" Conditions: "<<rModelPart.NumberOfConditions()<<" ] "<<std::endl;      
+    std::cout<<"   [ END MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
  
   }
   

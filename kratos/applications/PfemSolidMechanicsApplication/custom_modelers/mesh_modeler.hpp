@@ -425,9 +425,9 @@ public:
      void SetRefineData( bool   RefineFlag  = false,
 			 double SizeFactor  = 0.5,
 			 double Radius      = 0.00004,
-			 Variable<double>  DissipationVariable = PLASTIC_DISSIPATION,
+			 const Variable<double>&  DissipationVariable = PLASTIC_DISSIPATION,
 			 double Dissipation =40,
-			 Variable<double>  ErrorVariable = PLASTIC_STRAIN,
+			 const Variable<double>&  ErrorVariable = PLASTIC_STRAIN,
 			 double Error       = 2,
 			 int    MeshId      = 0);
 

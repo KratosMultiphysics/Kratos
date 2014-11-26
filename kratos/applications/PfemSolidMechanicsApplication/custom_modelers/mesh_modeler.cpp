@@ -141,9 +141,9 @@ namespace Kratos
   void MeshModeler::SetRefineData( bool   RefineFlag,
 				   double SizeFactor,
 				   double Radius,
-				   Variable<double> DissipationVariable,
+				   const Variable<double>& DissipationVariable,
 				   double Dissipation,
-				   Variable<double> ErrorVariable,
+				   const Variable<double>& ErrorVariable,
 				   double Error,
 				   int    MeshId )
   {    
@@ -159,13 +159,13 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.SizeFactor          = SizeFactor; //nodal_h
     
-    std::cout<<" INPUT VARIABLE ["<<MeshId<<"]"<<DissipationVariable<<std::endl;    
+    //std::cout<<" INPUT VARIABLE ["<<MeshId<<"]"<<DissipationVariable<<std::endl;    
 
-    //mMeshingVariables[MeshId].Refine.SetDissipationVariable(DissipationVariable); //still not working
-    mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_DISSIPATION);
+    mMeshingVariables[MeshId].Refine.SetDissipationVariable(DissipationVariable); 
+    //mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_DISSIPATION);
     //mMeshingVariables[MeshId].Refine.SetDissipationVariable(PLASTIC_STRAIN);
 
-    std::cout<<" VARIABLE ["<<MeshId<<"]"<<mMeshingVariables[MeshId].Refine.GetDissipationVariable()<<std::endl;
+    //std::cout<<" VARIABLE ["<<MeshId<<"]"<<mMeshingVariables[MeshId].Refine.GetDissipationVariable()<<std::endl;
 
     mMeshingVariables[MeshId].Refine.CriticalDissipation = Dissipation; //40;  400;
 
@@ -173,13 +173,13 @@ namespace Kratos
 
     mMeshingVariables[MeshId].Refine.CriticalSide        = SideTolerance * Radius;  //0.02;
 
-    std::cout<<" INPUT VARIABLE ["<<MeshId<<"]"<<ErrorVariable<<std::endl;    
+    //std::cout<<" INPUT VARIABLE ["<<MeshId<<"]"<<ErrorVariable<<std::endl;    
 
-    //mMeshingVariables[MeshId].Refine.SetErrorVariable(ErrorVariable);
-    mMeshingVariables[MeshId].Refine.SetErrorVariable(PLASTIC_STRAIN);
+    mMeshingVariables[MeshId].Refine.SetErrorVariable(ErrorVariable);
+    //mMeshingVariables[MeshId].Refine.SetErrorVariable(PLASTIC_STRAIN);
     //mMeshingVariables[MeshId].Refine.SetErrorVariable(NORM_ISOCHORIC_STRESS);
 
-    std::cout<<" VARIABLE ["<<MeshId<<"]"<<mMeshingVariables[MeshId].Refine.GetErrorVariable()<<std::endl;
+    //std::cout<<" VARIABLE ["<<MeshId<<"]"<<mMeshingVariables[MeshId].Refine.GetErrorVariable()<<std::endl;
 
     mMeshingVariables[MeshId].Refine.ReferenceError      = Error;  //2;
 
