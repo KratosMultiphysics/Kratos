@@ -334,7 +334,7 @@ namespace Kratos
 
 					 double& temp = i_node->FastGetSolutionStepValue(TEMPERATURES_US);
 					 temp = (1.8 * i_node->FastGetSolutionStepValue(TEMPERATURE) + 32.0);
-					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
+					 //i_node->FastGetSolutionStepValue(SOLID_FRACTION) = i_node->FastGetSolutionStepValue(DP_ALPHA1);
 
 					 if(temp<min_wet_temp)
 							 temp = min_wet_temp;
@@ -346,7 +346,8 @@ namespace Kratos
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
 					 i_node->FastGetSolutionStepValue(TEMPERATURES_US) = (1.8 * print_temperature + 32.0) ;
-					 i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
+					 //i_node->FastGetSolutionStepValue(TEMPERATURES) = (1.8 * print_temperature + 32.0) ;
+					 //i_node->FastGetSolutionStepValue(SOLID_FRACTION) = 0.00;
 				 }
 
 			  }
