@@ -888,6 +888,11 @@ public:
 
                 (*it2)->GetSolutionStepReactionValue() = b[i];
             }
+	    else
+	    {
+  	        (*it2)->GetSolutionStepReactionValue() = 0;
+	    }
+
         }
 
         //KRATOS_WATCH( __LINE__ )

@@ -1012,6 +1012,11 @@ public:
                 // KRATOS_WATCH( ReactionsVector[i] )
                 (*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
             }
+	    else
+	    {
+	        (*it2)->GetSolutionStepReactionValue() = 0;
+	    }
+
             num++;
         }
 
