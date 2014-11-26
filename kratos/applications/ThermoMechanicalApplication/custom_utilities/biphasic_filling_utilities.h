@@ -343,8 +343,8 @@ public:
         double cutted_area = 0.0;
 		double wet_volume_left=0.0;
 		double wet_volume_right=0.0;
-		double tol=1e-9;
-		double tolv=1e-3;
+		double tol=1e-5;
+		double tolv=5e-3;
 		double lower_correction;
 		double upper_correction;
         int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();
@@ -435,7 +435,7 @@ public:
 			double aux_vol_r=wet_volume_right-fabs(Net_volume);
 			double aux_vol_l=wet_volume_left-fabs(Net_volume);
 			correction=(aux_vol_r*lower_correction-aux_vol_l*upper_correction)/(wet_volume_right-wet_volume_left);
-			if((correction<lower_correction)||(correction>upper_correction)){KRATOS_WATCH("!!!!!!!!!!!!!!!!ERROR CORRECTING VOLUME IN VOLUMECORRECTION!!!!!!!!!!!!!!!");}
+			if((correction<lower_correction)||(correction>upper_correction)){KRATOS_WATCH("ERROR CORRECTING VOLUME IN VOLUME_CORRECTION");}
 			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
 			volume_difference = fabs(Net_volume) - wet_volume;
 			if(fabs(Net_volume)>wet_volume){
