@@ -3080,6 +3080,7 @@ namespace Kratos
 	if (rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_ERROR))	      
 	  {
 	    MeshErrorCalculationUtilities MeshErrorDistribution;
+	    MeshErrorDistribution.SetEchoLevel(this->GetEchoLevel());
 	      
 	    std::vector<double> NodalError;
 	    std::vector<int>    nodes_ids;
@@ -4102,6 +4103,7 @@ namespace Kratos
 		Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
 		(p_new_dof)->FreeDof();
+	
 	      }
 		
 	    j++;
