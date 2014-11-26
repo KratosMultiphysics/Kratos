@@ -1,13 +1,18 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import math
 import copy
+import random
+import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
+
 import swimming_DEM_gid_output
 import ProjectParameters
-import random
+kratos_benchmarking_path = '../../../benchmarking'
+sys.path.append(kratos_benchmarking_path)
+import benchmarking
 
 def AddVariables(model_part, pp):
     AddNodalVariables(model_part)
@@ -1306,3 +1311,6 @@ def Run(debug_mode = False):
     Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"   
         
     return Benchmark.text_to_print
+
+if __name__ == '__main__':
+    print(Run(True))        
