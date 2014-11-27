@@ -36,8 +36,9 @@
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
 
 namespace Kratos {
-class DEM_Inlet
-{
+    
+class DEM_Inlet {
+    
 public:        
     
     typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
