@@ -514,7 +514,7 @@ class DEMFEMProcedures(object):
         self.RigidFace_model_part = RigidFace_model_part
         #self.solver = solver
 
-        self.top_mesh_nodes = []
+        self.fem_mesh_nodes = []
 
         self.graph_counter = 0;
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
@@ -565,12 +565,12 @@ class DEMFEMProcedures(object):
             if self.RigidFace_model_part.NumberOfMeshes() > 1:
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
-                        self.top_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+                        self.fem_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
                         self.total_force_x = 0.0
                         self.total_force_y = 0.0
                         self.total_force_z = 0.0
 
-                        for node in self.top_mesh_nodes:
+                        for node in self.fem_mesh_nodes:
                             force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
                             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                             force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
