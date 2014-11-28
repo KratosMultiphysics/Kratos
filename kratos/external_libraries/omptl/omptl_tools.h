@@ -191,7 +191,7 @@ void _partition_range_by_pivots(Iterator first, Iterator last,
 {
     assert(partitions.size() == P);
 
-    typedef ::std::pair<Iterator, Iterator> Partition;
+//    typedef ::std::pair<Iterator, Iterator> Partition;
 
     ::std::vector<Iterator> ptable(P);
     ::std::vector<typename ::std::iterator_traits<Iterator>::value_type>
