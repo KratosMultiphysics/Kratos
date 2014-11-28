@@ -2252,6 +2252,15 @@ protected:
             {
                 ReadVectorialValue(rMesh[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
             }
+            else if(KratosComponents<Variable<std::string> >::Has(variable_name))
+            {
+                std::string value;
+		std::string  temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                rMesh[KratosComponents<Variable<std::string> >::Get(variable_name)] = temp;
+            }    
             else
             {
                 std::stringstream buffer;
