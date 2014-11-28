@@ -134,6 +134,8 @@ double GetDensity();
 void   SetDensityFromProperties(double* density);
 int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
+double GetParticleCohesion();
+void   SetParticleCohesionFromProperties(double* particle_cohesion);
 
 PropertiesProxy* GetFastProperties();
 void   SetFastProperties(PropertiesProxy* pProps);
@@ -145,9 +147,8 @@ double SlowGetPoisson();
 double SlowGetTgOfFrictionAngle();
 double SlowGetLnOfRestitCoeff();
 double SlowGetDensity();
-double SlowGetCohesion();
-int SlowGetParticleMaterial();
-
+double SlowGetParticleCohesion();
+int    SlowGetParticleMaterial();
 
 ///@}
 ///@name Access
@@ -221,6 +222,7 @@ virtual void CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& othe
                                                  const double& radius_sum,
                                                  double& kn,
                                                  double& kt,
+                                                 double& cohesion_area,
                                                  double& equiv_visco_damp_coeff_normal,
                                                  double& equiv_visco_damp_coeff_tangential,
                                                  double& equiv_tg_of_fri_ang,
@@ -238,7 +240,7 @@ virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
 
 virtual void NormalForceCalculation(double& normal_force, double kn, double indentation);
 
-virtual void CohesionCalculation(double& cohesion_force, double cohesion);
+virtual void CohesionCalculation(double& cohesion_force, double cohesion, double equiv_area);
 
 virtual void TangentialForceCalculation(const double normal_force, double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
