@@ -216,7 +216,7 @@ class ModelerUtility:
 
             critical_mesh_size = critical_mesh_size * configuration.size_scale
 
-            print("::[Modeler_Utility]:: DOMAIN MESH [ ID:",conditions["Subdomain"],"] [ Remesh:",conditions["Remesh"],"] [ Refine:",conditions["Refine"],"]" )
+            print("::[Modeler_Utility]:: Domain Mesh [",conditions["Subdomain"],"] [ Remesh:",conditions["Remesh"],"] [ Refine:",conditions["Refine"],"]" )
             if( conditions["Remesh"] ):
                 print("(Type:",conditions["MeshElement"],")")
 
