@@ -6,20 +6,17 @@
 //
 //
 
+ // Project includes
+#include "includes/define.h" 
+
 // System includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-// External includes
-
-
-// Project includes
-#include "includes/define.h"
-
-
-//constitutive laws
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"    
-#include "custom_constitutive/DEM_continuum_constitutive_law.h"     
+#include "custom_constitutive/DEM_continuum_constitutive_law.h" 
+#include "custom_constitutive/DEM_Dempack1_CL.h"
+
 
 
 namespace Kratos
@@ -60,6 +57,14 @@ void  AddCustomConstitutiveLawsToPython()
     class_<Variable<DEMContinuumConstitutiveLaw::Pointer>, boost::noncopyable >( "DEMContinuumConstitutiveLawPointerVariable", no_init )
     .def( self_ns::str( self ) )
     ;
+
+    class_<DEM_Dempack1, bases< DEMContinuumConstitutiveLaw >, boost::noncopyable >
+    ( "DEM_Dempack1",
+      init<>() )
+    ;
+
+
+
 
 }
 
