@@ -35,8 +35,6 @@
 
 
 namespace Kratos {
-
-static double rand_normal(double mean, double stddev, double max_radius, double min_radius);      
         
 class ParticleCreatorDestructor {
         
