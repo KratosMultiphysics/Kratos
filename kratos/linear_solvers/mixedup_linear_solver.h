@@ -839,8 +839,8 @@ private:
         //KRATOS_WATCH(804)
 
         typedef boost::numeric::ublas::vector<int> IndexVector;
-        typedef typename SparseMatrixType::iterator1 OuterIt;
-        typedef typename SparseMatrixType::iterator2 InnerIt;
+        //typedef typename SparseMatrixType::iterator1 OuterIt;
+        //typedef typename SparseMatrixType::iterator2 InnerIt;
         typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
 
         int DiagSize = int (diagK.size()); // to avoid comparison between int & unsigned int
@@ -983,8 +983,8 @@ private:
     {
         typedef boost::numeric::ublas::vector<int> IndexVector;
         typedef OpenMPUtils::PartitionVector PartitionVector;
-        typedef typename SparseMatrixType::iterator1 OuterIt;
-        typedef typename SparseMatrixType::iterator2 InnerIt;
+        //typedef typename SparseMatrixType::iterator1 OuterIt;
+        //typedef typename SparseMatrixType::iterator2 InnerIt;
         typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
 
         PartitionVector Partition;

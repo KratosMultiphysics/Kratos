@@ -350,8 +350,8 @@ private:
     ///@{
     static void SymmetricScaling( SparseMatrixType& A, const VectorType& aux)
     {
-        typedef  unsigned int size_type;
-        typedef  double value_type;
+      //typedef  unsigned int size_type;
+        //typedef  double value_type;
 
         //create partition
         OpenMPUtils::PartitionVector partition;
@@ -414,8 +414,8 @@ private:
 
     static void GetScalingWeights( const SparseMatrixType& A, VectorType& aux)
     {
-        typedef  unsigned int size_type;
-        typedef  double value_type;
+      //typedef  unsigned int size_type;
+      //typedef  double value_type;
 
         //create partition
         OpenMPUtils::PartitionVector partition;
