@@ -234,7 +234,7 @@ if (DEM_parameters.ModelDataInfo == "ON"):
 
 if(DEM_parameters.Dempack):
 #    if(mpi.rank == 0):
-    #materialTest.PrintChart();
+    materialTest.PrintChart();
     materialTest.PrepareDataForGraph()
  
 ##############################################################################
@@ -356,7 +356,7 @@ while ( time < DEM_parameters.FinalTime):
 
 demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
-DEMFEMProcedures.FinalizeGraphs(RigidFace_model_part)
+DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
 
 # Charlie: This didn't exist. I replaced it with the line above
 #if((DEM_parameters.TestType == "None")):
