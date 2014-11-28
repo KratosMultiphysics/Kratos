@@ -52,7 +52,7 @@ namespace Kratos {
     LineCluster3D::~LineCluster3D() {}
       
     
-    void LineCluster3D::Initialize() {
+    void LineCluster3D::CustomInitialize() {
         
         int number_of_spheres=10;
         mListOfRadii.resize(number_of_spheres);
