@@ -4,9 +4,9 @@
 
 /* Project includes */
 #include "DEM_continuum_constitutive_law.h"
-#include "../custom_elements/spheric_continuum_particle.h"
-#include "DEM_discontinuum_constitutive_law.h"
-#include "../custom_elements/spheric_particle.h"
+//#include "DEM_discontinuum_constitutive_law.h"
+
+
 namespace Kratos
 {
 
@@ -18,32 +18,15 @@ public:
 
     DEM_Dempack1(){}
 
-    DEMContinuumConstitutiveLaw::Pointer Clone() const;
+    //DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
+
+    void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
     void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
     ~DEM_Dempack1(){}
 
-    double mN1;
-    double mN2;
-    double mN3;
-    double mC1;
-    double mC2;
-    double mC3;
-    double mYoungPlastic;
-    double mPlasticityLimit;
-    double mDamageMaxDisplacementFactor;
-    double mTensionLimit;
-    double mTauZero;
-    double mContactInternalFriccion;
-    double mTanContactInternalFriccion;
-    double mSinContactInternalFriccion;
-    double mCosContactInternalFriccion;
-    int mFailureCriterionOption;
-
-
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
-
+    DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
     void CalculateContactForces(double mRadius,
                                 double mSqrtOfRealMass,
@@ -71,39 +54,47 @@ public:
 
 
 
-    void PlasticityAndDamage(double LocalElasticContactForce[3],
-                             double kn,
-                             double equiv_young,
-                             double indentation,
-                             double corrected_area,
-                             double radius_sum_i,
-                             double& failure_criterion_state,
-                             double& acumulated_damage,
-                             int& neighbour_failure_id,
-                             int mapping_new_cont,
-                             int mapping_new_ini,
-                             int time_steps,
-                             array_1d<double, 4 > &mHistory_mapping_new_cont,
-                             int mIniNeighbourFailureId_mapping_new_ini);
+    void PlasticityAndDamage1D(double LocalElasticContactForce[3],
+                const double kn_el,
+                double equiv_young,
+                double indentation,
+                double calculation_area,
+                double radius_sum_i,
+                double& failure_criterion_state,
+                double& acumulated_damage,
+                int i_neighbour_count,
+                int mapping_new_cont,
+                int mapping_new_ini,
+                const double mN1,
+                const double mN2,
+                const double mN3,
+                const double mYoungPlastic,
+                const double mPlasticityLimit,
+                const double mC1,
+                const double mC2,
+                const double mC3,
+                const double mTensionLimit,
+                const double mDamageMaxDisplacementFactor,
+                array_1d <double, 4> &mHistory_mapping_new_cont,
+                int &mNeighbourFailureId_i_neighbour_count,
+                int &mIniNeighbourFailureId_mapping_new_ini,
+                int time_steps);
 
 
 
-    void EvaluateFailureCriteria(double LocalElasticContactForce[3],
-                                 double ShearForceNow,
-                                 double calculation_area,
-                                 int i_neighbour_count,
-                                 double& contact_sigma,
-                                 double& contact_tau,
-                                 double& failure_criterion_state,
-                                 bool& sliding,
-                                 int mapping_new_ini,
-                                 int mFailureCriterionOption,
-                                 double mTauZero,
-                                 double mTanContactInternalFriccion,
-                                 double mSinContactInternalFriccion,
-                                 double mCosContactInternalFriccion,
-                                 int mIniNeighbourFailureId_mapping_new_ini,
-                                 int& neighbour_failure_id);
+    void EvaluateFailureCriteria(
+                const double contact_sigma,
+                const double contact_tau,
+                double& failure_criterion_state,
+                bool& sliding,
+                const int FailureCriterionOption,
+                const double TauZero,
+                const double TanContactInternalFriccion,
+                const double SinContactInternalFriccion,
+                const double CosContactInternalFriccion,
+                int& NeighbourFailureId_i_neighbour_count,
+                int& IniNeighbourFailureId_mapping_new_ini,
+                const double TensionLimit);
 
 
 
