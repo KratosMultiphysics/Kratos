@@ -519,11 +519,24 @@ class DEMFEMProcedures(object):
         self.graph_counter = 0;
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
         os.chdir(self.graphs_path)
-        self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
-        self.total_force_top = 0.0
-        self.total_force_x = 0.0
-        self.total_force_y = 0.0
-        self.total_force_z = 0.0
+        #self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        
+        def open_graph_files(self,RigidFace_model_part):
+            #os.chdir(self.graphs_path)
+            for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w');
+                    
+        def close_graph_files(self,RigidFace_model_part):
+            for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
+        
+        self.graph_forces = {}  
+        
+        if self.TestType == "None":  
+          print (self.graphs_path)
+          open_graph_files(self,RigidFace_model_part)            
 
         # SIMULATION SETTINGS
 
@@ -559,7 +572,7 @@ class DEMFEMProcedures(object):
         else:
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
 
-    def MeasureForces(self):
+    def MeasureForces(self):    # not used atm
         
         if self.TestType == "None":
             if self.RigidFace_model_part.NumberOfMeshes() > 1:
@@ -583,16 +596,31 @@ class DEMFEMProcedures(object):
         if DEM_parameters.TestType == "None":            
             if(self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
-                self.graph_forces.write(str(time)+"    "+str(self.total_force_x)+"    "+str(self.total_force_y)+"    "+str(self.total_force_z)+'\n')
-                self.graph_forces.flush()                
+                if self.RigidFace_model_part.NumberOfMeshes() > 1:
+                    
+                    for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                        if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                            mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+                            total_force_x = 0.0
+                            total_force_y = 0.0
+                            total_force_z = 0.0
+
+                            for node in mesh_nodes:
+                                
+                                total_force_x += node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+                                total_force_y += node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+                                total_force_z += node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+                                    
+                            #print (self.graph_forces.keys())
+                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str(time)+" "+str(total_force_x)+" "+str(total_force_y)+" "+str(total_force_z)+"\n")
+                            #graph_forces["self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]"].flush()
 
             self.graph_counter += 1
 
-    def FinalizeGraphs(self):
+    def FinalizeGraphs(self,RigidFace_model_part):
 
         if DEM_parameters.TestType == "None":
-            os.chdir(self.graphs_path)
-            self.graph_forces.close()
+            close_graph_files(self,RigidFace_model_part)
 
 
 class Report(object):

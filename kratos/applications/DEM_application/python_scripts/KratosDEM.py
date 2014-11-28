@@ -308,7 +308,7 @@ while ( time < DEM_parameters.FinalTime):
     materialTest.PrintGraph(step)
 
     #### GENERAL FORCE GRAPHS ###################################
-    DEMFEMProcedures.MeasureForces()
+    #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
 
     #### GiD IO ##########################################
@@ -356,7 +356,7 @@ while ( time < DEM_parameters.FinalTime):
 
 demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
-DEMFEMProcedures.FinalizeGraphs()
+DEMFEMProcedures.FinalizeGraphs(RigidFace_model_part)
 
 # Charlie: This didn't exist. I replaced it with the line above
 #if((DEM_parameters.TestType == "None")):
