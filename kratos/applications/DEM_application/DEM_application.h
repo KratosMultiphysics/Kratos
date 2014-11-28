@@ -36,6 +36,10 @@
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/linecluster3D.h"
 #include "custom_elements/cubecluster3D.h"
+#include "custom_elements/pillcluster3D.h"
+#include "custom_elements/ellipsoidcluster3D.h"
+#include "custom_elements/ringcluster3D.h"
+#include "custom_elements/cuboidcluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
@@ -194,6 +198,10 @@ private:
     const Cluster3D  mCluster3D;
     const LineCluster3D  mLineCluster3D;
     const CubeCluster3D  mCubeCluster3D;
+    const PillCluster3D  mPillCluster3D;
+    const EllipsoidCluster3D  mEllipsoidCluster3D;
+    const RingCluster3D  mRingCluster3D;
+    const CuboidCluster3D  mCuboidCluster3D;
     const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
