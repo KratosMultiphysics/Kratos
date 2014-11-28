@@ -47,9 +47,11 @@
 
 #include "DEM_application_variables.h"
 
-//constitutive laws
+//Constitutive laws
+#include "custom_constitutive/DEM_Dempack1_CL.h"
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
+
 
 const long double pi = 3.141592653589793238462643383279;  //this one is used in the forward_euler_scheme... does it have to be here?
 
