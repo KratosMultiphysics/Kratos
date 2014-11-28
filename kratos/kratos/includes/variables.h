@@ -312,6 +312,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, DIVPROJ )
     KRATOS_DEFINE_VARIABLE( double, THAWONE )
     KRATOS_DEFINE_VARIABLE( double, THAWTWO )
+    KRATOS_DEFINE_VARIABLE( std::string, IDENTIFIER )  
 
     //for Other applications:
     KRATOS_DEFINE_VARIABLE( double, ARRHENIUS )
