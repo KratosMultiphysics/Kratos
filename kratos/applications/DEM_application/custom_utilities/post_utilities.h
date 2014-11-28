@@ -1,21 +1,19 @@
 #ifndef POST_UTILITIES_H
 #define POST_UTILITIES_H
 
-// /* External includes */
-
 // System includes
 
 // Project includes
+
 #include "utilities/timer.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/GeometryFunctions.h"
-
 #include "custom_elements/Particle_Contact_Element.h"
-
 #include "includes/variables.h"
 #include "DEM_application.h"
 
 /* System includes */
+
 #include <limits>
 #include <iostream>
 #include <iomanip>
@@ -32,13 +30,14 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 
-namespace Kratos
-{
-class PostUtilities
-{
+namespace Kratos {
+    
+class PostUtilities {
+    
 public:
     
-    typedef ModelPart::ElementsContainerType                          ElementsArrayType;
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    typedef ModelPart::NodesContainerType NodesContainerType;
 
     /// Default constructor.       
     
@@ -50,90 +49,104 @@ public:
     
     void AddModelPartToModelPart(ModelPart& rCompleteModelPart, ModelPart& rModelPartToAdd)
     {
-      ////WATCH OUT! This function respects the existing Id's!
-      KRATOS_TRY;      
+        ////WATCH OUT! This function respects the existing Id's!
+        KRATOS_TRY;      
       
-      //preallocate the memory needed
-      int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().size();
-      int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.GetCommunicator().LocalMesh().Elements().size();
-      rCompleteModelPart.Nodes().reserve( tot_nodes );
-      rCompleteModelPart.Elements().reserve( tot_elements );
-      for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
+        //preallocate the memory needed
+        int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().size();
+        int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.GetCommunicator().LocalMesh().Elements().size();
+        rCompleteModelPart.Nodes().reserve( tot_nodes );
+        rCompleteModelPart.Elements().reserve( tot_elements );
+        for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
 	{			
-          rCompleteModelPart.Nodes().push_back( *node_it );
+            rCompleteModelPart.Nodes().push_back( *node_it );
 	}
       
-      for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_begin(); elem_it != rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_end(); elem_it++)
+        for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_begin(); elem_it != rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_end(); elem_it++)
 	{			
-	  rCompleteModelPart.Elements().push_back( *elem_it );          
+	    rCompleteModelPart.Elements().push_back( *elem_it );          
 	}
       
-      KRATOS_CATCH("");
+        KRATOS_CATCH("");
     
     }    
     
     
     array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3> low_point, const array_1d<double, 3> high_point){
         
-          ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());          
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());          
 
-          double velocity_X = 0.0, velocity_Y = 0.0, velocity_Z = 0.0;
-          int number_of_elements = 0;
+        double velocity_X = 0.0, velocity_Y = 0.0, velocity_Z = 0.0;
+        int number_of_elements = 0;
           
-          //#pragma omp parallel for
-          #pragma omp parallel for reduction(+:velocity_X,velocity_Y,velocity_Z,number_of_elements) 
-          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+        //#pragma omp parallel for
+        #pragma omp parallel for reduction(+:velocity_X,velocity_Y,velocity_Z,number_of_elements)
+        
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                  
-                 array_1d<double, 3 > coor = (it)->GetGeometry()[0].Coordinates();                  
+                array_1d<double, 3 > coor = (it)->GetGeometry()[0].Coordinates();                  
                             
-                 if( coor[0] >= low_point[0] && coor[0] <= high_point[0]  && 
-                     coor[1] >= low_point[1] && coor[1] <= high_point[1]  && 
-                     coor[2] >= low_point[2] && coor[2] <= high_point[2] ) {
-                     
-                     velocity_X += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
-                     velocity_Y += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
-                     velocity_Z += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
-                     number_of_elements ++;
-                 }
+                if( coor[0] >= low_point[0] && coor[0] <= high_point[0]  && 
+                    coor[1] >= low_point[1] && coor[1] <= high_point[1]  && 
+                    coor[2] >= low_point[2] && coor[2] <= high_point[2] ) {
+                    
+                    velocity_X += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+                    velocity_Y += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+                    velocity_Z += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
+                    number_of_elements ++;
+                }
                   
-              } //elements for
+            } //elements for
 
-          } //parallel for
+        } //parallel for
               
-          if (number_of_elements){
-              velocity_X /= number_of_elements;
-              velocity_Y /= number_of_elements;
-              velocity_Z /= number_of_elements;
-          }
-          array_1d<double, 3> velocity; 
-          velocity[0]= velocity_X;
-          velocity[1]= velocity_Y;
-          velocity[2]= velocity_Z;
-          return velocity;
+        if (number_of_elements) {
+            velocity_X /= number_of_elements;
+            velocity_Y /= number_of_elements;
+            velocity_Z /= number_of_elements;
+        }
+        array_1d<double, 3> velocity; 
+        velocity[0]= velocity_X;
+        velocity[1]= velocity_Y;
+        velocity[2]= velocity_Z;
+        return velocity;
         
     }//VelocityTrap
     
+    void IntegrationOfForces(NodesContainerType& rNodes, double& force_x, double& force_y, double& force_z ) {
+         
+            NodesContainerType::iterator i_begin = rNodes.ptr_begin();
+            NodesContainerType::iterator i_end = rNodes.ptr_end();
+            
+            //TODO: This loop should be parallelized carefully!!!
+            
+            for (NodesContainerType::iterator i = i_begin; i != i_end; ++i) {
+                
+                const array_1d<double, 3 >& elastic_forces = i->FastGetSolutionStepValue(ELASTIC_FORCES);
+                force_x += elastic_forces[0];
+                force_y += elastic_forces[1];
+                force_z += elastic_forces[2];
+            }
+        ;}
     
     
     double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart,ModelPart& rContactModelPart, ProcessInfo& rCurrentProcessInfo ){
         
         double adimensional_value = 0.0;
 
-        ElementsArrayType& pParticleElements        = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& pParticleElements = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
         
-
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pParticleElements.size(), this->GetElementPartition());          
   
         array_1d<double,3> particle_forces;
-
         
-        const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
+        const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
         
         double total_force = 0.0;
         
@@ -143,37 +156,32 @@ public:
             ElementsArrayType::iterator it_begin = pParticleElements.ptr_begin() + this->GetElementPartition()[k];
             ElementsArrayType::iterator it_end   = pParticleElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-              
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {    
                              
-              Element::GeometryType& geom = it->GetGeometry();
+                Element::GeometryType& geom = it->GetGeometry();
               
-              //if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false)
-              if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) )
-              {
+                //if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+                if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) )
+                {
+                    particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
+                    //double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+                    double mass                            = geom(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+                    mass                                  *= mass;
                 
-                particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-                //double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
-                double mass                            = geom(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-                mass                                  *= mass;
-                
-                
-                particle_forces[0] += mass * gravity[0];
-                particle_forces[1] += mass * gravity[1];
-                particle_forces[2] += mass * gravity[2];
+                    particle_forces[0] += mass * gravity[0];
+                    particle_forces[1] += mass * gravity[1];
+                    particle_forces[2] += mass * gravity[2];
 
-                double module = 0.0;
-                GeometryFunctions::module(particle_forces, module);
+                    double module = 0.0;
+                    GeometryFunctions::module(particle_forces, module);
                 
+                    total_force += module;
                 
-                total_force += module;
-                
-              } //if
+                } //if
               
             }//balls
             
-        }//paralel
-          
+        }//paralel 
           
         ElementsArrayType& pContactElements        = rContactModelPart.GetCommunicator().LocalMesh().Elements();
 
@@ -189,41 +197,38 @@ public:
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                                                         
-              Element::GeometryType& geom = it->GetGeometry();
+                Element::GeometryType& geom = it->GetGeometry();
               
-              if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) &&
-                  geom(1)->IsNot(DEMFlags::FIXED_VEL_X) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Z) ) {                
+                if (geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) &&
+                    geom(1)->IsNot(DEMFlags::FIXED_VEL_X) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Z)) {                
    
-                contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);                
-                double module = 0.0;
-                GeometryFunctions::module(contact_forces, module);
-                total_elastic_force += module;                
-              }              
+                    contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);                
+                    double module = 0.0;
+                    GeometryFunctions::module(contact_forces, module);
+                    total_elastic_force += module;                
+                }              
             }  
         }
    
-        if(total_elastic_force != 0.0)
+        if (total_elastic_force != 0.0)
         {
-        adimensional_value =  total_force/total_elastic_force;   
+            adimensional_value =  total_force/total_elastic_force;   
         }
         else
         {
-           KRATOS_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
+            KRATOS_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
         }
   
         return adimensional_value;
         
     }//QuasiStaticAdimensionalNumber
     
-    vector<unsigned int>&    GetElementPartition(){return (mElementPartition);};
+    vector<unsigned int>& GetElementPartition(){return (mElementPartition);};
     
-    protected:
-
-      
-        vector<unsigned int>                mElementPartition;
+protected:
     
+    vector<unsigned int> mElementPartition;
     
-
 }; // Class PostUtilities
 
 ///@}
@@ -235,8 +240,6 @@ public:
 ///@}
 ///@name Input and output
 ///@{
-
-
 
 } // namespace Kratos.
 
