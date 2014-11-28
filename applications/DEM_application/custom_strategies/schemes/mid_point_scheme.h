@@ -105,8 +105,8 @@ namespace Kratos
       
     KRATOS_TRY
         
-    typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
-    typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
+    //typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
+    //typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
          
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
         NodesArrayType& pNodes           = model_part.Nodes();
