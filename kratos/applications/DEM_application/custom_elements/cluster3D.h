@@ -117,6 +117,7 @@ namespace Kratos
         * Must be called before any calculation is done!
         */
         virtual void Initialize();
+        virtual void CustomInitialize();
         virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
         virtual void UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt);
         virtual void GetClustersForce( const array_1d<double,3>& gravity );
