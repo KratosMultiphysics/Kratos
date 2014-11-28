@@ -240,8 +240,12 @@ namespace Kratos
               double radius_sum                       = mRadius + other_radius;			  			  
               double equiv_radius                     = radius_sum * 0.5;
 	      double kn;
-	      double kt;              
-              double equiv_area                       =  KRATOS_M_PI * equiv_radius * equiv_radius;			  
+
+	      double kt;
+              
+          double cohesion_area;
+              
+          double equiv_area                       =  KRATOS_M_PI * equiv_radius * equiv_radius;
 			  
 	      double other_cohesion = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COHESION);
 	      double other_tension  = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_TENSION );
@@ -253,7 +257,7 @@ namespace Kratos
               double equiv_visco_damp_coeff_tangential;
               double equiv_tg_of_fri_ang;
 
-              CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, neighbour_iterator);
+              CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, cohesion_area = 0, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, neighbour_iterator);
               
               double DeltDisp[3]                       = {0.0};
               double LocalDeltDisp[3]                  = {0.0};
