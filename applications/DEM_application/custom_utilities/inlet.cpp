@@ -44,7 +44,7 @@ namespace Kratos {
             
     /// Destructor
     
-    DEM_Inlet::~DEM_Inlet() {};
+    DEM_Inlet::~DEM_Inlet() {}
         
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString) {
         

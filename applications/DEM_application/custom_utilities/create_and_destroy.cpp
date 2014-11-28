@@ -57,7 +57,7 @@ static double rand_normal(double mean, double stddev, double max_radius, double 
 
     /// Destructor.
 
-    ParticleCreatorDestructor::~ParticleCreatorDestructor() {};
+    ParticleCreatorDestructor::~ParticleCreatorDestructor() {}
     
     int ParticleCreatorDestructor::FindMaxNodeIdInModelPart(ModelPart& r_modelpart){
         
