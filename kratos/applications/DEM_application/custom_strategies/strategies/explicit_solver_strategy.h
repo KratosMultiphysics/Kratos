@@ -819,7 +819,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-
         ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
         
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pTContitions.size(), this->GetElementPartition());
@@ -891,7 +890,6 @@ namespace Kratos
                     node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
                     
                     node_rhs_tang += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
-                    
                     
                     geom(i)->UnSetLock();
                     
