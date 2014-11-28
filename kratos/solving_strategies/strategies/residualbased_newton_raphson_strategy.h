@@ -401,6 +401,8 @@ public:
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+        
+        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
         //int solstep = pCurrentProcessInfo.GetCurrentSolutionStep();
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
@@ -416,10 +418,16 @@ public:
                 mReformDofSetAtEachStep == true)
         {
             //setting up the list of the DOFs to be solved
+            boost::timer setup_dofs_time;
             pBuilderAndSolver->SetUpDofSet(pScheme, BaseType::GetModelPart());
+            if (this->GetEchoLevel() > 0 && rank == 0)
+                std::cout << "setup_dofs_time : " << setup_dofs_time.elapsed() << std::endl;
 
             //shaping correctly the system
+            boost::timer setup_system_time;
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+            if (this->GetEchoLevel() > 0 && rank == 0)
+                std::cout << "setup_system_time : " << setup_system_time.elapsed() << std::endl;
         }
 
         //prints informations about the current time
@@ -900,10 +908,14 @@ protected:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         typename TSchemeType::Pointer pScheme = GetScheme();
 
+        int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
 
 
         //setting up the Vectors involved to the correct size
+        boost::timer system_matrix_resize_time;
         pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+        if (this->GetEchoLevel() > 0 && rank == 0)
+                std::cout << "system_matrix_resize_time : " << system_matrix_resize_time.elapsed() << std::endl;
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;
