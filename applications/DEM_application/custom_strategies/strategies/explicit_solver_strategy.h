@@ -1182,7 +1182,7 @@ namespace Kratos
                 mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce.resize(totalno);
             }
                                      
-            typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+            //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             
             #pragma omp parallel 
             {              
