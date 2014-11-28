@@ -318,8 +318,8 @@ class ExplicitStrategy:
 
         for properties in self.model_part.Properties:
             
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME];
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
             
             ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
