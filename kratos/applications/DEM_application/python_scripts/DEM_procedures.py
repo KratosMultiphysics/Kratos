@@ -605,15 +605,10 @@ class DEMFEMProcedures(object):
                             total_force_y = 0.0
                             total_force_z = 0.0
 
-                            for node in mesh_nodes:
-                                
-                                total_force_x += node.GetSolutionStepValue(ELASTIC_FORCES)[0]
-                                total_force_y += node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-                                total_force_z += node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-                                    
-                            #print (self.graph_forces.keys())
+                            IntegrationOfForces(mesh_nodes, total_force_x, total_force_y, total_force_z)
+                                                                                      
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str(time)+" "+str(total_force_x)+" "+str(total_force_y)+" "+str(total_force_z)+"\n")
-                            #graph_forces["self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]"].flush()
+                            graph_forces["self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]"].flush()
 
             self.graph_counter += 1
 
