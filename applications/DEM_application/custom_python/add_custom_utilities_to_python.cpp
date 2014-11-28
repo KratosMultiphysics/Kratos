@@ -110,7 +110,8 @@ boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& 
 }
 
 
-void  AddCustomUtilitiesToPython(){
+void  AddCustomUtilitiesToPython() {
+    
     using namespace boost::python;
     
       class_<ParticleCreatorDestructor, boost::noncopyable >
@@ -175,7 +176,8 @@ void  AddCustomUtilitiesToPython(){
         ("PostUtilities", init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
         .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
-        .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)     
+        .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)
+        .def("IntegrationOfForces", &PostUtilities::IntegrationOfForces)
         ;
 
      class_<DEMFEMUtilities, boost::noncopyable >
@@ -188,8 +190,8 @@ void  AddCustomUtilitiesToPython(){
         .def("ComputeHydrodynamicForces", &BenchmarkUtils::ComputeHydrodynamicForces)
         ;
 
-
     }
+
 }  // namespace Python.
 
 } // Namespace Kratos
