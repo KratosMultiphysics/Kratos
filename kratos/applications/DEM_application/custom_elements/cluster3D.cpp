@@ -62,8 +62,25 @@ namespace Kratos {
     }
 
       
-    void Cluster3D::Initialize() {}
+    void Cluster3D::Initialize() {
         
+        if (GetGeometry()[0].GetDof(VELOCITY_X).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,true);
+        else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X,false);
+        if (GetGeometry()[0].GetDof(VELOCITY_Y).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,true);
+        else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y,false);
+        if (GetGeometry()[0].GetDof(VELOCITY_Z).IsFixed())         GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,true);
+        else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z,false);
+        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_X).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,true);
+        else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X,false);
+        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Y).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,true);
+        else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y,false);
+        if (GetGeometry()[0].GetDof(ANGULAR_VELOCITY_Z).IsFixed()) GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,true);
+        else                                                          GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z,false);
+        
+        CustomInitialize();
+    }
+    
+    void Cluster3D::CustomInitialize() {}
       
     void Cluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part){
         
