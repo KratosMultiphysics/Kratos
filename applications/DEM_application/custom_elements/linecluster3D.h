@@ -116,7 +116,7 @@ namespace Kratos
          * is called to initialize the element.
          * Must be called before any calculation is done!
          */
-        virtual void Initialize();
+        virtual void CustomInitialize();
         
         /**
          * this is called during the assembling process in order
