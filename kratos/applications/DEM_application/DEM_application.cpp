@@ -121,7 +121,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, GENERAL_DENSITY)
   KRATOS_CREATE_VARIABLE(double, GENERAL_YOUNG_MODULUS)
   KRATOS_CREATE_VARIABLE(double, GENERAL_POISSON_RATIO)
-  KRATOS_CREATE_VARIABLE(double, GENERAL_COHESION)
   KRATOS_CREATE_VARIABLE(double, GENERAL_ROLLING_FRICTION)
   KRATOS_CREATE_VARIABLE(double, GENERAL_STATIC_FRICTION)
   KRATOS_CREATE_VARIABLE(double, GENERAL_DYNAMIC_FRICTION)
@@ -393,6 +392,10 @@ namespace Kratos
   mCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mLineCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mCubeCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mPillCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mEllipsoidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mRingCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mCuboidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mMapCon3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
   {}
     
@@ -462,9 +465,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(FAILURE_CRITERION_OPTION)
     KRATOS_REGISTER_VARIABLE(CONCRETE_TEST_OPTION)
     KRATOS_REGISTER_VARIABLE(COHESIVE_GROUP)
-    KRATOS_REGISTER_VARIABLE( PARTICLE_TENSION )
-    KRATOS_REGISTER_VARIABLE( PARTICLE_COHESION )
-    
+    KRATOS_REGISTER_VARIABLE(PARTICLE_TENSION)
+    KRATOS_REGISTER_VARIABLE(PARTICLE_COHESION)
+        
     KRATOS_REGISTER_VARIABLE(plot_OPTIONS)
     KRATOS_REGISTER_VARIABLE(DEMPACK_DAMPING)
     KRATOS_REGISTER_VARIABLE(DEMPACK_GLOBAL_DAMPING)
@@ -510,7 +513,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(GENERAL_DENSITY)
     KRATOS_REGISTER_VARIABLE(GENERAL_YOUNG_MODULUS)
     KRATOS_REGISTER_VARIABLE(GENERAL_POISSON_RATIO)
-    KRATOS_REGISTER_VARIABLE(GENERAL_COHESION)
     KRATOS_REGISTER_VARIABLE(GENERAL_ROLLING_FRICTION)
     KRATOS_REGISTER_VARIABLE(GENERAL_STATIC_FRICTION)
     KRATOS_REGISTER_VARIABLE(GENERAL_DYNAMIC_FRICTION)
@@ -766,7 +768,10 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("LineCluster3D", mLineCluster3D)
     KRATOS_REGISTER_ELEMENT("CubeCluster3D", mCubeCluster3D)
-
+    KRATOS_REGISTER_ELEMENT("PillCluster3D", mPillCluster3D)
+    KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)
+    KRATOS_REGISTER_ELEMENT("RingCluster3D", mRingCluster3D)
+    KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
 
