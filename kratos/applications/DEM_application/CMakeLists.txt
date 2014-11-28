@@ -26,6 +26,10 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cubecluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/pillcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ellipsoidcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ringcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cuboidcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
