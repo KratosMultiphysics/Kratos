@@ -22,6 +22,7 @@
 #include "DEM_application.h"
 #include "utilities/openmp_utils.h"
 
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
 //TIMER....................
 #include "utilities/timer.h"
@@ -171,7 +172,7 @@ namespace Kratos
           for (unsigned int i = 0; i < cont_neigh_size; i++)
           {
 
-             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+             DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
              mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
              mContinuumConstitutiveLawArray[i]->Initialize(rCurrentProcessInfo);
 
@@ -485,11 +486,11 @@ namespace Kratos
                 }
                 
                 else if(mElasticityType==2){
-                
-               
+
+
                     if (mapping_new_cont!=-1)
-                    {                    
-                      PlasticityAndDamage1D(LocalElasticContactForce,
+                    {   
+                      mContinuumConstitutiveLawArray[mapping_new_cont]->  PlasticityAndDamage1D(LocalElasticContactForce,
                                             kn_el,
                                             equiv_young,
                                             indentation,
@@ -514,8 +515,7 @@ namespace Kratos
                                             mNeighbourFailureId[i_neighbour_count],
                                             mIniNeighbourFailureId [mapping_new_ini],
                                             rCurrentProcessInfo[TIME_STEPS] );                                       
-                    }
-                    
+                    }                    
                     else{
                         
                         NormalForceCalculation(LocalElasticContactForce[2],
@@ -562,8 +562,8 @@ namespace Kratos
                     double inv_calculation_area = 1/calculation_area;
                   contact_tau = ShearForceNow * inv_calculation_area;
                   contact_sigma = LocalElasticContactForce[2] * inv_calculation_area;
- 
-                  EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
+                  
+                  mContinuumConstitutiveLawArray[mapping_new_cont]-> EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
                                           mFailureCriterionOption, mTauZero, mTanContactInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
                                           mNeighbourFailureId[i_neighbour_count], mIniNeighbourFailureId[ mapping_new_ini], mTensionLimit);                            
                 }
