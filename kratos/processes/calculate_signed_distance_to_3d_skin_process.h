@@ -2015,7 +2015,7 @@ public:
 
     void CalculateNotEmptyLeavesDistance(CellType* pCell)
     {
-        typedef Element::GeometryType triangle_type;
+      //typedef Element::GeometryType triangle_type;
         typedef OctreeType::cell_type::object_container_type object_container_type;
 
         object_container_type* objects = (pCell->pGetObjects());
@@ -2340,7 +2340,7 @@ public:
         //ray is of dimension (3) normalized in (0,1)^3 space
         // direction can be 0,1,2 which are x,y and z respectively
 
-        typedef Element::GeometryType triangle_type;
+        //typedef Element::GeometryType triangle_type;
         typedef OctreeType::cell_type::object_container_type object_container_type;
 
         object_container_type* objects = (cell->pGetObjects());
