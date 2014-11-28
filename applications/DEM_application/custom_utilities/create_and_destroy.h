@@ -4,7 +4,7 @@
 //   Date:                $Date: 2011-6-13 08:56:42 $
 //   Revision:            $Revision: 1.5 $
 //
-// README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
+//README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #if !defined(KRATOS_CREATE_AND_DESTROY )
 #define  KRATOS_CREATE_AND_DESTROY
@@ -19,7 +19,7 @@
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 
-// Database includes
+//Database includes
 #include "custom_utilities/discrete_particle_configure.h"
 #include "discrete_particle_configure.h"
 
@@ -37,17 +37,17 @@
 namespace Kratos {
 
 static double rand_normal(double mean, double stddev, double max_radius, double min_radius);      
-       
+        
 class ParticleCreatorDestructor {
-    
+        
 public:
 
-    static const std::size_t space_dim                  = 3; ///WARNING: generalize to 2d.
-    typedef DiscreteParticleConfigure<space_dim>        Configure;
-    typedef Configure::ContainerType                    ParticlePointerVector;
-    typedef ParticlePointerVector::iterator             ParticlePointerIterator;
-    typedef Configure::IteratorType                     ParticleIterator;
-    unsigned int mMaxNodeId;
+        static const std::size_t space_dim                  = 3; ///WARNING: generalize to 2d.
+        typedef DiscreteParticleConfigure<space_dim>        Configure;
+        typedef Configure::ContainerType                    ParticlePointerVector;
+        typedef ParticlePointerVector::iterator             ParticlePointerIterator;
+        typedef Configure::IteratorType                     ParticleIterator;
+        unsigned int mMaxNodeId;
 		
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
 
@@ -59,7 +59,7 @@ public:
     /// Destructor
 
     virtual ~ParticleCreatorDestructor();
-    
+
     int FindMaxNodeIdInModelPart(ModelPart& r_modelpart);
     
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
@@ -71,7 +71,7 @@ public:
                                            bool has_sphericity,
                                            bool has_rotation,
                                            bool initial);
-
+        
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
@@ -81,15 +81,16 @@ public:
                                               bool has_sphericity,
                                               bool has_rotation,
                                               bool initial);         
-        
+    
+    
     void NodeCreatorForClusters(ModelPart& r_modelpart, 
                                 Node < 3 > ::Pointer& pnew_node,
                                 int aId,
                                 array_1d<double, 3 >& reference_coordinates,                                  
                                 double radius, 
                                 Properties& params);
-        
-    Kratos::SphericParticle* ElementCreatorForClusters(ModelPart& r_modelpart, 
+    
+    Kratos::SphericParticle* ElementCreatorForClusters( ModelPart& r_modelpart, 
                                     int r_Elem_Id, 
                                     double radius,
                                     array_1d<double, 3 >& reference_coordinates, 
@@ -103,32 +104,32 @@ public:
                                          ModelPart& r_rigid_faces_model_part,
                                          double scale_factor,
                                          bool automatic);
-  
+
     void DestroyParticles(ModelPart& r_model_part);
-    
+
     void DestroyContactElements(ModelPart& r_model_part);
-    
+
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
 
     void MarkDistantParticlesForErasing(ModelPart& r_model_part);
-   
+
     void MarkParticlesForErasingGivenScalarVariableValue(ModelPart& r_model_part, const Variable<double>& rVariable, double value, double tol);
 
     void MarkParticlesForErasingGivenVectorVariableModulus(ModelPart& r_model_part,
                                                            const Variable<array_1d<double, 3> >& rVariable,
                                                            double value,
                                                            double tol);
-    
+        
     void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part,
                                                  array_1d<double, 3> low_point,
                                                  array_1d<double, 3> high_point);
-    
+
     void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
-        
+
     void DestroyParticlesOutsideBoundingBox(ModelPart& r_model_part);
-        
+
     void DestroyContinuumParticlesOutsideBoundingBox(ModelPart& r_model_part);
-    
+
     void DestroyContactElementsOutsideBoundingBox(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
 
     array_1d<double, 3> GetHighNode();
@@ -136,9 +137,9 @@ public:
     array_1d<double, 3> GetLowNode();
 
     array_1d<double, 3> GetStrictHighNode();
-    
+
     array_1d<double, 3> GetStrictLowNode();
-    
+
     double GetDiameter();
 
     double GetStrictDiameter();
@@ -146,11 +147,11 @@ public:
     void SetHighNode(array_1d<double, 3> node);
 
     void SetLowNode(array_1d<double, 3> node);
-    
+
     unsigned int GetCurrentMaxNodeId();
-    
+
     void SetMaxNodeId(unsigned int id);
-    
+
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
     virtual std::string Info() const;
@@ -158,19 +159,19 @@ public:
     /// Print information about this object.
 
     virtual void PrintInfo(std::ostream& rOStream) const;
-    
+
     /// Print object's data.
 
     virtual void PrintData(std::ostream& rOStream) const;
 
 protected:
-    
+
     ///@}
     ///@name Protected member rVariables
     ///@{ template<class T, std::size_t dim>
 
 private:
-    
+
     array_1d<double, 3 > mHighPoint;
     array_1d<double, 3 > mLowPoint;
     array_1d<double, 3 > mStrictHighPoint;
@@ -202,6 +203,7 @@ private:
 // 		return rOStream;
 // 	}
 ///@}
+
 
 } // namespace Kratos.
 
