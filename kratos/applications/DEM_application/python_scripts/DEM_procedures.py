@@ -715,7 +715,11 @@ class MaterialTest(object):
     def FinalizeGraphs(self):
         if (self.type != "None"):
             self.script.FinalizeGraphs()
-
+            
+            
+    def PrintChart(self):        
+        if (self.type != "None"):
+            self.script.PrintChart()  
 
 class MultifileList(object):
 
