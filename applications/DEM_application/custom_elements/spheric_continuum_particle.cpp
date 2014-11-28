@@ -329,18 +329,19 @@ namespace Kratos
 
         }        
         
-        for( unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
+        for (unsigned int i_neighbour_count = 0; i_neighbour_count < mNeighbourElements.size(); i_neighbour_count++) {
+            
             SphericParticle* neighbour_iterator = mNeighbourElements[i_neighbour_count];
                         
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();                        
         
             array_1d<double,3> other_to_me_vect   = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-            const double &other_radius                  = neighbour_iterator->GetRadius();
-            const double &other_sqrt_of_mass            = neighbour_iterator->GetSqrtOfRealMass();    
+            const double &other_radius            = neighbour_iterator->GetRadius();
+            const double &other_sqrt_of_mass      = neighbour_iterator->GetSqrtOfRealMass();    
  
             double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                                          other_to_me_vect[1] * other_to_me_vect[1] +
-                                                          other_to_me_vect[2] * other_to_me_vect[2]);
+                                                         other_to_me_vect[1] * other_to_me_vect[1] +
+                                                         other_to_me_vect[2] * other_to_me_vect[2]);
             double radius_sum                     = mRadius + other_radius;
             double radius_sum_i                   = 1.0 / radius_sum;
             double equiv_radius                   = 2.0 * mRadius * other_radius * radius_sum_i; 
@@ -348,8 +349,8 @@ namespace Kratos
             double initial_delta                  = mNeighbourDelta[i_neighbour_count]; //*
             double initial_dist                   = (radius_sum - initial_delta);
             double initial_dist_i                 = 1.0 / initial_dist;
-            double indentation                    = initial_dist - distance;   //#1
-            double equiv_area                     = 0.25*KRATOS_M_PI * equiv_radius * equiv_radius; //#2 
+            double indentation                    = initial_dist - distance; //#1
+            double equiv_area                     = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; //#2 
             double calculation_area               = equiv_area;
             double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
             double myYoung                        = GetYoung();
@@ -602,7 +603,7 @@ namespace Kratos
                 }
 
                    
-               /* Viscodamping (applyied locally)*/ 
+               /* Viscodamping (applied locally)*/ 
                
                  //DAMPING:
 
@@ -1575,7 +1576,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 //NOTE::
 /*
  * #1: Here, Initial_delta is expected to be positive if it is embeding and negative if there's a separation.
- * #2: 0.25 is becouse we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
+ * #2: 0.25 is because we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
  * #3: For detached particles we enter only if the indentation is > 0. For attached particles we enter only if the particle is still attached.
  * #4: we use incremental calculation. YADE develops a complicated "absolute method"
  * #5: We only store in the initial neighbours array the ones that are cohesive or the ones that have possitive or negative initial indentation. In other words,
@@ -1592,11 +1593,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
            
 //           void SphericContinuumParticle::ComputeParticleRotationSpring() // shan de corregir areees etc etc etc...
 //       {
-//         //double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
+//         //double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: new
 //         /*
 //                     c=objecte_contacte(particula,vei)
 // 
-//             força=(c.RADI)*3;  //M: idea: to create a class contact, create objects of contacts with all the paramaters. easier...
+//             força=(c.RADI)*3;  //M: idea: to create a class contact, create objects of contacts with all the parameters. easier...
 //                                 /no puc amb MPI oi? pk hauria de passar punters...
 //           */
 //           ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -1737,7 +1738,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
  * 
  */
 
-// #C3: InitializeContactElements : akesta funcio comensava abans de evaluatedeltadisplacement per poisson etc pero no crec ke faci falta ara.
+// #C3: InitializeContactElements : akesta funcio començava abans de evaluatedeltadisplacement per poisson etc pero no crec ke faci falta ara.
     
     
    /* // MSI #C4
