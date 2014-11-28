@@ -275,11 +275,11 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++){
         SphericParticle* ineighbour = mNeighbourElements[i];
 
-        array_1d<double, 3> other_to_me_vect  = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
-        double other_radius                   = ineighbour->GetRadius();
-        double distance                       = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum                     = mRadius + other_radius;
-        double indentation                    = radius_sum - distance;
+        array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+        double other_radius                  = ineighbour->GetRadius();
+        double distance                      = DEM_MODULUS_3(other_to_me_vect);
+        double radius_sum                    = mRadius + other_radius;
+        double indentation                   = radius_sum - distance;
 
         r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
     }
@@ -519,7 +519,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
     //the way the normal direction is defined (other_to_me_vect) compression is positive!!!
     GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coord System (normalizes other_to_me_vect)
 
-    // FORMING OLD LOCAL CORDINATES
+    // FORMING OLD LOCAL COORDINATES
     const array_1d<double,3> old_coord_target      = this->GetGeometry()[0].Coordinates() - delta_displ;
     const array_1d<double, 3 > & other_delta_displ = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
     const array_1d<double,3> old_coord_neigh       = p_neighbour->GetGeometry()[0].Coordinates() - other_delta_displ;
@@ -537,7 +537,7 @@ void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
     RelVel[1] = (vel[1] - other_vel[1]);
     RelVel[2] = (vel[2] - other_vel[2]);
 
-    //DeltDisp in global cordinates
+    //DeltDisp in global coordinates
     DeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
     DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
     DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
@@ -655,7 +655,8 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
     double equiv_visco_damp_coeff_normal;
     double equiv_visco_damp_coeff_tangential;
     double equiv_tg_of_fri_ang;
-    double cohesion = 0;
+    double cohesion;
+    double cohesion_area;
     
     double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
     double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
@@ -670,19 +671,17 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
         if (this->Is(NEW_ENTITY) && ineighbour->Is(NEW_ENTITY)) continue;        
         if (multi_stage_RHS  &&  this->Id() > ineighbour->Id()) continue;
-        /*if (this->SlowGetParticleMaterial() == ineighbour->SlowGetParticleMaterial()) {
-            cohesion = 0; } //made up cohesion value. This value should come from Properties by using SlowGetCohesion()
-        else {
-            cohesion = 0; } //made up cohesion value. This value should come from Properties by using SlowGetCohesion()*/
-                
-        // BASIC CALCULATIONS
-        array_1d<double, 3> other_to_me_vect    = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
-        const double &other_radius              = ineighbour->GetRadius();
-        double distance                         = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum                       = mRadius + other_radius;
-        double indentation                      = radius_sum - distance;
+        
+        cohesion = 0.5 * (this->GetParticleCohesion() + ineighbour->GetParticleCohesion()); //SLS
 
-        CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, ineighbour);
+        // BASIC CALCULATIONS
+        array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
+        const double &other_radius           = ineighbour->GetRadius();
+        double distance                      = DEM_MODULUS_3(other_to_me_vect);
+        double radius_sum                    = mRadius + other_radius;
+        double indentation                   = radius_sum - distance;
+
+        CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, cohesion_area, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, ineighbour);
 
         DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
         DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
@@ -718,13 +717,13 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         if (indentation > 0.0){
             NormalForceCalculation(normal_force, kn, indentation);  //ERROR here! The normal force should be added to the local NEW axis!!
 
-            CohesionCalculation(cohesion_force, cohesion);
+            CohesionCalculation(cohesion_force, cohesion, cohesion_area);
                        
             // TANGENTIAL FORCE. Incremental calculation. An "absolute method" could also be used (YADE?)
             LocalElasticContactForce[2] = 0.0;
             TangentialForceCalculation(normal_force, LocalElasticContactForce, LocalDeltDisp, kt, equiv_tg_of_fri_ang, sliding);
 
-            // VISCODAMPING (applyied locally)
+            // VISCODAMPING (applied locally)
             CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding);
         }
 
@@ -785,9 +784,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 //**************************************************************************************************************************************************
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
-                                                       array_1d<double, 3>& rInitialRotaMoment,
-                                                       ProcessInfo& r_current_process_info,
-                                                       double mTimeStep)
+                                                         array_1d<double, 3>& rInitialRotaMoment,
+                                                         ProcessInfo& r_current_process_info,
+                                                         double mTimeStep)
 {
 
     KRATOS_TRY
@@ -795,8 +794,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
     std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
     double myYoung           = GetYoung();
     double myPoisson         = GetPoisson();
+    double cohesion          = GetParticleCohesion();
     double area              = KRATOS_M_PI * mRadius * mRadius;
-    array_1d<double, 3 > vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    array_1d<double, 3> vel  = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
     for (unsigned int i=0; i<rNeighbours.size(); i++){
         DEMWall* cast_neighbour = rNeighbours[i];
@@ -804,7 +804,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         double LocalElasticContactForce[3]  = {0.0};
         double GlobalElasticContactForce[3] = {0.0};
         double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-        array_1d<double, 3 > other_to_me_vel = ZeroVector(3);
+        array_1d<double, 3> other_to_me_vel = ZeroVector(3);
         array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
         double node_coor[3];
 
@@ -861,7 +861,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         DeltVel[1] = vel[1] - other_to_me_vel[1];
         DeltVel[2] = vel[2] - other_to_me_vel[2];
 
-        // For translation movement delt displacement
+        // For translation movement delta displacement
         DeltDisp[0] = DeltVel[0] * mTimeStep;
         DeltDisp[1] = DeltVel[1] * mTimeStep;
         DeltDisp[2] = DeltVel[2] * mTimeStep;
@@ -878,7 +878,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             dRotaDisp[1] = - velA[1] * mRadius;
             dRotaDisp[2] = - velA[2] * mRadius;
 
-            //////contribution of the rotation vel
+            //////contribution of the rotation velocity
             DeltDisp[0] += dRotaDisp[0] * mTimeStep;
             DeltDisp[1] += dRotaDisp[1] * mTimeStep;
             DeltDisp[2] += dRotaDisp[2] * mTimeStep;
@@ -893,31 +893,31 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         LocalElasticContactForce[0] +=  - ks_el * LocalDeltDisp[0];
         LocalElasticContactForce[1] +=  - ks_el * LocalDeltDisp[1];
 
-        if (indentation > 0.0){
-            LocalElasticContactForce[2] =  kn_el * indentation;
+        if (indentation > 0.0) {
+            LocalElasticContactForce[2] =  kn_el * indentation ;
         }
-
+               
         else {
             LocalElasticContactForce[2] = 0.0;
         }
 
         bool sliding = false;
 
-        if (-LocalElasticContactForce[2] > 0.0){
+        if (-LocalElasticContactForce[2] > 0.0) {
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalElasticContactForce)
         }
 
         else {
             double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                             +      LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+                                 + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-            if (ShearForceMax == 0.0){
+            if (ShearForceMax == 0.0) {
                 LocalElasticContactForce[0] = 0.0;
                 LocalElasticContactForce[1] = 0.0;
             }
 
-            else if (ShearForceNow > ShearForceMax){
+            else if (ShearForceNow > ShearForceMax) {
                 double inv_ShearForceNow = 1.0 / ShearForceNow;
                 LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
                 LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
@@ -925,7 +925,13 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 sliding = true;
             }
         }
-
+        
+        //SLS 
+        cohesion *= 0.5;
+        if (indentation > 0.0) { LocalElasticContactForce[2] =  kn_el * indentation - area * cohesion;
+        }
+        else { LocalElasticContactForce[2] = 0.0; }
+        
         //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
 
         double ViscoDampingLocalContactForce[3] = {0.0};
@@ -1057,19 +1063,25 @@ void SphericParticle::CustomInitialize(){}
 //**************************************************************************************************************************************************
 
 void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& other_to_me_vect,
-                                                              const double& other_radius,
-                                                              const double& radius_sum,
-                                                              double& kn,
-                                                              double& kt,
-                                                              double& equiv_visco_damp_coeff_normal,
-                                                              double& equiv_visco_damp_coeff_tangential,
-                                                              double& equiv_tg_of_fri_ang,
-                                                              SphericParticle* p_neighbour)
+                                                                const double& other_radius,
+                                                                const double& radius_sum,
+                                                                double& kn,
+                                                                double& kt,
+                                                                double& cohesion_area,
+                                                                double& equiv_visco_damp_coeff_normal,
+                                                                double& equiv_visco_damp_coeff_tangential,
+                                                                double& equiv_tg_of_fri_ang,
+                                                                SphericParticle* p_neighbour)
 {
     double other_sqrt_of_mass = p_neighbour->GetSqrtOfRealMass();
     double radius_sum_i = 1 / radius_sum;
     double equiv_radius = 2 * mRadius * other_radius * radius_sum_i;
     double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+    
+    double cohesion_radius; //SLS
+    cohesion_radius = mRadius > other_radius ? other_radius : mRadius;
+    cohesion_area = KRATOS_M_PI * cohesion_radius * cohesion_radius;
+    
     double equiv_mass = mSqrtOfRealMass * other_sqrt_of_mass;
 
     double myYoung = GetYoung();
@@ -1295,10 +1307,9 @@ void SphericParticle::NormalForceCalculation(double& normal_force, double kn, do
     }
 } //NormalForceCalculation
 
-void SphericParticle::CohesionCalculation(double& cohesion_force, double cohesion) 
+void SphericParticle::CohesionCalculation(double& cohesion_force, double cohesion, double cohesion_area) 
 {
-    double area = 1.0; //made up value, should be properly computed
-    cohesion_force = area * cohesion;
+    cohesion_force = cohesion_area * cohesion; //SLS
 }   //CohesionCalculation
 
 //**************************************************************************************************************************************************
@@ -1347,7 +1358,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
         double coeff = r_current_process_info[NODAL_MASS_COEFF];
 
         if (coeff > 1.0){
-            KRATOS_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff);
+            KRATOS_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is ", coeff);
         }
 
         else if ((coeff == 1.0) && (r_current_process_info[VIRTUAL_MASS_OPTION])){
@@ -1432,7 +1443,7 @@ double SphericParticle::GetTgOfFrictionAngle()                                  
 double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                }
 double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                                        }
 int    SphericParticle::GetParticleMaterial()                                            { return GetFastProperties()->GetParticleMaterial();                               }
-
+double SphericParticle::GetParticleCohesion()                                            { return GetFastProperties()->GetParticleCohesion();                               }
 
 void   SphericParticle::SetYoungFromProperties(double* young)                            { GetFastProperties()->SetYoungFromProperties( young);                             }
 void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);        }
@@ -1441,6 +1452,7 @@ void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_frictio
 void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);      }
 void   SphericParticle::SetDensityFromProperties(double* density)                        { GetFastProperties()->SetDensityFromProperties( density);                         }
 void   SphericParticle::SetParticleMaterialFromProperties(int* particle_material)        { GetFastProperties()->SetParticleMaterialFromProperties( particle_material);      }
+void   SphericParticle::SetParticleCohesionFromProperties(double* particle_cohesion)     { GetFastProperties()->SetParticleCohesionFromProperties( particle_cohesion);      }
 
 PropertiesProxy* SphericParticle::GetFastProperties()                                    { return mFastProperties;                                                          }
 void   SphericParticle::SetFastProperties(PropertiesProxy* pProps)                       { mFastProperties = pProps;                                                        }
@@ -1457,7 +1469,7 @@ double SphericParticle::SlowGetPoisson()                                        
 double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                       }
 double SphericParticle::SlowGetLnOfRestitCoeff()                                         { return GetProperties()[LN_OF_RESTITUTION_COEFF];                                 }
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
-double SphericParticle::SlowGetCohesion()                                                { return GetProperties()[PARTICLE_COHESION];                                       }
+double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
 
 //**************************************************************************************************************************************************
