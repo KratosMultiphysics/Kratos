@@ -34,7 +34,7 @@ def DoRemoval(model_part):
 
     # mark for deactivation all of the nodes which are not needed
     for prop_id in config.deactivate_list:
-        # print 'prop_id', prop_id
+        print ("prop_id", prop_id)
         # raw_input()
         for elem in model_part.Elements:
             # print 'properties.id', elem.Properties.Id
@@ -103,8 +103,8 @@ def DoRemoval(model_part):
             cond.SetValue(ERASE_FLAG, True)
             # print "cond", cond
         # print "cond", cond
-    # print "CONDICIONES A ELIMINAR"
-    # raw_input()
+    print "CONDICIONES A ELIMINAR"
+    input()
 
     for node in model_part.Nodes:
         flag = node.GetSolutionStepValue(FLAG_VARIABLE)
@@ -182,8 +182,8 @@ def DoRemoval(model_part):
     # for cond in model_part.Conditions:
         # print "cond", cond.Id
 
-    # print "CREADAS CONDICIONES"
-    # raw_input()
+    print "CREADAS CONDICIONES"
+    input()
     return [inlet_nodes, outlet_nodes]
 
 
