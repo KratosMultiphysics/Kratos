@@ -6,12 +6,12 @@
 //
 //
 
- // Project includes
-#include "includes/define.h" 
-
 // System includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+
+ // Project includes
+#include "includes/define.h" 
 
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h"    
 #include "custom_constitutive/DEM_continuum_constitutive_law.h" 
