@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -58,16 +58,16 @@ def AddDofs(model_part, config=None):
 
 
 class MonolithicSolver:
-    #
-
-    def __init__(self, model_part, domain_size):
+    
+    def __init__(self, model_part, domain_size, periodic=False):
 
         self.model_part = model_part
         self.domain_size = domain_size
 
         self.alpha = -0.3
         self.move_mesh_strategy = 0
-
+        self.periodic = periodic
+        
         # definition of the solvers
         try:
             from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
@@ -143,20 +143,23 @@ class MonolithicSolver:
                                            self.rel_pres_tol, self.abs_pres_tol)
 # self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 # self.rel_pres_tol,self.abs_pres_tol)
+
         if self.turbulence_model is None:
-            self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
-                (self.alpha, self.move_mesh_strategy,
-                 self.domain_size)
+            if self.periodic == True:
+                self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
+                (self.alpha, self.move_mesh_strategy, self.domain_size, PATCH_INDEX)
+            else:
+                self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
+                (self.alpha, self.move_mesh_strategy, self.domain_size)
         else:
             self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
-                (self.alpha,
-                 self.move_mesh_strategy,
-                 self.domain_size,
-                 self.turbulence_model)
-
-        builder_and_solver = ResidualBasedBlockBuilderAndSolver(
-            self.linear_solver)
-
+                (self.alpha, self.move_mesh_strategy, self.domain_size, self.turbulence_model)
+                
+        if self.periodic == True:
+            builder_and_solver = ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver, PATCH_INDEX) 
+        else:
+            builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        
         self.solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part, self.time_scheme, self.linear_solver, self.conv_criteria,
             builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
@@ -167,8 +170,8 @@ class MonolithicSolver:
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
 
-# print "Initialization monolithic solver finished"
-    #
+        print ("Initialization monolithic solver finished")
+    
     def Solve(self):
 
         if self.divergence_clearance_steps > 0:
@@ -291,8 +294,8 @@ class MonolithicSolver:
 
 #
 #
-def CreateSolver(model_part, config):
-    fluid_solver = MonolithicSolver(model_part, config.domain_size)
+def CreateSolver(model_part, config, periodic=False):
+    fluid_solver = MonolithicSolver(model_part, config.domain_size, periodic)
 
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha
