@@ -927,7 +927,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         }
         
         //SLS 
-        cohesion *= 0.5;
+        //cohesion *= 0.5; // If we consider that walls have no cohesion so the mean cohesion between them and
+                           // the spheres would be cohesion * 0.5
+        cohesion *= 0.0; //If we consider no cohesion at all with walls, so cohesion = 0;
         if (indentation > 0.0) { LocalElasticContactForce[2] =  kn_el * indentation - area * cohesion;
         }
         else { LocalElasticContactForce[2] = 0.0; }
