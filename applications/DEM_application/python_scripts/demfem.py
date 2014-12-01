@@ -54,7 +54,7 @@ else :
 #                                                                            #
 ##############################################################################
 
-# Import utilities from moduels
+# Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
 demio         = DEM_procedures.DEMIo()
 report        = DEM_procedures.Report()
