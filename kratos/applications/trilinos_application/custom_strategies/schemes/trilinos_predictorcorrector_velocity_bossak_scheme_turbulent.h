@@ -132,25 +132,22 @@ public:
 
     TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, unsigned int DomainSize):
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, DomainSize),
-        mImporterIsInitialized(false),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+        mImporterIsInitialized(false)
     {
         std::cout << "using the TRILINOS velocity Bossak Time Integration Scheme (with turbulence model)" << std::endl;
     }
 
     TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, unsigned int DomainSize, Process::Pointer pTurbulenceModel):
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, DomainSize, pTurbulenceModel),
-        mImporterIsInitialized(false),
-        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+        mImporterIsInitialized(false)
     {
 
         std::cout << "using the TRILINOS velocity Bossak Time Integration Scheme (with turbulence model)" << std::endl;
     }
 
     TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, unsigned int DomainSize, const Variable<int>& rPeriodicIdVar):
-        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, DomainSize),
-        mImporterIsInitialized(false),
-        mrPeriodicIdVar(rPeriodicIdVar)
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, DomainSize, rPeriodicIdVar),
+        mImporterIsInitialized(false)
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD,&rank);
@@ -404,86 +401,6 @@ protected:
         mImporterIsInitialized = true;
     }
 
-    /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
-     * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
-     * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
-     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
-     * 3- The value on all periodic nodes is replaced by the one received in step 2.
-     */
-    void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
-    {
-        if (mrPeriodicIdVar.Key() != 0)
-        {
-            for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
-            {
-                ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-                if (rGeom.PointsNumber() == 2)
-                {
-                    Node<3>& rNode0 = rGeom[0];
-                    int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                    Node<3>& rNode1 = rGeom[1];
-                    int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
-
-                    // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                    if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
-                    {
-                        double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
-                        array_1d<double,3> AdvProj = rNode0.FastGetSolutionStepValue(ADVPROJ) + rNode1.FastGetSolutionStepValue(ADVPROJ);
-                        double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
-
-                        rNode0.GetValue(NODAL_AREA) = NodalArea;
-                        rNode0.GetValue(ADVPROJ) = AdvProj;
-                        rNode0.GetValue(DIVPROJ) = DivProj;
-
-                        rNode1.GetValue(NODAL_AREA) = NodalArea;
-                        rNode1.GetValue(ADVPROJ) = AdvProj;
-                        rNode1.GetValue(DIVPROJ) = DivProj;
-                    }
-                }
-                else if (rGeom.PointsNumber() == 4)
-                {
-                    double NodalArea = 0.0;
-                    array_1d<double,3> AdvProj(3,0.0);
-                    double DivProj = 0.0;
-                    for ( unsigned int i = 0; i < 4; i++ )
-                    {
-                        NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-                        AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-                        DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
-                    }
-
-                    for ( unsigned int i = 0; i < 4; i++ )
-                    {
-                        rGeom[i].GetValue(NODAL_AREA) = NodalArea;
-                        rGeom[i].GetValue(ADVPROJ) = AdvProj;
-                        rGeom[i].GetValue(DIVPROJ) = DivProj;
-                    }
-
-                }
-            }
-
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
-
-            for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-            {
-                if (itNode->GetValue(NODAL_AREA) != 0.0)
-                {
-                    itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
-                    itNode->FastGetSolutionStepValue(ADVPROJ) = itNode->GetValue(ADVPROJ);
-                    itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
-
-                    // reset for next iteration
-                    itNode->GetValue(NODAL_AREA) = 0.0;
-                    itNode->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
-                    itNode->GetValue(DIVPROJ) = 0.0;
-                }
-            }
-        }
-    }
-
     /*@} */
     /**@name Protected  Access */
     /*@{ */
@@ -514,8 +431,6 @@ private:
     bool mImporterIsInitialized;
 
     boost::shared_ptr<Epetra_Import> mpDofImporter;
-
-    const Kratos::Variable<int>& mrPeriodicIdVar;
 
     /*@} */
     /**@name Private Operators*/

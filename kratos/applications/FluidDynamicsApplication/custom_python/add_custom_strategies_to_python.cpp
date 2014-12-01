@@ -120,6 +120,7 @@ void  AddCustomStrategiesToPython()
             bases< BaseSchemeType >,  boost::noncopyable >
             ("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",init<double,double,unsigned int,Process::Pointer >() )
             .def(init<double,double,unsigned int >())// constructor without a turbulence model
+            .def(init<double,double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
             .def(init<double,double,unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
             ;
 
