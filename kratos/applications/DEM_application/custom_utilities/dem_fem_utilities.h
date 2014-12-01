@@ -86,14 +86,13 @@ class DEMFEMUtilities
                 
                 NodesArrayType& pNodes         = r_model_part.GetMesh(mesh_number).Nodes();
 
-                array_1d<double, 3 >  previous_displ   = r_model_part.GetMesh(mesh_number)[DISPLACEMENT];
+                array_1d<double, 3 >& previous_displ   = r_model_part.GetMesh(mesh_number)[DISPLACEMENT];
                 array_1d<double, 3 >& linear_velocity  = r_model_part.GetMesh(mesh_number)[VELOCITY];
                 double                linear_period    = r_model_part.GetMesh(mesh_number)[VELOCITY_PERIOD];
                 array_1d<double, 3 >& angular_velocity = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY];
                 double                angular_period   = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_PERIOD];
                 array_1d<double, 3 >& initial_center   = r_model_part.GetMesh(mesh_number)[ROTATION_CENTER];
                 bool                  fixed_mesh       = r_model_part.GetMesh(mesh_number)[FIXED_MESH_OPTION];
-
                 array_1d<double, 3 > center_position;
                 array_1d<double, 3 > linear_velocity_changed;
                 array_1d<double, 3 > angular_velocity_changed;
@@ -109,6 +108,9 @@ class DEMFEMUtilities
                     center_position[0] = initial_center[0] + previous_displ[0] + dt * linear_velocity[0];
                     center_position[1] = initial_center[1] + previous_displ[1] + dt * linear_velocity[1];
                     center_position[2] = initial_center[2] + previous_displ[2] + dt * linear_velocity[2];
+                    previous_displ[0] += dt * linear_velocity[0];
+                    previous_displ[1] += dt * linear_velocity[1];
+                    previous_displ[2] += dt * linear_velocity[2];       
                     linear_velocity_changed = linear_velocity;
                 }
 
@@ -209,7 +211,7 @@ class DEMFEMUtilities
                             node->FastGetSolutionStepValue(VELOCITY) = vel;
 
                             //update DISPLACEMENT                            
-                             node->FastGetSolutionStepValue(DISPLACEMENT) = displacement;
+                            node->FastGetSolutionStepValue(DISPLACEMENT) = displacement;
                             
                                                                                       
                         }
