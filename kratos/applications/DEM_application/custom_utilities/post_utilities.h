@@ -133,7 +133,7 @@ public:
                 force_y += elastic_forces[1];
                 force_z += elastic_forces[2];
             }
-        ;}
+         }
     
     
     double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart,ModelPart& rContactModelPart, ProcessInfo& rCurrentProcessInfo ){
