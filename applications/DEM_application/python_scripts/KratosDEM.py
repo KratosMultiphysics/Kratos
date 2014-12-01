@@ -282,7 +282,7 @@ while ( time < DEM_parameters.FinalTime):
         #parallelutils.CalculateModelNewIds(balls_model_part)
     
     #walls movement:
-    mesh_motion.MoveAllMeshes(rigid_face_model_part, time)
+    mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
     
     #### SOLVE #########################################
     solver.Solve()

@@ -77,7 +77,7 @@ class DEMFEMUtilities
       }
       
 
-      void MoveAllMeshes(ModelPart& r_model_part, double time)
+      void MoveAllMeshes(ModelPart& r_model_part, double time, double dt)
       {
           
           if ( r_model_part.NumberOfMeshes() > 1 ) {
@@ -86,6 +86,7 @@ class DEMFEMUtilities
                 
                 NodesArrayType& pNodes         = r_model_part.GetMesh(mesh_number).Nodes();
 
+                array_1d<double, 3 >  previous_displ   = r_model_part.GetMesh(mesh_number)[DISPLACEMENT];
                 array_1d<double, 3 >& linear_velocity  = r_model_part.GetMesh(mesh_number)[VELOCITY];
                 double                linear_period    = r_model_part.GetMesh(mesh_number)[VELOCITY_PERIOD];
                 array_1d<double, 3 >& angular_velocity = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY];
@@ -105,7 +106,9 @@ class DEMFEMUtilities
                     linear_velocity_changed = linear_velocity * cos(linear_omega * time);
                 }
                 else {
-                    center_position = initial_center + time * linear_velocity;
+                    center_position[0] = initial_center[0] + previous_displ[0] + dt * linear_velocity[0];
+                    center_position[1] = initial_center[1] + previous_displ[1] + dt * linear_velocity[1];
+                    center_position[2] = initial_center[2] + previous_displ[2] + dt * linear_velocity[2];
                     linear_velocity_changed = linear_velocity;
                 }
 

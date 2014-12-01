@@ -1283,7 +1283,7 @@ namespace Kratos
                 mpDem_model_part->GetProcessInfo()[TIME_STEPS] = step;
 
                 //walls movement:
-                mesh_motion.MoveAllMeshes(*mpFem_model_part, time);
+                mesh_motion.MoveAllMeshes(*mpFem_model_part, time, dt);
 
                 //# _SOLVE_###########################################
                 //os.chdir(main_path);
