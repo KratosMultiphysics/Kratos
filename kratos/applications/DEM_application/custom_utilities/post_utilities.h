@@ -72,7 +72,7 @@ public:
     }    
     
     
-    array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3> low_point, const array_1d<double, 3> high_point){
+    array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3>& low_point, const array_1d<double, 3>& high_point){
         
         ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
 
@@ -119,24 +119,24 @@ public:
         
     }//VelocityTrap
     
-    void IntegrationOfForces(NodesContainerType& rNodes, double& force_x, double& force_y, double& force_z ) {
+    
+    void IntegrationOfForces(ModelPart& r_model_part, array_1d<double, 3>& total_forces) {
          
-            NodesContainerType::iterator i_begin = rNodes.ptr_begin();
-            NodesContainerType::iterator i_end = rNodes.ptr_end();
-            
-            //TODO: This loop should be parallelized carefully!!!
-            
-            for (NodesContainerType::iterator i = i_begin; i != i_end; ++i) {
+        NodesContainerType& rNodes = r_model_part.Nodes();
+        
+        for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin();
+            node_pointer_it != rNodes.ptr_end(); ++node_pointer_it) {
                 
-                const array_1d<double, 3 >& elastic_forces = i->FastGetSolutionStepValue(ELASTIC_FORCES);
-                force_x += elastic_forces[0];
-                force_y += elastic_forces[1];
-                force_z += elastic_forces[2];
-            }
-         }
+            const array_1d<double, 3 >& elastic_forces = (*node_pointer_it)->FastGetSolutionStepValue(ELASTIC_FORCES);
+                
+            total_forces[0] += elastic_forces[0];
+            total_forces[1] += elastic_forces[1];
+            total_forces[2] += elastic_forces[2];
+        }
+    }
     
     
-    double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart,ModelPart& rContactModelPart, ProcessInfo& rCurrentProcessInfo ){
+    double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, ProcessInfo& rCurrentProcessInfo ){
         
         double adimensional_value = 0.0;
 
