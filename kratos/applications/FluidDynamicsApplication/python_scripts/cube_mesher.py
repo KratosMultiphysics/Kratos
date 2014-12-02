@@ -15,7 +15,7 @@ changelog:
 class box_data(object):
 
     def __init__(self, xmin, ymin, zmin, xmax, ymax, zmax, nx, ny, nz):
-        self.box = [xmin, ymin, zmin, zmax, ymax, zmax]
+        self.box = [xmin, ymin, xmin, zmax, ymax, zmax]
         self.ndiv = [nx, ny, nz]
         self.jump = [(xmax - xmin) / nx, (ymax - ymin) / ny, (zmax-zmin)/nz]
         self.cond_range = dict()
@@ -404,8 +404,13 @@ def generate_xy_periodic_edges(mdpa, box, index, condtype="PeriodicConditionEdge
     nx = box.nx()
     ny = box.ny()
 
+    if box.z_periodic:
+        z_range = list(range(1,nz))
+    else:
+        z_range = list(range(0,nz+1))
+
     mdpa.write("Begin Conditions {0} //xy links\n".format(condtype))
-    for iz in range(nz + 1):
+    for iz in z_range:
         n0 = box.get_id(0, 0, iz)
         n1 = box.get_id(0, ny, iz)
         n2 = box.get_id(nx, ny, iz)
@@ -423,8 +428,13 @@ def generate_xz_periodic_edges(mdpa, box, index, condtype="PeriodicConditionEdge
     nx = box.nx()
     nz = box.nz()
 
-    mdpa.write("Begin Conditions {0} //xy links\n".format(condtype))
-    for iy in range(ny + 1):
+    if box.y_periodic:
+        y_range = list(range(1,ny))
+    else:
+        y_range = list(range(0,ny+1))
+
+    mdpa.write("Begin Conditions {0} //xz links\n".format(condtype))
+    for iy in y_range:
         n0 = box.get_id(0, iy, 0)
         n1 = box.get_id(0, iy, nz)
         n2 = box.get_id(nx, iy, nz)
@@ -436,8 +446,53 @@ def generate_xz_periodic_edges(mdpa, box, index, condtype="PeriodicConditionEdge
 
     return index
 
+def generate_yz_periodic_edges(mdpa, box, index, condtype="PeriodicConditionEdge", prop_id=0):
+    ny = box.ny()
+    nx = box.nx()
+    nz = box.nz()
 
-def generate_conditions(mdpa, box, condtype="WallCondition3D", periodic_facetype="PeriodicCondition", periodic_edgetype="PeriodicConditionEdge", prop_id=0):
+    if box.x_periodic:
+        x_range = list(range(1,nx))
+    else:
+        x_range = list(range(0,nx+1))
+
+    mdpa.write("Begin Conditions {0} //yz links\n".format(condtype))
+    for ix in x_range:
+        n0 = box.get_id(ix, 0, 0)
+        n1 = box.get_id(ix, 0, nz)
+        n2 = box.get_id(ix, ny, nz)
+        n3 = box.get_id(ix, ny, 0)
+
+        mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d} {5:d}\n".format(index, prop_id, n0, n1, n2, n3))
+        index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+
+def generate_periodic_corners(mdpa,box,index,condtype="PeriodiConditionCorner", prop_id=0):
+    ny = box.ny()
+    nx = box.nx()
+    nz = box.nz()
+
+    mdpa.write("Begin Conditions {0} //corner links\n".format(condtype))
+    n0 = box.get_id( 0, 0, 0)
+    n1 = box.get_id(nx, 0, 0)
+    n2 = box.get_id(nx,ny, 0)
+    n3 = box.get_id( 0,ny, 0)
+    n4 = box.get_id( 0, 0,nz)
+    n5 = box.get_id(nx, 0,nz)
+    n6 = box.get_id(nx,ny,nz)
+    n7 = box.get_id( 0,ny,nz)
+
+    mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d} {5:d} {6:d} {7:d} {8:d} {9:d}\n".format(index, prop_id, n0, n1, n2, n3, n4, n5, n6, n7))
+    index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+
+
+
+def generate_conditions(mdpa, box, condtype="WallCondition3D", periodic_facetype="PeriodicCondition", periodic_edgetype="PeriodicConditionEdge", periodic_cornertype="PeriodicConditionCorner",prop_id=0):
     print("Generating {0} faces.".format(condtype))
 
     if box.x_periodic:
@@ -465,10 +520,10 @@ def generate_conditions(mdpa, box, condtype="WallCondition3D", periodic_facetype
         index = generate_xz_periodic_edges(mdpa, box, index, periodic_edgetype, prop_id)
 
     if box.y_periodic and box.z_periodic:
-        raise Exception("yz periodic links not implemented")
+        index = generate_yz_periodic_edges(mdpa, box, index, periodic_edgetype, prop_id)
 
     if box.x_periodic and box.y_periodic and box.z_periodic:
-        raise Exception("Corner conditions not implemented")
+        index = generate_periodic_corners(mdpa, box, index, periodic_cornertype, prop_id)
 
 
 def generate_mesh_groups(mdpa, box):
