@@ -782,8 +782,8 @@ void SphericSwimmingParticle::ApplyDragPorosityModification(double& drag_coeff)
 //**************************************************************************************************************************************************
 
 double SphericSwimmingParticle::ComputeElSamniLiftCoefficient(const double norm_of_shear_rate,
-                                                       const double vorticity_norm,
-                                                       ProcessInfo& r_current_process_info)
+                                                              const double vorticity_norm,
+                                                              ProcessInfo& r_current_process_info)
 {
     if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
          const double yield_stress   = 0.0; // we are considering a Bingham type fluid
