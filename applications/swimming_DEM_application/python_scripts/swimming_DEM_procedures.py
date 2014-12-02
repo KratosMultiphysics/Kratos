@@ -15,16 +15,16 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
 
     for node in fluid_model_part.Nodes:
 
-        if (node.Id > max_id):
+        if node.Id > max_id:
             max_id = node.Id
 
     for node in dem_model_part.Nodes:
 
-        if (node.Id < max_id):
+        if node.Id < max_id:
             renumerate = True
             break
 
-    if (renumerate):
+    if renumerate:
 
         print("WARNING!, the DEM model part and the fluid model part have some ID values in common")
         print("Renumerating DEM model part and fem-DEM model parts Ids")
@@ -62,7 +62,7 @@ class FluidFractionFieldUtility:
 
     def CheckIsInside(self, p, l, h):  # p is the point, l and h are the low and high corners of the bounding box
 
-        if (p[0] < l[0] or p[1] < l[1] or p[2] < l[2] or p[0] > h[0] or p[1] > h[1] or p[2] > h[2]):
+        if p[0] < l[0] or p[1] < l[1] or p[2] < l[2] or p[0] > h[0] or p[1] > h[1] or p[2] > h[2]:
             return False
 
         else:
@@ -113,7 +113,7 @@ class FluidFractionFieldUtility:
             for node in self.fluid_model_part.Nodes:
                 fluid_fraction = node.GetSolutionStepValue(FLUID_FRACTION, 0)
 
-                if (self.CheckIsInside([node.X, node.Y, node.Z], field.low, field.high)):
+                if self.CheckIsInside([node.X, node.Y, node.Z], field.low, field.high):
                     value = fluid_fraction + field.frac_0 + field.frac_grad[0] * node.X + field.frac_grad[1] * node.Y + field.frac_grad[2] * node.Z
                     value = min(max(value, 0.0), self.min_fluid_fraction)
                     node.SetSolutionStepValue(FLUID_FRACTION, 0, value)
@@ -126,17 +126,17 @@ def MultiplyNodalVariableByFactor(model_part, variable, factor):
 
 def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_over_real):
 
-    if (transformation_type == 0):
+    if transformation_type == 0:
         return
 
-    elif (transformation_type == 1):
+    elif transformation_type == 1:
 
         print('***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
         print('The particles diameters quotient is\n')
         print('D_model / D_real =', mod_over_real)
         print()
 
-        if (transformation_type == 1):  # Tsuji 2013, (Preserves Archimedes and Reynolds numbers)
+        if transformation_type == 1:  # Tsuji 2013, (Preserves Archimedes and Reynolds numbers)
 
             print ('The fluid variables to be modified are\n\nDENSITY\nVISCOSITY\n\n***')
 
@@ -155,16 +155,16 @@ def FindMaxNodeIdInFLuid(fluid_model_part):
 
     for node in fluid_model_part.Nodes:
 
-        if (node.Id > max):
+        if node.Id > max:
             max = node.Id
 
     return max
 
 def FunctionsCalculator(pp):
-    if (pp.domain_size == 2):
+    if pp.domain_size == 2:
         custom_functions_tool = CustomFunctionsCalculator2D()
 
-    elif (pp.domain_size == 3):
+    elif pp.domain_size == 3:
         custom_functions_tool = CustomFunctionsCalculator3D()
 
     return custom_functions_tool
@@ -198,14 +198,14 @@ class IOTools:
             dir_abs_path = main_path + '/' + name
             directories[name] = dir_abs_path
 
-            if (not os.path.isdir(dir_abs_path)):
+            if not os.path.isdir(dir_abs_path):
                 os.makedirs(str(dir_abs_path))
 
         return directories
 
     def ControlEcho(self, step, incremental_time, total_steps_expected):
 
-        if (incremental_time > self.param.ControlTime):
+        if incremental_time > self.param.ControlTime:
             percentage = 100.0 * (float(step) / total_steps_expected)
 
             print('Real time calculation: ' + str(incremental_time))
@@ -223,7 +223,7 @@ class IOTools:
         print(('In hours :' + str(estimated_sim_duration / 3600) + 'hrs.' + '\n'))
         print(('In days :' + str(estimated_sim_duration / 86400) + 'days.' + '\n'))
 
-        if (estimated_sim_duration / 86400 > 2.0):
+        if estimated_sim_duration / 86400 > 2.0:
 
             print(('WARNING!!!:       VERY LASTING CALCULATION' + '\n'))
 
@@ -253,7 +253,7 @@ class ProjectionDebugUtils:
         self.custom_utils.CalculateTotalHydrodynamicForceOnParticles(self.balls_model_part, self.fluid_on_balls_total_force)
         self.custom_utils.CalculateTotalHydrodynamicForceOnFluid(self.fluid_model_part, self.proj_balls_on_fluid_total_force)
 
-        if (not is_time_to_print):
+        if not is_time_to_print:
             return
 
         # printing
@@ -281,17 +281,17 @@ class ProjectionDebugUtils:
 # This class is useful to keep track of cycles in loops. It is initialized by giving the number of steps per cycle,
 # the step at which the cycle starts and weather it is active or not (Tick() returns False in this case).
 # Tick() adds 1 to the general counter and to the cycle counter every time it is called, returning True when
-# the general counter is greater than the 'begining_step' and cycling counter is back to the beggining of the cycle
+# the general counter is greater than the 'beginning_step' and cycling counter is back to the beggining of the cycle
 # (and it is active); and False otherwise.
 
 class Counter:
 
-    def __init__(self, steps_in_cycle = 1, begining_step = 1, is_active = True):
+    def __init__(self, steps_in_cycle = 1, beginning_step = 1, is_active = True):
 
-        if (steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int )):
+        if steps_in_cycle <= 0 or not isinstance(steps_in_cycle , int):
             raise ValueError("Error: The input steps_in_cycle must be a strictly positive integer")
 
-        self.begining_step  = begining_step
+        self.beginning_step = beginning_step
         self.step           = 1
         self.steps_in_cycle = steps_in_cycle
         self.step_in_cycle  = steps_in_cycle
@@ -299,18 +299,18 @@ class Counter:
 
     def Tick(self):           
 
-        if (self.step < self.begining_step or not self.is_active):
+        if self.step < self.beginning_step or not self.is_active:
             self.step += 1
             return False
 
-        if (self.step_in_cycle  == self.steps_in_cycle):
+        if self.step_in_cycle == self.steps_in_cycle:
             self.step += 1
             self.step_in_cycle = 1
             return True
 
         else:
             self.step += 1
-            self.step_in_cycle = 1
+            self.step_in_cycle += 1
             return False
 
     def SetActivation(self, is_active):
@@ -320,7 +320,7 @@ class Counter:
         self.is_active = self.is_active or activate
 
     def Deactivate(self, deactivate):
-        self.is_active = self.is_active and deactivate
+        self.is_active = self.is_active and not deactivate
 
     def GetStep(self):
         return self.step
@@ -355,7 +355,7 @@ class PostUtils:
         print("*******************  PRINTING RESULTS FOR GID  ***************************")
         sys.stdout.flush()
 
-        if (self.pp.GiDMultiFileFlag == "Multiples"):
+        if self.pp.GiDMultiFileFlag == "Multiples":
             self.mixed_model_part.Elements.clear()
             self.mixed_model_part.Nodes.clear()
             # here order is important!
@@ -367,7 +367,7 @@ class PostUtils:
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
-        if (self.pp.dem.VelocityTrapOption):
+        if self.pp.dem.VelocityTrapOption:
             average_velocity = Array3()
             low_point = Array3()
             low_point[0] = self.pp.dem.VelocityTrapMinX
@@ -394,7 +394,7 @@ class StationarityAssessmentTool:
     def Assess(self, model_part): # in the first time step the 'old' pressure vector is created and filled
         stationarity = self.tool.AssessStationarity(model_part, self.tol)
 
-        if (stationarity):
+        if stationarity:
             print("**************************************************************************************************")
             print()
             print("The model has reached a stationary state. The fluid calculation is suspended.")
