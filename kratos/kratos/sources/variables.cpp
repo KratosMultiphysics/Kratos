@@ -638,8 +638,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, AUXILIARY_MATRIX_1 )
   KRATOS_CREATE_VARIABLE( Matrix, ELASTIC_LEFT_CAUCHY_GREEN_OLD )
 
-  //others
-
   //for General kratos application: 
   KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW )
   //NEIGHBOUR_NODES defined in node.h
@@ -698,6 +696,7 @@ namespace Kratos
     mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mPeriodicConditionEdge(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mpVariableData( KratosComponents<VariableData>::pGetComponents() ),
     mpIntVariables( KratosComponents<Variable<int> >::pGetComponents() ),
     mpUnsignedIntVariables( KratosComponents<Variable<unsigned int> >::pGetComponents() ),
@@ -1325,6 +1324,7 @@ namespace Kratos
       KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D )
       KRATOS_REGISTER_CONDITION( "PeriodicCondition", mPeriodicCondition )
       KRATOS_REGISTER_CONDITION( "PeriodicConditionEdge", mPeriodicConditionEdge )
+      KRATOS_REGISTER_CONDITION( "PeriodicConditionCorner", mPeriodicConditionCorner )
 
       //Register specific elements ( must be completed : elemtns defined in kratos_appliction.h)
 	
