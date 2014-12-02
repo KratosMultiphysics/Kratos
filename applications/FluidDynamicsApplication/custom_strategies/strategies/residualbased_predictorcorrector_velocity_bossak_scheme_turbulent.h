@@ -232,9 +232,9 @@ namespace Kratos {
             Process::Pointer pTurbulenceModel)
         :
           Scheme<TSparseSpace, TDenseSpace>(),
-          mpTurbulenceModel(pTurbulenceModel),
           mRotationTool(DomainSize,DomainSize+1,IS_STRUCTURE,0.0), // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs
-          mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
+          mrPeriodicIdVar(Kratos::Variable<int>::StaticObject()),
+          mpTurbulenceModel(pTurbulenceModel)
           {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
@@ -328,7 +328,7 @@ namespace Kratos {
         {
             KRATOS_TRY
 
-                    int NumThreads = OpenMPUtils::GetNumThreads();
+            int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
@@ -995,11 +995,11 @@ namespace Kratos {
         /**@name Member Variables */
         /*@{ */
 
+        CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
+
         const Variable<int>& mrPeriodicIdVar;
 
         Process::Pointer mpTurbulenceModel;
-
-        CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
 
         /*@} */
         /**@name Private Operators*/
