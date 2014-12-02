@@ -24,7 +24,7 @@ import conditions_python_utility as condition_utils
 import list_files_python_utility as files_utils
 import time_operation_utility as operation_utils
 
-# TODO: Ungly fix. Change it. I don't like this to be in the main...
+# TODO: Ugly fix. Change it. I don't like this to be in the main...
 # Strategy object
 if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
     import sphere_strategy as SolverStrategy
@@ -46,7 +46,7 @@ else :
     import DEM_procedures
     import DEM_material_test_script
 
-    print("Runing under OpenMP")
+    print("Running under OpenMP")
 
 ##############################################################################
 #                                                                            #
