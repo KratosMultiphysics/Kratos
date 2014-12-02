@@ -371,6 +371,7 @@ protected:
     // Periodic Condition 
     const PeriodicCondition mPeriodicCondition;
     const PeriodicCondition mPeriodicConditionEdge;
+    const PeriodicCondition mPeriodicConditionCorner;
 
 
     //general elements must be defined

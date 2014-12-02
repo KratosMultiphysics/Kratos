@@ -194,6 +194,8 @@ public:
 
                 int Node1 = rGeom[1].Id();
                 int Node1Pair = rGeom[1].FastGetSolutionStepValue(mPeriodicIdVar);
+                if ( Node0Pair == 0 || Node1Pair == 0 )
+                    KRATOS_ERROR(std::runtime_error,"ERROR: a periodic condition has no periodic pair ids assigned. Condition Id is: ",itCond->Id());
 
                 // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
                 if ( ( Node0 == Node1Pair ) && ( Node1 == Node0Pair ) )
@@ -207,6 +209,11 @@ public:
             else if (rGeom.PointsNumber() == 4) // Special treatment for edge nodes
             {
                 for (unsigned int i = 1; i < 4; i++)
+                    CopyEquationId(rGeom[0],rGeom[i]);
+            }
+            else if (rGeom.PointsNumber() == 8) // Special treatment for edge nodes
+            {
+                for (unsigned int i = 1; i < 8; i++)
                     CopyEquationId(rGeom[0],rGeom[i]);
             }
         }
@@ -230,7 +237,15 @@ public:
         this->mEquationSystemSize = TotalDofNum;
         this->mLastMyId = DofOffset;
 
+        /* some prints useful for debug
         //std::cout << Rank << ": mLocalSystemSize " << this->mLocalSystemSize << " mEquationSystemSize " << this->mEquationSystemSize << " mLastMyId " << this->mLastMyId << " mFirstMyId " << this->mFirstMyId << std::endl;
+        for (typename DofsArrayType::iterator itDof = this->mDofSet.begin(); itDof != this->mDofSet.end(); ++itDof)
+            //if ( (itDof->GetSolutionStepValue(PARTITION_INDEX) == Rank) && ( itDof->GetSolutionStepValue(mPeriodicIdVar) < static_cast<int>(itDof->Id())) )
+            if (itDof->EquationId() == 0)
+                std::cout << "Rank: " << Rank << " node id " << itDof->Id() << " eq Id " << itDof->EquationId() << " var " << itDof->GetVariable().Name() << " partition index " << itDof->GetSolutionStepValue(PARTITION_INDEX) << " flag variable " << itDof->GetSolutionStepValue(FLAG_VARIABLE) << " periodic pair index " <<  itDof->GetSolutionStepValue(mPeriodicIdVar) << std::endl;
+        //std::cout << Rank << ": mLocalSystemSize " << this->mLocalSystemSize << " mEquationSystemSize " << this->mEquationSystemSize << " mLastMyId " << this->mLastMyId << " mFirstMyId " << this->mFirstMyId << std::endl;
+        */
+
         KRATOS_CATCH("");
     }
 
@@ -410,8 +425,9 @@ private:
         for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
         {
             Condition::GeometryType& rGeom = itCond->GetGeometry();
+            const unsigned int NumNodes = rGeom.PointsNumber();
             // mPeriodicIdVar > GlobalNodesNum is an imposible value for regular periodic nodes, which we use to signal edges
-            if ( rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar) > GlobalNodesNum )
+            if ( ( NumNodes == 4 || NumNodes == 8 ) && rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar) > GlobalNodesNum )
             {
                 unsigned int FirstNode = rGeom[0].Id();
                 // KLUDGE: the following call should go through the scheme!!

@@ -218,6 +218,20 @@ public:
         this->mEquationSystemSize = TotalDofNum;
         this->mLastMyId = DofOffset;
 
+        /* the following prints can be helpful for debug
+        for (typename DofsArrayType::iterator itDof = this->mDofSet.begin(); itDof != this->mDofSet.end(); ++itDof)
+            if (itDof->GetSolutionStepValue(PARTITION_INDEX) == Rank)
+            {
+                if (itDof->EquationId() < this->mFirstMyId || itDof->EquationId() >= this->mLastMyId)
+                {
+                    KRATOS_WATCH(Rank);
+                    KRATOS_WATCH(itDof->EquationId());
+                    KRATOS_WATCH(this->mFirstMyId);
+                    KRATOS_WATCH(this->mLastMyId);
+                }
+            }
+        */
+
         KRATOS_CATCH("");
     }
 
