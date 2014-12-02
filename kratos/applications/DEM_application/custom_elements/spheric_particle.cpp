@@ -604,17 +604,23 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
             double MR[3]                 = {0.0};
 
             GeometryFunctions::CrossProduct(LocalCoordSystem2, MaxRotaMoment, CoordSystemMoment1);
-            if(DEM_MODULUS_3(CoordSystemMoment1) > 0.0) DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment1, (1.0 / DEM_MODULUS_3(CoordSystemMoment1)))
-
+            if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0){
+				double det_coor_sys_moment_i_1 = 1.0 / DEM_MODULUS_3(CoordSystemMoment1);
+				DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment1, det_coor_sys_moment_i_1)
+			}
+                  
             GeometryFunctions::CrossProduct(MaxRotaMoment, CoordSystemMoment1, CoordSystemMoment2);
-            if(DEM_MODULUS_3(CoordSystemMoment2) > 0.0) DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, (1.0 / DEM_MODULUS_3(CoordSystemMoment2)))
-
+            if (DEM_MODULUS_3(CoordSystemMoment2) > 0.0){
+				double det_coor_sys_moment_i_2 = 1.0 / DEM_MODULUS_3(CoordSystemMoment2);
+				DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, det_coor_sys_moment_i_2)
+			}
+                             
             if(DEM_MODULUS_3(CoordSystemMoment1) > 0.0 && DEM_MODULUS_3(CoordSystemMoment2) > 0.0) GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
             DEM_MULTIPLY_BY_SCALAR_3(MR, fabs(NormalLocalElasticContactForce))
-
+                  
             double MR_now = DEM_MODULUS_3(MR) * equiv_rolling_friction_coeff;
             double MR_max = DEM_MODULUS_3(MaxRotaMoment);
-
+            
             if (MR_max > MR_now){
                 mContactMoment[0] += MR[0] * equiv_rolling_friction_coeff;
                 mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
@@ -625,7 +631,7 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                 mContactMoment = - rInitialRotaMoment;
             }
         } // if (equiv_rolling_friction_coeff != 0.0)
-    } // if (mRotationDampType == 2)
+    } // if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
 }
 
 //**************************************************************************************************************************************************
