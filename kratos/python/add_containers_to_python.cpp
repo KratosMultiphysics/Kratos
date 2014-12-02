@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/vector_python_interface.h"
 #include "python/vector_scalar_operator_python.h"
 #include "python/vector_vector_operator_python.h"
+#include "python/bounded_vector_python_interface.h"
 
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
@@ -138,7 +139,7 @@ struct Array1DModifier
 
 void  AddContainersToPython()
 {
-    VectorPythonInterface<array_1d<double, 3>, Array1DModifier<array_1d<double, 3> > >::CreateInterface( "Array3" )
+    BoundedVectorPythonInterface<array_1d<double, 3>, 3>::CreateInterface( "Array3" )
     .def( init<vector_expression<array_1d<double, 3> > >() )
     .def( VectorScalarOperatorPython<array_1d<double, 3>, double, array_1d<double, 3> >() )
     .def( VectorVectorOperatorPython<array_1d<double, 3>, zero_vector<double>, array_1d<double, 3> >() )
