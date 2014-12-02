@@ -15,7 +15,7 @@ changelog:
 class box_data(object):
 
     def __init__(self, xmin, ymin, zmin, xmax, ymax, zmax, nx, ny, nz):
-        self.box = [xmin, ymin, xmin, zmax, ymax, zmax]
+        self.box = [xmin, ymin, zmin, xmax, ymax, zmax]
         self.ndiv = [nx, ny, nz]
         self.jump = [(xmax - xmin) / nx, (ymax - ymin) / ny, (zmax-zmin)/nz]
         self.cond_range = dict()
