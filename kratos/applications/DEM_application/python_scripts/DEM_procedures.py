@@ -495,6 +495,7 @@ class Procedures(object):
         print(message)
         sys.stdout.flush()
 
+
 # #~CHARLIE~# Aixo no ho entenc 
 class DEMFEMProcedures(object):
 
@@ -591,6 +592,7 @@ class DEMFEMProcedures(object):
                             self.total_force_y += force_node_y
                             self.total_force_z += force_node_z
 
+    
     def PrintGraph(self, time):
 
         if DEM_parameters.TestType == "None":            
@@ -601,14 +603,17 @@ class DEMFEMProcedures(object):
                     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                         if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                             mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
-                            total_force_x = 0.0
-                            total_force_y = 0.0
-                            total_force_z = 0.0
+                            
+                            total_force = Array3()
 
-                            IntegrationOfForces(mesh_nodes, total_force_x, total_force_y, total_force_z)
+                            total_force[0] = 0.0
+                            total_force[1] = 0.0
+                            total_force[2] = 0.0
+                            
+                            PostUtilities().IntegrationOfForces(self.RigidFace_model_part, total_force)
                                                                                       
-                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str(time)+" "+str(total_force_x)+" "+str(total_force_y)+" "+str(total_force_z)+"\n")
-                            graph_forces["self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]"].flush()
+                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str(time)+" "+str(total_force[0])+" "+str(total_force[1])+" "+str(total_force[2])+"\n")
+                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
 
             self.graph_counter += 1
 
