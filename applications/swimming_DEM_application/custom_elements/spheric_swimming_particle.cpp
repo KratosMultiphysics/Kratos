@@ -68,11 +68,11 @@ void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& addit
     KRATOS_TRY
 
     //const array_1d<double, 3>& gravity = r_current_process_info[GRAVITY];
-    mFluidDensity                           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-    mKinematicViscosity                     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-    mFluidFraction                          = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
-    const array_1d<double, 3>& fluid_vel    = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-    const array_1d<double, 3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+    mFluidDensity                           = GetGeometry()[0].FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
+    mKinematicViscosity                     = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+    mFluidFraction                          = GetGeometry()[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
+    const array_1d<double, 3>& fluid_vel    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+    const array_1d<double, 3>& particle_vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
     if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
         noalias(mSlipVel) = fluid_vel / mFluidFraction - particle_vel;
@@ -123,23 +123,23 @@ void SphericSwimmingParticle::UpdateNodalValues(const array_1d<double, 3>& hydro
                                                 const array_1d<double, 3>& saffman_lift_force,
                                                 const array_1d<double, 3>& magnus_lift_force)
 {
-    GetGeometry()(0)->FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)      = hydrodynamic_force;
-    GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY)                = buoyancy;
+    GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_FORCE)      = hydrodynamic_force;
+    GetGeometry()[0].FastGetSolutionStepValue(BUOYANCY)                = buoyancy;
 
     if (mHasHydroMomentNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(HYDRODYNAMIC_MOMENT) = hydrodynamic_moment;
+        GetGeometry()[0].FastGetSolutionStepValue(HYDRODYNAMIC_MOMENT) = hydrodynamic_moment;
     }
 
     if (mHasDragForceNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE)          = drag_force;
+        GetGeometry()[0].FastGetSolutionStepValue(DRAG_FORCE)          = drag_force;
     }
 
     if (mHasVirtualMassForceNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(VIRTUAL_MASS_FORCE)  = virtual_mass_force;
+        GetGeometry()[0].FastGetSolutionStepValue(VIRTUAL_MASS_FORCE)  = virtual_mass_force;
     }
 
     if (mHasLiftForceNodalVar){
-        GetGeometry()(0)->FastGetSolutionStepValue(LIFT_FORCE)          = saffman_lift_force + magnus_lift_force;
+        GetGeometry()[0].FastGetSolutionStepValue(LIFT_FORCE)          = saffman_lift_force + magnus_lift_force;
     }
 }
 
@@ -161,7 +161,7 @@ void SphericSwimmingParticle::ComputeBuoyancy(array_1d<double, 3>& buoyancy, con
         }
 
         else {
-            const array_1d<double, 3>& pressure_grad = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
+            const array_1d<double, 3>& pressure_grad = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
             noalias(buoyancy) = - volume * pressure_grad;
         }
     }
@@ -235,8 +235,8 @@ void SphericSwimmingParticle::ComputeVirtualMassForce(array_1d<double, 3>& virtu
     else {
         const double volume                     = 4 * KRATOS_M_PI_3 * SWIMMING_POW_3(mRadius);
         const double delta_t_inv                = 1 / r_current_process_info[DELTA_TIME];
-        const array_1d<double, 3>& fluid_acc    = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
-        const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY) - GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY, 1));
+        const array_1d<double, 3>& fluid_acc    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_ACCEL_PROJECTED);
+        const array_1d<double, 3>& particle_acc = delta_t_inv * (GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) - GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 1));
         array_1d<double, 3> slip_acc;
 
     if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
@@ -275,8 +275,8 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
     }
 
     else if (mSaffmanForceType >= 1){
-        const double& shear_rate                       = GetGeometry()(0)->FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
-        const array_1d<double, 3>& vorticity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
+        const double& shear_rate                       = GetGeometry()[0].FastGetSolutionStepValue(SHEAR_RATE_PROJECTED);
+        const array_1d<double, 3>& vorticity           = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
         array_1d<double, 3> vort_cross_slip_vel;
         SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(mSlipVel, vorticity, vort_cross_slip_vel)
         const double vorticity_norm                    = SWIMMING_MODULUS_3(vorticity);
@@ -317,7 +317,7 @@ void SphericSwimmingParticle::ComputeMagnusLiftForce(array_1d<double, 3>& lift_f
         return;
     }
 
-    const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()[0].FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     array_1d<double, 3> slip_rot_cross_slip_vel;
     SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(slip_rot, mSlipVel, slip_rot_cross_slip_vel)
 
@@ -362,7 +362,7 @@ void SphericSwimmingParticle::ComputeHydrodynamicTorque(array_1d<double, 3>& hyd
     }
 
     else if (mHydrodynamicTorqueType == 1){
-        const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        const array_1d<double, 3> slip_rot = 0.5 * GetGeometry()[0].FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED) - GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double norm_of_slip_rot = SWIMMING_MODULUS_3(slip_rot);
         double rot_reynolds;
         ComputeParticleRotationReynoldsNumber(norm_of_slip_rot, rot_reynolds);
@@ -423,11 +423,11 @@ void SphericSwimmingParticle::AdditionalCalculate(const Variable<double>& rVaria
         }
 
         else {
-            mFluidDensity                           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-            mKinematicViscosity                     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-            mFluidFraction                          = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
-            const array_1d<double, 3>& fluid_vel    = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-            const array_1d<double, 3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+            mFluidDensity                           = GetGeometry()[0].FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
+            mKinematicViscosity                     = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+            mFluidFraction                          = GetGeometry()[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
+            const array_1d<double, 3>& fluid_vel    = GetGeometry()[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+            const array_1d<double, 3>& particle_vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
             if (mFluidModelType == 0){ // fluid velocity is modified as a post-process
                 noalias(mSlipVel) = fluid_vel / mFluidFraction - particle_vel;
@@ -460,16 +460,14 @@ double SphericSwimmingParticle::ComputeWeatherfordDragCoefficient(ProcessInfo& r
 {
     KRATOS_TRY
 
-    //const double& particle_density             = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_DENSITY);
     const double particle_density              = GetDensity();
-    //const array_1d<double, 3>& buoyancy       = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);//S
     const array_1d<double, 3>& gravity         = r_current_process_info[GRAVITY];
     const int manually_imposed_drag_law_option = r_current_process_info[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
     const int drag_modifier_type               = r_current_process_info[DRAG_MODIFIER_TYPE];
-    const double gel_strength                  = GetGeometry()(0)->FastGetSolutionStepValue(GEL_STRENGTH);
-    const double power_law_n                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
-    const double power_law_K                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
-    const double yield_stress                  = GetGeometry()(0)->FastGetSolutionStepValue(YIELD_STRESS);
+    const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(GEL_STRENGTH);
+    const double power_law_n                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
+    const double power_law_K                   = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
+    const double yield_stress                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
 
     int non_newtonian_option = 1;
 
@@ -708,7 +706,7 @@ double SphericSwimmingParticle::ComputeIntermediateRegimeDragCoefficient()
 
 double SphericSwimmingParticle::ComputeHaiderDragCoefficient()
 {
-    const double sphericity = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
+    const double sphericity = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_SPHERICITY);
     double drag_coeff       = 0.5 * KRATOS_M_PI * SWIMMING_POW_2(mRadius) *  mFluidDensity * mNormOfSlipVel;
 
     double A = exp(2.3288 - 6.4581 * sphericity + 2.4486 * sphericity * sphericity);
@@ -787,8 +785,8 @@ double SphericSwimmingParticle::ComputeElSamniLiftCoefficient(const double norm_
 {
     if (vorticity_norm > 0.000000000001 && mNormOfSlipVel > 0.000000000001){
          const double yield_stress   = 0.0; // we are considering a Bingham type fluid
-         const double power_law_K    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
-         const double power_law_n    = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
+         const double power_law_K    = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_K);
+         const double power_law_n    = GetGeometry()[0].FastGetSolutionStepValue(POWER_LAW_N);
          const double shear_rate_p   = mNormOfSlipVel / mRadius * (4.5 / power_law_n - 3.5); // graphic model by Unhlherr et al. (fit by Wallis, G.B. and Dobson, J.E., 1973)
          double equivalent_viscosity = yield_stress / shear_rate_p + power_law_K * pow(shear_rate_p, power_law_n - 1);
          const double coeff          = std::max(0.09 * mNormOfSlipVel, 5.82 * sqrt(0.5 * mNormOfSlipVel * equivalent_viscosity /  mFluidDensity));
@@ -835,11 +833,11 @@ double SphericSwimmingParticle::ComputeElSamniLiftCoefficient(const double norm_
 
 void SphericSwimmingParticle::CustomInitialize()
 {
-    mHasDragForceNodalVar        = GetGeometry()(0)->SolutionStepsDataHas(DRAG_FORCE);
-    mHasHydroMomentNodalVar      = GetGeometry()(0)->SolutionStepsDataHas(HYDRODYNAMIC_MOMENT);
-    mHasVirtualMassForceNodalVar = GetGeometry()(0)->SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
-    mHasLiftForceNodalVar        = GetGeometry()(0)->SolutionStepsDataHas(LIFT_FORCE);
-    mSphericity                  = GetGeometry()(0)->SolutionStepsDataHas(PARTICLE_SPHERICITY);
+    mHasDragForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(DRAG_FORCE);
+    mHasHydroMomentNodalVar      = GetGeometry()[0].SolutionStepsDataHas(HYDRODYNAMIC_MOMENT);
+    mHasVirtualMassForceNodalVar = GetGeometry()[0].SolutionStepsDataHas(VIRTUAL_MASS_FORCE);
+    mHasLiftForceNodalVar        = GetGeometry()[0].SolutionStepsDataHas(LIFT_FORCE);
+    mSphericity                  = GetGeometry()[0].SolutionStepsDataHas(PARTICLE_SPHERICITY);
 }
 
 //**************************************************************************************************************************************************
