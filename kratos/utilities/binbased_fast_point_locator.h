@@ -90,12 +90,14 @@ namespace Kratos
 *REMARK: the location function is threadsafe, and can be used in OpenMP loops
 */
 
-template< unsigned int TDim>
+template< unsigned int TDim, class ConfigureType = SpatialContainersConfigure<TDim> >
+
 class BinBasedFastPointLocator
 {
 public:
 
-    typedef SpatialContainersConfigure<TDim> Configure;
+    typedef ConfigureType Configure;
+
     typedef typename Configure::PointType PointType;
     //typedef PointType::CoordinatesArrayType           CoordinatesArrayType;
     typedef typename Configure::ContainerType ContainerType;
@@ -133,6 +135,7 @@ public:
         IteratorType it_end = rElements.end();
 
         typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure > (it_begin, it_end));
+
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
