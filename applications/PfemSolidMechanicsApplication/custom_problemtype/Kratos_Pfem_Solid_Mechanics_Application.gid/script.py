@@ -79,7 +79,7 @@ def SetParallelSize(num_threads):
 #---------------------------------------------------------------#
 
 # defining the type, the name and the path of the problem:
-echo_level   = general_variables.echo_level
+echo_level   = general_variables.EchoLevel
 problem_type = general_variables.ProblemType
 problem_name = general_variables.problem_name
 problem_path = general_variables.problem_path
