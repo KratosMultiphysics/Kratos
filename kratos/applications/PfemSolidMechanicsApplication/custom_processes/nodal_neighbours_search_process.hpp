@@ -338,7 +338,7 @@ namespace Kratos
       ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
 
       //*************  Erase old node neighbours  *************//
-      CleanNodeNeighbours();
+      CleanNodeNeighbours(MeshId);
 
       //*************  Neighbours of nodes  ************//
 
@@ -389,7 +389,7 @@ namespace Kratos
       ElementsContainerType& rElems = mrModelPart.Elements(MeshId);
 
       //*************  Erase old node neighbours  *************//
-      CleanNodeNeighbours();
+      CleanNodeNeighbours(MeshId);
 
 
       //*************  Neighbours of nodes  ************//
