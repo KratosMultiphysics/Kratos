@@ -334,7 +334,12 @@ def CreateSolver(model_part, config):
     if(hasattr(config, "max_delta_time")):
         structural_solver.max_delta_time = config.max_delta_time
     if(hasattr(config, "time_step_prediction_level")):
-        structural_solver.time_step_prediction_level = config.time_step_prediction_level
+        value = 0
+        if(str(config.time_step_prediction_level) == "Automatic"):
+          value = 1
+        elif(str(config.time_step_prediction_level) == "RefreshEveryTimeStep"):
+          value = 2
+        structural_solver.time_step_prediction_level = value
 
     # definition of the convergence criteria
     if(hasattr(config, "convergence_criterion")):
