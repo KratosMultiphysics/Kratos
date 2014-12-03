@@ -1521,7 +1521,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "${trailing_spaces}max_delta_time  = time_step"
     puts $fileid "${trailing_spaces}time_integration_method = \"$TimeIntegrationMethod\""
     puts $fileid "${trailing_spaces}explicit_integration_scheme = \"CentralDifferences\""
-    puts $fileid "${trailing_spaces}time_step_prediction_level  = $TimeStepPredictionLevel"
+    puts $fileid "${trailing_spaces}time_step_prediction_level  = \"$TimeStepPredictionLevel\""
     puts $fileid ""
   
     if {($useshells eq "Yes")||($usebeams eq "Yes")} {
