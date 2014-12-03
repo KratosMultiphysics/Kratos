@@ -9,13 +9,13 @@ Solution_method = "Newton-Raphson"
 SolverType  = "*GenData(Solver_Type)"
 time_step = *GenData(Time_Step)
 nsteps = *GenData(Number_of_steps,INT)
-echo_level = *GenData(Echo_Level)
+EchoLevel = *GenData(Echo_Level)
 
 #Solver Data
 #####################################
 
 class SolverSettings:
-    echo_level   = *GenData(Echo_Level)
+    echo_level   =  EchoLevel
     solver_type  = "pfem_mechanical_solver"
     domain_size  = *GenData(DOMAIN_SIZE,INT)
     scheme_type  = "*GenData(Solver_Type)"
@@ -155,7 +155,7 @@ MeshConditions.append(Conditions*ndomains)
 
 #set mesh modeler configuration
 class mesh_modeler_config:
-    echo_level = *GenData(Echo_Level)
+    echo_level = EchoLevel
     number_domains = *ndomains
     size_scale = 1
     offset_factor = *GenData(Offset_Factor) 
@@ -169,7 +169,7 @@ FindContacts = *GenData(FindContacts)
 
 #set contact modeler configuration
 class contact_modeler_config:
-    echo_level               = *GenData(Echo_Level)
+    echo_level               = EchoLevel
     contact_condition        = "*GenData(ContactCondition)"
     constrained_contact      = *GenData(Constrained_Contact)
     friction_active          = *GenData(Friction_Active)
@@ -252,7 +252,7 @@ WallConditions.append(Conditions*nwalls)
 
 #set rigid wall configuration
 class rigid_wall_config:
-    echo_level         = *GenData(Echo_Level)
+    echo_level         = EchoLevel
     rigid_wall         = FindRigidWallContacts
     size_scale         = 1
     number_of_walls    = *nwalls
