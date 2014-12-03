@@ -429,15 +429,15 @@ private:
 	  double detJ;
 	  Matrix  DN_DX;
 	  
-	  int not_assigned = 0;
-	  
+	  int not_assigned   = 0;
+	  int boundary_nodes = 0;
 	  //int boundarycounter=0;
 	  for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	    {
 	      An.clear();
 
 	      //if(in->Is(BOUNDARY)){
-	      
+
 	      WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
 
 	      for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ie++)
@@ -498,12 +498,16 @@ private:
 
 		}
 	    
+	      if(in->Is(BOUNDARY))
+		boundary_nodes +=1;
+
 	      //boundarycounter++;
 	      //}
 	    }
 
+
 	  if(mEchoLevel > 0) 
-	    std::cout<<"  [ Boundary normal NOT ASSIGNED nodes:"<<not_assigned<<" ]"<<std::endl;
+	    std::cout<<"  [ Boundary_Normals  (BoundaryNodes:"<<boundary_nodes<<")[SET:"<<boundary_nodes<<" / NOT_SET:"<<not_assigned<<"] ]"<<std::endl;
 
 	  
 	  //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
@@ -605,13 +609,13 @@ private:
 		std::vector<double> tipnormal;
 		
 		ModelPart::NodesContainerType::iterator boundary_nodes_begin = BoundaryNodes.begin();
-		int Np = BoundaryNodes.size();
+		int boundary_nodes = BoundaryNodes.size();
 		
 		int not_assigned = 0;
 
 		int pn=0;
 		// #pragma omp parallel for private(pn,storenorm,tipnormal)
-		for (pn=0; pn<Np; pn++)
+		for (pn=0; pn<boundary_nodes; pn++)
 		  { 
 
 		    double cosmedio=0;
@@ -949,7 +953,7 @@ private:
 		  }
 
 		if(mEchoLevel > 0) 
-		  std::cout<<"  [ Shrinkage NOT ASSIGNED nodes:"<<not_assigned<<" ][Mesh:"<<MeshId<<"]"<<std::endl;
+		  std::cout<<"  [ Normals_Shrinkage (BoundaryNodes:"<<boundary_nodes<<")[SET:"<<boundary_nodes-not_assigned<<" / NOT_SET:"<<not_assigned<<"] ][Mesh:"<<MeshId<<"]"<<std::endl;
 	}
 
 
