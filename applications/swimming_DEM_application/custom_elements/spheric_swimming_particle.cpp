@@ -84,7 +84,7 @@ void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& addit
 
     mNormOfSlipVel = SWIMMING_MODULUS_3(mSlipVel);
 
-    const double mass   = mSqrtOfRealMass * mSqrtOfRealMass;
+    const double mass   = mRealMass;
 
     array_1d<double, 3> buoyancy;
     array_1d<double, 3> drag_force;
@@ -480,7 +480,7 @@ double SphericSwimmingParticle::ComputeWeatherfordDragCoefficient(ProcessInfo& r
     const double power_law_tol                 = r_current_process_info[POWER_LAW_TOLERANCE];
 
     const double area                          = KRATOS_M_PI * SWIMMING_POW_2(mRadius);
-    const array_1d<double, 3> weight           = mSqrtOfRealMass * mSqrtOfRealMass * gravity;
+    const array_1d<double, 3> weight           = mRealMass * gravity;
     const array_1d<double, 3> buoyancy         = mFluidDensity / particle_density * weight; // hydrostatic case!! (only for Weatherford)
 
     double shahs_term_vel                      = 0.0;
