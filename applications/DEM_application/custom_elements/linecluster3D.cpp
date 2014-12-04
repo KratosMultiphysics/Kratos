@@ -90,7 +90,7 @@ namespace Kratos {
         
         double cluster_mass = particle_density * cluster_volume;
         
-        GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(cluster_mass);
+        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
         
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.5 * cluster_mass * 0.1 * 0.1 * cl * cl;
         GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.08333333333 * cluster_mass * (3.0 * 0.1 * 0.1 + 0.7 * 0.7) * cl * cl;
