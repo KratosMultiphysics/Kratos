@@ -338,7 +338,7 @@ namespace Kratos
         
             array_1d<double,3> other_to_me_vect   = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
             const double &other_radius            = neighbour_iterator->GetRadius();
-            const double &other_sqrt_of_mass      = neighbour_iterator->GetSqrtOfRealMass();    
+            const double &other_real_mass         = neighbour_iterator->GetRealMass();
  
             double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                          other_to_me_vect[1] * other_to_me_vect[1] +
@@ -353,7 +353,7 @@ namespace Kratos
             double indentation                    = initial_dist - distance; //#1
             double equiv_area                     = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; //#2 
             double calculation_area               = equiv_area;
-            double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
+            double equiv_mass                     = sqrt(mRealMass * other_real_mass);
             double myYoung                        = GetYoung();
             double myPoisson                      = GetPoisson();
             double myLnOfRestitCoeff              = GetLnOfRestitCoeff();
@@ -620,7 +620,7 @@ namespace Kratos
                 if(mDempack)
                 {
                   
-                  equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mSqrtOfRealMass * mSqrtOfRealMass + other_sqrt_of_mass * other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+                  equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass + other_real_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
                 
                 }
@@ -1207,7 +1207,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         {
 
             double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-            double mass  = mSqrtOfRealMass * mSqrtOfRealMass;        
+            double mass  = mRealMass;
 
             if (coeff>1.0)
             {
@@ -1304,7 +1304,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               //ComputeParticleRotationSpring(); MSI: #C2
           }*/
                    
-          double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+          double mass = mRealMass;
           additionally_applied_force[0] += mass * gravity[0];
           additionally_applied_force[1] += mass * gravity[1];
           additionally_applied_force[2] += mass * gravity[2];
