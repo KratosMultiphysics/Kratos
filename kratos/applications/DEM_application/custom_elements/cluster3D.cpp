@@ -97,7 +97,7 @@ namespace Kratos {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         const array_1d<double, 3> & euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
-        const double sqrt_of_mass = central_node.FastGetSolutionStepValue(SQRT_OF_MASS);
+        const double mass = central_node.FastGetSolutionStepValue(NODAL_MASS);
         array_1d<double, 3> coordinates_of_sphere;
         array_1d<double, 3> global_relative_coordinates;
         double radius_of_sphere;
@@ -119,7 +119,7 @@ namespace Kratos {
                                                                                                     max_Id, 
                                                                                                     radius_of_sphere, 
                                                                                                     coordinates_of_sphere, 
-                                                                                                    sqrt_of_mass, 
+                                                                                                    mass,
                                                                                                     this->pGetProperties(), 
                                                                                                     r_reference_element,
                                                                                                     cluster_id);
@@ -199,8 +199,7 @@ namespace Kratos {
     }
     
     void  Cluster3D::ComputeAdditionalForces( const array_1d<double,3>& gravity ){
-        const double sqrt_of_mass = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-        double mass = sqrt_of_mass * sqrt_of_mass;
+        const double mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
         GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) += mass * gravity;                        
     }
     //**************************************************************************************************************************************************
