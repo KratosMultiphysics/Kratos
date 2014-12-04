@@ -169,13 +169,13 @@ namespace Kratos
 	
                   double& moment_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 		  
-		  double mass  = GetYoung() * KRATOS_M_PI * mRadius; 
-                  GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
+          double mass  = GetYoung() * KRATOS_M_PI * mRadius;
+                  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = mass;
 		  
 		  //if(mRotationOption)
                   if (this->Is(DEMFlags::HAS_ROTATION) )
 		  {
-                      moment_of_inertia = 0.4 * mass * mRadius * mRadius; 
+                      moment_of_inertia = 0.4 * mass * mRadius * mRadius;
 			  mass = mass * 2.5;
 		  }
 		  
