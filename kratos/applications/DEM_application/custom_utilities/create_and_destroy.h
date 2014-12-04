@@ -92,7 +92,7 @@ public:
                                     int r_Elem_Id, 
                                     double radius,
                                     array_1d<double, 3 >& reference_coordinates, 
-                                    double sqrt_of_cluster_mass,
+                                    double cluster_mass,
                                     Properties::Pointer r_params, 
                                     const Element& r_reference_element,
                                     const int cluster_id);

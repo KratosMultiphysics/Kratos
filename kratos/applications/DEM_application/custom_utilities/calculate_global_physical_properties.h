@@ -224,8 +224,8 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-                  added_mass += particle_mass * particle_mass;
+                  double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+                  added_mass += particle_mass;
                 }
 
             }
@@ -249,8 +249,7 @@ class SphericElementGlobalPhysicsCalculator
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
-                  double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-                  particle_mass *= particle_mass;
+                  double particle_mass = (it)->GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
                   cm_x += particle_mass * (it)->GetGeometry()[0].Coordinates()[0];
                   cm_y += particle_mass * (it)->GetGeometry()[0].Coordinates()[1];
                   cm_z += particle_mass * (it)->GetGeometry()[0].Coordinates()[2];
