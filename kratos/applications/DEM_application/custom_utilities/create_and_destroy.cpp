@@ -204,7 +204,7 @@ static double rand_normal(double mean, double stddev, double max_radius, double 
       double density = spheric_p_particle->GetDensity();
       spheric_p_particle->SetRadius(radius);      
       double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
-      spheric_p_particle->SetSqrtOfRealMass(sqrt(mass)); 
+      spheric_p_particle->SetRealMass(mass);
       
       if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION,true);
       else              spheric_p_particle->Set(DEMFlags::HAS_ROTATION,false);
@@ -261,7 +261,7 @@ static double rand_normal(double mean, double stddev, double max_radius, double 
                                     int r_Elem_Id, 
                                     double radius,
                                     array_1d<double, 3 >& reference_coordinates, 
-                                    double sqrt_of_cluster_mass,
+                                    double cluster_mass,
                                     Properties::Pointer r_params, 
                                     const Element& r_reference_element,
                                     const int cluster_id) {          
@@ -279,7 +279,7 @@ static double rand_normal(double mean, double stddev, double max_radius, double 
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*>(p_particle.get());
 
         spheric_p_particle->SetRadius(radius);
-        spheric_p_particle->SetSqrtOfRealMass(sqrt_of_cluster_mass);
+        spheric_p_particle->SetRealMass(cluster_mass);
 
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER,true);
