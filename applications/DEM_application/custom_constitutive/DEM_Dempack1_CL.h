@@ -29,9 +29,9 @@ public:
     DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
     void CalculateContactForces(double mRadius,
-                                double mSqrtOfRealMass,
+                                double mRealMass,
                                 double other_radius,
-                                double otherSqrtMass,
+                                double otherMass,
                                 double distance,
                                 double initial_delta,
                                 int& neighbour_failure_id,
