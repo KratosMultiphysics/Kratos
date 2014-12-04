@@ -183,7 +183,7 @@ class Procedures(object):
 
         # BASIC PARTICLE PROPERTIES
         model_part.AddNodalSolutionStepVariable(RADIUS)
-        model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
+        model_part.AddNodalSolutionStepVariable(NODAL_MASS)
 
         # ROTATION RELATED PROPERTIES
         if (Var_Translator(Param.RotationOption)):
