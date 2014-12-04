@@ -33,30 +33,30 @@ namespace Kratos
 // using namespace GeometryFunctions;
 
 SphericParticle::SphericParticle()
-    : DiscreteElement(), mSqrtOfRealMass(0)
+    : DiscreteElement(), mRealMass(0)
 {
     mRadius = 0;
-    mSqrtOfRealMass = 0;
+    mRealMass = 0;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-    : DiscreteElement(NewId, pGeometry), mSqrtOfRealMass(0){
+    : DiscreteElement(NewId, pGeometry), mRealMass(0){
     mRadius = 0;
-    mSqrtOfRealMass = 0;
+    mRealMass = 0;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-    : DiscreteElement(NewId, pGeometry, pProperties), mSqrtOfRealMass(0)
+    : DiscreteElement(NewId, pGeometry, pProperties), mRealMass(0)
 {
     mRadius = 0;
-    mSqrtOfRealMass = 0;
+    mRealMass = 0;
 }
 
 SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-    : DiscreteElement(NewId, ThisNodes), mSqrtOfRealMass(0)
+    : DiscreteElement(NewId, ThisNodes), mRealMass(0)
 {
     mRadius = 0;
-    mSqrtOfRealMass = 0;
+    mRealMass = 0;
 }
 
 Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -77,11 +77,10 @@ void SphericParticle::Initialize()
     mDimension                = 3;
     mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
     double density            = GetDensity();
-    double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-    double mass               = 4 *  KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
-    sqrt_of_mass              = sqrt(mass);
-    mSqrtOfRealMass           = sqrt_of_mass;
-    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();    
+    double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+    mass                      = 4 *  KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
+    mRealMass                 = mass;
+    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION) ){
@@ -328,7 +327,7 @@ void SphericParticle::CalculateKineticEnergy(double& r_kinetic_energy)
     double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
     double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
 
-    r_kinetic_energy = 0.5 * (mSqrtOfRealMass * mSqrtOfRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
+    r_kinetic_energy = 0.5 * (mRealMass * square_of_celerity + moment_of_inertia * square_of_angular_celerity);
 }
 
 //**************************************************************************************************************************************************
@@ -411,7 +410,7 @@ void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy)
 void SphericParticle::CalculateMomentum(array_1d<double, 3>& r_momentum)
 {
     const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-    r_momentum = mSqrtOfRealMass * mSqrtOfRealMass * vel;
+    r_momentum = mRealMass * vel;
 }
 
 //**************************************************************************************************************************************************
@@ -496,7 +495,7 @@ void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInf
 
 void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_current_process_info)
 {
-    rMassMatrix(0,0) = mSqrtOfRealMass * mSqrtOfRealMass;
+    rMassMatrix(0,0) = mRealMass;
 }
 
 //**************************************************************************************************************************************************
@@ -950,7 +949,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
             double equiv_visco_damp_coeff_normal     = 0.0;
             double equiv_visco_damp_coeff_tangential = 0.0;
-            double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+            double mass = mRealMass;
 
             if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
                 equiv_visco_damp_coeff_normal     = r_current_process_info[DEMPACK_DAMPING]*2.0*sqrt(kn_el/(mass+mass))*mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
@@ -1082,7 +1081,7 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
                                                                 double& equiv_tg_of_fri_ang,
                                                                 SphericParticle* p_neighbour)
 {
-    double other_sqrt_of_mass = p_neighbour->GetSqrtOfRealMass();
+    double other_real_mass = p_neighbour->GetRealMass();
     double radius_sum_i = 1 / radius_sum;
     double equiv_radius = 2 * mRadius * other_radius * radius_sum_i;
     double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
@@ -1091,7 +1090,7 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
     cohesion_radius = mRadius > other_radius ? other_radius : mRadius;
     cohesion_area = KRATOS_M_PI * cohesion_radius * cohesion_radius;
     
-    double equiv_mass = mSqrtOfRealMass * other_sqrt_of_mass;
+    double equiv_mass = sqrt(mRealMass * other_real_mass);
 
     double myYoung = GetYoung();
     double myPoisson = GetPoisson();
@@ -1165,8 +1164,7 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
 
 void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& r_current_process_info, const array_1d<double,3>& gravity)
 {
-    double mass = mSqrtOfRealMass * mSqrtOfRealMass;
-    externally_applied_force = mass * gravity;
+    externally_applied_force = mRealMass * gravity;
 }
 
 //**************************************************************************************************************************************************
@@ -1363,7 +1361,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
     //CRITICAL DELTA CALCULATION
 
     if (rVariable == DELTA_TIME){
-        double mass = mSqrtOfRealMass * mSqrtOfRealMass;
+        double mass = mRealMass;
         double coeff = r_current_process_info[NODAL_MASS_COEFF];
 
         if (coeff > 1.0){
@@ -1442,8 +1440,8 @@ int    SphericParticle::GetClusterId()                                          
 void   SphericParticle::SetClusterId(int Id)                                             { mClusterId = Id;                                                                 }
 double SphericParticle::GetRadius()                                                      { return mRadius;                                                                  }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;                                                                }
-double SphericParticle::GetSqrtOfRealMass()                                              { return mSqrtOfRealMass;                                                          }
-void   SphericParticle::SetSqrtOfRealMass(double sqrt_of_real_mass)                      { mSqrtOfRealMass = sqrt_of_real_mass;                                             }
+double SphericParticle::GetRealMass()                                                        { return mRealMass;                                                                }
+void   SphericParticle::SetRealMass(double real_mass)                                    { mRealMass = real_mass;                                                           }
 
 double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                          }
 double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                }
