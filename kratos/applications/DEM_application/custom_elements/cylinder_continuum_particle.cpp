@@ -55,10 +55,10 @@ namespace Kratos
           mDimension                = 2;
           mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
           double density            = GetDensity();
-          double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
-          double mass               = KRATOS_M_PI * density * mRadius * mRadius * 1.0;
-          sqrt_of_mass              = sqrt(mass);
-          mSqrtOfRealMass           = sqrt_of_mass;
+
+          double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+          mass                      = KRATOS_M_PI_3 * density * mRadius * mRadius * 1.0;
+          mRealMass                 = mass;
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
             double moment_of_inertia = 0.5 * mass * mRadius * mRadius;   
