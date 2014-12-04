@@ -59,15 +59,13 @@ namespace Kratos
           mLnOfRestitCoeff          = GetGeometry()[0].FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
           double& density           = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_DENSITY);*/
           double density            = GetDensity();
-          //double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-          double& sqrt_of_mass      = GetGeometry()[0].FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-          double mass               = KRATOS_M_PI * density * mRadius * mRadius * 1.0;
-          sqrt_of_mass              = sqrt(mass);
+          double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+          mass                      = KRATOS_M_PI_3 * density * mRadius * mRadius * 1.0;
+          mRealMass                 = mass;
+
           moment_of_inertia         = 0.5 * mass * mRadius * mRadius;
-          //mRealMass                 = mass;          
-          mSqrtOfRealMass           = sqrt_of_mass;
 
           //if (mRotationOption){
           if (this->Is(DEMFlags::HAS_ROTATION) ){
