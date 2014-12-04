@@ -118,8 +118,8 @@ void  SetClusterId(const int Id);
 
 double GetRadius();
 void   SetRadius(double radius);
-double GetSqrtOfRealMass();
-void   SetSqrtOfRealMass(double sqrt_of_real_mass);
+double GetRealMass();
+void   SetRealMass(double real_mass);
 double GetYoung();
 void   SetYoungFromProperties(double* young);
 double GetRollingFriction();
@@ -306,7 +306,7 @@ array_1d<double, 3> mContactForce;
 array_1d<double, 3> mContactMoment;
 
 double mRadius;
-double mSqrtOfRealMass;
+double mRealMass;
 
 PropertiesProxy* mFastProperties;
 
@@ -402,7 +402,7 @@ virtual void save(Serializer& rSerializer) const
 {
 KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
 rSerializer.save("mRadius",mRadius);
-rSerializer.save("mSqrtOfRealMass",mSqrtOfRealMass);
+rSerializer.save("mRealMass",mRealMass);
 //rSerializer.save("mFastProperties",mFastProperties);
 
 /*rSerializer.save("mRollingFriction",mRollingFriction);
@@ -416,7 +416,7 @@ virtual void load(Serializer& rSerializer)
 {
 KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
 rSerializer.load("mRadius",mRadius);
-rSerializer.load("mSqrtOfRealMass",mSqrtOfRealMass);
+rSerializer.load("mRealMass",mRealMass);
 //rSerializer.load("mFastProperties",mFastProperties);
 
 /*rSerializer.load("mRollingFriction",mRollingFriction);
