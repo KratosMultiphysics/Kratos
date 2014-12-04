@@ -164,9 +164,8 @@ public:
                 if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) )
                 {
                     particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-                    //double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
-                    double mass                            = geom(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-                    mass                                  *= mass;
+                    double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+
                 
                     particle_forces[0] += mass * gravity[0];
                     particle_forces[1] += mass * gravity[1];
