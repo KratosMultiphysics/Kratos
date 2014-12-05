@@ -13,11 +13,15 @@
 // External includes
 
 // System includes
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // Project includes
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
 
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
@@ -117,7 +121,7 @@ public:
       if (Time == 0)
 	KRATOS_ERROR( std::logic_error, "detected time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
-      ModelPart::NodesContainerType& NodesArray = mrModelPart.Nodes();
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
       
       //Create Rigid Contact Conditions
       int MeshId = 0;
@@ -136,6 +140,13 @@ public:
 	}
 
       }
+
+
+     for(ModelPart::NodesContainerType::iterator nd = rNodes.begin(); nd != rNodes.end(); ++nd)
+	{
+	  nd->Set(CONTACT,false);
+	}
+
 
       //Check ModelPart meshes for Rigid Domains and set BOUNDARY flag to nodes
       ModelPart::MeshesContainerType& rMeshes = mrModelPart.GetMeshes();
@@ -157,31 +168,118 @@ public:
 
       }
 
-      //Check RIGID walls and search contacts
-      for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
-	{
-	  if( (*nd)->SolutionStepsDataHas(RIGID_WALL) ){
+
+      #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+      #else
+            int number_of_threads = 1;
+      #endif
+
+      
+      vector<unsigned int> nodes_partition;
+      OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), nodes_partition);
+		
+      Vector WallVelocity =  mpRigidWall->Velocity();
+      int  MovementLabel  =  mpRigidWall->GetMovementLabel();
+
+      #pragma omp parallel
+      {
+      	int k = OpenMPUtils::ThisThread();
+      	typename ModelPart::NodesContainerType::iterator NodesBegin = rNodes.begin() + nodes_partition[k];
+      	typename ModelPart::NodesContainerType::iterator NodesEnd = rNodes.begin() + nodes_partition[k + 1];
+ 
+      	for(ModelPart::NodesContainerType::const_iterator nd = NodesBegin; nd != NodesEnd; nd++)
+      	  {
+
+      	    //set point rigid wall condition : usually in non rigid_wall points
+      	    if( nd->SolutionStepsDataHas(RIGID_WALL) ){
 	    
-	    if( (*nd)->GetSolutionStepValue(RIGID_WALL) == mpRigidWall->GetMovementLabel() ){
+      	      if( nd->GetSolutionStepValue(RIGID_WALL) == MovementLabel ){
 
-	      //(*nd)->Set(STRUCTURE);
-	      (*nd)->Set(RIGID);
+      		//nd->Set(STRUCTURE);
+      		nd->Set(RIGID);
+		
+      		//set new coordinates (MOVE MESH)
+      		nd->X() = nd->X0() + WallVelocity[0] * Time;
+      		nd->Y() = nd->Y0() + WallVelocity[1] * Time;
+      		nd->Z() = nd->Z0() + WallVelocity[2] * Time;
 
-	      //set new coordinates (MOVE MESH)
-	      (*nd)->X() = (*nd)->X0() + mpRigidWall->Velocity()[0] * Time;
-	      (*nd)->Y() = (*nd)->Y0() + mpRigidWall->Velocity()[1] * Time;
-	      (*nd)->Z() = (*nd)->Z0() + mpRigidWall->Velocity()[2] * Time;
+      		//std::cout<<" node "<<(nd)->Id()<<" Position ("<<(nd)->X()<<", "<<(nd)->Y()<<" "<<(nd)->Z()<<") "<<std::endl;
+      	      }
+      	    }
 
-	      //std::cout<<" node "<<(*nd)->Id()<<" Position ("<<(*nd)->X()<<", "<<(*nd)->Y()<<" "<<(*nd)->Z()<<") "<<std::endl;
-	    }
-	  }
+      	  }
 
-	  //set point rigid wall condition : usually in non rigid_wall points
+      	for(ModelPart::NodesContainerType::const_iterator nd = NodesBegin; nd != NodesEnd; nd++)
+      	  {
+      	    if( nd->Is(BOUNDARY) ){
 
-	  Vector Point(3);
-	  Point[0] = (*nd)->X();
-	  Point[1] = (*nd)->Y();
-	  Point[2] = (*nd)->Z();
+      	      if( nd->IsNot(RIGID) )
+      		{
+
+      		  Vector Point(3);
+      		  Point[0] = nd->X();
+      		  Point[1] = nd->Y();
+      		  Point[2] = nd->Z();
+
+      		  if( mpRigidWall->IsInside(Point,Time) ){
+      		    nd->Set(CONTACT);
+      		  }
+      		}
+	      
+      	    }
+
+      	  }
+      }
+
+
+      // Vector WallVelocity =  mpRigidWall->Velocity();
+      // int  MovementLabel  =  mpRigidWall->GetMovementLabel();
+
+      // //Check RIGID walls and search contacts
+      // for(ModelPart::NodesContainerType::iterator nd = rNodes.begin(); nd != rNodes.end(); ++nd)
+      // 	{
+      // 	  //set point rigid wall condition : usually in non rigid_wall points
+      // 	  if( nd->SolutionStepsDataHas(RIGID_WALL) ){
+	    
+      // 	    if( nd->GetSolutionStepValue(RIGID_WALL) == MovementLabel ){
+
+      // 	      //nd->Set(STRUCTURE);
+      // 	      nd->Set(RIGID);
+		
+      // 	      //set new coordinates (MOVE MESH)
+      // 	      nd->X() = nd->X0() + WallVelocity[0] * Time;
+      // 	      nd->Y() = nd->Y0() + WallVelocity[1] * Time;
+      // 	      nd->Z() = nd->Z0() + WallVelocity[2] * Time;
+
+      // 	      //std::cout<<" node "<<(nd)->Id()<<" Position ("<<(nd)->X()<<", "<<(nd)->Y()<<" "<<(nd)->Z()<<") "<<std::endl;
+      // 	    }
+      // 	  }
+
+      // 	  if( nd->Is(BOUNDARY) ){
+
+      // 	    if( nd->IsNot(RIGID) )
+      // 	      {
+
+      // 		Vector Point(3);
+      // 		Point[0] = nd->X();
+      // 		Point[1] = nd->Y();
+      // 		Point[2] = nd->Z();
+
+      // 		if( mpRigidWall->IsInside(Point,Time) ){
+      // 		  nd->Set(CONTACT);
+      // 		}
+      // 	      }
+	      
+      // 	  }
+
+      // 	}
+
+      //*********************
+
+      //Check RIGID walls and search contacts
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
 
 	  // if( (*nd)->Is(BOUNDARY) )
 	  //std::cout<<" Node "<<(*nd)->Id()<<" Is boundary "<<std::endl;
@@ -195,12 +293,10 @@ public:
 	      mpRigidWall->SetRadius( (*nd)->GetValue(MEAN_RADIUS) );
 
 
-	      if( mpRigidWall->IsInside(Point,Time) ){
+	      if( (*nd)->Is(CONTACT) ){
 
-		//std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
-
+		//contact parameters in properties
 		int number_properties = mrModelPart.NumberOfProperties();
-
 		PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
 		ConditionType::Pointer p_cond;
@@ -215,18 +311,16 @@ public:
 		  else{
 		    p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 		  }
+
+		  //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 2D condition "<<std::endl;
 		}
 		else if( mpRigidWall->GetDimension() == 3 ){
 		
-		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));		  
-
+		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
 		  //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-
-		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-		
+		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
 		  p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-
-		  //std::cout<<" Set Contact 3D condition "<<std::endl;
+		  //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
 		}
 		      
 		//pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
@@ -246,13 +340,12 @@ public:
 		mpRigidWall->SetRadius( radius );
 
 
-		if( mpRigidWall->IsInside(Point,Time) ){
+		if( (*nd)->Is(CONTACT) ){
 		
-		  //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
 		
-		  int number_properties = mrModelPart.NumberOfProperties();
-
-		  PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
+		  //contact parameters in properties
+		  //int number_properties = mrModelPart.NumberOfProperties();
+		  PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(0);
 
 		  ConditionType::Pointer p_cond;
 
@@ -261,17 +354,17 @@ public:
 		
 		    //rigid wall contacting with a 2D rigid body
 		    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+		    //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 2D condition "<<std::endl;
 
 		  }
 		  else if( mpRigidWall->GetDimension() == 3 ){
 			  
 		    //rigid wall contacting with a 3D rigid body
 		    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
-
 		    p_cond= ModelPart::ConditionType::Pointer(new RigidBodyPointRigidContactCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-		
+		    //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
+		    
 		  }
-
 
 		  mrModelPart.Conditions(MeshId).push_back(p_cond);
 		
@@ -302,11 +395,11 @@ public:
       double Time      = CurrentProcessInfo[TIME];
       //double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
-      ModelPart::NodesContainerType& NodesArray = mrModelPart.Nodes();
+      ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
       
       int counter = 0;
       
-      for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
+      for ( ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
 	{
 	  if((*nd)->Is(RIGID) && (*nd)->FastGetSolutionStepValue(RIGID_WALL) == mpRigidWall->GetMovementLabel() ){
 	    array_1d<double, 3 >& CurrentDisplacement  = (*nd)->FastGetSolutionStepValue(DISPLACEMENT);	    
