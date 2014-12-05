@@ -49,6 +49,7 @@ namespace Kratos
  * @param Weights: Weights of the Control Points
  */
 void NurbsModeler::ReadModelPart(ModelPart &NurbsModelPart,
+                                 int dimension,
                                  int ConnectivitiesStart,
                                  int ConnectivitiesEnd,
                                  int PolynomialDegreeXi,
@@ -69,15 +70,36 @@ void NurbsModeler::ReadModelPart(ModelPart &NurbsModelPart,
                PatchControlPoints.push_back(NurbsModelPart.pGetNode(i));
       }
 
+NurbsPatchGeometry< Node<3> >::Pointer pNurbsSurface;
+if (dimension ==2)
+{
+    pNurbsSurface = NurbsPatchGeometry< Node<3> >::Pointer( new NurbsPatchGeometry2D< Node<3> >(PatchControlPoints,
+                                                                                                                                       Weights,
+                                                                                                                                       KnotsXi,
+                                                                                                                                       KnotsEta,
+                                                                                                                                       PolynomialDegreeXi,
+                                                                                                                                       PolynomialDegreeEta,
+                                                                                                                                       NumberOfCpsU,
+                                                                                                                                       NumberOfCpsV));
+}
 
-NurbsPatchGeometry< Node<3> >::Pointer pNurbsSurface = NurbsPatchGeometry< Node<3> >::Pointer( new NurbsPatchGeometry3D< Node<3> >(PatchControlPoints,
-                                                                                                                                   Weights,
-                                                                                                                                   KnotsXi,
-                                                                                                                                   KnotsEta,
-                                                                                                                                   PolynomialDegreeXi,
-                                                                                                                                   PolynomialDegreeEta,
-                                                                                                                                   NumberOfCpsU,
-                                                                                                                                   NumberOfCpsV));
+else if (dimension ==3)
+{
+    pNurbsSurface = NurbsPatchGeometry< Node<3> >::Pointer( new NurbsPatchGeometry3D< Node<3> >(PatchControlPoints,
+                                                                                                                                       Weights,
+                                                                                                                                       KnotsXi,
+                                                                                                                                       KnotsEta,
+                                                                                                                                       PolynomialDegreeXi,
+                                                                                                                                       PolynomialDegreeEta,
+                                                                                                                                       NumberOfCpsU,
+                                                                                                                                       NumberOfCpsV));
+}
+
+else
+{
+    std::cout <<"Error in NurbsModeler::ReadModelPart() : This implementation only support dimension 2 or 3."<<std::endl;
+                return;
+}
 
 mNurbsPatchGeometry.push_back( pNurbsSurface );
 
@@ -342,10 +364,10 @@ void NurbsModeler::InterpolateDesignVariables(ModelPart &NurbsModelPart, ModelPa
          inode != TriangleModelPart.NodesEnd();
          inode++)
         {
+        array_1d<double,3>coords;
 
-        const array_1d<double,3>& coords = inode->FastGetSolutionStepValue(NURBS_COORDINATES);
-//         Xi = inode->FastGetSolutionStepValue(NURBS_COORDINATES_X,0);
-//         Eta = inode->FastGetSolutionStepValue(NURBS_COORDINATES_Y,0);
+        coords =inode->FastGetSolutionStepValue(NURBS_COORDINATES,0);
+
 
 
         ElementId = mNurbsPatchGeometry[0]->FindGeometryId(Xi,Eta);
@@ -358,7 +380,7 @@ void NurbsModeler::InterpolateDesignVariables(ModelPart &NurbsModelPart, ModelPa
         {
             TemperatureAtTriangleNode += NurbsValues[i] * NurbsGeometry[i].FastGetSolutionStepValue(TEMPERATURE,0);
         }
-        inode->GetSolutionStepValue(TEMPERATURE) = TemperatureAtTriangleNode;
+        inode->GetSolutionStepValue(TEMPERATURE,0) = TemperatureAtTriangleNode;
         }
 
 

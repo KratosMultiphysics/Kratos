@@ -88,6 +88,7 @@ typedef Bins< 3, PointType, PointVector, PointTypePointer, PointIterator, Distan
 		///@{ 
 
         void ReadModelPart(ModelPart &NurbsModelPart,
+                           int dimension,
                            int connectivities_start,
                            int connectivities_end,
                            int polynomial_degree_xi,

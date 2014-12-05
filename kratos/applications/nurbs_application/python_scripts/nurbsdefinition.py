@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # NurbsDefinition is a class which contains all necessary information for reading in a NURBS-surface expect of
 # the Control Points, which itself a read in by a seperate mdpa-file.
 from KratosMultiphysics import *
