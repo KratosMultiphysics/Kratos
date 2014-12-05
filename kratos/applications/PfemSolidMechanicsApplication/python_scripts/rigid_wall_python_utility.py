@@ -159,7 +159,7 @@ class RigidWallUtility:
         if(self.rigid_wall_active):
             # set properties for rigid wall conditions
             penalty_parameter = self.GetPenaltyParameter()
-            self.model_part.Properties[1].SetValue(PENALTY_PARAMETER, penalty_parameter)
+            self.model_part.Properties[0].SetValue(PENALTY_PARAMETER, penalty_parameter)
             for size in range(0, self.number_of_walls):
                 self.contact_search_process[size].ExecuteInitializeSolutionStep()
 
