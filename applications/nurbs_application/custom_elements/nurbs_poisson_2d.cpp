@@ -52,6 +52,8 @@ namespace Kratos
         GeometryType& rGeom = this->GetGeometry();
         const SizeType NumNodes = rGeom.PointsNumber();
         const SizeType Dim = rGeom.WorkingSpaceDimension();
+        KRATOS_WATCH(NumNodes)
+        KRATOS_WATCH(Dim)
 
         // Check sizes and initialize
         if( rLeftHandSideMatrix.size1() != NumNodes )
@@ -70,6 +72,8 @@ namespace Kratos
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
         const unsigned int NumGauss = GaussWeights.size();
+        KRATOS_WATCH(DN_DX)
+        KRATOS_WATCH(GaussWeights)
 
         // Loop on integration points
         for (unsigned int g = 0; g < NumGauss; g++)
@@ -99,11 +103,14 @@ namespace Kratos
 
             }
         }
+        KRATOS_WATCH(this->GetProperties().GetValue(CONDUCTIVITY))
+        KRATOS_WATCH(rLeftHandSideMatrix);
 
         // Residual formulation
         Vector Values = ZeroVector(NumNodes);
         for (unsigned int i = 0; i < NumNodes; i++)
             Values[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
+        KRATOS_WATCH(Values);
 
 
         rRightHandSideVector -= prod(rLeftHandSideMatrix,Values);
@@ -169,12 +176,16 @@ namespace Kratos
     //************************************************************************************
       void NurbsPoisson2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
     {
+        KRATOS_WATCH("aaaaaaa")
         unsigned int number_of_nodes = GetGeometry().PointsNumber();
         if(ElementalDofList.size() != number_of_nodes)
             ElementalDofList.resize(number_of_nodes);
 
         for (unsigned int i=0;i<number_of_nodes;i++)
+        {
             ElementalDofList[i] = GetGeometry()[i].pGetDof(TEMPERATURE);
+            KRATOS_WATCH(ElementalDofList[i]);
+        }
 
     }
 
