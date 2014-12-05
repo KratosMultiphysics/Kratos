@@ -1425,6 +1425,39 @@ public:
         return mpGeometryData->ShapeFunctionsValues();
     }
 
+
+
+
+    /** This method gives all non-zero shape functions values
+    evaluated at the rCoordinates provided
+
+    \note There is no control if the return vector is empty or not!
+
+    @return Vector of values of shape functions \f$ F_{i} \f$
+    where i is the shape function index (for NURBS it is the index
+    of the local enumeration in the element).
+
+    @see ShapeFunctionValue
+    @see ShapeFunctionsLocalGradients
+    @see ShapeFunctionLocalGradient
+    */
+
+    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    {
+
+        KRATOS_ERROR( std::logic_error,
+                      "Calling base class ShapeFunctionsValues method instead of derived class one. Please check the definition of derived class." , *this );
+        return rResult;
+    }
+
+
+
+
+
+
+
+
+
     /** This method gives all shape functions values evaluated in all
     integration points of given integration method. There is no
     calculation and it just give it from shape functions values
@@ -1696,6 +1729,14 @@ public:
     {
         KRATOS_ERROR( std::logic_error,
                       "Calling base class ShapeFunctionsGaussPointsGradients (with determinants) method instead of derived class one. Please check the definition of derived class." , *this );
+        return rResult;
+    }
+
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod, Matrix& ShapeFunctionsIntegrationPointsValues ) const
+    {
+
+        ShapeFunctionsIntegrationPointsGradients(rResult,determinants_of_jacobian,ThisMethod);
+        ShapeFunctionsIntegrationPointsValues = ShapeFunctionsValues(ThisMethod);
         return rResult;
     }
 
