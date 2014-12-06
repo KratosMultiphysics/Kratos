@@ -1560,11 +1560,8 @@ protected:
                     //G = TauOne * Density * AGradNMod[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + Div(a) * v) * TauOne * Grad(p)
 
                     GAlpha = TauOne * Density * AGradN[i] * (FluidFraction * rShapeDeriv(j, m)); // Stabilization: (a * Grad(u)) * TauOne * (alpha * Grad(q))
-                    //GAlpha = TauOne * Density * AGradN[i] * FluidFraction * rShapeDeriv(j, m) - AGradN[j] * FluidFractionGradient[m] * rShapeFunc[i]; // Stabilization: (a * Grad(u)) * TauOne * (alpha * Grad(q) - q * Grad(alpha))
 
                     PAlphaDivV = (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeFunc[j]; // alpha * q * Div(u) + q * Grad(alpha) * u
-                    //PAlphaDivV = FluidFraction * rShapeDeriv(j, m)  * rShapeFunc[i] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // alpha * q * Div(u) + q * Grad(alpha) * u
-
 //Z
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
                     // Write v * Grad(p) component
@@ -1576,7 +1573,6 @@ protected:
 
     //              q-p stabilization block
     //              L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
-                    //L += (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeDeriv(j, m); // Stabilization: (alpha * Grad(q) + q * Grad(alpha)) * TauOne * Grad(p)
                     L += FluidFraction * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: alpha * Grad(q) * TauOne * Grad(p)
 //Z
                     for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
