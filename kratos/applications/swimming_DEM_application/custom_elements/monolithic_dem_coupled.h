@@ -1234,8 +1234,8 @@ protected:
 
         const double Element_Size = this->ElementSize(Area);
 //G
-    //  TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 5.6666666666 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+      // TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+         TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 5.6666666666 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
 //Z
         TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
         //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 12.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
@@ -1467,8 +1467,8 @@ protected:
             {
                 // Delta(u) * TauOne * [ AdvVel * Grad(v) ] in velocity block
 //G
-              //K = Coef * Density * AGradN[i] * Density * rShapeFunc[j];
-                K = Coef * Density * AGradNMod[i] * Density * rShapeFunc[j];
+                K = Coef * Density * AGradN[i] * Density * rShapeFunc[j];
+                //K = Coef * Density * AGradNMod[i] * Density * rShapeFunc[j];
 //Z
 
                 for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
@@ -1519,7 +1519,7 @@ protected:
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 //G
-        double DivPAlpha, GAlpha, FluidFraction, FluidFractionRate;
+        double PAlphaDivV, GAlpha, FluidFraction, FluidFractionRate;
         array_1d<double,3> FluidFractionGradient(3,0.0);
         this->EvaluateInPoint(FluidFraction, FLUID_FRACTION, rShapeFunc);
         this->EvaluateGradientOfScalarInPoint(FluidFractionGradient, FLUID_FRACTION, rShapeDeriv);
@@ -1541,8 +1541,8 @@ protected:
                 K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
                 //K = 0.5 * Density * (rShapeFunc[i] * AGradN[j] - AGradN[i] * rShapeFunc[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
 //G
-   //           K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
-                K += TauOne * Density * AGradNMod[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v) + Div(a) * v) * TauOne * (a * Grad(u))
+                K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
+                //K += TauOne * Density * AGradNMod[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v) + Div(a) * v) * TauOne * (a * Grad(u))
 //Z
                 K *= Weight;
 
@@ -1556,14 +1556,14 @@ protected:
 
                     // v * Grad(p) block
 //G
-   //               G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                    G = TauOne * Density * AGradNMod[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + Div(a) * v) * TauOne * Grad(p)
+                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                    //G = TauOne * Density * AGradNMod[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v) + Div(a) * v) * TauOne * Grad(p)
 
                     GAlpha = TauOne * Density * AGradN[i] * (FluidFraction * rShapeDeriv(j, m)); // Stabilization: (a * Grad(u)) * TauOne * (alpha * Grad(q))
                     //GAlpha = TauOne * Density * AGradN[i] * FluidFraction * rShapeDeriv(j, m) - AGradN[j] * FluidFractionGradient[m] * rShapeFunc[i]; // Stabilization: (a * Grad(u)) * TauOne * (alpha * Grad(q) - q * Grad(alpha))
 
-                    DivPAlpha = (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeFunc[j]; // alpha * q * Div(u) + q * Grad(alpha) * u
-                    //DivPAlpha = FluidFraction * rShapeDeriv(j, m)  * rShapeFunc[i] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // alpha * q * Div(u) + q * Grad(alpha) * u
+                    PAlphaDivV = (FluidFraction * rShapeDeriv(i, m) + FluidFractionGradient[m] * rShapeFunc[i]) * rShapeFunc[j]; // alpha * q * Div(u) + q * Grad(alpha) * u
+                    //PAlphaDivV = FluidFraction * rShapeDeriv(j, m)  * rShapeFunc[i] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // alpha * q * Div(u) + q * Grad(alpha) * u
 
 //Z
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
@@ -1572,7 +1572,7 @@ protected:
                     // Use symmetry to write the q * Div(u) component
 //G
     //              rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
-                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (GAlpha + DivPAlpha);
+                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (GAlpha + PAlphaDivV);
 
     //              q-p stabilization block
     //              L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
@@ -1604,14 +1604,15 @@ protected:
 
             // Operate on RHS
             qF = 0.0;
+
             for (unsigned int d = 0; d < TDim; ++d)
             {
+                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
 //G
-    //          rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-                rDampRHS[FirstRow + d] += Weight * (TauOne * Density * AGradNMod[i] * BodyForce[d] - TauTwo * rShapeDeriv(i, d) * FluidFractionRate); // ( a * Grad(v) ) * TauOne * (Density * BodyForce) + Div(v) * TauTwo * (- DAlphaDt)
+                //rDampRHS[FirstRow + d] += Weight * (TauOne * Density * AGradNMod[i] * BodyForce[d] - TauTwo * rShapeDeriv(i, d) * FluidFractionRate); // ( a * Grad(v) ) * TauOne * (Density * BodyForce) + Div(v) * TauTwo * (- DAlphaDt)
 
     //          qF += rShapeDeriv(i, d) * BodyForce[d];
-                qF += (FluidFraction * rShapeDeriv(i, d) + FluidFractionGradient[d] * rShapeFunc[i]) * BodyForce[d];                
+                qF += (FluidFraction * rShapeDeriv(i, d)) * BodyForce[d];
 //Z
             }
             rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
