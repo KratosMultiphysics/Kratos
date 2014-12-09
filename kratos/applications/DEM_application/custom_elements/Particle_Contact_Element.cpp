@@ -115,6 +115,11 @@ void Particle_Contact_Element::Initialize() {
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
     mUnidimendionalDamage = 0.0;
+    mContactFailure = 0.0;
+    mContactSigma = 0.0;
+    mContactTau = 0.0;
+    
+    
     this->GetValue(LOW_POISSON_FORCE) = 0.0;  
     this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
