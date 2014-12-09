@@ -127,7 +127,7 @@ public:
 		{
 			Coord = rObject->GetGeometry()(inode)->Coordinates();
 
-			xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
+            xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
 			xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
 			xyz_min[2] = (xyz_min[2] > Coord[2]) ? Coord[2] : xyz_min[2];
 
@@ -141,7 +141,19 @@ public:
             rLowPoint [i] = xyz_min[i];
             rHighPoint[i] = xyz_max[i];
         }
+
+        for(std::size_t i = 0; i < 3; i++)
+        {
+            if( (rHighPoint[i]-rLowPoint[i]) < 1e-10*rObject->GetGeometry().DomainSize())  //altura no area
+            {
+                rHighPoint[i] = rLowPoint[i] + rObject->GetGeometry().DomainSize();
+                  //rLowPoint [i];// + rObject->GetGeometry().DomainSize();
+            }
+        }
+
     }
+
+
 
     //******************************************************************************************************************
 
@@ -314,7 +326,7 @@ public:
             }
           }
         }  //if(ContactExists == false)
-        
+       
         ///////////////////////////////////////////
 			
         /////Particle-Point contact
@@ -338,6 +350,7 @@ public:
             }
           }				
         }
+        
         
       } //if(rObj_2->GetGeometry().size() > 2)
 		 
