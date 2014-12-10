@@ -123,9 +123,9 @@ public:
                 double velocity =0.0;
                 double Flow_total_node=0.0;
                 for (unsigned int j = 0 ; j < i->GetGeometry().PointsNumber(); j++){
-                    const double Velocity_node_X= i->GetGeometry()(j)->FastGetSolutionStepValue(VELOCITY_X);
-                    const double Velocity_node_Y= i->GetGeometry()(j)->FastGetSolutionStepValue(VELOCITY_Y);
-                    const double Velocity_node_Z= i->GetGeometry()(j)->FastGetSolutionStepValue(VELOCITY_Z);
+                    const double Velocity_node_X= i->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X);
+                    const double Velocity_node_Y= i->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y);
+                    const double Velocity_node_Z= i->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Z);
                     velocity=sqrt(pow(Velocity_node_X,2.0) + pow(Velocity_node_Y,2.0) + pow(Velocity_node_Z,2.0));
                     total_velocity += velocity;
 //                  Velocity_total_X +=Velocity_node_X;
