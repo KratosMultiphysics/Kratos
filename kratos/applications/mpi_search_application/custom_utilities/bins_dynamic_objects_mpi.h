@@ -358,7 +358,7 @@ public:
             {
                 for(int j = 0; j < mpi_size; j++)
                 {
-                    if((((*object_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_MASK)) & (1<<j)))
+                    if((((*object_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK)) & (1<<j)))
                     //if(true)
                     {
                         SendPoint[j*NumberOfObjects+objectCounter]=1;
@@ -487,7 +487,7 @@ public:
                             
                             bool repeat = 0;
                             for(ModelPart::NodesContainerType::iterator it = Communicator.GhostMesh(origin).Nodes().begin(); !repeat && it != Communicator.GhostMesh(origin).Nodes().end(); ++it)
-                              if((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0)->Id() == it->Id())
+                              if((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()[0].Id() == it->Id())
                                 repeat = 0;
                             if(!repeat)
                             {

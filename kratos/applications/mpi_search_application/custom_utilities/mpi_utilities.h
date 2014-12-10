@@ -385,7 +385,7 @@ namespace Kratos
           if(MaxNodeRadius == 0.0f) //TODO
               for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
               {
-                  double NodeRaidus = search_tolerance + (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                  double NodeRaidus = search_tolerance + (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
                   MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
               }
           
