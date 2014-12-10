@@ -330,18 +330,18 @@ public:
         //Mark elements in boundary (Level-1)
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {   
-            double Radius       = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-            int myRank          = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_INDEX);
+            double Radius       = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+            int myRank          = (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
 
-            (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_MASK) = 0;
+            (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK) = 0;
 
             for(int j = 0; j < mpi_size; j++)
             {
                 double NodeToCutPlaneDist = 0;
 
-                NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->X() * Normal[j*Dimension+0];
-                NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->Y() * Normal[j*Dimension+1];
-                NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->Z() * Normal[j*Dimension+2];
+                NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].X() * Normal[j*Dimension+0];
+                NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].Y() * Normal[j*Dimension+1];
+                NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()[0].Z() * Normal[j*Dimension+2];
 
                 NodeToCutPlaneDist += Plane[j];
                 NodeToCutPlaneDist /= Dot[j];
@@ -352,7 +352,7 @@ public:
                 {
                     if( NodeToCutPlaneDist <= Radius*2)
                     {
-                       (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_MASK) |= ((1 << j) | (1 << myRank));
+                       (*particle_pointer_it)->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_MASK) |= ((1 << j) | (1 << myRank));
                     }
                 }
             }
