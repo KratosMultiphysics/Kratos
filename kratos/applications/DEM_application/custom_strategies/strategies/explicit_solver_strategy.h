@@ -1292,7 +1292,7 @@ namespace Kratos
 
                 //# adding DEM elements by the inlet:
                 //if (inlet_option):
-                DEM_inlet.CreateElementsFromInletMesh(*mpDem_model_part, DEM_inlet_model_part, creator_destructor, dem_inlet_element_type); //#After solving, to make sure that neighbours are already set.        
+                DEM_inlet.CreateElementsFromInletMesh(*mpDem_model_part, creator_destructor); //#After solving, to make sure that neighbours are already set.        
 
                 incremental_time = (std::time(0) - initial_real_time) - prev_time;
 

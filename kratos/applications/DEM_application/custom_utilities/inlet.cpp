@@ -20,7 +20,7 @@ namespace Kratos {
     
     /// Constructor            
     
-    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): InletModelPart(inlet_modelpart)
+    DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {                
         
         PartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(),false);
@@ -47,32 +47,34 @@ namespace Kratos {
     DEM_Inlet::~DEM_Inlet() {}
         
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString) {
+        mElementNameString = ElementNameString;
         
         unsigned int& max_Id=creator.mMaxNodeId;       
         
-        CreatePropertiesProxies(mFastProperties, InletModelPart);      
+        CreatePropertiesProxies(mFastProperties, mInletModelPart);      
                
         VariablesList r_modelpart_nodal_variables_list = r_modelpart.GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY) )  mBallsModelPartHasSphericity = true;        
         if(r_modelpart.GetProcessInfo()[ROTATION_OPTION] ) {
             mBallsModelPartHasRotation   = true;
-            InletModelPart.GetProcessInfo()[ROTATION_OPTION] = true;            
+            mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = true;            
         }
         else {
-            InletModelPart.GetProcessInfo()[ROTATION_OPTION] = false;             
+            mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = false;             
         }
         
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
         int mesh_number=0;
-        for (ModelPart::MeshesContainerType::iterator mesh_it = InletModelPart.GetMeshes().begin()+1;
-                                               mesh_it != InletModelPart.GetMeshes().end();    ++mesh_it)
-        {            
+        
+        //For the next loop, take into account that the meshes of the modelpart is a full array with no gaps. If mesh 3 is not defined in mdpa, then it is created empty!
+        for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin()+1; mesh_it != mInletModelPart.GetMeshes().end(); ++mesh_it) {      
+            
             mesh_number++;
             int mesh_size=mesh_it->NumberOfNodes();
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
             
-            int general_properties_id = InletModelPart.GetProperties(mesh_number).Id();  
+            int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
             PropertiesProxy* p_fast_properties = NULL;
             
             for (unsigned int i = 0; i < mFastProperties.size(); i++) {
@@ -83,18 +85,22 @@ namespace Kratos {
                 }
             }   
             
+            Element::Pointer dummy_element_pointer;
+            
             for (int i = 0; i < mesh_size; i++) {                
                 creator.ElementCreatorWithPhysicalParameters(r_modelpart,
                                                              max_Id+1,
                                                              all_nodes[i],
-                                                             InletModelPart.pGetProperties(mesh_number),
+                                                             dummy_element_pointer,
+                                                             mInletModelPart.pGetProperties(mesh_number),
                                                              r_reference_element,
                                                              p_fast_properties,
                                                              mBallsModelPartHasSphericity,
                                                              mBallsModelPartHasRotation,
-                                                             true); 
+                                                             true,
+                                                             mesh_it->Elements()); 
 		max_Id++;
-            }      
+            }                 
             
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
@@ -153,37 +159,35 @@ namespace Kratos {
         
     } //DettachElements
     
-    void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart,
-                                                ModelPart& inlet_modelpart,
-                                                ParticleCreatorDestructor& creator,
-                                                const std::string& ElementNameString)
-    {                    
-        //unsigned int max_Id=0; 
+    void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ParticleCreatorDestructor& creator) {                    
+        
         unsigned int& max_Id=creator.mMaxNodeId; 
         
         DettachElements(r_modelpart, max_Id);                
                 
         int mesh_number = 0;
-        for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin()+1;
-                                               mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
+        for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin()+1;
+                                               mesh_it != mInletModelPart.GetMeshes().end();    ++mesh_it)
         {            
             mesh_number++;
 
-            if(r_modelpart.GetProcessInfo()[TIME] < InletModelPart.GetProperties(mesh_number)[INLET_START_TIME]) continue;
+            if(r_modelpart.GetProcessInfo()[TIME] < mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME]) continue;
             
-            int mesh_size=mesh_it->NumberOfNodes();
-            ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+            int mesh_size_elements = mesh_it->NumberOfElements();
+            
+            ModelPart::ElementsContainerType::ContainerType all_elements = mesh_it->ElementsArray();
                         
-            if (r_modelpart.GetProcessInfo()[TIME] > InletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]) {
+            if (r_modelpart.GetProcessInfo()[TIME] > mInletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]) {
                 if (mLayerRemoved[mesh_number]) continue;
-                for (int i = 0; i < mesh_size; i++) {                   
-		     all_nodes[i]->Set(TO_ERASE);		   
+                for (int i = 0; i < mesh_size_elements; i++) {                   
+                     all_elements[i]->Set(TO_ERASE);
+                     all_elements[i]->GetGeometry()[0].Set(TO_ERASE);
                 }
                 mLayerRemoved[mesh_number] = true;
                 continue;
             }                        
                         
-            double num_part_surface_time = InletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES]; 
+            double num_part_surface_time = mInletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES]; 
             double delta_t = r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface = 1.0;//inlet_surface; // this should probably be projected to velocity vector
             
@@ -195,34 +199,35 @@ namespace Kratos {
             if (number_of_particles_to_insert) {
                 //randomizing mesh
                 srand( time(NULL)*r_modelpart.GetProcessInfo()[TIME_STEPS] );
-                ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert);               
-                ModelPart::NodesContainerType::ContainerType valid_nodes = mesh_it->NodesArray();
-                int valid_nodes_length = 0;
+                
+                ModelPart::ElementsContainerType::ContainerType inserting_elements(number_of_particles_to_insert);               
+                ModelPart::ElementsContainerType::ContainerType valid_elements = mesh_it->ElementsArray();
+                int valid_elements_length = 0;
                
-                for (int i = 0; i < mesh_size; i++){
-                    if( all_nodes[i]->IsNot(ACTIVE) ) { 
-		        valid_nodes[valid_nodes_length]=all_nodes[i];   
-		        valid_nodes_length++; 
+                for (int i = 0; i < mesh_size_elements; i++) {                    
+                    if( all_elements[i]->IsNot(ACTIVE) ) { 
+		        valid_elements[valid_elements_length]=all_elements[i];   
+		        valid_elements_length++; 
 		    } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                 }
 
-                if (valid_nodes_length < number_of_particles_to_insert) {
-                    number_of_particles_to_insert = valid_nodes_length;
+                if (valid_elements_length < number_of_particles_to_insert) {
+                    number_of_particles_to_insert = valid_elements_length;
                     //std::cout<<"The number of DEM particles has been reduced to match the available number of nodes of the DEM Inlet mesh"<<std::endl<<std::flush;
                 }
                
                 for (int i = 0; i < number_of_particles_to_insert; i++) {
-		    int pos = rand() % valid_nodes_length;
+		    int pos = rand() % valid_elements_length;
 		    //int pos = i;
-                    inserting_nodes[i] = valid_nodes[pos]; //This only works for pos as real position in the vector if 
+                    inserting_elements[i] = valid_elements[pos]; //This only works for pos as real position in the vector if 
                     //we use ModelPart::NodesContainerType::ContainerType 
                     //instead of ModelPart::NodesContainerType
-                    valid_nodes[pos] = valid_nodes[valid_nodes_length - 1];
-                    valid_nodes_length = valid_nodes_length - 1;
+                    valid_elements[pos] = valid_elements[valid_elements_length - 1];
+                    valid_elements_length = valid_elements_length - 1;
                 }
                
                 PropertiesProxy* p_fast_properties = NULL;
-                int general_properties_id = InletModelPart.GetProperties(mesh_number).Id();  
+                int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
                 for (unsigned int i = 0; i < mFastProperties.size(); i++) {
                     int fast_properties_id = mFastProperties[i].GetId(); 
                     if (fast_properties_id == general_properties_id) {  
@@ -231,11 +236,22 @@ namespace Kratos {
                     }
                 }     
                                              
-               const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+               const Element& r_reference_element = KratosComponents<Element>::Get(mElementNameString);
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.pGetProperties(mesh_number), r_reference_element, p_fast_properties, mBallsModelPartHasSphericity, mBallsModelPartHasRotation, false);
-                   inserting_nodes[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, 
+                                                                max_Id+1, 
+                                                                inserting_elements[i]->GetGeometry()(0), 
+                                                                inserting_elements[i],
+                                                                mInletModelPart.pGetProperties(mesh_number), 
+                                                                r_reference_element, 
+                                                                p_fast_properties, 
+                                                                mBallsModelPartHasSphericity, 
+                                                                mBallsModelPartHasRotation, 
+                                                                false, 
+                                                                mesh_it->Elements());
+                   inserting_elements[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
+                   inserting_elements[i]->GetGeometry()[0].Set(ACTIVE);
                    max_Id++;
                }                                                                   
                

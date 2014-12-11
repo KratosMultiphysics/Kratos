@@ -36,40 +36,36 @@
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
 
 namespace Kratos {
-    
-class DEM_Inlet {
-    
-public:        
-    
-    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
-    typedef ModelPart::ElementsContainerType                          ElementsArrayType;
-    
-    
-    Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
-    ModelPart& InletModelPart; //The model part used to insert elements
-    bool mFirstTime;
-    boost::numeric::ublas::vector<bool> mLayerRemoved;
-    bool mBallsModelPartHasSphericity;
-    bool mBallsModelPartHasRotation;
-    std::vector<PropertiesProxy>                 mFastProperties;
-    
-    /// Constructor:               
-    
-    DEM_Inlet(ModelPart& inlet_modelpart);
-    
-            
-    /// Destructor.
-    virtual ~DEM_Inlet();
+
+    class DEM_Inlet {
         
-    void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString); //InitializeDEM_Inlet
+        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef WeakPointerVector<Element> ParticleWeakVectorType;
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
         
-    void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); //DettachElements
-    
-    void CreateElementsFromInletMesh(ModelPart& r_modelpart,
-                                     ModelPart& inlet_modelpart,
-                                     ParticleCreatorDestructor& creator,
-                                     const std::string& ElementNameString); //CreateElementsFromInletMesh       
+    public:              
+        
+        /// Constructor:               
+        DEM_Inlet(ModelPart& inlet_modelpart);
+
+        /// Destructor.
+        virtual ~DEM_Inlet();
+        
+        void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString);
+        void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); 
+        void CreateElementsFromInletMesh(ModelPart& r_modelpart, ParticleCreatorDestructor& creator); 
+
+    private:
+        
+        Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
+        ModelPart& mInletModelPart; //The model part used to insert elements
+        bool mFirstTime;
+        boost::numeric::ublas::vector<bool> mLayerRemoved;
+        bool mBallsModelPartHasSphericity;
+        bool mBallsModelPartHasRotation;
+        std::vector<PropertiesProxy> mFastProperties;
+        std::string mElementNameString;
+
     };
 }// namespace Kratos.
 
