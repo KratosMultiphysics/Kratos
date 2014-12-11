@@ -115,9 +115,9 @@ public:
     //**************************************************************************
 
     void BuildLHS(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+            typename TSchemeType::Pointer pScheme,
+            ModelPart& r_model_part,
+            TSystemMatrixType& A)
     {
         KRATOS_TRY
 
@@ -168,13 +168,13 @@ public:
              typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
              typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-             for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: LOOP SOBRE ENTER i ABANS...not sure this is well parallelized. pragma omp for doesnt compile.
+             for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
              {
                  Matrix MassMatrix;
 
-                 Element::GeometryType& geometry = itElem->GetGeometry(); // Nodos del elemento
+                 Element::GeometryType& geometry = itElem->GetGeometry();
 
-                 (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+                 (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); //already lumped.
 
                  const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
