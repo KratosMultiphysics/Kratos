@@ -123,6 +123,7 @@ namespace Kratos
         virtual void GetClustersForce( const array_1d<double,3>& gravity );
         virtual void CollectForcesAndTorquesFromSpheres();
         virtual void ComputeAdditionalForces( const array_1d<double,3>& gravity );
+        unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
         /**
         * this is called during the assembling process in order
         * to calculate all elemental contributions to the global system
