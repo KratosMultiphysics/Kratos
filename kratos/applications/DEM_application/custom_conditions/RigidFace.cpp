@@ -246,7 +246,7 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
         for(unsigned int j = 0; j < number_of_nodes; j++)
         {
           array_1d<double, 3> Nodecoord;
-          Nodecoord = this->GetGeometry()(j)->Coordinates();
+          Nodecoord = this->GetGeometry()[j].Coordinates();
           
           coord[0] = Nodecoord[0];
           coord[1] = Nodecoord[1];
