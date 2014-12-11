@@ -45,6 +45,7 @@ public:
         typedef Configure::ContainerType                    ParticlePointerVector;
         typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
+        typedef PointerVectorSet<Element, IndexedObject>    ElementsContainerType;
         unsigned int mMaxNodeId;
 		
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
@@ -73,12 +74,14 @@ public:
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                               int r_Elem_Id,
                                               Node < 3 > ::Pointer reference_node, 
+                                              Element::Pointer injector_element,
                                               Properties::Pointer r_params,
                                               const Element& r_reference_element,
                                               PropertiesProxy* p_fast_properties,
                                               bool has_sphericity,
                                               bool has_rotation,
-                                              bool initial);         
+                                              bool initial,
+                                              ElementsContainerType& array_of_injector_elements);         
     
     
     void NodeCreatorForClusters(ModelPart& r_modelpart, 
