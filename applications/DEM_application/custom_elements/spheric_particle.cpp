@@ -779,7 +779,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
     if (iNeighborID == static_cast<int>(rObj_2->Id())){
 
         for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
-            other_to_me_vel += rObj_2->GetGeometry()(inode)->FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+            other_to_me_vel += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
         }
     }
 
