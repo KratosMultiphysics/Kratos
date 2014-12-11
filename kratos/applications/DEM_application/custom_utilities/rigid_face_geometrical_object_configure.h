@@ -125,7 +125,7 @@ public:
                 
 		for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++)
 		{
-			Coord = rObject->GetGeometry()(inode)->Coordinates();
+			Coord = rObject->GetGeometry()[inode].Coordinates();
 
             xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
 			xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
@@ -184,14 +184,14 @@ public:
       double d_size = (double) i_size;
       double inv_d_size = 1.0 / d_size;
       array_1d<double, 3>& coordinates_obj2_0 = rObj_2->GetGeometry()[0].Coordinates();
-      array_1d<double, 3>& coordinates_obj2_1 = rObj_2->GetGeometry()(1)->Coordinates();
+      array_1d<double, 3>& coordinates_obj2_1 = rObj_2->GetGeometry()[1].Coordinates();
       
       for(int inode = 0; inode < i_size; inode++)
       {
           
-          Centroid[0] += rObj_2->GetGeometry()(inode)->Coordinates()[0] * inv_d_size;
-          Centroid[1] += rObj_2->GetGeometry()(inode)->Coordinates()[1] * inv_d_size;
-          Centroid[2] += rObj_2->GetGeometry()(inode)->Coordinates()[2] * inv_d_size;
+          Centroid[0] += rObj_2->GetGeometry()[inode].Coordinates()[0] * inv_d_size;
+          Centroid[1] += rObj_2->GetGeometry()[inode].Coordinates()[1] * inv_d_size;
+          Centroid[2] += rObj_2->GetGeometry()[inode].Coordinates()[2] * inv_d_size;
       }
 
       
@@ -224,9 +224,9 @@ public:
         {
             for(std::size_t inode1 = 0; inode1 < rObj_2->GetGeometry().size(); inode1++)
             {
-                Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
-                Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
-                Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
+                Coord1[0] = rObj_2->GetGeometry()[inode1].Coordinates()[0];
+                Coord1[1] = rObj_2->GetGeometry()[inode1].Coordinates()[1];
+                Coord1[2] = rObj_2->GetGeometry()[inode1].Coordinates()[2];
                 
                 ContactExists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
                
@@ -261,15 +261,15 @@ public:
         Coord[1][1] = coordinates_obj2_1[1];
         Coord[1][2] = coordinates_obj2_1[2];
 
-        Coord[2][0] = rObj_2->GetGeometry()(2)->Coordinates()[0];
-        Coord[2][1] = rObj_2->GetGeometry()(2)->Coordinates()[1];
-        Coord[2][2] = rObj_2->GetGeometry()(2)->Coordinates()[2];
+        Coord[2][0] = rObj_2->GetGeometry()[2].Coordinates()[0];
+        Coord[2][1] = rObj_2->GetGeometry()[2].Coordinates()[1];
+        Coord[2][2] = rObj_2->GetGeometry()[2].Coordinates()[2];
 
         if(rObj_2->GetGeometry().size() == 4)
         {
-          Coord[3][0] = rObj_2->GetGeometry()(3)->Coordinates()[0];
-          Coord[3][1] = rObj_2->GetGeometry()(3)->Coordinates()[1];
-          Coord[3][2] = rObj_2->GetGeometry()(3)->Coordinates()[2];
+          Coord[3][0] = rObj_2->GetGeometry()[3].Coordinates()[0];
+          Coord[3][1] = rObj_2->GetGeometry()[3].Coordinates()[1];
+          Coord[3][2] = rObj_2->GetGeometry()[3].Coordinates()[2];
 
           ////Cfeng: Quadrilateral
           FaceNodeTotal = 4;
@@ -297,13 +297,13 @@ public:
             double Coord2[3]     = {0.0};
             double tempWeight[2] = {0.0};
             
-            Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
-            Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
-            Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
+            Coord1[0] = rObj_2->GetGeometry()[inode1].Coordinates()[0];
+            Coord1[1] = rObj_2->GetGeometry()[inode1].Coordinates()[1];
+            Coord1[2] = rObj_2->GetGeometry()[inode1].Coordinates()[2];
 
-            Coord2[0] = rObj_2->GetGeometry()(inode2)->Coordinates()[0];
-            Coord2[1] = rObj_2->GetGeometry()(inode2)->Coordinates()[1];
-            Coord2[2] = rObj_2->GetGeometry()(inode2)->Coordinates()[2];
+            Coord2[0] = rObj_2->GetGeometry()[inode2].Coordinates()[0];
+            Coord2[1] = rObj_2->GetGeometry()[inode2].Coordinates()[1];
+            Coord2[2] = rObj_2->GetGeometry()[inode2].Coordinates()[2];
             
             ContactExists = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad,
                                                 LocalCoordSystem,  tempWeight, DistPToB);
@@ -337,9 +337,9 @@ public:
           for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
           {
             double Coord1[3] = {0.0};
-            Coord1[0] = rObj_2->GetGeometry()(inode1)->Coordinates()[0];
-            Coord1[1] = rObj_2->GetGeometry()(inode1)->Coordinates()[1];
-            Coord1[2] = rObj_2->GetGeometry()(inode1)->Coordinates()[2];
+            Coord1[0] = rObj_2->GetGeometry()[inode1].Coordinates()[0];
+            Coord1[1] = rObj_2->GetGeometry()[inode1].Coordinates()[1];
+            Coord1[2] = rObj_2->GetGeometry()[inode1].Coordinates()[2];
             
             ContactExists = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord1, Particle_Coord, rad, LocalCoordSystem, DistPToB);
             if(ContactExists == true)
@@ -417,7 +417,7 @@ public:
                 
 		for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++)
 		{
-			Coord = rObject->GetGeometry()(inode)->Coordinates();
+			Coord = rObject->GetGeometry()[inode].Coordinates();
 
 			xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
 			xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
