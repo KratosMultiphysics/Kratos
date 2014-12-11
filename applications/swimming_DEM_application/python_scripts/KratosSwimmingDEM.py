@@ -657,7 +657,7 @@ while time <= final_time:
         # adding DEM elements by the inlet
 
         if pp.inlet_option:
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, pp.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.        
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.        
         
         # eliminating remote balls
 
