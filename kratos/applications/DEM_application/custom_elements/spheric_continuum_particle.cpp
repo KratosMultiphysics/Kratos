@@ -1355,12 +1355,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         bond->mContactFailure = (mNeighbourFailureId[i_neighbour_count]);                                        
         bond->mFailureCriterionState = failure_criterion_state;
 
-        if( ( acumulated_damage > bond->mUnidimendionalDamage ) || ( time_steps == 0) ) {
+        if( ( time_steps == 0) || ( acumulated_damage > bond->mUnidimendionalDamage ) ) {
             bond->mUnidimendionalDamage = acumulated_damage; 
         }  
         // if Target Id < Neigh Id        
 
-      KRATOS_CATCH("")
+        KRATOS_CATCH("")
       
       }//CalculateOnContactElements                              
       
