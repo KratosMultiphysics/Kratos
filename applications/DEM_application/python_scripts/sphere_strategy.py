@@ -120,8 +120,6 @@ class ExplicitStrategy:
             
         self.rolling_friction_option = Var_Translator(Param.RollingFrictionOption)
 
-        self.tangential_strength = Param.TangentialStrength
-
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_group_id = Var_Translator(Param.PostGroupId)
