@@ -130,13 +130,19 @@ namespace Kratos
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
 
-          BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
-          BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
+          bool has_mpi = false;
+          VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
+          if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
+          if(has_mpi){
+            BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
+            BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
+            RebuildListsOfPointersOfEachParticle(); //Serialized member variables which are pointers are lost, so we rebuild them using Id's
+          }
  
           BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
           BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
 
-          RebuildListsOfPointersOfEachParticle(); //Serialized member variables which are pointers are lost, so we rebuild them using Id's
+          
           
           KRATOS_CATCH("")
       }
@@ -558,8 +564,7 @@ namespace Kratos
           
    } //Contact_InitializeSolutionStep
         
-   void PrepareContactElementsForPrinting()
-    {
+   void PrepareContactElementsForPrinting() {
        
         ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);
                
