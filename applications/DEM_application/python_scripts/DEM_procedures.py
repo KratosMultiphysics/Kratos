@@ -520,18 +520,13 @@ class DEMFEMProcedures(object):
         self.graph_counter = 0;
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
         os.chdir(self.graphs_path)
-        #self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')
+        #self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')                
         
         def open_graph_files(self,RigidFace_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                 if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                     self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w');
-                    
-        def close_graph_files(self,RigidFace_model_part):
-            for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
-                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
         
         self.graph_forces = {}  
         
@@ -572,6 +567,13 @@ class DEMFEMProcedures(object):
                 self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
         else:
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
+            
+    
+                    
+    def close_graph_files(self,RigidFace_model_part):
+        for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+            if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
+                self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].close()
 
     def MeasureForces(self):    # not used atm
         
@@ -620,7 +622,7 @@ class DEMFEMProcedures(object):
     def FinalizeGraphs(self,RigidFace_model_part):
 
         if DEM_parameters.TestType == "None":
-            close_graph_files(self,RigidFace_model_part)
+            self.close_graph_files(RigidFace_model_part)
 
 
 class Report(object):
