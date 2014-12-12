@@ -303,7 +303,6 @@ namespace Kratos
         {                                                                                                                             
         KRATOS_TRY
         
-        const double dt = rCurrentProcessInfo[DELTA_TIME];        
         const double dt_i = 1 / dt; 
         const int time_steps = rCurrentProcessInfo[TIME_STEPS];
         
@@ -393,7 +392,7 @@ namespace Kratos
 
             equiv_young                       = 2.0 * myYoung * other_young / (myYoung + other_young);
             if((myPoisson + other_poisson)!= 0.0) {
-            equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
+                equiv_poisson                     = 2.0 * myPoisson * other_poisson / (myPoisson + other_poisson);
             } else {
                 equiv_poisson = 0.0;
             }
@@ -485,161 +484,118 @@ namespace Kratos
 
                 }
                 
-                else if(mElasticityType==2){
-
-
-                    if (mapping_new_cont!=-1)
-                    {   
+                else if(mElasticityType==2) {
+                    if (mapping_new_cont!=-1) {   
                       mContinuumConstitutiveLawArray[mapping_new_cont]->  PlasticityAndDamage1D(LocalElasticContactForce,
-                                            kn_el,
-                                            equiv_young,
-                                            indentation,
-                                            calculation_area,
-                                            radius_sum_i,
-                                            failure_criterion_state,
-                                            acumulated_damage,
-                                            i_neighbour_count,
-                                            mapping_new_cont,
-                                            mapping_new_ini,
-                                            mN1,
-                                            mN2,
-                                            mN3,
-                                            mYoungPlastic,
-                                            mPlasticityLimit,
-                                            mC1,
-                                            mC2,
-                                            mC3,
-                                            mTensionLimit,
-                                            mDamageMaxDisplacementFactor,
-                                            mHistory [mapping_new_cont],                              
-                                            mNeighbourFailureId[i_neighbour_count],
-                                            mIniNeighbourFailureId [mapping_new_ini],
-                                            rCurrentProcessInfo[TIME_STEPS] );                                       
+                                                                                                kn_el,
+                                                                                                equiv_young,
+                                                                                                indentation,
+                                                                                                calculation_area,
+                                                                                                radius_sum_i,
+                                                                                                failure_criterion_state,
+                                                                                                acumulated_damage,
+                                                                                                i_neighbour_count,
+                                                                                                mapping_new_cont,
+                                                                                                mapping_new_ini,
+                                                                                                mN1,
+                                                                                                mN2,
+                                                                                                mN3,
+                                                                                                mYoungPlastic,
+                                                                                                mPlasticityLimit,
+                                                                                                mC1,
+                                                                                                mC2,
+                                                                                                mC3,
+                                                                                                mTensionLimit,
+                                                                                                mDamageMaxDisplacementFactor,
+                                                                                                mHistory [mapping_new_cont],                              
+                                                                                                mNeighbourFailureId[i_neighbour_count],
+                                                                                                mIniNeighbourFailureId [mapping_new_ini],
+                                                                                                rCurrentProcessInfo[TIME_STEPS] );                                       
                     }                    
-                    else{
-                        
-                        NormalForceCalculation(LocalElasticContactForce[2],
-                                               kn_el,
-                                               indentation);                    //Error: should not be stored here (in LocalElasticContactForce)
+                    else {
+                        NormalForceCalculation(LocalElasticContactForce[2], kn_el, indentation); //Error: should not be stored here (in LocalElasticContactForce)
                     }                   
                 }                                                               //plasticity and damage for the initial continuum contacts only.
             }                                                                   //if compression or cohesive contact
                
             double degradation = 1.0;                                           //Tangential. With degradation:
 
-            if(mDempack && (mapping_new_cont!= -1))
-            {
-             
-              if(indentation >= 0.0 ) //COMPRESSION
-              {
-              
-                degradation = mHistory[mapping_new_cont][3];
-               
+            if(mDempack && (mapping_new_cont!= -1)) {             
+              if(indentation >= 0.0 ) { //COMPRESSION              
+                degradation = mHistory[mapping_new_cont][3];               
               }
-              else
-              {
-               
-                degradation = (1.0 -  mHistory[mapping_new_cont][2]);
-               
-              }
-              
+              else {               
+                degradation = (1.0 -  mHistory[mapping_new_cont][2]);               
+              }              
             }
                  
             LocalElasticContactForce[0] += - degradation*kt_el * LocalDeltDisp[0];  // 0: first tangential
             LocalElasticContactForce[1] += - degradation*kt_el * LocalDeltDisp[1];  // 1: second tangential  
-              
-                                         
-            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                    +   LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
+                                                       
+            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
                   
-                /* Evaluating Failure for the continuum contacts */
-          
-                if(mNeighbourFailureId[i_neighbour_count] == 0) {                               
-                  /*mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
-                  mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure tension
-                  mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
-                  mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension*/
-                    double inv_calculation_area = 1/calculation_area;
-                  contact_tau = ShearForceNow * inv_calculation_area;
-                  contact_sigma = LocalElasticContactForce[2] * inv_calculation_area;
-                  
-                  mContinuumConstitutiveLawArray[mapping_new_cont]-> EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
-                                          mFailureCriterionOption, mTauZero, mTanContactInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
-                                          mNeighbourFailureId[i_neighbour_count], mIniNeighbourFailureId[ mapping_new_ini], mTensionLimit);                            
-                }
+            /* Evaluating Failure for the continuum contacts */          
+            if(mNeighbourFailureId[i_neighbour_count] == 0) {                               
+              /*mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
+              mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure tension
+              mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
+              mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension*/
+                double inv_calculation_area = 1/calculation_area;
+              contact_tau = ShearForceNow * inv_calculation_area;
+              contact_sigma = LocalElasticContactForce[2] * inv_calculation_area;
+
+              mContinuumConstitutiveLawArray[mapping_new_cont]-> EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
+                                      mFailureCriterionOption, mTauZero, mTanContactInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
+                                      mNeighbourFailureId[i_neighbour_count], mIniNeighbourFailureId[ mapping_new_ini], mTensionLimit);                            
+            }
                 
-                if(activate_search == 0)
-                {
-                    if(mNeighbourFailureId[i_neighbour_count]!=0)
-                    {
-                        activate_search_vector[OpenMPUtils::ThisThread()]=1;
-                    }
-                  
+            if(activate_search == 0) {
+                if(mNeighbourFailureId[i_neighbour_count]!=0) {
+                    activate_search_vector[OpenMPUtils::ThisThread()]=1;
                 }
+            }
                
                 /* Tangential Friction for broken bonds */  //dempack and kdem do the same.
                 
-                if ( mNeighbourFailureId[i_neighbour_count] != 0 ) //*   //degut als canvis de DEMPACK hi ha hagut una modificació, ara despres de trencar es fa akest maping de maxima tangencial que és correcte!
-                {
-                   double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-                
-                if (Frictional_ShearForceMax < 0.0)
-                {
-                  Frictional_ShearForceMax = 0.0;
-                  
+            if ( mNeighbourFailureId[i_neighbour_count] != 0 ) { //*   //degut als canvis de DEMPACK hi ha hagut una modificació, ara despres de trencar es fa akest maping de maxima tangencial que és correcte!
+            
+               double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+
+                if (Frictional_ShearForceMax < 0.0) {
+                        Frictional_ShearForceMax = 0.0;
                 }
-                  
-                  
-                  failure_criterion_state = 1.0;
-                                                        
-                  if( (ShearForceNow >  Frictional_ShearForceMax) && (ShearForceNow != 0.0) ) 
-                  {
-                      LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
-                      LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow )* LocalElasticContactForce[1];
-                      sliding = true;
-                                  
-                  }
-                  
+
+                failure_criterion_state = 1.0;
+
+                if( (ShearForceNow >  Frictional_ShearForceMax) && (ShearForceNow != 0.0) ) {
+                  LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
+                  LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow )* LocalElasticContactForce[1];
+                  sliding = true;
                 }
+
+            }
 
                    
-               /* Viscodamping (applied locally)*/ 
-               
-                 //DAMPING:
-
-              double ViscoDampingLocalContactForce[3]    = {0.0};
+            /* Viscodamping (applied locally)*/                
+            //DAMPING:
+            double ViscoDampingLocalContactForce[3]    = {0.0};
               
-              if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
-              {  
-                
+            if (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) ) {  
                 double LocalRelVel[3] = {0.0};
-                
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
-                
-                    
-                if(mDempack)
-                {
-                  
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);                                    
+                if(mDempack) {                  
                   equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass + other_real_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
-                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
-                
-                }
-                  
-                else //KDEM
-                {
-                
-                  if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0)
-                  {
+                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...                
+                }                  
+                else {//KDEM                                
+                  if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0) {
                       equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn_el);
                       equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
                   }
-
-                  else 
-                  {
+                  else {
                       equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn_el / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
                       equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
-                  }
-                  
+                  }                  
                 }
 
                 CalculateViscoDamping(LocalRelVel,ViscoDampingLocalContactForce,indentation,equiv_visco_damp_coeff_normal,equiv_visco_damp_coeff_tangential,sliding);
