@@ -120,17 +120,6 @@ creator_destructor = ParticleCreatorDestructor()
 main_path = os.getcwd()
 [post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
 
-os.chdir(list_path)
-
-multifiles = (
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
-    )
-
-demio.SetMultifileLists(multifiles)
-
 os.chdir(main_path)
 
 KRATOSprint("Initializing Problem....")
@@ -150,6 +139,19 @@ demio.Configure(DEM_parameters.problem_name,
                 DEM_parameters.ContactMeshOption)
 
 demio.SetOutputName(DEM_parameters.problem_name)
+
+print(DEM_parameters.problem_name)
+
+os.chdir(list_path)
+
+multifiles = (
+    DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
+    )
+
+demio.SetMultifileLists(multifiles)
 
 os.chdir(post_path)
 demio.InitializeMesh(mixed_model_part,
