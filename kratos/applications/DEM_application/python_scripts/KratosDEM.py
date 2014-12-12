@@ -57,37 +57,37 @@ KRATOSprint   = procedures.KRATOSprint
 procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
-balls_model_part      = ModelPart("SpheresPart");
-rigid_face_model_part = ModelPart("RigidFace_Part");  
-mixed_model_part      = ModelPart("Mixed_Part");
-cluster_model_part    = ModelPart("Cluster_Part");
-DEM_inlet_model_part  = ModelPart("DEMInletPart")
-contact_model_part    = ""
+spheres_model_part      = ModelPart("SpheresPart");
+rigid_face_model_part   = ModelPart("RigidFace_Part");
+mixed_model_part        = ModelPart("Mixed_Part");
+cluster_model_part      = ModelPart("Cluster_Part");
+DEM_inlet_model_part    = ModelPart("DEMInletPart")
+mapping_model_part      = ModelPart("Mappingmodel_part")
+contact_model_part      = ""
 
 # Add variables
-procedures.AddCommonVariables(balls_model_part, DEM_parameters)
-procedures.AddBallsVariables(balls_model_part, DEM_parameters)
-procedures.AddMpiVariables(balls_model_part)
-SolverStrategy.AddAdditionalVariables(balls_model_part, DEM_parameters)
-procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddFEMVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddMpiVariables(rigid_face_model_part)
+procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
+procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
+procedures.AddMpiVariables(spheres_model_part)
+SolverStrategy.AddAdditionalVariables(spheres_model_part, DEM_parameters)
 procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
 procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
 procedures.AddMpiVariables(cluster_model_part)
 procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-procedures.AddBallsVariables(DEM_inlet_model_part, DEM_parameters)
+procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
 SolverStrategy.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-
+procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
+procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
+procedures.AddMpiVariables(rigid_face_model_part)
 
 # Reading the model_part
 spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
 model_part_io_spheres = ModelPartIO(spheres_mp_filename,True)
 
 # Perform the initial partition
-[model_part_io_spheres, balls_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(balls_model_part, model_part_io_spheres, spheres_mp_filename)
+[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
 
-model_part_io_spheres.ReadModelPart(balls_model_part)
+model_part_io_spheres.ReadModelPart(spheres_model_part)
 
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
 model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
@@ -101,15 +101,14 @@ DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
-
 # Setting up the buffer size
-balls_model_part.SetBufferSize(1)
+spheres_model_part.SetBufferSize(1)
 cluster_model_part.SetBufferSize(1)
 DEM_inlet_model_part.SetBufferSize(1)
-#TODO: what about the buffersize of the rigid_face_model_part??
+rigid_face_model_part.SetBufferSize(1)
 
 # Adding dofs
-SolverStrategy.AddDofs(balls_model_part)
+SolverStrategy.AddDofs(spheres_model_part)
 SolverStrategy.AddDofs(cluster_model_part)
 SolverStrategy.AddDofs(DEM_inlet_model_part)
 
@@ -126,7 +125,7 @@ KRATOSprint("Initializing Problem....")
 
 # Initialize GiD-IO
 demio.AddGlobalVariables()
-demio.AddBallVariables()
+demio.AddSpheresVariables()
 demio.AddFEMBoundaryVariables()
 demio.AddClusterVariables()
 demio.AddContactVariables()
@@ -155,26 +154,27 @@ demio.SetMultifileLists(multifiles)
 
 os.chdir(post_path)
 demio.InitializeMesh(mixed_model_part,
-                     balls_model_part,
+                     spheres_model_part,
                      rigid_face_model_part,
                      cluster_model_part,
-                     contact_model_part)
+                     contact_model_part,
+                     mapping_model_part)
 
 os.chdir(post_path)
 
 # Perform a partition to balance the problem
-parallelutils.Repart(balls_model_part)
-parallelutils.CalculateModelNewIds(balls_model_part)
+parallelutils.Repart(spheres_model_part)
+parallelutils.CalculateModelNewIds(spheres_model_part)
 
 os.chdir(post_path)
 
 #Setting up the BoundingBox
 if(DEM_parameters.BoundingBoxOption == "ON"):
-    procedures.SetBoundingBox(balls_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
+    procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
-solver                 = SolverStrategy.ExplicitStrategy(balls_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-solver.search_strategy = parallelutils.GetSearchStrategy(solver, balls_model_part)
+solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
+solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 solver.Initialize()
 
@@ -185,7 +185,7 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
 
 if (DEM_parameters.dem_inlet_option):    
-    max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(balls_model_part)
+    max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
 
     if ( max_FEM_node_Id > max_node_Id):
@@ -199,19 +199,19 @@ if (DEM_parameters.dem_inlet_option):
             DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
 
-    # constructing the inlet and intializing it (must be done AFTER the balls_model_part Initialize)    
+    # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, DEM_parameters.dem_inlet_element_type)
+    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, DEM_parameters.dem_inlet_element_type)
   
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
-   #ProceduresSetPredefinedSkin(balls_model_part)
+   #ProceduresSetPredefinedSkin(spheres_model_part)
 
-DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, balls_model_part, rigid_face_model_part)
+DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
-#Procedures.SetCustomSkin(balls_model_part)
+#Procedures.SetCustomSkin(spheres_model_part)
 
-materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
+materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
 KRATOSprint("Initialization Complete" + "\n")
 
@@ -228,7 +228,7 @@ first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
-      (coordination_number) = procedures.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
+      (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
       KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
       os.chdir(main_path)
     else:
@@ -245,7 +245,7 @@ if(DEM_parameters.Dempack):
 #                                                                            #
 ##############################################################################
 
-dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
+dt = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
 
 report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
@@ -254,18 +254,17 @@ KRATOSprint(report.BeginReport(timer))
 mesh_motion = DEMFEMUtilities()
 
 # creating a Post Utils object that executes several post-related tasks
-post_utils = DEM_procedures.PostUtils(DEM_parameters, balls_model_part)
+post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
-a = 50
 step = 0  
 while ( time < DEM_parameters.FinalTime):
     #print("TIME STEP BEGINS. STEP:"+str(step)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-    dt   = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
+    dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
 
-    balls_model_part.ProcessInfo[TIME]            = time
-    balls_model_part.ProcessInfo[DELTA_TIME]      = dt
-    balls_model_part.ProcessInfo[TIME_STEPS]      = step
+    spheres_model_part.ProcessInfo[TIME]            = time
+    spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
+    spheres_model_part.ProcessInfo[TIME_STEPS]      = step
     
     rigid_face_model_part.ProcessInfo[TIME]       = time
     rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
@@ -280,8 +279,8 @@ while ( time < DEM_parameters.FinalTime):
 
     # Perform a partition to balance the problem
     #if(not(step%(a-1))):
-        #parallelutils.Repart(balls_model_part)
-        #parallelutils.CalculateModelNewIds(balls_model_part)
+        #parallelutils.Repart(spheres_model_part)
+        #parallelutils.CalculateModelNewIds(spheres_model_part)
     
     #walls movement:
     mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
@@ -293,7 +292,7 @@ while ( time < DEM_parameters.FinalTime):
     
     # adding DEM elements by the inlet:
     if (DEM_parameters.dem_inlet_option):
-        DEM_inlet.CreateElementsFromInletMesh(balls_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
+        DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
     stepinfo = report.StepiReport(timer,time,step)
     if stepinfo:
@@ -319,14 +318,14 @@ while ( time < DEM_parameters.FinalTime):
     if ( time_to_print >= DEM_parameters.OutputTimeStep):               
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
-        KRATOSprint("                        ("+ str(balls_model_part.NumberOfElements(0)) + " elements)")
-        KRATOSprint("                        ("+ str(balls_model_part.NumberOfNodes(0)) + " nodes)")
+        KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
+        KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
         KRATOSprint("")
         sys.stdout.flush()
 
         os.chdir(data_and_results)
 
-        #properties_list = ProceduresMonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
+        #properties_list = ProceduresMonitorPhysicalProperties(spheres_model_part, physics_calculator, properties_list)
 
         os.chdir(list_path)
         demio.PrintMultifileLists(time,post_path)
@@ -337,7 +336,7 @@ while ( time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time)
+        demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part,mapping_model_part, time)
                 
         os.chdir(main_path)
 
