@@ -89,7 +89,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
-#include "custom_conditions/linear_wall_condition.h"
 #include "custom_elements/fractional_step_bingham.h"
 #include "custom_elements/fractional_step_discontinuous_bingham.h"
 
@@ -314,8 +313,6 @@ private:
     const FSPeriodicCondition<2> mFSPeriodicConditionEdge2D;
     const FSPeriodicCondition<3> mFSPeriodicConditionEdge3D;
 
-    /// Simplified 3D slip condition using rotated coordinates (monolithic version)
-    const  LinearWallCondition<3,3> mLinearWallCondition3D;
     
     /// 2D instance of the DPGVMS element
     const DPGVMS<2> mDPGVMS2D;
