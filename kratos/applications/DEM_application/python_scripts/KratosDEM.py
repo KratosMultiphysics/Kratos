@@ -177,7 +177,7 @@ solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rig
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
 dt = DEM_parameters.MaxTimeStep
-solver.Initialize()
+solver.Initialize()    # Possible modifications of DELTA_TIME
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
     contact_model_part = solver.contact_model_part
