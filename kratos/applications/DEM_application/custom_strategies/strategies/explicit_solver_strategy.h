@@ -7,7 +7,7 @@
 //
 
 #if !defined(KRATOS_EXPLICIT_SOLVER_STRATEGY)
-#define  KRATOS_EXPLICIT_SOLVER_STRATEGY
+#define KRATOS_EXPLICIT_SOLVER_STRATEGY
 
 // /* External includes */
 
