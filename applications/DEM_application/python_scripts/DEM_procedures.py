@@ -79,41 +79,41 @@ class GranulometryUtils(object):
         if (domain_volume <= 0.0):
             raise ValueError("Error: The input domain volume must be strictly positive")
 
-        self.balls_model_part = model_part
+        self.spheres_model_part = model_part
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
         
-        self.physics_calculator = SphericElementGlobalPhysicsCalculator(self.balls_model_part)
-        self.number_of_balls    = self.balls_model_part.NumberOfElements(0)
-        self.solid_volume       = self.physics_calculator.CalculateTotalVolume(self.balls_model_part)
-        self.d_50               = self.physics_calculator.CalculateD50(self.balls_model_part)
+        self.physics_calculator = SphericElementGlobalPhysicsCalculator(self.spheres_model_part)
+        self.number_of_spheres    = self.spheres_model_part.NumberOfElements(0)
+        self.solid_volume       = self.physics_calculator.CalculateTotalVolume(self.spheres_model_part)
+        self.d_50               = self.physics_calculator.CalculateD50(self.spheres_model_part)
 
-        if (self.number_of_balls == 0):
-            self.balls_per_area = 0.0
+        if (self.number_of_spheres == 0):
+            self.spheres_per_area = 0.0
 
         else:
-            self.balls_per_area              = domain_volume / self.number_of_balls
+            self.spheres_per_area              = domain_volume / self.number_of_spheres
 
         self.voids_volume       = domain_volume - self.solid_volume
         self.global_porosity    = self.voids_volume / domain_volume
 
     def PrintCurrentData(self):
         
-        print("number_of_balls: ", self.number_of_balls)
+        print("number_of_spheres: ", self.number_of_spheres)
         print("solid volume: ", self.solid_volume)
         print("voids volume: ", self.voids_volume)
         print("global porosity: ", self.global_porosity)
         print("D50: ", self.d_50)
-        print("balls per area unit: ", self.balls_per_area)
+        print("spheres per area unit: ", self.spheres_per_area)
 
 
 class PostUtils(object):
 
-    def __init__(self, DEM_parameters, balls_model_part):
+    def __init__(self, DEM_parameters, spheres_model_part):
         
         self.DEM_parameters = DEM_parameters
-        self.balls_model_part = balls_model_part
+        self.spheres_model_part = spheres_model_part
         self.post_utilities = PostUtilities()
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
@@ -130,7 +130,7 @@ class PostUtils(object):
             high_point[1] = self.DEM_parameters.VelocityTrapMaxY
             high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
 
-            average_velocity = self.post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
+            average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
             f = open(file_name, 'a')
             tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2]) + "\n"
             f.write(tmp)
@@ -173,7 +173,7 @@ class Procedures(object):
         if(DEM_parameters.PostGroupId):
             model_part.AddNodalSolutionStepVariable(GROUP_ID)   
             
-    def AddBallsVariables(self, model_part, Param):
+    def AddSpheresVariables(self, model_part, Param):
 
         # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
@@ -189,6 +189,7 @@ class Procedures(object):
         # BASIC PARTICLE PROPERTIES
         model_part.AddNodalSolutionStepVariable(RADIUS)
         model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+
 
         # ROTATION RELATED PROPERTIES
         if (Var_Translator(Param.RotationOption)):
@@ -215,13 +216,17 @@ class Procedures(object):
         if (Var_Translator(Param.PostGroupId)):
             model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
             
-    def AddFEMVariables(self, model_part, Param):
+    def AddRigidFaceVariables(self, model_part, Param):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+     
+    def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupluing
+        self.AddRigidFaceVariables(model_part,Param)
+        model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
      
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
@@ -243,7 +248,7 @@ class Procedures(object):
     def AddMpiVariables(self, model_part):
         pass
 
-    def ModelData(self, balls_model_part, contact_model_part, solver):
+    def ModelData(self, spheres_model_part, contact_model_part, solver):
         
         # Previous Calculations.
         Model_Data = open('Model_Data.txt', 'w')
@@ -259,7 +264,7 @@ class Procedures(object):
         var  = 0.0
         rel_std_dev = 0.0
 
-        for node in balls_model_part.Nodes:
+        for node in spheres_model_part.Nodes:
 
             sum_radi += node.GetSolutionStepValue(RADIUS)
             partial_sum_squared = node.GetSolutionStepValue(RADIUS) ** 2.0
@@ -286,7 +291,7 @@ class Procedures(object):
         Model_Data.write("Total Particle Area 2D: " + str(area) + '\n')
         Model_Data.write('\n')
 
-        Total_Particles = len(balls_model_part.Nodes)
+        Total_Particles = len(spheres_model_part.Nodes)
 
         Total_Contacts = 0
 
@@ -424,17 +429,17 @@ class Procedures(object):
             # plt.title('Evolution of ' + entries[i] + ' in time')
             # plt.savefig(entries[i] + '.pdf')
 
-    def SetPredefinedSkin(self, balls_model_part):
+    def SetPredefinedSkin(self, spheres_model_part):
 
-        for element in balls_model_part.Elements:
+        for element in spheres_model_part.Elements:
 
             if (element.GetNode(0).GetSolutionStepValue(PREDEFINED_SKIN) > 0.0):  # PREDEFINED_SKIN is a double
 
                 element.SetValue(SKIN_SPHERE, 1)
                 
-    def SetCustomSkin(self,balls_model_part):
+    def SetCustomSkin(self,spheres_model_part):
     
-        for element in balls_model_part.Elements:
+        for element in spheres_model_part.Elements:
 
             x = element.GetNode(0).X
             y = element.GetNode(0).Y
@@ -476,7 +481,7 @@ class Procedures(object):
         return maxid
 
     
-    def SetBoundingBox(self, balls_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
+    def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
         
         b_box_low = Array3()
         b_box_high = Array3()
@@ -490,7 +495,7 @@ class Procedures(object):
         creator_destructor.SetLowNode(b_box_low)
         creator_destructor.SetHighNode(b_box_high)
         
-        creator_destructor.CalculateSurroundingBoundingBox(balls_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
+        creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
             
             
     def PreProcessModel(self, DEM_parameters):
@@ -504,7 +509,7 @@ class Procedures(object):
 # #~CHARLIE~# Aixo no ho entenc 
 class DEMFEMProcedures(object):
 
-    def __init__(self, DEM_parameters, graphs_path, balls_model_part, RigidFace_model_part):
+    def __init__(self, DEM_parameters, graphs_path, spheres_model_part, RigidFace_model_part):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         self.TestType = DEM_parameters.TestType
@@ -516,7 +521,7 @@ class DEMFEMProcedures(object):
         self.contact_mesh_OPTION = Var_Translator(DEM_parameters.ContactMeshOption)
 
         self.graphs_path = graphs_path
-        self.balls_model_part = balls_model_part
+        self.spheres_model_part = spheres_model_part
         self.RigidFace_model_part = RigidFace_model_part
         #self.solver = solver
 
@@ -524,7 +529,7 @@ class DEMFEMProcedures(object):
 
         self.graph_counter = 0
 
-        self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.graph_frequency        = int(DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.graph_frequency < 1:
             self.graph_frequency = 1
 
@@ -631,8 +636,8 @@ class DEMFEMProcedures(object):
     def FinalizeGraphs(self,RigidFace_model_part):
 
         if DEM_parameters.TestType == "None":
-            self.close_graph_files(RigidFace_model_part)
 
+            self.close_graph_files(RigidFace_model_part)
 
 class Report(object):
 
@@ -704,11 +709,11 @@ class MaterialTest(object):
     def __init__(self):
         pass
 
-    def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part):
+    def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
         self.type = DEM_parameters.TestType
 
         if (self.type != "None"):
-            self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
+            self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()
  
     def PrepareDataForGraph(self):
@@ -745,13 +750,14 @@ class DEMIo(object):
 
     def __init__(self):
         # Printing variables
-        self.global_variables          = []
-        self.ball_variables            = []
-        self.ball_local_axis_variables = []
-        self.fem_boundary_variables    = []
-        self.cluster_variables         = []
-        self.contact_variables         = []
-        self.multifilelists            = []
+        self.global_variables             = []
+        self.spheres_variables            = []
+        self.sphere_local_axis_variables  = []
+        self.fem_boundary_variables       = []
+        self.mapping_variables            = []
+        self.cluster_variables            = []
+        self.contact_variables            = []
+        self.multifilelists               = []
 
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
@@ -763,32 +769,33 @@ class DEMIo(object):
         self.PushPrintVar(DEM_parameters.PostVelocity,     VELOCITY,        self.global_variables)
         self.PushPrintVar(DEM_parameters.PostTotalForces,  TOTAL_FORCES,    self.global_variables)
         
-    def AddBallVariables(self):
-        # Balls Variables
-        self.PushPrintVar(DEM_parameters.PostAppliedForces,    EXTERNAL_APPLIED_FORCE, self.ball_variables)
-        self.PushPrintVar(DEM_parameters.PostDampForces,       DAMP_FORCES,            self.ball_variables)
-        self.PushPrintVar(DEM_parameters.PostRadius,           RADIUS,                 self.ball_variables)
-        self.PushPrintVar(DEM_parameters.PostExportId,         EXPORT_ID,              self.ball_variables)
-        self.PushPrintVar(DEM_parameters.PostExportSkinSphere, EXPORT_SKIN_SPHERE,     self.ball_variables)
+    def AddSpheresVariables(self):
+        # Spheres Variables
+        self.PushPrintVar(DEM_parameters.PostAppliedForces,    EXTERNAL_APPLIED_FORCE, self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostDampForces,       DAMP_FORCES,            self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostRadius,           RADIUS,                 self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostExportId,         EXPORT_ID,              self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostExportSkinSphere, EXPORT_SKIN_SPHERE,     self.spheres_variables)
+        #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
-        # Balls Rotation
+        # Spheres Rotation
         if (Var_Translator(DEM_parameters.RotationOption)):  # xapuza
-            self.PushPrintVar(DEM_parameters.PostAngularVelocity, ANGULAR_VELOCITY, self.ball_variables)
-            self.PushPrintVar(DEM_parameters.PostParticleMoment,  PARTICLE_MOMENT,  self.ball_variables)
-            self.PushPrintVar(DEM_parameters.PostEulerAngles,     EULER_ANGLES,     self.ball_local_axis_variables)
+            self.PushPrintVar(DEM_parameters.PostAngularVelocity, ANGULAR_VELOCITY, self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.PostParticleMoment,  PARTICLE_MOMENT,  self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
 
-        # Balls Strain
+        # Spheres Strain
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
-            self.PushPrintVar(DEM_parameters.StressStrainOption, REPRESENTATIVE_VOLUME, self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XX,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XY,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XZ,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_YX,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_YY,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_YZ,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.ball_variables)
-            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.ball_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
+            self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
      
     def AddFEMBoundaryVariables(self):
         #pass
@@ -801,6 +808,9 @@ class DEMIo(object):
         self.PushPrintVar( 1,                                               PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar( 1,                                               TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar( 1,                                               SHEAR_STRESS, self.fem_boundary_variables)
+        
+    def AddMappingVariables(self):
+        self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
 
     def AddClusterVariables(self):
         pass
@@ -876,20 +886,21 @@ class DEMIo(object):
         for mfilelist in self.multifilelists:
             mfilelist.file.close()
 
-    def InitializeMesh(self, mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part):
+    def InitializeMesh(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part): #MIQUEL MAPPING
         if (self.filesystem == MultiFileFlag.SingleFile):
 
-            self.post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_model_part, spheres_model_part)
 
             if (self.contact_mesh_option == "ON"):
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
 
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
-            #self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_model_part, mapping_model_part) #MIQUEL MAPPING
 
             self.gid_io.InitializeMesh(0.0) 
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh())         #MIQUEL MAPPING
+            self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
 
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
@@ -897,23 +908,23 @@ class DEMIo(object):
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, mixed_model_part.GetCommunicator().LocalMesh())
 
-    def InitializeResults(self, mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time):
+    def InitializeResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time): #MIQUEL MAPPING
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
 
-            self.post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_model_part, spheres_model_part)
             if (self.contact_mesh_option == "ON"):                
                 self.post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             self.post_utility.AddModelPartToModelPart(mixed_model_part, rigid_face_model_part)
-            #self.post_utility.AddModelPartToModelPart(mixed_model_part, cluster_model_part)
+            self.post_utility.AddModelPartToModelPart(mixed_model_part, mapping_model_part) #MIQUEL MAPPING
 
             self.gid_io.InitializeMesh(time) 
-            self.gid_io.WriteSphereMesh(balls_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
             if (self.contact_mesh_option == "ON"):
                 self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
             self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            #self.gid_io.WriteSphereMesh(cluster_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteMesh(mapping_model_part.GetCommunicator().LocalMesh())#MIQUEL MAPPING
             self.gid_io.FinalizeMesh()            
             self.gid_io.InitializeResults(time, mixed_model_part.GetCommunicator().LocalMesh())
 
@@ -929,10 +940,10 @@ class DEMIo(object):
         for variable in self.global_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
-    def PrintingBallsVariables(self, export_model_part, time):
-        for variable in self.ball_variables:
+    def PrintingSpheresVariables(self, export_model_part, time):
+        for variable in self.spheres_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
-        for variable in self.ball_local_axis_variables:
+        for variable in self.sphere_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)            
 
     def PrintingFEMBoundaryVariables(self, export_model_part, time):
@@ -947,21 +958,29 @@ class DEMIo(object):
         if (self.contact_mesh_option == "ON"):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
+                
+    def PrintingMappingVariables(self, export_model_part, time):
+        for variable in self.mapping_variables:
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+    
+                
 
-    def PrintResults(self, mixed_model_part, balls_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, time):
+    def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.InitializeResults(mixed_model_part,
-                                   balls_model_part,
+                                   spheres_model_part,
                                    rigid_face_model_part,
                                    cluster_model_part,
                                    contact_model_part,
+                                   mapping_model_part,
                                    time)
 
         self.PrintingGlobalVariables(mixed_model_part, time)
-        self.PrintingBallsVariables(balls_model_part, time)
+        self.PrintingSpheresVariables(spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(rigid_face_model_part, time)
         self.PrintingClusterVariables(cluster_model_part, time)
         self.PrintingContactElementsVariables(contact_model_part, time)
+        self.PrintingMappingVariables(mapping_model_part, time)
 
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
@@ -972,10 +991,10 @@ class ParallelUtils(object):
     def __init__(self):
         pass
 
-    def Repart(self, balls_model_part):
+    def Repart(self, spheres_model_part):
         pass
 
-    def CalculateModelNewIds(self, balls_model_part):
+    def CalculateModelNewIds(self, spheres_model_part):
         pass
 
     def PerformInitialPartition(self, model_part, model_part_io_solid, input_file_name):
