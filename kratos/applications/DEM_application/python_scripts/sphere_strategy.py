@@ -222,13 +222,9 @@ class ExplicitStrategy:
         #                                     self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
         self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
-
-        
+   
         #Setting the constitutive LAWS
  
-       
-       
-        
     #
 
     def Solve(self):
