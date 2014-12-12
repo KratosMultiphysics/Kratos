@@ -63,8 +63,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/duplicate_interface_nodes_create_conditions_process.h"
 #include "custom_processes/activation_deactivation_conditions_process.h"
 #include "custom_processes/solidification_process.h"
-#include "custom_processes/DPG_copy_to_vulcan_post_variables_process.h"
-#include "custom_processes/shrinkage_porosity_calculation_process.h"
 
 #include "includes/node.h"
 
@@ -89,11 +87,7 @@ void  AddCustomProcessesToPython()
     class_<SolidificationProcess, bases<Process> >("SolidificationProcess", init<ModelPart& ,const double  >())
     .def("Execute", &SolidificationProcess::Execute)
     ;
-   class_<DPGCopyToVulcanPostVariablesProcess, bases<Process>  >("DPGCopyToVulcanPostVariablesProcess",init<ModelPart&, const int, const int, const int  >())    
-    ;
     
-   class_<ShrinkagePorosityCalculationProcess, bases<Process> >("ShrinkagePorosityCalculationProcess", init<ModelPart& >())
-    ;
 }
 
 }  // namespace Python.
