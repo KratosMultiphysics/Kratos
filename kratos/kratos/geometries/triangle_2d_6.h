@@ -465,16 +465,14 @@ public:
         DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
 
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.00;
+        double area = 0.00;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ )
         {
-            Area += temp[i] * integration_points[i].Weight();
+            area += temp[i] * integration_points[i].Weight();
         }
 
-        KRATOS_WATCH( Area )
-
-        return Area;
+        return area;
     }
 
     /** This method calculates and returns length, area or volume of
