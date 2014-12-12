@@ -158,7 +158,7 @@ class ParallelUtils(DEM_procedures.ParallelUtils):
         MPICommSetup = SetMPICommunicatorProcess(model_part)
         MPICommSetup.Execute()
 
-        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Comunicator Set")
+        print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Communicator Set")
         print("(" + str(mpi.rank) + "," + str(mpi.size) + ")" + "Reading: "+input_file_name+"_"+str(mpi.rank))
 
         my_input_filename = input_file_name + "_" + str(mpi.rank)
