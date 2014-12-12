@@ -176,6 +176,7 @@ if(DEM_parameters.BoundingBoxOption == "ON"):
 solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_part)
 
+dt = DEM_parameters.MaxTimeStep
 solver.Initialize()
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
@@ -245,8 +246,6 @@ if(DEM_parameters.Dempack):
 #                                                                            #
 ##############################################################################
 
-dt = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
-
 report.total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
 KRATOSprint(report.BeginReport(timer))
@@ -261,7 +260,8 @@ while ( time < DEM_parameters.FinalTime):
     #print("TIME STEP BEGINS. STEP:"+str(step)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
-
+    step += 1
+    
     spheres_model_part.ProcessInfo[TIME]            = time
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
@@ -342,7 +342,6 @@ while ( time < DEM_parameters.FinalTime):
 
         time_old_print = time
   
-    step += 1
 
     #if((step%500) == 0):
       #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
