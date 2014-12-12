@@ -2,6 +2,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+#
+#from KratosMultiphysics.MetisApplication import * #S
+#from KratosMultiphysics.MPISearchApplication import * #S
+#from KratosMultiphysics.mpi import * #S
+#
 
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_material_test_script
@@ -517,8 +522,12 @@ class DEMFEMProcedures(object):
 
         self.fem_mesh_nodes = []
 
-        self.graph_counter = 0;
+        self.graph_counter = 0
+
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        if self.graph_frequency < 1:
+            self.graph_frequency = 1
+
         os.chdir(self.graphs_path)
         #self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')                
         
@@ -526,7 +535,7 @@ class DEMFEMProcedures(object):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                 if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
-                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w');
+                    self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]] = open(str(DEM_parameters.problem_name) + "_" + str( self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]) + "_force_graph.grf", 'w')
         
         self.graph_forces = {}  
         
@@ -612,7 +621,7 @@ class DEMFEMProcedures(object):
                             total_force[1] = 0.0
                             total_force[2] = 0.0
                             
-                            PostUtilities().IntegrationOfForces(self.RigidFace_model_part, total_force)
+                            PostUtilities().IntegrationOfForces(mesh_nodes, total_force)
                                                                                       
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str(time)+" "+str(total_force[0])+" "+str(total_force[1])+" "+str(total_force[2])+"\n")
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
@@ -716,12 +725,12 @@ class MaterialTest(object):
 
     def FinalizeGraphs(self):
         if (self.type != "None"):
-            self.script.FinalizeGraphs()
-            
+            self.script.FinalizeGraphs()          
             
     def PrintChart(self):        
         if (self.type != "None"):
-            self.script.PrintChart()  
+            self.script.PrintChart()
+  
 
 class MultifileList(object):
 
@@ -730,7 +739,7 @@ class MultifileList(object):
         self.step = step
         self.name = name
         self.file = open(self.name+"_"+str(step)+".post.lst","w")
-
+        #self.file = open(self.name+"_"+str(mpi.rank)+"_"+str(step)+".post.lst","w") #S
 
 class DEMIo(object):
 
@@ -814,7 +823,7 @@ class DEMIo(object):
         pass
 
     def Configure(self,problem_name,encoding,file_system,contact_mesh_option):
-        self.problem_name = problem_name;
+        self.problem_name = problem_name
 
         if (encoding == "Binary"):
             self.encoding = GiDPostMode.GiD_PostBinary
@@ -855,9 +864,10 @@ class DEMIo(object):
                 
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
                     mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.bin\n")
+                    #mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.bin\n") #S
                 else:
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.msh\n")
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.res\n")
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.msh\n") #S
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.res\n") #S
                 mfilelist.file.flush()
                 mfilelist.index = 0
             mfilelist.index += 1
