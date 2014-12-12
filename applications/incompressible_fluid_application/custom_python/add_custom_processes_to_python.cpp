@@ -80,9 +80,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/explicit_dt.h"
 #include "custom_processes/assign_h_by_distance_process.h" 
 #include "custom_processes/copy_to_vulcan_post_variables_process.h"
-#include "custom_processes/air_entrapment_recognition_process.h"
-#include "custom_processes/front_meeting_recognition_process.h"
-#include "custom_processes/tilt_pouring_process.h"
 #include "custom_processes/save_external_surface_embedded.h"
 
 #include "includes/node.h"
@@ -167,12 +164,6 @@ void  AddCustomProcessesToPython()
     class_<AssignHByDistanceProcess, bases<Process> >("AssignHByDistanceProcess", init<ModelPart&, double, double, double, double >())
     ; 	  
    class_<CopyToVulcanPostVariablesProcess, bases<Process>  >("CopyToVulcanPostVariablesProcess",init<ModelPart&  >())    
-    ;
-   class_<AirEntrapmentRecognitionProcess, bases<Process>  >("AirEntrapmentRecognitionProcess",init<ModelPart&  >())    
-    ;
-   class_<FrontMeetingRecognitionProcess, bases<Process>  >("FrontMeetingRecognitionProcess",init<ModelPart&  >())    
-    ;
-   class_<TiltPouringProcess, bases<Process>  >("TiltPouringProcess",init<ModelPart&, double, double, Point<3> const&, int, array_1d<double,3> const& >())    
     ;
 }
 

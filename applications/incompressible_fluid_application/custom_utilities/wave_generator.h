@@ -111,7 +111,7 @@ public:
      * @param t current time
      * @param g gravity
      */
-    void GenerateVolumeWaveXYPlane(ModelPart::NodesContainerType& rNodes, const double d, const double  H, const double  T, const double  Z0, const double X0, const double t, const double g)
+    void GenerateVolumeWaveXYPlane(ModelPart::NodesContainerType& rNodes, const double d, const double		H, const double  T, const double  Z0, const double X0, const double t, const double g)
     {
 
         double C0=g*T/( 6.2831853071795862 );
