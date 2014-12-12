@@ -120,12 +120,10 @@ public:
     }//VelocityTrap
     
     
-    void IntegrationOfForces(ModelPart& r_model_part, array_1d<double, 3>& total_forces) {
-         
-        NodesContainerType& rNodes = r_model_part.Nodes();
-        
-        for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin();
-            node_pointer_it != rNodes.ptr_end(); ++node_pointer_it) {
+    void IntegrationOfForces(ModelPart::NodesContainerType& mesh_nodes , array_1d<double, 3>& total_forces) {
+                
+        for (ModelPart::NodesContainerType::ptr_iterator node_pointer_it = mesh_nodes.ptr_begin();
+            node_pointer_it != mesh_nodes.ptr_end(); ++node_pointer_it) {
                 
             const array_1d<double, 3 >& elastic_forces = (*node_pointer_it)->FastGetSolutionStepValue(ELASTIC_FORCES);
                 
