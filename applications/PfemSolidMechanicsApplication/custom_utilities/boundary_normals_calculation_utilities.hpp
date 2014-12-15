@@ -494,6 +494,9 @@ private:
 		    (in->FastGetSolutionStepValue(NORMAL)).clear();
 		    //std::cout<<" ERROR: normal not set "<<std::endl;
 		    not_assigned +=1;
+		    if(neighsearch){
+		      in->Set(BOUNDARY,false);
+		    }
 		  }
 
 		}
@@ -507,7 +510,7 @@ private:
 
 
 	  if(mEchoLevel > 0) 
-	    std::cout<<"  [ Boundary_Normals  (BoundaryNodes:"<<boundary_nodes<<")[SET:"<<boundary_nodes<<" / NOT_SET:"<<not_assigned<<"] ]"<<std::endl;
+	    std::cout<<"  [ Boundary_Normals  (Mesh Nodes:"<<rNodes.size()<<")[SET:"<<boundary_nodes<<" / NOT_SET:"<<not_assigned<<"] ]"<<std::endl;
 
 	  
 	  //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
@@ -585,375 +588,381 @@ private:
 		    }
 		  }
 			
-			
+		
+		if( id > 1 ){
 
-		//**********Set Boundary Nodes Only
+		  //**********Set Boundary Nodes Only
 
-		ModelPart::NodesContainerType::iterator nodes_begin = rNodes.begin();
-		ModelPart::NodesContainerType  BoundaryNodes;
+		  ModelPart::NodesContainerType::iterator nodes_begin = rNodes.begin();
+		  ModelPart::NodesContainerType  BoundaryNodes;
 
 		
-		for(unsigned int i = 0; i<rNodes.size(); i++)
-		  {
-		    if((nodes_begin + i)->Is(BOUNDARY)){
-		      BoundaryNodes.push_back( *((nodes_begin+i).base()) ); 
+		  for(unsigned int i = 0; i<rNodes.size(); i++)
+		    {
+		      if((nodes_begin + i)->Is(BOUNDARY)){
+			BoundaryNodes.push_back( *((nodes_begin+i).base()) ); 
+		      }
 		    }
-		  }
 
 
 
-		//********** Construct the normals in order to have a good direction and length for applying a contraction
+		  //********** Construct the normals in order to have a good direction and length for applying a contraction
 			
 
-		std::vector<double> storenorm;
-		std::vector<double> tipnormal;
+		  std::vector<double> storenorm;
+		  std::vector<double> tipnormal;
 		
-		ModelPart::NodesContainerType::iterator boundary_nodes_begin = BoundaryNodes.begin();
-		int boundary_nodes = BoundaryNodes.size();
+		  ModelPart::NodesContainerType::iterator boundary_nodes_begin = BoundaryNodes.begin();
+		  int boundary_nodes = BoundaryNodes.size();
 		
-		int not_assigned = 0;
+		  int not_assigned = 0;
 
-		int pn=0;
-		// #pragma omp parallel for private(pn,storenorm,tipnormal)
-		for (pn=0; pn<boundary_nodes; pn++)
-		  { 
+		  int pn=0;
+		  // #pragma omp parallel for private(pn,storenorm,tipnormal)
+		  for (pn=0; pn<boundary_nodes; pn++)
+		    { 
 
-		    double cosmedio=0;
-		    double totalnorm=0;
-		    double directiontol=0;
-		    double numnorm=0;
-		    int indepnorm=0,acuteangle=0;
+		      double cosmedio=0;
+		      double totalnorm=0;
+		      double directiontol=0;
+		      double numnorm=0;
+		      int indepnorm=0,acuteangle=0;
 		    
-		    array_1d<double,3>&  Normal=(boundary_nodes_begin + pn)->FastGetSolutionStepValue(NORMAL);
-		    double&       shrink_factor=(boundary_nodes_begin + pn)->FastGetSolutionStepValue(SHRINK_FACTOR);
+		      array_1d<double,3>&  Normal=(boundary_nodes_begin + pn)->FastGetSolutionStepValue(NORMAL);
+		      double&       shrink_factor=(boundary_nodes_begin + pn)->FastGetSolutionStepValue(SHRINK_FACTOR);
 				
-		    //initialize
-		    Normal.clear();
-		    shrink_factor=0;
+		      //initialize
+		      Normal.clear();
+		      shrink_factor=0;
 
-		    unsigned int normals_size = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]].size();
+		      unsigned int normals_size = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]].size();
 				
-		    if( mEchoLevel > 2 )
-		      std::cout<<" Id "<<Ids[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<std::endl;
+		      if( mEchoLevel > 2 )
+			std::cout<<" Id "<<Ids[(boundary_nodes_begin + pn)->Id()]<<" normals size "<<normals_size<<std::endl;
 
-		    storenorm.resize(normals_size);
-		    std::fill(storenorm.begin(), storenorm.end(), 0 );
+		      storenorm.resize(normals_size);
+		      std::fill(storenorm.begin(), storenorm.end(), 0 );
 
-		    tipnormal.resize(normals_size);
-		    std::fill(tipnormal.begin(), tipnormal.end(), 0 );
+		      tipnormal.resize(normals_size);
+		      std::fill(tipnormal.begin(), tipnormal.end(), 0 );
 
 	
-		    //Check coincident faces-normals
-		    for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
-		      {
+		      //Check coincident faces-normals
+		      for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			{
 
-			const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+			  const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
    
-			if (storenorm[esnod]!=1){ //if is not marked as coincident
+			  if (storenorm[esnod]!=1){ //if is not marked as coincident
 	      
-			  if (esnod+1<normals_size){
+			    if (esnod+1<normals_size){
 		
-			    double tooclose=0;
-			    for (unsigned int esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces
-			      {
+			      double tooclose=0;
+			      for (unsigned int esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces
+				{
 		    
-				const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esn].GetValue(NORMAL); //conditions
+				  const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esn].GetValue(NORMAL); //conditions
 
-				directiontol=inner_prod(AuxVector,NormalVector);
+				  directiontol=inner_prod(AuxVector,NormalVector);
 									
-				//std::cout<<"  -- > direction tol"<<directiontol<<" AuxVector "<<AuxVector<<" NormalVector "<<NormalVector<<std::endl;
+				  //std::cout<<"  -- > direction tol"<<directiontol<<" AuxVector "<<AuxVector<<" NormalVector "<<NormalVector<<std::endl;
 
-				if (directiontol>0.995 && storenorm[esn]==0){//to not have coincident normals
-				  storenorm[esn]=1;	
-				}
-				else{
-				  if (directiontol>0.95 && directiontol<0.995 && storenorm[esn]==0){//to not have close normals
-				    tooclose+=1;
-				    storenorm[esn]  =2;
-				    storenorm[esnod]=2;
+				  if (directiontol>0.995 && storenorm[esn]==0){//to not have coincident normals
+				    storenorm[esn]=1;	
 				  }
 				  else{
-				    if(directiontol<-0.005){
-				      //std::cout<<" acute angle "<<directiontol<<std::endl;
-				      acuteangle      +=1;
-				      tipnormal[esn]  +=1;
-				      tipnormal[esnod]+=1;
+				    if (directiontol>0.95 && directiontol<0.995 && storenorm[esn]==0){//to not have close normals
+				      tooclose+=1;
+				      storenorm[esn]  =2;
+				      storenorm[esnod]=2;
 				    }
-				  }
-				}
-
-			      }//end for the esnod for
-		    
-			    for (unsigned int esn=esnod; esn<normals_size;esn++)//loop over node neighbour faces
-			      {
-				if(storenorm[esn]==2 && tooclose>0)
-				  storenorm[esn]=(1.0/(tooclose+1));   
-			      }
-		
-		
-			  }	      
-		
-			  if(storenorm[esnod]!=0){ //!=1
-								
-			    Normal+=AuxVector*storenorm[esnod]; //outer normal
-			    numnorm  +=storenorm[esnod];
-
-			  }
-			  else{
-
-			    Normal+=AuxVector; //outer normal
-			    numnorm  +=1;
-
-			  }
-
-			  totalnorm+=1;
-	      
-			      
-			}
-	    
-		      }
-	
-
-
-		    //Modify direction of tip normals in 3D  --------- start ----------
-
-		    if(dimension==3 && numnorm>=3 && acuteangle){
-	  
-		      //std::cout<<" pn "<<pn<<" normal number: "<<numnorm<<" acute angles: "<<acuteangle<<std::endl;
-		      //std::cout<<"storenormal"<<storenorm<<std::endl;
-		      //std::cout<<"tipnormal"<<tipnormal<<std::endl;
-
-
-		      std::vector< array_1d<double,3> > N(3);
-		      indepnorm=0;
-
-		      if(numnorm==3){ //Definite solution for 3 planes
-
-			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
-			  {
-			    if(tipnormal[esnod]>=1 && storenorm[esnod]==0){ //tip node correction
-
-			      const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-			      N[indepnorm]=AuxVector;
-			      indepnorm+=1;
-			    }
-			  }
-	        
-		      }
-		      else{ //I must select only 3 planes 
-
-			double maxprojection=0;
-			double projection=0;
-			std::vector<int> pronormal(normals_size); 
-			pronormal.clear();
-
-			//get the positive biggest projection between planes
-			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
-			  {
-			    maxprojection=0;
-		
-			    if(tipnormal[esnod]>=1 && storenorm[esnod]!=1){ 
-
-			      const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-
-			      for (unsigned int esn=0;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
-				{
-				  if(tipnormal[esn]>=1 && storenorm[esn]!=1 && esnod!=esn){ 
-
-
-				    const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esn].GetValue(NORMAL); //conditions
-				    projection=inner_prod(AuxVector,NormalVector);
-			
-				    if(maxprojection<projection && projection>0.5){
-				      maxprojection=projection;
-				      pronormal[esnod]=esn+1; //set in pronormal one position added to the real one the most coplanar planes
-				    }
-				  }
-				}
-
-			    }
-		
-			  }
-	    
-			// 	    std::cout<<" PROJECTIONS "<<pn<<" pronormal"<<pronormal<<std::endl;
-		  
-			//get the most obtuse normals 
-			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
-			  {
-		
-			    if(indepnorm<3){
-  
-			      if(tipnormal[esnod]>=1 && storenorm[esnod]!=1){ //tip node correction
-		    
-				array_1d<double,3> AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-										
-				if(storenorm[esnod]!=0) //!=1
-				  AuxVector*=storenorm[esnod];
-		  
-				for (unsigned int esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
-				  {
-				    if(tipnormal[esn]>=1 && storenorm[esn]!=1){ //tip node correction
-
-					    if(esnod+1==(unsigned int)pronormal[esn]){
-
-					const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-				    
-					if(storenorm[esnod]!=0){ //!=1
-					  AuxVector+=NormalVector*storenorm[esnod];
-					}
-					else{
-					  AuxVector+=NormalVector;
-					}
-					AuxVector=AuxVector/norm_2(AuxVector);
-					//std::cout<<" plane "<<esnod<<" esn "<<esn<<std::endl;
-					storenorm[esn]=1; //to not use this plane again
+				    else{
+				      if(directiontol<-0.005){
+					//std::cout<<" acute angle "<<directiontol<<std::endl;
+					acuteangle      +=1;
+					tipnormal[esn]  +=1;
+					tipnormal[esnod]+=1;
 				      }
 				    }
-
 				  }
 
+				}//end for the esnod for
+		    
+			      for (unsigned int esn=esnod; esn<normals_size;esn++)//loop over node neighbour faces
+				{
+				  if(storenorm[esn]==2 && tooclose>0)
+				    storenorm[esn]=(1.0/(tooclose+1));   
+				}
+		
+		
+			    }	      
+		
+			    if(storenorm[esnod]!=0){ //!=1
+								
+			      Normal+=AuxVector*storenorm[esnod]; //outer normal
+			      numnorm  +=storenorm[esnod];
 
+			    }
+			    else{
+
+			      Normal+=AuxVector; //outer normal
+			      numnorm  +=1;
+
+			    }
+
+			    totalnorm+=1;
+	      
+			      
+			  }
+	    
+			}
+	
+
+		      //std::cout<<" Normal "<<Normal<<" ID "<<(boundary_nodes_begin + pn)->Id()<<std::endl;
+
+		      //Modify direction of tip normals in 3D  --------- start ----------
+
+		      if(dimension==3 && numnorm>=3 && acuteangle){
+	  
+			//std::cout<<" pn "<<pn<<" normal number: "<<numnorm<<" acute angles: "<<acuteangle<<std::endl;
+			//std::cout<<"storenormal"<<storenorm<<std::endl;
+			//std::cout<<"tipnormal"<<tipnormal<<std::endl;
+
+
+			std::vector< array_1d<double,3> > N(3);
+			indepnorm=0;
+
+			if(numnorm==3){ //Definite solution for 3 planes
+
+			  for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			    {
+			      if(tipnormal[esnod]>=1 && storenorm[esnod]==0){ //tip node correction
+
+				const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
 				N[indepnorm]=AuxVector;
 				indepnorm+=1;
+			      }
+			    }
+	        
+			}
+			else{ //I must select only 3 planes 
+
+			  double maxprojection=0;
+			  double projection=0;
+			  std::vector<int> pronormal(normals_size); 
+			  pronormal.clear();
+
+			  //get the positive biggest projection between planes
+			  for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			    {
+			      maxprojection=0;
+		
+			      if(tipnormal[esnod]>=1 && storenorm[esnod]!=1){ 
+
+				const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+
+				for (unsigned int esn=0;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
+				  {
+				    if(tipnormal[esn]>=1 && storenorm[esn]!=1 && esnod!=esn){ 
+
+
+				      const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esn].GetValue(NORMAL); //conditions
+				      projection=inner_prod(AuxVector,NormalVector);
+			
+				      if(maxprojection<projection && projection>0.5){
+					maxprojection=projection;
+					pronormal[esnod]=esn+1; //set in pronormal one position added to the real one the most coplanar planes
+				      }
+				    }
+				  }
 
 			      }
-		  
-			    }
-			    // 		else{
-
-			    // 		  std::cout<<" pn "<<pn<<" pronormal"<<pronormal<<std::endl;
-			    // 		}
-
 		
-			  }
-	  
-		      }
-
-		      //std::cout<<" indepnorm "<<indepnorm<<std::endl;
-
-		      if(indepnorm<3){
-
-			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
-			  {
-			    if(indepnorm==3)
-			      break;
-		
-			    if(tipnormal[esnod]>=1 && storenorm[esnod]!=0 && storenorm[esnod]!=1){ //tip node correction
-			      const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-			      N[indepnorm]=AuxVector;
-			      indepnorm+=1;
 			    }
-
-			    if(storenorm[esnod]==0 && tipnormal[esnod]==0 && indepnorm>0){ //if only two of the tip normals are acute one is not stored (corrected here 05/09/2011)
-			      const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
-			      N[indepnorm]=AuxVector;
-			      indepnorm+=1;
-			    }
-
-			  }
-		      }
-
-
-
-		      if(indepnorm==3){
-			double aux=inner_prod(N[0],MathUtils<double>::CrossProduct(N[1],N[2]));
-			if(aux!=0){
-			  Normal=((MathUtils<double>::CrossProduct(N[1],N[2])+MathUtils<double>::CrossProduct(N[2],N[0])+MathUtils<double>::CrossProduct(N[0],N[1]))/aux); //intersection of three planes
-			}
-			// else{
-			//   std::cout<<" aux "<<aux<<" Normals :";
-			// }
 	    
-		      }
+			  // 	    std::cout<<" PROJECTIONS "<<pn<<" pronormal"<<pronormal<<std::endl;
+		  
+			  //get the most obtuse normals 
+			  for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			    {
+		
+			      if(indepnorm<3){
+  
+				if(tipnormal[esnod]>=1 && storenorm[esnod]!=1){ //tip node correction
+		    
+				  array_1d<double,3> AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+										
+				  if(storenorm[esnod]!=0) //!=1
+				    AuxVector*=storenorm[esnod];
+		  
+				  for (unsigned int esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
+				    {
+				      if(tipnormal[esn]>=1 && storenorm[esn]!=1){ //tip node correction
+
+					if(esnod+1==(unsigned int)pronormal[esn]){
+
+					  const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+				    
+					  if(storenorm[esnod]!=0){ //!=1
+					    AuxVector+=NormalVector*storenorm[esnod];
+					  }
+					  else{
+					    AuxVector+=NormalVector;
+					  }
+					  AuxVector=AuxVector/norm_2(AuxVector);
+					  //std::cout<<" plane "<<esnod<<" esn "<<esn<<std::endl;
+					  storenorm[esn]=1; //to not use this plane again
+					}
+				      }
+
+				    }
+
+
+				  N[indepnorm]=AuxVector;
+				  indepnorm+=1;
+
+				}
+		  
+			      }
+			      // 		else{
+
+			      // 		  std::cout<<" pn "<<pn<<" pronormal"<<pronormal<<std::endl;
+			      // 		}
+
+		
+			    }
+	  
+			}
+
+			//std::cout<<" indepnorm "<<indepnorm<<std::endl;
+
+			if(indepnorm<3){
+
+			  for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			    {
+			      if(indepnorm==3)
+				break;
+		
+			      if(tipnormal[esnod]>=1 && storenorm[esnod]!=0 && storenorm[esnod]!=1){ //tip node correction
+				const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+				N[indepnorm]=AuxVector;
+				indepnorm+=1;
+			      }
+
+			      if(storenorm[esnod]==0 && tipnormal[esnod]==0 && indepnorm>0){ //if only two of the tip normals are acute one is not stored (corrected here 05/09/2011)
+				const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+				N[indepnorm]=AuxVector;
+				indepnorm+=1;
+			      }
+
+			    }
+			}
+
+
+
+			if(indepnorm==3){
+			  double aux=inner_prod(N[0],MathUtils<double>::CrossProduct(N[1],N[2]));
+			  if(aux!=0){
+			    Normal=((MathUtils<double>::CrossProduct(N[1],N[2])+MathUtils<double>::CrossProduct(N[2],N[0])+MathUtils<double>::CrossProduct(N[0],N[1]))/aux); //intersection of three planes
+			  }
+			  // else{
+			  //   std::cout<<" aux "<<aux<<" Normals :";
+			  // }
+	    
+			}
 	  
   
-		      //Check Boundary
-		      if(norm_2(Normal)>2){ //a bad solution... but too ensure consistency
-			//Normal.write(" TO LARGE NORMAL ");
-			//std::cout<<" modulus 1 "<<Normal.modulus()<<std::endl;
-			Normal=Normal/norm_2(Normal);
-			Normal*=1.2;
-			//Normal.write(" CORRRECTION ");
-			//std::cout<<" modulus 2 "<<Normal.modulus()<<std::endl;
+			//Check Boundary
+			if(norm_2(Normal)>2){ //a bad solution... but too ensure consistency
+			  //Normal.write(" TO LARGE NORMAL ");
+			  //std::cout<<" modulus 1 "<<Normal.modulus()<<std::endl;
+			  Normal=Normal/norm_2(Normal);
+			  Normal*=1.2;
+			  //Normal.write(" CORRRECTION ");
+			  //std::cout<<" modulus 2 "<<Normal.modulus()<<std::endl;
+			}
+
+			//Modify direction of tip normals in 3D ----------- end  -----------
+
 		      }
+		      else{
 
-		      //Modify direction of tip normals in 3D ----------- end  -----------
+			//std::cout<<" Normal "<<Normal<<std::endl;
 
-		    }
-		    else{
-
-		      //std::cout<<" Normal "<<Normal<<std::endl;
-
-		      if(norm_2(Normal)!=0)
-			Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
+			if(norm_2(Normal)!=0)
+			  Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
 	  
-		      for(unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neigbour faces
-			{    
-			  if (storenorm[esnod]!=1){
+			for(unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neigbour faces
+			  {    
+			    if (storenorm[esnod]!=1){
 		
-			    array_1d<double,3> AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
+			      array_1d<double,3> AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
 							
-			    if(norm_2(AuxVector))
-			      AuxVector/=norm_2(AuxVector);
+			      if(norm_2(AuxVector))
+				AuxVector/=norm_2(AuxVector);
 		
-			    directiontol=inner_prod(AuxVector,Normal);
+			      directiontol=inner_prod(AuxVector,Normal);
 		
-			    cosmedio+=directiontol;
+			      cosmedio+=directiontol;
 		
+			    }
 			  }
+	  
+	  
+			if (totalnorm!=0)
+			  cosmedio*=(1.0/totalnorm);
+	  
+			//acute angles are problematic, reduction of the modulus in that cases
+			if (cosmedio<=0.3){
+			  cosmedio=0.8;
+			  //std::cout<<" acute correction "<<std::endl;
 			}
 	  
-	  
-		      if (totalnorm!=0)
-			cosmedio*=(1.0/totalnorm);
-	  
-		      //acute angles are problematic, reduction of the modulus in that cases
-		      if (cosmedio<=0.3){
-			cosmedio=0.8;
-			//std::cout<<" acute correction "<<std::endl;
-		      }
-	  
-		      if(cosmedio>3)
-			std::cout<<" cosmedio "<<cosmedio<<std::endl;
+			if(cosmedio>3)
+			  std::cout<<" cosmedio "<<cosmedio<<std::endl;
 
-		      //if (cosmedio!=0) {
-		      if (cosmedio>0 && cosmedio>1e-3) { //to ensure consistency
-			cosmedio=1.0/cosmedio;
-			Normal*=cosmedio;               //only to put the correct length   
-			//(boundary_nodes_begin + pn)->SetValue(Normal);
-			//std::cout<<pn<<" cosmedio "<<cosmedio<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<std::endl;		     
+			//if (cosmedio!=0) {
+			if (cosmedio>0 && cosmedio>1e-3) { //to ensure consistency
+			  cosmedio=1.0/cosmedio;
+			  Normal*=cosmedio;               //only to put the correct length   
+			  //(boundary_nodes_begin + pn)->SetValue(Normal);
+			  //std::cout<<pn<<" cosmedio "<<cosmedio<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<std::endl;		     
+			}
 		      }
-		    }
 		    
-		    //std::cout<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<std::endl;		     
+		      //std::cout<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<std::endl;		     
 
-		    //Now Normalize Normal and store the Shrink_Factor
-		    shrink_factor=norm_2(Normal);
+		      //Now Normalize Normal and store the Shrink_Factor
+		      shrink_factor=norm_2(Normal);
 
-		    if(shrink_factor!=0)
-		      {
+		      if(shrink_factor!=0)
+			{
+			  if( mEchoLevel > 2 )
+			    std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<std::endl;
+			  Normal/=shrink_factor;
+
+			}
+		      else{
+
 			if( mEchoLevel > 2 )
-			  std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" shrink_factor "<<shrink_factor<<std::endl;
-			Normal/=shrink_factor;
-
-		      }
-		    else{
-
-		      if( mEchoLevel > 2 )
-			std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
+			  std::cout<<"Id "<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<" cosmedio "<<cosmedio<<std::endl;		     
 			
-		      Normal.clear();
-		      shrink_factor=1;
+			Normal.clear();
+			shrink_factor=1;
 
-		      //std::cout<<" ERROR: normal shrinkage calculation failed "<<std::endl;
-		      not_assigned +=1;
-		    }
+			//std::cout<<" ERROR: normal shrinkage calculation failed "<<std::endl;
+			not_assigned +=1;
+		      }
 
 		    
-		  }
+		    }
 
-		if(mEchoLevel > 0) 
-		  std::cout<<"  [ Normals_Shrinkage (BoundaryNodes:"<<boundary_nodes<<")[SET:"<<boundary_nodes-not_assigned<<" / NOT_SET:"<<not_assigned<<"] ][Mesh:"<<MeshId<<"]"<<std::endl;
+		
+		  if(mEchoLevel > 0) 
+		    std::cout<<"  [ Normals_Shrinkage (BoundaryNodes:"<<boundary_nodes<<")[SET:"<<boundary_nodes-not_assigned<<" / NOT_SET:"<<not_assigned<<"] ][Mesh:"<<MeshId<<"]"<<std::endl;
+
+
+		}
 	}
 
 

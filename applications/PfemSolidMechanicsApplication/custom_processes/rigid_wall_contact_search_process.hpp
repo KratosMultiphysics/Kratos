@@ -185,8 +185,8 @@ public:
       #pragma omp parallel
       {
       	int k = OpenMPUtils::ThisThread();
-      	typename ModelPart::NodesContainerType::iterator NodesBegin = rNodes.begin() + nodes_partition[k];
-      	typename ModelPart::NodesContainerType::iterator NodesEnd = rNodes.begin() + nodes_partition[k + 1];
+      	ModelPart::NodesContainerType::iterator NodesBegin = rNodes.begin() + nodes_partition[k];
+      	ModelPart::NodesContainerType::iterator NodesEnd = rNodes.begin() + nodes_partition[k + 1];
  
       	for(ModelPart::NodesContainerType::const_iterator nd = NodesBegin; nd != NodesEnd; nd++)
       	  {
@@ -217,12 +217,21 @@ public:
       	      if( nd->IsNot(RIGID) )
       		{
 
+      		  //to perform contact with a tube radius must be set
+      		  double Radius = 0;
+      		  if( !RigidBodyPresent ){
+      		    Radius = nd->GetValue(MEAN_RADIUS);
+      		  }
+      		  else{
+      		    Radius = 0;
+      		  }
+
       		  Vector Point(3);
       		  Point[0] = nd->X();
       		  Point[1] = nd->Y();
       		  Point[2] = nd->Z();
 
-      		  if( mpRigidWall->IsInside(Point,Time) ){
+      		  if( mpRigidWall->IsInside(Point,Time,Radius) ){
       		    nd->Set(CONTACT);
       		  }
       		}
@@ -233,6 +242,7 @@ public:
       }
 
 
+      // **************** Serial version of the same search:
       // Vector WallVelocity =  mpRigidWall->Velocity();
       // int  MovementLabel  =  mpRigidWall->GetMovementLabel();
 
@@ -260,13 +270,21 @@ public:
 
       // 	    if( nd->IsNot(RIGID) )
       // 	      {
-
+      // 		//to perform contact with a tube radius must be set
+      // 		double Radius = 0;
+      // 		if( !RigidBodyPresent ){
+      // 		  Radius = nd->GetValue(MEAN_RADIUS);
+      // 		}
+      // 		else{
+      // 		  Radius = 0;
+      // 		}
+				  
       // 		Vector Point(3);
       // 		Point[0] = nd->X();
       // 		Point[1] = nd->Y();
       // 		Point[2] = nd->Z();
 
-      // 		if( mpRigidWall->IsInside(Point,Time) ){
+      // 		if( mpRigidWall->IsInside(Point,Time,Radius) ){
       // 		  nd->Set(CONTACT);
       // 		}
       // 	      }
@@ -289,10 +307,6 @@ public:
 
 	    if( (*nd)->IsNot(RIGID) && !RigidBodyPresent ){//rigid wall contacting with a deformable body 
 	      
-	      //to perform contact with a tube radius must be set
-	      mpRigidWall->SetRadius( (*nd)->GetValue(MEAN_RADIUS) );
-
-
 	      if( (*nd)->Is(CONTACT) ){
 
 		//contact parameters in properties
@@ -335,10 +349,6 @@ public:
 
 	      if( (*nd)->IsNot(RIGID) ){
 		
-		//to perform contact with a tube radius must be set
-		double radius = 0;
-		mpRigidWall->SetRadius( radius );
-
 
 		if( (*nd)->Is(CONTACT) ){
 		
@@ -434,7 +444,7 @@ public:
     
       mrModelPart.Conditions(MeshId).swap( NonRigidContactConditions );
 
-      //std::cout<<" [ NUMBER OF CONDITIONS after  rigid contact update: "<<mrModelPart.Conditions(MeshId).size()<<" ]"<<std::endl;
+      //std::cout<<"  [ NUMBER OF CONDITIONS after  rigid contact update: "<<mrModelPart.Conditions(MeshId).size()<<" ]"<<std::endl;
 
       //calculate elemental contribution
       KRATOS_CATCH( "" )      

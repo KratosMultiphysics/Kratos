@@ -305,7 +305,7 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace)
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
     {
       bool is_inside = false;
 
@@ -313,15 +313,16 @@ public:
       
       BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
 
+      double NoseRadius = rWallNose.Radius;
 
       if( rWallNose.Convexity == 1)
-	rWallNose.Radius *= 1.25; //increase the bounding box 
+	NoseRadius *= 1.25; //increase the bounding box 
 
       if( rWallNose.Convexity == -1)
-       	rWallNose.Radius *= 0.75; //decrease the bounding box 
+       	NoseRadius *= 0.75; //decrease the bounding box 
 
 
-       switch( ContactSearch(rPoint, rWallNose) )
+      switch( ContactSearch(rPoint, NoseRadius, rWallNose) )
 	{
   	case FreeSurface:      
 	  is_inside = false;
@@ -345,13 +346,6 @@ public:
 	}
 
 
-      if( rWallNose.Convexity == 1)
-	rWallNose.Radius /= 1.25; //increase the bounding box 
-
-      if( rWallNose.Convexity == -1)
-       	rWallNose.Radius /= 0.75; //decrease the bounding box 
-
-
       return is_inside;
       
     } 
@@ -360,7 +354,7 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime)
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       bool is_inside = false;
 
@@ -368,17 +362,19 @@ public:
       
       BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
 
+      double NoseRadius = rWallNose.Radius;
+
       if( rWallNose.Convexity == 1)
-	rWallNose.Radius *= 2; //increase the bounding box 
+	NoseRadius *= 2; //increase the bounding box 
 
       if( rWallNose.Convexity == -1)
-       	rWallNose.Radius *= 0.1; //decrease the bounding box 
+       	NoseRadius *= 0.1; //decrease the bounding box 
 
       // bool node_in =false;
       // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
       //  	node_in = true;
 
-      switch( ContactSearch(rPoint, rWallNose) )
+      switch( ContactSearch(rPoint, NoseRadius, rWallNose) )
 	{
   	case FreeSurface:      
 	  is_inside = false;
@@ -404,13 +400,7 @@ public:
 	  is_inside = false;
 	  break;
 	}
-
-      if( rWallNose.Convexity == 1)
-	rWallNose.Radius *= 0.5; //restore the bounding box
-
-      if( rWallNose.Convexity == -1)
-       	rWallNose.Radius *= 10; //restore the bounding box
-      
+     
 
       return is_inside;
       
@@ -419,7 +409,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace, double Radius = 0)
     {
       bool is_inside = false;
 
@@ -432,24 +422,26 @@ public:
       
       BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
 
+      double NoseRadius = rWallNose.Radius;
+
       //std::cout<<" Convexity ["<<SelectedNose<<" ]: "<< rWallNose.Convexity <<std::endl;
 
-      switch( ContactSearch(rPoint, rWallNose) )
+      switch( ContactSearch(rPoint, NoseRadius, rWallNose) )
 	{	  
 	case FreeSurface:      
 	  is_inside = false;
 	  ContactFace = 0;
 	  break;
 	case RakeSurface:      
-	  is_inside = CalculateRakeSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  is_inside = CalculateRakeSurface(rPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
 	  ContactFace = 1;
 	  break;
 	case TipSurface:       
-	  is_inside = CalculateTipSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  is_inside = CalculateTipSurface(rPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
 	  ContactFace = 2;
 	  break;
 	case ClearanceSurface: 
-	  is_inside = CalculateClearanceSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  is_inside = CalculateClearanceSurface(rPoint, NoseRadius, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
 	  ContactFace = 3;
 	  break;
 	default:               
@@ -773,19 +765,19 @@ private:
     //************************************************************************************
 
 
-    ContactFace ContactSearch(const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    ContactFace ContactSearch(const TPointType& rPoint,const double& rRadius, const BoxNoseVariables& rWallNose)
     {
 
       KRATOS_TRY
 
       ContactFace Face = FreeSurface;
            
-      double FaceR = CalculateRakeFace( FaceR, rPoint, rWallNose );
-      double FaceT = CalculateTipFace( FaceT, rPoint, rWallNose );
-      double FaceC = CalculateClearanceFace( FaceC, rPoint, rWallNose );      
+      double FaceR = CalculateRakeFace( FaceR, rPoint, rRadius, rWallNose );
+      double FaceT = CalculateTipFace( FaceT, rPoint, rRadius, rWallNose );
+      double FaceC = CalculateClearanceFace( FaceC, rPoint, rRadius, rWallNose ); 
 	
       double Face1=0, Face2=0, Face3=0;
-      CalculateAuxiliarFaces( Face1, Face2, Face3, rPoint, rWallNose );
+      CalculateAuxiliarFaces( Face1, Face2, Face3, rPoint, rRadius, rWallNose );
 
       
       // bool node_in =false;
@@ -866,7 +858,7 @@ private:
     //************************************************************************************
 
 
-    double& CalculateRakeFace(double& Face, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    double& CalculateRakeFace(double& Face, const TPointType& rPoint, const double& rRadius, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 	    
@@ -877,8 +869,8 @@ private:
 
       TPointType RakePoint(3);
 
-      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
-      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.RakeAngle);
       RakePoint[2] = 0;
  
 
@@ -937,7 +929,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    double& CalculateClearanceFace(double& Face, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    double& CalculateClearanceFace(double& Face, const TPointType& rPoint, const double& rRadius, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
@@ -947,8 +939,8 @@ private:
 
       TPointType ClearancePoint(3);
 
-      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
-      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.ClearanceAngle);
       ClearancePoint[2] = 0; 
 
       // bool node_in =false;
@@ -1005,11 +997,11 @@ private:
     //************************************************************************************
 
 
-    double& CalculateTipFace(double& Face, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    double& CalculateTipFace(double& Face, const TPointType& rPoint, const double& rRadius, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
       
-      Face = ( rWallNose.Radius * rWallNose.Radius ) - pow( (rPoint[0] - rWallNose.Center[0]), 2 ) - pow( (rPoint[1] - rWallNose.Center[1]), 2 ); 
+      Face = ( rRadius * rRadius ) - pow( (rPoint[0] - rWallNose.Center[0]), 2 ) - pow( (rPoint[1] - rWallNose.Center[1]), 2 ); 
       
       //Face (+) rPoint is "in" :: (-) rPoint is "out" the nose tip
       return Face;	
@@ -1060,7 +1052,7 @@ private:
     //************************************************************************************
 
 
-    void CalculateAuxiliarFaces(double& rFace1, double& rFace2,  double& rFace3, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    void CalculateAuxiliarFaces(double& rFace1, double& rFace2,  double& rFace3, const TPointType& rPoint, const double& rRadius, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
@@ -1070,20 +1062,20 @@ private:
 
       TPointType RakePoint(3);
 
-      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
-      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.RakeAngle);
       RakePoint[2] = 0;
 
       TPointType ClearancePoint(3);
 
-      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
-      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.ClearanceAngle);
       ClearancePoint[2] = 0;
 
       TPointType TipPoint(3);
 
       TipPoint  = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
-      TipPoint *= ( rWallNose.Radius/norm_2(TipPoint) );
+      TipPoint *= ( rRadius/norm_2(TipPoint) );
       
       //open angle to get the correct tip direction
       double OpenAngle = ( rWallNose.ClearanceAngle - rWallNose.RakeAngle ) * ( 180.0 / pi ) - 90;
@@ -1093,7 +1085,7 @@ private:
       else
 	TipPoint  = rWallNose.Center - TipPoint;
 
-      // std::cout<<" Center "<<rWallNose.Center<<" Radius "<<rWallNose.Radius<<std::endl;
+      // std::cout<<" Center "<<rWallNose.Center<<" Radius "<<rRadius<<std::endl;
       // std::cout<<" RakePoint "<<RakePoint<<" x "<<-sin(rWallNose.RakeAngle)<<" y "<<cos(rWallNose.RakeAngle)<<std::endl;
       // std::cout<<" ClearancePoint "<<ClearancePoint<<" x "<<-sin(rWallNose.ClearanceAngle)<<" y "<<cos(rWallNose.ClearanceAngle)<<std::endl;
       // std::cout<<" TipPoint "<<TipPoint<<std::endl;
@@ -1137,7 +1129,7 @@ private:
     //************************************************************************************
 
 
-    bool CalculateRakeSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
+    bool CalculateRakeSurface(const TPointType& rPoint, const double & rRadius, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
      
@@ -1158,8 +1150,8 @@ private:
       //2.-compute point projection
       TPointType RakePoint(3);
 
-      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
-      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.RakeAngle);
       RakePoint[2] = 0;
 
       //3.-compute gap
@@ -1177,7 +1169,7 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    bool CalculateTipSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
+    bool CalculateTipSurface(const TPointType& rPoint, const double& rRadius, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
@@ -1186,10 +1178,10 @@ private:
 
       //1.-compute point projection
       TPointType Projection(3);
-      Projection = rWallNose.Radius * ( (rPoint-rWallNose.Center)/ norm_2(rPoint-rWallNose.Center) ) + rWallNose.Center;
+      Projection = rRadius * ( (rPoint-rWallNose.Center)/ norm_2(rPoint-rWallNose.Center) ) + rWallNose.Center;
       
       //2.-compute contact normal
-      rNormal = (Projection-rWallNose.Center)/rWallNose.Radius;
+      rNormal = (Projection-rWallNose.Center)/rRadius;
 
       rNormal   *= rWallNose.Convexity; 
 
@@ -1198,7 +1190,7 @@ private:
       rTangent[2] =  0;
 
       //3.-compute gap
-      if( norm_2(rWallNose.Center-rPoint) <= rWallNose.Radius ){
+      if( norm_2(rWallNose.Center-rPoint) <= rRadius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
       }
       else{
@@ -1221,7 +1213,7 @@ private:
     //************************************************************************************
 
 
-    bool CalculateClearanceSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
+    bool CalculateClearanceSurface(const TPointType& rPoint, const double& rRadius,double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
     {
       KRATOS_TRY
 
@@ -1242,8 +1234,8 @@ private:
       //2.-compute point projection
       TPointType ClearancePoint(3);
 
-      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
-      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[0] = rWallNose.Center[0] - rRadius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rRadius * cos(rWallNose.ClearanceAngle);
       ClearancePoint[2] = 0;
 
  

@@ -193,12 +193,12 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace)
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
     {
       
       ContactFace = 0; //FreeSurface
       
-      return IsInside(rPoint,rCurrentTime);
+      return IsInside(rPoint,rCurrentTime,Radius);
       
     } 
 
@@ -206,24 +206,20 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime)
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       
       bool is_inside = false;
       
-      if( mBox.Convexity == 1)
-	mPlane.Point += mPlane.Normal * 0.1; //increase the bounding box 
-
-      if( mBox.Convexity == -1)
-       	mPlane.Point  -= mPlane.Normal * 0.1; //decrease the bounding box 
-
-      is_inside = ContactSearch(rPoint);
-
-      if( mBox.Convexity == 1)
-	mPlane.Point -= mPlane.Normal * 0.1; //increase the bounding box 
+      TPointType  PlanePoint = mPlane.Point;
       
+      if( mBox.Convexity == 1)
+	PlanePoint += mPlane.Normal * 0.1; //increase the bounding box 
+
       if( mBox.Convexity == -1)
-       	mPlane.Point += mPlane.Normal * 0.1; //decrease the bounding box 
+       	PlanePoint -= mPlane.Normal * 0.1; //decrease the bounding box 
+
+      is_inside = ContactSearch(rPoint, PlanePoint);
 
 
       return is_inside;
@@ -234,12 +230,12 @@ public:
    //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace, double Radius = 0)
     {
 
       ContactFace = 0; //FreeSurface
       
-      return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent);
+      return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent,Radius);
       
     }
 
@@ -247,7 +243,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, double Radius = 0)
     {
       bool is_inside = false;
 
@@ -357,14 +353,14 @@ private:
     //************************************************************************************
 
 
-    bool ContactSearch(const TPointType& rPoint)
+    bool ContactSearch(const TPointType& rPoint, const TPointType& rPlanePoint)
     {
 
       KRATOS_TRY
 
 
       //1.-compute gap
-      double GapNormal = inner_prod((rPoint - mPlane.Point), mBox.Convexity*mPlane.Normal);
+      double GapNormal = inner_prod((rPoint - rPlanePoint), mBox.Convexity*mPlane.Normal);
 
        
       if(GapNormal<0)

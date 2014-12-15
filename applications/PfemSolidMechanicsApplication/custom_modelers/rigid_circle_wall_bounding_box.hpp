@@ -161,12 +161,12 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace)
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, int & ContactFace, double Radius = 0)
     {
       
       ContactFace = 2; //TipSurface
       
-      return IsInside(rPoint,rCurrentTime);
+      return IsInside(rPoint,rCurrentTime,Radius);
       
     } 
 
@@ -174,24 +174,20 @@ public:
     //************************************************************************************
    
 
-    bool IsInside (const TPointType& rPoint, double& rCurrentTime)
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       
       bool is_inside = false;
       
-      if( mBox.Convexity == 1)
-	mBox.Radius *= 1.25; //increase the bounding box 
-
-      if( mBox.Convexity == -1)
-       	mBox.Radius *= 0.75; //decrease the bounding box 
-
-      is_inside = ContactSearch(rPoint);
+      double CircleRadius = mBox.Radius;
 
       if( mBox.Convexity == 1)
-	mBox.Radius /= 1.25; //increase the bounding box 
-      
+	CircleRadius *= 1.25; //increase the bounding box 
+
       if( mBox.Convexity == -1)
-       	mBox.Radius /= 0.75; //decrease the bounding box 
+       	CircleRadius *= 0.75; //decrease the bounding box 
+
+      is_inside = ContactSearch(rPoint, CircleRadius);
 
 
       return is_inside;
@@ -199,15 +195,15 @@ public:
     } 
 
 
-   //************************************************************************************
+    //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace, double Radius = 0)
     {
 
       ContactFace = 2; //TipSurface
       
-      return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent);
+      return IsInside(rPoint,rGapNormal,rGapTangent,rNormal,rTangent,Radius);
       
     }
 
@@ -215,7 +211,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, double Radius = 0)
     {
       bool is_inside = false;
 
@@ -224,7 +220,9 @@ public:
       rNormal.clear();
       rTangent.clear();
 
-      is_inside = ContactSearch(rPoint,rGapNormal,rGapTangent,rNormal,rTangent);
+      double CircleRadius = mBox.Radius;
+
+      is_inside = ContactSearch(rPoint,CircleRadius,rGapNormal,rGapTangent,rNormal,rTangent);
 
       return is_inside;
       
@@ -328,19 +326,19 @@ private:
     //************************************************************************************
 
 
-    bool ContactSearch(const TPointType& rPoint)
+    bool ContactSearch(const TPointType& rPoint, const double& rRadius)
     {
 
       KRATOS_TRY
 
       //1.-compute point projection
       TPointType Projection(3);
-      Projection = mBox.Radius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
+      Projection = rRadius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
       
 
       //2.-compute gap
       double GapNormal = 0;
-      if( norm_2(mBox.Center-rPoint) <= mBox.Radius ){
+      if( norm_2(mBox.Center-rPoint) <= rRadius ){
 	GapNormal = (-1) * norm_2(rPoint - Projection);
       }
       else{
@@ -364,7 +362,7 @@ private:
     //************************************************************************************
 
     //Circle
-    bool ContactSearch(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    bool ContactSearch(const TPointType& rPoint, const double& rRadius, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
     {
       KRATOS_TRY
 
@@ -373,10 +371,10 @@ private:
 
       //1.-compute point projection
       TPointType Projection(3);
-      Projection = mBox.Radius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
+      Projection = rRadius * ( (rPoint-mBox.Center)/ norm_2(rPoint-mBox.Center) ) + mBox.Center;
       
       //2.-compute contact normal
-      rNormal = (Projection-mBox.Center)/mBox.Radius;
+      rNormal = (Projection-mBox.Center)/rRadius;
 
       rNormal   *= mBox.Convexity; 
 
@@ -385,7 +383,7 @@ private:
       rTangent[2] =  0;
 
       //3.-compute gap
-      if( norm_2(mBox.Center-rPoint) <= mBox.Radius ){
+      if( norm_2(mBox.Center-rPoint) <= rRadius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
       }
       else{

@@ -260,8 +260,35 @@ void RigidBodyPointRigidContactCondition::InitializeSolutionStep( ProcessInfo& r
 {
     KRATOS_TRY
 
-    ClearNodalForces();
+    GeneralVariables ContactVariables;
+    int ContactFace = 0;
+       
+    if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace ) ) {
 
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
+
+      mTangentialVariables.PreviousTangentForceModulus = 0.0;
+      for (unsigned int i = 0; i < dimension; ++i) {
+	mTangentialVariables.PreviousTangentForceModulus += ContactForce[i] * ContactVariables.Surface.Tangent[i];
+      }
+
+
+    }
+    else {
+      mTangentialVariables.PreviousTangentForceModulus = 0.0;
+    } 
+    
+    mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+
+    mTangentialVariables.Sign = 1;
+    
+    mTangentialVariables.FrictionCoefficient = 0.3;
+    mTangentialVariables.DynamicFrictionCoefficient = 0.2;
+    mTangentialVariables.StaticFrictionCoefficient  = 0.3;
+    
+    ClearNodalForces();
+    
     KRATOS_CATCH( "" )
 }
 
@@ -767,7 +794,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
       // std::cout<<std::endl;
       // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
 
-      // this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
+      //this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
       // std::cout<<std::endl;
       // std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
 
@@ -805,7 +832,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
       rLeftHandSideMatrix -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
 
       //added extra term, maybe not necessary
-      //rLeftHandSideMatrix -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + rVariables.Gap.Normal * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+      rLeftHandSideMatrix -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + rVariables.Gap.Normal * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
     }
     else {
@@ -857,6 +884,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
       
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+
   double NormalForceModulus = 0;
   NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
@@ -869,16 +897,20 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
     rRightHandSideVector[i] += ContactForceVector[i];
   }
 
+
   VectorType ContactTorque = ZeroVector(3);
   //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
   
-  std::cout<<" [ContactTorque]: "<<ContactTorque<<" [ContactForce]: "<<ContactForceVector<<std::endl;
+  // std::cout<<" [ContactTorque]: "<<ContactTorque;
+  // std::cout<<" [ContactForce]:  "<<ContactForceVector;
+  // std::cout<<" [Normal]:  "<<rVariables.Surface.Normal;
+  // std::cout<<std::endl;
   
   //Contact torque due to contact tangent force on beam surface
-  for (unsigned int i = dimension; i < (dimension * 2); ++i) {
-    rRightHandSideVector[i] += ContactTorque[i];
+  for (unsigned int i =0; i < dimension; ++i) {
+    rRightHandSideVector[i+dimension] += ContactTorque[i];
   }
-
+  
       
   GetGeometry()[0].SetLock();
 
@@ -917,25 +949,28 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(Vec
 
   TangentForceModulus *= (-1) * rIntegrationWeight;
 
-  VectorType ContactForceVector;
+
+  //std::cout<< "["<<mTangentialVariables.Sign<<"] Tangent Force Node ["<<GetGeometry()[0].Id()<<" ]:"<<TangentForceModulus<<" RelativeMovement: "<<TangentRelativeMovement<<" Tangent Gap: "<<rVariables.Gap.Tangent<<" SLIP ["<<mTangentialVariables.Slip<<"]"<<std::endl; 
+
+
+  VectorType ContactForceVector = ZeroVector(3);
 
   for (unsigned int i = 0; i < dimension ; ++i) {
     ContactForceVector[i]    = TangentForceModulus * rVariables.Surface.Tangent[i];
     rRightHandSideVector[i] += ContactForceVector[i];
   }
 
-  VectorType ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
+  VectorType ContactTorque = ZeroVector(3);
+  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
   
   //std::cout<<" [ContactTorque]: "<<ContactTorque<<" [ContactForce]: "<<ContactForceVector<<std::endl;
   
   //Contact torque due to contact tangent force on beam surface
-  for (unsigned int i = dimension; i < (dimension * 2); ++i) {
-    rRightHandSideVector[i] += ContactTorque[i];
+  for (unsigned int i = 0; i < dimension; ++i) {
+    rRightHandSideVector[i+dimension] += ContactTorque[i];
   }
   
-  //std::cout<< "["<<mTangentialVariables.Sign<<"] Tangent Force Node ["<<GetGeometry()[0].Id()<<" ]:"<<TangentForceModulus<<" RelativeMovement: "<<rVariables.Gap.Tangent<<" SLIP ["<<mTangentialVariables.Slip<<"]"<<std::endl; 
-
- 
+   
   GetGeometry()[0].SetLock();
 
   array_1d<double, 3 >& ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
@@ -1037,13 +1072,14 @@ double RigidBodyPointRigidContactCondition::CalculateCoulombsFrictionLaw(double 
  
   double TangentForceModulus = rVariables.Penalty.Tangent * rVariables.Gap.Tangent; //+ mTangentialVariables.PreviousTangentForceModulus; 
      
+  //std::cout<<" Gap.Tangent "<<rVariables.Gap.Tangent<<std::endl;
 
  
   if ( fabs(TangentForceModulus) >  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) && fabs(rVariables.Gap.Tangent) > 1e-200) {
 
     mTangentialVariables.Sign =  rVariables.Gap.Tangent/ fabs( rVariables.Gap.Tangent ) ; 
 
-    TangentForceModulus =  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
+    TangentForceModulus =  (-1) * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
     mTangentialVariables.Slip = true;
 
   }
