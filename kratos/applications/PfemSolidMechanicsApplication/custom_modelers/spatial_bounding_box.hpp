@@ -317,7 +317,7 @@ public:
     ///@{
 
 
-    virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime)
+    virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime, double Radius = 0)
     {
       bool inside = true;
 
@@ -354,17 +354,18 @@ public:
     //************************************************************************************
     //************************************************************************************
 
-    virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime, int& ContactFace)
+    virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime, int& ContactFace, double Radius = 0)
     {
       ContactFace = 0;
 
-      return IsInside(rPoint,rCurrentTime);
+      return IsInside(rPoint,rCurrentTime,Radius);
     }
 
 
     //************************************************************************************
     //************************************************************************************
-    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+
+    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, double Radius = 0)
     {
       std::cout<< "Calling empty method" <<std::endl;
       return false;
@@ -373,7 +374,7 @@ public:
 
     //************************************************************************************
     //************************************************************************************
-    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
+    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace, double Radius = 0)
     {
       std::cout<< "Calling empty method" <<std::endl;
       ContactFace = 0;

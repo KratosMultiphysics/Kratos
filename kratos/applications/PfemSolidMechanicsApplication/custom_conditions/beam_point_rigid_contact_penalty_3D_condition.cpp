@@ -82,7 +82,11 @@ namespace Kratos
        GeneralVariables ContactVariables;
        int ContactFace = 0;
 
-       if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace ) ) {
+       //to perform contact with a tube radius must be set
+       double Radius = 0;
+       Radius = GetGeometry()[0].GetValue(MEAN_RADIUS);
+
+       if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace, Radius ) ) {
 
   	   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   	   array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
@@ -155,7 +159,11 @@ namespace Kratos
     
     int ContactFace = 0; //free surface
       
-    if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
+    //to perform contact with a tube radius must be set
+    double Radius = 0;
+    Radius = GetGeometry()[0].GetValue(MEAN_RADIUS);
+
+    if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace, Radius ) ){
 
       rVariables.Options.Set(ACTIVE,true);
 
