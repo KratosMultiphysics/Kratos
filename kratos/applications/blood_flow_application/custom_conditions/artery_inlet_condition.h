@@ -212,7 +212,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    double UpdateArea(double Beta, double Density);
+    double UpdateArea(double Beta, double Density, double Flow);
 
 
     ///@}

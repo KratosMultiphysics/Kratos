@@ -7,9 +7,10 @@ A General Purpose Software for Multi-Physics Finite Condition Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
+Pooyan Dadvand, Riccardo Rossi, Eduardo Soudah
 pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
+esoudah@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 
@@ -121,20 +122,25 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     // EDU:: AQUI YA TOMA LOS VALORES CON EL UPDATE PARA LOS SIGUIENTE PASOS DE TIEMPO
     //const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
     //const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
-    //const double pi = 3.14159265;
-    const double coriolis_coefficient = 1.1;
+    //const double pi = 3.14159265;    
+	const double coriolis_coefficient = 1.1;
     //const double kr_coefficient = 1.0;
     const double density = GetProperties()[DENSITY];
     //const double kinematic_viscosity = dynamic_viscosity/density;
     //const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);;
     //const double beta = E*H0*1.77245385/(1.0-nu*nu);
-    const double beta =GetGeometry()[0].FastGetSolutionStepValue(BETA);
+	//double flow_aux = 0.0; 
+    //double A_aux = 0.0;
+	const double beta =GetGeometry()[0].FastGetSolutionStepValue(BETA);
     const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
-    //const double& A = UpdateArea(beta,A1);
-    const double A = A1; // No hago update del area
-    const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
-    //flow = 2*flow -
+    double A_aux, flow_aux = UpdateArea(beta,A1,flow_aux);
+
+    double A = A1; // No hago update del area
+	A=A_aux;
+    double& flow_R = GetGeometry()[1].FastGetSolutionStepValue(FLOW);
+	double& flow_L = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+    const double flow = 2*flow_aux -flow_R;
     //const double flow3 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //const double& flow5 = GetGeometry()[0].GetSolutionStepValue(FLOW);
     const double C = (beta*sqrt(A*A*A)/(3.0*density*A0));
@@ -159,7 +165,7 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 }
 
 
-double ArteryInletCondition::UpdateArea(double Beta, double A)
+double ArteryInletCondition::UpdateArea(double Beta, double A, double Q_new)
 {
 
     KRATOS_TRY
@@ -181,7 +187,7 @@ double ArteryInletCondition::UpdateArea(double Beta, double A)
 
         double dx = f/df;
         x -= dx;
-        if(fabs(dx) < 1e-6)
+        if(fabs(dx) < 1e-10)
             A = x;
             break;
 //        else
@@ -193,7 +199,11 @@ double ArteryInletCondition::UpdateArea(double Beta, double A)
     }
 
     A = x;
-    return A;
+	Q_new = w1+4*sqrt(Beta/(2*density))*sqrt(sqrt(A)); //velocity
+	Q_new = Q_new*A;
+    return A, Q_new;
+
+
 
     KRATOS_CATCH("");
 }
