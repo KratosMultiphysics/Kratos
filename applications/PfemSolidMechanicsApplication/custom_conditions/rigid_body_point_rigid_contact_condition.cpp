@@ -455,8 +455,15 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
 
-    rVariables.CentroidPosition =  GetGeometry()[0].GetInitialPosition() - mMasterElements.front().GetGeometry()[0].GetInitialPosition();
+    rVariables.CentroidPosition =  GetGeometry()[0].Coordinates() - mMasterElements.front().GetGeometry()[0].Coordinates();
     rVariables.CentroidDistance = norm_2(rVariables.CentroidPosition);
+
+
+    rVariables.SkewSymDistance = ZeroMatrix(3);
+
+    //compute the skewsymmmetric tensor of the distance
+    this->VectorToSkewSymmetricTensor(rVariables.CentroidPosition, rVariables.SkewSymDistance);
+
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
@@ -787,14 +794,43 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+
     if( rVariables.Options.Is(ACTIVE)){
 
-      noalias(rLeftHandSideMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
+      //Force
+      Matrix ForceMatrix  = ZeroMatrix(3);
+
+      noalias(ForceMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
       
+
+      for(unsigned int i=0; i<dimension; i++)
+	{
+	  for(unsigned int j=0; j<dimension; j++)
+	    {
+	      rLeftHandSideMatrix(i,j) += ForceMatrix(i,j);
+	    }
+	}
+	      
+
+      //Moment
+      Matrix MomentMatrix = ZeroMatrix(3);
+      
+      MomentMatrix = prod(ForceMatrix,rVariables.SkewSymDistance);
+      
+      for(unsigned int i=0; i<dimension; i++)
+	{
+	  for(unsigned int j=0; j<dimension; j++)
+	    {
+	      rLeftHandSideMatrix(i+dimension,j) -= MomentMatrix(i,j);
+	    }
+	}
+
+      
+
       // std::cout<<std::endl;
       // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
 
-      //this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
+      // this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
       // std::cout<<std::endl;
       // std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
 
@@ -817,6 +853,9 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
 void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+
   double NormalForceModulus = 0;
   NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
@@ -825,23 +864,57 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuugTangent(MatrixType&
        
   double TangentForceModulus = this->CalculateCoulombsFrictionLaw( TangentRelativeMovement, NormalForceModulus, rVariables );
 
+
+  //Force
+  Matrix ForceMatrix  = ZeroMatrix(3);
+
+
   if( fabs(TangentForceModulus) >= 1e-25 ){
        
     if ( mTangentialVariables.Slip ) {
       //simpler expression:
-      rLeftHandSideMatrix -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+      ForceMatrix = (-1) * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) );
+
+      //added extra term
+      //ForceMatrix +=  mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * fabs(rVariables.Gap.Normal) * custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
       //added extra term, maybe not necessary
-      rLeftHandSideMatrix -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + rVariables.Gap.Normal * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
+      //ForceMatrix -=  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * ( custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Normal) + rVariables.Gap.Normal * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) );
 
     }
     else {
-      rLeftHandSideMatrix +=  rVariables.Penalty.Tangent * rIntegrationWeight * custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+      ForceMatrix =  rVariables.Penalty.Tangent * rIntegrationWeight * custom_outer_prod(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
 
     }
 
   }
        
+
+  noalias(ForceMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal);
+      
+
+  for(unsigned int i=0; i<dimension; i++)
+    {
+      for(unsigned int j=0; j<dimension; j++)
+	{
+	  rLeftHandSideMatrix(i,j) += ForceMatrix(i,j);
+	}
+    }
+	      
+
+  //Moment
+  Matrix MomentMatrix = ZeroMatrix(3);
+      
+  MomentMatrix = prod(ForceMatrix,rVariables.SkewSymDistance);
+      
+  for(unsigned int i=0; i<dimension; i++)
+    {
+      for(unsigned int j=0; j<dimension; j++)
+	{
+	  rLeftHandSideMatrix(i+dimension,j) -= MomentMatrix(i,j);
+	}
+    }
+
 
 }
 
@@ -897,18 +970,22 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
     rRightHandSideVector[i] += ContactForceVector[i];
   }
 
-
   VectorType ContactTorque = ZeroVector(3);
-  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
-  
-  // std::cout<<" [ContactTorque]: "<<ContactTorque;
-  // std::cout<<" [ContactForce]:  "<<ContactForceVector;
-  // std::cout<<" [Normal]:  "<<rVariables.Surface.Normal;
+
+  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);      
+  //std::cout<<" [ContactTorqueA]: "<<ContactTorque;
+
+  ContactTorque = prod(ContactForceVector,rVariables.SkewSymDistance); // -(d x f)
+       
+  // std::cout<<" [ContactTorqueB]: "<<ContactTorque;
+  // std::cout<<" [ContactForce]: "<<ContactForceVector;
+  // std::cout<<" [Normal]: "<<rVariables.Surface.Normal;
+  // std::cout<<" [Distance]: "<<rVariables.SkewSymDistance;
   // std::cout<<std::endl;
-  
-  //Contact torque due to contact tangent force on beam surface
+
+  //Contact torque due to contact force on beam surface
   for (unsigned int i =0; i < dimension; ++i) {
-    rRightHandSideVector[i+dimension] += ContactTorque[i];
+    rRightHandSideVector[i+dimension] -= ContactTorque[i];
   }
   
       
@@ -960,17 +1037,22 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(Vec
     rRightHandSideVector[i] += ContactForceVector[i];
   }
 
+
   VectorType ContactTorque = ZeroVector(3);
-  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
-  
-  //std::cout<<" [ContactTorque]: "<<ContactTorque<<" [ContactForce]: "<<ContactForceVector<<std::endl;
+
+  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);      
+  ContactTorque = prod(ContactForceVector,rVariables.SkewSymDistance);
+       
+  // std::cout<<" [ContactTorque]: "<<ContactTorque;
+  // std::cout<<" [ContactForce]:  "<<ContactForceVector;
+  // std::cout<<" [Normal]:  "<<rVariables.Surface.Normal;
+  // std::cout<<std::endl;
   
   //Contact torque due to contact tangent force on beam surface
-  for (unsigned int i = 0; i < dimension; ++i) {
-    rRightHandSideVector[i+dimension] += ContactTorque[i];
+  for (unsigned int i =0; i < dimension; ++i) {
+    rRightHandSideVector[i+dimension] -= ContactTorque[i];
   }
-  
-   
+     
   GetGeometry()[0].SetLock();
 
   array_1d<double, 3 >& ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
@@ -1124,6 +1206,33 @@ double RigidBodyPointRigidContactCondition::CalculateFrictionCoefficient(double 
   //FrictionCoefficient *= tanh( fabs(Velocity)/E );
 
   return FrictionCoefficient;
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyPointRigidContactCondition::VectorToSkewSymmetricTensor( const Vector& rVector, 
+							       Matrix& rSkewSymmetricTensor )
+{
+    KRATOS_TRY
+
+    //Initialize Local Matrices
+    if( rSkewSymmetricTensor.size1() != 3 )
+      rSkewSymmetricTensor.resize(3, 3, false);
+    
+    rSkewSymmetricTensor = ZeroMatrix(3);
+
+    rSkewSymmetricTensor( 0, 1 ) = -rVector[2];
+    rSkewSymmetricTensor( 0, 2 ) =  rVector[1];
+    rSkewSymmetricTensor( 1, 2 ) = -rVector[0];
+
+    rSkewSymmetricTensor( 1, 0 ) =  rVector[2];
+    rSkewSymmetricTensor( 2, 0 ) = -rVector[1];
+    rSkewSymmetricTensor( 2, 1 ) =  rVector[0];
+
+
+    KRATOS_CATCH( "" )
 
 }
 
