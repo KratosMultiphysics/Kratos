@@ -59,6 +59,9 @@ namespace Kratos
  	{
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
+		std::cout << ">>>>--------------------------<<<< " << std::endl;
+		std::cout << ">>>>   Compiled:01-12-2014   <<<< " << std::endl;
+		std::cout << ">>>>--------------------------<<<< " << std::endl;
  		std::cout << "Initializing KratosBloodFlowApplication.... " << std::endl;
  
         KRATOS_REGISTER_VARIABLE( FLOW )

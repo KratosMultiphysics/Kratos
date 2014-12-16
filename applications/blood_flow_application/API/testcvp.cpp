@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-	if(argc < 2) 
+	if(argc < 3) 
 		return 0;
 
 	//const char kratos_path[]="c:\\kratos_win32\\";
