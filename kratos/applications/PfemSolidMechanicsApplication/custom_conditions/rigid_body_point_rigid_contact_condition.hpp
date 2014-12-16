@@ -109,9 +109,10 @@ protected:
       SurfaceVector   Surface;               //normal and tangent vector to the surface
       
       
-      VectorType CentroidPosition;
-      double  CentroidDistance;
-      
+      VectorType      CentroidPosition;
+      double          CentroidDistance;
+
+      Matrix          SkewSymDistance;
 
       //for axisymmetric use only
       double  CurrentRadius;
@@ -542,6 +543,11 @@ protected:
     virtual void CalculateContactFactors(GeneralVariables &rContact);
 
 
+    /**
+     * Calculation of an SkewSymmetricTensor from a vector 
+     */
+     void VectorToSkewSymmetricTensor( const Vector& rVector, 
+				       Matrix& rSkewSymmetricTensor );
 
     /**
      * Calculation utility for 3D outer product
