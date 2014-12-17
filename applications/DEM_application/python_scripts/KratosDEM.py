@@ -30,12 +30,15 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
+
+    print("Running under MPI...........")
+
 else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
 
-    print("Running under OpenMP")
+    print("Running under OpenMP........")
 
 ##############################################################################
 #                                                                            #
