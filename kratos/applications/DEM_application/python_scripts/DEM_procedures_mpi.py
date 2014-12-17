@@ -123,7 +123,7 @@ class DEMIo(DEM_procedures.DEMIo):
         super(DEMIo,self).__init__()
 
     def EnableMpiVariables(self):
-        self.ball_variables.append(PARTITION_INDEX)
+        self.spheres_variables.append(PARTITION_INDEX)
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name + "_" + str(mpi.rank))
