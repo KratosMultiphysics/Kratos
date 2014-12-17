@@ -975,9 +975,9 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
   //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);      
   //std::cout<<" [ContactTorqueA]: "<<ContactTorque;
 
-  ContactTorque = prod(ContactForceVector,rVariables.SkewSymDistance); // -(d x f)
+  ContactTorque = prod(rVariables.SkewSymDistance,ContactForceVector); //  = (D x F)
        
-  // std::cout<<" [ContactTorqueB]: "<<ContactTorque;
+  //std::cout<<" [ContactTorqueB]: "<<ContactTorque;
   // std::cout<<" [ContactForce]: "<<ContactForceVector;
   // std::cout<<" [Normal]: "<<rVariables.Surface.Normal;
   // std::cout<<" [Distance]: "<<rVariables.SkewSymDistance;
@@ -985,7 +985,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
 
   //Contact torque due to contact force on beam surface
   for (unsigned int i =0; i < dimension; ++i) {
-    rRightHandSideVector[i+dimension] -= ContactTorque[i];
+    rRightHandSideVector[i+dimension] += ContactTorque[i];
   }
   
       
