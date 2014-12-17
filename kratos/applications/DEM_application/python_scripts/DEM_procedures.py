@@ -2,11 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-#
-#from KratosMultiphysics.MetisApplication import * #S
-#from KratosMultiphysics.MPISearchApplication import * #S
-#from KratosMultiphysics.mpi import * #S
-#
 
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_material_test_script
@@ -744,7 +739,7 @@ class MultifileList(object):
         self.step = step
         self.name = name
         self.file = open(self.name+"_"+str(step)+".post.lst","w")
-        #self.file = open(self.name+"_"+str(mpi.rank)+"_"+str(step)+".post.lst","w") #S
+        
 
 class DEMIo(object):
 
@@ -874,10 +869,9 @@ class DEMIo(object):
                 
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
                     mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.bin\n")
-                    #mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.bin\n") #S
                 else:
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.msh\n") #S
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.res\n") #S
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.msh\n")
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.res\n")
                 mfilelist.file.flush()
                 mfilelist.index = 0
             mfilelist.index += 1
