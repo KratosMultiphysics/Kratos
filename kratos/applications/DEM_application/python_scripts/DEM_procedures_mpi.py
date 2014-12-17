@@ -108,14 +108,16 @@ class MaterialTest(DEM_procedures.MaterialTest):
         if (self.type != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
             self.script.Initialize()
- 
 
 
-class MultifileList(DEM_procedures.MultifileList):
+class MultifileList(object):
 
     def __init__(self,name,step):
-        super(MultifileList,self).__init__(name,step)
-
+        self.index = 0
+        self.step = step
+        self.name = name
+        self.file = open(self.name+"_"+str(mpi.rank)+"_"+str(step)+".post.lst","w")
+        
 
 class DEMIo(DEM_procedures.DEMIo):
 
@@ -127,6 +129,20 @@ class DEMIo(DEM_procedures.DEMIo):
 
     def SetOutputName(self,name):
         self.gid_io.ChangeOutputName(name + "_" + str(mpi.rank))
+
+    def PrintMultifileLists(self,time, post_path):
+        for mfilelist in self.multifilelists:
+            
+            if mfilelist.index == mfilelist.step:
+                
+                if (self.encoding == GiDPostMode.GiD_PostBinary):
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.bin\n")
+                else:
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.msh\n")
+                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+str(mpi.rank)+"_"+"%.12g"%time+".post.res\n")
+                mfilelist.file.flush()
+                mfilelist.index = 0
+            mfilelist.index += 1
 
 
 class ParallelUtils(DEM_procedures.ParallelUtils):
