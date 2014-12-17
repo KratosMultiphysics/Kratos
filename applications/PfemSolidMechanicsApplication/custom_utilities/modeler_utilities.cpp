@@ -1183,7 +1183,7 @@ namespace Kratos
      
     for(unsigned int i=0; i<rConditionGeometry.size(); i++){
             
-      array_1d<double, 3 > & ContactForceNormal  = rConditionGeometry[1].FastGetSolutionStepValue(CONTACT_FORCE);
+      array_1d<double, 3 > & ContactForceNormal  = rConditionGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE);
       
       if(norm_2(ContactForceNormal)>0){
 	rSemiActiveContact  = true;
