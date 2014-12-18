@@ -2192,6 +2192,7 @@ namespace Kratos
 	    plastic_power = 0;
 	    Geometry< Node<3> > rConditionGeom;
 	    array_1d<double,3> tip_center;
+            tip_center.clear();
 
 
 	    //LOOP TO CONSIDER ONLY CONTACT CONDITIONS
