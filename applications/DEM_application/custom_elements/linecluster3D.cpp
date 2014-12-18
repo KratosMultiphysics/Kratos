@@ -27,7 +27,7 @@ namespace Kratos {
         
     // using namespace GeometryFunctions;
 
-    LineCluster3D::LineCluster3D() : Cluster3D() {}
+    LineCluster3D::LineCluster3D() : Cluster3D()  {}
             
       
     LineCluster3D::LineCluster3D(IndexType NewId, GeometryType::Pointer pGeometry)

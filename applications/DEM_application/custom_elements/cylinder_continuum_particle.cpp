@@ -152,8 +152,7 @@ namespace Kratos
       } //Contact Area Weighting
       
       
-      void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double mStressTensor[3][3],    
-                                                                            double GlobalElasticContactForce[3],
+      void CylinderContinuumParticle::AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
                                                                             array_1d<double,3> &other_to_me_vect,
                                                                             const double &distance,
                                                                             const double &radius_sum,

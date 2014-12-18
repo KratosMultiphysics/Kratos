@@ -118,12 +118,13 @@ namespace Kratos
         */
         virtual void Initialize();
         virtual void CustomInitialize();
-        virtual void CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part);
+        virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part);
         virtual void UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt);
         virtual void GetClustersForce( const array_1d<double,3>& gravity );
         virtual void CollectForcesAndTorquesFromSpheres();
         virtual void ComputeAdditionalForces( const array_1d<double,3>& gravity );
         unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
+        std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; };
         /**
         * this is called during the assembling process in order
         * to calculate all elemental contributions to the global system
@@ -256,7 +257,7 @@ namespace Kratos
         ///@} 
         ///@name Protected member Variables 
         ///@{
-                
+        
         std::vector<double>                mListOfRadii;
         std::vector<array_1d<double, 3> >  mListOfCoordinates;        
         std::vector<SphericParticle*>      mListOfSphericParticles;

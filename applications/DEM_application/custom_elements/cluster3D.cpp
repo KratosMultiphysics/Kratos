@@ -82,7 +82,7 @@ namespace Kratos {
     
     void Cluster3D::CustomInitialize() {}
       
-    void Cluster3D::CreateParticles(ParticleCreatorDestructor::Pointer p_creator_destructor, ModelPart& dem_model_part){
+    void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part){
         
         KRATOS_TRY 
         
@@ -145,23 +145,22 @@ namespace Kratos {
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             
             GeometryFunctions::VectorLocal2Global(RotationMatrix, mListOfCoordinates[i], global_relative_coordinates);
-            array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
-            array_1d<double, 3>& deta_displacement = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
+            array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
+            array_1d<double, 3>& deta_displacement = sphere_node.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
             previous_position = sphere_position;
             sphere_position= central_node.Coordinates() + global_relative_coordinates;
             deta_displacement = sphere_position - previous_position;
             
             GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
             
-            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = deta_displacement[0] / dt;
-            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = deta_displacement[1] / dt;
-            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = deta_displacement[2] / dt;
+            array_1d<double, 3>& velocity = sphere_node.FastGetSolutionStepValue(VELOCITY);
+            velocity[0] = deta_displacement[0] / dt;
+            velocity[1] = deta_displacement[1] / dt;
+            velocity[2] = deta_displacement[2] / dt;
             
-            //mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = cluster_velocity + linear_vel_due_to_rotation;
-            
-            
-            
-            mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY) = cluster_angular_velocity;
+            //mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = cluster_velocity + linear_vel_due_to_rotation;                                    
+            sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY) = cluster_angular_velocity;
             
         }                        
     }
@@ -176,17 +175,33 @@ namespace Kratos {
         array_1d<double, 3> center_to_sphere_vector;
         array_1d<double, 3> additional_torque;
         
-        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+        for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
             
-            array_1d<double, 3>& particle_forces = mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES);  
-            center_forces += particle_forces;                      
-            center_torque += mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+            if(mListOfSphericParticles[i]->mNeighbourElements.size()==0 && mListOfSphericParticles[i]->mNeighbourRigidFaces.size()==0) continue; //Assuming the sphere only adds contact forces to the cluster
+            
+            Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
+            array_1d<double, 3>& particle_forces = sphere_node.FastGetSolutionStepValue(TOTAL_FORCES);  
+            //noalias(center_forces) += particle_forces;   
+            center_forces[0] += particle_forces[0];
+            center_forces[1] += particle_forces[1];
+            center_forces[2] += particle_forces[2];
+            //noalias(center_torque) += sphere_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+            array_1d<double, 3>& particle_torque = sphere_node.FastGetSolutionStepValue(PARTICLE_MOMENT); 
+            center_torque[0] += particle_torque[0];
+            center_torque[1] += particle_torque[1];
+            center_torque[2] += particle_torque[2];
                         
             //Now adding the torque due to the eccentric forces (spheres are not on the center of the cluster)
-            array_1d<double, 3>& sphere_position = mListOfSphericParticles[i]->GetGeometry()[0].Coordinates();
-            center_to_sphere_vector = sphere_position - central_node.Coordinates();
+            array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
+            //noalias(center_to_sphere_vector) = sphere_position - central_node.Coordinates();
+            center_to_sphere_vector[0] = sphere_position[0] - central_node.Coordinates()[0];
+            center_to_sphere_vector[1] = sphere_position[1] - central_node.Coordinates()[1];
+            center_to_sphere_vector[2] = sphere_position[2] - central_node.Coordinates()[2];
             GeometryFunctions::CrossProduct( center_to_sphere_vector, particle_forces, additional_torque );
-            center_torque += additional_torque;
+            //noalias(center_torque) += additional_torque;
+            center_torque[0] += additional_torque[0];
+            center_torque[1] += additional_torque[1];
+            center_torque[2] += additional_torque[2];
             
         }
         
@@ -200,7 +215,7 @@ namespace Kratos {
     
     void  Cluster3D::ComputeAdditionalForces( const array_1d<double,3>& gravity ){
         const double mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-        GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) += mass * gravity;                        
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) ) += mass * gravity;                        
     }
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************

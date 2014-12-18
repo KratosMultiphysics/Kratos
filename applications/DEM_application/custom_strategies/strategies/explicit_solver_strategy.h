@@ -440,7 +440,7 @@ namespace Kratos
               Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);
               
               (cluster_element).Initialize();
-              (cluster_element).CreateParticles(mpParticleCreatorDestructor, *mpDem_model_part);
+              (cluster_element).CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part);
               
           }
           
@@ -457,21 +457,24 @@ namespace Kratos
 
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
 
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-            typename ElementsArrayType::iterator it_end = pElements.ptr_end();
+            #pragma omp parallel for schedule(guided)
+            for (int k = 0; k < this->GetNumberOfThreads(); k++){
+                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+                typename ElementsArrayType::iterator it_end = pElements.ptr_end();
 
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
+                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
 
-                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                
-                cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
-                cluster_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
-                
-                (cluster_element).GetClustersForce( gravity );
-                
-            }
+                    Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
 
-            KRATOS_CATCH("")
+                    cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
+                    cluster_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
+
+                    (cluster_element).GetClustersForce( gravity );
+
+                }  // loop over clusters
+            } // loop threads OpenMP
+
+            KRATOS_CATCH("")                                                                                                            
         }
         
       
@@ -1046,7 +1049,6 @@ namespace Kratos
     {
         KRATOS_TRY
      
-        ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
         
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
@@ -1068,7 +1070,6 @@ namespace Kratos
     {
         KRATOS_TRY
      
-        ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
         
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
@@ -1292,7 +1293,7 @@ namespace Kratos
 
                 //# adding DEM elements by the inlet:
                 //if (inlet_option):
-                DEM_inlet.CreateElementsFromInletMesh(*mpDem_model_part, creator_destructor); //#After solving, to make sure that neighbours are already set.        
+                DEM_inlet.CreateElementsFromInletMesh(*mpDem_model_part, *mpCluster_model_part, creator_destructor); //#After solving, to make sure that neighbours are already set.        
 
                 incremental_time = (std::time(0) - initial_real_time) - prev_time;
 

@@ -77,8 +77,7 @@ class DEMFEMUtilities
       }
       
 
-      void MoveAllMeshes(ModelPart& r_model_part, double time, double dt)
-      {
+      void MoveAllMeshes(ModelPart& r_model_part, double time, double dt) {
           
           if ( r_model_part.NumberOfMeshes() > 1 ) {
 
@@ -125,9 +124,7 @@ class DEMFEMUtilities
                     angular_velocity_changed = angular_velocity;
                 }
 
-
                 double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
-                array_1d<double, 3 > relative_position; relative_position[0] = 0.0; relative_position[1] = 0.0; relative_position[2] = 0.0;
                 
                 array_1d<double, 3 > new_axes1;
                 new_axes1[0] = 1.0;

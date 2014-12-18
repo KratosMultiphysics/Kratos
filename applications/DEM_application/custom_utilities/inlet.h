@@ -53,7 +53,8 @@ namespace Kratos {
         
         void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString);
         void DettachElements(ModelPart& r_modelpart, unsigned int& max_Id); 
-        void CreateElementsFromInletMesh(ModelPart& r_modelpart, ParticleCreatorDestructor& creator); 
+        void DettachClusters(ModelPart& r_clusters_modelpart, unsigned int& max_Id);
+        void CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator); 
 
     private:
         
@@ -64,8 +65,6 @@ namespace Kratos {
         bool mBallsModelPartHasSphericity;
         bool mBallsModelPartHasRotation;
         std::vector<PropertiesProxy> mFastProperties;
-        std::string mElementNameString;
-
     };
 }// namespace Kratos.
 

@@ -142,8 +142,6 @@ demio.Configure(DEM_parameters.problem_name,
 
 demio.SetOutputName(DEM_parameters.problem_name)
 
-print(DEM_parameters.problem_name)
-
 os.chdir(list_path)
 
 multifiles = (
@@ -187,7 +185,6 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-
 if (DEM_parameters.dem_inlet_option):    
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -260,7 +257,6 @@ post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
 while ( time < DEM_parameters.FinalTime):
-    #print("TIME STEP BEGINS. STEP:"+str(step)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
@@ -275,10 +271,7 @@ while ( time < DEM_parameters.FinalTime):
 
     cluster_model_part.ProcessInfo[TIME]            = time
     cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
-    cluster_model_part.ProcessInfo[TIME_STEPS]      = step
-
-    #print("STEP:"+str(step)+"*******************************************")
-    #print("*************************************************************")
+    cluster_model_part.ProcessInfo[TIME_STEPS]      = step 
 
     # Perform a partition to balance the problem
     #if(not(step%(a-1))):
@@ -295,7 +288,7 @@ while ( time < DEM_parameters.FinalTime):
     
     # adding DEM elements by the inlet:
     if (DEM_parameters.dem_inlet_option):
-        DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
+        DEM_inlet.CreateElementsFromInletMesh(spheres_model_part, cluster_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.              
 
     stepinfo = report.StepiReport(timer,time,step)
     if stepinfo:
