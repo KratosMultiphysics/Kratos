@@ -206,11 +206,11 @@ void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_current_proce
             SphericParticle* is_that_me = ineighbour->mNeighbourElements[j];
 
             if (is_that_me->Id() == this->Id()){
-                mOldNeighbourElasticContactForces[i] = - ineighbour->mOldNeighbourElasticContactForces[j];
-                mOldNeighbourTotalContactForces[i]   = - ineighbour->mOldNeighbourTotalContactForces[j];
-                mContactForce += mOldNeighbourTotalContactForces[i];
+                noalias(mOldNeighbourElasticContactForces[i]) = - ineighbour->mOldNeighbourElasticContactForces[j];
+                noalias(mOldNeighbourTotalContactForces[i])  = - ineighbour->mOldNeighbourTotalContactForces[j];
+                noalias(mContactForce) += mOldNeighbourTotalContactForces[i];
                 array_1d<double, 3>& r_elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
-                r_elastic_force += mOldNeighbourElasticContactForces[i];
+                noalias(r_elastic_force) += mOldNeighbourElasticContactForces[i];
                 break;
             }
         }
@@ -779,7 +779,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
     if (iNeighborID == static_cast<int>(rObj_2->Id())){
 
         for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
-            other_to_me_vel += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
+            noalias(other_to_me_vel) += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
         }
     }
 
@@ -1437,7 +1437,7 @@ void SphericParticle::AdditionalCalculate(const Variable<double>& rVariable, dou
 //**************************************************************************************************************************************************
 
 int    SphericParticle::GetClusterId()                                                   { return mClusterId;                                                               }
-void   SphericParticle::SetClusterId(int Id)                                             { mClusterId = Id;                                                                 }
+void   SphericParticle::SetClusterId(int givenId)                                             { mClusterId = givenId;                                                                 }
 double SphericParticle::GetRadius()                                                      { return mRadius;                                                                  }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;                                                                }
 double SphericParticle::GetRealMass()                                                        { return mRealMass;                                                                }

@@ -33,7 +33,8 @@ namespace Kratos {
 
     void ForwardEulerScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
         KRATOS_TRY
-
+         
+        
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
         double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
@@ -49,6 +50,7 @@ namespace Kratos {
             NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
 
             for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
+                if (i->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
                 array_1d<double, 3 > & vel = i->FastGetSolutionStepValue(VELOCITY);
                 array_1d<double, 3 > & displ = i->FastGetSolutionStepValue(DISPLACEMENT);
                 array_1d<double, 3 > & delta_displ = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -219,10 +221,10 @@ namespace Kratos {
         vector<unsigned int> element_partition;
         ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
-        //#pragma omp parallel
-        //{
+        #pragma omp parallel
+        {
         double rotation_matrix[3][3];
-        //#pragma omp for
+        #pragma omp for
         for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
             ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
             ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
@@ -250,11 +252,11 @@ namespace Kratos {
                 GeometryFunctions::VectorGlobal2Local(rotation_matrix, RotaMoment, LocalRotaMoment);
                 GeometryFunctions::VectorGlobal2Local(rotation_matrix, AngularVel, LocalAngularVel);
 
-                for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
                     //Euler equations in Explicit (Forward Euler) scheme:
-                    LocalRotaAcc[i] = (LocalRotaMoment[i] - (LocalAngularVel[(i + 1) % 3] * PMomentsOfInertia[(i + 2) % 3] * LocalAngularVel[(i + 2) % 3] - LocalAngularVel[(i + 2) % 3] * PMomentsOfInertia[(i + 1) % 3] * LocalAngularVel[(i + 1) % 3])) / PMomentsOfInertia[i];
+                    LocalRotaAcc[j] = (LocalRotaMoment[j] - (LocalAngularVel[(j + 1) % 3] * PMomentsOfInertia[(j + 2) % 3] * LocalAngularVel[(j + 2) % 3] - LocalAngularVel[(j + 2) % 3] * PMomentsOfInertia[(j + 1) % 3] * LocalAngularVel[(j + 1) % 3])) / PMomentsOfInertia[j];
                     if (if_virtual_mass_option) {
-                        LocalRotaAcc[i] = LocalRotaAcc[i] * (1 - coeff);
+                        LocalRotaAcc[j] = LocalRotaAcc[j] * (1 - coeff);
                     }
                 }
 
@@ -267,14 +269,14 @@ namespace Kratos {
                 If_Fix_Rotation[1] = i.Is(DEMFlags::FIXED_ANG_VEL_Y);
                 If_Fix_Rotation[2] = i.Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                for (int i = 0; i < 3; i++) {
-                    if (If_Fix_Rotation[i] == false) {
-                        AngularVel[i] += GlobalRotaAcc[i] * delta_t;
-                        delta_rotation_displ[i] = AngularVel[i] * delta_t; // TODO: CHECK ORDER HERE. DONE DIFFERENTLY IN PARTICLES If I calculate delta_rotation_displ before updating AngularVel, and is always 0!!
-                        Rota_Displace[i] += delta_rotation_displ[i];
+                for (int j = 0; j < 3; j++) {
+                    if (If_Fix_Rotation[j] == false) {
+                        AngularVel[j] += GlobalRotaAcc[j] * delta_t;
+                        delta_rotation_displ[j] = AngularVel[j] * delta_t; // TODO: CHECK ORDER HERE. DONE DIFFERENTLY IN PARTICLES If I calculate delta_rotation_displ before updating AngularVel, and is always 0!!
+                        Rota_Displace[j] += delta_rotation_displ[j];
                     } else {
-                        AngularVel[i] = 0.0;
-                        delta_rotation_displ[i] = 0.0;
+                        AngularVel[j] = 0.0;
+                        delta_rotation_displ[j] = 0.0;
                     }
                 }
 
@@ -333,7 +335,7 @@ namespace Kratos {
                 cluster_element.UpdatePositionOfSpheres(rotation_matrix, delta_t);
             } //for Elements
         } //for number of threads
-        //} //End of parallel region
+        } //End of parallel region
 
         KRATOS_CATCH(" ")
     }//rotational_motion   

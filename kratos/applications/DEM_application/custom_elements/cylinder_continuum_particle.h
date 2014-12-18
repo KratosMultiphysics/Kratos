@@ -132,15 +132,14 @@ namespace Kratos
       
       void Initialize();
       virtual void ContactAreaWeighting2D();
-      void AddNeighbourContributionToStressTensor(double mStressTensor[3][3],    
-                                                            double GlobalElasticContactForce[3],
-                                                            array_1d<double,3> &other_to_me_vect,
-                                                            const double &distance,
-                                                            const double &radius_sum,
-                                                            const double &calculation_area,
-                                                            ParticleWeakIteratorType neighbour_iterator, 
-                                                            ProcessInfo& rCurrentProcessInfo, 
-                                                            double &rRepresentative_Volume);
+      void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
+                                                array_1d<double,3> &other_to_me_vect,
+                                                const double &distance,
+                                                const double &radius_sum,
+                                                const double &calculation_area,
+                                                ParticleWeakIteratorType neighbour_iterator, 
+                                                ProcessInfo& rCurrentProcessInfo, 
+                                                double &rRepresentative_Volume);
 
       //ParticleWeakVectorType mrNeighbours;
 

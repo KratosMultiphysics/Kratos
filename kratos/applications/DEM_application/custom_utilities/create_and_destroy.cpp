@@ -85,6 +85,8 @@ namespace Kratos {
                                                                     bool has_sphericity,
                                                                     bool has_rotation,
                                                                     bool initial) {
+        
+        array_1d<double, 3 > null_vector(3, 0.0);
 
         double bx = reference_node->X();
         double cy = reference_node->Y();
@@ -94,9 +96,7 @@ namespace Kratos {
             pnew_node = reference_node;
             r_modelpart.AddNode(pnew_node); // The same node is added to r_modelpart (the calculation model part)
             pnew_node->SetId(aId);
-            pnew_node->FastGetSolutionStepValue(VELOCITY)[0] = 0.0;
-            pnew_node->FastGetSolutionStepValue(VELOCITY)[1] = 0.0;
-            pnew_node->FastGetSolutionStepValue(VELOCITY)[2] = 0.0;
+            pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
             //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
         }
         else {
@@ -104,7 +104,7 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(VELOCITY) = params[VELOCITY];
         }
 
-        if (has_rotation) {
+        if (has_rotation && pnew_node->SolutionStepsDataHas(PARTICLE_ROTATION_DAMP_RATIO) ) {
             pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
         }
 
@@ -112,26 +112,28 @@ namespace Kratos {
             pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY) = params[PARTICLE_SPHERICITY];
         }
 
-        pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
-        array_1d<double, 3 > null_vector(3, 0.0);
+        pnew_node->FastGetSolutionStepValue(RADIUS) = radius;        
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
         pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
 
-        if (pnew_node->SolutionStepsDataHas(SOLID_FRACTION_PROJECTED)) {
-            pnew_node->GetSolutionStepValue(SOLID_FRACTION_PROJECTED) = 0.0;
+        //The next section is commented because initialization to 0 is done automatically of all variables in GetSolutionStepvariable
+        /*if (pnew_node->SolutionStepsDataHas(SOLID_FRACTION_PROJECTED)) {
+            pnew_node->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED) = 0.0;
         }
-
+        
         if (pnew_node->SolutionStepsDataHas(MESH_VELOCITY1)) {
-            pnew_node->GetSolutionStepValue(MESH_VELOCITY1_X) = 0.0;
-            pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Y) = 0.0;
-            pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Z) = 0.0;
+            pnew_node->SolutionStepsDataHas(MESH_VELOCITY1) = null_vector
+            //pnew_node->FastGetSolutionStepValue(MESH_VELOCITY1_X) = 0.0;
+            //pnew_node->FastGetSolutionStepValue(MESH_VELOCITY1_Y) = 0.0;
+            //pnew_node->FastGetSolutionStepValue(MESH_VELOCITY1_Z) = 0.0;
         }
 
         if (pnew_node->SolutionStepsDataHas(DRAG_REACTION)) {
-            pnew_node->GetSolutionStepValue(DRAG_REACTION_X) = 0.0;
-            pnew_node->GetSolutionStepValue(DRAG_REACTION_Y) = 0.0;
-            pnew_node->GetSolutionStepValue(DRAG_REACTION_Z) = 0.0;
-        }
+            pnew_node->SolutionStepsDataHas(DRAG_REACTION) = null_vector
+            //pnew_node->FastGetSolutionStepValue(DRAG_REACTION_X) = 0.0;
+            //pnew_node->FastGetSolutionStepValue(DRAG_REACTION_Y) = 0.0;
+            //pnew_node->FastGetSolutionStepValue(DRAG_REACTION_Z) = 0.0;
+        }*/
 
         pnew_node->AddDof(VELOCITY_X, REACTION_X);
         pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
@@ -292,6 +294,78 @@ namespace Kratos {
 
         r_modelpart.Elements().push_back(p_particle);
         return spheric_p_particle;
+    }    
+    
+    void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                                                        ModelPart& r_clusters_modelpart,
+                                                                        int r_Elem_Id,
+                                                                        Node < 3 > ::Pointer reference_node,
+                                                                        Element::Pointer injector_element,
+                                                                        Properties::Pointer r_params,
+                                                                        const Element& r_reference_element,
+                                                                        PropertiesProxy* p_fast_properties,
+                                                                        bool has_sphericity,
+                                                                        bool has_rotation,
+                                                                        bool initial,
+                                                                        ElementsContainerType& array_of_injector_elements,
+                                                                        int& number_of_added_spheres) {
+        
+        
+        Node < 3 > ::Pointer pnew_node;
+
+        double radius = (*r_params)[RADIUS];
+        double max_radius = 1.5 * radius;
+
+        if (initial) {
+            radius = max_radius;
+        } else {
+            double std_deviation = (*r_params)[STANDARD_DEVIATION];
+            double min_radius = 0.5 * radius;
+            radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+        }
+
+        NodeCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial);
+        
+        pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
+
+        Geometry< Node < 3 > >::PointsArrayType nodelist;
+
+        nodelist.push_back(pnew_node);
+
+        Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
+
+        if (initial) {
+            array_of_injector_elements.push_back(p_particle);
+            p_particle->Set(BLOCKED);
+            pnew_node->Set(BLOCKED);
+        }
+        else {
+            Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_particle.get());
+            p_cluster->Initialize();
+            ParticleCreatorDestructor* creator_destructor_ptr = this;
+            p_cluster->CreateParticles(creator_destructor_ptr, r_modelpart);
+            number_of_added_spheres = p_cluster->GetNumberOfSpheres();
+            
+            Kratos::SphericParticle* injector_spheric_particle = dynamic_cast<Kratos::SphericParticle*> (injector_element.get());
+            
+            for(unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++){ 
+                Kratos::SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
+                injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
+                spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
+                spheric_p_particle->Set(NEW_ENTITY);
+                spheric_p_particle->GetGeometry()[0].Set(NEW_ENTITY);
+                //spheric_p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());  //protected!!
+                spheric_p_particle->SetFastProperties(p_fast_properties);
+            }
+        }
+
+        p_particle->Set(NEW_ENTITY);
+        pnew_node->Set(NEW_ENTITY);            
+        
+        if (has_rotation) p_particle->Set(DEMFlags::HAS_ROTATION, true);
+        else p_particle->Set(DEMFlags::HAS_ROTATION, false);
+
+        r_clusters_modelpart.Elements().push_back(p_particle);                
     }
 
     void ParticleCreatorDestructor::CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part,
@@ -340,9 +414,6 @@ namespace Kratos {
                 }
             }
 
-            if (r_clusters_model_part.NumberOfElements(0)) {
-            } // loop over clusters
-
             if (r_rigid_faces_model_part.NumberOfConditions(0)) { // loop over rigid faces
                 ModelPart::ConditionsContainerType Conditions = r_rigid_faces_model_part.GetCommunicator().LocalMesh().Conditions();
 
@@ -360,10 +431,10 @@ namespace Kratos {
                 }
 
                 for (ModelPart::ConditionsContainerType::iterator particle_pointer_it = Conditions.begin(); particle_pointer_it != Conditions.end(); ++particle_pointer_it) {
-                    std::size_t n_nodes = (*(particle_pointer_it.base()))->GetGeometry().size();
-                    face_coor.resize(n_nodes);
+                    std::size_t n_cond_nodes = (*(particle_pointer_it.base()))->GetGeometry().size();
+                    face_coor.resize(n_cond_nodes);
 
-                    for (std::size_t i = 0; i < n_nodes; ++i) {
+                    for (std::size_t i = 0; i < n_cond_nodes; ++i) {
                         face_coor[i] = (*(particle_pointer_it.base()))->GetGeometry()[i].Coordinates();
 
                         for (std::size_t j = 0; j < 3; j++) {

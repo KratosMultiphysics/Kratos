@@ -170,11 +170,9 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
         GetGeometry()[i].SetLock();
 
         array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-        for(unsigned int j=0; j<dimension; j++)
-          {
-        ExternalForce[j] += rRHS[index + j];
-       // KRATOS_WATCH(rRHS[index + j])
-          }
+        for(unsigned int j=0; j<dimension; j++) {
+            ExternalForce[j] += rRHS[index + j];
+        }
 
         GetGeometry()[i].UnSetLock();
       }

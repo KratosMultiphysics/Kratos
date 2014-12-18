@@ -81,7 +81,21 @@ public:
                                               bool has_sphericity,
                                               bool has_rotation,
                                               bool initial,
-                                              ElementsContainerType& array_of_injector_elements);         
+                                              ElementsContainerType& array_of_injector_elements);  
+    
+    void ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                            ModelPart& r_clusters_modelpart,
+                                            int r_Elem_Id,
+                                            Node < 3 > ::Pointer reference_node,
+                                            Element::Pointer injector_element,
+                                            Properties::Pointer r_params,
+                                            const Element& r_reference_element,
+                                            PropertiesProxy* p_fast_properties,
+                                            bool has_sphericity,
+                                            bool has_rotation,
+                                            bool initial,
+                                            ElementsContainerType& array_of_injector_elements,
+                                            int& number_of_added_spheres);
     
     
     void NodeCreatorForClusters(ModelPart& r_modelpart, 

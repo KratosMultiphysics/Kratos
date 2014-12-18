@@ -235,10 +235,13 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
         
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
-        model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)     
+        model_part.AddNodalSolutionStepVariable(NODAL_MASS)     
         model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
         model_part.AddNodalSolutionStepVariable(RADIUS)
         model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+        
+        # Not really necessary but it is filled by inlet
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
 
     def AddMpiVariables(self, model_part):
         pass
@@ -540,7 +543,6 @@ class DEMFEMProcedures(object):
         self.graph_forces = {}  
         
         if self.TestType == "None":  
-          print (self.graphs_path)
           open_graph_files(self,RigidFace_model_part)            
 
         # SIMULATION SETTINGS

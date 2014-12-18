@@ -53,9 +53,7 @@ namespace Kratos {
       
     
     void PillCluster3D::CustomInitialize() {
-        
-        //total number of spheres in the circumference is 37 + 2 * 36 + 35 = 144
-        //each of the four (1/4)circles divided into 36 sectors
+
         int number_of_spheres_in_first_sector = 6;
         int number_of_passes = 5;
         int number_of_spheres_per_pass = 4 * number_of_spheres_in_first_sector - 4;

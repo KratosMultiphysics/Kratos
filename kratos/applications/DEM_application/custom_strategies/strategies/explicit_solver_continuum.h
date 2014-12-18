@@ -56,14 +56,14 @@ namespace Kratos
                              const double max_delta_time,
                              const double n_step_search,
                              const double safety_factor,
-                             const bool MoveMeshFlag, //TODO: is this variable used??
+                             const bool move_mesh_flag, //TODO: is this variable used??
                              const int    delta_option,
                              const double search_tolerance,
                              const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
-      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, cluster_model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch)
+      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, cluster_model_part, max_delta_time, n_step_search, safety_factor, move_mesh_flag, delta_option, search_tolerance, coordination_number, p_creator_destructor, pScheme, pSpSearch)
       {
 
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
@@ -113,7 +113,7 @@ namespace Kratos
           }                               
       }
       
-      void SearchNeighboursInContinuum() {
+      void SearchNeighboursInContinuum(const bool has_mpi) {
           KRATOS_TRY
                   
           ModelPart& r_model_part           = BaseType::GetModelPart();
@@ -129,10 +129,7 @@ namespace Kratos
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles); 
           this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
           this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
-
-          bool has_mpi = false;
-          VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
-          if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
+          
           if(has_mpi){
             BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
             BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
@@ -270,7 +267,11 @@ namespace Kratos
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           int time_step                     = rCurrentProcessInfo[TIME_STEPS];
-          mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];                    
+          mFixSwitch                        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];   
+          
+          bool has_mpi = false;
+          VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
+          if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
                    
           // 0. Initialize step   /////////////////////////////////            
           BaseType::InitializeSolutionStep();
@@ -301,7 +302,7 @@ namespace Kratos
                         this->BoundingBoxUtility();                        
                     }
 
-                    SearchNeighboursInContinuum(); 
+                    SearchNeighboursInContinuum(has_mpi); 
 
                     ComputeNewNeighboursHistoricalData();
 
@@ -309,8 +310,8 @@ namespace Kratos
                     BaseType::SearchRigidFaceNeighbours();
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
 
-                    if (this->GetBoundingBoxOption() == 1) {
-                        if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {
+                    if (this->GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
+                        if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {                            
                             this->CreateContactElements();
                             this->InitializeContactElements();
                             rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
