@@ -98,8 +98,8 @@
         char options[128];
         strcpy(filename,argv[1]);
         strcpy(options,"r");
-        PyObject* PyFileObject = PyFile_FromString(filename, options);
-        int error_code = PyRun_SimpleFile(PyFile_AsFile(PyFileObject), argv[1]);
+        PyObject* MyPyFileObject = PyFile_FromString(filename, options);
+        int error_code = PyRun_SimpleFile(PyFile_AsFile(MyPyFileObject), argv[1]);
 
         Py_Finalize();
 
