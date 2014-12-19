@@ -3,16 +3,16 @@ import math
 import copy
 import random
 import sys
+
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
-
-import swimming_DEM_gid_output
 import ProjectParameters
-kratos_benchmarking_path = '../../../benchmarking'
+
+kratos_benchmarking_path = '../../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
-import benchmarking
+Header = "KRATOS_BENCHMARK"
 
 def AddVariables(model_part, pp):
     AddNodalVariables(model_part)
@@ -23,6 +23,7 @@ def InitializeVariables(model_part, pp):
     AddAndInitializeProcessInfoVariables(model_part, pp)       
 
 def InitializeNodalVariables(model_part, pp):
+    
     for node in model_part.Nodes:
         node.X = pp.coor_x
         node.Y = pp.coor_y
@@ -208,6 +209,16 @@ def AddDofs(model_part):
         node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
         node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
         node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
+
+def InsertHeader(my_string):
+    lines = my_string.split('\n')
+ 
+    my_string = ""
+    
+    for line in lines:
+        my_string += "\n" + Header + line
+        
+    return my_string
  
 def PadWithSpaces(lines):    
     widths = GetColumsMaxWidths(lines, 2)
@@ -276,7 +287,7 @@ def Normalize(v, modulus = 1.0):
         v[2] *= coeff
         
 def Cross(u, v):
-    w = Array3()
+    w = Vector(3)
     w[0] = u[1] * v[2] - u[2] * v[1]
     w[1] = u[2] * v[0] - u[0] * v[2]
     w[2] = u[0] * v[1] - u[1] * v[0]
@@ -284,7 +295,7 @@ def Cross(u, v):
     return w
         
 def RandomVector(modulus = 1.0):
-    v = Array3()
+    v = Vector(3)
     v[0] = random.choice([-1, 1]) * random.random()
     v[1] = random.choice([-1, 1]) * random.random()
     v[2] = random.choice([-1, 1]) * random.random()
@@ -836,7 +847,7 @@ def Run(debug_mode = False):
     #***************************************************************************************************************************
     buoyancy_test_1 = BuoyancyBenchmark(pp, 1, 1, pressure_gradient, "Standard")
 
-    buoyancy_target_1 = Array3()
+    buoyancy_target_1 = Vector(3)
     volume = 4.0/3.0 * math.pi * buoyancy_test_1.pp.radius ** 3
     buoyancy_target_1[0] = - volume * pressure_gradient[0]
     buoyancy_target_1[1] = - volume * pressure_gradient[1]
@@ -846,7 +857,7 @@ def Run(debug_mode = False):
     #***************************************************************************************************************************
     buoyancy_test_2 = BuoyancyBenchmark(pp, 1, 2, pressure_gradient, "Weatherford: hydrostatic buoyancy")
     volume = 4/3 * math.pi * buoyancy_test_2.pp.radius ** 3
-    buoyancy_target_2 = Array3()
+    buoyancy_target_2 = Vector(3)
     buoyancy_target_2[0] = 0.0
     buoyancy_target_2[1] = 0.0
     buoyancy_target_2[2] = - buoyancy_test_2.pp.gravity_z * volume * buoyancy_test_2.pp.fluid_density
@@ -878,7 +889,7 @@ def Run(debug_mode = False):
     viscosity = drag_test_1.pp.kinematic_viscosity
     density = drag_test_1.pp.fluid_density
     radius = drag_test_1.pp.radius
-    slip_vel = Array3()
+    slip_vel = Vector(3)
     slip_vel[0] = drag_test_1.pp.fluid_velocity_x - drag_test_1.pp.velocity_x
     slip_vel[1] = drag_test_1.pp.fluid_velocity_y - drag_test_1.pp.velocity_y
     slip_vel[2] = drag_test_1.pp.fluid_velocity_z - drag_test_1.pp.velocity_z
@@ -980,7 +991,7 @@ def Run(debug_mode = False):
     virtual_mass_test_0.Test(model_part, benchmark_utils, virtual_mass_target_0)
     #***************************************************************************************************************************
     virtual_mass_test_1 = VirtualMassBenchmark(pp, 1, acceleration_number, fluid_fraction, "Stokes regime")
-    slip_accel = Array3()
+    slip_accel = Vector(3)
     slip_accel[0] = virtual_mass_test_1.pp.fluid_acceleration_x - virtual_mass_test_1.pp.accel_x
     slip_accel[1] = virtual_mass_test_1.pp.fluid_acceleration_y - virtual_mass_test_1.pp.accel_y
     slip_accel[2] = virtual_mass_test_1.pp.fluid_acceleration_z - virtual_mass_test_1.pp.accel_z
@@ -992,7 +1003,7 @@ def Run(debug_mode = False):
     #***************************************************************************************************************************
     fluid_fraction = 0.6
     virtual_mass_test_2 = VirtualMassBenchmark(pp, 2, acceleration_number, fluid_fraction, "Zuber, fluid fraction = " + str(fluid_fraction))
-    slip_accel = Array3()
+    slip_accel = Vector(3)
     slip_accel[0] = virtual_mass_test_2.pp.fluid_acceleration_x - virtual_mass_test_2.pp.accel_x
     slip_accel[1] = virtual_mass_test_2.pp.fluid_acceleration_y - virtual_mass_test_2.pp.accel_y
     slip_accel[2] = virtual_mass_test_2.pp.fluid_acceleration_z - virtual_mass_test_2.pp.accel_z
@@ -1004,7 +1015,7 @@ def Run(debug_mode = False):
     #***************************************************************************************************************************
     acceleration_number = 3.6
     virtual_mass_test_3 = VirtualMassBenchmark(pp, 3, acceleration_number, fluid_fraction, "Odar and Hamilton, acceleration number = " + str(acceleration_number))
-    slip_accel = Array3()
+    slip_accel = Vector(3)
     slip_accel[0] = virtual_mass_test_3.pp.fluid_acceleration_x - virtual_mass_test_3.pp.accel_x
     slip_accel[1] = virtual_mass_test_3.pp.fluid_acceleration_y - virtual_mass_test_3.pp.accel_y
     slip_accel[2] = virtual_mass_test_3.pp.fluid_acceleration_z - virtual_mass_test_3.pp.accel_z
@@ -1018,7 +1029,7 @@ def Run(debug_mode = False):
     fluid_fraction = 0.6
     acceleration_number = 3.6
     virtual_mass_test_4 = VirtualMassBenchmark(pp, 4, acceleration_number, fluid_fraction, "Odar + Zuber; fluid frac. = " + str(fluid_fraction) + ", acc. num. = " + str(acceleration_number))
-    slip_accel = Array3()
+    slip_accel = Vector(3)
     slip_accel[0] = virtual_mass_test_4.pp.fluid_acceleration_x - virtual_mass_test_4.pp.accel_x
     slip_accel[1] = virtual_mass_test_4.pp.fluid_acceleration_y - virtual_mass_test_4.pp.accel_y
     slip_accel[2] = virtual_mass_test_4.pp.fluid_acceleration_z - virtual_mass_test_4.pp.accel_z
@@ -1047,9 +1058,9 @@ def Run(debug_mode = False):
     reynolds_shear = 1.0
     saffman_test_1 = SaffmanBenchmark(pp, 2, reynolds, reynolds_shear, "Mei, Re = " + str(reynolds) + ", Re_shear = " + str(reynolds_shear))
 
-    vel = Array3()
-    fluid_vel = Array3()
-    vort = Array3()
+    vel = Vector(3)
+    fluid_vel = Vector(3)
+    vort = Vector(3)
     vel[0] = saffman_test_1.pp.velocity_x
     vel[1] = saffman_test_1.pp.velocity_y
     vel[2] = saffman_test_1.pp.velocity_z
@@ -1088,9 +1099,9 @@ def Run(debug_mode = False):
     reynolds_shear = 3.0
     saffman_test_2 = SaffmanBenchmark(pp, 2, reynolds, reynolds_shear, "Mei, Re = " + str(reynolds) + ", Re_shear = " + str(reynolds_shear))
 
-    vel = Array3()
-    fluid_vel = Array3()
-    vort = Array3()
+    vel = Vector(3)
+    fluid_vel = Vector(3)
+    vort = Vector(3)
     vel[0] = saffman_test_2.pp.velocity_x
     vel[1] = saffman_test_2.pp.velocity_y
     vel[2] = saffman_test_2.pp.velocity_z
@@ -1143,10 +1154,10 @@ def Run(debug_mode = False):
     reynolds_rot = 1.0
     magnus_test_1 = MagnusBenchmark(pp, 2, reynolds, reynolds_rot, "Oesterle, Re = " + str(reynolds) + ", Re_rot = " + str(reynolds_rot))
 
-    vel = Array3()
-    fluid_vel = Array3()
-    vort = Array3()
-    ang_vel = Array3()
+    vel = Vector(3)
+    fluid_vel = Vector(3)
+    vort = Vector(3)
+    ang_vel = Vector(3)
 
     vel[0] = magnus_test_1.pp.velocity_x
     vel[1] = magnus_test_1.pp.velocity_y
@@ -1185,10 +1196,10 @@ def Run(debug_mode = False):
     reynolds_rot = 3.0
     magnus_test_2 = MagnusBenchmark(pp, 2, reynolds, reynolds_rot, "Oesterle, Re = " + str(reynolds) + ", Re_rot = " + str(reynolds_rot))
 
-    vel = Array3()
-    fluid_vel = Array3()
-    vort = Array3()
-    ang_vel = Array3()
+    vel = Vector(3)
+    fluid_vel = Vector(3)
+    vort = Vector(3)
+    ang_vel = Vector(3)
 
     vel[0] = magnus_test_2.pp.velocity_x
     vel[1] = magnus_test_2.pp.velocity_y
@@ -1240,8 +1251,8 @@ def Run(debug_mode = False):
     reynolds_rot = 1.0
     torque_test_1 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds_rot))
 
-    vort = Array3()
-    ang_vel = Array3()
+    vort = Vector(3)
+    ang_vel = Vector(3)
 
     vort[0] = torque_test_1.pp.fluid_vorticity_x
     vort[1] = torque_test_1.pp.fluid_vorticity_y
@@ -1272,8 +1283,8 @@ def Run(debug_mode = False):
     reynolds_rot = 500
     torque_test_2 = TorqueBenchmark(pp, 1, reynolds_rot, "Dennis, Re_rot = " + str(reynolds_rot))
 
-    vort = Array3()
-    ang_vel = Array3()
+    vort = Vector(3)
+    ang_vel = Vector(3)
 
     vort[0] = torque_test_2.pp.fluid_vorticity_x
     vort[1] = torque_test_2.pp.fluid_vorticity_y
@@ -1308,7 +1319,7 @@ def Run(debug_mode = False):
     if Benchmark.number_of_fails > 0:
         Benchmark.text_to_print += "\n\nWARNING!!!\n"
         
-    Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"   
+    Benchmark.text_to_print += "\nTotal number of fails (hydrodyamic forces): " + str(Benchmark.number_of_fails) + "\n"
         
     return Benchmark.text_to_print
 
