@@ -109,15 +109,21 @@ class MonolithicSolver:
         # new solvers
         self.gmres_size = 200
         self.iterations = 200
-        self.tol = 1e-5
+        self.tol = 1e-3 #Before 1e-5
         self.verbosity = 1
-        self.linear_solver = AMGCLSolver(
+        self.linear_solver = ScalingSolver(AMGCLSolver(
             AMGCLSmoother.ILU0,
-            AMGCLIterativeSolverType.GMRES, #BICGSTAB_WITH_GMRES_FALLBACK,
+            AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK, #AMGCLIterativeSolverType.GMRES, #BICGSTAB_WITH_GMRES_FALLBACK,
             self.tol,
             self.iterations,
             self.verbosity,
-            self.gmres_size)
+            self.gmres_size),True)
+        print("#####################################")
+        print("#### LINEAR SOLVER               ####")
+        print("#####################################")
+        print(self.linear_solver)
+        print("#####################################")
+#### PRUEBA a ver 
 
         # definition of the convergence criteria
         self.rel_vel_tol = 1e-5
