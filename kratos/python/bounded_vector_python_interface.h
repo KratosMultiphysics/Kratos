@@ -299,7 +299,7 @@ public:
                //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, mapped_vector<double> >())
                //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, compressed_vector<double> >())
                //	.def(BoundedVectorVectorAssignmentOperatorPython<TContainerType, coordinate_vector<double> >())
-               //	.def(self_ns::str(self))
+               .def(self_ns::str(self))
                ;
     }
 
