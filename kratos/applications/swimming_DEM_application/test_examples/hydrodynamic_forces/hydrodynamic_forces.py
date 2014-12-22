@@ -3,12 +3,15 @@ import math
 import copy
 import random
 import sys
+import os
 
+sys.stdout = open(os.devnull, 'w')
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
 import ProjectParameters
+sys.stdout = sys.__stdout__
 
 kratos_benchmarking_path = '../../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
@@ -329,7 +332,7 @@ class Benchmark:
         else:
             word = "Fail"
             
-        return [str(results[0]), str(results[1]), str(results[2]), "{:.2e}".format(results[3]), word]
+        return [str(results[0]), str(results[1]), str(results[2]), "{0:.2e}".format(results[3]), word]
     
     @staticmethod
     def PrintResults(title, tests, debug_mode = True):
