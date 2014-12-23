@@ -434,9 +434,20 @@ public:
         return mBox.Center;
     }
 
+    virtual TPointType GetCenter(const TPointType& rPoint)
+    {
+       return this->GetCenter();
+    }
+
+
     virtual double GetRadius()
     {
         return mBox.Radius;
+    }
+
+    virtual double GetRadius(const TPointType& rPoint)
+    {
+       return this->GetRadius();
     }
 
     virtual void SetRadius(double& rRadius)
