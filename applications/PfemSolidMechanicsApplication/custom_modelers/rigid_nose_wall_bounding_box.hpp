@@ -249,6 +249,16 @@ public:
         return mBox.Radius;
     }
 
+    virtual double GetRadius(const TPointType& rPoint)
+    {
+       return Radius(rPoint);
+    }
+
+    virtual TPointType GetCenter(const TPointType& rPoint)
+    {
+       return Center(rPoint);
+    }
+
     void SetRadius(double& rRadius)
     {
       //used to set a comparisson radius

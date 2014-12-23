@@ -633,6 +633,7 @@ namespace Kratos
 
     ////////////////////////////////////////////////////////////
     RefineBoundary (rModelPart,rMeshingVariables,MeshId);
+
     ////////////////////////////////////////////////////////////
 
     rMeshingVariables.RefiningOptions.Reset(MeshModeler::REFINE_BOUNDARY);
@@ -2070,979 +2071,980 @@ namespace Kratos
   //*******************************************************************************************
 
   void TriangularMesh2DModeler::RefineBoundary(ModelPart& rModelPart,
-					       MeshingVariables& rMeshingVariables,
-					       ModelPart::IndexType MeshId)
+        MeshingVariables& rMeshingVariables,
+        ModelPart::IndexType MeshId)
   {
 
-    KRATOS_TRY
+     KRATOS_TRY
 
-    if( this->GetEchoLevel() > 0 ){
-      std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
-      //std::cout<<"   Nodes and Conditions : "<<rModelPart.Nodes(MeshId).size()<<", "<<rModelPart.Conditions(MeshId).size()<<std::endl;
-    }
+        if( this->GetEchoLevel() > 0 ){
+           std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
+           //std::cout<<"   Nodes and Conditions : "<<rModelPart.Nodes(MeshId).size()<<", "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+        }
 
-    rMeshingVariables.RemeshInfo.InsertedConditions     = rModelPart.NumberOfConditions(MeshId);
-    rMeshingVariables.RemeshInfo.InsertedBoundaryNodes = rModelPart.NumberOfNodes(MeshId);
-    
-    //***SIZES :::: parameters do define the tolerance in mesh size: 
-    
-    //DEFORMABLE CONTACT:
-    double factor_for_tip_radius     = 0.2; //deformable contact tolerance in radius for detection tip sides to refine
-    double factor_for_non_tip_side   = 3.0; // will be multiplied for nodal_h of the master node to compare with boundary nodes average nodal_h in a contact conditio which master node do not belongs to a tip
+     rMeshingVariables.RemeshInfo.InsertedConditions     = rModelPart.NumberOfConditions(MeshId);
+     rMeshingVariables.RemeshInfo.InsertedBoundaryNodes = rModelPart.NumberOfNodes(MeshId);
 
-    double size_for_tip_contact_side      = 0.4 * rMeshingVariables.Refine.CriticalSide; // length size for the contact tip side
-    double size_for_non_tip_contact_side  = 2.0 * rMeshingVariables.Refine.CriticalSide; //compared with contact size wich master node do not belongs to a tip
+     //***SIZES :::: parameters do define the tolerance in mesh size: 
 
-    //RIGID WALL CONTACT:
-    double size_for_wall_tip_contact_side      = 0.50 * rMeshingVariables.Refine.CriticalSide; 
-    double size_for_wall_semi_tip_contact_side = 0.75 * rMeshingVariables.Refine.CriticalSide; // semi contact or contact which a node in a tip
-    double size_for_wall_non_tip_contact_side  = 1.25 * rMeshingVariables.Refine.CriticalSide; // semi contact or contact which no node in a tip
-    
-    //NON CONTACT:
-    double size_for_energy_side                = 1.50 * rMeshingVariables.Refine.CriticalSide; // non contact side which dissipates energy
-    double size_for_non_contact_side           = 3.0  * rMeshingVariables.Refine.CriticalSide;
+     //DEFORMABLE CONTACT:
+     double factor_for_tip_radius     = 0.2; //deformable contact tolerance in radius for detection tip sides to refine
+     double factor_for_non_tip_side   = 3.0; // will be multiplied for nodal_h of the master node to compare with boundary nodes average nodal_h in a contact conditio which master node do not belongs to a tip
 
+     double size_for_tip_contact_side      = 0.4 * rMeshingVariables.Refine.CriticalSide; // length size for the contact tip side
+     double size_for_non_tip_contact_side  = 2.0 * rMeshingVariables.Refine.CriticalSide; //compared with contact size wich master node do not belongs to a tip
 
-    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    SpatialBoundingBox RefiningBox (rMeshingVariables.BoundingBox.Center,rMeshingVariables.BoundingBox.Radius,rMeshingVariables.BoundingBox.Velocity);
+     //RIGID WALL CONTACT:
+     double size_for_wall_tip_contact_side      = 0.50 * rMeshingVariables.Refine.CriticalSide; 
+     double size_for_wall_semi_tip_contact_side = 0.75 * rMeshingVariables.Refine.CriticalSide; // semi contact or contact which a node in a tip
+     double size_for_wall_non_tip_contact_side  = 1.25 * rMeshingVariables.Refine.CriticalSide; // semi contact or contact which no node in a tip
 
-    unsigned int  conditions_size = 0;
-
-    //counters:
-    int total_contact_conditions = 0;
-    int number_contacts_domain   = 0;
-    int number_contacts_active   = 0;
-    int contact_size   = 0;   
-    int contact_tip    = 0;
-    int exterior_bound = 0;
-    int tip_bound      = 0;
-    int energy_bound   = 0;
+     //NON CONTACT:
+     double size_for_energy_side                = 1.50 * rMeshingVariables.Refine.CriticalSide; // non contact side which dissipates energy
+     double size_for_non_contact_side           = 3.0  * rMeshingVariables.Refine.CriticalSide;
 
 
+     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+     SpatialBoundingBox RefiningBox (rMeshingVariables.BoundingBox.Center,rMeshingVariables.BoundingBox.Radius,rMeshingVariables.BoundingBox.Velocity);
 
-    //*********************************************************************************
-    // DETECTION OF NODES ON TIP CONTACTS START
-    //*********************************************************************************
-    
-    unsigned int nodes_on_wall_tip = 0;
-    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
-      {
-	if( mModelerUtilities.CheckNodeCloseWallTip(rMeshingVariables.RigidWalls,(*in),CurrentProcessInfo,factor_for_tip_radius) ){
-	  in->Set(TO_SPLIT);
-	  nodes_on_wall_tip ++;
-	}
+     unsigned int  conditions_size = 0;
 
-      }
-
-    if( this->GetEchoLevel() > 0 )
-      std::cout <<"   [ NODES ON WALL TIP: ( " <<nodes_on_wall_tip <<" ) ]"<<std::endl;
-
-    //*********************************************************************************
-    // DETECTION OF NODES ON TIP CONTACTS END
-    //*********************************************************************************
-   
-    
+     //counters:
+     int total_contact_conditions = 0;
+     int number_contacts_domain   = 0;
+     int number_contacts_active   = 0;
+     int contact_size   = 0;   
+     int contact_tip    = 0;
+     int exterior_bound = 0;
+     int tip_bound      = 0;
+     int energy_bound   = 0;
 
 
-    //if the insert switches are activated, we check if the boundaries got too coarse
-    if (rMeshingVariables.RefiningOptions.Is(MeshModeler::REFINE_INSERT_NODES) && rMeshingVariables.RefiningOptions.Is(MeshModeler::REFINE_BOUNDARY) )
-      {
 
-	PointVector list_of_nodes;
-	std::vector<Condition::Pointer> list_of_conditions;
-	    
-	conditions_size = rModelPart.Conditions(MeshId).size();
-	list_of_nodes.reserve(conditions_size);
-	list_of_conditions.reserve(conditions_size);
+     //*********************************************************************************
+     // DETECTION OF NODES ON TIP CONTACTS START
+     //*********************************************************************************
 
-	// std::vector<int> nodes_ids;
-	// nodes_ids.resize(rModelPart.Conditions().size()); //mesh 0
-	// std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
+     unsigned int nodes_on_wall_tip = 0;
+     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
+     {
+        if( mModelerUtilities.CheckNodeCloseWallTip(rMeshingVariables.RigidWalls,(*in),CurrentProcessInfo,factor_for_tip_radius) ){
+           in->Set(TO_SPLIT);
+           nodes_on_wall_tip ++;
+        }
 
-	//std::cout<<"   List of Conditions Reserved Size: "<<conditions_size<<std::endl;
+     }
 
-	double tool_radius= 0;
-	double side_length= 0;
-	double plastic_power=0;
-	bool size_insert = false;
-	bool radius_insert = false;
-	bool energy_insert = false;
-	bool mesh_size_insert = false;
-	bool contact_active = false;
-	bool contact_semi_active = false;
-	bool tool_project = false;
-	
-	std::vector<bool> semi_active_nodes;
-	Node<3> new_point(0,0.0,0.0,0.0);
+     if( this->GetEchoLevel() > 0 )
+        std::cout <<"   [ NODES ON WALL TIP: ( " <<nodes_on_wall_tip <<" ) ]"<<std::endl;
 
-	//*********************************************************************************
-	// DEFORMABLE CONTACT CONDITIONS START
-	//*********************************************************************************
-	
-	for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
-	  {
+     //*********************************************************************************
+     // DETECTION OF NODES ON TIP CONTACTS END
+     //*********************************************************************************
 
-	    size_insert    = false;
-	    radius_insert  = false;
-	    energy_insert  = false;
-	    tool_project   = false;
-	    contact_active = false;
-	    side_length = 0;
-	    tool_radius = 0;
-	    plastic_power = 0;
-	    Geometry< Node<3> > rConditionGeom;
-	    array_1d<double,3> tip_center;
+
+
+
+     //if the insert switches are activated, we check if the boundaries got too coarse
+     if (rMeshingVariables.RefiningOptions.Is(MeshModeler::REFINE_INSERT_NODES) && rMeshingVariables.RefiningOptions.Is(MeshModeler::REFINE_BOUNDARY) )
+     {
+
+        PointVector list_of_nodes;
+        std::vector<Condition::Pointer> list_of_conditions;
+
+        conditions_size = rModelPart.Conditions(MeshId).size();
+        list_of_nodes.reserve(conditions_size);
+        list_of_conditions.reserve(conditions_size);
+
+        // std::vector<int> nodes_ids;
+        // nodes_ids.resize(rModelPart.Conditions().size()); //mesh 0
+        // std::fill( nodes_ids.begin(), nodes_ids.end(), 0 );
+
+        //std::cout<<"   List of Conditions Reserved Size: "<<conditions_size<<std::endl;
+
+        double tool_radius= 0;
+        double side_length= 0;
+        double plastic_power=0;
+        bool size_insert = false;
+        bool radius_insert = false;
+        bool energy_insert = false;
+        bool mesh_size_insert = false;
+        bool contact_active = false;
+        bool contact_semi_active = false;
+        bool tool_project = false;
+
+        std::vector<bool> semi_active_nodes;
+        Node<3> new_point(0,0.0,0.0,0.0);
+
+        //*********************************************************************************
+        // DEFORMABLE CONTACT CONDITIONS START
+        //*********************************************************************************
+
+        for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
+        {
+
+           size_insert    = false;
+           radius_insert  = false;
+           energy_insert  = false;
+           tool_project   = false;
+           contact_active = false;
+           side_length = 0;
+           tool_radius = 0;
+           plastic_power = 0;
+           Geometry< Node<3> > rConditionGeom;
+           array_1d<double,3> tip_center;
             tip_center.clear();
 
 
-	    //LOOP TO CONSIDER ONLY CONTACT CONDITIONS
-	    if( ic->Is(CONTACT) )   //Refine radius on the workpiece for the ContactDomain zone
-	      {
-
-		PointType  MasterNode;
-		bool condition_found = false;
-		Condition::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(MeshId),condition_found);
-		    
-
-		if(condition_found){
-		      
-		  if( MasterCondition->IsNot(TO_ERASE) ){
-
-
-		    rConditionGeom  = MasterCondition->GetGeometry(); 
-
-		    //to recover TIP definition on conditions		  
-		    if( MasterNode.SolutionStepsDataHas( WALL_TIP_RADIUS ) ) //master node in tool -->  refine workpiece  // 
-		      {
-			    
-			tool_radius = MasterNode.FastGetSolutionStepValue( WALL_TIP_RADIUS );
-			tip_center  = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
-			// WARNING THE UPDATED OF THE TIP CENTER IS NEEDED !!!!
-
-			array_1d<double, 3 > radius;
-			radius[0]=rConditionGeom[0].X()-tip_center[0];
-			radius[1]=rConditionGeom[0].Y()-tip_center[1];
-			radius[2]=rConditionGeom[0].Z()-tip_center[2];
-			double distance1=norm_2(radius);
-
-			radius[0]=rConditionGeom[1].X()-tip_center[0];
-			radius[1]=rConditionGeom[1].Y()-tip_center[1];
-			radius[2]=rConditionGeom[1].Z()-tip_center[2];
-
-			double distance2=norm_2(radius);
-			  
-
-			// TO SPLIT DETECTION START
-			//If a node is detected in the wall tip is set TO_SPLIT
-			//the criteria to splitting will be applied later in the nodes marked as TO_SPLIT
-
-			if( (1-factor_for_tip_radius)*tool_radius < distance1 &&  distance1 < (1+factor_for_tip_radius)*tool_radius )
-			  rConditionGeom[0].Set(TO_SPLIT);
-			    
-			if( (1-factor_for_tip_radius)*tool_radius < distance2 &&  distance2 < (1+factor_for_tip_radius)*tool_radius )
-			  rConditionGeom[1].Set(TO_SPLIT);
-
-			// TO SPLIT DETECTION END			  
-			
-
-			// ACTIVE CONTACT DETECTION START
-
-			contact_active = mModelerUtilities.CheckContactActive(rConditionGeom, contact_semi_active, semi_active_nodes);
-			if(contact_active){
-			  number_contacts_active ++;
-			}
-
-			// ACTIVE CONTACT DETECTION END
-
-		    
-			side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
-
-			if( side_length > size_for_tip_contact_side ){
-
-			      
-			  if( ((1-factor_for_tip_radius)*tool_radius < distance1 &&  (1-factor_for_tip_radius)*tool_radius < distance2) && 
-			      (distance1 < (1+factor_for_tip_radius)*tool_radius  &&  distance2 < (1+factor_for_tip_radius)*tool_radius) )
-			    {
-			      radius_insert = true;
-				  
-			    }
-			  // else if( side_length > size_for_tip_contact_side && 
-			  // 	       ( distance1 < (1 + (side_size_factor+factor_for_tip_radius))*tool_radius && distance2 < (1 + (side_size_factor+factor_for_tip_radius))*tool_radius) ) {
-				
-			  // 	size_insert = true;
-			  // 	std::cout<<" insert on radius-size "<<std::endl;
-			  // }
-			      
-			}
-			    
-			  
-			if(radius_insert){
-
-			  if(!contact_active){
-				
-			    radius_insert = false;
-			    // std::cout<<" contact_not_active "<<std::endl;
-			    // double& nodal_h1 = rConditionGeom[0].FastGetSolutionStepValue(NODAL_H);
-			    // double& nodal_h2 = rConditionGeom[1].FastGetSolutionStepValue(NODAL_H);
-			    // double& nodal_h0 = MasterNode.FastGetSolutionStepValue( NODAL_H );
-			  
-			    // double side = norm_2(rConditionGeom[0]-rConditionGeom[1]);
-			    // // double d1 = mModelerUtilities.FindBoundaryH (rConditionGeom[0]);
-			    // // double d2 = mModelerUtilities.FindBoundaryH (rConditionGeom[1]);
-			    // // double d0 = mModelerUtilities.FindBoundaryH (MasterNode);
-			    // // double size_master = nodal_h0;
-
-			    // bool candidate =false;
-			    // if( ((nodal_h1+nodal_h2)*0.5) > factor_for_non_tip_side * nodal_h0 ){
-			    //   candidate = true;
-			    // }
-			  
-			    // double crit_factor = 2;
-			    // if( (side > size_for_non_tip_contact_side) && candidate ){
-			    //   radius_insert = true;
-			    // }
-			      
-			  }
-
-			}
-
-
-		      }
-		    else{ //refine boundary with nodal_h sizes to large
-			  
-		      double& nodal_h1 = rConditionGeom[0].FastGetSolutionStepValue(NODAL_H);
-		      double& nodal_h2 = rConditionGeom[1].FastGetSolutionStepValue(NODAL_H);
-		      double& nodal_h0 = MasterNode.FastGetSolutionStepValue( NODAL_H );
-			  
-		      double side = norm_2(rConditionGeom[0]-rConditionGeom[1]);
-		      // double d1 = mModelerUtilities.FindBoundaryH (rConditionGeom[0]);
-		      // double d2 = mModelerUtilities.FindBoundaryH (rConditionGeom[1]);
-		      // double d0 = mModelerUtilities.FindBoundaryH (MasterNode);
-		      // double size_master = nodal_h0;
-	      
-
-		      bool candidate =false;
-		      if( ((nodal_h1+nodal_h2)*0.5) > factor_for_non_tip_side * nodal_h0 ){
-			candidate = true;
-		      }
-			  
-		      if( (side > size_for_non_tip_contact_side ) && candidate ){
-			size_insert = true;
-		      }
-		    }
-
-
-
-		    if( radius_insert || size_insert ) //Boundary must be rebuild 
-		      {
-				
-			//std::cout<<"   CONTACT DOMAIN ELEMENT REFINED "<<ic->Id()<<std::endl;
-
-			new_point.X() = 0.5*( rConditionGeom[1].X() + rConditionGeom[0].X() );
-			new_point.Y() = 0.5*( rConditionGeom[1].Y() + rConditionGeom[0].Y() );
-			new_point.Z() = 0.5*( rConditionGeom[1].Z() + rConditionGeom[0].Z() );
-			  
-
-			new_point.SetId(ic->Id()); //set condition Id
-
-			Condition::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
-			
-
-			if( (rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)) )
-			  tool_project = true;
-			    
-			if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_active)
-			  tool_project = true;
-			    
-
-			if(tool_project) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
-			  {
-			    
-			    if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
-
-			      // std::cout<<"   new_point  ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;
-			      // std::cout<<"   tip_center ("<<tip_center[0]<<", "<<tip_center[1]<<") radius "<<tool_radius<<std::endl;
-
-			      array_1d<double,3> tip_normal = tip_center-new_point;
-				  				  	
-			      if(norm_2(tip_normal)<tool_radius*0.95){ //if is in the tool tip
-				tip_normal -= (tool_radius/norm_2(tip_normal)) * tip_normal;		
-				if(norm_2(tip_normal)<tool_radius*0.05)
-				  new_point  += tip_normal;
-			    
-				// std::cout<<"   A: Tool Tip Correction COND ("<<ContactMasterCondition->Id()<<") "<<std::endl;
-				// std::cout<<"   new_point ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;
-			      }
-			    }
-			  }
-
-			if(radius_insert)
-			  contact_tip++;
-			if(size_insert)
-			  contact_size++;
-			      
-			// std::cout<<"   MasterCondition RELEASED (Id: "<<ContactMasterCondition->Id()<<") "<<std::endl;
-			ContactMasterCondition->Set(TO_ERASE);
-			list_of_nodes.push_back(new_point);
-			list_of_conditions.push_back(ContactMasterCondition);
-		      }		    
-		  }
-
-		  number_contacts_domain ++;
-		}
-		// else{
-		      
-		//   std::cout<<"   Master Condition not found "<<std::endl;
-
-		// }
-
-		total_contact_conditions ++;
-
-	      }
-	  }
-
-	// std::cout<<"   [ Contact Conditions : "<<total_contact_conditions<<", (contacts in domain: "<<number_contacts_domain<<", of them active: "<<number_contacts_active<<") ] "<<std::endl;
-	// std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
-	    
-	//*********************************************************************************
-	// DEFORMABLE CONTACT CONDITIONS END
-	//*********************************************************************************
-
-
-
-	//*********************************************************************************
-	// RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS START
-	//*********************************************************************************
-
-
-	//LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
-	double cond_counter=0;
-	for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
-	  {
-	    cond_counter ++;
-	    bool refine_candidate = false;
-	    if( rMeshingVariables.MeshingOptions.Is(MeshModeler::CONSTRAINED_MESH) ){
-	      if( ic->Is(BOUNDARY) ) //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
-		refine_candidate = true;
-	      else
-	       	refine_candidate = false;
-	    }
-	    else{
-	      refine_candidate = true; 
-	    }
-		
-
-	    if( refine_candidate ){
-	      if (rMeshingVariables.BoundingBox.IsSetFlag == true ){
-		refine_candidate = mModelerUtilities.CheckConditionInBox(*(ic.base()),RefiningBox,CurrentProcessInfo);
-	      }
-	    }
-
-
-	    if( refine_candidate ){
-			
-	      radius_insert = false;
-	      energy_insert = false;
-	      mesh_size_insert = false;
-	      tool_project = false;
-	      contact_active = false;
-	      contact_semi_active = false;
-	      side_length = 0;
-	      tool_radius = 0;
-	      plastic_power = 0;
-	      //double condition_radius = 0;
-	      Geometry< Node<3> > rConditionGeom;
-	      array_1d<double,3> tip_center;
-
-	      if( ic->IsNot(TO_ERASE) ){
-
-		//*********************************************************************************
-		// RIGID CONTACT CONDITIONS ON TIP START
-		//*********************************************************************************
-
-		// TOOL TIP INSERT;
-
-
-		// ACTIVE CONTACT DETECTION START
-
-		rConditionGeom = ic->GetGeometry();
-		contact_active = mModelerUtilities.CheckContactActive(rConditionGeom, contact_semi_active, semi_active_nodes);
-		
-		// ACTIVE CONTACT DETECTION END
-		
-	      
-		if( contact_active ){
-
-		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
-
-		  if( side_length > size_for_wall_tip_contact_side ){
-		  
-		    bool on_tip = false;
-		    if(rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)){
-		      on_tip = true;
-		    }
-		    else if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)){
-		      if( side_length > size_for_wall_tip_contact_side ){
-			on_tip = true;
-		      }
-		    }		  
-
-		    bool on_radius = false;
-
-		    if( on_tip && rMeshingVariables.RigidWallSetFlag ){
-
-		      Vector Point(3);
-		      if( rConditionGeom[0].Is(TO_SPLIT) ){
-			
-			Point[0] = rConditionGeom[0].X();
-			Point[1] = rConditionGeom[0].Y();
-			Point[2] = rConditionGeom[0].Z();
-			on_radius = true;
-			
-		      }
-		      else if( rConditionGeom[1].Is(TO_SPLIT) ){
-
-			Point[0] = rConditionGeom[1].X();
-			Point[1] = rConditionGeom[1].Y();
-			Point[2] = rConditionGeom[1].Z();
-			on_radius = true;
-
-		      }
-		      else{
-			on_radius = false;
-		      }
-      
-
-		      if( on_radius ){
-
-			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-			double Time = CurrentProcessInfo[TIME];  
-			for( unsigned int i = 0; i < rMeshingVariables.RigidWalls.size(); i++ )
-			  {
-			    if( rMeshingVariables.RigidWalls[i]->IsInside( Point, Time ) ){
-			      tool_radius = rMeshingVariables.RigidWalls[i]->GetRadius();
-			      tip_center  = rMeshingVariables.RigidWalls[i]->GetCenter();
-			      break;
-			    }
-			  }
-		      }
-			
-		    }
-		    		   		  
-						
-		    if( on_radius && on_tip ) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
-		      {
-			PointType center (0,tip_center[0],tip_center[1],tip_center[2]);
-			array_1d<double, 3 > radius;
-			radius[0]=rConditionGeom[0].X()-center.X();
-			radius[1]=rConditionGeom[0].Y()-center.Y();
-			radius[2]=rConditionGeom[0].Z()-center.Z();
-
-			double distance1=norm_2(radius);
-
-			radius[0]=rConditionGeom[1].X()-center.X();
-			radius[1]=rConditionGeom[1].Y()-center.Y();
-			radius[2]=rConditionGeom[1].Z()-center.Z();
-
-			double distance2=norm_2(radius);
-			    
-
-			if( ((1-factor_for_tip_radius)*tool_radius < distance1 &&  (1-factor_for_tip_radius)*tool_radius < distance2) && 
-			    (distance1 < (1+factor_for_tip_radius)*tool_radius  &&  distance2 < (1+factor_for_tip_radius)*tool_radius) )
-			  {
-			    radius_insert = true;
-			  }
-					      
-		      }	  
-
-		  }
-
-		}
-
-		//*********************************************************************************
-		// RIGID CONTACT CONDITIONS ON TIP END
-		//*********************************************************************************
-
-
-		//*********************************************************************************
-		// FREE BOUNDARY CONDITIONS ENERGY INSERTION START
-		//*********************************************************************************
-
-
-		// ENERGY INSERT
-
-		unsigned int vsize=ic->GetValue(MASTER_ELEMENTS).size();
-
-		if (!radius_insert && rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_ENERGY) && vsize>0){
-		   
-		  Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
-
-		  plastic_power=0;
-		  std::vector<double> Value(1);
-
-		  MasterElement.GetValueOnIntegrationPoints(rMeshingVariables.Refine.GetDissipationVariable(),Value,CurrentProcessInfo);
-			
-				  
-		  Geometry<Node<3> >& pGeom = MasterElement.GetGeometry();
-		  plastic_power = Value[0] * pGeom.Area();
-
-		  //computation of the condition master element radius start: 
-		  //PointsArrayType& vertices = pGeom.Points();
-			 			    			
-		  // double average_side_length= mModelerUtilities.CalculateAverageSideLength (vertices[0].X(), vertices[0].Y(),
-		  // 							      vertices[1].X(), vertices[1].Y(),
-		  // 							      vertices[2].X(), vertices[2].Y());
-		  //condition_radius = pGeom.Area()/average_side_length;
-		  //computation of the condition master element radius end;
-
-		  //condition_radius is side_length
-		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
-
-		  //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
-
-		  //if( plastic_power > rMeshingVariables.Refine.CriticalDissipation && condition_radius > rMeshingVariables.Refine.CriticalRadius )
-		  if( plastic_power > rMeshingVariables.Refine.CriticalDissipation && side_length > size_for_energy_side )
-		    {
-		      energy_insert = true;		      
-		    }
-		}
-
-		
-		//*********************************************************************************
-		// FREE BOUNDARY CONDITIONS ENERGY INSERTION END
-		//*********************************************************************************
-
-
-		//*********************************************************************************
-		// FREE BOUNDARY CONDITIONS SIZE INSERTION
-		//*********************************************************************************
-
-
-		// BOUNDARY SIZE INSERT
-
-		if( (!radius_insert || !energy_insert) && vsize>0 ){
-		   
-		  Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
-
-		  //std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
-		  
-				  
-		  Geometry<Node<3> >& vertices = MasterElement.GetGeometry();
-		  double Alpha =  rMeshingVariables.AlphaParameter;
-
-		  bool accepted = mModelerUtilities.AlphaShape(Alpha,vertices,2);
-
-
-		  //condition_radius is side_length
-		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
-
-		  //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
-		  double critical_side_size = 0;
-		  
-		  bool on_tip = false;
-		  if( contact_semi_active ){
-		    
-		    if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
-		      on_tip = true;
-		    
-		    if( on_tip == true )
-		      critical_side_size = size_for_wall_semi_tip_contact_side;
-		    else
-		      critical_side_size = size_for_wall_non_tip_contact_side;
-
-
-		    
-		  }
-		  else if( contact_active ){
-		    
-		    if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
-		      on_tip = true;
-
-		    if( on_tip == true )
-		      critical_side_size = size_for_wall_semi_tip_contact_side;
-		    else
-		      critical_side_size = size_for_wall_non_tip_contact_side;
-
-		  }
-		  else{
-		    
-		    critical_side_size  = size_for_non_contact_side;
-		  }
-
-		  
-		  //if(plastic_power > rMeshingVariables.Refine.CriticalDissipation && condition_radius > rMeshingVariables.Refine.CriticalRadius)
-		  if( !accepted && !contact_semi_active && !contact_active && side_length > critical_side_size )
-		    {
-		      mesh_size_insert = true;
-
-		      // std::cout<<"   insert on mesh size "<<std::endl;		      
-		    }
-		  else if( contact_semi_active && side_length > critical_side_size )
-		    {
-		      mesh_size_insert = true;
-
-		      // std::cout<<"   insert on mesh size semi_contact "<<std::endl;		      
-		      
-		    }
-		  else if( contact_active && side_length > critical_side_size )
-		    {
-		      mesh_size_insert = true;
-
-		      // std::cout<<"   insert on mesh size on contact "<<std::endl;		      
-		      
-		    }
-		  
-
-		}
-
-		//*********************************************************************************
-		// RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS END
-		//*********************************************************************************
-
-		//*********************************************************************************
-		//                   BOUNDARY REBUILD START                                      //
-		//*********************************************************************************
-
-
-		if( radius_insert || energy_insert || mesh_size_insert ) //Boundary must be rebuild 
-		  {
-
-		    // std::cout<<"   BOUNDARY DOMAIN ELEMENT REFINED "<<ic->Id()<<std::endl;
-
-		    new_point.X() = 0.5*( rConditionGeom[1].X() + rConditionGeom[0].X() );
-		    new_point.Y() = 0.5*( rConditionGeom[1].Y() + rConditionGeom[0].Y() );
-		    new_point.Z() = 0.5*( rConditionGeom[1].Z() + rConditionGeom[0].Z() );
-		      
-		    if( this->GetEchoLevel() > 0 )
-		      std::cout<<"   NEW NODE  "<<new_point<<std::endl;
-
-		    new_point.SetId(ic->Id()); //set condition Id
-		      
-		    //it will be good if the node is detected in the tool tip using the rigid contact standards:
-		    
-		    if( (rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)) )
-		      tool_project = true;
-
-		    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_active)
-		      tool_project = true;
-
-		    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_semi_active)
-		      tool_project = true;
-
-		    bool on_radius = false;
-
-		    if( tool_project && rMeshingVariables.RigidWallSetFlag ){
-
-		      Vector Point(3);
-		      if( rConditionGeom[0].Is(TO_SPLIT) ){
-			
-			Point[0] = rConditionGeom[0].X();
-			Point[1] = rConditionGeom[0].Y();
-			Point[2] = rConditionGeom[0].Z();
-			on_radius = true;
-			
-		      }
-		      else if( rConditionGeom[1].Is(TO_SPLIT) ){
-
-			Point[0] = rConditionGeom[1].X();
-			Point[1] = rConditionGeom[1].Y();
-			Point[2] = rConditionGeom[1].Z();
-			on_radius = true;
-
-		      }
-		      else{
-			on_radius = false;
-		      }
-      
-
-		      if( on_radius ){
-
-			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-			double Time = CurrentProcessInfo[TIME];  
-			for( unsigned int i = 0; i < rMeshingVariables.RigidWalls.size(); i++ )
-			  {
-			    if( rMeshingVariables.RigidWalls[i]->IsInside( Point, Time ) ){
-			      tool_radius = rMeshingVariables.RigidWalls[i]->GetRadius();
-			      tip_center  = rMeshingVariables.RigidWalls[i]->GetCenter();
-			      break;
-			    }
-			  }
-		      }
-
-
-		      
-
-		      if(on_radius){
-
-			if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
-			    		    
-			  array_1d<double,3> tip_normal = tip_center-new_point;
-
-			  if(norm_2(tip_normal)<tool_radius){ //if is in the tool tip
-			  
-			    tip_normal -= (tool_radius/norm_2(tip_normal)) * tip_normal;		
-			    
-			    if(norm_2(tip_normal)<tool_radius*0.08)
-			      new_point  += tip_normal;
-			  }
-
-			}
-			
-			if( this->GetEchoLevel() > 0 )
-			  std::cout<<"   TOOL PROJECT::on radius  "<<new_point<<std::endl;
-
-		      }
-
-		      
-		    }
-
-		    if(radius_insert)
-		      tip_bound ++;
-		    if(energy_insert)
-		      energy_bound ++;
-		    if(mesh_size_insert)
-		      exterior_bound++;
-
-		    ic->Set(TO_ERASE);
-
-		    if( this->GetEchoLevel() > 0 )
-		      std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
-
-		    list_of_nodes.push_back(new_point);
-		    list_of_conditions.push_back(*(ic.base()));
-
-		      
-		    
-		    // std::cout<<"   Refine Boundary  (Id:"<<ic->Id()<<"): ["<<rConditionGeom[0].Id()<<", "<<rConditionGeom[1].Id()<<"]"<<std::endl;
-		    // std::cout<<"   (x1:"<<rConditionGeom[0].X()<<", y1: "<<rConditionGeom[0].Y()<<") "<<" (x2:"<<rConditionGeom[1].X()<<", y2: "<<rConditionGeom[1].Y()<<") "<<std::endl;
-		      
-		    //std::cout<<" Added Node [Rcrit:"<<condition_radius<<",Scrit:"<<side_length<<",PlasticPower:"<<plastic_power<<"]"<<std::endl;
-		    //std::cout<<" Conditions [Rcrit:"<<rMeshingVariables.Refine.CriticalRadius<<",Scrit:"<<rMeshingVariables.Refine.CriticalSide<<",PlasticPower:"<<rMeshingVariables.Refine.CriticalDissipation<<"]"<<std::endl;
-		    
-		  }
-		
-
-		//*********************************************************************************
-		//                   BOUNDARY REBUILD END                                        //
-		//*********************************************************************************
-
-
-	      }
-	      else{
-		if( this->GetEchoLevel() > 0 )
-		  std::cout<<" Condition "<<ic->Id()<<" Released "<<std::endl;
-	      }
-	    
-	    }
-	  }	  
-	    
-
-	//*********************************************************************************
-	//                   DOFS AND NEW CONDITIONS REBUILD START                       //
-	//*********************************************************************************
-
-	//node to get the DOFs from
-	Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin(MeshId))->GetDofs();
-	unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
-	double z = 0.0;
-
-	unsigned int initial_node_size = rModelPart.Nodes().size()+1; //total model part node size
-	unsigned int initial_cond_size = rModelPart.Conditions().size()+1; //total model part node size
-	int id=0;
-
-	//if points were added, new nodes must be added to ModelPart
-	for(unsigned int i = 0; i<list_of_nodes.size(); i++)
-	  {
-	    id   = initial_node_size+i;
-	    
-	    double& x= list_of_nodes[i].X();
-	    double& y= list_of_nodes[i].Y();
-
-	    Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
-		
-	    //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
-	    if(MeshId!=0)
-	      (rModelPart.Nodes(MeshId)).push_back(pnode);
-
-
-	    pnode->SetBufferSize(rModelPart.NodesBegin(MeshId)->GetBufferSize() );
-
-
-	    //assign data to dofs
-	    unsigned int buffer_size = pnode->GetBufferSize();
-
-	    //2D edges:
-	    Geometry< Node<3> >& rConditionGeom  = list_of_conditions[i]->GetGeometry(); 
-
-			    
-	    //generating the dofs
-	    for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-	      {
-		Node<3>::DofType& rDof = *iii;
-		Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
-			
-		if( rConditionGeom[0].IsFixed(rDof.GetVariable()) && rConditionGeom[1].IsFixed(rDof.GetVariable()) )
-		  (p_new_dof)->FixDof();
-		else
-		  (p_new_dof)->FreeDof();
-	      }
-		 
-	
-		
-	    //int cond_id = list_of_nodes[i].Id();
-	    //Geometry< Node<3> >& rConditionGeom = (*(rModelPart.Conditions(MeshId).find(cond_id).base()))->GetGeometry();
-
-	    for(unsigned int step = 0; step<buffer_size; step++)
-	      {
-		//getting the data of the solution step
-		double* step_data = (pnode)->SolutionStepData().Data(step);
-
-		double* node0_data = rConditionGeom[0].SolutionStepData().Data(step);
-		double* node1_data = rConditionGeom[1].SolutionStepData().Data(step);
-
-		//copying this data in the position of the vector we are interested in
-		for(unsigned int j= 0; j<step_data_size; j++)
-		  {
-		    step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
-		  }
-	      }
-
-		
-	    //set specific control values and flags:
-	    pnode->Set(BOUNDARY);
-	    pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
-	    //std::cout<<"   Node ["<<pnode->Id()<<"] is a NEW_ENTITY "<<std::endl;
-	    
-	    pnode->SetValue(DOMAIN_LABEL,MeshId);
-	    double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
-	    //nodal_h = 0.5*(nodal_h+rMeshingVariables.Refine.CriticalSide); //modify nodal_h for security
-	    nodal_h = rMeshingVariables.Refine.CriticalSide; //modify nodal_h for security
-
-	    const array_1d<double,3> ZeroNormal(3,0.0);
-	    //correct normal interpolation
-	    noalias(pnode->GetSolutionStepValue(NORMAL)) = list_of_conditions[i]->GetValue(NORMAL);
-
-
-	    //correct contact_normal interpolation (laplacian boundary projection uses it)
-	    array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
-	    array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
-	    if(norm_2(ContactForceNormal1)==0 || norm_2(ContactForceNormal2)==0)
-	      noalias(pnode->FastGetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
-
-	    //recover the original position of the node
-	    const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-	    pnode->X0() = pnode->X() - disp[0];
-	    pnode->Y0() = pnode->Y() - disp[1];
-	    pnode->Z0() = pnode->Z() - disp[2];
-
-	    //Conditions must be also created with the add of a new node:
-	    Condition::NodesArrayType face1;
-	    Condition::NodesArrayType face2;
-	    face1.reserve(2);
-	    face2.reserve(2);
-
-	    face1.push_back(rConditionGeom(0));
-	    face1.push_back(pnode);
-
-	    face2.push_back(pnode);
-	    face2.push_back(rConditionGeom(1));
-		
-	    id   = initial_cond_size+(i*2);
-
-	    Condition::Pointer pcond1      = list_of_conditions[i]->Clone(id, face1);
-	    // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
-	    id   = initial_cond_size+(i*2+1);
-	    Condition::Pointer pcond2      = list_of_conditions[i]->Clone(id, face2);
-	    // std::cout<<" ID"<<id<<" 2s "<<pcond2->GetGeometry()[0].Id()<<" "<<pcond2->GetGeometry()[1].Id()<<std::endl;
-
-	    pcond1->Set(NEW_ENTITY);
-	    pcond2->Set(NEW_ENTITY);
-
-	    pcond1->SetValue(MASTER_NODES, list_of_conditions[i]->GetValue(MASTER_NODES) );
-	    pcond1->SetValue(NORMAL, list_of_conditions[i]->GetValue(NORMAL) );
-	    pcond1->SetValue(CAUCHY_STRESS_VECTOR,list_of_conditions[i]->GetValue(CAUCHY_STRESS_VECTOR));
-	    pcond1->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
-
-	    pcond2->SetValue(MASTER_NODES, list_of_conditions[i]->GetValue(MASTER_NODES) );
-	    pcond2->SetValue(NORMAL, list_of_conditions[i]->GetValue(NORMAL) );
-	    pcond2->SetValue(CAUCHY_STRESS_VECTOR,list_of_conditions[i]->GetValue(CAUCHY_STRESS_VECTOR));
-	    pcond2->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
-
-	    (rModelPart.Conditions(MeshId)).push_back(pcond1);
-	    (rModelPart.Conditions(MeshId)).push_back(pcond2);
-
-	    // (rModelPart.Conditions()).push_back(pcond1);
-	    // (rModelPart.Conditions()).push_back(pcond2);
-	  }
-
-	
-	//*********************************************************************************
-	//                   DOFS AND NEW CONDITIONS REBUILD END                         //
-	//*********************************************************************************
-
-
-
-
-	//*********************************************************************************
-	//                   CLEAN CONDITIONS AND FLAGS START                            //
-	//*********************************************************************************
-
-
-	//Clean Conditions
-	ModelPart::ConditionsContainerType RemoveConditions;
-	    
-	//id = 0;
-	for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
-	  {
-
-	    Geometry< Node<3> > rGeom =ic->GetGeometry();
-	    for(unsigned int i=0; i<rGeom.size(); i++)
-	      {
-		rGeom[i].Reset(TO_SPLIT);
-	      }
-		
-	    if(ic->IsNot(TO_ERASE)){
-	      //id+=1;
-	      RemoveConditions.push_back(*(ic.base()));
-	      //RemoveConditions.back().SetId(id);
-	    }
-	    // else{
-	    //   std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
-	    // }
-	  }
-	    
-	rModelPart.Conditions(MeshId).swap(RemoveConditions);
-	
-	
-	//*********************************************************************************
-	//                   CLEAN CONDITIONS AND FLAGS END                              //
-	//*********************************************************************************
-
-
-
-
-      } // REFINE END;
-
-    
-
-    rMeshingVariables.RemeshInfo.InsertedConditions     = rModelPart.NumberOfConditions(MeshId)-rMeshingVariables.RemeshInfo.InsertedConditions;
-    rMeshingVariables.RemeshInfo.InsertedBoundaryNodes = rModelPart.NumberOfNodes(MeshId)-rMeshingVariables.RemeshInfo.InsertedBoundaryNodes;
-
-    if( this->GetEchoLevel() > 0 ){
-      std::cout<<"   [ CONDITIONS ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedConditions<<" ) ]"<<std::endl;
-      std::cout<<"   [ NODES      ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedBoundaryNodes<<" ) ]"<<std::endl;
-      std::cout<<"   [ contact(TIP: "<<contact_tip<<", SIZE: "<<contact_size<<") -  bound(TIP: "<<tip_bound<<", SIZE: "<<exterior_bound<<")]"<<std::endl;
-    
-    
-      std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
-    }
-
-    KRATOS_CATCH(" ")
+           //LOOP TO CONSIDER ONLY CONTACT CONDITIONS
+           if( ic->Is(CONTACT) )   //Refine radius on the workpiece for the ContactDomain zone
+           {
+
+              PointType  MasterNode;
+              bool condition_found = false;
+              Condition::Pointer MasterCondition  = mModelerUtilities.FindMasterCondition(*(ic.base()),MasterNode,rModelPart.Conditions(MeshId),condition_found);
+
+
+              if(condition_found){
+
+                 if( MasterCondition->IsNot(TO_ERASE) ){
+
+
+                    rConditionGeom  = MasterCondition->GetGeometry(); 
+
+                    //to recover TIP definition on conditions		  
+                    if( MasterNode.SolutionStepsDataHas( WALL_TIP_RADIUS ) ) //master node in tool -->  refine workpiece  // 
+                    {
+
+                       tool_radius = MasterNode.FastGetSolutionStepValue( WALL_TIP_RADIUS );
+                       tip_center  = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+                       // WARNING THE UPDATED OF THE TIP CENTER IS NEEDED !!!!
+
+                       array_1d<double, 3 > radius;
+                       radius[0]=rConditionGeom[0].X()-tip_center[0];
+                       radius[1]=rConditionGeom[0].Y()-tip_center[1];
+                       radius[2]=rConditionGeom[0].Z()-tip_center[2];
+                       double distance1=norm_2(radius);
+
+                       radius[0]=rConditionGeom[1].X()-tip_center[0];
+                       radius[1]=rConditionGeom[1].Y()-tip_center[1];
+                       radius[2]=rConditionGeom[1].Z()-tip_center[2];
+
+                       double distance2=norm_2(radius);
+
+
+                       // TO SPLIT DETECTION START
+                       //If a node is detected in the wall tip is set TO_SPLIT
+                       //the criteria to splitting will be applied later in the nodes marked as TO_SPLIT
+
+                       if( (1-factor_for_tip_radius)*tool_radius < distance1 &&  distance1 < (1+factor_for_tip_radius)*tool_radius )
+                          rConditionGeom[0].Set(TO_SPLIT);
+
+                       if( (1-factor_for_tip_radius)*tool_radius < distance2 &&  distance2 < (1+factor_for_tip_radius)*tool_radius )
+                          rConditionGeom[1].Set(TO_SPLIT);
+
+                       // TO SPLIT DETECTION END			  
+
+
+                       // ACTIVE CONTACT DETECTION START
+
+                       contact_active = mModelerUtilities.CheckContactActive(rConditionGeom, contact_semi_active, semi_active_nodes);
+                       if(contact_active){
+                          number_contacts_active ++;
+                       }
+
+                       // ACTIVE CONTACT DETECTION END
+
+
+                       side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
+
+                       if( side_length > size_for_tip_contact_side ){
+
+
+                          if( ((1-factor_for_tip_radius)*tool_radius < distance1 &&  (1-factor_for_tip_radius)*tool_radius < distance2) && 
+                                (distance1 < (1+factor_for_tip_radius)*tool_radius  &&  distance2 < (1+factor_for_tip_radius)*tool_radius) )
+                          {
+                             radius_insert = true;
+
+                          }
+                          // else if( side_length > size_for_tip_contact_side && 
+                          // 	       ( distance1 < (1 + (side_size_factor+factor_for_tip_radius))*tool_radius && distance2 < (1 + (side_size_factor+factor_for_tip_radius))*tool_radius) ) {
+
+                          // 	size_insert = true;
+                          // 	std::cout<<" insert on radius-size "<<std::endl;
+                          // }
+
+                       }
+
+
+                       if(radius_insert){
+
+                          if(!contact_active){
+
+                             radius_insert = false;
+                             // std::cout<<" contact_not_active "<<std::endl;
+                             // double& nodal_h1 = rConditionGeom[0].FastGetSolutionStepValue(NODAL_H);
+                             // double& nodal_h2 = rConditionGeom[1].FastGetSolutionStepValue(NODAL_H);
+                             // double& nodal_h0 = MasterNode.FastGetSolutionStepValue( NODAL_H );
+
+                             // double side = norm_2(rConditionGeom[0]-rConditionGeom[1]);
+                             // // double d1 = mModelerUtilities.FindBoundaryH (rConditionGeom[0]);
+                             // // double d2 = mModelerUtilities.FindBoundaryH (rConditionGeom[1]);
+                             // // double d0 = mModelerUtilities.FindBoundaryH (MasterNode);
+                             // // double size_master = nodal_h0;
+
+                             // bool candidate =false;
+                             // if( ((nodal_h1+nodal_h2)*0.5) > factor_for_non_tip_side * nodal_h0 ){
+                             //   candidate = true;
+                             // }
+
+                             // double crit_factor = 2;
+                             // if( (side > size_for_non_tip_contact_side) && candidate ){
+                             //   radius_insert = true;
+                             // }
+
+                          }
+
+                       }
+
+
+                    }
+                    else{ //refine boundary with nodal_h sizes to large
+
+                       double& nodal_h1 = rConditionGeom[0].FastGetSolutionStepValue(NODAL_H);
+                       double& nodal_h2 = rConditionGeom[1].FastGetSolutionStepValue(NODAL_H);
+                       double& nodal_h0 = MasterNode.FastGetSolutionStepValue( NODAL_H );
+
+                       double side = norm_2(rConditionGeom[0]-rConditionGeom[1]);
+                       // double d1 = mModelerUtilities.FindBoundaryH (rConditionGeom[0]);
+                       // double d2 = mModelerUtilities.FindBoundaryH (rConditionGeom[1]);
+                       // double d0 = mModelerUtilities.FindBoundaryH (MasterNode);
+                       // double size_master = nodal_h0;
+
+
+                       bool candidate =false;
+                       if( ((nodal_h1+nodal_h2)*0.5) > factor_for_non_tip_side * nodal_h0 ){
+                          candidate = true;
+                       }
+
+                       if( (side > size_for_non_tip_contact_side ) && candidate ){
+                          size_insert = true;
+                       }
+                    }
+
+
+
+                    if( radius_insert || size_insert ) //Boundary must be rebuild 
+                    {
+
+                       //std::cout<<"   CONTACT DOMAIN ELEMENT REFINED "<<ic->Id()<<std::endl;
+
+                       new_point.X() = 0.5*( rConditionGeom[1].X() + rConditionGeom[0].X() );
+                       new_point.Y() = 0.5*( rConditionGeom[1].Y() + rConditionGeom[0].Y() );
+                       new_point.Z() = 0.5*( rConditionGeom[1].Z() + rConditionGeom[0].Z() );
+
+
+                       new_point.SetId(ic->Id()); //set condition Id
+
+                       Condition::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
+
+
+                       if( (rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)) )
+                          tool_project = true;
+
+                       if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_active)
+                          tool_project = true;
+
+
+                       if(tool_project) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
+                       {
+
+                          if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
+
+                             // std::cout<<"   new_point  ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;
+                             // std::cout<<"   tip_center ("<<tip_center[0]<<", "<<tip_center[1]<<") radius "<<tool_radius<<std::endl;
+
+                             array_1d<double,3> tip_normal = tip_center-new_point;
+
+                             if(norm_2(tip_normal)<tool_radius*0.95){ //if is in the tool tip
+                                tip_normal -= (tool_radius/norm_2(tip_normal)) * tip_normal;		
+                                if(norm_2(tip_normal)<tool_radius*0.05)
+                                   new_point  += tip_normal;
+
+                                // std::cout<<"   A: Tool Tip Correction COND ("<<ContactMasterCondition->Id()<<") "<<std::endl;
+                                // std::cout<<"   new_point ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;
+                             }
+                          }
+                       }
+
+                       if(radius_insert)
+                          contact_tip++;
+                       if(size_insert)
+                          contact_size++;
+
+                       // std::cout<<"   MasterCondition RELEASED (Id: "<<ContactMasterCondition->Id()<<") "<<std::endl;
+                       ContactMasterCondition->Set(TO_ERASE);
+                       list_of_nodes.push_back(new_point);
+                       list_of_conditions.push_back(ContactMasterCondition);
+                    }		    
+                 }
+
+                 number_contacts_domain ++;
+              }
+              // else{
+
+              //   std::cout<<"   Master Condition not found "<<std::endl;
+
+              // }
+
+              total_contact_conditions ++;
+
+           }
+        }
+
+        // std::cout<<"   [ Contact Conditions : "<<total_contact_conditions<<", (contacts in domain: "<<number_contacts_domain<<", of them active: "<<number_contacts_active<<") ] "<<std::endl;
+        // std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
+
+        //*********************************************************************************
+        // DEFORMABLE CONTACT CONDITIONS END
+        //*********************************************************************************
+
+
+
+        //*********************************************************************************
+        // RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS START
+        //*********************************************************************************
+
+
+        //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
+        double cond_counter=0;
+        for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+        {
+           cond_counter ++;
+           bool refine_candidate = false;
+           if( rMeshingVariables.MeshingOptions.Is(MeshModeler::CONSTRAINED_MESH) ){
+              if( ic->Is(BOUNDARY) ) //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
+                 refine_candidate = true;
+              else
+                 refine_candidate = false;
+           }
+           else{
+              refine_candidate = true; 
+           }
+
+
+           if( refine_candidate ){
+              if (rMeshingVariables.BoundingBox.IsSetFlag == true ){
+                 refine_candidate = mModelerUtilities.CheckConditionInBox(*(ic.base()),RefiningBox,CurrentProcessInfo);
+              }
+           }
+
+
+           if( refine_candidate ){
+
+              radius_insert = false;
+              energy_insert = false;
+              mesh_size_insert = false;
+              tool_project = false;
+              contact_active = false;
+              contact_semi_active = false;
+              side_length = 0;
+              tool_radius = 0;
+              plastic_power = 0;
+              //double condition_radius = 0;
+              Geometry< Node<3> > rConditionGeom;
+              array_1d<double,3> tip_center;
+
+              if( ic->IsNot(TO_ERASE) ){
+
+                 //*********************************************************************************
+                 // RIGID CONTACT CONDITIONS ON TIP START
+                 //*********************************************************************************
+
+                 // TOOL TIP INSERT;
+
+
+                 // ACTIVE CONTACT DETECTION START
+
+                 rConditionGeom = ic->GetGeometry();
+                 contact_active = mModelerUtilities.CheckContactActive(rConditionGeom, contact_semi_active, semi_active_nodes);
+
+                 // ACTIVE CONTACT DETECTION END
+
+
+                 if( contact_active ){
+
+                    side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
+
+                    if( side_length > size_for_wall_tip_contact_side ){
+
+                       bool on_tip = false;
+                       if(rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)){
+                          on_tip = true;
+                       }
+                       else if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)){
+                          if( side_length > size_for_wall_tip_contact_side ){
+                             on_tip = true;
+                          }
+                       }		  
+
+                       bool on_radius = false;
+
+                       if( on_tip && rMeshingVariables.RigidWallSetFlag ){
+
+                          Vector Point(3);
+                          if( rConditionGeom[0].Is(TO_SPLIT) ){
+
+                             Point[0] = rConditionGeom[0].X();
+                             Point[1] = rConditionGeom[0].Y();
+                             Point[2] = rConditionGeom[0].Z();
+                             on_radius = true;
+
+                          }
+                          else if( rConditionGeom[1].Is(TO_SPLIT) ){
+
+                             Point[0] = rConditionGeom[1].X();
+                             Point[1] = rConditionGeom[1].Y();
+                             Point[2] = rConditionGeom[1].Z();
+                             on_radius = true;
+
+                          }
+                          else{
+                             on_radius = false;
+                          }
+
+
+                          if( on_radius ){
+
+                             ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+                             double Time = CurrentProcessInfo[TIME];  
+                             for( unsigned int i = 0; i < rMeshingVariables.RigidWalls.size(); i++ )
+                             {
+                                if( rMeshingVariables.RigidWalls[i]->IsInside( Point, Time ) ){
+                                   tool_radius = rMeshingVariables.RigidWalls[i]->GetRadius(Point);
+                                   tip_center  = rMeshingVariables.RigidWalls[i]->GetCenter(Point);
+                                   break;
+                                }
+                             }
+                          }
+
+                       }
+
+                       if( on_radius && on_tip ) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
+                       {
+                          PointType center (0,tip_center[0],tip_center[1],tip_center[2]);
+                          array_1d<double, 3 > radius;
+                          radius[0]=rConditionGeom[0].X()-center.X();
+                          radius[1]=rConditionGeom[0].Y()-center.Y();
+                          radius[2]=rConditionGeom[0].Z()-center.Z();
+
+                          double distance1=norm_2(radius);
+
+                          radius[0]=rConditionGeom[1].X()-center.X();
+                          radius[1]=rConditionGeom[1].Y()-center.Y();
+                          radius[2]=rConditionGeom[1].Z()-center.Z();
+
+                          double distance2=norm_2(radius);
+
+
+                          if( ((1-factor_for_tip_radius)*tool_radius < distance1 &&  (1-factor_for_tip_radius)*tool_radius < distance2) && 
+                                (distance1 < (1+factor_for_tip_radius)*tool_radius  &&  distance2 < (1+factor_for_tip_radius)*tool_radius) )
+                          {
+                             radius_insert = true;
+                          }
+
+                       }	  
+
+                    }
+
+                 }
+
+                 //*********************************************************************************
+                 // RIGID CONTACT CONDITIONS ON TIP END
+                 //*********************************************************************************
+
+
+                 //*********************************************************************************
+                 // FREE BOUNDARY CONDITIONS ENERGY INSERTION START
+                 //*********************************************************************************
+
+
+                 // ENERGY INSERT
+
+                 unsigned int vsize=ic->GetValue(MASTER_ELEMENTS).size();
+
+                 if (!radius_insert && rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_ENERGY) && vsize>0){
+
+                    Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+
+                    plastic_power=0;
+                    std::vector<double> Value(1);
+
+                    MasterElement.GetValueOnIntegrationPoints(rMeshingVariables.Refine.GetDissipationVariable(),Value,CurrentProcessInfo);
+
+
+                    Geometry<Node<3> >& pGeom = MasterElement.GetGeometry();
+                    plastic_power = Value[0] * pGeom.Area();
+
+                    //computation of the condition master element radius start: 
+                    //PointsArrayType& vertices = pGeom.Points();
+
+                    // double average_side_length= mModelerUtilities.CalculateAverageSideLength (vertices[0].X(), vertices[0].Y(),
+                    // 							      vertices[1].X(), vertices[1].Y(),
+                    // 							      vertices[2].X(), vertices[2].Y());
+                    //condition_radius = pGeom.Area()/average_side_length;
+                    //computation of the condition master element radius end;
+
+                    //condition_radius is side_length
+                    side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
+
+                    //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
+
+                    //if( plastic_power > rMeshingVariables.Refine.CriticalDissipation && condition_radius > rMeshingVariables.Refine.CriticalRadius )
+                    if( plastic_power > rMeshingVariables.Refine.CriticalDissipation && side_length > size_for_energy_side )
+                    {
+                       energy_insert = true;		      
+                    }
+                 }
+
+
+                 //*********************************************************************************
+                 // FREE BOUNDARY CONDITIONS ENERGY INSERTION END
+                 //*********************************************************************************
+
+
+                 //*********************************************************************************
+                 // FREE BOUNDARY CONDITIONS SIZE INSERTION
+                 //*********************************************************************************
+
+
+                 // BOUNDARY SIZE INSERT
+
+                 if( (!radius_insert || !energy_insert) && vsize>0 ){
+
+                    Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+
+                    //std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
+
+
+                    Geometry<Node<3> >& vertices = MasterElement.GetGeometry();
+                    double Alpha =  rMeshingVariables.AlphaParameter;
+
+                    bool accepted = mModelerUtilities.AlphaShape(Alpha,vertices,2);
+
+
+                    //condition_radius is side_length
+                    side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
+
+                    //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
+                    double critical_side_size = 0;
+
+                    bool on_tip = false;
+                    if( contact_semi_active ){
+
+                       if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
+                          on_tip = true;
+
+                       if( on_tip == true )
+                          critical_side_size = size_for_wall_semi_tip_contact_side;
+                       else
+                          critical_side_size = size_for_wall_non_tip_contact_side;
+
+
+
+                    }
+                    else if( contact_active ){
+
+                       if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
+                          on_tip = true;
+
+                       if( on_tip == true )
+                          critical_side_size = size_for_wall_semi_tip_contact_side;
+                       else
+                          critical_side_size = size_for_wall_non_tip_contact_side;
+
+                    }
+                    else{
+
+                       critical_side_size  = size_for_non_contact_side;
+                    }
+
+
+                    //if(plastic_power > rMeshingVariables.Refine.CriticalDissipation && condition_radius > rMeshingVariables.Refine.CriticalRadius)
+                    if( !accepted && !contact_semi_active && !contact_active && side_length > critical_side_size )
+                    {
+                       mesh_size_insert = true;
+
+                       // std::cout<<"   insert on mesh size "<<std::endl;		      
+                    }
+                    else if( contact_semi_active && side_length > critical_side_size )
+                    {
+                       mesh_size_insert = true;
+
+                       // std::cout<<"   insert on mesh size semi_contact "<<std::endl;		      
+
+                    }
+                    else if( contact_active && side_length > critical_side_size )
+                    {
+                       mesh_size_insert = true;
+
+                       // std::cout<<"   insert on mesh size on contact "<<std::endl;		      
+
+                    }
+
+
+                 }
+
+                 //*********************************************************************************
+                 // RIGID CONTACT CONDITIONS AND OTHER BOUNDARY CONDITIONS END
+                 //*********************************************************************************
+
+                 //*********************************************************************************
+                 //                   BOUNDARY REBUILD START                                      //
+                 //*********************************************************************************
+
+
+                 if( radius_insert || energy_insert || mesh_size_insert ) //Boundary must be rebuild 
+                 {
+
+                    // std::cout<<"   BOUNDARY DOMAIN ELEMENT REFINED "<<ic->Id()<<std::endl;
+
+                    new_point.X() = 0.5*( rConditionGeom[1].X() + rConditionGeom[0].X() );
+                    new_point.Y() = 0.5*( rConditionGeom[1].Y() + rConditionGeom[0].Y() );
+                    new_point.Z() = 0.5*( rConditionGeom[1].Z() + rConditionGeom[0].Z() );
+
+                    if( this->GetEchoLevel() > 0 )
+                       std::cout<<"   NEW NODE  "<<new_point<<std::endl;
+
+                    new_point.SetId(ic->Id()); //set condition Id
+
+                    //it will be good if the node is detected in the tool tip using the rigid contact standards:
+
+                    if( (rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)) )
+                       tool_project = true;
+
+                    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_active)
+                       tool_project = true;
+
+                    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_semi_active)
+                       tool_project = true;
+
+                    bool on_radius = false;
+
+                    if( tool_project && rMeshingVariables.RigidWallSetFlag ){
+
+                       Vector Point(3);
+                       if( rConditionGeom[0].Is(TO_SPLIT) ){
+
+                          Point[0] = rConditionGeom[0].X();
+                          Point[1] = rConditionGeom[0].Y();
+                          Point[2] = rConditionGeom[0].Z();
+                          on_radius = true;
+
+                       }
+                       else if( rConditionGeom[1].Is(TO_SPLIT) ){
+
+                          Point[0] = rConditionGeom[1].X();
+                          Point[1] = rConditionGeom[1].Y();
+                          Point[2] = rConditionGeom[1].Z();
+                          on_radius = true;
+
+                       }
+                       else{
+                          on_radius = false;
+                       }
+
+
+                       if( on_radius ){
+
+                          ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+                          double Time = CurrentProcessInfo[TIME];  
+                          for( unsigned int i = 0; i < rMeshingVariables.RigidWalls.size(); i++ )
+                          {
+                             if( rMeshingVariables.RigidWalls[i]->IsInside( Point, Time ) ){
+                                tool_radius = rMeshingVariables.RigidWalls[i]->GetRadius(Point);
+                                tip_center  = rMeshingVariables.RigidWalls[i]->GetCenter(Point);
+                                break;
+                             }
+                          }
+                       }
+
+
+
+
+                       if(on_radius){
+
+                          if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
+
+                             array_1d<double,3> tip_normal = tip_center-new_point;
+
+                             if(norm_2(tip_normal)<tool_radius){ //if is in the tool tip
+
+                                tip_normal -= (tool_radius/norm_2(tip_normal)) * tip_normal;		
+
+                                if(norm_2(tip_normal)<tool_radius*0.08)
+                                   new_point  += tip_normal;
+                             }
+
+                          }
+
+                          if( this->GetEchoLevel() > 0 )
+                             std::cout<<"   TOOL PROJECT::on radius  "<<new_point<<std::endl;
+
+
+                       }
+
+
+                    }
+
+                    if(radius_insert)
+                       tip_bound ++;
+                    if(energy_insert)
+                       energy_bound ++;
+                    if(mesh_size_insert)
+                       exterior_bound++;
+
+                    ic->Set(TO_ERASE);
+
+                    if( this->GetEchoLevel() > 0 )
+                       std::cout<<"   INSERTED NODE  "<<new_point<<std::endl;
+
+                    list_of_nodes.push_back(new_point);
+                    list_of_conditions.push_back(*(ic.base()));
+
+
+
+                    // std::cout<<"   Refine Boundary  (Id:"<<ic->Id()<<"): ["<<rConditionGeom[0].Id()<<", "<<rConditionGeom[1].Id()<<"]"<<std::endl;
+                    // std::cout<<"   (x1:"<<rConditionGeom[0].X()<<", y1: "<<rConditionGeom[0].Y()<<") "<<" (x2:"<<rConditionGeom[1].X()<<", y2: "<<rConditionGeom[1].Y()<<") "<<std::endl;
+
+                    //std::cout<<" Added Node [Rcrit:"<<condition_radius<<",Scrit:"<<side_length<<",PlasticPower:"<<plastic_power<<"]"<<std::endl;
+                    //std::cout<<" Conditions [Rcrit:"<<rMeshingVariables.Refine.CriticalRadius<<",Scrit:"<<rMeshingVariables.Refine.CriticalSide<<",PlasticPower:"<<rMeshingVariables.Refine.CriticalDissipation<<"]"<<std::endl;
+
+                 }
+
+
+                 //*********************************************************************************
+                 //                   BOUNDARY REBUILD END                                        //
+                 //*********************************************************************************
+
+
+              }
+              else{
+                 if( this->GetEchoLevel() > 0 )
+                    std::cout<<" Condition "<<ic->Id()<<" Released "<<std::endl;
+              }
+
+           }
+        }	  
+
+
+        //*********************************************************************************
+        //                   DOFS AND NEW CONDITIONS REBUILD START                       //
+        //*********************************************************************************
+
+        //node to get the DOFs from
+        Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin(MeshId))->GetDofs();
+        unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+        double z = 0.0;
+
+        unsigned int initial_node_size = rModelPart.Nodes().size()+1; //total model part node size
+        unsigned int initial_cond_size = rModelPart.Conditions().size()+1; //total model part node size
+        int id=0;
+
+        //if points were added, new nodes must be added to ModelPart
+        for(unsigned int i = 0; i<list_of_nodes.size(); i++)
+        {
+           id   = initial_node_size+i;
+
+           double& x= list_of_nodes[i].X();
+           double& y= list_of_nodes[i].Y();
+
+           Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
+
+           //set to the main mesh (Mesh 0) to avoid problems in the NodalPreIds (number of nodes: change) in other methods
+           if(MeshId!=0)
+              (rModelPart.Nodes(MeshId)).push_back(pnode);
+
+
+           pnode->SetBufferSize(rModelPart.NodesBegin(MeshId)->GetBufferSize() );
+
+
+           //assign data to dofs
+           unsigned int buffer_size = pnode->GetBufferSize();
+
+           //2D edges:
+           Geometry< Node<3> >& rConditionGeom  = list_of_conditions[i]->GetGeometry(); 
+
+
+           //generating the dofs
+           for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+           {
+              Node<3>::DofType& rDof = *iii;
+              Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+
+              if( rConditionGeom[0].IsFixed(rDof.GetVariable()) && rConditionGeom[1].IsFixed(rDof.GetVariable()) )
+                 (p_new_dof)->FixDof();
+              else
+                 (p_new_dof)->FreeDof();
+           }
+
+
+
+           //int cond_id = list_of_nodes[i].Id();
+           //Geometry< Node<3> >& rConditionGeom = (*(rModelPart.Conditions(MeshId).find(cond_id).base()))->GetGeometry();
+
+           for(unsigned int step = 0; step<buffer_size; step++)
+           {
+              //getting the data of the solution step
+              double* step_data = (pnode)->SolutionStepData().Data(step);
+
+              double* node0_data = rConditionGeom[0].SolutionStepData().Data(step);
+              double* node1_data = rConditionGeom[1].SolutionStepData().Data(step);
+
+              //copying this data in the position of the vector we are interested in
+              for(unsigned int j= 0; j<step_data_size; j++)
+              {
+                 step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
+              }
+           }
+
+
+           //set specific control values and flags:
+           pnode->Set(BOUNDARY);
+           pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
+           //std::cout<<"   Node ["<<pnode->Id()<<"] is a NEW_ENTITY "<<std::endl;
+
+           pnode->SetValue(DOMAIN_LABEL,MeshId);
+           double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
+           //nodal_h = 0.5*(nodal_h+rMeshingVariables.Refine.CriticalSide); //modify nodal_h for security
+           nodal_h = rMeshingVariables.Refine.CriticalSide; //modify nodal_h for security
+
+           const array_1d<double,3> ZeroNormal(3,0.0);
+           //correct normal interpolation
+           noalias(pnode->GetSolutionStepValue(NORMAL)) = list_of_conditions[i]->GetValue(NORMAL);
+
+
+           //correct contact_normal interpolation (laplacian boundary projection uses it)
+           array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
+           array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
+           if(norm_2(ContactForceNormal1)==0 || norm_2(ContactForceNormal2)==0)
+              noalias(pnode->FastGetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+
+           //recover the original position of the node
+           const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+           pnode->X0() = pnode->X() - disp[0];
+           pnode->Y0() = pnode->Y() - disp[1];
+           pnode->Z0() = pnode->Z() - disp[2];
+
+           //Conditions must be also created with the add of a new node:
+           Condition::NodesArrayType face1;
+           Condition::NodesArrayType face2;
+           face1.reserve(2);
+           face2.reserve(2);
+
+           face1.push_back(rConditionGeom(0));
+           face1.push_back(pnode);
+
+           face2.push_back(pnode);
+           face2.push_back(rConditionGeom(1));
+
+           id   = initial_cond_size+(i*2);
+
+           Condition::Pointer pcond1      = list_of_conditions[i]->Clone(id, face1);
+           // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
+           id   = initial_cond_size+(i*2+1);
+           Condition::Pointer pcond2      = list_of_conditions[i]->Clone(id, face2);
+           // std::cout<<" ID"<<id<<" 2s "<<pcond2->GetGeometry()[0].Id()<<" "<<pcond2->GetGeometry()[1].Id()<<std::endl;
+
+           pcond1->Set(NEW_ENTITY);
+           pcond2->Set(NEW_ENTITY);
+
+           pcond1->SetValue(MASTER_NODES, list_of_conditions[i]->GetValue(MASTER_NODES) );
+           pcond1->SetValue(NORMAL, list_of_conditions[i]->GetValue(NORMAL) );
+           pcond1->SetValue(CAUCHY_STRESS_VECTOR,list_of_conditions[i]->GetValue(CAUCHY_STRESS_VECTOR));
+           pcond1->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
+
+           pcond2->SetValue(MASTER_NODES, list_of_conditions[i]->GetValue(MASTER_NODES) );
+           pcond2->SetValue(NORMAL, list_of_conditions[i]->GetValue(NORMAL) );
+           pcond2->SetValue(CAUCHY_STRESS_VECTOR,list_of_conditions[i]->GetValue(CAUCHY_STRESS_VECTOR));
+           pcond2->SetValue(DEFORMATION_GRADIENT,list_of_conditions[i]->GetValue(DEFORMATION_GRADIENT));
+
+           (rModelPart.Conditions(MeshId)).push_back(pcond1);
+           (rModelPart.Conditions(MeshId)).push_back(pcond2);
+
+           // (rModelPart.Conditions()).push_back(pcond1);
+           // (rModelPart.Conditions()).push_back(pcond2);
+        }
+
+
+        //*********************************************************************************
+        //                   DOFS AND NEW CONDITIONS REBUILD END                         //
+        //*********************************************************************************
+
+
+
+
+        //*********************************************************************************
+        //                   CLEAN CONDITIONS AND FLAGS START                            //
+        //*********************************************************************************
+
+
+        //Clean Conditions
+        ModelPart::ConditionsContainerType RemoveConditions;
+
+        //id = 0;
+        for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+        {
+
+           Geometry< Node<3> > rGeom =ic->GetGeometry();
+           for(unsigned int i=0; i<rGeom.size(); i++)
+           {
+              rGeom[i].Reset(TO_SPLIT);
+           }
+
+           if(ic->IsNot(TO_ERASE)){
+              //id+=1;
+              RemoveConditions.push_back(*(ic.base()));
+              //RemoveConditions.back().SetId(id);
+           }
+           // else{
+           //   std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
+           // }
+        }
+
+        rModelPart.Conditions(MeshId).swap(RemoveConditions);
+
+
+        //*********************************************************************************
+        //                   CLEAN CONDITIONS AND FLAGS END                              //
+        //*********************************************************************************
+
+
+
+
+     } // REFINE END;
+
+
+
+     rMeshingVariables.RemeshInfo.InsertedConditions     = rModelPart.NumberOfConditions(MeshId)-rMeshingVariables.RemeshInfo.InsertedConditions;
+     rMeshingVariables.RemeshInfo.InsertedBoundaryNodes = rModelPart.NumberOfNodes(MeshId)-rMeshingVariables.RemeshInfo.InsertedBoundaryNodes;
+
+     if( this->GetEchoLevel() > 0 ){
+        std::cout<<"   [ CONDITIONS ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedConditions<<" ) ]"<<std::endl;
+        std::cout<<"   [ NODES      ( inserted : "<<rMeshingVariables.RemeshInfo.InsertedBoundaryNodes<<" ) ]"<<std::endl;
+        std::cout<<"   [ contact(TIP: "<<contact_tip<<", SIZE: "<<contact_size<<") -  bound(TIP: "<<tip_bound<<", SIZE: "<<exterior_bound<<")]"<<std::endl;
+
+
+        std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
+     }
+
+     KRATOS_CATCH(" ")
   }
 
 
   //*******************************************************************************************
   //*******************************************************************************************
+
 
   void TriangularMesh2DModeler::RemoveCloseNodes(ModelPart& rModelPart,
 						 MeshingVariables& rMeshingVariables,
@@ -3072,347 +3074,363 @@ namespace Kratos
     double size_for_criterion_error   = 2.0 * rMeshingVariables.Refine.CriticalRadius; //compared with mean node radius
     double size_for_distance_inside   = 1.0 * rMeshingVariables.Refine.CriticalRadius; //compared with element radius
     double size_for_distance_boundary = 1.5 * size_for_distance_inside; //compared with element radius
-	
+    double size_for_wall_tip_contact_side = 0.5* rMeshingVariables.Refine.CriticalSide;
+    size_for_wall_tip_contact_side *= 0.3;
+    bool derefine_wall_tip_contact = false;
+
     //if the remove_node switch is activated, we check if the nodes got too close
     if (rMeshingVariables.RefiningOptions.Is(MeshModeler::REMOVE_NODES))
-      {
-	    	    
-	////////////////////////////////////////////////////////////
-	if (rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_ERROR))	      
-	  {
-	    MeshErrorCalculationUtilities MeshErrorDistribution;
-	    MeshErrorDistribution.SetEchoLevel(this->GetEchoLevel());
-	      
-	    std::vector<double> NodalError;
-	    std::vector<int>    nodes_ids;
-		  
+    {
 
-	    MeshErrorDistribution.NodalErrorCalculation(rModelPart,NodalError,nodes_ids,MeshId,rMeshingVariables.Refine.GetErrorVariable());
+       ////////////////////////////////////////////////////////////
+       if (rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_ERROR))	      
+       {
+          MeshErrorCalculationUtilities MeshErrorDistribution;
+          MeshErrorDistribution.SetEchoLevel(this->GetEchoLevel());
 
-	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
-	      {
-
-		WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
-		int erased_nodes =0;
-		for(unsigned int i = 0; i < rN.size(); i++)
-		  {
-		    if(rN[i].Is(TO_ERASE))
-		      erased_nodes += 1;
-		  }
+          std::vector<double> NodalError;
+          std::vector<int>    nodes_ids;
 
 
-		if( in->IsNot(BOUNDARY) &&  in->IsNot(STRUCTURE) && erased_nodes < 1 )
-		  {
-		    double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
-		    MeanError = NodalError[nodes_ids[in->Id()]];
-		    
-		    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
-		    double mean_node_radius = 0;
-		    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
-		      {
-			mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
-		      }
-		    
-		    mean_node_radius /= double(neighb_elems.size());
-			
-		    if(NodalError[nodes_ids[in->Id()]] < rMeshingVariables.Refine.ReferenceError && mean_node_radius < size_for_criterion_error)
-		      {
-			//std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
-			//std::cout<<"   mean_node_radius "<<mean_node_radius<<" < "<<size_for_criterion_error<<" size_for_criterion_error"<<std::endl;
-			in->Set(TO_ERASE);
-			any_node_removed = true;
-			error_remove++;
-		      }
-		  }
-	      }
+          MeshErrorDistribution.NodalErrorCalculation(rModelPart,NodalError,nodes_ids,MeshId,rMeshingVariables.Refine.GetErrorVariable());
 
-	  }
-	//////////////////////////////////////////////////////////// 
+          for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
+          {
+
+             WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+             int erased_nodes =0;
+             for(unsigned int i = 0; i < rN.size(); i++)
+             {
+                if(rN[i].Is(TO_ERASE))
+                   erased_nodes += 1;
+             }
 
 
-	////////////////////////////////////////////////////////////
-	if (rMeshingVariables.RefiningOptions.Is(MeshModeler::REMOVE_ON_BOUNDARY))
-	  {
-	    any_condition_removed = RemoveNonConvexBoundary(rModelPart,rMeshingVariables,MeshId);
-	  }
-	//////////////////////////////////////////////////////////// 
+             if( in->IsNot(BOUNDARY) &&  in->IsNot(STRUCTURE) && erased_nodes < 1 )
+             {
+                double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
+                MeanError = NodalError[nodes_ids[in->Id()]];
+
+                WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+                double mean_node_radius = 0;
+                for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+                {
+                   mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
+                }
+
+                mean_node_radius /= double(neighb_elems.size());
+
+                if(NodalError[nodes_ids[in->Id()]] < rMeshingVariables.Refine.ReferenceError && mean_node_radius < size_for_criterion_error)
+                {
+                   //std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
+                   //std::cout<<"   mean_node_radius "<<mean_node_radius<<" < "<<size_for_criterion_error<<" size_for_criterion_error"<<std::endl;
+                   in->Set(TO_ERASE);
+                   any_node_removed = true;
+                   error_remove++;
+                }
+             }
+          }
+
+       }
+       //////////////////////////////////////////////////////////// 
 
 
-	////////////////////////////////////////////////////////////
-	if (rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_DISTANCE))	      
-	  {
-
-	    //bucket size definition:
-	    unsigned int bucket_size = 20;
-
-
-	    //create the list of the nodes to be check during the search
-	    PointPointerVector list_of_nodes;
-	    list_of_nodes.reserve(rModelPart.NumberOfNodes(MeshId));
-	    for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
-	      {
-		(list_of_nodes).push_back(*(i_node.base()));
-	      }
-
-	    KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
-			
-	    ////////////////////////////////////////////////////////////
-
-	    //all of the nodes in this list will be preserved
-	    unsigned int num_neighbours = 100;
-
-	    PointPointerVector neighbours         (num_neighbours);
-	    DistanceVector     neighbour_distances(num_neighbours);
+       ////////////////////////////////////////////////////////////
+       if (rMeshingVariables.RefiningOptions.Is(MeshModeler::REMOVE_ON_BOUNDARY))
+       {
+          any_condition_removed = RemoveNonConvexBoundary(rModelPart,rMeshingVariables,MeshId);
+       }
+       //////////////////////////////////////////////////////////// 
 
 
-	    //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
-	    double radius=0;
-	    Node<3> work_point(0,0.0,0.0,0.0);
-	    unsigned int n_points_in_radius;
-	
+       ////////////////////////////////////////////////////////////
+       if (rMeshingVariables.RefiningOptions.Is(MeshModeler::CRITERION_DISTANCE))	      
+       {
 
-	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
-	      {
-		bool on_contact_tip = false;
-		array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
-		
+          //bucket size definition:
+          unsigned int bucket_size = 20;
+
+
+          //create the list of the nodes to be check during the search
+          PointPointerVector list_of_nodes;
+          list_of_nodes.reserve(rModelPart.NumberOfNodes(MeshId));
+          for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+          {
+             (list_of_nodes).push_back(*(i_node.base()));
+          }
+
+          KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
+
+          ////////////////////////////////////////////////////////////
+
+          //all of the nodes in this list will be preserved
+          unsigned int num_neighbours = 100;
+
+          PointPointerVector neighbours         (num_neighbours);
+          DistanceVector     neighbour_distances(num_neighbours);
+
+
+          //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
+          double radius=0;
+          Node<3> work_point(0,0.0,0.0,0.0);
+          unsigned int n_points_in_radius;
+
+
+          for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
+          {
+             bool on_contact_tip = false;
+             array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+
 		if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) )
-		  on_contact_tip = true;				  
+                on_contact_tip = true;				  
 
-		if( in->IsNot(NEW_ENTITY) )
-		  {
-		    //radius=rMeshingVariables.Refine.SizeFactor*in->FastGetSolutionStepValue(NODAL_H);
-		    radius = size_for_distance_inside;
+             if( in->IsNot(NEW_ENTITY) )
+             {
+                //radius=rMeshingVariables.Refine.SizeFactor*in->FastGetSolutionStepValue(NODAL_H);
+                radius = size_for_distance_inside;
 
-		    work_point[0]=in->X();
-		    work_point[1]=in->Y();
-		    work_point[2]=in->Z();
+                work_point[0]=in->X();
+                work_point[1]=in->Y();
+                work_point[2]=in->Z();
 
-		    n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(),neighbour_distances.begin(), num_neighbours);
+                n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(),neighbour_distances.begin(), num_neighbours);
 
-		    if (n_points_in_radius>1)
-		      {
-			//std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
+                if (n_points_in_radius>1)
+                {
+                   //std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
 
-			//if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
+                   //if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
 
-			  if ( in->IsNot(BOUNDARY) )
-			    {
+                   if ( in->IsNot(BOUNDARY) )
+                   {
 
-			      //look if we are already erasing any of the other nodes
-			      unsigned int contact_nodes = 0;
-			      unsigned int erased_nodes = 0;
-			      for(PointPointerVectorIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
-				{
-				  if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
-				    contact_nodes += 1;
-				  
-				  if( (*nn)->Is(TO_ERASE) )
-				    erased_nodes += 1;
-				}
+                      //look if we are already erasing any of the other nodes
+                      unsigned int contact_nodes = 0;
+                      unsigned int erased_nodes = 0;
+                      for(PointPointerVectorIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+                      {
+                         if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
+                            contact_nodes += 1;
 
-			      if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
-				in->Set(TO_ERASE);
-				//std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
-				any_node_removed = true;
-				inside_nodes_removed++;
-				//distance_remove++;
-			      }
+                         if( (*nn)->Is(TO_ERASE) )
+                            erased_nodes += 1;
+                      }
 
-			    }
-			  else if ( rMeshingVariables.RefiningOptions.Is(MeshModeler::REMOVE_ON_BOUNDARY) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
-			    {
-			    
-			      //std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
+                      if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
+                         in->Set(TO_ERASE);
+                         //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                         any_node_removed = true;
+                         inside_nodes_removed++;
+                         //distance_remove++;
+                      }
 
-			      //here we loop over the neighbouring nodes and if there are nodes
-			      //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
-			      unsigned int k = 0;
-			      unsigned int counter = 0;
-			      for(PointPointerVectorIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
-				{
-				  bool nn_on_contact_tip = false;
-				  array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
-				  
-				  if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
-				    nn_on_contact_tip = true;				  
+                   }
+                   else if ( rMeshingVariables.RefiningOptions.Is(MeshModeler::REMOVE_ON_BOUNDARY) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
+                   {
 
-				  //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
-				  if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
-				    {
-				      //KRATOS_WATCH( neighbours_distances[k] )
-				      if((*nn)->IsNot(TO_ERASE)){
-					counter += 1;
-				      }
-				    }
+                      //std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
 
-				  k++;
-				}
+                      //here we loop over the neighbouring nodes and if there are nodes
+                      //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
+                      unsigned int k = 0;
+                      unsigned int counter = 0;
+                      for(PointPointerVectorIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+                      {
+                         bool nn_on_contact_tip = false;
+                         array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 
-			      if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
-				in->Set(TO_ERASE);
-				//std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
-				any_node_removed = true;
-				boundary_nodes_removed++;
-				//distance_remove ++;
-			      }
+                         if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+                            nn_on_contact_tip = true;				  
 
-			    }
+                         //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
+                         if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
+                         {
+                            //KRATOS_WATCH( neighbours_distances[k] )
+                            if((*nn)->IsNot(TO_ERASE)){
+                               counter += 1;
+                            }
+                         }
 
-			  //}
-
-		      }
-			
-		  }	
-	      }
-
-	    //Build boundary after removing boundary nodes due distance criterion
-	    if(boundary_nodes_removed){
-	      
-
-	      std::vector<std::vector<Condition::Pointer> > node_shared_conditions(rModelPart.NumberOfNodes()+1); //all domain nodes
-      
-	      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
-		{	 
-		  if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
-		    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-		    for(unsigned int i=0; i<rConditionGeom.size(); i++){
-		      //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
-		      if(rConditionGeom[i].Is(TO_ERASE)){
-			if( this->GetEchoLevel() > 0 )
-			  std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
-		      }
-
-		      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
-		    }
-		  }
-
-		}
+                         if ( (*nn)->Is(BOUNDARY) && nn_on_contact_tip && neighbour_distances[k] < size_for_wall_tip_contact_side ) {
+                            if ( (*nn)->IsNot(TO_ERASE)) { 
+                               counter += 1;
+                            }
+                         }
 
 
-	      //nodes
-	      int i=0,j=0;
-	      unsigned int initial_cond_size = rModelPart.Conditions().size()+1; //total model part node size
-	      unsigned int id = 1;
-	      unsigned int new_id = 0;
+                         k++;
+                      }
 
-	      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++) 
-		{
+                      if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
+                         in->Set(TO_ERASE);
+                         //std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
+                         any_node_removed = true;
+                         boundary_nodes_removed++;
+                         //distance_remove ++;
+                      }
+                      else if ( counter > 2 && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact) {
+                         in->Set(TO_ERASE);
+                         std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
+                         any_node_removed = true;
+                         boundary_nodes_removed++;
+                      }
 
-		  if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
+                   }
 
-		    unsigned int nodeId = in->Id();
+                   //}
 
-		    if(node_shared_conditions[nodeId].size()>=2){
+                }
 
-		      // std::cout<<"     nodeId "<<nodeId<<std::endl;
-		      if(node_shared_conditions[nodeId][0]->IsNot(TO_ERASE) && node_shared_conditions[nodeId][1]->IsNot(TO_ERASE)){
-		
-			if(node_shared_conditions[nodeId][0]->GetGeometry()[0].Id() == in->Id()){
-			  i = 1;
-			  j = 0;
-			}
-			else{
-			  i = 0;
-			  j = 1;
-			}
-	                      	
+             }	
+          }
 
-			Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
-			Geometry< Node<3> >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
-	      
-			//node in id Node1;
-
-			Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
-			Node<3> & Node2 = rConditionGeom2[1]; // other node in condition [2]
- 
-			node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
-			node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
-
-			any_condition_removed = true;
-
-			Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
-		    
-			Node0.Set(BLOCKED);
-			Node0.Set(MeshModeler::ENGAGED_NODES);
-
-			Node2.Set(BLOCKED);
-			Node2.Set(MeshModeler::ENGAGED_NODES);
-			
-			//create new condition Node0-NodeB
-			Condition::NodesArrayType face;
-			face.reserve(2);
-
-			face.push_back(rConditionGeom1(0));
-			face.push_back(rConditionGeom2(1));
-		
-			new_id = initial_cond_size + id;
-			//properties to be used in the generation
-			Condition::Pointer pcond       = NewCond->Clone(new_id, face);
-			// std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
-
-			pcond->Set(NEW_ENTITY);
-
-			//std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
-
-			pcond->SetValue(NORMAL, NewCond->GetValue(NORMAL) );
-
-			pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
-			pcond->SetValue(CAUCHY_STRESS_VECTOR, NewCond->GetValue(CAUCHY_STRESS_VECTOR));
-			pcond->SetValue(DEFORMATION_GRADIENT, NewCond->GetValue(DEFORMATION_GRADIENT));
-
-			(rModelPart.Conditions(MeshId)).push_back(pcond);
-
-			id +=1;
-		      }
-		   
-		    }
-		  }
-		
-		}
-	    
-	      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
-		{
-		  in->Reset(BLOCKED);
-		}
-
-	    }
-	    //Build boundary after removing boundary nodes due distance criterion
-	    
+          //Build boundary after removing boundary nodes due distance criterion
+          if(boundary_nodes_removed){
 
 
-	  }
-	// REMOVE ON DISTANCE
-	////////////////////////////////////////////////////////////
-			
+             std::vector<std::vector<Condition::Pointer> > node_shared_conditions(rModelPart.NumberOfNodes()+1); //all domain nodes
 
-	if(any_node_removed)
-	  mModelerUtilities.CleanRemovedNodes(rModelPart,MeshId);
+             for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+             {	 
+                if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
+                   Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
+                   for(unsigned int i=0; i<rConditionGeom.size(); i++){
+                      //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
+                      if(rConditionGeom[i].Is(TO_ERASE)){
+                         if( this->GetEchoLevel() > 0 )
+                            std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
+                      }
 
-	if(any_condition_removed){
-	  //Clean Conditions
-	  ModelPart::ConditionsContainerType RemoveConditions;
-	    
-	  //id = 0;
-	  for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
-	    {
-	
-	      if(ic->IsNot(TO_ERASE)){
-		//id+=1;
-		RemoveConditions.push_back(*(ic.base()));
-		//RemoveConditions.back().SetId(id);
-	      }
-	      // else{
-	      // 	std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
-	      // }
-	    }
-	    
-	  rModelPart.Conditions(MeshId).swap(RemoveConditions);
-	
-	}
-      
+                      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
+                   }
+                }
 
-      }
+             }
+
+
+             //nodes
+             int i=0,j=0;
+             unsigned int initial_cond_size = rModelPart.Conditions().size()+1; //total model part node size
+             unsigned int id = 1;
+             unsigned int new_id = 0;
+
+             for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++) 
+             {
+
+                if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
+
+                   unsigned int nodeId = in->Id();
+
+                   if(node_shared_conditions[nodeId].size()>=2){
+
+                      // std::cout<<"     nodeId "<<nodeId<<std::endl;
+                      if(node_shared_conditions[nodeId][0]->IsNot(TO_ERASE) && node_shared_conditions[nodeId][1]->IsNot(TO_ERASE)){
+
+                         if(node_shared_conditions[nodeId][0]->GetGeometry()[0].Id() == in->Id()){
+                            i = 1;
+                            j = 0;
+                         }
+                         else{
+                            i = 0;
+                            j = 1;
+                         }
+
+
+                         Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
+                         Geometry< Node<3> >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
+
+                         //node in id Node1;
+
+                         Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
+                         Node<3> & Node2 = rConditionGeom2[1]; // other node in condition [2]
+
+                         node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
+                         node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
+
+                         any_condition_removed = true;
+
+                         Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
+
+                         Node0.Set(BLOCKED);
+                         Node0.Set(MeshModeler::ENGAGED_NODES);
+
+                         Node2.Set(BLOCKED);
+                         Node2.Set(MeshModeler::ENGAGED_NODES);
+
+                         //create new condition Node0-NodeB
+                         Condition::NodesArrayType face;
+                         face.reserve(2);
+
+                         face.push_back(rConditionGeom1(0));
+                         face.push_back(rConditionGeom2(1));
+
+                         new_id = initial_cond_size + id;
+                         //properties to be used in the generation
+                         Condition::Pointer pcond       = NewCond->Clone(new_id, face);
+                         // std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
+
+                         pcond->Set(NEW_ENTITY);
+
+                         //std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
+
+                         pcond->SetValue(NORMAL, NewCond->GetValue(NORMAL) );
+
+                         pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
+                         pcond->SetValue(CAUCHY_STRESS_VECTOR, NewCond->GetValue(CAUCHY_STRESS_VECTOR));
+                         pcond->SetValue(DEFORMATION_GRADIENT, NewCond->GetValue(DEFORMATION_GRADIENT));
+
+                         (rModelPart.Conditions(MeshId)).push_back(pcond);
+
+                         id +=1;
+                      }
+
+                   }
+                }
+
+             }
+
+             for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
+             {
+                in->Reset(BLOCKED);
+             }
+
+          }
+          //Build boundary after removing boundary nodes due distance criterion
+
+
+
+       }
+       // REMOVE ON DISTANCE
+       ////////////////////////////////////////////////////////////
+
+
+       if(any_node_removed)
+          mModelerUtilities.CleanRemovedNodes(rModelPart,MeshId);
+
+       if(any_condition_removed){
+          //Clean Conditions
+          ModelPart::ConditionsContainerType RemoveConditions;
+
+          //id = 0;
+          for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+          {
+
+             if(ic->IsNot(TO_ERASE)){
+                //id+=1;
+                RemoveConditions.push_back(*(ic.base()));
+                //RemoveConditions.back().SetId(id);
+             }
+             // else{
+             // 	std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
+             // }
+          }
+
+          rModelPart.Conditions(MeshId).swap(RemoveConditions);
+
+       }
+
+
+    }
 
 
     // number of removed nodes:
@@ -3422,13 +3440,13 @@ namespace Kratos
     RemovedConditions -= rModelPart.NumberOfConditions(MeshId);
 
     if( this->GetEchoLevel() > 0 ){
-      std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
-      std::cout<<"   [ NODES      ( removed : "<<rMeshingVariables.RemeshInfo.RemovedNodes<<" ) ]"<<std::endl;
-      std::cout<<"   [ Error(removed: "<<error_remove<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
-	
+       std::cout<<"   [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
+       std::cout<<"   [ NODES      ( removed : "<<rMeshingVariables.RemeshInfo.RemovedNodes<<" ) ]"<<std::endl;
+       std::cout<<"   [ Error(removed: "<<error_remove<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
 
-      //std::cout<<"   Nodes after  erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
-      std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
+
+       //std::cout<<"   Nodes after  erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
+       std::cout<<"   REMOVE CLOSE NODES ]; "<<std::endl;
     }
 
     KRATOS_CATCH(" ")
