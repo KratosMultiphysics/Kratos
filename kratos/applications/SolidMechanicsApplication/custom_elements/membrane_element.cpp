@@ -336,39 +336,65 @@ void MembraneElement::CalculateOnIntegrationPoints(
 
         if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
         {
-            if ( Output[PointNumber].size2() != StrainVector.size() )
-                Output[PointNumber].resize( 1, StrainVector.size() );
-
-            for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
-                Output[PointNumber]( 0, ii ) = StrainVector[ii];
+//             if ( Output[PointNumber].size2() != StrainVector.size() )
+//                 Output[PointNumber].resize( 1, StrainVector.size() );
+// 
+//             for ( unsigned int ii = 0; ii < StrainVector.size(); ii++ )
+//                 Output[PointNumber]( 0, ii ) = StrainVector[ii];
+            
+            //BIG CHAPUZA! need to have this to look like a stress
+            Vector strain_as_stress = StrainVector;
+            strain_as_stress[2] *= 0.5;
+            array_1d<double,6> global_strain = ZeroVector(6);
+            Calculate_GlobalStressVector( global_strain, strain_as_stress, mV1[PointNumber], mV2[PointNumber] );
+            
+            Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor(global_strain);
+            Output[PointNumber] = StrainMatrix;
         }
         else if ( rVariable == PK2_STRESS_TENSOR )
         {
-            if ( Output[PointNumber].size2() != 6 )
-                Output[PointNumber].resize( 1, 6 );
-
-            for ( unsigned int ii = 0; ii < 6; ii++ )
-                Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
+//             if ( Output[PointNumber].size2() != 6 )
+//                 Output[PointNumber].resize( 1, 6 );
+// 
+//             for ( unsigned int ii = 0; ii < 6; ii++ )
+//                 Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
+            
+            Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(mStressesVector[PointNumber]);
+            Output[PointNumber] = StressMatrix;
         }
         else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress
         {
-            if(Output[PointNumber].size2() != 6)
-                Output[PointNumber].resize(1,6);
+//             if(Output[PointNumber].size2() != 6)
+//                 Output[PointNumber].resize(1,6);
 
             boost::numeric::ublas::bounded_matrix<double, 2, 2> F;
             noalias(F)=tmp; //VM
             Vector CauchyStressVector = StressVector;
             double detF = MathUtils<double>::Det(F);
             
+            //calculate base vectors in the current configuration
+            array_1d<double, 3> v1,v2,n;
+            CrossProduct( v3, ge, gn );
+            n = v3;
+            n /= norm_2( v3 );
+            v1 = ge;
+            v1 /= norm_2( v1 );
+            CrossProduct( v2, n, v1 );
+
+        
 
             mConstitutiveLawVector[PointNumber]->TransformPK2Stresses(CauchyStressVector,F,detF,ConstitutiveLaw::StressMeasure_Cauchy);
 //				mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, F, StressVector, StrainVector); // VM para calculo cauchy
 
             noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
-            Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
+            Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, v1, v2);   //saving the stress vector
+//             Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
 
-            for(unsigned int ii = 0; ii<6; ii++)
-                Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
+//             for(unsigned int ii = 0; ii<6; ii++)
+//                 Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
+            
+            Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(mCauchyStressesVector[PointNumber]);
+            Output[PointNumber] = StressMatrix;
             
         }
         else
@@ -1168,6 +1194,15 @@ void MembraneElement::CalculateAll(
             CalculateAndAddKm( rLeftHandSideMatrix, B, D, IntToReferenceWeight );
             CalculateAndAddKg( rLeftHandSideMatrix, Q, DN_DeContainer[PointNumber], StressVector, IntToReferenceWeight );
         }
+        
+//                      if(this->Id() == 51) //TODO: remove this! it is just for debugging purposes
+//         {
+//             KRATOS_WATCH(IntToReferenceWeight)
+//             KRATOS_WATCH(DetJ0);
+//             KRATOS_WATCH(mThickness0);
+//             KRATOS_WATCH(StrainVector)
+//             KRATOS_WATCH(StressVector)
+//         }
 
         // RIGHT HAND SIDE VECTOR
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
@@ -1180,7 +1215,25 @@ void MembraneElement::CalculateAll(
             noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
         }
     }
-
+//         if(this->Id() == 51) //TODO: remove this! it is just for debugging purposes
+//         {
+//             KRATOS_WATCH(rLeftHandSideMatrix)
+//             KRATOS_WATCH(rRightHandSideVector)
+//             Vector displacements;
+//             this->GetValuesVector(displacements,0);
+//             KRATOS_WATCH( displacements );
+//             
+//             KRATOS_WATCH("coordintates")
+//             for(unsigned int i=0; i<GetGeometry().size(); i++)
+//                 std::cout << " " << GetGeometry()[i].Id() << " " << GetGeometry()[i].Coordinates() << std::endl;
+//             
+//             KRATOS_WATCH("initial coordintates")
+//             for(unsigned int i=0; i<GetGeometry().size(); i++)
+//                 std::cout << " " << GetGeometry()[i].Id() << " " << GetGeometry()[i].GetInitialPosition() << std::endl;
+//             
+//             
+//         }
+        
     KRATOS_CATCH( "" )
 }
 
