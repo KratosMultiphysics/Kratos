@@ -174,6 +174,7 @@ public:
 
         //set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
+
         mInitializeWasPerformed = false;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
@@ -232,6 +233,7 @@ public:
 
         //set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
+
         mInitializeWasPerformed = false;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
@@ -468,7 +470,6 @@ public:
         TSystemVectorType& mb = *mpb;
 
 
-
         //initializing the parameters of the Newton-Raphson cicle
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
@@ -476,6 +477,7 @@ public:
         bool is_converged = false;
         //bool ResidualIsUpdated = false;
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         //function to perform the building and the solving phase.
@@ -528,6 +530,7 @@ public:
         {
             //initialisation of the convergence criteria
             rDofSet = pBuilderAndSolver->GetDofSet();
+
             mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
             if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
@@ -591,6 +594,7 @@ public:
 
             //Updating the results stored in the database
             rDofSet = pBuilderAndSolver->GetDofSet();
+
             pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
             pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
