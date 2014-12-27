@@ -51,11 +51,11 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         square_area = base_square * height_square
         square_inertia_z = (base_square * height_square ** 3) / 12.0
         square_inertia_y = (height_square * base_square ** 3) / 12.0
-        square_inertia_polar = ((base_square * height_square ** 3) / 12.0) + ((height_square *base_square**3)/12.0)
+        square_inertia_polar = square_inertia_z + square_inertia_y
         square_module_z = (base_square * height_square ** 2) / 6.0
         square_module_y = (height_square * base_square ** 2) / 6.0
-        square_turning_radius_z = ((((base_square * height_square ** 3) / 12.0) / (base_square * height_square)) **(1.0/2.0))
-        square_turning_radius_y = ((((height_square * base_square ** 3) / 12.0) / (base_square * height_square)) **(1.0/2.0))
+        square_turning_radius_z = ((((base_square * height_square ** 3) / 12.0) / (base_square * height_square)) ** (0.5))
+        square_turning_radius_y = ((((height_square * base_square ** 3) / 12.0) / (base_square * height_square)) ** (0.5))
         inertia = Matrix(2, 2)
         inertia[0, 0] = square_inertia_z
         inertia[0, 1] = square_inertia_polar
@@ -80,10 +80,10 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         shape = 'Circular'
 
         circular_area = 3.14 * (radius ** 2)
-        circular_inertia = (3.14 * (radius ** 4)) / 4
-        circular_inertia_polar = (3.14 * (radius ** 4)) / 4
-        circular_module = (3.14 * (radius ** 3)) / 4
-        circular_turning_radius = (((3.14 * (radius ** 4)) / 4.0) / (3.14 *(radius**2)))**(1.0/2.0)
+        circular_inertia = (3.14 * (radius ** 4)) * 0.25
+        circular_inertia_polar = circular_inertia + circular_inertia
+        circular_module = (3.14 * (radius ** 3)) * 0.25
+        circular_turning_radius = (((3.14 * (radius ** 4)) * 0.25) / (3.14 *(radius**2)))**(0.5)
         inertia = Matrix(2, 2)
         inertia[0, 0] = circular_inertia
         inertia[0, 1] = circular_inertia_polar
@@ -115,8 +115,13 @@ def SetProperties(SectionType, SectionData, BeamProperties):
 
         circular_area = 3.14 * (distance_a ** 2) * 0.25
 
-        circular_inertia = (3.14 * (diameter_D ** 3) * thickness) * 0.25
-        circular_inertia_polar = (3.14 * (diameter_D ** 3) * thickness) * 0.25
+        # for thin tubes
+        #circular_inertia = (3.14 * (diameter_D ** 3) * thickness) * 0.25
+        
+        # for thick tubes
+        circular_inertia = (3.14 * (radius ** 4 - (radius-thickness) ** 4) ) * 0.25
+
+        circular_inertia_polar = circular_inertia + circular_inertia
 
         circular_module = (3.14 * (diameter_D ** 2) * thickness) * 0.25
         circular_turning_radius = sqrt(distance_b) * 0.25
