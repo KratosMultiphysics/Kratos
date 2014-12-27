@@ -302,33 +302,16 @@ void MembraneElement::CalculateOnIntegrationPoints(
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+	
+	// if strain has to be computed inside of the constitutive law with PK2
+	//rValues.SetDeformationGradientF(rVariables.F); //in this case F is the whole deformation gradient
 
-        Matrix dummy = ZeroMatrix( 3,3 ); //TODO: this shall not be needed
-        //             Variables.detF  = MathUtils<double>::Det(rVariables.F); ??????????????
-// 			rValues.SetDeterminantF0(rVariables.detF0); ????????????????????
-// 			rValues.SetDeformationGradientF0(rVariables.F0); ??????????????????
-// 			rValues.SetDeterminantF(rVariables.detF); ???????????????
-// 			rValues.SetDeformationGradientF(rVariables.F); ?????????????????
-        Values.SetStrainVector(StrainVector); //this has to be the input parameter
-        Values.SetStressVector(StressVector);
-        Values.SetConstitutiveMatrix(dummy);
-        //rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-        Values.SetShapeFunctionsValues( row( GetGeometry().ShapeFunctionsValues(), PointNumber ) );
+        Values.SetStrainVector(StrainVector); //this is the input  parameter
+        Values.SetStressVector(StressVector); //this is the output parameter 
+
+
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2 );
 
-//             Matrix dummy = ZeroMatrix( 0, 0 );
-//             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-//                 StrainVector,
-//                 dummy,
-//                 StressVector,
-//                 dummy,
-//                 rCurrentProcessInfo,
-//                 GetProperties(),
-//                 GetGeometry(),
-//                 row( GetGeometry().ShapeFunctionsValues(), PointNumber ),
-//                 true,
-//                 false,
-//                 false );
 
         noalias( mStressesVector[PointNumber] ) = ZeroVector( 6 );
         Calculate_GlobalStressVector( mStressesVector[PointNumber], StressVector, mV1[PointNumber], mV2[PointNumber] ); //saving the stress vector
@@ -382,16 +365,14 @@ void MembraneElement::CalculateOnIntegrationPoints(
             CrossProduct( v2, n, v1 );
 
         
-
             mConstitutiveLawVector[PointNumber]->TransformPK2Stresses(CauchyStressVector,F,detF,ConstitutiveLaw::StressMeasure_Cauchy);
-//				mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, F, StressVector, StrainVector); // VM para calculo cauchy
 
             noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
             Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, v1, v2);   //saving the stress vector
-//             Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
+	    // Calculate_GlobalStressVector(mCauchyStressesVector[PointNumber], CauchyStressVector, mV1[PointNumber], mV2[PointNumber]);	//saving the stress vector
 
-//             for(unsigned int ii = 0; ii<6; ii++)
-//                 Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
+	    // for(unsigned int ii = 0; ii<6; ii++)
+	    //   Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
             
             Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(mCauchyStressesVector[PointNumber]);
             Output[PointNumber] = StressMatrix;
@@ -507,7 +488,8 @@ void MembraneElement::FinalizeSolutionStep(
 //            Values.SetShapeFunctionsValues ( row ( GetGeometry().ShapeFunctionsValues(), PointNumber ) );
 //            
 //            mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse (Values,ConstitutiveLaw::StressMeasure_PK2 );
-        mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
+
+              mConstitutiveLawVector[i]->FinalizeSolutionStep( GetProperties(),
                 GetGeometry(),
                 row( GetGeometry().ShapeFunctionsValues(), i ),
                 rCurrentProcessInfo );
@@ -1070,9 +1052,9 @@ void MembraneElement::CalculateAll(
 
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-    //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -1086,7 +1068,6 @@ void MembraneElement::CalculateAll(
     boost::numeric::ublas::bounded_matrix<double, 3, 3>  Q = ZeroMatrix( 3, 3 );
 
     //resizing as needed the LHS
-
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
@@ -1149,34 +1130,16 @@ void MembraneElement::CalculateAll(
         CalculateStrain( StrainVector, C );
         mStrainsVector[PointNumber] = StrainVector; //saving the strain vector
 
+	// if strain has to be computed inside of the constitutive law with PK2
+	//rValues.SetDeformationGradientF(rVariables.F); //in this case F is the whole deformation gradient
 
-//             Variables.detF  = MathUtils<double>::Det(rVariables.F); ??????????????
-// 			rValues.SetDeterminantF0(rVariables.detF0); ????????????????????
-// 			rValues.SetDeformationGradientF0(rVariables.F0); ??????????????????
-// 			rValues.SetDeterminantF(rVariables.detF); ???????????????
-// 			rValues.SetDeformationGradientF(rVariables.F); ?????????????????
-        Values.SetStrainVector(StrainVector); //this has to be the input parameter
-        Values.SetStressVector(StressVector);
-        Values.SetConstitutiveMatrix(D);
-        //rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
-        Values.SetShapeFunctionsValues(row( Ncontainer, PointNumber ));
+        Values.SetStrainVector(StrainVector); //this is the input parameter
+        Values.SetStressVector(StressVector); //this is an ouput parameter
+        Values.SetConstitutiveMatrix(D);      //this is an ouput parameter
+
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2 );
 
-
-//             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
-//                 StrainVector,
-//                 ZeroMatrix( 1 ),
-//                 StressVector,
-//                 D,
-//                 rCurrentProcessInfo,
-//                 GetProperties(),
-//                 GetGeometry(),
-//                 row( Ncontainer, PointNumber ),
-//                 true,
-//                 ( int )CalculateStiffnessMatrixFlag,
-//                 true );
-
-        noalias( mStressesVector[PointNumber] ) = ZeroVector( 6 );
+	noalias( mStressesVector[PointNumber] ) = ZeroVector( 6 );
         Calculate_GlobalStressVector( mStressesVector[PointNumber], StressVector, mV1[PointNumber], mV2[PointNumber] ); //saving the stress vector
 
         CalculateQ( Q, mG_Vector[PointNumber] );
@@ -1187,7 +1150,6 @@ void MembraneElement::CalculateAll(
         double IntToReferenceWeight = IntegrationWeight * DetJ0 * mThickness0;
 
         // LEFT HAND SIDE MATRIX
-
         if ( CalculateStiffnessMatrixFlag == true )
         {
             //adding contributions to the stiffness matrix
@@ -1215,24 +1177,22 @@ void MembraneElement::CalculateAll(
             noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
         }
     }
-//         if(this->Id() == 51) //TODO: remove this! it is just for debugging purposes
-//         {
-//             KRATOS_WATCH(rLeftHandSideMatrix)
-//             KRATOS_WATCH(rRightHandSideVector)
-//             Vector displacements;
-//             this->GetValuesVector(displacements,0);
-//             KRATOS_WATCH( displacements );
-//             
-//             KRATOS_WATCH("coordintates")
-//             for(unsigned int i=0; i<GetGeometry().size(); i++)
-//                 std::cout << " " << GetGeometry()[i].Id() << " " << GetGeometry()[i].Coordinates() << std::endl;
-//             
-//             KRATOS_WATCH("initial coordintates")
-//             for(unsigned int i=0; i<GetGeometry().size(); i++)
-//                 std::cout << " " << GetGeometry()[i].Id() << " " << GetGeometry()[i].GetInitialPosition() << std::endl;
-//             
-//             
-//         }
+    // if(this->Id() == 51) //TODO: remove this! it is just for debugging purposes
+    //   {
+    //         KRATOS_WATCH(rLeftHandSideMatrix)
+    //         KRATOS_WATCH(rRightHandSideVector)
+    //         Vector displacements;
+    //         this->GetValuesVector(displacements,0);
+    //         KRATOS_WATCH( displacements );
+            
+    //         KRATOS_WATCH("coordintates")
+    //         for(unsigned int i=0; i<GetGeometry().size(); i++)
+    //             std::cout << " " << GetGeometry()[i].Id() << " " << GetGeometry()[i].Coordinates() << std::endl;
+            
+    //         KRATOS_WATCH("initial coordintates")
+    //         for(unsigned int i=0; i<GetGeometry().size(); i++)
+    //             std::cout << " " << GetGeometry()[i].Id() << " " << GetGeometry()[i].GetInitialPosition() << std::endl;
+    //     }
         
     KRATOS_CATCH( "" )
 }
@@ -1317,8 +1277,6 @@ int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-//        unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
@@ -1367,6 +1325,12 @@ int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
         ConstitutiveLaw::Features LawFeatures;
         mConstitutiveLawVector[i]->GetLawFeatures(LawFeatures);
                 
+	if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW))
+	  KRATOS_ERROR( std::logic_error,"Constitutive law is compatible only with a plane stress 2D law for membrane element with Id", this->Id())
+
+	if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::INFINITESIMAL_STRAINS))
+	  KRATOS_ERROR( std::logic_error,"Constitutive law is compatible only with a law using infinitessimal strains for membrane element with Id", this->Id())
+
         if(LawFeatures.mStrainSize != 3) KRATOS_ERROR( std::logic_error,"Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id() )
     }
 
