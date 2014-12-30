@@ -354,7 +354,7 @@ public:
         ComputeWetVolumeAndCuttedArea(ThisModelPart, wet_volume, cutted_area);
 
 		// Now we compute the difference between the Total Volume and the volume that has enetered through the inlet
-        double volume_difference = fabs(Net_volume) - wet_volume;
+        double volume_difference = (fabs(Net_volume) - wet_volume);
 		// First guess in correction
 		double correction = volume_difference/cutted_area;
 		double correction_old=correction;
