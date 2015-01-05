@@ -110,6 +110,28 @@ Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, doubl
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
+Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, std::string ElementName, ModelPart::IndexType Id, boost::python::list& NodeList, ModelPart::PropertiesType::Pointer pProperties)
+{
+    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
+    
+    for(unsigned int i = 0; i < len(NodeList); i++) {
+        pElementNodeList.push_back(rModelPart.pGetNode(boost::python::extract<int>(NodeList[i])));
+    }
+    
+    return rModelPart.CreateNewElement(ElementName, Id, pElementNodeList, pProperties);
+}
+
+Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, std::string ConditionName, ModelPart::IndexType Id, boost::python::list& NodeList, ModelPart::PropertiesType::Pointer pProperties)
+{  
+    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
+    
+    for(unsigned int i = 0; i < len(NodeList); i++) {
+        pConditionNodeList.push_back(rModelPart.pGetNode(boost::python::extract<int>(NodeList[i])));
+    }
+    
+    return rModelPart.CreateNewCondition(ConditionName, Id, pConditionNodeList, pProperties);
+}
+
 
 // Nodes
 
@@ -364,6 +386,8 @@ void AddModelPartToPython()
     .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
     .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
     .def("CreateNewNode", ModelPartCreateNewNode)
+    .def("CreateNewElement", ModelPartCreateNewElement)
+    .def("CreateNewCondition", ModelPartCreateNewCondition)
     .def("GetCommunicator", ModelPartGetCommunicator, return_internal_reference<>())
     .def("Check", &ModelPart::Check)
     //.def("",&ModelPart::)
