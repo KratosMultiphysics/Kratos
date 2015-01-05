@@ -884,6 +884,33 @@ public:
     {
         GetMesh(ThisIndex).AddElement(pNewElement);
     }
+    
+    /** Inserts an element in the current mesh.
+     */
+    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, std::vector<IndexType> ElementNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
+    {
+        Geometry< Node < 3 > >::PointsArrayType pElementNodes;
+    
+        for(unsigned int i = 0; i < ElementNodeIds.size(); i++) {
+            pElementNodes.push_back(pGetNode(ElementNodeIds[i]));
+        }
+        
+        return CreateNewElement(ElementName,Id,pElementNodes,pProperties,ThisIndex);
+    }
+    
+    /** Inserts an element in the current mesh.
+     */
+    ElementType::Pointer CreateNewElement(std::string ElementName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
+    {
+        //create the new element
+        ElementType const& r_clone_element = KratosComponents<ElementType>::Get(ElementName);
+        Element::Pointer p_element = r_clone_element.Create(Id, pElementNodes, pProperties);
+
+        //add the new element
+        GetMesh(ThisIndex).AddElement(p_element);
+
+        return p_element;
+    }
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
@@ -973,6 +1000,33 @@ public:
     void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0)
     {
         GetMesh(ThisIndex).AddCondition(pNewCondition);
+    }
+    
+    /** Inserts a condition in the current mesh.
+     */
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName, IndexType Id, std::vector<IndexType> ConditionNodeIds, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
+    {
+        Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
+    
+        for(unsigned int i = 0; i < ConditionNodeIds.size(); i++) {
+            pConditionNodes.push_back(pGetNode(ConditionNodeIds[i]));
+        }
+        
+        return CreateNewCondition(ConditionName,Id,pConditionNodes,pProperties,ThisIndex);
+    }
+    
+    /** Inserts a condition in the current mesh.
+     */
+    ConditionType::Pointer CreateNewCondition(std::string ConditionName, IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes, PropertiesType::Pointer pProperties, IndexType ThisIndex = 0)
+    {
+        //get the element
+        ConditionType const& r_clone_condition = KratosComponents<ConditionType>::Get(ConditionName);
+        ConditionType::Pointer p_condition = r_clone_condition.Create(Id, pConditionNodes, pProperties);
+
+        //add the new element
+        GetMesh(ThisIndex).AddCondition(p_condition);
+
+        return p_condition;
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
