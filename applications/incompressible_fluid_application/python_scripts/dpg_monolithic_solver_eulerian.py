@@ -221,9 +221,8 @@ class MonolithicSolver:
         # mu1 = self.mu
         # mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
-        print("sssssssss ", mu1)
-        BiphasicFillingUtilities().ApplyFluidProperties(
-            self.model_part, mu1, self.rho1, mu2, self.rho2)
+        #print("sssssssss ", mu1)
+        BiphasicFillingUtilities().ApplyFluidProperties(self.model_part, mu1, self.rho1, mu2, self.rho2)
 # for node in self.model_part.Nodes:
 # dist = node.GetSolutionStepValue(DISTANCE)
 # if(dist < 0):
@@ -253,7 +252,7 @@ class MonolithicSolver:
             self.ReformDofSetAtEachStep,
             self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
-        print(">>>>>>>>>>>>>>>", self.oss_switch)
+        print(">>>>>>>>>>>>>>> OSS_SWITCH = ", self.oss_switch)
         self.model_part.ProcessInfo.SetValue(
             DYNAMIC_TAU, self.dynamic_tau_fluid)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
