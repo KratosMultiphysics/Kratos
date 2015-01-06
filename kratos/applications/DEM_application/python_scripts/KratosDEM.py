@@ -40,6 +40,12 @@ else:
 
     print("Running under OpenMP........")
 
+#EXTRA IMPORTS
+#
+#
+#
+#
+
 ##############################################################################
 #                                                                            #
 #    INITIALIZE                                                              #
@@ -67,6 +73,11 @@ cluster_model_part      = ModelPart("Cluster_Part");
 DEM_inlet_model_part    = ModelPart("DEMInletPart")
 mapping_model_part      = ModelPart("Mappingmodel_part")
 contact_model_part      = ""
+
+#EXTRA ModelPart Operations
+#
+#
+#
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -114,9 +125,15 @@ rigid_face_model_part.SetBufferSize(1)
 SolverStrategy.AddDofs(spheres_model_part)
 SolverStrategy.AddDofs(cluster_model_part)
 SolverStrategy.AddDofs(DEM_inlet_model_part)
+#
+
+#Utilities
 
 # Constructing a creator/destructor object
 creator_destructor = ParticleCreatorDestructor()
+#
+#
+#
 
 # Creating necessary directories
 main_path = os.getcwd()
@@ -132,6 +149,7 @@ demio.AddSpheresVariables()
 demio.AddFEMBoundaryVariables()
 demio.AddClusterVariables()
 demio.AddContactVariables()
+#
 demio.AddMpiVariables()
 demio.EnableMpiVariables()
 
@@ -179,6 +197,11 @@ solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_p
 
 dt = DEM_parameters.MaxTimeStep
 solver.Initialize()    # Possible modifications of DELTA_TIME
+##
+##
+##
+##
+##
 
 if ( DEM_parameters.ContactMeshOption =="ON" ) :
     contact_model_part = solver.contact_model_part
@@ -283,6 +306,7 @@ while ( time < DEM_parameters.FinalTime):
     
     #### SOLVE #########################################
     solver.Solve()
+	##
     
     #### TIME CONTROL ##################################
     
