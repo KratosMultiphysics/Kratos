@@ -222,7 +222,19 @@ class Procedures(object):
     def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupluing
         self.AddRigidFaceVariables(model_part,Param)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-     
+    
+    def AddMappingVariables(self, model_part, Param): 
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        mapping_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(DUMMY_1)
+        model_part.AddNodalSolutionStepVariable(DUMMY_1)
+        model_part.AddNodalSolutionStepVariable(DUMMY_2)
+        model_part.AddNodalSolutionStepVariable(DUMMY_3)
+        model_part.AddNodalSolutionStepVariable(DUMMY_3D_1)
+        model_part.AddNodalSolutionStepVariable(DUMMY_3D_2)
+        model_part.AddNodalSolutionStepVariable(DUMMY_3D_3)
+    
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
