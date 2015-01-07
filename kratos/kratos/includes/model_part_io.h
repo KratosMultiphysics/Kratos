@@ -1348,6 +1348,10 @@ protected:
         {
             ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
         }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadNodalVectorialVariableData(rThisNodes, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+        }
         else if(KratosComponents<VariableData>::Has(variable_name))
         {
             std::stringstream buffer;
@@ -1387,13 +1391,13 @@ protected:
             ExtractValue(value, id);
             typename NodesContainerType::iterator i_node = FindKey(rThisNodes, id, "Node");
 
-            // readidng is_fixed
+            // reading is_fixed
             ReadWord(value);
             ExtractValue(value, is_fixed);
             if(is_fixed)
                 i_node->Fix(rVariable);
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadWord(value);
             ExtractValue(value, nodal_value);
 
@@ -1446,7 +1450,7 @@ protected:
 
             ExtractValue(value, id);
 
-            // readidng is_fixed
+            // reading is_fixed
             ReadWord(value);
             ExtractValue(value, is_fixed);
             if(is_fixed)
@@ -1459,7 +1463,7 @@ protected:
 
 
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadWord(value);
             ExtractValue(value, nodal_value);
 
@@ -1490,7 +1494,7 @@ protected:
 
             ExtractValue(value, id);
 
-            // readidng is_fixed
+            // reading is_fixed
             ReadWord(value);
             ExtractValue(value, is_fixed);
             if(is_fixed)
@@ -1503,7 +1507,7 @@ protected:
 
 
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadVectorialValue(nodal_value);
 
             FindKey(rThisNodes, id, "Node")->GetSolutionStepValue(rVariable, 0) =  nodal_value;
@@ -1575,7 +1579,7 @@ protected:
 
             ExtractValue(value, id);
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadWord(value);
             ExtractValue(value, elemental_value);
 
@@ -1610,7 +1614,7 @@ protected:
 
 
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadVectorialValue(elemental_value);
             ExtractValue(value, elemental_value);
 
@@ -1686,7 +1690,7 @@ protected:
 
             ExtractValue(value, id);
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadWord(value);
             ExtractValue(value, conditional_value);
 
@@ -1719,7 +1723,7 @@ protected:
 
             ExtractValue(value, id);
 
-            // readidng nodal_value
+            // reading nodal_value
             ReadVectorialValue(conditional_value);
             ExtractValue(value, conditional_value);
 
@@ -3443,11 +3447,12 @@ protected:
 
 
 
-    // Basically it startes to read the character sequence until reaching a
+    // Basically it starts to read the character sequence until reaching a
     // "(" and then goes until corresponding ")" which means the vector or
     // matrix value is completely read. It can be used to read any kind of
     // vector or matrix with operator >> defined and writtern in following
-    // format: <some definition> "(" ... ")"
+    // format for a vector: [size] ( value1, value2,...., valueN )
+    // format for a matrix: [size1,size2] ( )( )...( ) //look props read
     template<class TValueType>
     TValueType& ReadVectorialValue(TValueType& rValue)
     {
