@@ -349,15 +349,16 @@ public:
 		    }
 		  
 
+		  double PenaltyParameter = (*p_properties)[PENALTY_PARAMETER];
 		  p_properties = rE[element_id].pGetProperties();      
-		      
+		  p_properties->SetValue( PENALTY_PARAMETER, PenaltyParameter );
 		
-		  std::cout<<" BEAM radius considered for contact "<<(*p_properties)[MEAN_RADIUS]<<std::endl;
+		  //std::cout<<" BEAM radius considered for contact "<<(*p_properties)[MEAN_RADIUS]<<std::endl;
 		  
 		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
 		  //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
-		  p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		  p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
+		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 		  //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
 		}
 		      
