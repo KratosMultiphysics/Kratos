@@ -124,10 +124,9 @@ public:
       ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
       
       //Create Rigid Contact Conditions
-      int MeshId = 0;
-      int id = mrModelPart.Conditions(MeshId).back().Id() + 1;
+      int id = mrModelPart.Conditions().back().Id() + 1;
 
-      mConditionsNumber =  mrModelPart.Conditions(MeshId).size();
+      mConditionsNumber =  mrModelPart.Conditions().size();
       
       //Check if elements are beams or two nodes and set BOUNDARY flag to nodes
       for(ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie!=mrModelPart.ElementsEnd(); ie++){
@@ -150,12 +149,12 @@ public:
 
       //Check ModelPart meshes for Rigid Domains and set BOUNDARY flag to nodes
       ModelPart::MeshesContainerType& rMeshes = mrModelPart.GetMeshes();
-      bool RigidBodyPresent = false;
+      //bool RigidBodyPresent = false;
       for(unsigned int m=0; m<rMeshes.size(); m++){
 	
 	if( rMeshes[m].Is(RIGID) ){
 
-	  RigidBodyPresent = true;
+	  //RigidBodyPresent = true;
 
 	  for(ModelPart::ElementsContainerType::iterator ie = rMeshes[m].ElementsBegin(); ie!=rMeshes[m].ElementsEnd(); ie++){
 	    
@@ -216,10 +215,10 @@ public:
 
       	      if( nd->IsNot(RIGID) )
       		{
-
       		  //to perform contact with a tube radius must be set
       		  double Radius = 0;
-      		  if( !RigidBodyPresent ){
+      		  //if( !RigidBodyPresent ){
+		  if( nd->IsNot(SLAVE) ){
       		    Radius = nd->GetValue(MEAN_RADIUS);
       		  }
       		  else{
@@ -305,10 +304,12 @@ public:
 	  //if( (*nd)->Is(BOUNDARY) && (*nd)->IsNot(RIGID) ){
 	  if( (*nd)->Is(BOUNDARY) ){
 
-	    if( (*nd)->IsNot(RIGID) && !RigidBodyPresent ){//rigid wall contacting with a deformable body 
-	      
+	    //if( (*nd)->IsNot(RIGID) && !RigidBodyPresent ){//rigid wall contacting with a deformable body 
+	    if( (*nd)->IsNot(RIGID) && (*nd)->IsNot(SLAVE) ){//rigid wall contacting with a deformable body 
+
 	      if( (*nd)->Is(CONTACT) ){
 
+		//std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
 		//contact parameters in properties
 		int number_properties = mrModelPart.NumberOfProperties();
 		PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
@@ -321,15 +322,38 @@ public:
 
 		  if( mpRigidWall->Axisymmetric() == true ){
 		    p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		    //std::cout<<": Set Contact 2D axisymmetric condition "<<std::endl;
 		  }
 		  else{
 		    p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+		    //std::cout <<": Set Contact 2D condition "<<std::endl;
 		  }
 
-		  //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 2D condition "<<std::endl;
 		}
 		else if( mpRigidWall->GetDimension() == 3 ){
+
+		  //Set Beam Element Properties
+		  WeakPointerVector<Element>& rE = (*nd)->GetValue(NEIGHBOUR_ELEMENTS);
+
+		  PropertiesType& Properties = rE[0].GetProperties();
+		  double Radius = 0;
+		  double Max_Radius = Properties[MEAN_RADIUS];
+		  
+		  int element_id = 0;
+		  for(unsigned int ie=1; ie<rE.size(); ie++)
+		    {
+		      PropertiesType& Properties = rE[ie].GetProperties();      
+		      Radius = Properties[MEAN_RADIUS];
+		      if( Max_Radius < Radius )
+			element_id =ie;
+		    }
+		  
+
+		  p_properties = rE[element_id].pGetProperties();      
+		      
 		
+		  std::cout<<" BEAM radius considered for contact "<<(*p_properties)[MEAN_RADIUS]<<std::endl;
+		  
 		  GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point3DType( (*nd) ));
 		  //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
@@ -339,9 +363,10 @@ public:
 		      
 		//pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
 
-		mrModelPart.Conditions(MeshId).push_back(p_cond);
+		mrModelPart.Conditions().push_back(p_cond);
 
 		id +=1;
+		
 	      }
 	    }
 	    else{ //rigid wall contacting with a rigid body 
@@ -352,10 +377,9 @@ public:
 
 		if( (*nd)->Is(CONTACT) ){
 		
-		
 		  //contact parameters in properties
-		  //int number_properties = mrModelPart.NumberOfProperties();
-		  PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(0);
+		  int number_properties = mrModelPart.NumberOfProperties();
+		  PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
 		  ConditionType::Pointer p_cond;
 
@@ -364,6 +388,7 @@ public:
 		
 		    //rigid wall contacting with a 2D rigid body
 		    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+		    std::cout<<" ERROR: POINT CONTACT CONDITION NOT BUILD "<<std::endl;
 		    //std::cout<<" Node Selected "<<(*nd)->Id()<<": Set Contact 2D condition "<<std::endl;
 
 		  }
@@ -376,7 +401,7 @@ public:
 		    
 		  }
 
-		  mrModelPart.Conditions(MeshId).push_back(p_cond);
+		  mrModelPart.Conditions().push_back(p_cond);
 		
 		  id +=1;
 		}
@@ -388,8 +413,8 @@ public:
 	}
 
            
-      if( mEchoLevel > 0 )
-	std::cout<<"  [ Rigid Contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
+      if( mEchoLevel > 1 )
+	std::cout<<"  [ Rigid Contacts : "<<mrModelPart.Conditions().size() - mConditionsNumber<<" ]"<<std::endl;
 
       KRATOS_CATCH( "" )
 	
@@ -421,18 +446,17 @@ public:
 	  }
 	}
 
-      if( mEchoLevel >= 1 )
+      if( mEchoLevel > 1 )
 	std::cout<<"  [ Finalize Wall Contact : wall velocity:"<< mpRigidWall->Velocity()<<" wall nodes : "<<counter<<std::endl;
 
       //Clean Rigid Contact Conditions
       ModelPart::ConditionsContainerType NonRigidContactConditions;
 
-      int MeshId = 0;
       unsigned int id=0;
 	    
-      //std::cout<<" [ NUMBER OF CONDITIONS before rigid contact update: "<<mrModelPart.Conditions(MeshId).size()<<" ]"<<std::endl;
+      //std::cout<<" [ NUMBER OF CONDITIONS before rigid contact update: "<<mrModelPart.Conditions().size()<<" ]"<<std::endl;
     
-      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(MeshId); ic!= mrModelPart.ConditionsEnd(MeshId); ic++)
+      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
 	{
 	  if( id == mConditionsNumber )
 	    break;
@@ -442,9 +466,9 @@ public:
 	  id +=1;
 	}
     
-      mrModelPart.Conditions(MeshId).swap( NonRigidContactConditions );
+      mrModelPart.Conditions().swap( NonRigidContactConditions );
 
-      //std::cout<<"  [ NUMBER OF CONDITIONS after  rigid contact update: "<<mrModelPart.Conditions(MeshId).size()<<" ]"<<std::endl;
+      //std::cout<<"  [ NUMBER OF CONDITIONS after  rigid contact update: "<<mrModelPart.Conditions().size()<<" ]"<<std::endl;
 
       //calculate elemental contribution
       KRATOS_CATCH( "" )      
