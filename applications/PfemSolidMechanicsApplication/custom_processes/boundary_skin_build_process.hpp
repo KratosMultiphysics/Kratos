@@ -136,34 +136,40 @@ namespace Kratos
 	for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	  {
 			    
+	    if( mEchoLevel >= 1 )
+	      std::cout<<" [ Skin Search on Mesh["<<MeshId<<"] ]"<<std::endl;
+
 	    //success=SkinSearch(MeshId);
 	    success=UniqueSkinConditions(MeshId);
 			    
 	    if(!success)
 	      {
-		std::cout<<"    ERROR:  Skin Search FAILED on mesh : ["<<MeshId<<"] "<<std::endl;
+		std::cout<<"  ERROR:  Skin Search FAILED on mesh : ["<<MeshId<<"] "<<std::endl;
 	      }
 	    else
 	      {
 		if( mEchoLevel >= 1 )
-		  std::cout<<"    [ Skin Search on Mesh["<<MeshId<<"] performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+		  std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
 		//PrintSkin(MeshId);
 	      }
 	  }
       }
       else{
+	
+	if( mEchoLevel >= 1 )
+	  std::cout<<" [ Skin Search on Mesh["<<mMeshId<<"] ]"<<std::endl;
 
 	//success=SkinSearch(MeshId);
 	success=UniqueSkinConditions(mMeshId);
 			    
 	if(!success)
 	  {
-	    std::cout<<"    ERROR:  Skin Search FAILED on mesh : ["<<mMeshId<<"] "<<std::endl;
+	    std::cout<<"  ERROR:  Skin Search FAILED on mesh : ["<<mMeshId<<"] "<<std::endl;
 	  }
 	else
 	  {
 	    if( mEchoLevel >= 1 )
-	      std::cout<<"    [ Skin Search on Mesh["<<mMeshId<<"] performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+	      std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
 	    //PrintSkin(mMeshId);
 	  }
       }
@@ -180,7 +186,7 @@ namespace Kratos
 
 	
       if( mEchoLevel >= 1 )
-	std::cout<<" Boundary Normals Computed "<<std::endl;
+	std::cout<<"   -> Boundary Normals Computed <- "<<std::endl;
 
     };
 
@@ -188,8 +194,10 @@ namespace Kratos
     void SetGlobalConditions()
     {
 
-      if( mEchoLevel >= 1 )
-	std::cout<<" [ OLD TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
+      if( mEchoLevel >= 1 ){
+	std::cout<<" [MESH:0]: "<<std::endl;
+	std::cout<<" [OLD TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
+      }
 
       //contact conditions are located on Mesh_0
       ModelPart::ConditionsContainerType KeepConditions;
@@ -235,7 +243,7 @@ namespace Kratos
       mrModelPart.Conditions().swap(KeepConditions);
 
       if( mEchoLevel >= 1 )
-	std::cout<<" [ NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
+	std::cout<<" [NEW TOTAL CONDITIONS: "<<mrModelPart.NumberOfConditions()<<"] "<<std::endl;
 
     }
 
@@ -243,7 +251,7 @@ namespace Kratos
     {
 		  
       if( mEchoLevel > 1 )
-	std::cout<<" [ PREVIOUS CONDITONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] "<<std::endl;
+	std::cout<<" [PREVIOUS CONDITONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] "<<std::endl;
       //clone previous conditions
       //mConditions = mrModelPart.Conditions(MeshId);
 		  
@@ -560,7 +568,7 @@ namespace Kratos
       Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
 			
       if( mEchoLevel >= 1 )
-	std::cout<<" [ OLD_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] "<<std::endl;
+	std::cout<<"  [OLD_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
 
       //Clear Previous Skin (preserve the conditions)
       ClearConditions(MeshId);
@@ -754,12 +762,12 @@ namespace Kratos
 
       if( mEchoLevel >= 1 ){
 
-	std::cout<<" [ NEW_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] "<<std::endl;
+	std::cout<<"  [NEW_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
 
 	if(all_assigned == true)
-	  std::cout<<"    Boundary Conditions RELOCATED "<<std::endl;
+	  std::cout<<"   Boundary Conditions RELOCATED "<<std::endl;
 	else
-	  std::cout<<"    Boundary Conditions NOT relocated "<<std::endl;
+	  std::cout<<"   Boundary Conditions NOT relocated "<<std::endl;
       }
 	
       return true;
@@ -775,7 +783,7 @@ namespace Kratos
       Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(number_properties-1);
 
       if( mEchoLevel >= 1 )
-	std::cout<<" [ OLD_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] "<<std::endl;
+	std::cout<<"  [OLD_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
 			
       //Clear Previous Skin (preserve the conditions)
       ClearConditions(MeshId);
@@ -955,12 +963,12 @@ namespace Kratos
 			
 
       if( mEchoLevel >= 1 ){
-	std::cout<<" [ NEW_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] "<<std::endl;
+	std::cout<<"  [NEW_CONDITIONS: "<<mrModelPart.NumberOfConditions(MeshId)<<"] [MESH:"<<MeshId<<"]"<<std::endl;
 
 	if(all_assigned == true)
-	  std::cout<<"Boundary Conditions RELOCATED "<<std::endl;
+	  std::cout<<"   Boundary Conditions RELOCATED "<<std::endl;
 	else
-	  std::cout<<"Boundary Conditions NOT relocated "<<std::endl;
+	  std::cout<<"   Boundary Conditions NOT relocated "<<std::endl;
       }
 	
       return true;
