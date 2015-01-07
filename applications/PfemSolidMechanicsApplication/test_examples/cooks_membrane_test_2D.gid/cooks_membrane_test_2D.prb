@@ -1,15 +1,23 @@
 PROBLEM DATA
 BOOK: Problem Parameters
 TITLE: Problem
-QUESTION: Problem_Type#CB#(Mechanical)
-VALUE: Mechanical
+QUESTION: Problem_Type#CB#(mechanical)
+VALUE: mechanical
 QUESTION: Solver_Type#CB#(StaticSolver,QuasiStaticSolver,DynamicSolver)
 VALUE: QuasiStaticSolver
+DEPENDENCIES: (StaticSolver,HIDE,Time_Integration_Method,#CURRENT#,HIDE,Explicit_Scheme_Type,#CURRENT#)(QuasiStaticSolver,HIDE,Time_Integration_Method,#CURRENT#,HIDE,Explicit_Scheme_Type,#CURRENT#)(DynamicSolver,RESTORE,Time_Integration_Method,#CURRENT#)
+QUESTION: Time_Integration_Method#CB#(Implicit,Explicit)
+VALUE: Implicit
+DEPENDENCIES: (Implicit,HIDE,Explicit_Scheme_Type,#CURRENT#)(Explicit,RESTORE,Explicit_Scheme_Type,#CURRENT#)
+QUESTION: Explicit_Scheme_Type#CB#(CentralDifferences,Hamilton)
+VALUE: CentralDifferences
 QUESTION: Time_Step
 VALUE: 1
 QUESTION: Number_of_steps
 VALUE: 1
 QUESTION: LineSearch#CB#(True,False)
+VALUE: False
+QUESTION: WaterPressureDofs#CB#(True,False)
 VALUE: False
 QUESTION: Implex#CB#(True,False)
 VALUE: False
@@ -18,7 +26,7 @@ VALUE: 0
 STATE: HIDDEN
 QUESTION: Set_Domain_Size#CB#(1,0)
 VALUE: 1
-DEPENDENCIES: (0,HIDE,DOMAIN_SIZE,3)(1,RESTORE,DOMAIN_SIZE,2)
+DEPENDENCIES: (0,HIDE,DOMAIN_SIZE,#CURRENT#)(1,RESTORE,DOMAIN_SIZE,#CURRENT#)
 QUESTION: DOMAIN_SIZE#CB#(2,3)
 VALUE: 2
 DEPENDENCIES: (3,HIDE,Axisymmetric,#CURRENT#)(2,RESTORE,Axisymmetric,#CURRENT#)
@@ -29,6 +37,11 @@ VALUE: 1
 DEPENDENCIES: (0,HIDE,DOFS,#CURRENT#)(1,RESTORE,DOFS,#CURRENT#)
 QUESTION: DOFS#CB#(DISPLACEMENTS,U-P,ROTATIONS)
 VALUE: U-P
+QUESTION: Set_Contact_Technology#CB#(1,0)
+VALUE: 0
+DEPENDENCIES: (0,HIDE,Contact_Method,#CURRENT#)(1,RESTORE,Contact_Method,#CURRENT#)
+QUESTION: Contact_Method#CB#(Penalty,Lagrange-Multipliers)
+VALUE: Penalty
 QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
 VALUE: 0
 QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
@@ -38,8 +51,8 @@ QUESTION: Python_file
 VALUE: script.py
 TKWIDGET: TkwidgetFilePath
 TITLE: Solver
-QUESTION: Linear_Solver#CB#(Skyline LU factorization,Conjugate gradient,Deflated Conjugate gradient,Super LU,SuperLUIterativeSolver,PastixDirect,PastixIterative,AMGCL,GMRES,BiConjugate gradient stabilized)
-VALUE: Super LU
+QUESTION: Linear_Solver#CB#(Skyline_LU_factorization,Conjugate_gradient,Deflated_Conjugate_gradient,Super_LU,SuperLUIterativeSolver,PastixDirect,PastixIterative,AMGCL,GMRES,BiConjugate_gradient_stabilized)
+VALUE: Skyline_LU_factorization
 QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
@@ -56,48 +69,11 @@ QUESTION: Max_Iter
 VALUE: 30
 QUESTION: Number_of_threads
 VALUE: 1
-TITLE: Meshing
-QUESTION: RemeshDomains#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (True,RESTORE,MeshingElement,#CURRENT#,RESTORE,MeshDomains,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#)
-DEPENDENCIES: (False,HIDE,MeshingElement,#CURRENT#,HIDE,MeshDomains,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#)
-QUESTION: MeshingElement#CB#(SpatialLagrangianElement2D3N,SpatialLagrangianUPElement2D3N,AxisymSpatialLagrangianElement2D3N,AxisymSpatialLagrangianUPElement2D3N)
-VALUE: SpatialLagrangianUPElement2D3N
-QUESTION: MeshDomains:(SubDomain,Remesh,Constrained,Refine,MeshSmoothing,JacobiSmoothing,MeshElement)
-VALUE: #N# 7 1 1 1 1 1 1 SpatialLagrangianUPElement2D3N
-QUESTION: Meshing_Frequency
-VALUE: 1
-QUESTION: Refine_active_on_subdomains#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False)
-QUESTION: Critical_Mesh_Size
-VALUE: 0.025
-QUESTION: Critical_Dissipation
-VALUE: 100
-QUESTION: Critical_Error(%)
-VALUE: 2
-QUESTION: Tip_Radius_Refine#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (True,RESTORE,Critical_Tip_Radius,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Critical_Tip_Radius,#CURRENT#)
-QUESTION: Critical_Tip_Radius
-VALUE: 0.0004
-QUESTION: Refine_on_box_only#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (True,RESTORE,Center_box,#CURRENT#,RESTORE,Velocity_box,#CURRENT#,RESTORE,Radius_box,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Center_box,#CURRENT#,HIDE,Velocity_box,#CURRENT#,HIDE,Radius_box,#CURRENT#)
-QUESTION: Center_box:(X,Y)
-VALUE: #N# 2 0 0
-QUESTION: Velocity_box:(Vx,Vy)
-VALUE: #N# 2 0 0
-QUESTION: Radius_box:
-VALUE: 0
 TITLE: Contact
 QUESTION: FindContacts#CB#(False,True)
 VALUE: False
-DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,False)
-DEPENDENCIES: (#DEFAULT#,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#)
 QUESTION: ContactCondition#CB#(ContactDomainLM2DCondition,ContactDomainPenalty2DCondition,AxisymContactDomainLM2DCondition,AxisymContactDomainPenalty2DCondition)
 VALUE: ContactDomainLM2DCondition
 DEPENDENCIES: (ContactDomainLM2DCondition,RESTORE,Stability_Parameter,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#)
@@ -116,26 +92,6 @@ QUESTION: Constrained_Contact#CB#(False,True)
 VALUE: True
 QUESTION: Friction_Active#CB#(False,True)
 VALUE: False
-QUESTION: Rigid_Wall_Contact#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#,RESTORE,Number_of_Walls,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#)
-DEPENDENCIES: (#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#,HIDE,Number_of_Walls,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Rigid_Wall_Movement,#DEFAULT#)
-QUESTION: Contact_Condition#CB#(2D,Axisymmetric)
-VALUE: 2D
-QUESTION: Rigid_Body_Penalty_Parameter
-VALUE: 2.1
-QUESTION: Number_of_Walls
-VALUE: 1
-QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)
-VALUE: #N# 8 1 0.0004 5 5 0 0 0 1
-QUESTION: Rigid_Wall_Movement#CB#(False,True)
-VALUE: #DEFAULT#
-DEPENDENCIES: (True,RESTORE,Wall_Movements,#CURRENT#,RESTORE,Wall_Rotations,#CURRENT#)
-DEPENDENCIES: (#DEFAULT#,HIDE,Wall_Movements,#CURRENT#,HIDE,Wall_Rotations,#CURRENT#)
-QUESTION: Wall_Movements:(Wall_Label,Vx,Vy,Vz)
-VALUE: #N# 4 1 0 0 0
-QUESTION: Wall_Rotations:(Wall_Label,Wx,Wy,Wz,Cx,Cy,Cz)
-VALUE: #N# 7 1 0 0 0 0 0 0
 TITLE: Constraints
 QUESTION: Incremental_Load#CB#(False,True)
 VALUE: False
