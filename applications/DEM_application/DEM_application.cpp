@@ -31,7 +31,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( std::string, DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME)
   KRATOS_CREATE_VARIABLE( DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
   KRATOS_CREATE_VARIABLE( DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)
-  
+
   // OPTIONS AND FLAGS
   
   KRATOS_CREATE_VARIABLE(int, FORCE_INTEGRATION_GROUP)
@@ -407,10 +407,10 @@ namespace Kratos
     KratosApplication::Register();
     
     std::cout <<std::endl;
-    std::cout << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
-    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
-    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
-    std::cout << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "<< std::endl<< std::endl;
+    std::cout << "     KRATOS |  _ \| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
+    std::cout << "            | | | |  _| | |\\/| | |_) /  _` |/ __| |/ /      "<< std::endl;
+    std::cout << "            | |_| | |___| |   | |  __/  (_| | (__|   <       "<< std::endl;
+    std::cout << "            |____/|_____|_|   |_|_|   \\__,_|\\__|_|\\_\\      "<< std::endl<< std::endl;
     std::cout << "Initializing DEMApplication..." << std::endl;
 
     
@@ -424,7 +424,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(  DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER  )
     KRATOS_REGISTER_VARIABLE(  DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER     )
     
-        
     // OPTIONS AND FLAGS
     
     KRATOS_REGISTER_VARIABLE( TOP)
