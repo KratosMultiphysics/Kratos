@@ -222,6 +222,8 @@ namespace Kratos
 					lhs_enrich.resize(4);
 					lhs_enrich=ZeroVector(4);
 				}
+				else
+				ielem->GetValue(ENRICH_LHS_ROW)=ZeroVector(3);
 				//KRATOS_WATCH(mElemSize)
 			}
 			
@@ -247,8 +249,8 @@ namespace Kratos
 			mnumber_of_particles_in_elems_aux.resize(mnelems);
 			mpointers_to_particle_pointers_vectors.resize(mnelems);
 			//new. water particles!
-			mnumber_of_water_particles_in_elems.resize(mnelems);
-			mnumber_of_water_particles_in_elems=ZeroVector(mnelems);
+			//mnumber_of_water_particles_in_elems.resize(mnelems);
+			//mnumber_of_water_particles_in_elems=ZeroVector(mnelems);
 
 			int i_int=0; //careful! it's not the id, but the position inside the array!	
 			KRATOS_WATCH("about to create particles")
@@ -267,8 +269,9 @@ namespace Kratos
 				//particle_pointers.resize(mmaximum_number_of_particles*2);
 				for(unsigned int j=0; j<(mmaximum_number_of_particles*2); j++)
 					particle_pointers.push_back(&firstparticle);
-				int & number_of_particles = ielem->GetValue(NUMBER_OF_PARTICLES);
-				int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
+				int & number_of_particles = ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+				number_of_particles=0;
+				//int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
 				
 				Geometry< Node<3> >& geom = ielem->GetGeometry();
 				//unsigned int elem_id = ielem->Id();
@@ -286,9 +289,9 @@ namespace Kratos
 					
 					pparticle.GetEraseFlag()=false;
 					
-					array_1d<double, 3 > & vel = pparticle.GetVelocity();
+					array_1d<float, 3 > & vel = pparticle.GetVelocity();
 					//double & temp = pparticle.GetTemperature();
-					double & distance= pparticle.GetDistance();
+					float & distance= pparticle.GetDistance();
 					//double & oxygen= pparticle.GetOxygen();
 					//array_1d<double, 3 > & displacement= pparticle->FastGetSolutionStepValue(DISPLACEMENT);
 
@@ -301,7 +304,7 @@ namespace Kratos
 					//assigning values using shape functions (loop on nodes)	
                     for (unsigned int k = 0; k < (TDim+1); k++)
                     {
-						noalias(vel) += N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY);
+						noalias(vel) += (N(j, k) * geom[k].FastGetSolutionStepValue(VELOCITY));
 						//temp+= N(j, k) * geom[k].FastGetSolutionStepValue(TEMPERATURE);
 						distance +=  N(j, k) * geom[k].FastGetSolutionStepValue(DISTANCE);
 						pressure +=  N(j, k) * geom[k].FastGetSolutionStepValue(PRESSURE);
@@ -336,8 +339,8 @@ namespace Kratos
 					
 					particle_pointers(j) = &pparticle;
 					 number_of_particles++ ;
-					if (distance<0)
-						 number_of_water_particles++ ;
+					//if (distance<0)
+					//	 number_of_water_particles++ ;
 					
 
 				}
@@ -347,6 +350,7 @@ namespace Kratos
 			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
 			KRATOS_WATCH(m_nparticles);
 			KRATOS_WATCH(mlast_elem_id);
+			mparticle_printing_tool_initialized=false;
 		}
 		
 
@@ -404,7 +408,7 @@ namespace Kratos
 			else
 			{
 				std::cout << "Replacing particle information using the Topographic domain" << std::endl;		  
-				const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+				const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 				KRATOS_WATCH(offset)											//(flag managed only by MoveParticlesDiff
 				ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 				vector<unsigned int> element_partition;
@@ -435,7 +439,7 @@ namespace Kratos
 						
 						
 						ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-						int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
+						int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 						//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
 						
 						for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
@@ -482,7 +486,7 @@ namespace Kratos
             ContainerType& rElements_topo           =  mtopographic_model_part_pointer->ElementsArray();
 	        IteratorType it_begin_topo              =  rElements_topo.begin();                        
 
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 			KRATOS_WATCH(offset)											//(flag managed only by MoveParticlesDiff
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			vector<unsigned int> element_partition;
@@ -514,7 +518,7 @@ namespace Kratos
 					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 					
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
+					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					if (number_of_particles_in_elem<(minimum_number_of_particles))// && (ielem->GetGeometry())[0].Y()<0.10 )
 				    {
 						//KRATOS_WATCH("elem with little particles")
@@ -792,7 +796,7 @@ namespace Kratos
 			
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 																				//moveparticlesdiff reads from the pointers of one part (ie odd) and saves into the other part (ie even part)
 																				//since it is the only function in the whole procedure that does this, it must use alternatively one part and the other.
 			KRATOS_WATCH(offset)																		
@@ -810,7 +814,7 @@ namespace Kratos
 			array_1d<double,3> gravity= CurrentProcessInfo[GRAVITY];
 
 			array_1d<double,TDim+1> N;
-			const unsigned int max_results = 1000;
+			const unsigned int max_results = 10000;
 			
 			const bool add_gravity_to_flying_particles = false; //!add_gravity; //when in most cases we do not want to add the gravity (in the fract vel), we still must do it for the "flying" particles, so for them we let the velocity be modified by the gravity.
 			
@@ -839,15 +843,15 @@ namespace Kratos
 				{
 					ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 					
-					int & number_of_particles = old_element->GetValue(NUMBER_OF_PARTICLES);
+					int & number_of_particles = old_element->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					
 					mnumber_of_particles_in_elems_aux(ii)=number_of_particles;
 					mnumber_of_particles_in_elems(ii)=0;
-					mnumber_of_water_particles_in_elems(ii)=0;
+					//mnumber_of_water_particles_in_elems(ii)=0;
 					//we reset the local vectors for a faster access;
 				}
 			}
-			KRATOS_WATCH("about to start transfering")
+			std::cout << "about to start convecting particles" << std::endl;
             //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 			//ModelPart::NodesContainerType::iterator iparticlebegin = mr_linea_model_part.NodesBegin();
 			
@@ -895,7 +899,7 @@ namespace Kratos
 						const int current_element_id = pcurrent_element->Id();
 
 						int & number_of_particles_in_current_elem = mnumber_of_particles_in_elems(current_element_id-1);
-						int & number_of_water_particles_in_current_elem = mnumber_of_water_particles_in_elems(current_element_id-1);
+						//int & number_of_water_particles_in_current_elem = mnumber_of_water_particles_in_elems(current_element_id-1);
 						
 						//original code with omp critical. too slow!
 						if (number_of_particles_in_current_elem<mmaximum_number_of_particles && erase_flag==false) 
@@ -914,8 +918,8 @@ namespace Kratos
 										old_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
 										
 										number_of_particles_in_current_elem++ ;
-										if ((pparticle.GetDistance())<0.0)
-											number_of_water_particles_in_current_elem++ ;
+										//if ((pparticle.GetDistance())<0.0)
+										//	number_of_water_particles_in_current_elem++ ;
 										
 									}
 									else 
@@ -935,8 +939,8 @@ namespace Kratos
 										current_element_particle_pointers(post_offset+number_of_particles_in_current_elem) = &pparticle;
 
 										number_of_particles_in_current_elem++ ;
-										if ((pparticle.GetDistance())<0.0)
-											number_of_water_particles_in_current_elem++ ;
+										//if ((pparticle.GetDistance())<0.0)
+										//	number_of_water_particles_in_current_elem++ ;
 										if (number_of_particles_in_current_elem>mmaximum_number_of_particles)
 											KRATOS_WATCH("MAL");
 										
@@ -954,7 +958,7 @@ namespace Kratos
 					}
 
 					if (add_gravity)
-						pparticle.GetVelocity() = pparticle.GetVelocity() + gravity*delta_t;
+						pparticle.GetVelocity() = pparticle.GetVelocity() + (gravity*delta_t);
 					
 
 					
@@ -968,14 +972,14 @@ namespace Kratos
 			{
 				ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 				
-				old_element->GetValue(NUMBER_OF_PARTICLES) = mnumber_of_particles_in_elems(ii);
-				old_element->GetValue(NUMBER_OF_WATER_PARTICLES) = mnumber_of_water_particles_in_elems(ii);
+				old_element->GetValue(NUMBER_OF_FLUID_PARTICLES) = mnumber_of_particles_in_elems(ii);
+				//old_element->GetValue(NUMBER_OF_WATER_PARTICLES) = mnumber_of_water_particles_in_elems(ii);
 
 			}
 			
 			
 			//after having changed everything we change the status of the modd_timestep flag:
-			CurrentProcessInfo[PARTICLE_POINTERS_OFFSET] = post_offset;; //
+			CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET] = post_offset;; //
 
 			KRATOS_CATCH("")
 		}
@@ -992,7 +996,7 @@ namespace Kratos
 				
 			KRATOS_WATCH("About to Lagrangian->eulerian")
 			
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 			KRATOS_WATCH(offset)																	//(flag managed only by MoveParticlesDiff
 			
 			//we must project data from the particles (lagrangian)  into the eulerian mesh
@@ -1043,7 +1047,7 @@ namespace Kratos
 				///KRATOS_WATCH(ielem->Id())
 				///KRATOS_WATCH(ielem->GetValue(NEIGHBOUR_NODES).size());
 
-				int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_PARTICLES);
+				int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 				ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 				
 				for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
@@ -1058,9 +1062,9 @@ namespace Kratos
 						
 						array_1d<double,3> & position = pparticle.Coordinates();
 
-						const array_1d<double,3>& velocity = pparticle.GetVelocity();
+						const array_1d<float,3>& velocity = pparticle.GetVelocity();
 
-						const double& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
+						const float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
 					
 						array_1d<double,TDim+1> N;
 						bool is_found = CalculatePosition(geom,position[0],position[1],position[2],N);
@@ -1153,7 +1157,7 @@ namespace Kratos
 			
 			//KRATOS_WATCH("ln 304")
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 																				//(flag managed only by MoveParticlesDiff
 			
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
@@ -1187,7 +1191,7 @@ namespace Kratos
 				//const int & elem_id = ielem->Id();
 
 				ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-				int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
+				int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 
 
 				for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
@@ -1205,10 +1209,10 @@ namespace Kratos
 						//position[1] = iparticle->Y()+iparticle->FastGetSolutionStepValue(DISPLACEMENT_Y);
 						//position[2] = iparticle->Z()+iparticle->FastGetSolutionStepValue(DISPLACEMENT_Z);
 
-						array_1d<double,3>& velocity = pparticle.GetVelocity();
+						array_1d<float,3>& velocity = pparticle.GetVelocity();
 						//const array_1d<double,3>& press_proj = iparticle->FastGetSolutionStepValue(PRESS_PROJ);
 						//const double& particle_pressure = iparticle->FastGetSolutionStepValue(PRESSURE);
-						double& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
+						float& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air
 						//velocity=ZeroVector(3);
 						particle_distance=0.0;
 						array_1d<double,TDim+1> N;
@@ -1244,7 +1248,7 @@ namespace Kratos
 			//array_1d<double,TDim+1> N;
 			//const int max_results = 1000;
 			
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
 																				//(flag managed only by MoveParticlesDiff
 			KRATOS_WATCH(offset)
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
@@ -1270,7 +1274,7 @@ namespace Kratos
 					Geometry<Node<3> >& geom = ielem->GetGeometry(); 
 					
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
+					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
 					
 					for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
@@ -1338,7 +1342,7 @@ namespace Kratos
 			
 
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET];
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
 			double delta_t = CurrentProcessInfo[DELTA_TIME];	
 			array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
 			const int max_results = 1000;
@@ -1381,7 +1385,7 @@ namespace Kratos
 					results.resize(max_results);
 					//const int & elem_id = ielem->Id();
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_PARTICLES);
+					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					if (number_of_particles_in_elem<(minimum_number_of_particles))// && (ielem->GetGeometry())[0].Y()<0.10 )
 				    {
 						//KRATOS_WATCH("elem with little particles")
@@ -1486,7 +1490,7 @@ namespace Kratos
 			KRATOS_TRY
 			
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET];
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
 			
 			if (mass_correction_factor>1.0) mass_correction_factor=1.0;
 			if (mass_correction_factor<-1.0) mass_correction_factor=-1.0;
@@ -1563,7 +1567,7 @@ namespace Kratos
 				{
 					//results.resize(max_results);
 					
-					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_PARTICLES);
+					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					//int & number_of_water_particles_in_elem= ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
 					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 
@@ -1689,9 +1693,9 @@ namespace Kratos
 							
 
 							//pnode->GetSolutionStepValue(CONDUCTIVITY)=conductivity;
-							array_1d<double, 3 > & vel = pparticle.GetVelocity();
+							array_1d<float, 3 > & vel = pparticle.GetVelocity();
 							//double & temp= pparticle.GetTemperature();
-							double & distance= pparticle.GetDistance();
+							float& distance= pparticle.GetDistance();
 							//double & oxygen = pparticle.GetOxygen();
 							//pnode->GetSolutionStepValue(DENSITY)=density;
 							//array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
@@ -1819,7 +1823,7 @@ namespace Kratos
 			KRATOS_TRY
 			
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET];
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
 			
 			array_1d<double, TDim > bounding_box_lower_corner, bounding_box_upper_corner;
 			for (unsigned int i = 0; i < TDim; i++)
@@ -1903,7 +1907,7 @@ namespace Kratos
 				{
 					//results.resize(max_results);
 					
-					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_PARTICLES);
+					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					//int & number_of_water_particles_in_elem= ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
 
 					
@@ -2032,9 +2036,9 @@ namespace Kratos
 								
 
 								//pnode->GetSolutionStepValue(CONDUCTIVITY)=conductivity;
-								array_1d<double, 3 > & vel = pparticle.GetVelocity();
+								array_1d<float, 3 > & vel = pparticle.GetVelocity();
 								//double & temp= pparticle.GetTemperature();
-								double & distance= pparticle.GetDistance();
+								float & distance= pparticle.GetDistance();
 								//double & oxygen = pparticle.GetOxygen();
 								//pnode->GetSolutionStepValue(DENSITY)=density;
 								//array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
@@ -2157,6 +2161,69 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		
+	
+	
+		void ExecuteParticlesPritingTool( ModelPart& lagrangian_model_part, int input_filter_factor ) 
+		{
+			KRATOS_TRY
+			//mfilter_factor; //we will only print one out of every "filter_factor" particles of the total particle list
+			
+			if(mparticle_printing_tool_initialized==false)
+			{
+				mfilter_factor=input_filter_factor;
+				
+				if(lagrangian_model_part.NodesBegin()-lagrangian_model_part.NodesEnd()>0)
+					KRATOS_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
+				
+				lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY);
+				lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+				lagrangian_model_part.AddNodalSolutionStepVariable(DISTANCE);
+				
+				for (unsigned int i=0; i!=((mmaximum_number_of_particles*mnelems)/mfilter_factor)+mfilter_factor; i++)
+				{
+					Node < 3 > ::Pointer pnode = lagrangian_model_part.CreateNewNode( i+mlast_node_id+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
+					//pnode->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize());
+					pnode->SetBufferSize(1);
+				}
+				mparticle_printing_tool_initialized=true;
+			}
+			
+			//resetting data of the unused particles
+			const double inactive_particle_position= -10.0;
+			array_1d<double,3>inactive_particle_position_vector;
+			inactive_particle_position_vector(0)=inactive_particle_position;
+			inactive_particle_position_vector(1)=inactive_particle_position;
+			inactive_particle_position_vector(2)=inactive_particle_position;
+			ModelPart::NodesContainerType::iterator inodebegin = lagrangian_model_part.NodesBegin();
+			for(unsigned int ii=0; ii<lagrangian_model_part.Nodes().size(); ii++)
+			{
+				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+				inode->FastGetSolutionStepValue(DISTANCE) = 0.0;
+				inode->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+				inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
+			}
+			
+			
+			int counter=0;
+			ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
+			for (unsigned int i=0; i!=mmaximum_number_of_particles*mnelems; i++)
+			{
+				PFEM_Particle_Fluid& pparticle =mparticles_vector[i];
+				if(pparticle.GetEraseFlag()==false && i%mfilter_factor==0)
+				{
+					ModelPart::NodesContainerType::iterator inode = inodebegin+counter; //copying info from the particle to the (printing) node.
+					inode->FastGetSolutionStepValue(DISTANCE) = pparticle.GetDistance();
+					inode->FastGetSolutionStepValue(VELOCITY) = pparticle.GetVelocity();
+					inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
+					counter++;
+				}
+			}
+			
+			KRATOS_CATCH("")
+
+		}
+		
+		
 					
 
 	protected:
@@ -2232,8 +2299,8 @@ namespace Kratos
 		array_1d<double,3> press_proj_value_without_other_phase_nodes=ZeroVector(3);
 		*/
 		///*****
-		const double particle_distance = pparticle.GetDistance();
-		array_1d<double,3> particle_velocity = pparticle.GetVelocity();
+		const float particle_distance = pparticle.GetDistance();
+		array_1d<float,3> particle_velocity = pparticle.GetVelocity();
 		double distance=0.0;
 		array_1d<double,3> last_useful_vel;
 		double sum_Ns_without_other_phase_nodes;
@@ -2268,8 +2335,8 @@ namespace Kratos
 			//have_water_node = false;
 			distance=0.0;
 			
-			//if (particle_distance>0.0)
-			if(true)
+			if (particle_distance>0.0)
+			//if(true)
 			{
 				for(unsigned int j=0; j<(TDim+1); j++)
 				{
@@ -2377,8 +2444,8 @@ namespace Kratos
 					//have_water_node = false;
 					///*****
 					
-					//if (particle_distance>0.0)
-					if(true)
+					if (particle_distance>0.0)
+					//if(true)
 					{
 						double yp_total=0.0;
 						vel_without_other_phase_nodes = ZeroVector(3);
@@ -2452,7 +2519,7 @@ namespace Kratos
 							particle_velocity += substep_dt * gravity;
 							
 							//warning! no parabolic trajectory!
-							//vel  = particle_velocity;
+							vel  = particle_velocity;
 						}
 					}
 					
@@ -2553,7 +2620,7 @@ namespace Kratos
 		
 		//we start with the first position, then it will enter the loop.
 		array_1d<double,3> coords = pparticle.Coordinates();// + (pparticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
-		double & particle_distance = pparticle.GetDistance();
+		float & particle_distance = pparticle.GetDistance();
 	//	double & particle_temperature = pparticle.GetTemperature();
 		//double temperature=0.0;
 		//double temperature_without_air=0.0;
@@ -2582,8 +2649,8 @@ namespace Kratos
 			//double distance=0.0;
 			//g_value=0.0;
 				
-			//if (particle_distance>0.0) //no problem. air
-			if(true)
+			if (particle_distance>0.0) //no problem. air
+			//if(true)
 			{
 				double sum_Ns_without_water_nodes = 0.0;
 				//bool have_air_node=false;
@@ -2698,7 +2765,7 @@ namespace Kratos
 		double g_value= 0.0;
 		double g_integral = 0.0;  //one for the left side, the other for the right side
 		//double & temp = pparticle.GetTemperature();
-		double & distance = pparticle.GetDistance();
+		float & distance = pparticle.GetDistance();
 		//double & oxygen = pparticle.GetOxygen();
 		array_1d<double,3> viscosity_integral=ZeroVector(3);
 		array_1d<double,3> viscosity_value=ZeroVector(3);
@@ -2851,7 +2918,7 @@ namespace Kratos
 		
 		//we start with the first position, then it will enter the loop.
 		array_1d<double,3> coords = pparticle.Coordinates()+domains_offset; 
-		double & particle_distance = pparticle.GetDistance();
+		float & particle_distance = pparticle.GetDistance();
 		bool is_found = FindNodeOnTopographicMesh(coords, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 		
 		if (is_found) //it is part of the solid topographic domain
@@ -3264,7 +3331,7 @@ namespace Kratos
             double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
             double inv_vol = 0.0;
-            if (vol < 0.0000000000001)
+            if (vol < 0.00000000000000000000001)
             {
                 KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
             } else
@@ -3738,11 +3805,14 @@ namespace Kratos
 	std::vector< PFEM_Particle_Fluid  > mparticles_vector; //Point<3>
 	unsigned int mlast_elem_id;
 	bool modd_timestep;
+	bool mparticle_printing_tool_initialized;
+	unsigned int mfilter_factor;
+	unsigned int mlast_node_id;
 	//ModelPart& mr_particle_model_part;
 	
 	vector<int> mnumber_of_particles_in_elems; 
 	vector<int> mnumber_of_particles_in_elems_aux; 
-	vector<int> mnumber_of_water_particles_in_elems; 
+	//vector<int> mnumber_of_water_particles_in_elems; 
 	vector<ParticlePointerVector*>  mpointers_to_particle_pointers_vectors;
 	//std::vector< PointerVector< ParticlePointerVector >* > 
 	double mwrite_particle;
