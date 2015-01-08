@@ -139,18 +139,21 @@ public:
 		this->ERASE_FLAG=true;
     }
     
+    ~PFEM_Particle_Fluid()
+		{}
+    
     //returning references
-	array_1d<double,3>& GetVelocity()
+	array_1d<float,3>& GetVelocity()
 	{
 		return this->VELOCITY;
 	}
 	
-	double& GetVelocity(const unsigned int i)
+	float& GetVelocity(const unsigned int i)
 	{
 		return this->VELOCITY[i];
 	}
 	
-	double& GetDistance()
+	float& GetDistance()
 	{
 		return this->DISTANCE;
 	}
@@ -197,8 +200,8 @@ public:
       
        
 private: 
-	array_1d<double,3> VELOCITY;
-	double DISTANCE;
+	array_1d<float,3> VELOCITY;
+	float DISTANCE;
 	//double TEMPERATURE;
 	//double OXYGEN;
 	//Element::Pointer ELEMENT_WEAKPOINTER;
