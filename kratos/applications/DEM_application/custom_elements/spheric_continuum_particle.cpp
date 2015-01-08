@@ -401,21 +401,7 @@ namespace Kratos
         
             double aux_norm_to_tang = 0.0;
 
-            if(mDempack){
 
-//              double rmin = mRadius;
-//              if(other_radius<mRadius) rmin = other_radius;
-
-//              double recarey_factor_i = 0.00530/rCurrentProcessInfo[TOTAL_CONTACT_DISTANCES];
-
-//              calculation_area = KRATOS_M_PI*rmin*rmin;
-
-
-//              double equiv_shear = equiv_young/(2.0*(1+equiv_poisson));
-              
-//              kn_el = 3*equiv_young*recarey_factor_i/(1-2*equiv_poisson);
-
-//              double kn_old = equiv_young*calculation_area*initial_dist_i;
 
               double rmin = mRadius;
               if(other_radius<mRadius) rmin = other_radius;
@@ -426,9 +412,11 @@ namespace Kratos
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
 
-            }
-            
-            else
+
+
+            bool equivalent_area_method = false; //Miquel
+
+            if(equivalent_area_method)
             {
 
                 if( mapping_new_cont !=-1 )
@@ -475,7 +463,7 @@ namespace Kratos
             {                                                                                                
               
                 //Normal Forces
-                
+
                 if(mElasticityType < 2)
                 {
                       NormalForceCalculation(LocalElasticContactForce[2],
@@ -528,7 +516,7 @@ namespace Kratos
                 degradation = (1.0 -  mHistory[mapping_new_cont][2]);               
               }              
             }
-                 
+
             LocalElasticContactForce[0] += - degradation*kt_el * LocalDeltDisp[0];  // 0: first tangential
             LocalElasticContactForce[1] += - degradation*kt_el * LocalDeltDisp[1];  // 1: second tangential  
                                                        
