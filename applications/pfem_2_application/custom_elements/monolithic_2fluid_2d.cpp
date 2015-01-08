@@ -82,24 +82,7 @@ namespace Kratos
 
 		KRATOS_CATCH("");
 	}
-	/*
-	void MonolithicPFEM22D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-													VectorType& rRightHandSideVector,
-													ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY;
-
-		this->CalculateLocalFinalVelocitySystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-
-
-		KRATOS_CATCH("");
-	}
 	
-	
-	*/
-	
-	
-
 	//************************************************************************************
 	//************************************************************************************
 	
@@ -214,43 +197,22 @@ namespace Kratos
 				viscosity = viscosity_air;
 			
 			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (viscosity*Area) );
-
-				
-			//mass matrix:
-			/*
-			double density;
 			
-			if (distances(0)<0.0)
-				density=density_water;
-			else
-				density=density_air;
-			*/
 			double element_mean_distance=(distances[0]+distances[1]+distances[2])*0.333333333;
-			//const double water_fraction = -( element_mean_distance - 1.0) *0.5; 
 			const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
 			double density = density_water*(water_fraction)+density_air*(1.0-water_fraction);
-							
-			double fourier=0.0;
-			if (distances(0)<0.0) fourier = viscosity_water/density_water *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
-			else fourier = viscosity_air/density_air *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
-			theta = 0.2*fourier - 0.1;
-			if (theta<0.0) theta=0.0;
-			else if (theta>1.0) theta=1.0;
-				
+			if (element_mean_distance>0) density=density_air;
+			else density=density_water;
 			const double Weight = one_third * Area * density;
-			
 			for (unsigned int i=0; i<TNumNodes ; i++)
 			{
 				Mass_matrix (i*3,i*3) = Weight;
 				Mass_matrix (i*3+1,i*3+1) = Weight;
 			}	
-			//rLeftHandSideMatrix += Mass_matrix;
 			
 			//PRESSURE TERMS:
-
 			/////////////////// calculating tau
 			double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2));
-			//const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
 			double mElemSize;
 			array_1d<double,3> Edge(3,0.0);
 			Edge = this->GetGeometry()[1].Coordinates() - this->GetGeometry()[0].Coordinates();
@@ -268,11 +230,6 @@ namespace Kratos
 				}
 			mElemSize = sqrt(mElemSize);
 			const double   TauOne = 1.0 / ( ( 1.0 / delta_t + 4.0 * viscosity / (density * mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) );
-			//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
-			//const double TauOne =  - 1.0 / (  1.0/ delta_t + 4.0 * (viscosity/density) / (mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) ;
-			////////////////////
-			//KRATOS_WATCH(TauOne);
-			
 			Laplacian_matrix = - prod(DN_DX,trans(DN_DX))*Area*TauOne/density;  // B B^T  (standard laplacian, now we must add the contribution of the condensed new nodes.
 			/*
 			///DIFFERENT STABILIZATION: - (consistent - lumped mass matrix).
@@ -281,31 +238,19 @@ namespace Kratos
 			Laplacian_matrix(0,0)=-one_sixt*Area;
 			Laplacian_matrix(0,1)=one_twelfth*Area;
 			Laplacian_matrix(0,2)=one_twelfth*Area;
-			
 			Laplacian_matrix(1,0)=one_twelfth*Area;
 			Laplacian_matrix(1,1)=-one_sixt*Area;
 			Laplacian_matrix(1,2)=one_twelfth*Area;
-			
 			Laplacian_matrix(2,0)=one_twelfth*Area;
 			Laplacian_matrix(2,1)=one_twelfth*Area;
 			Laplacian_matrix(2,2)=-one_sixt*Area;
-			
 			Laplacian_matrix *= 1.0 * delta_t/(density * mElemSize * mElemSize);  // 0.5= 0.7^2
 			*/
-			 //KRATOS_WATCH(mElemSize * mElemSize);
-			//Laplacian_matrix = - prod(DN_DX,trans(DN_DX))*Area*TauOne;  // B B^T  (standard laplacian, now we must add the contribution of the condensed new nodes.
 
 			for (unsigned int i = 0; i < 3; i++)
 			{
 				for (unsigned int j = 0; j < 3; j++)
 				{	
-					/*
-					rLeftHandSideMatrix(i*3+2, j*3+0 ) -= D_matrix(i,j*2);//  + DN_DX(i,0)*TauOne*one_third*Area/delta_t;     
-					rLeftHandSideMatrix(i*3+2, j*3+1 ) -= D_matrix(i,j*2+1);// + DN_DX(i,1)*TauOne*one_third*Area/delta_t;
-					
-					rLeftHandSideMatrix(j*3+0, i*3+2 ) -=  D_matrix(i,j*2);     
-					rLeftHandSideMatrix(j*3+1, i*3+2 ) -= D_matrix(i,j*2+1);
-					*/ 
 					rLeftHandSideMatrix(i*3+2, j*3+0 ) -= D_matrix(i,j*2);//  + DN_DX(i,0)*TauOne*one_third*Area/delta_t;     
 					rLeftHandSideMatrix(i*3+2, j*3+1 ) -= D_matrix(i,j*2+1);// + DN_DX(i,1)*TauOne*one_third*Area/delta_t;
 					
@@ -313,95 +258,53 @@ namespace Kratos
 					rLeftHandSideMatrix(j*3+1, i*3+2 ) -= D_matrix(i,j*2+1);
 					
 					rLeftHandSideMatrix(i*3+2, j*3+2 ) += Laplacian_matrix(i,j);
-					
-					
-					
 				}
 			}
 			
-			
-			//and finally the RHS of the velocity plus the RHS on the pressure due to the stabilzation terms:
-			array_1d<double,3> mean_velocity = ZeroVector(3);
-			double divergence_n = 0.0;
-			
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				mean_velocity += GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)*one_third/delta_t;
-				divergence_n += one_third*Area*(DN_DX(i,0)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X)+DN_DX(i,1)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
-			}
-			
-			
-			array_1d<double, 2 > vel_gauss = ZeroVector(2);
-				//Vector pressure_rhs_stab(3);
+			array_1d<double, 2 > rhs_stab = ZeroVector(2);
 			for (unsigned int i = 0; i < 3; i++)
 			{
 				array_1d<double,3>& node_press_proj = GetGeometry()[i].FastGetSolutionStepValue(PRESS_PROJ);
-				vel_gauss[0] += node_press_proj(0)*one_third;
-				vel_gauss[1] += node_press_proj(1)*one_third;
+				rhs_stab[0] += node_press_proj(0)*one_third;
+				rhs_stab[1] += node_press_proj(1)*one_third;
 			}
 				
 			const bool use_press_proj=true;
-			
-				
 			for (unsigned int i = 0; i < 3; i++)
 			{
 				rRightHandSideVector(i*3+0) += one_third*Area*gravity(0)*density;
 				rRightHandSideVector(i*3+1) += one_third*Area*gravity(1)*density;
-				//rRightHandSideVector(i*3+2) += divergence_n;
-				//rRightHandSideVector(i*3+2) -= delta_t*DN_DX(i,1)*gravity(1)*Area*one_third*0.5;
-				//rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0)+previous_vel_and_press(3*i+0)/delta_t)+DN_DX(i,1)*(gravity(1)+previous_vel_and_press(3*i+1)/delta_t))*Area;
-				//rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0)-mean_velocity(0))+DN_DX(i,1)*(gravity(1)-mean_velocity(1)))*Area;
+
 				if (use_press_proj)
-						rRightHandSideVector(i*3+2) -= TauOne*Area*(DN_DX(i,0)*vel_gauss(0)+DN_DX(i,1)*vel_gauss(1));
+						rRightHandSideVector(i*3+2) -= TauOne*Area*(DN_DX(i,0)*rhs_stab(0)+DN_DX(i,1)*rhs_stab(1));
 				else
 					rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0))+DN_DX(i,1)*(gravity(1)))*Area;
-				//for (unsigned int j = 0; j < 3; j++)
-				//	rRightHandSideVector(i*3+2) -= Laplacian_matrix(i,j)*GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-				//rRightHandSideVector(i*3+2) -= 10.0*Area*one_third*(DN_DX(i,0)*gravity(0)+DN_DX(i,1)*gravity(1));
-				//for (unsigned int j = 0; j < 3; j++)
-				//	rRightHandSideVector(i*3+2) += Laplacian_matrix(i,j)*(DN_DX(j,0)*gravity(0)+DN_DX(j,1)*gravity(1));
-				/*
-				for (unsigned int j = 0; j < 3; j++) //j neighbour node
-				{
-					rRightHandSideVector(i*3+2) += TauOne*(DN_DX(i,0)*(gravity(0)-previous_vel_and_press(3*j+0)/delta_t)+DN_DX(i,1)*(gravity(1)-previous_vel_and_press(3*j+1))/delta_t)*Area*one_third;
-				}
-				*/ 
 			}
-			
-			//we must actually use a fraction of the rigidity matrix. since the Lefthandside only has it so far, we multiply it by tita:
-			//rLeftHandSideMatrix *= theta;
 
 			noalias(rRightHandSideVector) += prod((Mass_matrix/delta_t),previous_vel_and_press);
-
-			noalias(rLeftHandSideMatrix) += Mass_matrix/delta_t;   
-
-			
+			noalias(rLeftHandSideMatrix) += Mass_matrix/delta_t;   	
 		} 
 		else //split element:
 		{
-			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
-			//get position of the cut surface
-			
-			
 			rLeftHandSideMatrix=ZeroMatrix(9,9);
 			
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
 			array_1d<double,6>  local_previous_vel;
-			array_1d<double,3>  densities(3);
+			array_1d<double,3>  densities(1);
 			boost::numeric::ublas::bounded_matrix<double,3, 4> Nenriched;
-			array_1d<double,3>  volumes(3);
+			array_1d<double,3>  volumes(1);
 			boost::numeric::ublas::bounded_matrix<double,3, 2 > coords;
 			boost::numeric::ublas::bounded_matrix<double,3, 3 > Ngauss;
-			array_1d<double,3>  signs(3);
+			array_1d<double,3>  signs(1);
 			std::vector< Matrix > gauss_gradients(3);
 			//std::vector< Matrix > gauss_gradients_in_local_axis(3);
 			//boost::numeric::ublas::bounded_matrix<double,2, 2 > RotationMatrix;
 			//boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX_in_local_axis=ZeroMatrix(3,2);
 			
-			const int  enrich_velocity_dofs=0;
-			const int  enrich_pressure_dofs=1;
-			const int  enrich_pressure_offset=3;
+			const int  enrich_velocity_dofs=2; //number of enrichments for the velocity field
+			const int  enrich_pressure_dofs=2; //number of enrichments for the pressure field
+			const int  enrich_pressure_offset=2; //the enrichment utility returns several (4) shape functions. we will avoid the first 2 and use the third and fourth
 			
 			boost::numeric::ublas::bounded_matrix<double, 3, 3> Laplacian_matrix =ZeroMatrix(3,3); //standard pressures. we will keep these dof so the size remains			
 			boost::numeric::ublas::bounded_matrix<double, 3, 6+enrich_velocity_dofs > D_matrix ; //(divergence) //this matrix will increase its size since we need more  
@@ -429,7 +332,9 @@ namespace Kratos
 					coords(i, j) = xyz[j];
 			}
 			
-			//getting needed information to calculate everything in local coordinates
+			//getting needed information to calculate everything in local coordinates. We will rotate everything. 
+			//As this is being written, isotropic material properties are being used, so this is a waste of time. 
+			//however it might be useful if different properties along the normal and tangential axis have to be used
 			CalculateRotationParameters(
 										coords, 
 										distances,
@@ -455,8 +360,7 @@ namespace Kratos
 			for (unsigned int k = 0; k < 2; k++) //xy
 				gravity_2d(k,0)=gravity(k);
 			boost::numeric::ublas::bounded_matrix<double, (2), 1 >	local_gravity=prod(rRotationMatrix,gravity_2d);
-			//KRATOS_WATCH(local_gravity)
-			//KRATOS_WATCH(local_gravity);
+
 			
 			for (unsigned int i = 0; i < 3; i++)
 				gauss_gradients[i].resize(4, 2, false);  //3 values of the 3 shape functions, and derivates in (xy) direction).
@@ -474,10 +378,6 @@ namespace Kratos
 			{
 				for (unsigned int j = 0; j < 3; j++)
 				{
-					//D_matrix(i, (j*2) ) = DN_DX(j,0)*Area*one_third;     
-					//D_matrix(i, (j*2+1) ) =  DN_DX(j,1)*Area*one_third;
-					//G_matrix(i, (j*2) ) = - DN_DX(i,0)*Area*one_third;     
-					//G_matrix(i, (j*2+1) ) = - DN_DX(i,1)*Area*one_third;
 					D_matrix(i, (j*2) ) = DN_DX_in_local_axis(j,0)*Area*one_third;     
 					D_matrix(i, (j*2+1) ) =  DN_DX_in_local_axis(j,1)*Area*one_third;
 					G_matrix(i, (j*2) ) = - DN_DX_in_local_axis(i,0)*Area*one_third;     
@@ -497,7 +397,6 @@ namespace Kratos
 					mass += volumes(i)*density_air;
 					viscosities(i) = viscosity_air; 
 					densities(i)=density_air;
-					
 				}
 				else
 				{
@@ -507,44 +406,24 @@ namespace Kratos
 					densities(i)=density_water;
 				}
 			}
-			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (Weight) );
-			/*
-			this->AddViscousTerm(Momentum_matrix,
-								DN_DX,
+			
+			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (Weight) ); //for an  averaged viscosity ( no enrichments)
+			this->AddViscousTerm(Momentum_matrix,  //extended matrix, with the velocity enrichments
+								DN_DX_in_local_axis,
 								distances,
 								gauss_gradients, 
 								viscosities,
 								signs,
 								volumes,
 								ndivisions);
-			*/
-			//this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, viscosity_air, viscosity_water, volumes, signs, Ngauss, Area);
-			//boost::numeric::ublas::bounded_matrix<double, 8, 8 > LocalAxisExtendedDampMatrix = ZeroMatrix(8,8);
-			
-			//this->AddViscousTerm(Momentum_matrix, DN_DX, viscosities, signs, volumes, ndivisions);
 			
 			
 			const double element_viscosity=Weight/Area;
 			const double element_density= mass/Area;
-			double fourier= element_viscosity/element_density *delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
-			theta = 0.2*fourier - 0.1;
-			if (theta<0.0) theta=0.0;
-			else if (theta>1.0) theta=1.0;
-			//element_viscosity=0.0;
-		
-			/*
-			KRATOS_WATCH(Nenriched)
-			KRATOS_WATCH(gauss_gradients[0])
-			KRATOS_WATCH(gauss_gradients[1])
-			KRATOS_WATCH(gauss_gradients[2])
-			*/
+
 			array_1d<double,3>  lumped_mass = ZeroVector(3);
 			double condensed_dof_mass1=0.0;
 			double condensed_dof_mass2=0.0;
-			double condensed_dof_mass3=0.0;
-			double condensed_dof_mass4=0.0;
-			double condensed_dof_mass5=0.0;
-			double condensed_dof_mass6=0.0;
 			for (unsigned int i = 0; i < 3; i++)  //partitions
 			{
 				//KRATOS_WATCH(enrich_lhs(i));
@@ -558,32 +437,11 @@ namespace Kratos
 
 				if (enrich_velocity_dofs!=0)
 				{
-					//condensed_dof_mass1 += volumes(i)*Nenriched(i,2)*densities(i);
-					//condensed_dof_mass2 += volumes(i)*Nenriched(i,3)*densities(i);
-					//condensed_dof_mass3 += volumes(i)*Nenriched(i,3)*densities(i);
-					condensed_dof_mass1 += volumes(i)*Nenriched(i,0)*densities(i);
-					condensed_dof_mass2 += volumes(i)*Nenriched(i,0)*densities(i);
-					condensed_dof_mass3 += volumes(i)*Nenriched(i,1)*densities(i);
-					condensed_dof_mass4 += volumes(i)*Nenriched(i,1)*densities(i);
-					if (enrich_velocity_dofs>4)
-					{	
-						condensed_dof_mass5 += volumes(i)*Nenriched(i,2)*densities(i);
-						condensed_dof_mass6 += volumes(i)*Nenriched(i,3)*densities(i);
-					}
+					condensed_dof_mass1 += volumes(i)*Nenriched(i,3)*densities(i);
+					condensed_dof_mass2 += volumes(i)*Nenriched(i,3)*densities(i);
 					   
 					Momentum_matrix(9+0,9+0) += volumes(i)*Nenriched(i,3)*densities(i) / delta_t;	 //degrees of freedom 10 and 11 are the enrichment velocities. degrees of freedom 12 and 13 are the enrichment pressures
 					Momentum_matrix(9+1,9+1) += volumes(i)*Nenriched(i,3)*densities(i) / delta_t;	 
-					//Momentum_matrix(9+2,9+2) += volumes(i)*Nenriched(i,3)*densities(i) / delta_t;	 
-					//Momentum_matrix(9+0,9+0) += volumes(i)*Nenriched(i,0)*densities(i) / delta_t;	 
-					//Momentum_matrix(9+1,9+1) += volumes(i)*Nenriched(i,0)*densities(i) / delta_t;	 
-					//Momentum_matrix(9+2,9+2) += volumes(i)*Nenriched(i,1)*densities(i) / delta_t;	 
-					//Momentum_matrix(9+3,9+3) += volumes(i)*Nenriched(i,1)*densities(i) / delta_t;
-					if (enrich_velocity_dofs>4)
-					{	 
-						Momentum_matrix(9+4,9+4) += volumes(i)*Nenriched(i,2)*densities(i) / delta_t;	 
-						Momentum_matrix(9+5,9+5) += volumes(i)*Nenriched(i,3)*densities(i) / delta_t;	 
-					}
-
 				}
 			}
 			
@@ -591,7 +449,6 @@ namespace Kratos
 			//PRESSURE TERMS:
 			/////////////////// calculating tau
 			double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2));
-			//const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
 			double mElemSize;
 			array_1d<double,3> Edge(3,0.0);
 			Edge = this->GetGeometry()[1].Coordinates() - this->GetGeometry()[0].Coordinates();
@@ -609,7 +466,6 @@ namespace Kratos
 				}
 			mElemSize = sqrt(mElemSize);
 			const double   TauOne = 0.01 / (( 1.0 / delta_t + 4.0 * element_viscosity / (mElemSize * mElemSize * element_density ) + 2.0 * AdvVelNorm / mElemSize) );
-			//actually we're currently using the kinematic viscosity, so no need to divide the second term by the viscosity, it was already done. Great!
 			
 			////////////////////
 			//TauOne=1.0;
@@ -627,16 +483,9 @@ namespace Kratos
 			}
 			Density*=1.0/Area;			
 			
-			//inv_densities(0)=1.0;
-			//inv_densities(1)=1.0;
-			//inv_densities(2)=1.0;
-			
 			Laplacian_matrix =  - prod(DN_DX_in_local_axis,trans(DN_DX_in_local_axis)) *(volumes(0)*inv_densities(0)+volumes(1)*inv_densities(1)+volumes(2)*inv_densities(2));
 
 			//and now the rest of the things needed
-			
-			//boost::numeric::ublas::bounded_matrix<double, 2, 2> DN_DX_enrich;
-			//boost::numeric::ublas::bounded_matrix<double, 2, 2> DN_DX_enrich_negative;
 			boost::numeric::ublas::bounded_matrix<double, enrich_pressure_dofs, enrich_pressure_dofs > Laplacian_enrich;
 			noalias(Laplacian_enrich) = ZeroMatrix(enrich_pressure_dofs,enrich_pressure_dofs);	
 			boost::numeric::ublas::bounded_matrix<double, enrich_pressure_dofs, 3 > mixed_Laplacian;
@@ -650,9 +499,7 @@ namespace Kratos
 
 			//the matrices we need at the end will be:
 			//boost::numeric::ublas::bounded_matrix<double, 2, 2 > D_mod;
-			
-			array_1d<double,6> mass_stabilization_terms=ZeroVector(6);
-			
+						
 			//double rhs_enrich = 0.0; //the rhs term of the enriched dof 
 			array_1d<double,( enrich_pressure_dofs + enrich_velocity_dofs )> rhs_enrich;
 			noalias(rhs_enrich) = ZeroVector(enrich_pressure_dofs + enrich_velocity_dofs);	
@@ -662,10 +509,6 @@ namespace Kratos
 			
 			for (unsigned int i = 0; i < ndivisions; i++)  //we go through the 3 partitions of the domain
 			{
-				
-				//KRATOS_WATCH(gauss_gradients[i])
-
-				//double PartitionTauOne = 1.0 / ( ( 1.0/ delta_t + 4.0 * viscosities(i) / (mElemSize * mElemSize*densities(i)) + 2.0 * AdvVelNorm / mElemSize) );
 				
 				for (unsigned int j = 0; j < enrich_pressure_dofs; j++) //we go through the 4 enrichments
 					for (unsigned int k = 0; k < enrich_pressure_dofs; k++) //we go through the 4 enrichments
@@ -698,33 +541,10 @@ namespace Kratos
 				{
 					for (unsigned int k = 0; k < enrich_pressure_dofs; k++) //we go through the 3 enrichments
 					{
-						//D_matrix_mixed(k,6+0) += gauss_gradients[i](2,0) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);  //we simply use the shape function number 4 (continuous function, discontinuous gradient)
-						//D_matrix_mixed(k,6+1) += gauss_gradients[i](3,0) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						//D_matrix_mixed(k,6+2) += gauss_gradients[i](3,1) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						
 						D_matrix_mixed(k,6+0) += gauss_gradients[i](3,0) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
 						D_matrix_mixed(k,6+1) += gauss_gradients[i](3,1) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						//D_matrix_mixed(k,6+2) += gauss_gradients[i](1,0) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						//D_matrix_mixed(k,6+3) += gauss_gradients[i](1,1) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						//if (enrich_velocity_dofs>4)
-						//{
-						//	D_matrix_mixed(k,6+4) += gauss_gradients[i](2,0) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						//	D_matrix_mixed(k,6+5) += gauss_gradients[i](3,0) *volumes(i)*Nenriched(i,k+enrich_pressure_offset);
-						//}
-						
-						//G_matrix_mixed(k,6+0) -= gauss_gradients[i](k+enrich_pressure_offset,0) *volumes(i)*Nenriched(i,2);
-						//G_matrix_mixed(k,6+1) -= gauss_gradients[i](k+enrich_pressure_offset,0) *volumes(i)*Nenriched(i,3);
-						//G_matrix_mixed(k,6+2) -= gauss_gradients[i](k+enrich_pressure_offset,1) *volumes(i)*Nenriched(i,3);
-						
 						G_matrix_mixed(k,6+0) -= gauss_gradients[i](k+enrich_pressure_offset,0) *volumes(i)*Nenriched(i,3);
 						G_matrix_mixed(k,6+1) -= gauss_gradients[i](k+enrich_pressure_offset,1) *volumes(i)*Nenriched(i,3);
-						//G_matrix_mixed(k,6+2) -= gauss_gradients[i](k+enrich_pressure_offset,0) *volumes(i)*Nenriched(i,1);
-						//G_matrix_mixed(k,6+3) -= gauss_gradients[i](k+enrich_pressure_offset,1) *volumes(i)*Nenriched(i,1);
-						//if (enrich_velocity_dofs>4)
-						//{
-						//	G_matrix_mixed(k,6+4) -= gauss_gradients[i](k+enrich_pressure_offset,0) *volumes(i)*Nenriched(i,2);
-						//	G_matrix_mixed(k,6+5) -= gauss_gradients[i](k+enrich_pressure_offset,0) *volumes(i)*Nenriched(i,3);
-						//}
 					}
 					
 					
@@ -732,43 +552,11 @@ namespace Kratos
 
 						for (unsigned int k = 0; k < 3; k++) //we go through the 3 standard pressures
 						{
-							//D_matrix(k,6+0) += gauss_gradients[i](2,0) *volumes(i)*Ngauss(i,k);  //we simply use the shape function number 4 (continuous function, discontinuous gradient)
-							//D_matrix(k,6+1) += gauss_gradients[i](3,0) *volumes(i)*Ngauss(i,k);
-							//D_matrix(k,6+2) += gauss_gradients[i](3,1) *volumes(i)*Ngauss(i,k);
-							
 							D_matrix(k,6+0) += gauss_gradients[i](3,0) *volumes(i)*Ngauss(i,k);
 							D_matrix(k,6+1) += gauss_gradients[i](3,1) *volumes(i)*Ngauss(i,k);
-							//D_matrix(k,6+2) += gauss_gradients[i](1,0) *volumes(i)*Ngauss(i,k);
-							//D_matrix(k,6+3) += gauss_gradients[i](1,1) *volumes(i)*Ngauss(i,k);
-							//if (enrich_velocity_dofs>4)
-							//{
-							//	D_matrix(k,6+4) += gauss_gradients[i](2,0) *volumes(i)*Ngauss(i,k);
-							//	D_matrix(k,6+5) += gauss_gradients[i](3,0) *volumes(i)*Ngauss(i,k);
-							//}
-							
-							//G_matrix(k,6+0) -= DN_DX_in_local_axis(k,0) *volumes(i)*Nenriched(i,2);
-							//G_matrix(k,6+1) -= DN_DX_in_local_axis(k,0) *volumes(i)*Nenriched(i,3);
-							//G_matrix(k,6+2) -= DN_DX_in_local_axis(k,1) *volumes(i)*Nenriched(i,3);
-							
 							G_matrix(k,6+0) -= DN_DX_in_local_axis(k,0) *volumes(i)*Nenriched(i,3);
 							G_matrix(k,6+1) -= DN_DX_in_local_axis(k,1) *volumes(i)*Nenriched(i,3);
-							//G_matrix(k,6+2) -= DN_DX_in_local_axis(k,0) *volumes(i)*Nenriched(i,1);
-							//G_matrix(k,6+3) -= DN_DX_in_local_axis(k,1) *volumes(i)*Nenriched(i,1);
-							//if (enrich_velocity_dofs>4)
-							//{
-							//	G_matrix(k,6+4) -= DN_DX_in_local_axis(k,0) *volumes(i)*Nenriched(i,2);
-							//	G_matrix(k,6+5) -= DN_DX_in_local_axis(k,0) *volumes(i)*Nenriched(i,3);
-							//}
 						}
-				}
-				
-				//KRATOS_WATCH(volumes(i))
-				//KRATOS_WATCH(partition_densities(i))
-				//and the rhs:
-				for (unsigned int j = 0; j < 3; j++) //we go through the 3 standard shape functions
-				{
-					//array_1d<double,3> velocity = GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
-					//rhs_enrich -= (gauss_gradients[i](0,0)*(gravity(0)+velocity(0))+gauss_gradients[i](0,1)*(gravity(1)+velocity(1)))*volumes(i)*Ngauss(i,j);
 				}
 				
 				for (unsigned int k = 0; k < enrich_pressure_dofs; k++) //we go through the 4 enrichments
@@ -778,14 +566,10 @@ namespace Kratos
 			}
 			//KRATOS_WATCH(Laplacian_enrich(0,0));
 			//TauOne *=0.01;
-			const double continuous_factor=1.0;//1;
 			Laplacian_enrich*=TauOne;
-			Laplacian_matrix*=TauOne*continuous_factor;
+			Laplacian_matrix*=TauOne;
 			mixed_Laplacian*=TauOne;
 			rhs_enrich *=TauOne;
-			mass_stabilization_terms *=TauOne/delta_t;
-			
-			
 
 			boost::numeric::ublas::bounded_matrix<double, 1, 9 > penalty_vector=ZeroMatrix(1,9);
 		
@@ -820,54 +604,22 @@ namespace Kratos
 			positive_side_only_velocity_at_interface /= sum_n_positive;
 			//we will force the velocity of the previous time step at the interface to match the one of the negative side, as it the other had negligible viscosity
 			//the V* shape funcion has value = 1.0 at the interface, so that means the N* will be direcly the difference between what we want (the negative side vel) and the complete one:
-			array_1d<double,3> N_vel_star = ZeroVector(3); 
-			for (unsigned int i=0; i!=3;i++) //TDim 
-			{
-				//N_vel_star(i) = negative_side_only_velocity_at_interface(i)-standard_velocity_at_interface(i);
-				N_vel_star(i) = negative_side_only_velocity_at_interface(i)-positive_side_only_velocity_at_interface(i);
-			}
-			N_vel_star *= 0.5; //should be 0.5, but might become unstable	
+			//array_1d<double,3> N_vel_star = ZeroVector(3); 
+			//for (unsigned int i=0; i!=2;i++) //TDim 
+			//	N_vel_star(i) = negative_side_only_velocity_at_interface(i)-positive_side_only_velocity_at_interface(i);
+			//N_vel_star *= 0.5; //should be 0.5, but might become unstable	
 			
 			
-			//KRATOS_WATCH(mass_stabilization_terms)
 			
 			if (enrich_velocity_dofs!=0)
 			{
-				//rhs_enrich(0) = local_gravity(0,0)*condensed_dof_mass1;
-				//rhs_enrich(1) = local_gravity(0,0)*condensed_dof_mass2;
-				//rhs_enrich(2) = local_gravity(1,0)*condensed_dof_mass3;
 				rhs_enrich(0) = local_gravity(0,0)*condensed_dof_mass1;
 				rhs_enrich(1) = local_gravity(1,0)*condensed_dof_mass2;
-				//rhs_enrich(2) = local_gravity(0,0)*condensed_dof_mass3;
-				//rhs_enrich(3) = local_gravity(1,0)*condensed_dof_mass4;
-				//if (enrich_velocity_dofs>4)
-				//{
-				//	rhs_enrich(4) = local_gravity(0,0)*condensed_dof_mass5;
-				//	rhs_enrich(5) = local_gravity(0,0)*condensed_dof_mass6;
-				//	
-
-				//	rhs_enrich(4) += N_vel_star(0) * condensed_dof_mass5/delta_t;
-				//	rhs_enrich(5) += N_vel_star(0) * condensed_dof_mass6/delta_t;
-				//}
 				//rhs_enrich(0) += N_vel_star(0) * condensed_dof_mass1/delta_t; //we are using the difference in the Y component
 				//rhs_enrich(1) += N_vel_star(1) * condensed_dof_mass2/delta_t;
 				
-				
-				/*
-				if (this->Id() == 44752)
-				{
-					KRATOS_WATCH(negative_side_only_velocity_at_interface)
-					KRATOS_WATCH(standard_velocity_at_interface)
-					KRATOS_WATCH(N_vel_star);
-					KRATOS_WATCH(Ninterface)
-					for (unsigned int i=0; i!=3;i++) //nodes
-						KRATOS_WATCH(GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
-				}
-				* */
 			}
-			
-			//KRATOS_WATCH(rhs_enrich)
-			
+						
 			
 			boost::numeric::ublas::bounded_matrix<double, enrich_velocity_dofs+enrich_pressure_dofs, 9 > condensed_rows; //Vx1,Vy1,p1,Vx2,...
 			boost::numeric::ublas::bounded_matrix<double, enrich_velocity_dofs+enrich_pressure_dofs, 9 > condensed_columns; //Vx1,Vy1,p1,Vx2,...
@@ -881,7 +633,6 @@ namespace Kratos
 				//enriched pressure dof	
 				for (unsigned int k = 0; k < enrich_pressure_dofs; k++)
 				{
-					
 					//enriched
 					condensed_rows(enrich_velocity_dofs+k,i*3+0)= - D_matrix_mixed(k,i*2+0);//+mass_stabilization_terms(i*2+0);
 					condensed_rows(enrich_velocity_dofs+k,i*3+1)= - D_matrix_mixed(k,i*2+1);//+mass_stabilization_terms(i*2+1);
@@ -889,9 +640,7 @@ namespace Kratos
 					
 					condensed_columns(enrich_velocity_dofs+k,i*3+0)= - D_matrix_mixed(k,i*2+0);
 					condensed_columns(enrich_velocity_dofs+k,i*3+1)= - D_matrix_mixed(k,i*2+1);
-					condensed_columns(enrich_velocity_dofs+k,i*3+2)= mixed_Laplacian(k,i);
-						
-						
+					condensed_columns(enrich_velocity_dofs+k,i*3+2)= mixed_Laplacian(k,i);	
 				}
 				
 				
@@ -912,8 +661,7 @@ namespace Kratos
 				}
 				
 			}
-			//KRATOS_WATCH(Momentum_matrix)
-			
+
 			
 			//now the condensed block terms:
 			//the condensed block has 4 submatrices:    1 [ K+M*] [ G*+]  2 
@@ -939,60 +687,21 @@ namespace Kratos
 					
 					
 					
-			//KRATOS_WATCH(condensed_block)
-			//KRATOS_WATCH(condensed_rows)
-			//KRATOS_WATCH(condensed_columns)
-			//KRATOS_WATCH(Laplacian_enrich)
-			
-			//KRATOS_WATCH(condensed_row)
-			//KRATOS_WATCH(rhs_enrich)
-			
-			//const double inv_Laplacian_enrich_weighted=1.0/Laplacian_enrich(0,0);
-			//KRATOS_WATCH(Laplacian_enrich(0,0))
+			//inverting
 			boost::numeric::ublas::bounded_matrix<double, enrich_velocity_dofs+enrich_pressure_dofs , enrich_velocity_dofs+enrich_pressure_dofs  > inverse_enrichments;
-			
-			//this->invert44(condensed_block,  inverse_enrichments);
-			//this->invert33(condensed_block,  inverse_enrichments);
-			/*
-			double determinant = (Laplacian_enrich(0,0)*Laplacian_enrich(1,1)) - (Laplacian_enrich(0,1)*Laplacian_enrich(1,0));
-			inverse_enrichments(0,0)=Laplacian_enrich(1,1);
-			inverse_enrichments(1,1)=Laplacian_enrich(0,0);
-			inverse_enrichments(0,1)=-Laplacian_enrich(0,1);
-			inverse_enrichments(1,0)=-Laplacian_enrich(1,0);
-			inverse_enrichments /= determinant;			
-			*/
-			//inverse_enrichments(0,0)=1.0/Laplacian_enrich(0,0);
 			this->InvertMatrix(condensed_block,inverse_enrichments);
-			//KRATOS_WATCH(Momentum_matrix)
 			
 			//condensing
-
-			
-			//KRATOS_WATCH
 			boost::numeric::ublas::bounded_matrix<double, 9 , enrich_pressure_dofs+enrich_velocity_dofs  > temp_matrix;
 			temp_matrix = prod(trans(condensed_columns),inverse_enrichments);
 			rLeftHandSideMatrix -=  prod(temp_matrix,condensed_rows);
-			//boost::numeric::ublas::bounded_matrix<double, 9, 9 > art = prod(trans(condensed_column),condensed_row);
-			//KRATOS_WATCH(art)
-			
 			noalias(rRightHandSideVector) -= prod(temp_matrix,rhs_enrich);
-			/*
-			for (unsigned int i = 0; i < 9; i++)
-			{
-				rRightHandSideVector(i) -= prod(condensed_column(0,i) * rhs_enrich;
-			}
-			*/
-			///KRATOS_WATCH(rhs_enrich)
-			//KRATOS_WATCH(condensed_column);
-			//KRATOS_WATCH(D_matrix)
-			//standard part:
-			
+
+			//standard part
 			for (unsigned int i = 0; i < 3; i++)
 			{
 				for (unsigned int j = 0; j < 3; j++)
 				{
-					//rLeftHandSideMatrix(j*3+2, i*3+0 ) -=  D_matrix(i,j*2);     
-					//rLeftHandSideMatrix(j*3+2, i*3+1 ) -= D_matrix(i,j*2+1);
 					rLeftHandSideMatrix(i*3+2, j*3+0 ) -= D_matrix(i,j*2);//  + DN_DX(i,0)*TauOne*one_third*Area/delta_t;     
 					rLeftHandSideMatrix(i*3+2, j*3+1 ) -= D_matrix(i,j*2+1);// + DN_DX(i,1)*TauOne*one_third*Area/delta_t;
 					
@@ -1002,101 +711,25 @@ namespace Kratos
 					rLeftHandSideMatrix(i*3+2, j*3+2 ) += Laplacian_matrix(i,j);
 				}
 			}
-			//KRATOS_WATCH(rLeftHandSideMatrix);
-			/*
-			boost::numeric::ublas::bounded_matrix<double, 10, 10 > my_matrix=ZeroMatrix(10,10);
-			boost::numeric::ublas::bounded_matrix<double, 1, 10 > my_vector=ZeroMatrix(1,10);
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				for (unsigned int j = 0; j < 3; j++)
-				{
-					my_matrix(i*2+0,i*2+0)=Mass_matrix(i*3,i*3);
-					my_matrix(i*2+1,i*2+1)=Mass_matrix(i*3,i*3);
-					
-					my_matrix(6+i,j*2+0)=D_matrix(i,j*2);
-					my_matrix(6+i,j*2+1)=D_matrix(i,j*2+1);
-					
-					my_matrix(j*2+0, 6+i)=D_matrix(i,j*2);
-					my_matrix(j*2+1, 6+i)=D_matrix(i,j*2+1);
-					
-					my_matrix(6+i,6+j)=Laplacian_matrix(i,j);
-				}
-				
-				my_matrix(9,i*2+0) = D_matrix_mixed(0,i*2+0);
-				my_matrix(9,i*2+1) = D_matrix_mixed(0,i*2+1);
-				
-				my_matrix(i*2+0,9) = D_matrix_mixed(0,i*2+0);
-				my_matrix(i*2+1,9) = D_matrix_mixed(0,i*2+1);
-				
-				my_matrix(9,6+i) = mixed_Laplacian(0,i);
-				
-				my_matrix(6+i,9) = mixed_Laplacian(0,i);
-				
-				my_vector(0,i*2+0) = gravity(0)*Mass_matrix(i*3,i*3);
-				my_vector(0,i*2+1) = gravity(1)*Mass_matrix(i*3,i*3);
-				
-				my_vector(0,6+i) = - (gravity(0)*DN_DX(i,0)+gravity(1)*DN_DX(i,1))*Area;
-				
-			}
-			
-			my_matrix(9,9)= Laplacian_enrich(0,0);
-			//my_vector(0,9) = rhs_enrich;
-			*/
-			//KRATOS_WATCH(my_matrix)
-			//KRATOS_WATCH(my_vector)
+
 			
 			//and finally the RHS of the velocity plus the RHS on the pressure due to the stabilzation terms:
 			for (unsigned int i = 0; i < 3; i++)
 			{
-				//KRATOS_WATCH(Mass_matrix(i*3,i*3));
-
-				//rRightHandSideVector(i*3+0) += one_third*gravity(0)*((0.25+0.125)*1000.0+0.125*1.0);//Mass_matrix(i*3,i*3)*gravity(0);
-				//rRightHandSideVector(i*3+1) += 0.16666*gravity(1)*((0.25+0.125)*1.0+0.125*1000.0);//Mass_matrix(i*3+1,i*3+1)*gravity(1);
-				//rRightHandSideVector(i*3+0) +=gravity(0)*Mass_matrix(i*3,i*3);
-				//rRightHandSideVector(i*3+1) +=gravity(1)*Mass_matrix(i*3,i*3);
 				rRightHandSideVector(i*3+0) +=local_gravity(0,0)*lumped_mass(i);
 				rRightHandSideVector(i*3+1) +=local_gravity(1,0)*lumped_mass(i);
 				
-				rRightHandSideVector(i*3+2) -= TauOne*continuous_factor*(DN_DX_in_local_axis(i,0)*local_gravity(0,0)+DN_DX_in_local_axis(i,1)*local_gravity(1,0))*Area;
+				rRightHandSideVector(i*3+0) += lumped_mass(i)* local_previous_vel(i*2) / delta_t;
+				rRightHandSideVector(i*3+1) += lumped_mass(i)* local_previous_vel(i*2+1) / delta_t;
 				
-				
-				for (unsigned int j = 0; j < 3; j++) //i node-  j partition k neighbour node
-				{
-					//rRightHandSideVector(i*3+1) += Nenriched(j,0)*volumes(j)*partition_densities(j)*gravity(1);
-					for (unsigned int k = 0; k < 3; k++) //i node-  j partition k neighbour node
-					{
-						
-					//rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0)+previous_vel_and_press(3*i+0))+DN_DX(i,1)*(gravity(1)+previous_vel_and_press(3*i+1)))*volumes(j)*partition_densities(j);
-					//rRightHandSideVector(i*3+2) -= TauOne*(DN_DX(i,0)*(gravity(0)+previous_vel_and_press(3*k+0))+DN_DX(i,1)*(gravity(1)+previous_vel_and_press(3*k+1)))*volumes(j)*Ngauss(j,k);
-					}
-				}
-				 
+				rRightHandSideVector(i*3+2) -= TauOne*(DN_DX_in_local_axis(i,0)*local_gravity(0,0)+DN_DX_in_local_axis(i,1)*local_gravity(1,0))*Area;
 			}
-			
-			
-			//KRATOS_WATCH(TauOne)
-			
-			
-			//we must actually use a fraction of the rigidity matrix. since the Lefthandside only has it so far, we multiply it by tita:
-			//rLeftHandSideMatrix *= theta;
-
-			//noalias(rRightHandSideVector) += prod((Mass_matrix/delta_t),previous_vel_and_press);
-			for (unsigned int j = 0; j < 3; j++) //i node-  j partition k neighbour node
-			{
-				rRightHandSideVector(j*3+0) += lumped_mass(j)* local_previous_vel(j*2) / delta_t;
-				rRightHandSideVector(j*3+1) += lumped_mass(j)* local_previous_vel(j*2+1) / delta_t;
-			}
-			
 			
 			for (unsigned int i = 0; i < 9; i++) 
 				for (unsigned int j = 0; j < 9; j++)
 					rLeftHandSideMatrix(i,j) += Momentum_matrix(i,j);
 			
 
-
-
-			//KRATOS_WATCH(rLeftHandSideMatrix);
-			
 			
 			//having created the matrix in local coordiantes, we rotate it into the new system
 			//we rotate it by blocks:
@@ -1129,42 +762,7 @@ namespace Kratos
 					for (unsigned int k = 0; k < 3; k++) 
 						for (unsigned int l = 0; l < 3; l++)
 							rLeftHandSideMatrix(i*3+k,j*3+l)=GlobalBlock(k,l);
-					
-					//or by subblocks. (more work)
-					/*
-					boost::numeric::ublas::bounded_matrix<double, 2 , 2 > LocalKBlock;
-					//saving unrotated local block
-					for (unsigned int k = 0; k < 2; k++) 
-						for (unsigned int l = 0; l < 2; l++)
-							LocalKBlock(k,l)=LocalLeftHandSideMatrix(i*3+k,j*3+l);	
-					//rotationg	
-					boost::numeric::ublas::bounded_matrix<double, 2 , 2 > tempBlock=prod(LocalKBlock,rRotationMatrix);
-					boost::numeric::ublas::bounded_matrix<double, 2 , 2 > GlobalKBlock=prod(trans(rRotationMatrix),tempBlock);
-					//saving info into the global matrix
-					for (unsigned int k = 0; k < 2; k++) 
-						for (unsigned int l = 0; l < 2; l++)
-							rLeftHandSideMatrix(i*3+k,j*3+l)=GlobalKBlock(k,l);
 
-					//now the Dmatrix block, G matrix block and the RHS.
-					boost::numeric::ublas::bounded_matrix<double, 1 , 2 >  LocalDBlock;
-					boost::numeric::ublas::bounded_matrix<double, 2 , 1 >  LocalGBlock;
-					for (unsigned int k = 0; k < 2; k++) 
-					{
-						LocalDBlock(0,k) = LocalLeftHandSideMatrix(i*3+2,j*3+k);	
-						LocalGBlock(k,0) = LocalLeftHandSideMatrix(i*3+k,j*3+2);	
-					}
-					//rotating	
-					boost::numeric::ublas::bounded_matrix<double, 1 , 2 >  GlobalDBlock = prod(LocalDBlock,rRotationMatrix);
-					boost::numeric::ublas::bounded_matrix<double, 2 , 1 > GlobalGBlock = prod(trans(rRotationMatrix),LocalGBlock);
-					//saving into the global system
-					for (unsigned int k = 0; k < 2; k++) 
-					{
-						rLeftHandSideMatrix(i*3+2,j*3+k) = GlobalDBlock(0,k);
-						rLeftHandSideMatrix(i*3+k,j*3+2) = GlobalGBlock(k,0);
-					}
-					*/
-					
-							
 				}
 				//now the RHS.
 				boost::numeric::ublas::bounded_matrix<double, 3 , 1 >  LocalRHS;
@@ -1175,89 +773,17 @@ namespace Kratos
 					rRightHandSideVector(i*3+k) = GlobalRHS(k,0);
 				
 			}
-			//boost::numeric::ublas::bounded_matrix<double, 2 , 2 > artt = prod(rRotationMatrix,trans(rRotationMatrix));
-			//KRATOS_WATCH(artt)
-			//KRATOS_WATCH((rRightHandSideVector/(one_third*Area))*delta_t);
-			//KRATOS_WATCH(LocalRightHandSideVector)
-
-			for (unsigned int i=0;i!=3;i++)
-			{
-				double sign = distances(i)/fabs(distances(i));
-				for (unsigned int j=0; j!=2;j++) //x,y,(z)
-				{
-					penalty_vector(0,i*3+j) =normal[j]*Ninterface(i)*sign;
-				}
-			}
-		
-			//rLeftHandSideMatrix += 100.0*(mass+Weight)*prod(trans(penalty_vector),penalty_vector);
-			//rLeftHandSideMatrix += 100.0*(mass)*prod(trans(penalty_vector),penalty_vector);
-			
-			
-			//noalias(rLeftHandSideMatrix) += Mass_matrix/delta_t;   
-			//KRATOS_WATCH(rRightHandSideVector)
-			//KRATOS_WATCH(rLeftHandSideMatrix)
-			/*
-			Matrix complete_matrix(5,5);
-			Matrix complete_rhs(5,1);
-			
-			//unsigned int counter=0;
-			
-			for (unsigned int i = 0; i < 8; i++)
-			{
-				unsigned int row, column;
-				bool active_row=true;
-				if (i==2) row=0;else if (i>4 && i!=8) row=i-4; else active_row=false;
-				if (active_row)
-					for (unsigned int j = 0; j < 8; j++) //j partition
-					{
-						bool active_column=true;
-						if (j==2) column=0; else if (j>4 && j!=8) column=j-4; else active_column=false;
-						if (active_column)
-							complete_matrix(row,column) = rLeftHandSideMatrix(i,j);
-						
-						complete_matrix(4,row)=condensed_rows(0,i);
-						complete_matrix(row,4)=condensed_rows(0,i);
-						
-						complete_rhs(row,0) = rRightHandSideVector(i);
-					}
-					
-
-
-			}
-			*/
-			
-			
-			
-			//complete_matrix(4,4)=Laplacian_enrich(0,0);
-			//complete_rhs(0,4)=rhs_enrich;
-			//KRATOS_WATCH(complete_matrix)
-			//KRATOS_WATCH(complete_rhs)
-			//KRATOS_WATCH(rLeftHandSideMatrix)
-			
 		}
 		
-		
-		//KRATOS_WATCH(rRightHandSideVector)
-
-		
-        
-
-		//subtracting the dirichlet term
-		// RHS -= LHS*DUMMY_UNKNOWNs
-		
-		
-
-		//KRATOS_WATCH((rRightHandSideVector/(one_third*Area))*delta_t);
-
-
+		//******************************
+		//finally, for both split and non split elements, since we use a residualbased scheme
 		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,previous_vel_and_press);
 		
 		
 		
 		
-		///////////TO MAKE IT TIDIER LATER!!!!!!!!!!!!!
-		const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_PARTICLES);
-		
+		///////////FOR EMPTY ELEMENTS!!!!!!!!!!!!!!
+		const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_FLUID_PARTICLES);
 		if( (number_of_particles_in_elem==0) )
 		{
 			double AdvVelNorm = sqrt(pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X),2)+pow(this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y),2));
@@ -1290,7 +816,6 @@ namespace Kratos
 				}
 			}
 			rLeftHandSideMatrix*=0.000001;
-			//noalias(rRightHandSideVector) = ZeroVector(9);
 			noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,previous_vel_and_press);
 		 }
 		KRATOS_CATCH("");
@@ -1443,11 +968,6 @@ namespace Kratos
 						AddViscousTerm(Viscosity_matrix, DN_DX,
 										Weight);
 						
-						/*
-						AddViscousTerm(Viscosity_matrix, DN_DX,
-										viscosity_air, viscosity_water,
-										volumes, signs, ndivisions); //, Ngauss,ç
-						*/
 						const double element_viscosity=Weight/Area; 
 						const double element_density=mass/Area;
 						double fourier= element_viscosity/element_density*delta_t/pow((0.6*this->GetValue(MEAN_SIZE)),2);
@@ -1711,7 +1231,7 @@ namespace Kratos
 		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
 		const double mass_factor = 1.0/ (1.0 + double (2) );
 		
-		const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_PARTICLES);
+		const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_FLUID_PARTICLES);
 		
 		if( (number_of_particles_in_elem>0))
 		{
@@ -1808,83 +1328,14 @@ namespace Kratos
 
 	//*****************************************************************************
 	//***************************************************************************
-	
-	
-	
-	//************************************************************************************
-	//************************************************************************************
-	// this subroutine calculates the nodal contributions for the explicit steps of the 
-	// fractional step procedure
+
 	void MonolithicPFEM22D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
-		///WARNING!!!! not calculating the pressure projection since i'm supposing it's being done before!
-		/* 
 
-		int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-
-		if (FractionalStepNumber == 5) //calculation of stabilization terms
-		{
-			boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
-			array_1d<double, 3 > N;
-			array_1d<double, 2 > vel_gauss;
-			double Area;
-			
-			GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
-			//array_1d<double, 3 > & fv0 = GetGeometry()[0].FastGetSolutionStepValue(FRACT_VEL);
-			//array_1d<double, 3 > & w0 = GetGeometry()[0].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double, 3 > & press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
-			//array_1d<double, 3 > & conv_proj0 = GetGeometry()[0].FastGetSolutionStepValue(CONV_PROJ);
-			double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-			//const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-
-			//array_1d<double, 3 > & fv1 = GetGeometry()[1].FastGetSolutionStepValue(FRACT_VEL);
-			//array_1d<double, 3 > & w1 = GetGeometry()[1].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double, 3 > & press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
-			//array_1d<double, 3 > & conv_proj1 = GetGeometry()[1].FastGetSolutionStepValue(CONV_PROJ);
-			double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-			//const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-
-			//array_1d<double, 3 > & fv2 = GetGeometry()[2].FastGetSolutionStepValue(FRACT_VEL);
-			//array_1d<double, 3 > & w2 = GetGeometry()[2].FastGetSolutionStepValue(MESH_VELOCITY);
-			array_1d<double, 3 > & press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
-			//array_1d<double, 3 > & conv_proj2 = GetGeometry()[2].FastGetSolutionStepValue(CONV_PROJ);
-			double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-			//const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-
-			//double density = 0.3333333333333333333333 * (rho0 + rho1 + rho2);
-
-			//calculation of the pressure gradient (saved in vel_gauss)
-			//note that here we calculate it "strong"
-			vel_gauss[0] = DN_DX(0, 0)*(p0) + DN_DX(1, 0)*(p1) + DN_DX(2, 0)*(p2);
-			vel_gauss[1] = DN_DX(0, 1)*(p0) + DN_DX(1, 1)*(p1) + DN_DX(2, 1)*(p2);
-			vel_gauss *= Area;
-
-			//press_proj += G*p
-			GetGeometry()[0].SetLock();
-			press_proj0[0] += N[0] * vel_gauss[0];
-			press_proj0[1] += N[0] * vel_gauss[1];
-			GetGeometry()[0].UnSetLock();
-
-			GetGeometry()[1].SetLock();
-			press_proj1[0] += N[1] * vel_gauss[0];
-			press_proj1[1] += N[1] * vel_gauss[1];
-			GetGeometry()[1].UnSetLock();
-
-			GetGeometry()[2].SetLock();
-			press_proj2[0] += N[2] * vel_gauss[0];
-			press_proj2[1] += N[2] * vel_gauss[1];
-			GetGeometry()[2].UnSetLock();
-		}
-        */
 		KRATOS_CATCH("");
 	}
 	
-	//************************************************************************************
-	//************************************************************************************
-
-
 	//************************************************************************************
 	//************************************************************************************
 	void MonolithicPFEM22D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
@@ -1936,36 +1387,6 @@ namespace Kratos
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double Weight)
 	{
-		/*
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-		const double FourThirds = 4.0 / 3.0;
-		const double nTwoThirds = -2.0 / 3.0;
-		
-
-		SizeType FirstRow(0),FirstCol(0);
-
-		for (SizeType j = 0; j < NumNodes; ++j)
-		{
-			for (SizeType i = 0; i < NumNodes; ++i)
-			{
-				// First Row
-				rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
-
-				// Second Row
-				rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
-
-				// Update Counter
-				FirstRow += 2;
-			}
-			FirstRow = 0;
-			FirstCol += 2;
-		}
-		*/
-		
-		//boost::numeric::ublas::bounded_matrix<double, 3, 3 > Laplacian_matrix =    prod(rShapeDeriv,trans(rShapeDeriv));
 		boost::numeric::ublas::bounded_matrix<double, 6, 3 > B_matrix = ZeroMatrix(6,3);
 		for (unsigned int i=0; i!=3; i++) //i node
 		{
@@ -1980,18 +1401,6 @@ namespace Kratos
 		C_matrix(0,0)=2.0;
 		C_matrix(1,1)=2.0;
 		C_matrix(2,2)=1.0;
-		/*
-		for (unsigned int i=0; i!=3; i++) //i node
-		{
-			for (unsigned int j=0; j!=3; j++) //j neighbour
-			{
-					C_matrix(i*3+0,j*3+0)=2.0;
-					C_matrix(i*3+1,j*3+1)=2.0;
-					C_matrix(i*3+2,j*3+2)=1.0;
-			}
-		}
-		*/ 
-		
 		C_matrix*=Weight;
 		
 		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
@@ -2010,87 +1419,7 @@ namespace Kratos
 		
 	}
 	
-	//using MatriType (for the implicit step)
-	void MonolithicPFEM22D::AddViscousTerm(MatrixType& rDampMatrix,
-                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       const double viscosity_air,
-                                       const double viscosity_water,
-                                       array_1d<double,3>  volumes,
-                                       array_1d<double,3>  signs,
-                                       Matrix Ngauss,
-                                       const double Area)
-	{
-		/*
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-		const double FourThirds = 4.0 / 3.0;
-		const double nTwoThirds = -2.0 / 3.0;
-		
-
-		SizeType FirstRow(0),FirstCol(0);
-
-		for (SizeType j = 0; j < NumNodes; ++j)
-		{
-			for (SizeType i = 0; i < NumNodes; ++i)
-			{
-				// First Row
-				rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
-
-				// Second Row
-				rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-				rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
-
-				// Update Counter
-				FirstRow += 2;
-			}
-			FirstRow = 0;
-			FirstCol += 2;
-		}
-		*/
-		
-		//boost::numeric::ublas::bounded_matrix<double, 3, 2> weighted_ShapeDeriv = ZeroMatrix(3,2);
-		double Weight=0.0;
-		for (unsigned int i=0;i<3;i++) //we go over the three partitions;
-		{
-			if (signs(i)>0.0)
-				Weight += volumes(i)*viscosity_air;
-			else
-				Weight += volumes(i)*viscosity_water;
-		}
-		
-		boost::numeric::ublas::bounded_matrix<double, 6, 3 > B_matrix = ZeroMatrix(6,3);
-		for (unsigned int i=0; i!=3; i++) //i node
-		{
-				B_matrix(i*2,0)=rShapeDeriv(i,0);
-				B_matrix(i*2+1,1)=rShapeDeriv(i,1);
-				
-				B_matrix(i*2,2)=rShapeDeriv(i,1);
-				B_matrix(i*2+1,2)=rShapeDeriv(i,0);
-		}
-		
-		boost::numeric::ublas::bounded_matrix<double, 3, 3 > C_matrix = ZeroMatrix(3,3);
-		C_matrix(0,0)=2.0;
-		C_matrix(1,1)=2.0;
-		C_matrix(2,2)=1.0;
-		/*
-		for (unsigned int i=0; i!=3; i++) //i node
-		{
-			for (unsigned int j=0; j!=3; j++) //j neighbour
-			{
-					C_matrix(i*3+0,j*3+0)=2.0;
-					C_matrix(i*3+1,j*3+1)=2.0;
-					C_matrix(i*3+2,j*3+2)=1.0;
-			}
-		}
-		*/ 
-		
-		C_matrix*=Weight;
-		
-		boost::numeric::ublas::bounded_matrix<double, 3, 6 > temp_matrix = prod(C_matrix,trans(B_matrix));
-		rDampMatrix = prod(B_matrix, temp_matrix );
-	}
-	
 	//using bounded_matrix, for the explict step:
 	void MonolithicPFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
                          boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
@@ -2133,73 +1462,7 @@ namespace Kratos
 		
 	}
 	
-	
-	//************************************************************************************
-	//with rotation and returnging also the row that will be enriched
-	void MonolithicPFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 8, 8 > & LocalAxisExtendedDampMatrix,
-						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
-                          std::vector< Matrix >& gauss_gradients, 
-						  array_1d<double,3>&  viscosities,
-						  array_1d<double,3>&  signs,
-						  array_1d<double,3>&  volumes ,
-						  const unsigned int ndivisions)
-	{
-		//boost::numeric::ublas::bounded_matrix<double, 8, 8 > rExtendedDampMatrix= ZeroMatrix(8,8);
 
-		boost::numeric::ublas::bounded_matrix<double, (2-1)*6,(2-1)*3 > B_matrix = ZeroMatrix(8,(2-1)*3);
-		//standard shape functions:
-		for (unsigned int i=0; i!=(2+1); i++) //i node
-		{
-			for (unsigned int j=0; j!=(2); j++) //x,y,z
-				B_matrix(i*(2)+j,j)=rShapeDeriv(i,j);
-			
-			//useful for both 2d and 3d:	
-			//relating 12 and 21 stresses
-			B_matrix(i*(2)+0,2)=rShapeDeriv(i,1);
-			B_matrix(i*(2)+1,2)=rShapeDeriv(i,0);
-			
-
-		}
-		
-		int counter=0;
-		boost::numeric::ublas::bounded_matrix<double, (2-1)*3, (2-1)*3 > C_matrix = ZeroMatrix((2-1)*3,(2-1)*3);
-			
-		for (unsigned int i=0; i!=(2); i++)
-		{
-			C_matrix(counter,counter)=2.0;
-			counter++;
-		}
-		for (unsigned int i=0; i!=((2-2)*2+1); i++)
-		{
-			C_matrix(counter,counter)=1.0;
-			counter++;
-		}
-		
-		//now the enriched part:
-		//we have to construct (ndivisions) rTempDampMatrix and asseble add them to rDampMatrix
-		for (unsigned int division=0; division!=ndivisions; division++)
-		{
-
-			//for (unsigned int j=0; j!=(2); j++) //x,y,z
-			//	B_matrix(3*(2)+j,j)= gauss_gradients_discontinuous[division](0,j);
-			
-			//useful for both 2d and 3d:	
-			//relating 12 and 21 stresses
-			//B_matrix(3*(2)+0,2)=gauss_gradients_discontinuous[division](0,1);
-			//B_matrix(3*(2)+1,2)=gauss_gradients_discontinuous[division](0,0);
-			B_matrix(3*(2)+0,0)=gauss_gradients[division](0,0);	
-			B_matrix(3*(2)+1,0)=gauss_gradients[division](1,0);	
-			
-			B_matrix(3*(2)+0,2)=gauss_gradients[division](0,1);	
-			B_matrix(3*(2)+1,2)=gauss_gradients[division](1,1);
-
-			
-			boost::numeric::ublas::bounded_matrix<double, (2-1)*3 , 8  > temp_matrix = prod(C_matrix,trans(B_matrix));
-			LocalAxisExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
-		}
-		
-	}
-	
 	
 		//************************************************************************************
 	//with rotation and returnging also the row that will be enriched
@@ -2240,35 +1503,17 @@ namespace Kratos
 			//standard shape functions:
 			for (unsigned int i=0; i!=(2+1); i++) //i node
 			{
-				//if (distances(i)*signs(division)>0.0)
-				if (true)
-				{
-					for (unsigned int j=0; j!=(2); j++) //x,y,z
-						B_matrix(i*(2)+j,j)=rShapeDeriv(i,j);
-					
-					//useful for both 2d and 3d:	
-					//relating 12 and 21 stresses
-					B_matrix(i*(2)+0,2)=rShapeDeriv(i,1);
-					B_matrix(i*(2)+1,2)=rShapeDeriv(i,0);
-				}
-				else
-				{
-					for (unsigned int j=0; j!=(2); j++) //x,y,z
-						B_matrix(i*(2)+j,j)=0.0;
-					
-					//useful for both 2d and 3d:	
-					//relating 12 and 21 stresses
-					B_matrix(i*(2)+0,2)=0.0;
-					B_matrix(i*(2)+1,2)=0.0;
 
-				}
-
+				for (unsigned int j=0; j!=(2); j++) //x,y,z
+					B_matrix(i*(2)+j,j)=rShapeDeriv(i,j);
+				//useful for both 2d and 3d:	
+				//relating 12 and 21 stresses
+				B_matrix(i*(2)+0,2)=rShapeDeriv(i,1);
+				B_matrix(i*(2)+1,2)=rShapeDeriv(i,0);
 			}
 			
-			
 			for (unsigned int j=0; j!=(2); j++) //x,y,z
 				B_matrix(3*(2)+j,j)= gauss_gradients[division](3,j);
-			
 			//useful for both 2d and 3d:	
 			//relating 12 and 21 stresses
 			B_matrix(3*(2)+0,2)=gauss_gradients[division](3,1);
@@ -2290,187 +1535,7 @@ namespace Kratos
 	}
 	
 	
-	/*
-	 * 	void MonolithicPFEM22D::AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
-						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
-                          std::vector< Matrix >& gauss_gradients, 
-						  array_1d<double,3>&  viscosities,
-						  array_1d<double,3>&  signs,
-						  array_1d<double,3>&  volumes ,
-						  const unsigned int ndivisions)
-	{
-		
-		boost::numeric::ublas::bounded_matrix<double, 8, 8 > ExtendedDampMatrix=ZeroMatrix(8,8);
-		//boost::numeric::ublas::bounded_matrix<double, 8, 8 > rExtendedDampMatrix= ZeroMatrix(8,8);
-
-		boost::numeric::ublas::bounded_matrix<double, 8,3 > B_matrix = ZeroMatrix(8,(2-1)*3);
-		//standard shape functions:
-		for (unsigned int i=0; i!=(2+1); i++) //i node
-		{
-			for (unsigned int j=0; j!=(2); j++) //x,y,z
-				B_matrix(i*(2)+j,j)=rShapeDeriv(i,j);
-			
-			//useful for both 2d and 3d:	
-			//relating 12 and 21 stresses
-			B_matrix(i*(2)+0,2)=rShapeDeriv(i,1);
-			B_matrix(i*(2)+1,2)=rShapeDeriv(i,0);
-			
-
-		}
-		
-		int counter=0;
-		boost::numeric::ublas::bounded_matrix<double, (2-1)*3, (2-1)*3 > C_matrix = ZeroMatrix((2-1)*3,(2-1)*3);
-			
-		for (unsigned int i=0; i!=(2); i++)
-		{
-			C_matrix(counter,counter)=2.0;
-			counter++;
-		}
-		for (unsigned int i=0; i!=((2-2)*2+1); i++)
-		{
-			C_matrix(counter,counter)=1.0;
-			counter++;
-		}
-		
-		//now the enriched part:
-		//we have to construct (ndivisions) rTempDampMatrix and asseble add them to rDampMatrix
-		for (unsigned int division=0; division!=ndivisions; division++)
-		{
-
-			for (unsigned int j=0; j!=(2); j++) //x,y,z
-				B_matrix(3*(2)+j,j)= gauss_gradients[division](3,j);
-			
-			//useful for both 2d and 3d:	
-			//relating 12 and 21 stresses
-			B_matrix(3*(2)+0,2)=gauss_gradients[division](3,1);
-			B_matrix(3*(2)+1,2)=gauss_gradients[division](3,0);
-
-			boost::numeric::ublas::bounded_matrix<double, (2-1)*3 , 8  > temp_matrix = prod(C_matrix,trans(B_matrix));
-			ExtendedDampMatrix += viscosities(division)*volumes(division)*prod(B_matrix, temp_matrix );
-		}
-		
-		//now we put it all toghether in the big matrix:
-		for (unsigned int i=0; i!=(4); i++) //3 nodes + 1dof in the new virtual node
-			for (unsigned int j=0; j!=(4); j++) //3 nodes + 1dof in the new virtual node
-				for (unsigned int k=0; k!=(2); k++) //x,y,(z)
-					for (unsigned int l=0; l!=(2); l++) //x,y,(z)
-						 output(i*3+k,j*3+l) += ExtendedDampMatrix(i*2+k,j*2+l);
-						 
-		//KRATOS_WATCH(ExtendedDampMatrix)
-	}
-	*/
-	
-	
-	bool MonolithicPFEM22D::invert44(boost::numeric::ublas::bounded_matrix<double, 4, 4 > & m , boost::numeric::ublas::bounded_matrix<double, 4, 4 > & inverse ) // Introduces even more shitty float errors
-	{
-
-
-		//double s0 = a(0, 0) * a(1, 1) - a(1, 0) * a(0, 1);
-		//double s1 = a(0, 0) * a(1, 2) - a(1, 0) * a(0, 2);
-		//double s2 = a(0, 0) * a(1, 3) - a(1, 0) * a(0, 3);
-		//double s3 = a(0, 1) * a(1, 2) - a(1, 1) * a(0, 2);
-		//double s4 = a(0, 1) * a(1, 3) - a(1, 1) * a(0, 3);
-		//double s5 = a(0, 2) * a(1, 3) - a(1, 2) * a(0, 3);
-
-		//double c5 = a(2, 2) * a(3, 3) - a(3, 2) * a(2, 3);
-		//double c4 = a(2, 1) * a(3, 3) - a(3, 1) * a(2, 3);
-		//double c3 = a(2, 1) * a(3, 2) - a(3, 1) * a(2, 2);
-		//double c2 = a(2, 0) * a(3, 3) - a(3, 0) * a(2, 3);
-		//double c1 = a(2, 0) * a(3, 2) - a(3, 0) * a(2, 2);
-		//double c0 = a(2, 0) * a(3, 1) - a(3, 0) * a(2, 1);
-
-		//// Should check for 0 determinant
-		//double invdet = 1.0 / (s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0);
-
-
-		//inverse(0, 0) = ( a(1, 1) * c5 - a(1, 2) * c4 + a(1, 3) * c3) * invdet;
-		//inverse(0, 1) = (-a(0, 1) * c5 + a(0, 2) * c4 - a(0, 3) * c3) * invdet;
-		//inverse(0, 2) = ( a(3, 1) * s5 - a(3, 2) * s4 + a(3, 3) * s3) * invdet;
-		//inverse(0, 3) = (-a(2, 1) * s5 + a(2, 2) * s4 - a(2, 3) * s3) * invdet;
-
-		//inverse(1, 0) = (-a(1, 0) * c5 + a(1, 2) * c2 - a(1, 3) * c1) * invdet;
-		//inverse(1, 1) = ( a(0, 0) * c5 - a(0, 2) * c2 + a(0, 3) * c1) * invdet;
-		//inverse(1, 2) = (-a(3, 0) * s5 + a(3, 2) * s2 - a(3, 3) * s1) * invdet;
-		//inverse(1, 3) = ( a(2, 0) * s5 - a(2, 2) * s2 + a(2, 3) * s1) * invdet;
-
-		//inverse(2, 0) = ( a(1, 0) * c4 - a(1, 1) * c2 + a(1, 3) * c0) * invdet;
-		//inverse(2, 1) = (-a(0, 0) * c4 + a(0, 1) * c2 - a(0, 3) * c0) * invdet;
-		//inverse(2, 2) = ( a(3, 0) * s4 - a(3, 1) * s2 + a(3, 3) * s0) * invdet;
-		//inverse(2, 3) = (-a(2, 0) * s4 + a(2, 1) * s2 - a(2, 3) * s0) * invdet;
-
-		//inverse(3, 0) = (-a(1, 0) * c3 + a(1, 1) * c1 - a(1, 2) * c0) * invdet;
-		//inverse(3, 1) = ( a(0, 0) * c3 - a(0, 1) * c1 + a(0, 2) * c0) * invdet;
-		//inverse(3, 2) = (-a(3, 0) * s3 + a(3, 1) * s1 - a(3, 2) * s0) * invdet;
-		//inverse(3, 3) = ( a(2, 0) * s3 - a(2, 1) * s1 + a(2, 2) * s0) * invdet;
-		
-		double S0 = m(0,0) * m(1,1) - m(0,1) * m(1,0);
-        double S1 = m(0,0) * m(1,2) - m(0,2) * m(1,0);
-        double S2 = m(0,0) * m(1,3) - m(0,3) * m(1,0);
-        double S3 = m(0,1) * m(1,2) - m(0,2) * m(1,1);
-        double S4 = m(0,1) * m(1,3) - m(0,3) * m(1,1);
-        double S5 = m(0,2) * m(1,3) - m(0,3) * m(1,2);
- 
-        double C5 = m(2,2) * m(3,3) - m(2,3) * m(3,2);
-        double C4 = m(2,1) * m(3,3) - m(2,3) * m(3,1);
-        double C3 = m(2,1) * m(3,2) - m(2,2) * m(3,1);
-        double C2 = m(2,0) * m(3,3) - m(2,3) * m(3,0);
-        double C1 = m(2,0) * m(3,2) - m(2,2) * m(3,0);
-        double C0 = m(2,0) * m(3,1) - m(2,1) * m(3,0);
- 
-        // If determinant equals 0, there is no inverse
-        double det = S0 * C5 - S1 * C4 + S2 * C3 + S3 * C2 - S4 * C1 + S5 * C0;
-        ///if(fabs(det) <= tolerance) return false;
- 
-        // Compute adjugate matrix
-         inverse(0,0) = m(1,1) * C5  - m(1,2) * C4  + m(1,3) * C3;
-         inverse(0,1) =   -m(0,1) * C5 + m(0,2) * C4  - m(0,3) * C3;
-         inverse(0,2) =       m(3,1) * S5 - m(3,2) * S4 + m(3,3) * S3;
-         inverse(0,3) = -m(2,1) * S5 + m(2,2) * S4 - m(2,3) * S3;
- 
-         inverse(1,0) = -m(1,0) * C5  + m(1,2) * C2  - m(1,3) * C1;
-         inverse(1,1) =  m(0,0) * C5 - m(0,2) * C2  + m(0,3) * C1;
-         inverse(1,2) = -m(3,0) * S5 + m(3,2) * S2 - m(3,3) * S1;
-         inverse(1,3) =  m(2,0) * S5 - m(2,2) * S2 + m(2,3) * S1;
- 
-         inverse(2,0) = m(1,0) * C4  - m(1,1) * C2  + m(1,3) * C0;
-         inverse(2,1) = -m(0,0) * C4 + m(0,1) * C2  - m(0,3) * C0;
-         inverse(2,2) = m(3,0) * S4 - m(3,1) * S2 + m(3,3) * S0;
-         inverse(2,3) = -m(2,0) * S4 + m(2,1) * S2  - m(2,3) * S0;
- 
-         inverse(3,0) = -m(1,0) * C3  + m(1,1) * C1  - m(1,2) * C0;
-         inverse(3,1) = m(0,0) * C3 - m(0,1) * C1  + m(0,2) * C0;
-         inverse(3,2) = -m(3,0) * S3 + m(3,1) * S1 - m(3,2) * S0;
-         inverse(3,3) =  m(2,0) * S3 - m(2,1) * S1  + m(2,2) * S0 ;
-                
-        inverse *= 1.0/det;        
-		
-		 
-	   return true;
-	}
-	
-	
-	bool MonolithicPFEM22D::invert33(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & m , boost::numeric::ublas::bounded_matrix<double, 3, 3 > & result ) // Introduces even more shitty float errors
-	{
-		double det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
-					 m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
-					 m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
-
-		double invdet = 1 / det;
-		
-		result(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
-		result(0, 1) = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * invdet;
-		result(0, 2) = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) * invdet;
-		result(1, 0) = (m(1, 2) * m(2, 0) - m(1, 0) * m(2, 2)) * invdet;
-		result(1, 1) = (m(0, 0) * m(2, 2) - m(0, 2) * m(2, 0)) * invdet;
-		result(1, 2) = (m(1, 0) * m(0, 2) - m(0, 0) * m(1, 2)) * invdet;
-		result(2, 0) = (m(1, 0) * m(2, 1) - m(2, 0) * m(1, 1)) * invdet;
-		result(2, 1) = (m(2, 0) * m(0, 1) - m(0, 0) * m(2, 1)) * invdet;
-		result(2, 2) = (m(0, 0) * m(1, 1) - m(1, 0) * m(0, 1)) * invdet;
-		
-		return true;
-	}
-	
-		void MonolithicPFEM22D::CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface)
+	void MonolithicPFEM22D::CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  rDistances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface)
 	{
 		double sign_correction=1.0;
 		
@@ -2541,7 +1606,8 @@ namespace Kratos
 		
 	}
 	
-			inline void MonolithicPFEM22D::CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
+	
+	inline void MonolithicPFEM22D::CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
                                          const double xc, const double yc, const double zc,
                                          array_1d<double, 3 > & N
                                         )
