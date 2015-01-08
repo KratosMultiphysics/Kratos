@@ -57,8 +57,8 @@ for node in model_part.Nodes:
 		node.Fix(VELOCITY_Y)
 
 	if node.Y>0.499:
-		node.Free(VELOCITY_Y)
-		node.Fix(PRESSURE)
+		node.Fix(VELOCITY_Y)
+		#node.Fix(PRESSURE)
 		node.Fix(DISTANCE)
 		node.SetSolutionStepValue(DISTANCE,0,1.0)
 	
