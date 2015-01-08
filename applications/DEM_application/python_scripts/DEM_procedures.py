@@ -146,6 +146,11 @@ class Procedures(object):
         self.bounding_box_OPTION           = Var_Translator(DEM_parameters.BoundingBoxOption)
         self.automatic_bounding_box_OPTION = Var_Translator(DEM_parameters.AutomaticBoundingBoxOption)
         self.contact_mesh_OPTION           = Var_Translator(DEM_parameters.ContactMeshOption)
+        
+        self.arlequin                      = 0
+        if (hasattr(DEM_parameters, "arlequin")):
+          self.arlequin                    = Var_Translator(DEM_parameters.arlequin)
+          
         #self.solver = solver
 
         # SIMULATION SETTINGS
@@ -174,6 +179,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        
         
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -225,7 +231,6 @@ class Procedures(object):
     
     def AddMappingVariables(self, model_part, Param): 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        mapping_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DUMMY_1)
         model_part.AddNodalSolutionStepVariable(DUMMY_1)
@@ -805,7 +810,18 @@ class DEMIo(object):
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
-     
+    
+    
+    def AddArlequinVariables(self):
+         self.PushPrintVar( 1, DISTANCE, self.global_variables)
+         self.PushPrintVar( 1, BORDER, self.global_variables)
+         self.PushPrintVar( 1, SOLUTION, self.global_variables)
+         self.PushPrintVar( 1, DUMMY_1, self.global_variables)
+         self.PushPrintVar( 1, DUMMY_2, self.global_variables)
+         self.PushPrintVar( 1, DUMMY_3, self.global_variables)
+         self.PushPrintVar( 1, ALPHA_ARLEQUIN, self.global_variables)
+         self.PushPrintVar( 1, LUMPED_PROJECTION_NODAL_MASS, self.global_variables)
+    
     def AddFEMBoundaryVariables(self):
         #pass
         #self.PushPrintVar(DEM_parameters.PostWallsElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
@@ -966,12 +982,13 @@ class DEMIo(object):
         if (self.contact_mesh_option == "ON"):
             for variable in self.contact_variables:
                 self.gid_io.PrintOnGaussPoints(variable, export_model_part, time)
-                
+      
     def PrintingMappingVariables(self, export_model_part, time):
         for variable in self.mapping_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
     
-                
+    def PrintingArlequinVariables(self, export_model_part, time):
+        self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
 
     def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
@@ -989,7 +1006,8 @@ class DEMIo(object):
         self.PrintingClusterVariables(cluster_model_part, time)
         self.PrintingContactElementsVariables(contact_model_part, time)
         self.PrintingMappingVariables(mapping_model_part, time)
-
+        self.PrintingArlequinVariables(rigid_face_model_part, time)
+        
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
 
