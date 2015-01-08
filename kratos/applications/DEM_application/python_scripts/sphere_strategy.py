@@ -26,8 +26,28 @@ def AddDofs(model_part):
     print("DOFs for the DEM solution added correctly")
     
 def AddAdditionalVariables(balls_model_part, DEM_parameters):
-    pass
-    
+
+    if (hasattr(DEM_parameters, "arlequin")):
+      
+        balls_model_part.AddNodalSolutionStepVariable(DISTANCE)
+        balls_model_part.AddNodalSolutionStepVariable(BORDER)
+        balls_model_part.AddNodalSolutionStepVariable(SOLUTION)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_1)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_2)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_4)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_1)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_2)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_3)
+        balls_model_part.AddNodalSolutionStepVariable(ALPHA_ARLEQUIN)
+        balls_model_part.AddNodalSolutionStepVariable(LUMPED_PROJECTION_NODAL_MASS)
+        balls_model_part.AddNodalSolutionStepVariable(PROJECTED_DISPLACEMENT)
+        balls_model_part.AddNodalSolutionStepVariable(TRIAL_VELOCITY)
+        balls_model_part.AddNodalSolutionStepVariable(TEST_VARIABLE3D)
+        balls_model_part.AddNodalSolutionStepVariable(LAMBDA_LAGRANGE)
+        
+        balls_model_part.ProcessInfo[ARLEQUIN] = 1.0
+
 class ExplicitStrategy:
 
     def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, Param):
