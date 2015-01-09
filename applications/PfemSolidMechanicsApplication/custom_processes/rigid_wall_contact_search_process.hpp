@@ -233,6 +233,9 @@ public:
       		  if( mpRigidWall->IsInside(Point,Time,Radius) ){
       		    nd->Set(CONTACT);
       		  }
+		  else{ //clean nodal contact forces
+		    nd->FastGetSolutionStepValue(CONTACT_FORCE).clear();
+		  }
       		}
 	      
       	    }
