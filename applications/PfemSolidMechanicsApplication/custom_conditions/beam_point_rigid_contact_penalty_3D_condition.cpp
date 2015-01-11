@@ -236,7 +236,7 @@ namespace Kratos
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
 
-    // std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
+    std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
     // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" Penalty.Tangent "<<rVariables.Penalty.Tangent<<std::endl;
 
@@ -268,7 +268,7 @@ namespace Kratos
       // std::cout<<std::endl;
       // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
 
-      this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight );
+      //this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight );
       // std::cout<<std::endl;
       //std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
 
@@ -347,7 +347,7 @@ namespace Kratos
     if( rVariables.Options.Is(ACTIVE)){
 
        this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
-       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
+       //this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
 
     }
     else{
@@ -356,7 +356,7 @@ namespace Kratos
     
     }
 
-    //KRATOS_WATCH( rRightHandSideVector )
+    KRATOS_WATCH( rRightHandSideVector )
 
     KRATOS_CATCH( "" )
       }
