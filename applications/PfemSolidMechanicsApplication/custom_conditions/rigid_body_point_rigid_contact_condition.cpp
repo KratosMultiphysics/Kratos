@@ -443,7 +443,7 @@ void RigidBodyPointRigidContactCondition::CalculateKinematics(GeneralVariables& 
     double ElasticModulus   = mMasterElements.front().GetProperties()[YOUNG_MODULUS];
 
     //reduction of the penalty parameter:
-    PenaltyParameter *=1e-3;
+    PenaltyParameter *=1e-6;
     
     double factor = 4;
     if( distance < 1.0 ){ //take a number bigger than 1.0 (length units)
