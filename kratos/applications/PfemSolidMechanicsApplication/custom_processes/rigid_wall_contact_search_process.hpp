@@ -362,8 +362,9 @@ public:
 		  //p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
 		  p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactPenalty3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 	       
 		  //p_cond= ModelPart::ConditionType::Pointer(new BeamPointRigidContactLM3DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
-		  std::cout<<" Node Selected for BEAM Contact "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
-		  std::cout<<" with properties "<<*p_properties<<std::endl;
+		  
+		  //std::cout<<" Node Selected for BEAM Contact "<<(*nd)->Id()<<": Set Contact 3D condition "<<std::endl;
+		  //std::cout<<" with properties "<<*p_properties<<std::endl;
 		}
 		      
 		//pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
