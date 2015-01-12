@@ -7,6 +7,7 @@ def AddAdditionalVariables(model_part, Param):
 
     model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
     model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+    model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
     
     if(Var_Translator(Param.StressStrainOption)):       
       model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
