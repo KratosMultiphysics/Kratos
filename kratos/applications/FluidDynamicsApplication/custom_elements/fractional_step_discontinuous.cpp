@@ -616,45 +616,52 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
     bool split_element = this->GetValue(SPLIT_ELEMENT);
     if (split_element == true)
     {
-        if (this->IsNot(SLIP))
+
+
+        if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
         {
-            if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
+
+            double Volume_tot;
+            boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
+            array_1d<double, 4 > Ncontinuous;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
+
+            const array_1d<double, 3 > & embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+            //        KRATOS_WATCH(embedded_vel)
+
+            const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
+
+            double Density;
+            this->EvaluateInPoint(Density, DENSITY, Ncontinuous);
+            double ElemSize = this->ElementSize();
+            const double Viscosity = this->EffectiveViscosity(Density, Ncontinuous, DN_DXcontinuous, ElemSize, rCurrentProcessInfo);
+
+
+            const double min_dist_in_viscous_term = 0.001 * ElemSize; //the 0.001 it is arbitrary. This terms is only to avoid divisions by zero
+
+
+
+            array_1d<double, TDim> normal = prod(trans(DN_DXcontinuous), distances);
+            normal /= norm_2(normal);
+            //KRATOS_WATCH(normal)
+            //compute the block diagonal parallel projection
+            //defined as the operator which extracts the part of the velocity
+            //tangent to the embedded wall
+            bounded_matrix<double, TDim, TDim> block = IdentityMatrix(TDim, TDim);
+            bounded_matrix<double, TDim, TDim> nn_matrix = outer_prod(normal, normal);
+            noalias(block) -= nn_matrix;
+            //KRATOS_WATCH(block)
+
+            array_1d<double, 3 > tangent_vel_dirichlet = prod(block, embedded_vel);
+            //          KRATOS_WATCH(tangent_vel_dirichlet)
+
+            //add tangential component
+            //loop on cut edges
+            unsigned int edge_counter;
+
+            if (this->IsDefined(SLIP) == false && this->IsNot(SLIP))
             {
-                double Volume_tot;
-                boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
-                array_1d<double, 4 > Ncontinuous;
-                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
-
-                const array_1d<double, 3 > & embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-                //        KRATOS_WATCH(embedded_vel)
-
-                const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
-
-                double Density;
-                this->EvaluateInPoint(Density, DENSITY, Ncontinuous);
-                double ElemSize = this->ElementSize();
-                const double Viscosity = this->EffectiveViscosity(Density, Ncontinuous, DN_DXcontinuous, ElemSize, rCurrentProcessInfo);
-
-
-                const double min_dist_in_viscous_term = 0.001 * ElemSize; //the 0.001 it is arbitrary. This terms is only to avoid divisions by zero
-
-
-
-                array_1d<double, TDim> normal = prod(trans(DN_DXcontinuous), distances);
-                normal /= norm_2(normal);
-                //KRATOS_WATCH(normal)
-                //compute the block diagonal parallel projection
-                //defined as the operator which extracts the part of the velocity
-                //tangent to the embedded wall
-                bounded_matrix<double, TDim, TDim> block = IdentityMatrix(TDim, TDim);
-                noalias(block) -= outer_prod(normal, normal);
-                //KRATOS_WATCH(block)
-
-                array_1d<double, 3 > tangent_vel_dirichlet = prod(block, embedded_vel);
-                //          KRATOS_WATCH(tangent_vel_dirichlet)
-
-                //loop on cut edges
-                unsigned int edge_counter = 0.0;
+                edge_counter = 0;
                 for (unsigned int i = 0; i < TDim; i++)
                 {
                     unsigned int base_i = i * (TDim);
@@ -696,8 +703,58 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
                     }
                 }
             }
-        }
 
+            //compute penalty_coeff
+            const double embedded_vnorm = norm_2(embedded_vel);
+            double penalty_coeff = Density*(Viscosity + embedded_vnorm * ElemSize ) / ElemSize;
+//                 penalty_coeff = 0.0
+//                 KRATOS_WATCH(penalty_coeff);
+
+            //add normal component
+            edge_counter = 0.0;
+            for (unsigned int i = 0; i < TDim; i++)
+            {
+                unsigned int base_i = i * (TDim);
+                const array_1d<double,3>& v_i = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+                array_1d<double,TDim> v_i_diff;
+                for (unsigned int kkk = 0; kkk < TDim; kkk++)  v_i_diff[kkk] = v_i[kkk] - embedded_vel[kkk];
+
+                array_1d<double,TDim> rhs_penalty_I = prod(nn_matrix,v_i_diff);
+
+                for (unsigned int j = i + 1; j < TDim + 1; j++)
+                {
+                    if (distances[i] * distances[j] < 0.0) //cut edge
+                    {
+                        unsigned int base_j = j * (TDim);
+
+                        const array_1d<double,3>& v_j = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                        array_1d<double,TDim> v_j_diff;
+                        for (unsigned int kkk = 0; kkk < TDim; kkk++)  v_j_diff[kkk] = v_j[kkk] - embedded_vel[kkk];
+
+
+                        array_1d<double,TDim> rhs_penalty_J = prod(nn_matrix,v_j_diff);
+
+                        for (unsigned int kkk = 0; kkk < TDim; kkk++)
+                        {
+                            rRightHandSideVector(base_i + kkk) -= penalty_coeff * medge_areas[edge_counter] * (rhs_penalty_I[kkk]); //contribution to I
+                            rRightHandSideVector(base_j + kkk) -= penalty_coeff * medge_areas[edge_counter] * (rhs_penalty_J[kkk]); //contribution to J
+
+                            for (unsigned int lll = 0; lll < TDim; lll++)
+                            {
+                                //node I contribution
+                                rLeftHandSideMatrix(base_i + kkk, base_i + lll) += penalty_coeff * medge_areas[edge_counter] * nn_matrix(kkk, lll);
+
+                                //node J contribution
+                                rLeftHandSideMatrix(base_j + kkk, base_j + lll) += penalty_coeff * medge_areas[edge_counter] * nn_matrix(kkk, lll);
+
+                            }
+                        }
+                    }
+                    edge_counter++;
+                }
+
+            }
+        }
 
     }
 
