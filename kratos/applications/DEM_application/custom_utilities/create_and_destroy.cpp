@@ -98,10 +98,12 @@ namespace Kratos {
             pnew_node->SetId(aId);
             pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
             //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
+            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 1000;
         }
         else {
             pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
             pnew_node->FastGetSolutionStepValue(VELOCITY) = params[VELOCITY];
+            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
         }
 
         if (has_rotation && pnew_node->SolutionStepsDataHas(PARTICLE_ROTATION_DAMP_RATIO) ) {
@@ -114,7 +116,7 @@ namespace Kratos {
 
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;        
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
-        pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
+        
 
         //The next section is commented because initialization to 0 is done automatically of all variables in GetSolutionStepvariable
         /*if (pnew_node->SolutionStepsDataHas(SOLID_FRACTION_PROJECTED)) {
