@@ -101,7 +101,14 @@ namespace Kratos
 				.def("InitializeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
  				.def("FinalizeSolutionStep",&PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)	
  				;
-		 
+ 			class_< Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+ 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
+ 				("Fluid_Phase_PFEM2_Explicit_Strategy", 
+ 				init<ModelPart&, int, bool >() )
+				 //initialize and finalize. the others are standard and are in the ExplicitStrategy
+				.def("InitializeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::InitializeSolutionStep)
+ 				.def("FinalizeSolutionStep",&Fluid_Phase_PFEM2_Explicit_Strategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::FinalizeSolutionStep)	
+ 				;			 
 		}
 
 	}  // namespace Python.
