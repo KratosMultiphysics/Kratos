@@ -228,8 +228,8 @@ namespace Kratos
 			double total_integral_mean_fluid_pressure = 0.0;
 			bool has_solid_particle=false;
 			bool has_fluid_particle=false;
-			double fluid_area=Area*0.000000000000000000001; //to avoid problems when we have 2 elements 
-			double solid_area=Area*0.000000000000000000001;
+			double fluid_area=Area*0.00000000000000000000000001; //to avoid problems when we have 2 elements 
+			double solid_area=Area*0.00000000000000000000000001;
 			double density_solid_integral=0.01*solid_area;
 			double density_fluid_integral=0.01*fluid_area;
 			double viscosity_integral = 1.0000*fluid_area;
@@ -277,7 +277,7 @@ namespace Kratos
 							array_1d<double,6> particle_stresses = pparticle.GetSigma(); //it's a copy!! i guess it is faster than creating a reference, then we copy it back to the particle again;
 							double particle_pressure = pparticle.GetPressure();        //copy pressure
 							const double particle_mu = pparticle.GetShearModulus();    //copy mu
-							//this->UpdateStressesToNewConfiguration(particle_stresses,particle_pressure,DN_DX,previous_vel_in_mesh, particle_mu , delta_t); //updating stresses
+							//this->UpdateStressesToNewConfiguration(particle_stresses,particle_pressure,DN_DX,previous_vel_in_mesh+previous_accel_in_mesh*delta_t, particle_mu , delta_t); //updating stresses
 							total_integral_stresses += particle_area*particle_stresses;               //ading particle contribution
 							total_integral_mean_solid_pressure += particle_area*particle_pressure;    //adding particle contribution
 							mu_integral += pparticle.GetShearModulus()*particle_area;				  //adding particle contribution
@@ -422,9 +422,10 @@ namespace Kratos
 
 			double add_accel_stab_term=0.0; //(true or false)
 			
-			if (split_element && (fabs(distances(0))>0.02 && fabs(distances(1))>0.02 && fabs(distances(2))>0.02 && fabs(distances(3))>0.02))
-			//if (split_element && has_solid_particle && has_fluid_particle)
+			//if (split_element && (fabs(distances(0))>0.02 && fabs(distances(1))>0.02 && fabs(distances(2))>0.02 && fabs(distances(3))>0.02))
+			if (split_element && has_solid_particle && has_fluid_particle)
 			//if (false==true)
+			//if (split_element)
 			{
 				add_accel_stab_term=0.0; //we turn it off
 				
@@ -666,29 +667,29 @@ namespace Kratos
 				}	
 				
 				
-				boost::numeric::ublas::bounded_matrix<double, Pdof, 16 > condensed_rows; //Vx1,Vy1,p1,Vx2,...
-				boost::numeric::ublas::bounded_matrix<double, Pdof, 16 > condensed_columns; //Vx1,Vy1,p1,Vx2,...
+				boost::numeric::ublas::bounded_matrix<double, Pdof, 16 > condensed_rows=ZeroMatrix(Pdof,16); //Vx1,Vy1,p1,Vx2,...
+				boost::numeric::ublas::bounded_matrix<double, Pdof, 16 > condensed_columns=ZeroMatrix(Pdof,16); //Vx1,Vy1,p1,Vx2,...
 				for (unsigned int i = 0; i < 4; i++)
 				{
 					//condensed_row(0,i*3+0)=-D_matrix_mixed(0,i*2+0);
 					//condensed_row(0,i*3+1)=-D_matrix_mixed(0,i*2+1);
 					for (unsigned int k = 0; k < Pdof; k++) //we go through the 4 enrichments
 					{
-						condensed_rows(k,i*4+0)= D_matrix_mixed(k,i*3+0);//+mass_stabilization_terms(i*2+0);
-						condensed_rows(k,i*4+1)= D_matrix_mixed(k,i*3+1);//+mass_stabilization_terms(i*2+1);
-						condensed_rows(k,i*4+2)= D_matrix_mixed(k,i*3+2);//+mass_stabilization_terms(i*2+1);
+						condensed_rows(k,i*4+0)= - D_matrix_mixed(k,i*3+0);//+mass_stabilization_terms(i*2+0);
+						condensed_rows(k,i*4+1)= - D_matrix_mixed(k,i*3+1);//+mass_stabilization_terms(i*2+1);
+						condensed_rows(k,i*4+2)= - D_matrix_mixed(k,i*3+2);//+mass_stabilization_terms(i*2+1);
 						//condensed_rows(k,i*4+3)=mixed_Laplacian(k,i);
 						
-						condensed_columns(k,i*4+0)=D_matrix_mixed(k,i*3+0);
-						condensed_columns(k,i*4+1)=D_matrix_mixed(k,i*3+1);
-						condensed_columns(k,i*4+2)=D_matrix_mixed(k,i*3+2);
+						condensed_columns(k,i*4+0)= - D_matrix_mixed(k,i*3+0);
+						condensed_columns(k,i*4+1)= - D_matrix_mixed(k,i*3+1);
+						condensed_columns(k,i*4+2)= - D_matrix_mixed(k,i*3+2);
 						//condensed_columns(k,i*4+3)=mixed_Laplacian(k,i);
 					}
 				}
 				
 				boost::numeric::ublas::bounded_matrix<double, Pdof , Pdof  > condensed_block;
-				condensed_block = Laplacian_enrich - condensed_pressure_mass/delta_t;
-				boost::numeric::ublas::bounded_matrix<double, Pdof , Pdof  > inverse_block;
+				condensed_block = - condensed_pressure_mass/delta_t;
+				boost::numeric::ublas::bounded_matrix<double, Pdof , Pdof  > inverse_block = ZeroMatrix(Pdof,Pdof);
 				
 				
 				this->InvertMatrix( condensed_block,  inverse_block);
@@ -708,15 +709,15 @@ namespace Kratos
 				{
 					for (unsigned int j = 0; j < 4; j++)
 					{
-						rLeftHandSideMatrix(i*4+3, j*4+0 ) -= D_matrix(i,j*3) + add_accel_stab_term *TauOne * DN_DX(i,0)*one_quarter*Area/delta_t;     
-						rLeftHandSideMatrix(i*4+3, j*4+1 ) -= D_matrix(i,j*3+1) + add_accel_stab_term *TauOne * DN_DX(i,1)*one_quarter*Area/delta_t;     
-						rLeftHandSideMatrix(i*4+3, j*4+2 ) -= D_matrix(i,j*3+2) + add_accel_stab_term *TauOne * DN_DX(i,2)*one_quarter*Area/delta_t;     
+						rLeftHandSideMatrix(i*4+3, j*4+0 ) -= D_matrix(i,j*3) ;     
+						rLeftHandSideMatrix(i*4+3, j*4+1 ) -= D_matrix(i,j*3+1) ;     
+						rLeftHandSideMatrix(i*4+3, j*4+2 ) -= D_matrix(i,j*3+2) ;
 						
 						rLeftHandSideMatrix(j*4+0, i*4+3 ) -= D_matrix(i,j*3);     
 						rLeftHandSideMatrix(j*4+1, i*4+3 ) -= D_matrix(i,j*3+1);
 						rLeftHandSideMatrix(j*4+2, i*4+3 ) -= D_matrix(i,j*3+2);
 						//if (has_fluid_particle)
-						rLeftHandSideMatrix(i*4+3, j*4+3 ) -= Laplacian_matrix(i,j);
+						//rLeftHandSideMatrix(i*4+3, j*4+3 ) -= Laplacian_matrix(i,j);
 
 					}
 				}
@@ -778,7 +779,7 @@ namespace Kratos
 							
 							rRightHandSideVector(i*4+0) += x_force;
 							rRightHandSideVector(i*4+1) += y_force;
-							rRightHandSideVector(i*4+2) += y_force;
+							rRightHandSideVector(i*4+2) += z_force;
 							rRightHandSideVector(i*4+3) += fluid_stab;
 
 							//rRightHandSideVector(i*3+2) -= TauOneNode * ( gauss_gradients[j](i,0)*x_force + gauss_gradients[j](i,1)*y_force );
@@ -826,8 +827,8 @@ namespace Kratos
 				KRATOS_WATCH(inverse_block);
 				KRATOS_WATCH(Laplacian_enrich);
 				*/
-				KRATOS_WATCH(inverse_block)
-				KRATOS_WATCH(rRightHandSideVector)
+				//KRATOS_WATCH(inverse_block)
+				//KRATOS_WATCH(rRightHandSideVector)
 
 			}
 			else // ( meaning if split_element==false) NON SPLIT FLUID ELEMENT
@@ -910,7 +911,7 @@ namespace Kratos
 				//	TauOneFluid*=1.0;
 				//changed definition to account for the "viscosity" of the elastic part, which is G*delta_t
 				//this will reduce the TauOne, adding less artificial diffussion and improving mass conservation.
-				const double apparent_viscosity = (viscosity * fluid_area +  1000.0* mu*solid_area*delta_t)/Area;
+				const double apparent_viscosity = (viscosity * fluid_area +  100.0* mu*solid_area*delta_t)/Area;
 				const double TauOneFluid = (1.0 / ( ( 1.0 / delta_t + 4.0 * apparent_viscosity / (density * mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) ) );
 				
 				double TauOneSolid = 0.0 /  (1.0 / delta_t +  10.0 * mu * delta_t / (density * mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize );
@@ -1169,7 +1170,7 @@ namespace Kratos
 					
 				mElemSize = sqrt(mElemSize);
 				
-			const double   TauOne = 1.0 / ( ( 1.0 / delta_t + 4.0 * viscosity / (density * mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) );
+			const double   TauOne = 1.0 / ( ( 0.01 / delta_t + 4.0 * viscosity / (density * mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) );
 
 			
 			Laplacian_matrix = prod(DN_DX,trans(DN_DX))*Area*TauOne/density;  // B B^T  (standard laplacian, now we must add the contribution of the condensed new nodes.
@@ -1667,7 +1668,7 @@ namespace Kratos
 						B_matrix(i*(3)+0,5)=rShapeDeriv(i,2);
 						B_matrix(i*(3)+2,5)=rShapeDeriv(i,0);
 						
-						array_1d<double, 3 >velocity =  ( geom[i].FastGetSolutionStepValue(VELOCITY));//+geom[i].FastGetSolutionStepValue(MESH_VELOCITY) ) * 0.5;
+						array_1d<double, 3 >velocity =  ( geom[i].FastGetSolutionStepValue(VELOCITY)) * 1.0 ;//+geom[i].FastGetSolutionStepValue(MESH_VELOCITY) ) * 0.5;
 						velocities(i*3+0,0)=velocity(0);
 						velocities(i*3+1,0)=velocity(1);
 						velocities(i*3+2,0)=velocity(2);
@@ -1676,7 +1677,7 @@ namespace Kratos
 				}
 				
 				double reduced_delta_t=delta_t;
-				CalculateReducedTimeStepForPositiveJacobian(rShapeDeriv,velocities,delta_t,reduced_delta_t);
+				//CalculateReducedTimeStepForPositiveJacobian(rShapeDeriv,velocities,delta_t,reduced_delta_t);
 				
 				
 				double number_of_solid_particles=1.e-10; //almost zero
@@ -1932,8 +1933,10 @@ namespace Kratos
             double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
             double inv_vol = 0.0;
-            if (vol < 0.000000000000001)
+            if (vol <= 0.0)
             {
+				KRATOS_WATCH(coordinates)
+				KRATOS_WATCH(vol)
                 KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
             } else
             {
@@ -1975,7 +1978,7 @@ namespace Kratos
             double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
             double inv_vol = 0.0;
-            if (vol < 0.000000000000001)
+            if (vol <= 0.0)
             {
                 KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
             } else
