@@ -395,6 +395,10 @@ namespace Kratos
   mEllipsoidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mRingCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mCuboidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mCornKernelCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mSoyBeanCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mRock1Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mRock2Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),        
   mMapCon3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) )
   {}
     
@@ -407,10 +411,10 @@ namespace Kratos
     KratosApplication::Register();
     
     std::cout <<std::endl;
-    std::cout << "     KRATOS |  _ \| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
-    std::cout << "            | | | |  _| | |\\/| | |_) /  _` |/ __| |/ /      "<< std::endl;
-    std::cout << "            | |_| | |___| |   | |  __/  (_| | (__|   <       "<< std::endl;
-    std::cout << "            |____/|_____|_|   |_|_|   \\__,_|\\__|_|\\_\\      "<< std::endl<< std::endl;
+    std::cout << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
+    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
+    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
+    std::cout << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "<< std::endl<< std::endl;
     std::cout << "Initializing DEMApplication..." << std::endl;
 
     
@@ -769,6 +773,10 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)
     KRATOS_REGISTER_ELEMENT("RingCluster3D", mRingCluster3D)
     KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
+    KRATOS_REGISTER_ELEMENT("CornKernelCluster3D", mCornKernelCluster3D)
+    KRATOS_REGISTER_ELEMENT("SoyBeanCluster3D", mSoyBeanCluster3D)
+    KRATOS_REGISTER_ELEMENT("Rock1Cluster3D", mRock1Cluster3D)
+    KRATOS_REGISTER_ELEMENT("Rock2Cluster3D", mRock2Cluster3D)        
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
 
 
