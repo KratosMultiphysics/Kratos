@@ -987,8 +987,8 @@ class DEMIo(object):
         for variable in self.mapping_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
     
-    def PrintingArlequinVariables(self, export_model_part, time):
-        self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
+    #def PrintingArlequinVariables(self, export_model_part, time):
+    #    self.gid_io.PrintOnGaussPoints(IN_ARLEQUIN, export_model_part, time)                
 
     def PrintResults(self, mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time):
         if (self.filesystem == MultiFileFlag.MultipleFiles):
@@ -1006,7 +1006,7 @@ class DEMIo(object):
         self.PrintingClusterVariables(cluster_model_part, time)
         self.PrintingContactElementsVariables(contact_model_part, time)
         self.PrintingMappingVariables(mapping_model_part, time)
-        self.PrintingArlequinVariables(rigid_face_model_part, time)
+        #self.PrintingArlequinVariables(rigid_face_model_part, time)
         
         if (self.filesystem == MultiFileFlag.MultipleFiles):
             self.FinalizeResults()
