@@ -62,7 +62,7 @@ namespace Kratos {
         mListOfSphericParticles.resize(number_of_spheres_per_pass * number_of_passes);
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
-        
+                
         //double sinusoidal_factor_1 = KRATOS_M_PI *
         //PROPERLY CALCULATE THE DIVISIONS
         
