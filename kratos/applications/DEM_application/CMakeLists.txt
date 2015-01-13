@@ -29,8 +29,12 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ellipsoidcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ringcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cuboidcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cornkernelcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/soybeancluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rock1cluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rock2cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack1_CL.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_Dempack1_CL.cpp 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
