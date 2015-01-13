@@ -327,7 +327,7 @@ namespace Kratos {
         NodeCreatorWithPhysicalParameters(r_clusters_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial);
         
         pnew_node->FastGetSolutionStepValue(CHARACTERISTIC_LENGTH) = radius * 2.0; //Cluster specific. Can be removed
-
+        
         Geometry< Node < 3 > >::PointsArrayType nodelist;
 
         nodelist.push_back(pnew_node);
