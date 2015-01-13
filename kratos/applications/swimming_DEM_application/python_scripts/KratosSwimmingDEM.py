@@ -183,17 +183,17 @@ DEM_inlet_model_part = ModelPart("DEMInletPart")
 import sphere_strategy as DEMSolverStrategy
 
 DEM_proc.AddCommonVariables(balls_model_part, pp.dem)
-DEM_proc.AddBallsVariables(balls_model_part, pp.dem)
+DEM_proc.AddSpheresVariables(balls_model_part, pp.dem)
 DEM_proc.AddMpiVariables(balls_model_part)
 vars_man.AddNodalVariables(balls_model_part, pp.dem_vars)
 DEM_proc.AddCommonVariables(rigid_faces_model_part, pp.dem)
-DEM_proc.AddFEMVariables(rigid_faces_model_part, pp.dem)
+DEM_proc.AddRigidFaceVariables(rigid_faces_model_part, pp.dem)
 DEM_proc.AddMpiVariables(rigid_faces_model_part)
 DEM_proc.AddCommonVariables(clusters_model_part, pp.dem)
 DEM_proc.AddClusterVariables(clusters_model_part, pp.dem)
 DEM_proc.AddMpiVariables(clusters_model_part)
 DEM_proc.AddCommonVariables(DEM_inlet_model_part, pp.dem)
-DEM_proc.AddBallsVariables(DEM_inlet_model_part, pp.dem)
+DEM_proc.AddSpheresVariables(DEM_inlet_model_part, pp.dem)
 DEM_proc.AddMpiVariables(DEM_inlet_model_part)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
 
@@ -575,7 +575,7 @@ while time <= final_time:
         time_dem = time - Dt + Dt_DEM
 
     # walls movement
-    mesh_motion.MoveAllMeshes(rigid_faces_model_part, time)
+    mesh_motion.MoveAllMeshes(rigid_faces_model_part, time, Dt)
 
     # calculating elemental distances defining the structure embedded in the fluid mesh
     if pp.embedded_option:
@@ -657,7 +657,7 @@ while time <= final_time:
         # adding DEM elements by the inlet
 
         if pp.inlet_option:
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.        
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, clusters_model_part, creator_destructor)  # After solving, to make sure that neighbours are already set.        
         
         # eliminating remote balls
 
