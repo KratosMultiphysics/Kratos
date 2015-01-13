@@ -39,6 +39,10 @@
 #include "custom_elements/ellipsoidcluster3D.h"
 #include "custom_elements/ringcluster3D.h"
 #include "custom_elements/cuboidcluster3D.h"
+#include "custom_elements/cornkernelcluster3D.h"
+#include "custom_elements/soybeancluster3D.h"
+#include "custom_elements/rock1cluster3D.h"
+#include "custom_elements/rock2cluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
@@ -198,6 +202,10 @@ private:
     const EllipsoidCluster3D  mEllipsoidCluster3D;
     const RingCluster3D  mRingCluster3D;
     const CuboidCluster3D  mCuboidCluster3D;
+    const CornKernelCluster3D  mCornKernelCluster3D;
+    const SoyBeanCluster3D  mSoyBeanCluster3D;
+    const Rock1Cluster3D  mRock1Cluster3D;
+    const Rock2Cluster3D  mRock2Cluster3D;
     const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
