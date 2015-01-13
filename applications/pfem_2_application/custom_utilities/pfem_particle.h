@@ -139,6 +139,8 @@ public:
 		this->ERASE_FLAG=true;
     }
     
+    ~PFEM_Particle()
+		{}
     //returning references
 	array_1d<double,3>& GetVelocity()
 	{
@@ -187,8 +189,23 @@ public:
 		return this->SIGMA[i];
 	}
 
+	array_1d<double,6>& GetTotalDeformation()
+	{
+		return this->TOTAL_DEFORMATION;
+	}
+	double& GetTotalDeformation(const unsigned int i)
+	{
+		return this->TOTAL_DEFORMATION[i];
+	}
 	
-	
+	array_1d<double,6>& GetTotalPlasticDeformation()
+	{
+		return this->TOTAL_PLASTIC_DEFORMATION;
+	}
+	double& GetTotalPlasticDeformation(const unsigned int i)
+	{
+		return this->TOTAL_PLASTIC_DEFORMATION[i];
+	}
 	
 	//double& GetTemperature()
 	//{
@@ -222,6 +239,7 @@ public:
 	{
 		return this->COHESION;
 	}
+	
 	/*
 	double& GetGradientDiscontinuity()
 	{
@@ -243,11 +261,15 @@ public:
 		return this->ERASE_FLAG;
 	}
 	
-		bool& HasUpdatedStresses()
+	bool& HasUpdatedStresses()
 	{
 		return this->HAS_UPDATED_STRESSES;
 	}
-
+	
+	bool& IsPlasticized()
+	{
+		return this->PLASTICIZED;
+	}
     
     
     //Copy constructor. Initialize this point with the coordinates
@@ -268,6 +290,8 @@ private:
 	double COHESION;
 	double THETA;
 	double DENSITY;
+	array_1d<double,6> TOTAL_PLASTIC_DEFORMATION;
+	array_1d<double,6> TOTAL_DEFORMATION;
 	array_1d<double,6> SIGMA; //should be of size 6 in 3d!
 	//Element::Pointer ELEMENT_WEAKPOINTER;
 	
@@ -275,6 +299,7 @@ private:
 	//double GRADIENT_DISCONTINUITY;
 	bool ERASE_FLAG;
 	bool HAS_UPDATED_STRESSES;
+	bool PLASTICIZED;
 	
 
 
