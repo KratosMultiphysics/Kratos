@@ -26,13 +26,13 @@ namespace Kratos
 {
 	//this class is to be modified by the user to customize the interpolation process
 	//template< unsigned int TDim>
-	class VisualizationUtilities2D
+	class VisualizationUtilities
 	{
 	public:
 	
-		KRATOS_CLASS_POINTER_DEFINITION(VisualizationUtilities2D);
+		KRATOS_CLASS_POINTER_DEFINITION(VisualizationUtilities);
 
-		VisualizationUtilities2D()
+		VisualizationUtilities()
 		{
 			KRATOS_TRY	
 			std::cout << "Hello, I am the constructor of the Visualization 2d Utility" << std::endl;
@@ -40,7 +40,7 @@ namespace Kratos
 		}
 		
 
-		~VisualizationUtilities2D()
+		~VisualizationUtilities()
 		{}
 
 		
