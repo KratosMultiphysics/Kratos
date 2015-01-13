@@ -242,7 +242,7 @@ class ProjectionDebugUtils:
         self.discr_domain_volume             = self.custom_utils.CalculateDomainVolume(self.fluid_model_part)
         self.proj_fluid_volume               = self.custom_utils.CalculateGlobalFluidVolume(self.fluid_model_part)
         self.solid_volume                    = self.granul_utils.solid_volume
-        self.balls_per_area                  = self.granul_utils.balls_per_area
+        self.balls_per_area                  = self.granul_utils.spheres_per_area
         self.fluid_volume                    = domain_volume - self.solid_volume
         self.discr_fluid_volume              = self.discr_domain_volume - self.solid_volume
         self.proj_solid_volume               = self.discr_domain_volume - self.proj_fluid_volume
