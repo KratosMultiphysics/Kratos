@@ -179,7 +179,7 @@ namespace Kratos {
                 
                 for (unsigned int j = 0; j < r_cluster.GetSpheres().size(); j++) { //loop over the spheres of the cluster
                     Kratos::SphericParticle* spheric_particle = r_cluster.GetSpheres()[j];
-                    for (unsigned int i = 0; i < spheric_particle->mNeighbourElements.size(); i++) { //loop over the neighbour spheres of each sphere of the cluster
+                    for (unsigned int i = 0; i < spheric_particle->mNeighbourElements.size(); i++) { //loop over the neighbor spheres of each sphere of the cluster
                         SphericParticle* neighbour_iterator = spheric_particle->mNeighbourElements[i];
                         Node<3>& neighbour_node = neighbour_iterator->GetGeometry()[0]; 
                         if (neighbour_node.Is(BLOCKED)) {
