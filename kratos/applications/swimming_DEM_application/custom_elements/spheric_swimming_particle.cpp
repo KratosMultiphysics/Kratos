@@ -287,7 +287,7 @@ void SphericSwimmingParticle::ComputeSaffmanLiftForce(array_1d<double, 3>& lift_
             lift_coeff = ComputeElSamniLiftCoefficient(shear_rate, vorticity_norm, r_current_process_info);
         }
 
-        if (mSaffmanForceType == 2){ // Mei, 1992 (Re ~ 0.1 - 100)
+        else if (mSaffmanForceType == 2){ // Mei, 1992 (Re ~ 0.1 - 100)
             double reynolds;
             double reynolds_shear;
             ComputeParticleReynoldsNumber(reynolds);
@@ -345,7 +345,7 @@ void SphericSwimmingParticle::ComputeMagnusLiftForce(array_1d<double, 3>& lift_f
 
     else {
         std::cout << "The integer value designating the magnus lift coefficient calculation model" << std::endl;
-        std::cout << " (mMagnusForceType = " << mSaffmanForceType << "), is not supported" << std::endl << std::flush;
+        std::cout << " (mMagnusForceType = " << mMagnusForceType << "), is not supported" << std::endl << std::flush;
         return;
     }
 }
@@ -380,8 +380,8 @@ void SphericSwimmingParticle::ComputeHydrodynamicTorque(array_1d<double, 3>& hyd
     }
 
     else {
-        std::cout << "The integer value designating the magnus lift coefficient calculation model" << std::endl;
-        std::cout << " (mMagnusForceType = " << mSaffmanForceType << "), is not supported" << std::endl << std::flush;
+        std::cout << "The integer value designating the Hydrodynamic torque calculation model" << std::endl;
+        std::cout << " (mHydrodynamicTorqueType = " << mHydrodynamicTorqueType << "), is not supported" << std::endl << std::flush;
         return;
     }
 
