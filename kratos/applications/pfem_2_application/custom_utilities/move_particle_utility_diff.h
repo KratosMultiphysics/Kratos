@@ -276,6 +276,8 @@ namespace Kratos
 					particle_pointers.push_back(&firstparticle);
 				int & number_of_particles = ielem->GetValue(NUMBER_OF_PARTICLES);
 				int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
+				number_of_particles=0;
+
 				
 				Geometry< Node<3> >& geom = ielem->GetGeometry();
 				//unsigned int elem_id = ielem->Id();
@@ -322,7 +324,7 @@ namespace Kratos
 					
 						
 					//COMMENT TO GET A CONTINOUS DISTANCE FUNCTION FIELD:
-					if (distance>0)// && distance<1.5)
+					if (distance>0 && distance<1.5)
 					{
 						distance=1.0;
 						//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1.0-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
@@ -330,25 +332,44 @@ namespace Kratos
 						pparticle.GetBulkModulus() = CurrentProcessInfo[BULK_AIR];
 						pparticle.GetDensity() = CurrentProcessInfo[DENSITY_AIR];
 						//pparticle.GetEraseFlag()=true; //kill it!
+						
+						
+						/////////////////////
+						const double lambda = ielem->GetValue(YOUNG_MODULUS) * ielem->GetValue(POISSON_RATIO) /  (1.0+(ielem->GetValue(POISSON_RATIO))*(1.0-2.0*ielem->GetValue(POISSON_RATIO)) );	 
+						pparticle.GetShearModulus() = ielem->GetValue(YOUNG_MODULUS)/ (2.0*(1.0+ielem->GetValue(POISSON_RATIO))); 
+						pparticle.GetBulkModulus() = (2.0/3.0 * pparticle.GetShearModulus() + lambda);	
+						pparticle.GetDensity() = ielem->GetValue(DENSITY); 
+						pparticle.HasUpdatedStresses()=true;
+						pparticle.GetSigma()=ZeroVector(6);
+						pparticle.GetTheta()=ielem->GetValue(INTERNAL_FRICTION_ANGLE);
+						pparticle.GetCohesion()=ielem->GetValue(YIELD_STRESS);
+						pparticle.GetPressure()=pressure;
+						pparticle.GetTotalPlasticDeformation()=ZeroVector(6);
+						pparticle.GetTotalDeformation()=ZeroVector(6);
+						pparticle.IsPlasticized()=false;
+
 					}
 					else if (distance<=0.0)
 					{
 						//oxygen=0.0;
 						distance=-1.0;
-						const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1.0-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
-						pparticle.GetShearModulus() = CurrentProcessInfo[YOUNG_MODULUS]/ (2.0*(1.0+CurrentProcessInfo[POISSON_RATIO])); 
+						const double lambda = ielem->GetValue(YOUNG_MODULUS) * ielem->GetValue(POISSON_RATIO) /  (1.0+(ielem->GetValue(POISSON_RATIO))*(1.0-2.0*ielem->GetValue(POISSON_RATIO)) );	 
+						pparticle.GetShearModulus() = ielem->GetValue(YOUNG_MODULUS)/ (2.0*(1.0+ielem->GetValue(POISSON_RATIO))); 
 						pparticle.GetBulkModulus() = (2.0/3.0 * pparticle.GetShearModulus() + lambda);	
-						pparticle.GetDensity() = CurrentProcessInfo[DENSITY_WATER]; 
+						pparticle.GetDensity() = ielem->GetValue(DENSITY); 
 						pparticle.HasUpdatedStresses()=true;
 						pparticle.GetSigma()=ZeroVector(6);
-						pparticle.GetTheta()=0.5;
-						pparticle.GetCohesion()=1000.0;
+						pparticle.GetTheta()=ielem->GetValue(INTERNAL_FRICTION_ANGLE);
+						pparticle.GetCohesion()=ielem->GetValue(YIELD_STRESS);
 						pparticle.GetPressure()=pressure;
+						pparticle.GetTotalPlasticDeformation()=ZeroVector(6);
+						pparticle.GetTotalDeformation()=ZeroVector(6);
+						pparticle.IsPlasticized()=false;
 
 					}
 					else 
 					{
-						//pparticle.GetEraseFlag()=true; //kill it!
+						pparticle.GetEraseFlag()=true; //kill it!
 						distance=2.0;
 						//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1.0-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
 						pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR]/1000.0;
@@ -745,8 +766,10 @@ namespace Kratos
 							}
 						
 						if (inode->IsFixed(PRESSURE))
+						{
 							inode->FastGetSolutionStepValue(PRESSURE)=inode->GetSolutionStepValue(PRESSURE,1);
-						inode->GetSolutionStepValue(PRESSURE,1)=inode->FastGetSolutionStepValue(PRESSURE);		
+						    inode->GetSolutionStepValue(PRESSURE,1)=inode->FastGetSolutionStepValue(PRESSURE);	
+						}	
 				}
 			}
 			else  //for fractional step only!
@@ -809,11 +832,37 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 		
+		 void CopyVectorVarToPreviousTimeStep(const Variable< array_1d<double, 3 > >& OriginVariable,	
+                       ModelPart::NodesContainerType& rNodes)
+        {
+			KRATOS_TRY
+			#pragma omp parallel for
+			for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
+			{
+				ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+				noalias(i->GetSolutionStepValue(OriginVariable,1)) = i->FastGetSolutionStepValue(OriginVariable);
+			}
+			KRATOS_CATCH("")
+        }
+        
+        void CopyScalarVarToPreviousTimeStep(const Variable<double>& OriginVariable,	
+                       ModelPart::NodesContainerType& rNodes)
+        {
+			KRATOS_TRY
+			#pragma omp parallel for
+			for (int k = 0; k < static_cast<int> (rNodes.size()); k++)
+			{
+				ModelPart::NodesContainerType::iterator i = rNodes.begin() + k;
+				i->GetSolutionStepValue(OriginVariable,1) = i->FastGetSolutionStepValue(OriginVariable);
+			}
+			KRATOS_CATCH("")
+        }
+		
 		void CalculateDeltaVelocity()//bool calculate_delta_pressure=false)
 		{
 			KRATOS_TRY
-			//ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			//const double one_over_delta_t = 1.0/CurrentProcessInfo[DELTA_TIME];
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			const double one_over_delta_t = 1.0/CurrentProcessInfo[DELTA_TIME];
 			
 			//if we must do implicit correction, first we must subtract the RHS from the previoyus step
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
@@ -824,7 +873,31 @@ namespace Kratos
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 						inode->FastGetSolutionStepValue(DELTA_VELOCITY) = inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(MESH_VELOCITY) ;
+						inode->FastGetSolutionStepValue(ACCELERATION) =  inode->FastGetSolutionStepValue(DELTA_VELOCITY) * one_over_delta_t ;
 
+				}
+
+			KRATOS_CATCH("")
+		}
+		
+		void ComputeDeltaVelocityForNonLinearIteration()// WARNING. HERE DELTA_VELOCITY IS THE DIFFERENCE IN VELOCITY BETWEEN TWO NL ITERATIONS, WHILE IN THE CALCULATEDELTAVELOCITY IS Vn+1 - Vn to accelerate particles
+		{
+			KRATOS_TRY
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			const int nl_it = CurrentProcessInfo[NL_ITERATION_NUMBER];
+			
+			//if we must do implicit correction, first we must subtract the RHS from the previoyus step
+			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			
+			
+				#pragma omp parallel for
+				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				{
+						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+						if (nl_it==1) // first iteration, so we must use the full velocity
+							inode->FastGetSolutionStepValue(DELTA_VELOCITY) = ZeroVector(3);
+						else //we must only use the change in velocity.
+							inode->FastGetSolutionStepValue(DELTA_VELOCITY) =  - inode->FastGetSolutionStepValue(VELOCITY);
 				}
 
 			KRATOS_CATCH("")
@@ -1696,7 +1769,7 @@ namespace Kratos
 		}
 		
 		
-		void AccelerateParticlesWithoutMovingUsingDeltaVelocity(const bool add_gravity, const bool update_stresses) 
+		void AccelerateParticlesWithoutMovingUsingDeltaVelocity(const bool add_gravity) 
 		{
 			KRATOS_TRY
 			KRATOS_WATCH("accelerating particles using deltavelocity")
@@ -1752,7 +1825,8 @@ namespace Kratos
 						if (erase_flag==false)
 						{
 							//Element::Pointer & pelement = pparticle.GetElement();
-							AccelerateParticleUsingDeltaVelocity(pparticle,pelement,geom); //'lite' version, we pass by reference the geometry, so much cheaper
+							//AccelerateParticleUsingDeltaVelocity(pparticle,pelement,geom); //'lite' version, we pass by reference the geometry, so much cheaper
+							AccelerateParticleUsingDeltaVelocityWithoutDiscrimination(pparticle,pelement,geom); //for all particles the same
 							if (fract_step_number==1 && add_gravity)
 								pparticle.GetVelocity() = pparticle.GetVelocity() + gravity*delta_t;	
 								
@@ -1760,21 +1834,43 @@ namespace Kratos
 						
 						
 					}
-					
-					
-					Vector dummy_vector;
-					if (update_stresses)
-						ielem->Calculate(ELEMENT_MEAN_STRESS,dummy_vector,CurrentProcessInfo);
-					
-					//element_stresses = sum_particle_stresses/number_of_solid_particles;
-					//KRATOS_WATCH(pparticle->FastGetSolutionStepValue(VELOCITY);
-
-					
 				}
 			}
 			KRATOS_CATCH("")
 		}
 		
+		void UpdateParticleStresses() 
+		{
+			KRATOS_TRY
+			KRATOS_WATCH("updating particle stresses")
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+			
+			
+			vector<unsigned int> element_partition;
+			#ifdef _OPENMP
+				int number_of_threads = omp_get_max_threads();
+			#else
+				int number_of_threads = 1;
+			#endif
+			OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+			
+			//before doing anything we must reset the vector of nodes contained by each element (particles that are inside each element.
+			#pragma omp parallel for
+			for(int kkk=0; kkk<number_of_threads; kkk++)
+			{
+				for(unsigned int ii=element_partition[kkk]; ii<element_partition[kkk+1]; ii++)
+				{
+					//const int & elem_id = ielem->Id();
+					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+					Element::Pointer pelement(*ielem.base());
+
+					Vector dummy_vector;
+					ielem->Calculate(ELEMENT_MEAN_STRESS,dummy_vector,CurrentProcessInfo);
+				}
+			}
+			KRATOS_CATCH("")
+		}
 		
 		void CalculateElementalMeanStress(ModelPart& input_model_part) 
 		{
@@ -3511,6 +3607,45 @@ namespace Kratos
 
 
 	}
+	
+	
+		void AccelerateParticleUsingDeltaVelocityWithoutDiscrimination(
+						 PFEM_Particle & pparticle,
+						 Element::Pointer & pelement,
+						 Geometry< Node<3> >& geom)
+	{
+		//bool is_found;
+
+		//array_1d<double,3> position;
+		array_1d<double,TDim+1> N;
+		
+		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		double delta_t = CurrentProcessInfo[DELTA_TIME];
+		array_1d<double,3> coords = pparticle.Coordinates();// + (pparticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
+		array_1d<double,3> delta_velocity = ZeroVector(3);	
+			
+		bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+		if(is_found == false)
+		{
+			KRATOS_WATCH(N)
+			for (int j=0 ; j!=(TDim+1); j++)
+								if (N[j]<0.0 )
+									N[j]=1e-10;
+			
+			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+		}
+
+		for(unsigned int j=0; j<(TDim+1); j++)
+		{
+			noalias(delta_velocity) += geom[j].FastGetSolutionStepValue(DELTA_VELOCITY)*N[j];		
+		}
+
+		pparticle.GetVelocity() = pparticle.GetVelocity() + delta_velocity;//*substep_dt*double(nsubsteps)/particle_density;///*only_integral;//only_integral; 
+		pparticle.GetAcceleration() = delta_velocity/delta_t;
+
+
+	}
+	
 		
 	void MoveParticle_inverse_way(   
 						 const bool viscosity_integrate,
