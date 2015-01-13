@@ -90,16 +90,20 @@ namespace Python
                     .def("PreReseed", &MoveParticleUtilityDiff<2>::PreReseed)
                     .def("PostReseed", &MoveParticleUtilityDiff<2>::PostReseed)
                     .def("ResetBoundaryConditions", &MoveParticleUtilityDiff<2>::ResetBoundaryConditions)
+                    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityDiff<2>::CopyVectorVarToPreviousTimeStep)
+                    .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityDiff<2>::CopyScalarVarToPreviousTimeStep)
                     .def("TransferLagrangianToEulerian",&MoveParticleUtilityDiff<2>::TransferLagrangianToEulerian)
                     .def("ReplaceParticlesVelocityAndDistance",&MoveParticleUtilityDiff<2>::ReplaceParticlesVelocityAndDistance)
                     .def("FlagSplittedElementsAndTheirNodes", &MoveParticleUtilityDiff<2>::FlagSplittedElementsAndTheirNodes)
                     .def("CalculateVelOverElemSize", &MoveParticleUtilityDiff<2>::CalculateVelOverElemSize)
                     .def("CalculateDeltaVelocity", &MoveParticleUtilityDiff<2>::CalculateDeltaVelocity)
+                    .def("ComputeDeltaVelocityForNonLinearIteration", &MoveParticleUtilityDiff<2>::ComputeDeltaVelocityForNonLinearIteration)
                     .def("FindParticlesToBurn", &MoveParticleUtilityDiff<2>::FindParticlesToBurn)
                     .def("InitializeTransferTool", &MoveParticleUtilityDiff<2>::InitializeTransferTool)
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiff<2>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiff<2>::PostReseedOnlyInBoundingBox)
                     .def("CalculateElementalMeanStress", &MoveParticleUtilityDiff<2>::CalculateElementalMeanStress)
+                    .def("UpdateParticleStresses", &MoveParticleUtilityDiff<2>::UpdateParticleStresses)
                     .def("ComputeCalculationDomainDisplacement", &MoveParticleUtilityDiff<2>::ComputeCalculationDomainDisplacement)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<2>::ExecuteParticlesPritingTool)
                     ; 
@@ -111,18 +115,22 @@ namespace Python
                     .def("PreReseed", &MoveParticleUtilityDiff<3>::PreReseed)
                     .def("PostReseed", &MoveParticleUtilityDiff<3>::PostReseed)
                     .def("ResetBoundaryConditions", &MoveParticleUtilityDiff<3>::ResetBoundaryConditions)
+                    .def("CopyVectorVarToPreviousTimeStep", &MoveParticleUtilityDiff<3>::CopyVectorVarToPreviousTimeStep)
+                    .def("CopyScalarVarToPreviousTimeStep", &MoveParticleUtilityDiff<3>::CopyScalarVarToPreviousTimeStep)
                     .def("TransferLagrangianToEulerian",&MoveParticleUtilityDiff<3>::TransferLagrangianToEulerian)
                     .def("ReplaceParticlesVelocityAndDistance",&MoveParticleUtilityDiff<3>::ReplaceParticlesVelocityAndDistance)
                     .def("FlagSplittedElementsAndTheirNodes", &MoveParticleUtilityDiff<3>::FlagSplittedElementsAndTheirNodes)
                     .def("CalculateVelOverElemSize", &MoveParticleUtilityDiff<3>::CalculateVelOverElemSize)
                     .def("CalculateDeltaVelocity", &MoveParticleUtilityDiff<3>::CalculateDeltaVelocity)
+                    .def("ComputeDeltaVelocityForNonLinearIteration", &MoveParticleUtilityDiff<3>::ComputeDeltaVelocityForNonLinearIteration)
                     .def("FindParticlesToBurn", &MoveParticleUtilityDiff<3>::FindParticlesToBurn)
                     .def("InitializeTransferTool", &MoveParticleUtilityDiff<3>::InitializeTransferTool)
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiff<3>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiff<3>::PostReseedOnlyInBoundingBox)
                     .def("CalculateElementalMeanStress", &MoveParticleUtilityDiff<3>::CalculateElementalMeanStress)
+                    .def("UpdateParticleStresses", &MoveParticleUtilityDiff<3>::UpdateParticleStresses)
                     .def("ComputeCalculationDomainDisplacement", &MoveParticleUtilityDiff<3>::ComputeCalculationDomainDisplacement)
-                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<2>::ExecuteParticlesPritingTool)
+                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<3>::ExecuteParticlesPritingTool)
                     ;            
         
         
@@ -142,6 +150,7 @@ namespace Python
                     .def("IntializeTransferTool", &MoveParticleUtilityDiffFluidOnly<2>::IntializeTransferTool)
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<2>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<2>::PostReseedOnlyInBoundingBox)
+                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<2>::ExecuteParticlesPritingTool)
                     ; 
                     
 		class_< MoveParticleUtilityDiffFluidOnly<3> > ("MoveParticleUtilityDiffFluidOnly3D", init<ModelPart& , int >())
@@ -159,6 +168,7 @@ namespace Python
                     .def("IntializeTransferTool", &MoveParticleUtilityDiffFluidOnly<3>::IntializeTransferTool)
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<3>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<3>::PostReseedOnlyInBoundingBox)
+                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<3>::ExecuteParticlesPritingTool)
                     ;             
                     
                     
@@ -170,8 +180,16 @@ namespace Python
                     .def("AddThem", &AddFixedVelocityCondition3D::AddThem)
                     ;
                     
-		class_<VisualizationUtilities2D > ("VisualizationUtilities2D", init<>())
-                    .def("VisualizationModelPart",&VisualizationUtilities2D::VisualizationModelPart)
+        class_<AddMonolithicFixedVelocityCondition2D > ("AddMonolithicFixedVelocityCondition2D", init<ModelPart& >())
+                    .def("AddThem", &AddMonolithicFixedVelocityCondition2D::AddThem)
+                    ;
+                    
+        class_<AddMonolithicFixedVelocityCondition3D > ("AddMonolithicFixedVelocityCondition3D", init<ModelPart& >())
+                    .def("AddThem", &AddMonolithicFixedVelocityCondition3D::AddThem)
+                    ;            
+                    
+		class_<VisualizationUtilities > ("VisualizationUtilities", init<>())
+                    .def("VisualizationModelPart",&VisualizationUtilities::VisualizationModelPart)
                     ;
                     
         class_<CalculateWaterFraction<2> > ("CalculateWaterFraction2D", init<ModelPart& >())
