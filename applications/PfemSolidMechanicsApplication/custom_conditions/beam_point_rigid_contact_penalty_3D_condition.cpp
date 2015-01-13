@@ -230,7 +230,7 @@ namespace Kratos
     }
 
     //reduction of the penalty parameter:
-    PenaltyParameter *= 1e-6;
+    PenaltyParameter *= 1e-4;
 
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
@@ -356,7 +356,7 @@ namespace Kratos
     
     }
 
-    KRATOS_WATCH( rRightHandSideVector )
+    //KRATOS_WATCH( rRightHandSideVector )
 
     KRATOS_CATCH( "" )
       }
