@@ -61,6 +61,11 @@ namespace Kratos
 
 		switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
 		{
+			case 3: //calculating pressure projection. notthing returned. saving data in PRESS_PROJ, PRESS_PROJ_NO_RO , NODAL_MASS and NODAL_AREA
+			{
+				this->CalculatePressureProjection(rCurrentProcessInfo);
+				break;
+			}			
 			default:
 			{
 				KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
@@ -193,7 +198,7 @@ namespace Kratos
 						viscosity=1.0;
 				*/
 				//this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (viscosity*Area) );
-				viscosity_for_tau=viscosity_water*0.1;
+				viscosity_for_tau=viscosity_water;
 				
 			}
 			else
@@ -274,14 +279,28 @@ namespace Kratos
 			{
 				mean_velocity += GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)*one_quarter/delta_t;
 				divergence_n += one_quarter*Area*(DN_DX(i,0)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X)+DN_DX(i,1)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
-			}	
+			}
+			
+			array_1d<double, 3 > rhs_stab = ZeroVector(3);
+			for (unsigned int i = 0; i < 3; i++)
+			{
+				array_1d<double,3>& node_press_proj = GetGeometry()[i].FastGetSolutionStepValue(PRESS_PROJ);
+				rhs_stab[0] += node_press_proj(0)*one_quarter;
+				rhs_stab[1] += node_press_proj(1)*one_quarter;
+				rhs_stab[1] += node_press_proj(2)*one_quarter;
+			}
+			
+			const bool use_press_proj=true;
 			for (unsigned int i = 0; i < 4; i++)
 			{
 				rRightHandSideVector(i*4+0) += one_quarter*Area*gravity(0)*density;
 				rRightHandSideVector(i*4+1) += one_quarter*Area*gravity(1)*density;
 				rRightHandSideVector(i*4+2) += one_quarter*Area*gravity(2)*density;
 			
-				rRightHandSideVector(i*4+3) -= TauOne*(DN_DX(i,0)*(gravity(0))+DN_DX(i,1)*(gravity(1))+DN_DX(i,2)*(gravity(2)))*Area;
+				if (use_press_proj)
+					rRightHandSideVector(i*4+3) -= TauOne*Area*(DN_DX(i,0)*rhs_stab(0)+DN_DX(i,1)*rhs_stab(1)+DN_DX(i,2)*rhs_stab(2));
+				else
+					rRightHandSideVector(i*4+3) -= TauOne*(DN_DX(i,0)*(gravity(0))+DN_DX(i,1)*(gravity(1))+DN_DX(i,2)*(gravity(2)))*Area;
 
 			}
 			
@@ -364,7 +383,7 @@ namespace Kratos
 					//	viscosity=1.0;
 					//viscosities(i)=viscosity;
 					Weight += volumes(i)*viscosity;
-					Weight_for_tau += volumes(i)*viscosity*0.1;
+					Weight_for_tau += volumes(i)*viscosity;
 					densities(i)=density_water;
 					viscosities(i) = viscosity_water;//CalculateAirDensity(partition_temperature);
 					mass += volumes(i)*density_water;
@@ -1155,7 +1174,7 @@ namespace Kratos
 		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
 		const double mass_factor = 1.0/ (1.0 + double (3) );
 		
-		const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_PARTICLES);
+		const int number_of_particles_in_elem = this->GetValue(NUMBER_OF_FLUID_PARTICLES);
 		
 		if( (number_of_particles_in_elem>0))
 		{
