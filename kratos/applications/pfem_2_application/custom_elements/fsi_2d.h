@@ -95,14 +95,6 @@ namespace Kratos
                                      const ProcessInfo &rCurrentProcessInfo);
       
    protected:
-   
-        void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
-                                                    VectorType& rRightHandSideVector,
-                                                    ProcessInfo& rCurrentProcessInfo);
-
-        void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
         
         //void CalculateLocalFinalVelocitySystem(MatrixType& rLeftHandSideMatrix,
           //                                      VectorType& rRightHandSideVector,
@@ -116,10 +108,30 @@ namespace Kratos
         void AddElasticityTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
                                        const double Weight);   
+                                       
+        void AddPlasticityTerm(MatrixType& OutputMatrix,
+                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+                                       const boost::numeric::ublas::bounded_matrix<double, 1, 3>& n_tensor,
+                                       const double Weight);  
+                                       
+        void AddDruckerPragerPlasticityTerm(MatrixType& OutputMatrix,
+                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+                                       const boost::numeric::ublas::bounded_matrix<double, 1, 3>& n_tensor,
+                                       const double area,
+                                       const double bulk_modulus,
+                                       const double shear_modulus,
+                                       const double theta)	;	                      
         
         void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       const double Weight);   
+                                       const double Weight); 
+                                       
+        void AddDruckerPragerViscousTerm(MatrixType& OutputMatrix,
+                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+                                       const double Area,
+                                       const double theta,
+                                       const double Cohesion,
+                                       double& Viscosity);
                                                                       
         void UpdateStressesToNewConfiguration(array_1d<double,3>& OutputVector,
 									   double& pressure,
@@ -152,7 +164,7 @@ namespace Kratos
 						  const unsigned int ndivisions);
 						  
 						  
-		void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
+		void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 14, 14 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
 						  array_1d<double,3>&  distances,
                           std::vector< Matrix >& gauss_gradients, 
@@ -166,6 +178,15 @@ namespace Kratos
                                        array_1d<double,3>&  volumes,
                                        array_1d<double,3>&  viscosities,
                                        const int ndivisions);
+		  
+       	void AddElasticityTerm(boost::numeric::ublas::bounded_matrix<double, 14, 14 > & output,
+						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
+						  array_1d<double,3>&  distances,
+                          std::vector< Matrix >& gauss_gradients, 
+						  array_1d<double,3>&  mus,
+						  array_1d<double,3>&  signs,
+						  array_1d<double,3>&  volumes ,
+						  const unsigned int ndivisions);
                                        
        void CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  distances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface);
 
@@ -207,8 +228,40 @@ namespace Kratos
 						 PFEM_Particle & pparticle
 						 );
 						 
+	   void TestParticleWithJ2(
+						 PFEM_Particle & pparticle
+						 );		
+	
+						 			 
 	   void CalculateReducedTimeStepForPositiveJacobian(const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,const boost::numeric::ublas::bounded_matrix<double, 6, 1 >& velocities, const double& delta_t, double& reduced_delta_t);
    
+   
+   	   void AddDruckerPragerStiffnessTerms(MatrixType& OutputMatrix,
+                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
+                                       const double& shear_modulus,
+                                       const double& bulk_modulus,
+                                       const double& theta,
+                                       const double& cohesion,
+                                       const array_1d<double,3>& stress,
+                                       const double& pressure,
+                                       const double& elastic_weight,
+                                       const double& plastic_weight,
+                                       bool add_plastic_term);
+   
+   	   void CalculateConstitutiveDeviatoricDruckerPragerOperators(boost::numeric::ublas::bounded_matrix<double, 3, 3>& C_matrix, const double& shear_modulus, const double& bulk_modulus, const double& theta, const double& cohesion, const array_1d<double,3>& stress, const double& pressure, const double& elastic_weight, const double& plastic_weight, bool add_plastic_term);
+   
+   	   void AddConstitutiveDruckerPragerElasticOperator(boost::numeric::ublas::bounded_matrix<double, 3, 3>& C_matrix, const double& shear_modulus, const double& bulk_modulus, const double& elastic_weight);
+   	   
+   	   void AddConstitutiveDruckerPragerPlasticOperator(boost::numeric::ublas::bounded_matrix<double, 3, 3>& C_matrix, const double& shear_modulus, const double& bulk_modulus, const double& theta, const double& cohesion, const array_1d<double,3>& stress, const double& pressure, const double& plastic_weight);
+
+	   void RemoveVolumetricContributionFromConstitutiveMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& C_matrix);
+
+	   virtual double EffectiveViscosity(double DynamicViscosity,
+									  double YieldStress,
+                                      const boost::numeric::ublas::bounded_matrix<double, 2+1, 2> &rDN_DX);
+
+       double EquivalentStrainRate(const boost::numeric::ublas::bounded_matrix<double, 2+1, 2> &rDN_DX); // TDim+1,TDim 
+
    
 template<class T>                                     
 bool InvertMatrix(const T& input, T& inverse)  ;                                      
