@@ -31,6 +31,7 @@
 
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
 #include "custom_elements/2fluid_2d.h" //including the file for the element
+#include "custom_elements/fluid_phase_2d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d.h" //including the file for the element
 #include "custom_elements/fsi_2d.h" //including the file for the element
@@ -67,6 +68,7 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, CORRECTED_DISTANCE)
 	KRATOS_DEFINE_VARIABLE(double, SOLID_PRESSURE)
 	KRATOS_DEFINE_VARIABLE(double, SOLID_YP)
+	KRATOS_DEFINE_VARIABLE(double, WATER_DISTANCE)
 	KRATOS_DEFINE_VARIABLE(bool, USEFUL_ELEMENT_FOR_COMBUSTION)
 	KRATOS_DEFINE_VARIABLE(Vector, ENRICH_LHS_ROW_3D)
 	KRATOS_DEFINE_VARIABLE(Vector, ELEMENT_MEAN_STRESS)
@@ -77,7 +79,9 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_PARTICLES)
 	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_PARTICLES_AUX)
 	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_WATER_PARTICLES)
-	KRATOS_DEFINE_VARIABLE(int, PARTICLE_POINTERS_OFFSET)
+	KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_FLUID_PARTICLES)
+	KRATOS_DEFINE_VARIABLE(int, PARTICLE_POINTERS_OFFSET)	
+	KRATOS_DEFINE_VARIABLE(int, WATER_PARTICLE_POINTERS_OFFSET)
 	//KRATOS_DEFINE_VARIABLE(double, IS_AIR)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ENRICH_LHS_ROW)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ENRICH_PRESS_PROJ_NEGATIVE)
@@ -86,6 +90,10 @@ namespace Kratos
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SURFACE_COORDINATES)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESS_PROJ_NO_RO)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DELTA_VELOCITY)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WATER_VELOCITY)
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WATER_MESH_VELOCITY)
+
+
 	
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 
@@ -243,6 +251,7 @@ namespace Kratos
 		///@{ 
  		const PFEM22D   mPFEM22D; 
  		const PFEM23D   mPFEM23D; 
+ 		const FluidPhasePFEM22D   mFluidPhasePFEM22D; 
  		const MonolithicPFEM22D   mMonolithicPFEM22D; 
  		const MonolithicPFEM23D   mMonolithicPFEM23D; 
  		const FsiPFEM22D   mFsiPFEM22D; 
