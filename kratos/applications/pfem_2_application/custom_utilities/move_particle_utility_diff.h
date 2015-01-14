@@ -345,7 +345,7 @@ namespace Kratos
 						pparticle.GetCohesion()=ielem->GetValue(YIELD_STRESS);
 						pparticle.GetPressure()=pressure;
 						pparticle.GetTotalPlasticDeformation()=ZeroVector(6);
-						pparticle.GetTotalDeformation()=ZeroVector(6);
+						pparticle.GetOldSigma()=ZeroVector(6);
 						pparticle.IsPlasticized()=false;
 
 					}
@@ -363,7 +363,7 @@ namespace Kratos
 						pparticle.GetCohesion()=ielem->GetValue(YIELD_STRESS);
 						pparticle.GetPressure()=pressure;
 						pparticle.GetTotalPlasticDeformation()=ZeroVector(6);
-						pparticle.GetTotalDeformation()=ZeroVector(6);
+						pparticle.GetOldSigma()=ZeroVector(6);
 						pparticle.IsPlasticized()=false;
 
 					}
