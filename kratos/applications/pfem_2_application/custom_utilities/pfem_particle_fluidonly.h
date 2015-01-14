@@ -132,11 +132,15 @@ public:
     PFEM_Particle_Fluid(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
     {
 		this->ERASE_FLAG=true; //initializing as useless particle
+		this->VELOCITY=ZeroVector(3);
+		this->DISTANCE=0.0;
     }
     
     PFEM_Particle_Fluid() : Point<3>(0.0, 0.0, 0.0)
     {
 		this->ERASE_FLAG=true;
+		this->VELOCITY=ZeroVector(3);
+		this->DISTANCE=0.0;
     }
     
     ~PFEM_Particle_Fluid()
