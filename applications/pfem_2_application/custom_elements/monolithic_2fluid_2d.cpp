@@ -407,7 +407,7 @@ namespace Kratos
 				}
 			}
 			
-			this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (Weight) ); //for an  averaged viscosity ( no enrichments)
+			//this->AddViscousTerm(rLeftHandSideMatrix,DN_DX, (Weight) ); //for an  averaged viscosity ( no enrichments)
 			this->AddViscousTerm(Momentum_matrix,  //extended matrix, with the velocity enrichments
 								DN_DX_in_local_axis,
 								distances,
@@ -1269,6 +1269,10 @@ namespace Kratos
 						//const double water_fraction = -( element_mean_distance - 1.0) *0.5; 
 						const double water_fraction = 0.5*(1.0-(sin(3.14159*element_mean_distance*0.5)));
 						double density = mDENSITY_WATER*(water_fraction)+mDENSITY_AIR*(1.0-water_fraction);
+						//if (has_positive_node) density = mDENSITY_AIR;
+						//else density = mDENSITY_WATER ;
+						
+						
 						
 						boost::numeric::ublas::bounded_matrix<double, (2+1), (2-1)*6 > G_matrix; //(gradient)
 						noalias(G_matrix) = ZeroMatrix((2+1), (2-1)*6);	
