@@ -189,13 +189,13 @@ public:
 		return this->SIGMA[i];
 	}
 
-	array_1d<double,6>& GetTotalDeformation()
+	array_1d<double,6>& GetOldSigma()
 	{
-		return this->TOTAL_DEFORMATION;
+		return this->OLD_SIGMA;
 	}
-	double& GetTotalDeformation(const unsigned int i)
+	double& GetOldSigma(const unsigned int i)
 	{
-		return this->TOTAL_DEFORMATION[i];
+		return this->OLD_SIGMA[i];
 	}
 	
 	array_1d<double,6>& GetTotalPlasticDeformation()
@@ -291,7 +291,7 @@ private:
 	double THETA;
 	double DENSITY;
 	array_1d<double,6> TOTAL_PLASTIC_DEFORMATION;
-	array_1d<double,6> TOTAL_DEFORMATION;
+	array_1d<double,6> OLD_SIGMA;
 	array_1d<double,6> SIGMA; //should be of size 6 in 3d!
 	//Element::Pointer ELEMENT_WEAKPOINTER;
 	
