@@ -84,9 +84,10 @@ namespace Kratos
 				rRightHandSideVector.resize(1,false);
 				
 			array_1d<double,3> & normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
+			double pressure = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
 
 			rLeftHandSideMatrix =ZeroMatrix(1,1);
-			rRightHandSideVector[0] = 1.0*normal(0);
+			rRightHandSideVector[0] = - pressure*normal(0);
 			GetGeometry()[0].FastGetSolutionStepValue(G_VALUE) = rRightHandSideVector[0] ;
 			
 		}
@@ -119,7 +120,7 @@ namespace Kratos
 			for (int i=0;i<number_of_nodes;i++)
 			{
 				index = i*dim;
-				rResult[index] = (GetGeometry()[i].GetDof(VELOCITY_Y).EquationId());			
+				rResult[index] = (GetGeometry()[i].GetDof(VELOCITY_X).EquationId());			
 			}
 		}
 	}
@@ -149,7 +150,7 @@ namespace Kratos
 			{
 				
 				index = i*dim;
-				ConditionalDofList[index] = (GetGeometry()[i].pGetDof(VELOCITY_Y));
+				ConditionalDofList[index] = (GetGeometry()[i].pGetDof(VELOCITY_X));
 			}
 		}
 	}
