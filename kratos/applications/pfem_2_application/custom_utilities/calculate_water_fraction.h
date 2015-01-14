@@ -268,7 +268,8 @@ namespace Kratos
 			boost::numeric::ublas::bounded_matrix<double, 4, 3 > velocities = ZeroMatrix(4, 3);
 			
 			//resetting mass since interfase moves
-			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			//ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			/*
 			#pragma omp parallel for 
 			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
@@ -277,7 +278,7 @@ namespace Kratos
 				inode->FastGetSolutionStepValue(NODAL_AREA)=0.0;
 				inode->FastGetSolutionStepValue(NODAL_MASS)=0.0;
 			}
-
+			*/
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for firstprivate(velocities)
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
@@ -355,6 +356,11 @@ namespace Kratos
 							//the plane is composed by the unit normal and any of the points of fixed nodes. we will use fixed_nodes[0];	
 							plane_point_distance = inner_prod( (geom[free_node].Coordinates()-geom[fixed_nodes[0]].Coordinates()) , normal);
 							//boundary_stress = geom[free_node].FastGetSolutionStepValue(VELOCITY)*viscosity/plane_point_distance;
+							if (plane_point_distance<0.0)
+							{
+								plane_point_distance*=-1.0;
+								normal *= -1.0;
+							}
 						}
 						else //(TDim==3)
 						{
@@ -378,6 +384,10 @@ namespace Kratos
 							plane_point_distance = inner_prod( (geom[free_node].Coordinates()-geom[fixed_nodes[0]].Coordinates()) , normal);
 							if (plane_point_distance<0.0)
 								normal *= -1.0;
+							{
+								plane_point_distance*=-1.0;
+								normal *= -1.0;
+							}
 							//boundary_stress = geom[free_node].FastGetSolutionStepValue(VELOCITY)*viscosity/plane_point_distance;
 						}
 						
