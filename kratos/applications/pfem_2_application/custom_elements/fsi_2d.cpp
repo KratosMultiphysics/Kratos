@@ -294,6 +294,7 @@ namespace Kratos
 							if (non_linear_iteration_number==1)
 							{
 								pparticle.IsPlasticized()=false;
+								pparticle.GetOldSigma()=pparticle.GetSigma();
 								//pparticle.GetDeltaPlasticDeformation()=ZeroVector(6);
 							}
 							else
@@ -820,7 +821,7 @@ namespace Kratos
 				*/
 				
 				//OVERWRITING THE VISCOSITY!
-				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, (solid_area)*0.3 , theta_fluid, cohesion_fluid , viscosity);
+				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, (solid_area)*0.01 , theta_fluid, cohesion_fluid , viscosity);
 				
 				if (has_solid_particle==true)
 					is_solid_element=true;
@@ -2256,7 +2257,7 @@ namespace Kratos
 						B_matrix(i*2,2)=DN_DX(i,1);
 						B_matrix(i*2+1,2)=DN_DX(i,0);
 						
-						array_1d<double, 3 >velocity =  ( geom[i].FastGetSolutionStepValue(DELTA_VELOCITY)) + geom[i].FastGetSolutionStepValue(VELOCITY) ; //delta velocity = -velocity in ith iteration, so now we have the difference
+						array_1d<double, 3 >velocity =  geom[i].FastGetSolutionStepValue(VELOCITY) ; //delta velocity = -velocity in ith iteration, so now we have the difference
 						velocities(i*2+0,0)=velocity(0);
 						velocities(i*2+1,0)=velocity(1);
 						
@@ -2434,7 +2435,9 @@ namespace Kratos
 
 			bool add_plastic_term=false;
 			array_1d<double,6> & particle_stress = pparticle.GetSigma();
-			array_1d<double,6> & particle_strain = pparticle.GetTotalDeformation();
+			array_1d<double,6> & particle_old_stress = pparticle.GetOldSigma();
+
+			//array_1d<double,6> & particle_strain = pparticle.GetTotalDeformation();
 			//in case we are in plasticity:
 			if(pparticle.IsPlasticized()==true)
 			{
@@ -2448,8 +2451,17 @@ namespace Kratos
 		
 			boost::numeric::ublas::bounded_matrix<double, 3, 1 > delta_strains = prod(trans(B_matrix),velocities)*delta_t;
 			
+			
+			
+			boost::numeric::ublas::bounded_matrix<double, 3, 1 > delta_stresses = prod(C_matrix,delta_strains); //for the moment is DELTA_stresses
 			for (unsigned int i=0;i<3;i++)
-				particle_strain(i) += delta_strains(i,0); 
+				particle_stress(i) = particle_old_stress(i) + delta_stresses(i,0); 
+			
+			
+			
+			//for (unsigned int i=0;i<3;i++)
+			//	particle_strain(i) += delta_strains(i,0); 
+			
 			
 			//using just the increment. big problem!
 			/*
@@ -2457,7 +2469,7 @@ namespace Kratos
 			for (unsigned int i=0;i<3;i++)
 				particle_stress(i) += delta_stresses(i,0); 
 			*/
-			
+			/*
 			//using total strains instead of increment to avoid adding errors
 			{
 			boost::numeric::ublas::bounded_matrix<double, 3, 1 > total_strains = ZeroMatrix(3,1);
@@ -2468,6 +2480,7 @@ namespace Kratos
 			for (unsigned int i=0;i<3;i++)
 				particle_stress(i) = total_elastic_prediction_stresses(i,0);  
 			}
+			*/
 				
 			pparticle.HasUpdatedStresses()=true;
 		}
