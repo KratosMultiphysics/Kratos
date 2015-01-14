@@ -41,42 +41,42 @@ model_part.ProcessInfo.SetValue(GRAVITY_X, 0.0);
 model_part.ProcessInfo.SetValue(GRAVITY_Y, -9.8);
 
 pi=3.14159
-
+        
 for node in model_part.Nodes:
-	node.Free(VELOCITY_X)
-	node.Free(VELOCITY_Y)
-	node.SetSolutionStepValue(DISTANCE,0,1.0)
-	if ((node.Y)<0.292 and node.X<0.146):
-	#if (node.Y>0.4):
-		node.SetSolutionStepValue(DISTANCE,0,-1.0) #piscina
-	if node.X>0.583999 or node.X<0.0001:
-		node.Fix(VELOCITY_X)
-	#	node.Fix(DISTANCE)
-	#	node.SetSolutionStepValue(DISTANCE,-0.1)
-	if node.Y<0.001 or node.Y>0.583999:
-		node.Fix(VELOCITY_Y)
+        node.Free(VELOCITY_X)
+        node.Free(VELOCITY_Y)
+        node.SetSolutionStepValue(DISTANCE,0,1.0)
+        if ((node.Y)<0.292 and node.X<0.146):
+        #if (node.Y>0.4):
+                node.SetSolutionStepValue(DISTANCE,0,-1.0) #piscina
+        if node.X>0.583999 or node.X<0.0001:
+                node.Fix(VELOCITY_X)
+        #        node.Fix(DISTANCE)
+        #        node.SetSolutionStepValue(DISTANCE,-0.1)
+        if node.Y<0.001 or node.Y>0.583999:
+                node.Fix(VELOCITY_Y)
 
-	if node.Y>0.499:
-		node.Fix(VELOCITY_Y)
-		#node.Fix(PRESSURE)
-		node.Fix(DISTANCE)
-		node.SetSolutionStepValue(DISTANCE,0,1.0)
-	
-	if node.Y>0.57:
-		node.Fix(DISTANCE)
+        if node.Y>0.499:
+                node.Fix(VELOCITY_Y)
+                #node.Fix(PRESSURE)
+                node.Fix(DISTANCE)
+                node.SetSolutionStepValue(DISTANCE,0,1.0)
+        
+        if node.Y>0.57:
+                node.Fix(DISTANCE)
 
-	if node.X>0.2919 and node.X<0.2921 and node.Y<0.0481:
-		node.Fix(VELOCITY_X)
-	if node.X>0.3159 and node.X<0.3161 and node.Y<0.0481:
-		node.Fix(VELOCITY_X)
-	if node.X>0.2919 and node.X<0.3161 and node.Y<0.0481 and node.Y>0.0479:
-		node.Fix(VELOCITY_Y)
-		#node.Fix(VELOCITY_X)
-	#node.SetSolutionStepValue(DISTANCE,0,1.0)
+        if node.X>0.2919 and node.X<0.2921 and node.Y<0.0481:
+                node.Fix(VELOCITY_X)
+        if node.X>0.3159 and node.X<0.3161 and node.Y<0.0481:
+                node.Fix(VELOCITY_X)
+        if node.X>0.2919 and node.X<0.3161 and node.Y<0.0481 and node.Y>0.0479:
+                node.Fix(VELOCITY_Y)
+                #node.Fix(VELOCITY_X)
+        #node.SetSolutionStepValue(DISTANCE,0,1.0)
 
-	
+        
 
-		
+                
 
 
 
@@ -91,7 +91,7 @@ pfem_2_solver.AddDofs(model_part)
 solver = pfem_2_solver.PFEM2Solver(model_part,domain_size)
 solver.time_order = 1
 solver.echo_level = 3
-solver.Initialize()	
+solver.Initialize()        
   
 mesh_name = 0.0
 gid_io.InitializeMesh( mesh_name );
@@ -119,35 +119,36 @@ import time as timer
 t1 = timer.time()
 for step in range(1,nsteps):
     out=out+1
-    print "new step"
+    print("new step")
     time = Dt*step
     
     model_part.CloneTimeStep(time)
 
     if step>1:
-    	solver.Solve()
+            solver.Solve()
 
     #if step==500:
-	#model_part.ProcessInfo.SetValue(GRAVITY_Y, 0.0);
-	#model_part.ProcessInfo.SetValue(VISCOSITY, 0.0);
+        #model_part.ProcessInfo.SetValue(GRAVITY_Y, 0.0);
+        #model_part.ProcessInfo.SetValue(VISCOSITY, 0.0);
 
     if step==0:
-	for node in model_part.Nodes:
-		node.SetSolutionStepValue(VELOCITY_X,0,0.0) 
-		node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
+        for node in model_part.Nodes:
+                node.SetSolutionStepValue(VELOCITY_X,0,0.0) 
+                node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
     if out==out_step:
-   	  out=0
-	  print "printing a step"		
-   	  
-	  gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
-	  gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
-	  gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
-	  gid_io.Flush()
+          out=0
+          print("printing a step")
+             
+          gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+          gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
+          gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
+          gid_io.WriteNodalResults(PRESS_PROJ,model_part.Nodes,time,0)
+          gid_io.Flush()
 
     
 t2=timer.time()
 total_time=t2-t1
 
-print "total_time", total_time
+print ("total_time", total_time)
 
 gid_io.FinalizeResults()
