@@ -1777,8 +1777,8 @@ namespace Kratos
 			double delta_t = CurrentProcessInfo[DELTA_TIME];	
 			int fract_step_number = CurrentProcessInfo[FRACTIONAL_STEP];
 			array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
-			const bool update_stresses=true;
-			const bool use_failure_criteria=true;
+			//const bool update_stresses=true;
+			//const bool use_failure_criteria=true;
 			
 			//array_1d<double,TDim+1> N;
 			//const int max_results = 1000;
@@ -2532,11 +2532,11 @@ namespace Kratos
 				array_1d<int, (3+2*TDim) > positions;
 				array_1d<bool, (3+2*TDim) > is_water_particle; //for both
 				
-				bool has_water_node;
-				bool has_air_node;
+				//bool has_water_node;
+				//bool has_air_node;
 				
 				unsigned int number_of_reseeded_particles;
-				unsigned int number_of_water_reseeded_particles;
+				//unsigned int number_of_water_reseeded_particles;
 
 				//array_1d<double, 3 > nodes_distances;
 				
@@ -2544,14 +2544,14 @@ namespace Kratos
 				for (ModelPart::ElementsContainerType::iterator ielem = it_begin; ielem != it_end; ielem++)
 				{
 					//results.resize(max_results);
-					const int & elem_id = ielem->Id();
+					//const int & elem_id = ielem->Id();
 					
 					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_PARTICLES);
 					//int & number_of_water_particles_in_elem= ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
 
 					
 					
-					number_of_water_reseeded_particles=0;
+					//number_of_water_reseeded_particles=0;
 					//KRATOS_WATCH(number_of_particles_in_elem)
 					if ( (number_of_particles_in_elem<(minimum_number_of_particles)))// && (geom[0].Y()<0.10) ) || (number_of_water_particles_in_elem>2 && number_of_particles_in_elem<(minimum_number_of_particles) ) )
 				    {
@@ -2576,8 +2576,9 @@ namespace Kratos
 							
 							distances = ZeroVector(3+2*TDim);
 							
-							has_water_node=false;
-							has_air_node=false;
+							//has_water_node=false;
+							//has_air_node=false;
+							/*
 							for (unsigned int j = 0; j < (TDim+1); j++)
 							{
 								if ((geom[j].FastGetSolutionStepValue(DISTANCE))<0.0)
@@ -2585,7 +2586,7 @@ namespace Kratos
 								else
 									has_air_node=true;
 							}
-							
+							*/
 							for (unsigned int j = 0; j < number_of_reseeded_particles; j++) //first we order particles
 							{
 								positions[j]=j+1; //just creating a vector from 1 to 7 or whathever our lenght is (7 for 2d, 9 for 3d)
@@ -2783,7 +2784,7 @@ namespace Kratos
 								//if (true) 
 								{
 									distance=1.0;
-									const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
+									//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
 									pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR];
 									pparticle.GetBulkModulus() = CurrentProcessInfo[BULK_AIR];
 									pparticle.GetDensity() = CurrentProcessInfo[DENSITY_AIR];
@@ -2805,7 +2806,7 @@ namespace Kratos
 								{
 									distance=2.0;
 									//pparticle.GetEraseFlag()=true;
-									const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
+									//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
 									pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR]/1000.0;
 									pparticle.GetBulkModulus() = CurrentProcessInfo[BULK_AIR];
 									pparticle.GetDensity() = CurrentProcessInfo[DENSITY_AIR]/1000.0;
@@ -2852,8 +2853,8 @@ namespace Kratos
 		{
 			KRATOS_TRY
 			
-			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET];
+			//ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			//const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET];
 			
 			mbounding_box_lower_corner_full = bounding_box_lower_corner_full;
 			mbounding_box_upper_corner_full = bounding_box_upper_corner_full;
@@ -3020,7 +3021,7 @@ namespace Kratos
 			
 			
 			int counter=0;
-			ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
+			//ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
 			for (unsigned int i=0; i!=mmaximum_number_of_particles*mnelems; i++)
 			{
 				PFEM_Particle& pparticle =mparticles_vector[i];
@@ -3297,7 +3298,7 @@ namespace Kratos
 					
 					if (particle_distance>0.0)
 					{
-						double yp_total=0.0;
+						//double yp_total=0.0;
 						vel_without_other_phase_nodes = ZeroVector(3);
 						//press_proj_value=ZeroVector(3);
 						viscosity_value=ZeroVector(3);
@@ -3849,7 +3850,7 @@ namespace Kratos
 	{
 		array_1d<double,TDim+1> N;
 		
-		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		//ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 		
 		//we start with the first position, then it will enter the loop.
 		array_1d<double,3> coords = pparticle.Coordinates()+domains_offset; 
