@@ -132,11 +132,41 @@ public:
     PFEM_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
     {
 		this->ERASE_FLAG=true; //initializing as useless particle
+		this->VELOCITY=ZeroVector(3);
+		this->ACCELERATION=ZeroVector(3);
+		this->DISTANCE=0.0;
+		this->PRESSURE=0.0;
+		this->TEMPERATURE=0.0;
+		this->SHEAR_MODULUS=0.0;
+		this->BULK_MODULUS=0.0;
+		this->COHESION=0.0;
+		this->THETA=0.0;
+		this->DENSITY=0.0;
+		this->TOTAL_PLASTIC_DEFORMATION=ZeroVector(6);
+		this->OLD_SIGMA=ZeroVector(6);
+		this->SIGMA=ZeroVector(6);
+		this->HAS_UPDATED_STRESSES=false;
+		this->PLASTICIZED=false;
     }
     
     PFEM_Particle() : Point<3>(0.0, 0.0, 0.0)
     {
 		this->ERASE_FLAG=true;
+		this->VELOCITY=ZeroVector(3);
+		this->ACCELERATION=ZeroVector(3);
+		this->DISTANCE=0.0;
+		this->PRESSURE=0.0;
+		this->TEMPERATURE=0.0;
+		this->SHEAR_MODULUS=0.0;
+		this->BULK_MODULUS=0.0;
+		this->COHESION=0.0;
+		this->THETA=0.0;
+		this->DENSITY=0.0;
+		this->TOTAL_PLASTIC_DEFORMATION=ZeroVector(6);
+		this->OLD_SIGMA=ZeroVector(6);
+		this->SIGMA=ZeroVector(6);
+		this->HAS_UPDATED_STRESSES=false;
+		this->PLASTICIZED=false;
     }
     
     ~PFEM_Particle()
