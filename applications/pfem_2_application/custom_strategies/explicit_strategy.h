@@ -395,7 +395,7 @@ void UpdateLoopForPressureIterationsWithNormalization(ProcessInfo& CurrentProces
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
-	  const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
       #else
@@ -448,7 +448,7 @@ void NormalizePressureProjection(ProcessInfo& CurrentProcessInfo)
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
-	  const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
       #else
@@ -499,7 +499,7 @@ void SetToZeroVariablesInPresureViscousCorrection(ProcessInfo& CurrentProcessInf
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
       
       //const double delta_t = CurrentProcessInfo[DELTA_TIME];	
-	  const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
+	  //const int iteration_number = CurrentProcessInfo[NL_ITERATION_NUMBER];
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -532,7 +532,7 @@ void UpdateLoopForPressureViscousCorrection(ProcessInfo& CurrentProcessInfo)
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
-	  const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
       #else
@@ -565,7 +565,7 @@ void SetToZeroMassAndArea(ProcessInfo& CurrentProcessInfo)
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
-	  const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
       #else
@@ -881,7 +881,7 @@ void UpdateLoopForPressureIterationsWithNormalization(ProcessInfo& CurrentProces
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes(); 
-	  const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+	  //const double factor =  CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
       #else
