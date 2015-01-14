@@ -63,7 +63,7 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
 				inode!=mr_model_part.NodesEnd(); inode++)
 			{
-				//if ((inode->IsFixed(VELOCITY_X)) || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) )
+				if ((inode->IsFixed(VELOCITY_X)) || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity2D");         //condition type
 					Point2D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
@@ -126,7 +126,7 @@ namespace Kratos
 			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
 				inode!=mr_model_part.NodesEnd(); inode++)
 			{
-				//if ((inode->IsFixed(VELOCITY_X)) || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) )
+				if ((inode->IsFixed(VELOCITY_X)) || (inode->IsFixed(VELOCITY_Y)) || (inode->IsFixed(VELOCITY_Z)) )
 				{
 					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity3D");         //condition type
 					Point3D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
@@ -150,6 +150,136 @@ namespace Kratos
 		ModelPart& mr_model_part;
 
 	};
+	
+	
+	
+	
+	
+	class AddMonolithicFixedVelocityCondition2D
+	{
+	public:
+	
+		KRATOS_CLASS_POINTER_DEFINITION(AddMonolithicFixedVelocityCondition2D);
+
+		AddMonolithicFixedVelocityCondition2D(ModelPart& model_part)
+			: mr_model_part(model_part) 
+		{
+			KRATOS_TRY	
+			std::cout << "Hello, I am the constructor of the Fixed Velocity 2d Utility" << std::endl;
+			KRATOS_CATCH("")	
+		}
+		
+
+		~AddMonolithicFixedVelocityCondition2D()
+		{}
+
+		
+		void AddThem() 
+		{
+			KRATOS_TRY
+			
+			unsigned int condition_number=1;
+			if(mr_model_part.Conditions().size()!=0)
+			{
+				ModelPart::ConditionsContainerType::iterator lastcondition = (mr_model_part.ConditionsEnd()-1);
+				condition_number += lastcondition->Id();
+			}
+			
+			//Condition const& rReferenceCondition = FixedVelocity2D();         //condition type
+			//getting data for the given geometry
+			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
+				inode!=mr_model_part.NodesEnd(); inode++)
+			{
+				if (inode->IsFixed(PRESSURE) )
+				{
+					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity2D");         //condition type
+					Point2D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					mr_model_part.Conditions().push_back(p_condition);
+					++condition_number;
+				}
+			}
+			std::cout << "Finished adding conditions on fixed velocity boundaries" << condition_number << std::endl;
+			
+			
+			KRATOS_CATCH("")
+		} 
+		
+		
+	protected:
+
+
+	private:
+		ModelPart& mr_model_part;
+
+	};
+	
+	
+	
+	//for 3D
+	class AddMonolithicFixedVelocityCondition3D
+	{
+	public:
+	
+		KRATOS_CLASS_POINTER_DEFINITION(AddMonolithicFixedVelocityCondition3D);
+
+		AddMonolithicFixedVelocityCondition3D(ModelPart& model_part)
+			: mr_model_part(model_part) 
+		{
+			KRATOS_TRY	
+			std::cout << "Hello, I am the constructor of the Fixed Velocity 3d Utility" << std::endl;
+			KRATOS_CATCH("")	
+		}
+		
+
+		~AddMonolithicFixedVelocityCondition3D()
+		{}
+
+		
+		void AddThem() 
+		{
+			KRATOS_TRY
+			
+			unsigned int condition_number=1;
+			if(mr_model_part.Conditions().size()!=0)
+			{
+				ModelPart::ConditionsContainerType::iterator lastcondition = (mr_model_part.ConditionsEnd()-1);
+				condition_number += lastcondition->Id();
+			}
+			
+			//Condition const& rReferenceCondition = FixedVelocity2D();         //condition type
+			//getting data for the given geometry
+			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
+				inode!=mr_model_part.NodesEnd(); inode++)
+			{
+				if (inode->IsFixed(PRESSURE))
+				{
+					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("FixedVelocity3D");         //condition type
+					Point3D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					mr_model_part.Conditions().push_back(p_condition);
+					++condition_number;
+				}
+			}
+			std::cout << "Finished adding conditions on fixed velocity boundaries" << condition_number << std::endl;
+			
+			
+			KRATOS_CATCH("")
+		} 
+		
+		
+	protected:
+
+
+	private:
+		ModelPart& mr_model_part;
+
+	};
+	
+	
+	
 
 }  // namespace Kratos.
 
