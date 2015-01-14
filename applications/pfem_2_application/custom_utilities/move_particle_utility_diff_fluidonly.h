@@ -1242,8 +1242,8 @@ namespace Kratos
 			double delta_t = CurrentProcessInfo[DELTA_TIME];	
 			int fract_step_number = CurrentProcessInfo[FRACTIONAL_STEP];
 			array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
-			const bool update_stresses=true;
-			const bool use_failure_criteria=true;
+			//const bool update_stresses=true;
+			//const bool use_failure_criteria=true;
 			
 			//array_1d<double,TDim+1> N;
 			//const int max_results = 1000;
@@ -2205,7 +2205,7 @@ namespace Kratos
 			
 			
 			int counter=0;
-			ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
+			//ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
 			for (unsigned int i=0; i!=mmaximum_number_of_particles*mnelems; i++)
 			{
 				PFEM_Particle_Fluid& pparticle =mparticles_vector[i];
@@ -2447,7 +2447,7 @@ namespace Kratos
 					if (particle_distance>0.0)
 					//if(true)
 					{
-						double yp_total=0.0;
+						//double yp_total=0.0;
 						vel_without_other_phase_nodes = ZeroVector(3);
 						vel = ZeroVector(3);
 						//press_proj_value=ZeroVector(3);
@@ -2914,7 +2914,7 @@ namespace Kratos
 	{
 		array_1d<double,TDim+1> N;
 		
-		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		//ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 		
 		//we start with the first position, then it will enter the loop.
 		array_1d<double,3> coords = pparticle.Coordinates()+domains_offset; 
