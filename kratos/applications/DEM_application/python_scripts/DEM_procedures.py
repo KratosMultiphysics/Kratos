@@ -450,7 +450,7 @@ class Procedures(object):
 
             if (element.GetNode(0).GetSolutionStepValue(PREDEFINED_SKIN) > 0.0):  # PREDEFINED_SKIN is a double
 
-                element.SetValue(SKIN_SPHERE, 1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 
     def SetCustomSkin(self,spheres_model_part):
     
@@ -461,13 +461,13 @@ class Procedures(object):
             #z = element.GetNode(0).Z
           
             if(x>21.1):
-              element.SetValue(SKIN_SPHERE,1)
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(x<1.25):
-              element.SetValue(SKIN_SPHERE,1)
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(y>1.9):
-              element.SetValue(SKIN_SPHERE,1)
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(y<0.1):
-              element.SetValue(SKIN_SPHERE,1)
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
     def CreateDirectories(self, main_path,problem_name):
 

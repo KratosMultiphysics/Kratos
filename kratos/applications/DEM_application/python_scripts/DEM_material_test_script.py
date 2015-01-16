@@ -198,7 +198,7 @@ class MaterialTest(object):
 
         for element in self.balls_model_part.Elements:
 
-            element.SetValue(SKIN_SPHERE, 0)
+            element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
 
             node = element.GetNode(0)
             r = node.GetSolutionStepValue(RADIUS)
@@ -210,7 +210,7 @@ class MaterialTest(object):
 
             if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
 
-                element.SetValue(SKIN_SPHERE, 1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
 
                 if ((y > eps * r) and (y < (h - eps * r))):
@@ -222,7 +222,7 @@ class MaterialTest(object):
 
             if ((y <= eps * r) or (y >= (h - eps * r))):
 
-                element.SetValue(SKIN_SPHERE, 1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.SKIN.append(element)
 
                 if (y <= eps * r):
@@ -285,7 +285,7 @@ class MaterialTest(object):
 
       for element in self.balls_model_part.Elements:
 
-          element.SetValue(SKIN_SPHERE, 0)
+          element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
 
           node = element.GetNode(0)
           r = node.GetSolutionStepValue(RADIUS)
@@ -295,11 +295,11 @@ class MaterialTest(object):
 
           if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))):
 
-              element.SetValue(SKIN_SPHERE, 1)
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
           if ((z <= eps * r) or (z >= (h - eps * r))):
 
-              element.SetValue(SKIN_SPHERE, 1)
+              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
       print("End 30x15 Bts Skin Determination", "\n")
      

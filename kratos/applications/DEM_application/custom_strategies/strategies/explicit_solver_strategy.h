@@ -178,8 +178,6 @@ namespace Kratos
       BaseType( *(settings.r_model_part),move_mesh_flag)
       {
 
-          mElementsAreInitialized        = false;
-          mInitializeWasPerformed        = false;
           mDeltaOption                   = delta_option;
           mSearchTolerance               = search_tolerance;
           mCoordinationNumber            = coordination_number;
@@ -230,8 +228,6 @@ namespace Kratos
       ): BaseType(r_model_part, move_mesh_flag)
       {
 
-          mElementsAreInitialized        = false;
-          mInitializeWasPerformed        = false;
           mDeltaOption                   = delta_option;
           mSearchTolerance               = search_tolerance;
           mCoordinationNumber            = coordination_number;
@@ -388,12 +384,10 @@ namespace Kratos
           GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           InitializeSolutionStep();
-          InitializeElements();                    
+          InitializeDEMElements();                    
           InitializeFEMElements();
           UpdateMaxIdOfCreatorDestructor();
           InitializeClusters(); /// This adds elements to the balls modelpart
-
-          mInitializeWasPerformed = true;
           
           ApplyPrescribedBoundaryConditions();
           
@@ -812,9 +806,25 @@ namespace Kratos
             }
 
         }
+        
+        KRATOS_CATCH("")
+    }
+    
+    void InitializeDEMElements() {
+        KRATOS_TRY
 
-        mElementsAreInitialized = true;
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+        #pragma omp parallel for
+        for(int i=0; i<(int)mListOfSphericParticles.size(); i++){
+            mListOfSphericParticles[i]->FullInitialize(rCurrentProcessInfo);
+        }
+        
+        
         KRATOS_CATCH("")
     }
     
@@ -1391,9 +1401,6 @@ namespace Kratos
     VectorDistanceType&                          GetResultsDistances(){return(mResultsDistances);}
     RadiusArrayType&                             GetRadius(){return(mRadius);}
     RadiusArrayType&                             GetOriginalRadius(){return(mOriginalRadius);}
-
-    bool&                                        GetElementsAreInitialized(){return (mElementsAreInitialized);}
-    bool&                                        GetInitializeWasPerformed(){return (mInitializeWasPerformed);}
     
     int&                                         GetNStepSearch(){return (mNStepSearch);}
     int&                                         GetBoundingBoxOption(){return (mBoundingBoxOption);}
@@ -1431,9 +1438,6 @@ namespace Kratos
     VectorDistanceType                           mResultsDistances;
     RadiusArrayType                              mRadius;
     RadiusArrayType                              mOriginalRadius;
-
-    bool                                         mElementsAreInitialized;
-    bool                                         mInitializeWasPerformed;
 
     int                                          mNStepSearch;
     int                                          mBoundingBoxOption;
