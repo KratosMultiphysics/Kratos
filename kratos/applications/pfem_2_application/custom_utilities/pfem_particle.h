@@ -136,6 +136,8 @@ public:
 		this->ACCELERATION=ZeroVector(3);
 		this->DISTANCE=0.0;
 		this->PRESSURE=0.0;
+		this->OLD_PRESSURE=0.0;
+		this->PLASTIC_PRESSURE=0.0;
 		this->TEMPERATURE=0.0;
 		this->SHEAR_MODULUS=0.0;
 		this->BULK_MODULUS=0.0;
@@ -156,6 +158,8 @@ public:
 		this->ACCELERATION=ZeroVector(3);
 		this->DISTANCE=0.0;
 		this->PRESSURE=0.0;
+		this->OLD_PRESSURE=0.0;
+		this->PLASTIC_PRESSURE=0.0;
 		this->TEMPERATURE=0.0;
 		this->SHEAR_MODULUS=0.0;
 		this->BULK_MODULUS=0.0;
@@ -252,6 +256,16 @@ public:
 		return this->PRESSURE;
 	}
 	
+	double& GetOldPressure()
+	{
+		return this->OLD_PRESSURE;
+	}
+	
+	double& GetPlasticPressure()
+	{
+		return this->PLASTIC_PRESSURE;
+	}
+	
 	double& GetTemperature()
 	{
 		return this->TEMPERATURE;
@@ -320,6 +334,8 @@ private:
 	double COHESION;
 	double THETA;
 	double DENSITY;
+	double OLD_PRESSURE;
+	double PLASTIC_PRESSURE;
 	array_1d<double,6> TOTAL_PLASTIC_DEFORMATION;
 	array_1d<double,6> OLD_SIGMA;
 	array_1d<double,6> SIGMA; //should be of size 6 in 3d!
