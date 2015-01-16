@@ -83,7 +83,7 @@ namespace Kratos {
             }   
             
             Element::Pointer dummy_element_pointer;
-            std::string& ElementNameString = mInletModelPart.GetProperties(mesh_number)[ELEMENT_TYPE];
+            std::string ElementNameString = "SphericParticle3D";
             const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
             for (int i = 0; i < mesh_size; i++) {                
