@@ -10,6 +10,8 @@ import math
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+sys.path.insert(0,'')
+ 
 # DEM Application
 import DEM_explicit_solver_var as DEM_parameters
 
