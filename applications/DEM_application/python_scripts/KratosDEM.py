@@ -225,7 +225,7 @@ if (DEM_parameters.dem_inlet_option):
 
     # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
-    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor, DEM_parameters.dem_inlet_element_type)
+    DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
   
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
