@@ -1830,6 +1830,8 @@ namespace Kratos
 							if (fract_step_number==1 && add_gravity)
 								pparticle.GetVelocity() = pparticle.GetVelocity() + gravity*delta_t;	
 								
+								
+							ReplaceParticlePressure(pparticle,pelement,geom);	
 						}
 						
 						
@@ -3645,6 +3647,40 @@ namespace Kratos
 		pparticle.GetAcceleration() = delta_velocity/delta_t;
 
 
+	}
+	
+	void ReplaceParticlePressure(
+						 PFEM_Particle & pparticle,
+						 Element::Pointer & pelement,
+						 Geometry< Node<3> >& geom)
+	{
+		//bool is_found;
+
+		//array_1d<double,3> position;
+		array_1d<double,TDim+1> N;
+		
+		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		double delta_t = CurrentProcessInfo[DELTA_TIME];
+		array_1d<double,3> coords = pparticle.Coordinates();// + (pparticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
+		double pressure = 0.0;
+			
+		bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+		if(is_found == false)
+		{
+			KRATOS_WATCH(N)
+			for (int j=0 ; j!=(TDim+1); j++)
+								if (N[j]<0.0 )
+									N[j]=1e-10;
+			
+			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+		}
+
+		for(unsigned int j=0; j<(TDim+1); j++)
+		{
+			(pressure) += geom[j].FastGetSolutionStepValue(PRESSURE)*0.33333333333333333;//N[j];		
+		}
+
+		pparticle.GetPressure() = pressure;//*substep_dt*double(nsubsteps)/particle_density;///*only_integral;//only_integral; 
 	}
 	
 		
