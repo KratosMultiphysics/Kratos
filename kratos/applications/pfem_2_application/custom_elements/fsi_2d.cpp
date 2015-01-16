@@ -216,6 +216,7 @@ namespace Kratos
 			double theta_integral_fluid =  0.5*fluid_area;
 			double cohesion_integral_fluid =  0.0*fluid_area;
 			double Bulk_modulus_integral_fluid =  1000000.0*fluid_area;
+			double plastic_delta_pressure=0.0;
 			array_1d<double,3> nodal_density = ZeroVector(3);
 
 			int non_updated_solid_particles=0;
@@ -295,6 +296,9 @@ namespace Kratos
 							{
 								pparticle.IsPlasticized()=false;
 								pparticle.GetOldSigma()=pparticle.GetSigma();
+								pparticle.GetOldPressure()=pparticle.GetPressure();
+								pparticle.GetTemperature()=pparticle.GetPressure();
+
 								//pparticle.GetDeltaPlasticDeformation()=ZeroVector(6);
 							}
 							else
@@ -302,6 +306,8 @@ namespace Kratos
 							{
 								if (pparticle.IsPlasticized()==true)
 									number_of_plasticized_particles++;
+									
+								plastic_delta_pressure += (pparticle.GetPlasticPressure())*particle_area;
 							}
 						}
 						else
@@ -337,6 +343,7 @@ namespace Kratos
 			for (unsigned int i=0; i<TNumNodes ; i++)
 				nodal_density(i) /=  total_N_from_particles(i);
 			
+			plastic_delta_pressure/=solid_area;
 			stresses=total_integral_stresses/solid_area;
 			elemental_plastic_deformation /= solid_area/standard_particle_area;
 			if(non_updated_solid_particles>0)
@@ -536,7 +543,7 @@ namespace Kratos
 				}
 				array_1d<double,3> stress = stresses;
 				
-				this->AddDruckerPragerStiffnessTerms(rLeftHandSideMatrix,DN_DX, mu , Bulk_modulus, theta, cohesion ,stress, solid_pressure, solid_area*delta_t, plasticized_area*delta_t, add_plastic_term);
+				//this->AddDruckerPragerStiffnessTerms(rLeftHandSideMatrix,DN_DX, mu , Bulk_modulus, theta, cohesion ,stress, solid_pressure, solid_area*delta_t, plasticized_area*delta_t, add_plastic_term);
 				
 				
 				
@@ -821,7 +828,7 @@ namespace Kratos
 				*/
 				
 				//OVERWRITING THE VISCOSITY!
-				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, (solid_area)*0.01 , theta_fluid, cohesion_fluid , viscosity);
+				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, (solid_area)*0.2 , theta_fluid, cohesion_fluid , viscosity);
 				
 				if (has_solid_particle==true)
 					is_solid_element=true;
@@ -1060,10 +1067,13 @@ namespace Kratos
 				noalias(rLeftHandSideMatrix) += (1.0/gamma)*Mass_matrix/delta_t;   
 				//if (has_solid_particle)
 				//{
-					
+				this->GetValue(TAU) = plastic_delta_pressure;
 				//Lumped_Pressure_Mass_matrix *= 1.0+TauOneSolid;	
 				if(is_solid_element)
 				{	
+					
+					for (unsigned int i = 0; i < 3; i++) 
+					     previous_vel_and_press(i*3+2) += plastic_delta_pressure*0.333333;
 					noalias(rRightHandSideVector) -= prod((Lumped_Pressure_Mass_matrix),(previous_vel_and_press/delta_t));
 					noalias(rLeftHandSideMatrix) -= Lumped_Pressure_Mass_matrix/delta_t;  
 					//for (unsigned int i = 0; i < 3; i++) 
@@ -2248,7 +2258,7 @@ namespace Kratos
 				boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
 				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
 				
-
+				double divergence_n = 0.0;
 				for (unsigned int i=0; i!=3; i++) //i node
 				{
 						B_matrix(i*2,0)=DN_DX(i,0);
@@ -2262,7 +2272,12 @@ namespace Kratos
 						velocities(i*2+1,0)=velocity(1);
 						
 						distances(i)=geom[i].FastGetSolutionStepValue(DISTANCE);
+						
+						divergence_n += 0.333333333333*(DN_DX(i,0)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X)+DN_DX(i,1)*GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
+
 				}
+				
+				const double volumetric_change = divergence_n * delta_t;
 				
 				double reduced_delta_t=delta_t;
 				//CalculateReducedTimeStepForPositiveJacobian(DN_DX,velocities,delta_t,reduced_delta_t);
@@ -2289,7 +2304,7 @@ namespace Kratos
 					if (erase_flag==false)
 					{
 						
-						UpdateParticlePressure(pparticle,geom);
+						UpdateParticlePressure(pparticle,geom,volumetric_change);
 							
 						if ( (pparticle.GetDistance())<0.0)
 						{
@@ -2319,7 +2334,8 @@ namespace Kratos
 		
 	void FsiPFEM22D::UpdateParticlePressure(
 						 PFEM_Particle & pparticle,
-						 Geometry< Node<3> >& geom)
+						 Geometry< Node<3> >& geom,
+						 const double volumetric_change)
 	{
 		array_1d<double,3> N;
 
@@ -2355,7 +2371,7 @@ namespace Kratos
 					pressure_change += (geom[j].FastGetSolutionStepValue(PRESSURE)-geom[j].FastGetSolutionStepValue(PRESSUREAUX))*N[j];
 				}
 				complete_pressure_change += (geom[j].FastGetSolutionStepValue(PRESSURE)-geom[j].FastGetSolutionStepValue(PRESSUREAUX))*N[j];
-				complete_pressure += (geom[j].FastGetSolutionStepValue(PRESSURE))*N[j];
+				complete_pressure += (geom[j].FastGetSolutionStepValue(PRESSURE))*0.333333333333333333333333;//N[j];
 				mesh_distance+=geom[j].FastGetSolutionStepValue(DISTANCE)*N[j];
 			}
 			//if (total_N>1.0e-5)
@@ -2365,8 +2381,19 @@ namespace Kratos
 			//	pparticle.GetPressure() = pparticle.GetPressure()+pressure_change;
 			//}
 			//else
+			
+			double Area;
+				array_1d<double, 3> N;
+				array_1d<double, 3> distances;
+				boost::numeric::ublas::bounded_matrix<double, 3, 2> DN_DX;
+				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);
+			
+
+			
 			{
-				pparticle.GetPressure() = complete_pressure; ///we always replace the pressure. ->smoother solution, although more diffusive!!!!!!!
+				
+				//pparticle.GetPressure() =complete_pressure;
+				pparticle.GetPressure() = pparticle.GetOldPressure() - volumetric_change *pparticle.GetBulkModulus(); ///we always replace the pressure. ->smoother solution, although more diffusive!!!!!!!
 				//pparticle.GetPressure() = pparticle.GetPressure()+complete_pressure_change;
 			}
 		}
@@ -2532,6 +2559,9 @@ namespace Kratos
 					if (pressure<particle_pressure)
 						KRATOS_WATCH("error");
 					particle_stress=particle_stress*reducing_factor;
+					
+					pparticle.GetPlasticPressure()= pressure-pparticle.GetPressure();
+					pparticle.GetPressure()=pressure;
 					
 					///WE ARE NOT UPDATING THE PRESSURE
 					//particle_pressure=pressure; 
