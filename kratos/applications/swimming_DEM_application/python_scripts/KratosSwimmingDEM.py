@@ -475,7 +475,7 @@ if pp.inlet_option:
 
     # constructiong the inlet and intializing it (must be done AFTER the balls_model_part Initialize)
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
-    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor, pp.dem_inlet_element_type)
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
 # creating problem directories
 directories = ['results']
