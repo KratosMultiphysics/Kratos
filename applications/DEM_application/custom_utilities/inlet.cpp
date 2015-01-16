@@ -46,7 +46,7 @@ namespace Kratos {
     
     DEM_Inlet::~DEM_Inlet() {}
         
-    void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString) {
+    void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator) {
         
         unsigned int& max_Id=creator.mMaxNodeId;       
         
@@ -61,9 +61,7 @@ namespace Kratos {
         else {
             mInletModelPart.GetProcessInfo()[ROTATION_OPTION] = false;             
         }
-        
-        const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
-        
+               
         int mesh_number=0;
         
         //For the next loop, take into account that the meshes of the modelpart is a full array with no gaps. If mesh i is not defined in mdpa, then it is created empty!
@@ -85,6 +83,8 @@ namespace Kratos {
             }   
             
             Element::Pointer dummy_element_pointer;
+            std::string& ElementNameString = mInletModelPart.GetProperties(mesh_number)[ELEMENT_TYPE];
+            const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
             
             for (int i = 0; i < mesh_size; i++) {                
                 creator.ElementCreatorWithPhysicalParameters(r_modelpart,
