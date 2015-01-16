@@ -111,6 +111,14 @@ void SphericParticle::Initialize()
     KRATOS_CATCH( "" )
 }
 
+void SphericParticle::FullInitialize(const ProcessInfo& r_process_info)
+{
+    KRATOS_TRY
+    MemberDeclarationFirstStep(r_process_info);
+    Initialize();        
+    KRATOS_CATCH( "" )
+}
+
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
@@ -1048,12 +1056,6 @@ void SphericParticle::InitializeSolutionStep(ProcessInfo& r_current_process_info
 {
     KRATOS_TRY
 
-    const ProcessInfo& r_process_info = r_current_process_info;
-
-    MemberDeclarationFirstStep(r_process_info);
-
-    this->Set(DEMFlags::HAS_INITIALIZED_VARIABLES);
-
     KRATOS_CATCH("")
 }
 
@@ -1271,26 +1273,23 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
 void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_info)
 
 {
-    // Passing the element id to the node upon initialization
-    
-    if (this->IsNot(DEMFlags::HAS_INITIALIZED_VARIABLES)){
-
-        if (r_process_info[PRINT_EXPORT_ID] == 1){
-            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-        }
-
-        mDampType                                    = r_process_info[DAMP_TYPE];
-        mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];
-        if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION,true);
-        else                                         this->Set(DEMFlags::HAS_ROTATION,false);
-        if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION,true);
-        else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
-        if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME,true);
-        else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME,false);
-                                                     this->Set(DEMFlags::HAS_ROTATION_SPRING,false);
-
-        AdditionalMemberDeclarationFirstStep(r_process_info);
+    // Passing the element id to the node upon initialization    
+    if (r_process_info[PRINT_EXPORT_ID] == 1) {
+        this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
     }
+
+    mDampType                                    = r_process_info[DAMP_TYPE];
+    mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];
+    if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION,true);
+    else                                         this->Set(DEMFlags::HAS_ROTATION,false);
+    if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION,true);
+    else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
+    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME,true);
+    else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME,false);
+                                                 this->Set(DEMFlags::HAS_ROTATION_SPRING,false);
+
+    AdditionalMemberDeclarationFirstStep(r_process_info);
+    
 }
 
 //**************************************************************************************************************************************************

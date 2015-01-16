@@ -219,7 +219,7 @@ namespace Kratos {
         if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
         else spheric_p_particle->Set(DEMFlags::HAS_ROTATION, false);
 
-        p_particle->Initialize(); //////////////// STANDARD INITIALIZATION!!
+        spheric_p_particle->FullInitialize(r_modelpart.GetProcessInfo()); //////////////// STANDARD INITIALIZATION!!
 
         r_modelpart.Elements().push_back(p_particle);
     }

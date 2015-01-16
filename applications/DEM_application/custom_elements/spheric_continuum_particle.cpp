@@ -65,6 +65,16 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
       
+      void SphericContinuumParticle::FullInitialize(const ProcessInfo& r_process_info)
+      {
+          KRATOS_TRY          
+          MemberDeclarationFirstStep(r_process_info);  
+          ContinuumSphereMemberDeclarationFirstStep(r_process_info);
+	  Initialize();
+          KRATOS_CATCH( "" )
+      }
+      
+      
       void SphericContinuumParticle::SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo)
       {   
                 
@@ -629,30 +639,23 @@ namespace Kratos
       }
 
     
-      void SphericContinuumParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
-      {
-
+      void SphericContinuumParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo ) {
           KRATOS_TRY
       
           array_1d<double, 3 > & RotaMoment       = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
           double RotaDampRatio                    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO);
 
-          // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
-        
-          for (int iDof = 0; iDof < 3; iDof++)
-          {
-              if (this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
-              {
+          // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL COORDINATES).        
+          for (int iDof = 0; iDof < 3; iDof++) {
+              if (this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0) {
                   RotaMoment[iDof] = RotaMoment[iDof] - RotaDampRatio * fabs(RotaMoment[iDof]);
               }
-              else
-              {
+              else {
                   RotaMoment[iDof] = RotaMoment[iDof] + RotaDampRatio * fabs(RotaMoment[iDof]);
               }
           }
 
           KRATOS_CATCH("")
-
       } //ApplyLocalMomentsDamping      
 
      
@@ -666,33 +669,20 @@ namespace Kratos
       }      
     } //SymmetrizeTensor
                 
-    void SphericContinuumParticle::ContactAreaWeighting2D()
-    {
+    void SphericContinuumParticle::ContactAreaWeighting2D() {
       KRATOS_WATCH("ERROR: THIS FUNCTION MUST NOT BE CALLED FROM 3D ELEMENT")
     }
     
-void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) //Note: this function is only called once by now in the continuum strategy
-      { 
-   
-        const ProcessInfo& r_process_info = rCurrentProcessInfo;
-
-         MemberDeclarationFirstStep(r_process_info);
-         ContinuumSphereMemberDeclarationFirstStep(r_process_info);  
-         
-         if(mStressStrainOption) {         
-             
+    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) { //Note: this function is only called once by now in the continuum strategy         
+         //const ProcessInfo& r_process_info = rCurrentProcessInfo;
+         //ContinuumSphereMemberDeclarationFirstStep(r_process_info);           
+         if(mStressStrainOption) {                      
             double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
             rRepresentative_Volume = 0.0;  
           
-            for (int i=0; i<3; i++) {        
-              for (int j=0; j<3; j++) {
-                  mStressTensor[i][j] = 0.0;
-              }        
-            }
-          
-         }
-           
-      }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
+            for (int i=0; i<3; i++) {  for (int j=0; j<3; j++) { mStressTensor[i][j] = 0.0; } }          
+         }           
+    }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
    
    
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) {
@@ -1057,12 +1047,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }
       
       
-      void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo)
+      void SphericContinuumParticle::CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo, const bool first)
       {
             int my_id = this->Id();
             double my_partition_index = 0.0;
             if (has_mpi) my_partition_index = this->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX); 
-            bool im_skin = bool(this->GetValue(SKIN_SPHERE));
+            bool im_skin = bool(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
 
             std::vector<SphericContinuumParticle*>& r_continuum_ini_neighbours = this->mContinuumIniNeighbourElements;
 
@@ -1074,34 +1064,30 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                   double other_partition_index = 0.0;
                   if (has_mpi) other_partition_index = r_continuum_ini_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(PARTITION_INDEX);
 
-                  if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG]) {                  
+                  if(first) {                  
                       
-                    bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetValue(SKIN_SPHERE));
+                    bool neigh_is_skin = bool(r_continuum_ini_neighbours[i]->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
                     
                     int neigh_id = r_continuum_ini_neighbours[i]->Id();
                                         
-                    if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) )
-                    {                                             
-                      if( my_id < neigh_id )
-                      {
+                    if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) ) {                                             
+                      if( my_id < neigh_id ) {
                          bond_i->mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                    
                       } // if my id < neigh id                        
-                      else
-                      {
+                      else {
                          if(!has_mpi) bond_i->mLocalContactAreaHigh = mcont_ini_neigh_area[i];   
-                         else{
+                         else {
                              if(other_partition_index == my_partition_index) bond_i->mLocalContactAreaHigh = mcont_ini_neigh_area[i];
                          }
                       }                                              
                     } //both skin or both inner.
                     
-                    else if( !im_skin && neigh_is_skin ) //we will store both the same only comming from the inner to the skin.
-                    {
-                        if(!has_mpi){
+                    else if( !im_skin && neigh_is_skin ) {//we will store both the same only comming from the inner to the skin.                    
+                        if(!has_mpi) {
                                 bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
                                 bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                                
                         }
-                        else{
+                        else {
                              if(other_partition_index == my_partition_index){
                                 bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
                                 bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];
@@ -1111,11 +1097,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                       
                 }//if(first_time)
                 
-                else //last operation
-                {                  
+                else {//last operation                                  
                    if(!has_mpi) mcont_ini_neigh_area[i] = bond_i->mMeanContactArea;                      
-                }
-                            
+                }                            
             }//loop neigh.
           
             return;
@@ -1312,15 +1296,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
         double sphere_volume = 1.33333333333333333 * KRATOS_M_PI * mRadius * mRadius * mRadius;
         
-        if ( ( rRepresentative_Volume <= sphere_volume )) {// && ( this->GetValue(SKIN_SPHERE) == 0 ) )      
-            rRepresentative_Volume = sphere_volume;
-            //KRATOS_WATCH(this->Id())
-            //KRATOS_WATCH("Zero or negative volume")
-            /*for (int i=0; i<3; i++) {
-                for (int j=0; j<3; j++) {
-                    mStressTensor[i][j] = 0.0;
-                }
-            }   */
+        if ( ( rRepresentative_Volume <= sphere_volume )) {
+            rRepresentative_Volume = sphere_volume;            
         }              
         else {
             for (int i=0; i<3; i++) {
@@ -1418,104 +1395,63 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      } //SphericContinuumParticle::ComputePressureForces
     
    
-    void SphericContinuumParticle::ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo)
+    void SphericContinuumParticle::ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo) {
          
-         {
-         
-            //if (!mInitializedVariablesFlag)
-            if (this->IsNot(DEMFlags::HAS_INITIALIZED_VARIABLES) )
-            {
+        KRATOS_TRY
+        mDempack = rCurrentProcessInfo[DEMPACK_OPTION];             
+        mpCurrentTime =&(rCurrentProcessInfo[TIME]); 
 
-            mDempack = rCurrentProcessInfo[DEMPACK_OPTION]; 
-            
-            mpCurrentTime =&(rCurrentProcessInfo[TIME]); 
-                    
-            if(mDempack)
-            {
+        if(mDempack) {              
+          mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
+          mDempack_global_damping = rCurrentProcessInfo[DEMPACK_GLOBAL_DAMPING];
+        }
+
+        mGamma1 = rCurrentProcessInfo[DONZE_G1];
+        mGamma2 = rCurrentProcessInfo[DONZE_G2];
+        mGamma3 = rCurrentProcessInfo[DONZE_G3];
+        mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
+
+        mSkinSphere = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
+
+        mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];            
+        mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);             
+        mpCaseOption                   = rCurrentProcessInfo[CASE_OPTION];             
+        mContactMeshOption             = rCurrentProcessInfo[CONTACT_MESH_OPTION];            
+        mTriaxialOption                = rCurrentProcessInfo[TRIAXIAL_TEST_OPTION];            
+        mStressStrainOption            = rCurrentProcessInfo[STRESS_STRAIN_OPTION];
+
+        if (mTriaxialOption ) {
+            mFinalPressureTime      = 0.01*rCurrentProcessInfo[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
+        }
+
+        mTanContactInternalFriccion    = rCurrentProcessInfo[CONTACT_INTERNAL_FRICC];
+        double atanInternalFriccion    = atan(mTanContactInternalFriccion);
+        mSinContactInternalFriccion    = sin(atanInternalFriccion);
+        mCosContactInternalFriccion    = cos(atanInternalFriccion);                        
+        mFailureCriterionOption        = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
+        mTensionLimit                  = rCurrentProcessInfo[CONTACT_SIGMA_MIN]*1e6; //N/m2
+        mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;                             
+
+        //nonlinear parameters:            
+        if(mElasticityType == 2) {              
+            mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
+            mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
+            mN3 = rCurrentProcessInfo[SLOPE_FRACTION_N3];
+            mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1]*1e6;
+            mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]*1e6;
+            mC3 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C3]*1e6; 
+            mYoungPlastic = rCurrentProcessInfo[YOUNG_MODULUS_PLASTIC];
+            mPlasticityLimit = rCurrentProcessInfo[PLASTIC_YIELD_STRESS]*1e6;
+            mDamageMaxDisplacementFactor = rCurrentProcessInfo[DAMAGE_FACTOR];              
+        }  
+        KRATOS_CATCH("")
               
-              mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
-              mDempack_global_damping = rCurrentProcessInfo[DEMPACK_GLOBAL_DAMPING];
-
-            }
-            
-            //mpActivateSearch = &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
-
-            mGamma1 = rCurrentProcessInfo[DONZE_G1];
-            mGamma2 = rCurrentProcessInfo[DONZE_G2];
-            mGamma3 = rCurrentProcessInfo[DONZE_G3];
-            mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
-
-            mSkinSphere = &(this->GetValue(SKIN_SPHERE));
-              
-
-            mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
-            
-            mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);             
-
-            mpCaseOption                   = rCurrentProcessInfo[CASE_OPTION]; 
-            
-            mContactMeshOption             = rCurrentProcessInfo[CONTACT_MESH_OPTION];
-            
-            mTriaxialOption                = rCurrentProcessInfo[TRIAXIAL_TEST_OPTION];
-            
-            mStressStrainOption            = rCurrentProcessInfo[STRESS_STRAIN_OPTION];
-
-            if (mTriaxialOption )
-            {
-                mFinalPressureTime      = 0.01*rCurrentProcessInfo[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
-            }
-
-            mTanContactInternalFriccion    = rCurrentProcessInfo[CONTACT_INTERNAL_FRICC];
-            double atanInternalFriccion    = atan(mTanContactInternalFriccion);
-            mSinContactInternalFriccion    = sin(atanInternalFriccion);
-            mCosContactInternalFriccion    = cos(atanInternalFriccion);
-            
-            
-            mFailureCriterionOption        = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
-
-            mTensionLimit                  = rCurrentProcessInfo[CONTACT_SIGMA_MIN]*1e6; //N/m2
-            mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;                             
-      
-            //mInitializedVariablesFlag = 1;
-            this->Set(DEMFlags::HAS_INITIALIZED_VARIABLES);
-            
-            
-            //nonlinear parameters:
-            
-            if(mElasticityType == 2)
-            {
-              
-                mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
-                mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
-                mN3 = rCurrentProcessInfo[SLOPE_FRACTION_N3];
-                mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1]*1e6;
-                mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]*1e6;
-                mC3 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C3]*1e6; 
-                mYoungPlastic = rCurrentProcessInfo[YOUNG_MODULUS_PLASTIC];
-                mPlasticityLimit = rCurrentProcessInfo[PLASTIC_YIELD_STRESS]*1e6;
-                mDamageMaxDisplacementFactor = rCurrentProcessInfo[DAMAGE_FACTOR];
-              
-            }                                     
-              
-            }// if (!mInitializedVariablesFlag)
-        } //ContinuumSphereMemberDeclarationFirstStep
-
-      
-      
-     /*void SphericContinuumParticle::CheckPairWiseBreaking()  //MSIMSI DEBUG
-     
-      {              
-      
-        //MSIMSI DEBUG
-      }*/
-            
+    } //ContinuumSphereMemberDeclarationFirstStep
+                 
     void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
     void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
-
       
 }  // namespace Kratos.
-
-
 
 //NOTE::
 /*
@@ -1526,12 +1462,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
  * #5: We only store in the initial neighbours array the ones that are cohesive or the ones that have possitive or negative initial indentation. In other words,
  *     the non-cohesive ones with 0 indentation (<some tolerance) don't have to be stored since we can treat it indistinctly from other new neighbours that the particle in stury would meet.
 */
-
-
-
-
-
-
            
 //#C2: ComputeParticleRotationSpring;
            
@@ -1739,7 +1669,4 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                    }
 
                }
-*/
-              
-      
-                   
+*/                                       

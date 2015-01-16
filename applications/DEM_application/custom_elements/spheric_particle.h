@@ -95,7 +95,8 @@ virtual ~SphericParticle();
 ///@}
 ///@name Operations
 ///@{
-void Initialize();
+virtual void Initialize();
+virtual void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
 void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
 void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt);
 void CollectCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);

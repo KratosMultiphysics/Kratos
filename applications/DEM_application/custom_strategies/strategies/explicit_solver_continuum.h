@@ -185,13 +185,9 @@ namespace Kratos
         
         this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
-        BaseType::InitializeSolutionStep();
-        
-        BaseType::InitializeElements();
-        BaseType::InitializeFEMElements();
-        
-        this->GetInitializeWasPerformed() = true;
-        
+        BaseType::InitializeSolutionStep();        
+        BaseType::InitializeDEMElements();
+        BaseType::InitializeFEMElements();                
         BaseType::ApplyPrescribedBoundaryConditions();
         
         // 0. Set search radius.
@@ -245,11 +241,9 @@ namespace Kratos
         if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {   
             this->CreateContactElements();
             this->InitializeContactElements();
-            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
-            this->Particle_Area_Calculate(); //first time;
-            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
+            this->Particle_Area_Calculate(true); //first time;
             this->Contact_Calculate_Area();
-            this->Particle_Area_Calculate(); //2nd time
+            this->Particle_Area_Calculate(false); //2nd time
         }
     
         // 5. Finalize Solution Step        
@@ -314,11 +308,9 @@ namespace Kratos
                         if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {                            
                             this->CreateContactElements();
                             this->InitializeContactElements();
-                            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
-                            this->Particle_Area_Calculate(); //first time;
-                            rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
+                            this->Particle_Area_Calculate(true); //first time;
                             this->Contact_Calculate_Area();
-                            this->Particle_Area_Calculate(); //2nd time
+                            this->Particle_Area_Calculate(false); //2nd time
                         }
                     }
 
@@ -715,7 +707,7 @@ namespace Kratos
 
         } //GlobalDamping
 
-    void Particle_Area_Calculate()
+    void Particle_Area_Calculate(const bool first)
     {
            
       KRATOS_TRY
@@ -729,7 +721,7 @@ namespace Kratos
       
       #pragma omp parallel for 
       for ( int i = 0; i<(int)mListOfSphericContinuumParticles.size(); i++){ //Do not do this for the ghost particles!
-         mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi,rCurrentProcessInfo); 
+         mListOfSphericContinuumParticles[i]->CalculateMeanContactArea(has_mpi,rCurrentProcessInfo, first); 
       }
       
       KRATOS_CATCH("")

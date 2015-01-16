@@ -51,6 +51,7 @@ namespace Kratos
       /// Destructor.
       virtual ~SphericContinuumParticle();
        
+      void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
       void SetInitialSphereContacts(ProcessInfo& rCurrentProcessInfo);
       void SetInitialFemContacts();
       void CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo);
@@ -72,7 +73,7 @@ namespace Kratos
       virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
       virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist);            
       
-      virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo);      
+      virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo, const bool first);      
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
                                               double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
 
@@ -129,7 +130,6 @@ namespace Kratos
                                            const bool multi_stage_RHS);         
 
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        //void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, int time_steps);        
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );                
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
