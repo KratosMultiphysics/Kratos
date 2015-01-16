@@ -212,7 +212,8 @@ namespace Kratos
                                      
          void UpdateParticlePressure(
 						 PFEM_Particle & pparticle,
-						 Geometry< Node<3> >& geom
+						 Geometry< Node<3> >& geom,
+						 const double volumetric_change
 						 );
 
 	   void UpdateParticleStresses(
