@@ -830,7 +830,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddKuug(MatrixType& rLeftH
       // std::cout<<std::endl;
       // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<custom_outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
 
-      // this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
+      this->CalculateAndAddKuugTangent( rLeftHandSideMatrix,  rVariables, rIntegrationWeight);
       // std::cout<<std::endl;
       // std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
 
@@ -934,7 +934,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddContactForces(VectorTyp
     if( rVariables.Options.Is(ACTIVE)){
 
        this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
-       //this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
+       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
 
     }
     else{
@@ -1041,8 +1041,8 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(Vec
   VectorType ContactTorque = ZeroVector(3);
 
   //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);      
-  ContactTorque = prod(ContactForceVector,rVariables.SkewSymDistance);
-       
+  ContactTorque = prod(rVariables.SkewSymDistance,ContactForceVector); //  = (D x F)
+
   // std::cout<<" [ContactTorque]: "<<ContactTorque;
   // std::cout<<" [ContactForce]:  "<<ContactForceVector;
   // std::cout<<" [Normal]:  "<<rVariables.Surface.Normal;
@@ -1050,7 +1050,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(Vec
   
   //Contact torque due to contact tangent force on beam surface
   for (unsigned int i =0; i < dimension; ++i) {
-    rRightHandSideVector[i+dimension] -= ContactTorque[i];
+    rRightHandSideVector[i+dimension] += ContactTorque[i];
   }
      
   GetGeometry()[0].SetLock();
