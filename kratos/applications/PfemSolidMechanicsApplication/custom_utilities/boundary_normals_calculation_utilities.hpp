@@ -59,6 +59,7 @@ public:
 	/**@name Type Definitions */
 	/*@{ */
 	typedef ModelPart::NodesContainerType               NodesArrayType;
+        typedef ModelPart::ElementsContainerType     ElementsContainerType;
 	typedef ModelPart::ConditionsContainerType ConditionsContainerType;
   	typedef ModelPart::MeshType                               MeshType;
 	/*@} */
@@ -214,8 +215,15 @@ public:
 	    
 	    MeshType& rMesh = rModelPart.GetMesh(MeshId);
 	    
-	    this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
-	    
+	    //check which type of element is in the 3D mesh, a surface (false) or volumetric (true) element
+	    if( this->CheckVolumetricElements(rMesh, EchoLevel) ){
+	      this->CalculateMeshBoundaryNormals(rMesh, EchoLevel);
+	    }
+	    else{
+	      //std::cout<<" Surface Elements Boundary Calculation "<<std::endl;
+	      ElementsContainerType& rElements = rModelPart.Elements(MeshId);
+	      this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
+	    }
 	  }
 	  
 	  //solid pfem assignation: Unity Normals on nodes and Shrink_Factor on nodes
@@ -303,6 +311,44 @@ private:
 	}
 
 
+	//this function adds the Contribution of one of the geometries
+	//to the corresponding nodes
+	static void CalculateUnityNormal2D(ElementsContainerType::iterator it, array_1d<double,3>& An)
+	{
+		Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+
+		An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
+		An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+		An[2] =    0.00;
+
+		array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+		noalias(normal) = An/norm_2(An);
+
+		// 				(it)->SetValue(NORMAL,An);
+	}
+
+	static void CalculateUnityNormal3D(ElementsContainerType::iterator it, array_1d<double,3>& An,
+					   array_1d<double,3>& v1,array_1d<double,3>& v2 )
+	{
+		Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
+
+		v1[0] = pGeometry[1].X() - pGeometry[0].X();
+		v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+		v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+		v2[0] = pGeometry[2].X() - pGeometry[0].X();
+		v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+		v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+		MathUtils<double>::CrossProduct(An,v1,v2);
+		An *= 0.5;
+
+		array_1d<double,3>& normal = (it)->GetValue(NORMAL);
+
+		noalias(normal) = An/norm_2(An);
+		// 				noalias((it)->GetValue(NORMAL)) = An;
+	}
+
 
 	void ResetBodyNormals(ModelPart& rModelPart, ModelPart::IndexType MeshId=0)
 				      
@@ -374,7 +420,86 @@ private:
 	}
 
 
+       /// Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
+       /** This is done on the base of the Elements provided which should be
+        * understood as the surface elements of the area of interest.
+        * @param rElements A set of elements defining the "skin" of a model
+        * @param dimension Spatial dimension (2 or 3)
+        * @note This function is not recommended for distributed (MPI) runs, as
+        * the user has to ensure that the calculated normals are assembled between
+        * processes. The overload of this function that takes a ModelPart is
+        * preferable in this case, as it performs the required communication.
+        */
+        void CalculateMeshBoundaryNormals(ElementsContainerType& rElements, int EchoLevel = 0)
+				      
+	{
+		KRATOS_TRY
 
+	        //resetting the normals
+		for(ElementsContainerType::iterator it =  rElements.begin();
+		    it != rElements.end(); it++)
+		{
+			Element::GeometryType& rNodes = it->GetGeometry();
+			for(unsigned int in = 0; in<rNodes.size(); in++)
+ 			    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
+		}
+
+		const unsigned int dimension = (rElements.begin())->WorkingSpaceDimension();
+
+		//calculating the normals and storing on the conditions
+		array_1d<double,3> An;
+		if(dimension == 2)
+		{
+			for(ElementsContainerType::iterator it =  rElements.begin();
+			    it !=rElements.end(); it++)
+			{
+			  if(it->IsNot(CONTACT)){
+			    it->Set(BOUNDARY);
+			    CalculateUnityNormal2D(it,An);
+			  }
+			}
+		}
+		else if(dimension == 3)
+		{
+			array_1d<double,3> v1;
+			array_1d<double,3> v2;
+			for(ElementsContainerType::iterator it =  rElements.begin();
+			    it !=rElements.end(); it++)
+			{
+				//calculate the normal on the given condition
+			  if(it->IsNot(CONTACT)){
+			    it->Set(BOUNDARY);
+			    CalculateUnityNormal3D(it,An,v1,v2);
+			  }
+			}
+		}
+
+		KRATOS_CATCH( "" )
+	}
+
+
+       //Check if the mesh has volumetic elements
+       bool CheckVolumetricElements(MeshType& rMesh, int EchoLevel = 0)
+       {
+
+	  KRATOS_TRY
+
+	  ElementsContainerType& rElements = rMesh.Elements();
+	 
+	  ElementsContainerType::iterator it =  rElements.begin();
+	  
+	  if( (it)->GetGeometry().Dimension() == 3 ){
+	    
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
+
+	  KRATOS_CATCH( "" )
+	 
+       }
+  
        /// Calculates the normals of the BOUNDARY nodes of a given MeshId
        //  using a consistent way: SOTO & CODINA
        //  fails in sharp edges angle<90

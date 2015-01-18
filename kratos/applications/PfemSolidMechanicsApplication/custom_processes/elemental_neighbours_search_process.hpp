@@ -529,6 +529,47 @@ namespace Kratos
 
 
 	      }
+	      else if( geom.EdgesNumber() == 3 ){
+
+		//vector of the 3 faces around the given face
+		(ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+
+		//neighb_face is the vector containing pointers to the three faces around ic:
+
+		// neighbour element over edge 1-2 of element ic;
+		neighb_elems(0) = CheckForNeighbourElems2D(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		// neighbour element over edge 2-0 of element ic;
+		neighb_elems(1) = CheckForNeighbourElems2D(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		// neighbour element over edge 0-1 of element ic;
+		neighb_elems(2) = CheckForNeighbourElems2D(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+
+		unsigned int counter=0;
+		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+		  {
+		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
+		      {
+
+			ie->Set(BOUNDARY);
+
+			Geometry<Node<3> >& pGeom = (ie)->GetGeometry();
+			
+			boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+			pGeom.NodesInFaces(lpofa);
+			
+			for(unsigned int i = 0; i < pGeom.size(); i++)
+			  {
+			    if(i!=counter)
+			      pGeom[lpofa(i,0)].Set(BOUNDARY);  //set boundary particles
+			  }
+			
+		      }
+		    
+		    counter++;
+		  }
+
+	      }
+	      
 	    }
         }
 
