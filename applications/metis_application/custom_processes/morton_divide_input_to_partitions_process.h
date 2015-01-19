@@ -102,6 +102,10 @@ public:
     ///@name Type Definitions
     ///@{
 
+    #ifdef KRATOS_USE_METIS_5
+      typedef idx_t idxtype;
+    #endif
+
     /// Pointer definition of MortonDivideInputToPartitionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(MortonDivideInputToPartitionsProcess);
 
