@@ -63,12 +63,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "python/vector_python_interface.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
+#include "custom_processes/morton_divide_input_to_partitions_process.h"
 #include "custom_processes/set_mpi_communicator_process.h"
 
 #ifndef KRATOS_USE_METIS_5
 #include "custom_processes/metis_partitioning_process.h"
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
-#include "custom_processes/morton_divide_input_to_partitions_process.h"
 #include "custom_processes/metis_contact_partitioning_process.h"
 #include "custom_processes/metis_partitioning_process_quadratic.h"
 
@@ -103,11 +103,6 @@ void AddProcessesToPython()
             init<IO&, unsigned int, unsigned int>())
     .def(init<IO&, unsigned int>())
     ;
-    
-    class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MetisDivideNodalInputToPartitionsProcess",
-            init<IO&, unsigned int, unsigned int>())
-    .def(init<IO&, unsigned int>())
-    ;
 
     class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
             init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
@@ -125,6 +120,11 @@ void AddProcessesToPython()
             .def(init<IO&, unsigned int, int, int>())
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
+
+    class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MetisDivideNodalInputToPartitionsProcess",
+                                                                   init<IO&, unsigned int, unsigned int>())
+            .def(init<IO&, unsigned int>())
+    ;
 
     class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
             init<ModelPart&>())
