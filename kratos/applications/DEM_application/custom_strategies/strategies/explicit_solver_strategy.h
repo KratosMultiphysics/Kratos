@@ -408,6 +408,7 @@ namespace Kratos
           // Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
+              for(int i = 0; i < 10; i++)
               CalculateInitialMaxIndentations();
           }
           
@@ -486,7 +487,7 @@ namespace Kratos
 
           this->GetResults().resize(number_of_elements);
           this->GetResultsDistances().resize(number_of_elements);
-          this->GetRadius().resize(number_of_elements);          
+          this->GetRadius().resize(number_of_elements);    
           
           int time_step = rCurrentProcessInfo[TIME_STEPS];
                     
@@ -508,6 +509,14 @@ namespace Kratos
               
               SetSearchRadius(r_model_part, 1.0);        
               SearchNeighbours();
+
+              this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles); 
+              this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+              RepairPointersToNormalProperties(mListOfSphericParticles);
+              RepairPointersToNormalProperties(mListOfGhostSphericParticles);
+              RebuildPropertiesProxyPointers(mListOfSphericParticles);
+              RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
+
               ComputeNewNeighboursHistoricalData();  
               
               SetOriginalRadius(r_model_part);              
@@ -1101,7 +1110,9 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();        
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        if(!number_of_elements) return;    
+        if(!number_of_elements) return; 
+
+        r_model_part.GetCommunicator().GhostMesh().ElementsArray().clear();
         
         GetResults().resize(number_of_elements);
         GetResultsDistances().resize(number_of_elements);                              
@@ -1224,31 +1235,49 @@ namespace Kratos
         KRATOS_CATCH("")
     }
                    
+    /* This should work only with one iteration, but it with mpi does not */
     void CalculateInitialMaxIndentations()
     {
-
+ 
         KRATOS_TRY
-        std::vector<double> indentations_list;
+        std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());
-                
+        indentations_list_ghost.resize(mListOfGhostSphericParticles.size());
+               
         #pragma omp parallel for
         for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
             double indentation;
             mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
             double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
+ 
             mListOfSphericParticles[i]->CalculateMaxBallToFaceIndentation(indentation);
             max_indentation = std::max(max_indentation, indentation);
             indentations_list[i] = max_indentation;
         }
-        
+
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
         for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
             mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
-            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - indentations_list[i]); 
+            mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - indentations_list[i]);
         }
-        
+
+        SynchronizeSolidMesh(BaseType::GetModelPart());
+
+        #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
+        for( int i=0; i<(int)mListOfGhostSphericParticles.size(); i++ ){
+            mListOfGhostSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list_ghost[i];
+            mListOfGhostSphericParticles[i]->SetRadius(mListOfGhostSphericParticles[i]->GetRadius() - indentations_list_ghost[i]);
+        }
+       
+        #pragma omp parallel for
+        for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
+            double indentation;
+            mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
+            double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
+        }
+ 
         KRATOS_CATCH("")
-    
+   
     } // CalculateInitialMaxIndentations()
 
     void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
