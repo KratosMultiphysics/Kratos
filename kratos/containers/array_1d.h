@@ -92,7 +92,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template<class T,	std::size_t	N>
-class	array_1d	: public vector_expression<array_1d<T, N>	>
+class	array_1d	: public boost::numeric::ublas::vector_expression< array_1d<T, N> >
 {
 public:
 //#ifndef	BOOST_UBLAS_NO_PROXY_SHORTCUTS
@@ -108,15 +108,15 @@ public:
     typedef std::size_t size_type;
     typedef	std::ptrdiff_t difference_type;
     typedef	T value_type;
-    typedef	typename type_traits<T>::const_reference const_reference;
+    typedef	typename boost::numeric::ublas::type_traits<T>::const_reference const_reference;
     typedef	T &reference;
     typedef	boost::array<T,N> array_type;
     typedef	T *pointer;
     typedef	array_1d<T, N> self_type;
-    typedef	const vector_reference<const self_type>	const_closure_type;
-    typedef	vector_reference<self_type>	closure_type;
+    typedef	const boost::numeric::ublas::vector_reference<const self_type>	const_closure_type;
+    typedef	boost::numeric::ublas::vector_reference<self_type>	closure_type;
     typedef	self_type vector_temporary_type;
-    typedef	dense_tag storage_category;
+    typedef	boost::numeric::ublas::dense_tag storage_category;
 //		typedef	concrete_tag simd_category; //removed for the new ublas
 
     ///@}
@@ -169,9 +169,9 @@ public:
 
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d (const vector_expression<AE> &ae)
+    array_1d (const boost::numeric::ublas::vector_expression<AE> &ae)
     {
-        vector_assign<scalar_assign> (*this, ae);
+        boost::numeric::ublas::vector_assign<boost::numeric::ublas::scalar_assign> (*this, ae);
     }
 
 
@@ -212,7 +212,7 @@ public:
 
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d &operator = (const vector_expression<AE>	&ae)
+    array_1d &operator = (const boost::numeric::ublas::vector_expression<AE>	&ae)
     {
         // return assign (self_type	(ae));
         self_type temporary	(ae);
@@ -220,7 +220,7 @@ public:
     }
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d &operator +=	(const vector_expression<AE> &ae)
+    array_1d &operator +=	(const boost::numeric::ublas::vector_expression<AE> &ae)
     {
         // return assign (self_type	(*this + ae));
         self_type temporary	(*this + ae);
@@ -228,7 +228,7 @@ public:
     }
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d &operator -=	(const vector_expression<AE> &ae)
+    array_1d &operator -=	(const boost::numeric::ublas::vector_expression<AE> &ae)
     {
         // return assign (self_type	(*this - ae));
         self_type temporary	(*this - ae);
@@ -271,7 +271,7 @@ public:
     }
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d &plus_assign	(const vector_expression<AE> &ae)
+    array_1d &plus_assign	(const boost::numeric::ublas::vector_expression<AE> &ae)
     {
         vector_assign<scalar_plus_assign> (*this, ae); //included for ublas 1.33.1
         //vector_assign (scalar_plus_assign<reference, typename AE::value_type> (), *this, ae);
@@ -279,7 +279,7 @@ public:
     }
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d &assign (const vector_expression<AE>	&ae)
+    array_1d &assign (const boost::numeric::ublas::vector_expression<AE>	&ae)
     {
         vector_assign<scalar_assign> (*this, ae); //included for ublas 1.33.1
         //vector_assign (scalar_assign<reference,	typename AE::value_type> (), *this,	ae);
@@ -382,7 +382,7 @@ public:
     }
     template<class AE>
     BOOST_UBLAS_INLINE
-    array_1d &minus_assign (const	vector_expression<AE> &ae)
+    array_1d &minus_assign (const	boost::numeric::ublas::vector_expression<AE> &ae)
     {
         vector_assign<scalar_minus_assign>(*this,ae);
         //vector_assign (scalar_minus_assign<reference, typename AE::value_type> (), *this, ae);
@@ -638,7 +638,7 @@ public:
 #ifdef BOOST_MSVC_STD_ITERATOR
     typedef	reverse_iterator_base<const_iterator, value_type, const_reference> const_reverse_iterator;
 #else
-    typedef	reverse_iterator_base<const_iterator> const_reverse_iterator;
+    typedef	boost::numeric::ublas::reverse_iterator_base<const_iterator> const_reverse_iterator;
 #endif
 
     BOOST_UBLAS_INLINE
@@ -655,7 +655,7 @@ public:
 #ifdef BOOST_MSVC_STD_ITERATOR
     typedef	reverse_iterator_base<iterator,	value_type,	reference> reverse_iterator;
 #else
-    typedef	reverse_iterator_base<iterator>	reverse_iterator;
+    typedef	boost::numeric::ublas::reverse_iterator_base<iterator>	reverse_iterator;
 #endif
 
     BOOST_UBLAS_INLINE
