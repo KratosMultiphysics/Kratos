@@ -30,6 +30,7 @@ set( KRATOS_DEM_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ringcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cuboidcluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cornkernelcluster3D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/corn3cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/soybeancluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rock1cluster3D.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rock2cluster3D.cpp
