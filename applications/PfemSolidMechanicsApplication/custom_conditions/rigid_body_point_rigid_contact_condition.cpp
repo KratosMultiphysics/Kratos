@@ -987,10 +987,10 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
    
   VectorType ContactForceVector = ZeroVector(3);
 
-  // for (unsigned int i = 0; i < dimension ; ++i) {
-  //   ContactForceVector[i]    = NormalForceModulus * rVariables.Surface.Normal[i];
-  //   rRightHandSideVector[i] += ContactForceVector[i];
-  // }
+  for (unsigned int i = 0; i < dimension ; ++i) {
+    ContactForceVector[i]    = NormalForceModulus * rVariables.Surface.Normal[i];
+    rRightHandSideVector[i] += ContactForceVector[i];
+  }
 
   GetGeometry()[0].SetLock();
 
