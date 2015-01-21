@@ -395,6 +395,7 @@ namespace Kratos
   mRingCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mCuboidCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mCornKernelCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mCorn3Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mSoyBeanCluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mRock1Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mRock2Cluster3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),        
@@ -772,6 +773,7 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("RingCluster3D", mRingCluster3D)
     KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
     KRATOS_REGISTER_ELEMENT("CornKernelCluster3D", mCornKernelCluster3D)
+    KRATOS_REGISTER_ELEMENT("Corn3Cluster3D", mCorn3Cluster3D)     
     KRATOS_REGISTER_ELEMENT("SoyBeanCluster3D", mSoyBeanCluster3D)
     KRATOS_REGISTER_ELEMENT("Rock1Cluster3D", mRock1Cluster3D)
     KRATOS_REGISTER_ELEMENT("Rock2Cluster3D", mRock2Cluster3D)        
