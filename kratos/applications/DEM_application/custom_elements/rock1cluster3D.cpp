@@ -59,9 +59,17 @@ namespace Kratos {
         mListOfCoordinates.resize(number_of_spheres);
         mListOfSphericParticles.resize(number_of_spheres);
         
-        double a, b, c, /* SEMI-AXES */ rf, resize_factor; //to convert centimeters to meters
+        double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        a = 0.5;  b = 0.5;  c = 0.5;  resize_factor = 0.1;  rf = resize_factor;
+        // 1.1455 (in meters) was the length of the rock in GiD (rock05.gid file)
+        // the inverse of that number is 0.87298, that's the number which is multiplying cl
+        // obviously has to be multiplied by 0.001 to obtain millimeters
+        
+        cl *= 0.87298;
+                
+        double a, b, c;
+        
+        a = 0.572749; b = a; c = b;
         
         mListOfCoordinates[ 0][0] =-0.4059089300155639; mListOfCoordinates[ 0][1] =-0.111142139244079; mListOfCoordinates[ 0][2] = 0.17642473061084818;
         mListOfCoordinates[ 1][0] = 0.4734444112777709; mListOfCoordinates[ 1][1] = 0.073340840530395; mListOfCoordinates[ 1][2] =-0.02537642452716770;
@@ -184,22 +192,22 @@ namespace Kratos {
 //        mListOfCoordinates[32][0] = -0.35689636821746817; mListOfCoordinates[32][1] =  0.1010752471923827; mListOfCoordinates[32][2] =  0.15478396227359870;
         
         for (int i = 0; i < 85; i++) { 
-            mListOfCoordinates[i][0] *= rf;  mListOfCoordinates[i][1] *= rf;  mListOfCoordinates[i][2] *= rf;
+            mListOfCoordinates[i][0] *= cl;  mListOfCoordinates[i][1] *= cl;  mListOfCoordinates[i][2] *= cl;
         }
         
-        for (int i = 0; i < 85; i++) { mListOfRadii[i]= 0.15 * rf; }
+        for (int i = 0; i < 85; i++) { mListOfRadii[i]= 0.15 * cl; }
                         
         double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * a * b * c * rf * rf * rf; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * a * b * c * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
         double cluster_mass = particle_density * cluster_volume;
         
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
         
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.2 * cluster_mass * (b * b * rf * rf + c * c * rf * rf);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.2 * cluster_mass * (a * a * rf * rf + c * c * rf * rf);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.2 * cluster_mass * (a * a * rf * rf + b * b * rf * rf);
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.2 * cluster_mass * (b * b * cl * cl + c * c * cl * cl);
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.2 * cluster_mass * (a * a * cl * cl + c * c * cl * cl);
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.2 * cluster_mass * (a * a * cl * cl + b * b * cl * cl);
          
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
   
