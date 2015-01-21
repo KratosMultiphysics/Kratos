@@ -123,6 +123,7 @@ class MonolithicSolver:
         print("#####################################")
         print(self.linear_solver)
         print("#####################################")
+        print("A VER ")
 #### PRUEBA a ver 
 
         # definition of the convergence criteria
@@ -167,10 +168,7 @@ class MonolithicSolver:
         #(ParallelFillCommunicator(self.level_set_model_part)).Execute();
 
         # constructing the convection solver for the distance
-        self.level_set_solver = levelset_solver.Solver(
-            self.level_set_model_part,
-            domain_size,
-            distance_settings)
+        self.level_set_solver = levelset_solver.Solver(self.level_set_model_part,domain_size,distance_settings)
         self.level_set_solver.max_iter = 8
 
         #
@@ -212,7 +210,7 @@ class MonolithicSolver:
         self.maxmin = []
         ParticleLevelSetUtils3D().FindMaxMinEdgeSize(
             self.level_set_model_part, self.maxmin)
-        print(self.maxmin)
+
     #
 
     def ApplyFluidProperties(self):
@@ -252,19 +250,17 @@ class MonolithicSolver:
             self.ReformDofSetAtEachStep,
             self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
-        print(">>>>>>>>>>>>>>> OSS_SWITCH = ", self.oss_switch)
+        #print(">>>>>>>>>>>>>>> OSS_SWITCH = ", self.oss_switch)
         self.model_part.ProcessInfo.SetValue(
             DYNAMIC_TAU, self.dynamic_tau_fluid)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau = self.dynamic_tau_levelset
-        self.redistance_utils.CalculateDistances(
-            self.model_part,
-            DISTANCE,
-            NODAL_AREA,
-            self.max_levels,
-            self.max_distance)
+        
+        
+        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE, NODAL_AREA,self.max_levels,self.max_distance)
+        
         # self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
@@ -310,26 +306,16 @@ class MonolithicSolver:
     #
     def DoRedistance(self):
         # redistance if required
-        self.redistance_utils.CalculateDistances(
-            self.model_part,
-            DISTANCE,
-            NODAL_AREA,
-            self.max_levels,
-            self.max_distance)
+        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA, self.max_levels, self.max_distance)
         # self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
 
      #
     def ConvectDistance(self):
         #self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
-        (self.level_set_model_part.ProcessInfo).SetValue(
-            CONVECTION_DIFFUSION_SETTINGS, distance_settings)
-        (self.level_set_model_part.ProcessInfo).SetValue(
-            DYNAMIC_TAU, self.dynamic_tau_levelset)  # self.dynamic_tau
+        (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS, distance_settings)
+        (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU, self.dynamic_tau_levelset)  # self.dynamic_tau
         (self.level_set_solver).Solve()
-        BiphasicFillingUtilities(
-        ).DistanceFarRegionCorrection(
-            self.model_part,
-            self.max_distance)
+        BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,self.max_distance)
      #
       #
 
@@ -337,10 +323,7 @@ class MonolithicSolver:
         # at the beginning of the calculations do a div clearance step
         if(self.divergence_clearance_performed == False):
             for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(
-                    DISTANCE,
-                    1,
-                    node.GetSolutionStepValue(DISTANCE))
+                node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
             self.divergence_clearance_performed = True
 
         if(step > 3):
@@ -348,8 +331,45 @@ class MonolithicSolver:
 
         Timer.Start("ConvectDistance")
         # convect distance function
+
+        #### pa borrar
+        for node in self.model_part.GetNodes():
+            if node.Id==1404:
+                dkk=node.GetValue(DISTANCE)
+                isvisit=node.GetValue(IS_VISITED)
+
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print(" Before Convecting dostance-----------------------")
+        print(dkk," --- ",isvisit)
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
         self.ConvectDistance()
+        #### pa borrar
+        for node in self.model_part.GetNodes():
+            if node.Id==1404:
+                dkk=node.GetValue(DISTANCE)
+                isvisit=node.GetValue(IS_VISITED)
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("after Convect distance-------------------------------")
+        print(dkk," --- ",isvisit)
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
+        print("-------------------------------------------------")
         Timer.Stop("ConvectDistance")
+
+
+
         # recompute distance function as needed
         Timer.Start("DoRedistance")
         if(self.internal_step_counter >= self.next_redistance):
@@ -361,14 +381,48 @@ class MonolithicSolver:
                 if( node.GetSolutionStepValue(DISTANCE) > 0.0):
                     node.SetSolutionStepValue(DISTANCE,0,  -0.01*self.max_edge_size)
             
+            #### pa borrar
+            for node in self.model_part.GetNodes():
+                if node.Id==1404:
+                    dkk=node.GetValue(DISTANCE)
+                    isvisit=node.GetValue(IS_VISITED)
+
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print(" Before Redistance-----------------------")
+            print(dkk," --- ",isvisit)
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
             self.DoRedistance()
+        
+            #### pa borrar
+            for node in self.model_part.GetNodes():
+                if node.Id==1404:
+                    dkk=node.GetValue(DISTANCE)
+                    isvisit=node.GetValue(IS_VISITED)
+
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("after redistance-----------------------")
+            print(dkk," --- ",isvisit)
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
+            print("-------------------------------------------------")
             self.next_redistance = self.internal_step_counter + \
                 self.redistance_frequency
         Timer.Stop("DoRedistance")
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
-            BiphasicFillingUtilities().VolumeCorrection(
-                self.model_part, net_volume, self.max_edge_size)
+            BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
         BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,100.0)
