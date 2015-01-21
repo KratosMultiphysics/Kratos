@@ -37,7 +37,7 @@ def AddVariables(model_part, settings):
 
 
 def AddDofs(model_part, settings):
-    print("KKKKKKKKKKKKKKKKKKK............................................................nnnnnnnnnnnnnnnnnnnnnnn")
+    #print("KKKKKKKKKKKKKKKKKKK............................................................nnnnnnnnnnnnnnnnnnnnnnn")
     for node in model_part.Nodes:
         node.AddDof(settings.GetUnknownVariable());
 
