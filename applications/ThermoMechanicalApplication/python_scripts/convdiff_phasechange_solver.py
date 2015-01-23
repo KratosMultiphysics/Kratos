@@ -76,9 +76,9 @@ class Solver:
         
         ##strategy to be used in step0 - pure convection step - a non-symmetric linear solver is required
         gmres_size = 50
-        tol = 1e-4
+        tol = 1e-6 #ATTENTION, BEFORE 1e-4
         verbosity = 0
-        self.non_symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)
+        self.non_symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK, tol, 200, verbosity, gmres_size)#AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)
         self.stage0_time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         self.stage0_conv_criteria = IncrementalDisplacementCriteria(1e-2, 1e-4)
         self.stage0_max_iterations = 2
@@ -118,7 +118,7 @@ class Solver:
                                                                     self.ReformDofSetAtEachStep,
                                                                     self.MoveMeshFlag)   
         else:
-            self.MaxLineSearchIterations = 20
+            self.MaxLineSearchIterations = 20 #Ojo
             self.tolls = 0.8           # energy tolerance factor on LineSearch (0.8 is ok)
             self.amp = 1.618         # maximum amplification factor
             self.etmxa = 3.0           # maximum allowed step length
