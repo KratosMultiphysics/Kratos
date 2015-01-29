@@ -61,15 +61,18 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        // 1.1455 (in meters) was the length of the rock in GiD (rock05.gid file)
-        // the inverse of that number is 0.87298, that's the number which is multiplying cl
-        // obviously has to be multiplied by 0.001 to obtain millimeters
-        
+        // 1.1455 (in meters) was the medium diameter of the rock in GiD (rock05.gid file)
+        // so we should multiply every size that follow by the inverse of that number, 0.87298,
+        // to obtain a 'unity' rock.
+        // We then have to multiply again everything by 'cl' to obtain the desired dimensions
+        // to adjust to the characteristic length given
+                
         cl *= 0.87298;
                 
         double a, b, c;
         
-        a = 0.572749; b = a; c = b;
+        a = 0.572749; // this is the original semi-axis (1.1455/2)
+        b = a; c = b;
         
         mListOfCoordinates[ 0][0] =-0.4059089300155639; mListOfCoordinates[ 0][1] =-0.111142139244079; mListOfCoordinates[ 0][2] = 0.17642473061084818;
         mListOfCoordinates[ 1][0] = 0.4734444112777709; mListOfCoordinates[ 1][1] = 0.073340840530395; mListOfCoordinates[ 1][2] =-0.02537642452716770;
@@ -205,12 +208,16 @@ namespace Kratos {
         
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
         
-        array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-        base_principal_moments_of_inertia[0] = 0.2 * cluster_mass * (b * b * cl * cl + c * c * cl * cl);
-        base_principal_moments_of_inertia[1] = 0.2 * cluster_mass * (a * a * cl * cl + c * c * cl * cl);
-        base_principal_moments_of_inertia[2] = 0.2 * cluster_mass * (a * a * cl * cl + b * b * cl * cl);
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.2 * cluster_mass * (b * b * cl * cl + c * c * cl * cl);
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.2 * cluster_mass * (a * a * cl * cl + c * c * cl * cl);
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.2 * cluster_mass * (a * a * cl * cl + b * b * cl * cl);
          
-        //array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
+        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        
+//        array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+//        base_principal_moments_of_inertia[0] = 0.2 * cluster_mass * (b * b * cl * cl + c * c * cl * cl);
+//        base_principal_moments_of_inertia[1] = 0.2 * cluster_mass * (a * a * cl * cl + c * c * cl * cl);
+//        base_principal_moments_of_inertia[2] = 0.2 * cluster_mass * (a * a * cl * cl + b * b * cl * cl); 
   
     }     
     
