@@ -1273,7 +1273,6 @@ namespace Kratos
         for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
             double indentation;
             mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
-            double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
         }
  
         KRATOS_CATCH("")
