@@ -281,7 +281,7 @@ mesh_motion = DEMFEMUtilities()
 post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
-while ( time < DEM_parameters.FinalTime):
+while (time < DEM_parameters.FinalTime):
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
@@ -290,9 +290,9 @@ while ( time < DEM_parameters.FinalTime):
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
     
-    rigid_face_model_part.ProcessInfo[TIME]       = time
-    rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
-    rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
+    rigid_face_model_part.ProcessInfo[TIME]         = time
+    rigid_face_model_part.ProcessInfo[DELTA_TIME]   = dt
+    rigid_face_model_part.ProcessInfo[TIME_STEPS]   = step
 
     cluster_model_part.ProcessInfo[TIME]            = time
     cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
