@@ -44,6 +44,7 @@
 #include "custom_elements/soybeancluster3D.h"
 #include "custom_elements/rock1cluster3D.h"
 #include "custom_elements/rock2cluster3D.h"
+#include "custom_elements/wheat5cluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
@@ -208,6 +209,7 @@ private:
     const SoyBeanCluster3D  mSoyBeanCluster3D;
     const Rock1Cluster3D  mRock1Cluster3D;
     const Rock2Cluster3D  mRock2Cluster3D;
+    const Wheat5Cluster3D  mWheat5Cluster3D;
     const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
