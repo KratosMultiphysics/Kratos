@@ -99,7 +99,7 @@ class DEMFEMUtilities
                 array_1d<double, 3 > center_position;
                 array_1d<double, 3 > linear_velocity_changed;
                 array_1d<double, 3 > angular_velocity_changed;
-                array_1d<double, 3 > angle;
+                array_1d<double, 3 > angle = ZeroVector(3);
                 double sign_angle = 0.0;
                 
                 if (time < velocity_start_time || time > velocity_stop_time) {
