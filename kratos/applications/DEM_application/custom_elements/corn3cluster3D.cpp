@@ -63,31 +63,36 @@ namespace Kratos {
         
         // 6.53 (in meters) was the length of the particle in GiD (corn3_design_01.gid file)
         // the inverse of that number is 0.15314, that's the number which is multiplying cl
-        // obviously has to be multiplied by 0.001 to obtain millimeters
-                
-        mListOfRadii[0]= 2.340 * cl * 0.15314;
-        mListOfRadii[1]= 1.872 * cl * 0.15314;
-        mListOfRadii[2]= 0.732 * cl * 0.15314;
+        // to obtain a maximum axis length of 1.0
         
-        mListOfCoordinates[0][0] = 0.0; mListOfCoordinates[0][1] =  0.815 * cl * 0.15314; mListOfCoordinates[0][2] = 0.0;
-        mListOfCoordinates[1][0] = 0.0; mListOfCoordinates[1][1] = -0.870 * cl * 0.15314; mListOfCoordinates[1][2] = 0.0;
-        mListOfCoordinates[2][0] = 0.0; mListOfCoordinates[2][1] = -2.643 * cl * 0.15314; mListOfCoordinates[2][2] = 0.0; 
+        cl *= 0.15314;
+                
+        mListOfRadii[0]= 2.340 * cl;
+        mListOfRadii[1]= 1.872 * cl;
+        mListOfRadii[2]= 0.732 * cl;
+        
+        mListOfCoordinates[0][0] = 0.0; mListOfCoordinates[0][1] =  0.815 * cl; mListOfCoordinates[0][2] = 0.0;
+        mListOfCoordinates[1][0] = 0.0; mListOfCoordinates[1][1] = -0.870 * cl; mListOfCoordinates[1][2] = 0.0;
+        mListOfCoordinates[2][0] = 0.0; mListOfCoordinates[2][1] = -2.643 * cl; mListOfCoordinates[2][2] = 0.0; 
         
         double particle_density = this->SlowGetDensity();
         
-        double a = 2.742 * cl * 0.15314;
-        double b = 2.742 * cl * 0.15314;
-        double c = 2.742 * cl * 0.15314;
+        //For the time being, we assume, in order to obtain the inertias, an equivalent sphere with an average diameter
+        //'a' is the equivalent radius
         
-        double cluster_volume = 1.33333333333333333 * a * b * c;
-        
+        double a = 2.742 * cl;
+                
+        double cluster_volume = 1.33333333333333333 * KRATOS_M_PI * a * a * a;
+                
         double cluster_mass = particle_density * cluster_volume;
         
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
         
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.4 * cluster_mass * b * b;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.4 * cluster_mass * c * c;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.4 * cluster_mass * a * a;
+        double inertia = 0.4 * cluster_mass * a * a;
+        
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = inertia;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = inertia;
+        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = inertia;
          
         array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
             
