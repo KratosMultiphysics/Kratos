@@ -87,6 +87,25 @@ typename TVariableType::Type GetValueHelperFunction1( TContainerType& el,
     return el.GetValue(rVar);
 }
 
+
+
+template< class TContainerType, class XVariableType, class YVariableType> void SetTableHelperFunction1(
+    TContainerType& el,
+    const XVariableType& XVar,
+    const YVariableType& YVar,
+	const typename Properties::TableType& Data)
+{
+    el.SetTable(XVar, YVar, Data);
+}
+
+template< class TContainerType, class XVariableType, class YVariableType>
+typename Properties::TableType& GetTableHelperFunction1( TContainerType& el,
+        const XVariableType& XVar,
+    const YVariableType& YVar )
+{
+    return el.GetTable(XVar, YVar);
+}
+
 void  AddPropertiesToPython()
 {
     class_<Properties, Properties::Pointer, bases<Properties::BaseType > >("Properties", init<int>())
@@ -94,8 +113,7 @@ void  AddPropertiesToPython()
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-
-
+	
     .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 3> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
@@ -131,7 +149,16 @@ void  AddPropertiesToPython()
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
 
-    .def(self_ns::str(self))
+	.def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, return_internal_reference<>())
+    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >, return_internal_reference<>())
+    .def("GetTable", GetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, return_internal_reference<>())
+    .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, return_internal_reference<>())
+    .def("SetTable", SetTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
+    .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
+    .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+
+	.def(self_ns::str(self))
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>::CreateInterface("PropertiesArray")
