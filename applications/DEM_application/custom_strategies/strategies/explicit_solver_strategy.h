@@ -841,14 +841,14 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
         
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pTContitions.size(), this->GetElementPartition());
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pTConditions.size(), this->GetElementPartition());
 
         #pragma omp parallel for 
         for (int k = 0; k < this->GetNumberOfThreads(); k++){
-            typename ConditionsArrayType::iterator it_begin = pTContitions.ptr_begin() + this->GetElementPartition()[k];
-            typename ConditionsArrayType::iterator it_end   = pTContitions.ptr_begin() + this->GetElementPartition()[k + 1];
+            typename ConditionsArrayType::iterator it_begin = pTConditions.ptr_begin() + this->GetElementPartition()[k];
+            typename ConditionsArrayType::iterator it_end   = pTConditions.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it){
                 (it)->Initialize();
