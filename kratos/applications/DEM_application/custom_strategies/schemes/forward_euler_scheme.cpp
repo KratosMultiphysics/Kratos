@@ -32,8 +32,8 @@ namespace Kratos {
     }
 
     void ForwardEulerScheme::CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
-        KRATOS_TRY
-         
+        
+        KRATOS_TRY 
         
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
         double delta_t = rCurrentProcessInfo[DELTA_TIME];
@@ -116,7 +116,7 @@ namespace Kratos {
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int k = 0; k < (int) number_of_threads; k++) {
 
             NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
@@ -210,7 +210,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-                typedef ModelPart::ElementsContainerType ElementsArrayType;
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ElementsArrayType::iterator ElementIterator;
         ProcessInfo& rCurrentProcessInfo = rcluster_model_part.GetProcessInfo();
 
@@ -234,7 +234,6 @@ namespace Kratos {
                 Node < 3 > & i = cluster_element.GetGeometry()[0];
 
                 array_1d<double, 3 > & PMomentsOfInertia = i.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-
                 array_1d<double, 3 > & AngularVel = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3 > & RotaMoment = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
                 array_1d<double, 3 > & Rota_Displace = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
