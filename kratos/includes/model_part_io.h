@@ -829,25 +829,25 @@ protected:
 
         ReadWord(variable_name);
 
-        if(!KratosComponents<Variable<double> >::Has(variable_name))
-        {
-            std::stringstream buffer;
-            buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
-            buffer << " [Line " << mNumberOfLines << " ]";
-            KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+        //if(!KratosComponents<Variable<double> >::Has(variable_name))
+        //{
+        //    std::stringstream buffer;
+        //    buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
+        //    buffer << " [Line " << mNumberOfLines << " ]";
+        //    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
 
-        }
+        //}
 
         ReadWord(variable_name);
 
-        if(!KratosComponents<Variable<double> >::Has(variable_name))
-        {
-            std::stringstream buffer;
-            buffer << variable_name << " is not a valid value variable!!! Table only accepts double values." << std::endl;
-            buffer << " [Line " << mNumberOfLines << " ]";
-            KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+        //if(!KratosComponents<Variable<double> >::Has(variable_name))
+        //{
+        //    std::stringstream buffer;
+        //    buffer << variable_name << " is not a valid value variable!!! Table only accepts double values." << std::endl;
+        //    buffer << " [Line " << mNumberOfLines << " ]";
+        //    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
 
-        }
+        //}
 
         while(!mInput.eof())
         {
