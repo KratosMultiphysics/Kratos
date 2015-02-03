@@ -73,20 +73,12 @@ public:
 
     typedef std::vector<RecordType> TableContainerType;
 
-    typedef Variable<TArgumentType> XVariableType;
-    typedef Variable<TResultType> YVariableType;
-
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Table() : mData(), mpXVariable(NULL) , mpYVariable(NULL)
-    {
-    }
-
-    /// Default constructor.
-    Table(XVariableType const& XVariable, YVariableType const& YVariable) : mData(), mpXVariable(&XVariable) , mpYVariable(&YVariable)
+    Table() : mData()
     {
     }
 
@@ -279,16 +271,6 @@ public:
         return mData;
     }
 
-    const XVariableType& GetXVariable()
-    {
-        return *mpXVariable;
-    }
-
-    const YVariableType& GetYVariable()
-    {
-        return *mpYVariable;
-    }
-
 
     ///@}
     ///@name Inquiry
@@ -370,8 +352,6 @@ private:
     ///@{
 
     TableContainerType mData;
-    const XVariableType* mpXVariable;
-    const YVariableType* mpYVariable;
 
     ///@}
     ///@name Private Operators
@@ -433,28 +413,23 @@ public:
     ///@{
 
     /// Default constructor.
-    Table() : mData(), mpXVariable(NULL) , mpYVariable(NULL)
+    Table() : mData()
     {
     }
 
 
     /// Copy constructor.
-    Table(Table const& rOther): mData(rOther.mData), mpXVariable(rOther.mpXVariable) , mpYVariable(rOther.mpYVariable)
+    Table(Table const& rOther): mData(rOther.mData)
     {
 
     }
 
     /// Matrix constructor. the template parameter must have (i,j) access operator and  size1 methods defined.
     template<class TMatrixType>
-    Table(TMatrixType const& ThisMatrix): mData(), mpXVariable(NULL) , mpYVariable(NULL)
+    Table(TMatrixType const& ThisMatrix): mData()
     {
         for(unsigned int i = 0 ; i < ThisMatrix.size1() ; i++)
             PushBack(ThisMatrix(i,0), ThisMatrix(i,1));
-    }
-
-    /// Variable constructor.
-    Table(XVariableType const& XVariable, YVariableType const& YVariable) : mData(), mpXVariable(&XVariable) , mpYVariable(&YVariable)
-    {
     }
 
     /// Destructor.
@@ -658,16 +633,6 @@ public:
         return mData;
     }
 
-    const XVariableType& GetXVariable()
-    {
-        return *mpXVariable;
-    }
-
-    const YVariableType& GetYVariable()
-    {
-        return *mpYVariable;
-    }
-
 
     ///@}
     ///@name Inquiry
@@ -715,8 +680,6 @@ private:
     ///@{
 
     TableContainerType mData;
-    const XVariableType* mpXVariable;
-    const YVariableType* mpYVariable;
 
     ///@}
     ///@name Private Operators
