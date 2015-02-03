@@ -157,16 +157,23 @@ namespace Kratos
       
     rModelPart.Conditions().swap(KeepConditions);
 
+
     //Sort
     rModelPart.Nodes().Sort();
     rModelPart.Elements().Sort();
-    rModelPart.Conditions().Sort();
-      
+    rModelPart.Conditions().Sort();     
+
     //Unique
     rModelPart.Nodes().Unique();
     rModelPart.Elements().Unique();
     rModelPart.Conditions().Unique();
+
+    //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
+    unsigned int consecutive_index = 1;
+    for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(0) ; in != rModelPart.NodesEnd(0) ; in++)
+      in->SetId(consecutive_index++);
       
+
     std::cout<<"   [ END MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
  
   }

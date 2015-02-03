@@ -406,6 +406,7 @@ namespace Kratos
     //DeleteTrianglesList(out);
     ClearTrianglesList(out);
 	
+
     if( this->GetEchoLevel() > 0 ){
       std::cout<<" [ NEW MESH (Elements: "<<rModelPart.Elements(MeshId).size()<<" Nodes: "<<rModelPart.Nodes(MeshId).size()<<" Conditions: "<<rModelPart.Conditions(MeshId).size()<<" ] "<<std::endl;
       std::cout<<" [ Finished Remeshing ] "<<std::endl;

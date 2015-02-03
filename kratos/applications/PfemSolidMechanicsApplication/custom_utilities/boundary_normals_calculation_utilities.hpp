@@ -680,6 +680,7 @@ private:
 		std::vector<WeakPointerVector<Condition> > nConditions(rNodes.size()+1);
 		std::vector<int> Ids (rModelPart.NumberOfNodes()+1) ;
 		std::fill( Ids.begin(), Ids.end(), 0 );
+
 	
 		//*************  Neigbours of nodes search ************//
 		//add the neighbour conditions to all the nodes in the mesh
