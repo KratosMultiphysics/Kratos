@@ -103,6 +103,9 @@ public:
     /// Pointer definition of Properties
     KRATOS_CLASS_POINTER_DEFINITION(Properties);
 
+#ifdef  _WIN32 // work around for windows int64_t error
+    typedef __int64 int64_t;
+#endif
     typedef IndexedObject BaseType;
 
     typedef DataValueContainer ContainerType;
@@ -113,7 +116,7 @@ public:
 
 	typedef Table<double> TableType;
 
-	typedef std::map<__int64, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+	typedef std::map<int64_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
 
     ///@}
@@ -278,9 +281,9 @@ public:
 		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
 
-	__int64 Key(std::size_t XKey, std::size_t YKey) const
+	int64_t Key(std::size_t XKey, std::size_t YKey) const
 	{
-		__int64 result_key = XKey;
+		int64_t result_key = XKey;
 		result_key = result_key << 32;
 		result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
 		return result_key;
