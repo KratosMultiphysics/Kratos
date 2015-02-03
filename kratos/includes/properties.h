@@ -264,19 +264,19 @@ public:
     }
 
     template<class XVariableType, class YVariableType>
-    typename TableType& GetTable(const XVariableType& XVariable, const YVariableType& YVariable)
+    TableType& GetTable(const XVariableType& XVariable, const YVariableType& YVariable)
     {
 		return mTables[Key(XVariable, YVariable)];
     }
 
     template<class XVariableType, class YVariableType>
-    typename TableType const& GetTable(const XVariableType& XVariable, const YVariableType& YVariable) const
+    TableType const& GetTable(const XVariableType& XVariable, const YVariableType& YVariable) const
     {
 		return mTables[Key(XVariable.Key(), YVariable.Key())];
     }
 
     template<class XVariableType, class YVariableType>
-    void SetTable(const XVariableType& XVariable, const YVariableType& YVariable, typename TableType const& rThisTable)
+    void SetTable(const XVariableType& XVariable, const YVariableType& YVariable, TableType const& rThisTable)
     {
 		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
