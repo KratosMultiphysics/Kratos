@@ -48,7 +48,7 @@ void DEM_Dempack1::CalculateContactForces(double mRadius,
                                           double ViscoDampingLocalContactForce[3],
                                           double LocalDeltDisp[3],
                                           Vector mcont_ini_neigh_area,
-                                          array_1d<double, 4 > &mHistory_mapping_new_cont,
+                                          array_1d<double, 6 > &mHistory_mapping_new_cont,
                                           double mDempack_damping,
                                           int mDampType,
                                           int mIniNeighbourFailureId_mapping_new_ini,
@@ -77,7 +77,7 @@ void DEM_Dempack1::PlasticityAndDamage1D(double LocalElasticContactForce[3],
                 const double mC3,
                 const double mTensionLimit,
                 const double mDamageMaxDisplacementFactor,
-                array_1d <double, 4> &mHistory_mapping_new_cont,
+                array_1d <double, 6> &mHistory_mapping_new_cont,
                 int &mNeighbourFailureId_i_neighbour_count,
                 int &mIniNeighbourFailureId_mapping_new_ini,
                 int time_steps) {
@@ -189,8 +189,11 @@ void DEM_Dempack1::PlasticityAndDamage1D(double LocalElasticContactForce[3],
                         if (u_frac > mHistory_mapping_new_cont[2]) {
                             mHistory_mapping_new_cont[2] = u_frac;
                         }
+                    double kn_damage = u1/(fabs(indentation)) * kn_el*(1.0 -  mHistory_mapping_new_cont[2]);  // normal adhesive force (gap +)
+                    fn =  kn_damage * indentation;
+                    //fn = indentation * kn_el*(1.0 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
                     }
-                    fn = indentation * kn_el * (1.0 - mHistory_mapping_new_cont[2]); // normal adhesive force (gap +)            
+                          
                 }
             } //Tension    
         }

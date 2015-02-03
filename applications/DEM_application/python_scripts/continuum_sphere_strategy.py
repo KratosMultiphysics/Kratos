@@ -156,6 +156,7 @@ class ExplicitStrategy:
             self.LCS2 = Param.LCS2
             self.LCS3 = Param.LCS3
             self.YRC1 = Param.YRC1
+            self.shear_energy_coef = Param.shear_energy_coef
             self.YRC2 = Param.YRC2
             self.YRC3 = Param.YRC3
             self.plastic_young_modulus_ratio = Param.PlasticYoungModulus
@@ -300,6 +301,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(YOUNG_MODULUS_PLASTIC, self.plastic_young_modulus_ratio)
             self.model_part.ProcessInfo.SetValue(PLASTIC_YIELD_STRESS, self.plastic_yield_stress)
             self.model_part.ProcessInfo.SetValue(DAMAGE_FACTOR, self.damage_deformation_factor)
+            self.model_part.ProcessInfo.SetValue(SHEAR_ENERGY_COEF, self.shear_energy_coef)
 
         if (self.force_calculation_type_id == 3):
             self.model_part.ProcessInfo.SetValue(DONZE_G1, self.donze_g1)

@@ -45,7 +45,7 @@ namespace Kratos {
             double ViscoDampingLocalContactForce[3],
             double LocalDeltDisp[3],
             Vector mcont_ini_neigh_area,
-            array_1d<double, 4 > &mHistory_mapping_new_cont,
+            array_1d<double, 6 > &mHistory_mapping_new_cont,
             double mDempack_damping,
             int mDampType,
             int mIniNeighbourFailureId_mapping_new_ini,

@@ -9,11 +9,11 @@ from KratosMultiphysics.DEMApplication import *
 
 class MaterialTest(object):
 
-  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, RigidFace_model_part):
+  def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, RigidFace_model_part):
       self.parameters = DEM_parameters
       self.graphs_path = graphs_path
       self.post_path = post_path
-      self.balls_model_part = balls_model_part
+      self.spheres_model_part = spheres_model_part
       self.RigidFace_model_part = RigidFace_model_part
       self.Procedures = procedures
       self.solver = solver
@@ -56,7 +56,7 @@ class MaterialTest(object):
       
       self.length_correction_factor = 1.0
 
-      self.graph_frequency        = int(self.parameters.GraphExportFreq/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+      self.graph_frequency        = int(self.parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
       
       self.strain = 0.0; self.strain_bts = 0.0; self.volumetric_strain = 0.0; self.radial_strain = 0.0; self.first_time_entry = 1; self.first_time_entry_2 = 1
       self.total_stress_top = 0.0; self.total_stress_bot = 0.0; self.total_stress_mean = 0.0;
@@ -75,7 +75,7 @@ class MaterialTest(object):
       self.chart = open(self.parameters.problem_name + "_Parameter_chart.grf", 'w')
 
   def Initialize(self):
-              
+      
       self.PrepareTests()
       self.PrepareTestTriaxialHydro()
       self.PrepareTestOedometric()
@@ -89,6 +89,7 @@ class MaterialTest(object):
           node.SetSolutionStepValue(VELOCITY_Z, 0.0);
           node.Fix(VELOCITY_X);
           node.Fix(VELOCITY_Z);
+          ##print(node.GetSolutionStepValue(VELOCITY_Z))
 
   def PrepareTestTriaxialHydro(self):
       if ( ( self.parameters.TestType == "Triaxial") or ( self.parameters.TestType == "Hydrostatic") ):
@@ -196,7 +197,7 @@ class MaterialTest(object):
         weight_top = 0.0
         weight_bot = 0.0
 
-        for element in self.balls_model_part.Elements:
+        for element in self.spheres_model_part.Elements:
 
             element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
 
@@ -283,7 +284,7 @@ class MaterialTest(object):
       d = self.parameters.SpecimenDiameter
       eps = 2.0
 
-      for element in self.balls_model_part.Elements:
+      for element in self.spheres_model_part.Elements:
 
           element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
 
@@ -320,16 +321,16 @@ class MaterialTest(object):
         self.bot_mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
         prepare_check[1] = 1
       
-    for mesh_number in range(1, self.balls_model_part.NumberOfMeshes()):
+    for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
       
-      if(self.balls_model_part.GetMesh(mesh_number)[TOP]):
+      if(self.spheres_model_part.GetMesh(mesh_number)[TOP]):
         
-        self.top_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
+        self.top_mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
         prepare_check[2] = -1
         
-      if(self.balls_model_part.GetMesh(mesh_number)[BOTTOM]):
+      if(self.spheres_model_part.GetMesh(mesh_number)[BOTTOM]):
         
-        self.bot_mesh_nodes = self.balls_model_part.GetMesh(mesh_number).Nodes
+        self.bot_mesh_nodes = self.spheres_model_part.GetMesh(mesh_number).Nodes
         prepare_check[3] = -1
         
     for it in range(len(prepare_check)):
@@ -342,7 +343,7 @@ class MaterialTest(object):
    
   def MeasureForcesAndPressure(self):
     
-    dt = self.balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
+    dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
     self.strain += -100*self.length_correction_factor*1.0*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenLength
 
@@ -748,7 +749,7 @@ class MaterialTest(object):
 
     #if(self.parameters.PoissonMeasure == "ON"):
             
-          #for node in balls_model_part.Nodes:
+          #for node in spheres_model_part.Nodes:
             
             #if (node.GetSolutionStepValue(GROUP_ID)==4):
               
