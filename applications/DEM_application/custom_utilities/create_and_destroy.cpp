@@ -43,6 +43,46 @@ namespace Kratos {
 
         return return_value;
     }
+    
+    static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity){
+        
+        
+        double velocity_modulus = sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]);
+        array_1d<double, 3 > unitary_velocity;
+        noalias(unitary_velocity) = velocity / velocity_modulus;
+        array_1d<double, 3 > normal_1;
+        array_1d<double, 3 > normal_2;
+        
+        if(fabs(unitary_velocity[0])>=0.577) {
+            normal_1[0]= - unitary_velocity[1];
+            normal_1[1]= unitary_velocity[0];
+            normal_1[2]= 0.0;
+        }
+        else if(fabs(unitary_velocity[1])>=0.577) {
+            normal_1[0]= 0.0;
+            normal_1[1]= - unitary_velocity[2];
+            normal_1[2]= unitary_velocity[1];
+        }        
+        else {                   
+            normal_1[0]= unitary_velocity[2];
+            normal_1[1]= 0.0;
+            normal_1[2]= - unitary_velocity[0];
+        }        
+        
+        //normalize(normal_1);
+        double distance0 = sqrt(normal_1[0] * normal_1[0] + normal_1[1] * normal_1[1] + normal_1[2] * normal_1[2]);
+        double inv_distance0 = (distance0 != 0.0) ?  1.0 / distance0 : 0.00;
+        normal_1[0] = normal_1[0] * inv_distance0;
+        normal_1[1] = normal_1[1] * inv_distance0;
+        normal_1[2] = normal_1[2] * inv_distance0;
+        
+        //CrossProduct(NormalDirection,Vector0,Vector1);
+        normal_2[0] = unitary_velocity[1]*normal_1[2] - unitary_velocity[2]*normal_1[1];
+        normal_2[1] = normal_1[0]*unitary_velocity[2] - unitary_velocity[0]*normal_1[2];
+        normal_2[2] = unitary_velocity[0]*normal_1[1] - unitary_velocity[1]*normal_1[0];                        
+        
+        
+    }
 
     ParticleCreatorDestructor::ParticleCreatorDestructor() : mGreatestParticleId(0) {
         mScaleFactor = 1.0;
@@ -102,7 +142,9 @@ namespace Kratos {
         }
         else {
             pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
-            pnew_node->FastGetSolutionStepValue(VELOCITY) = params[VELOCITY];
+            array_1d<double, 3 > velocity = params[VELOCITY];
+            //AddRandomPerpendicularVelocityToGivenVelocity(velocity);
+            pnew_node->FastGetSolutionStepValue(VELOCITY) = velocity;
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
         }
 
@@ -207,7 +249,7 @@ namespace Kratos {
         p_particle->Set(NEW_ENTITY);
         pnew_node->Set(NEW_ENTITY);
 
-        p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());       
+        //p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());       
 
         spheric_p_particle->SetFastProperties(p_fast_properties);
 
@@ -219,7 +261,7 @@ namespace Kratos {
         if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
         else spheric_p_particle->Set(DEMFlags::HAS_ROTATION, false);
 
-        spheric_p_particle->FullInitialize(r_modelpart.GetProcessInfo()); //////////////// STANDARD INITIALIZATION!!
+        spheric_p_particle->FullInitialize(r_modelpart.GetProcessInfo()); 
 
         r_modelpart.Elements().push_back(p_particle);
     }
@@ -283,12 +325,13 @@ namespace Kratos {
         nodelist.push_back(pnew_node);
 
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
-        p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
+        //p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
 
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetRealMass(cluster_mass);
+        spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());
 
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
