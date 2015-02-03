@@ -141,12 +141,13 @@ namespace Kratos
         int mDempack;
         double mDempack_damping;
         double mDempack_global_damping;
-        vector< array_1d<double, 4> > mHistory;
+        vector< array_1d<double, 6> > mHistory;
         double mNcstr1_el;
         double mNcstr2_el;
         double mYoungPlastic;
         double mPlasticityLimit;
         double mDamageMaxDisplacementFactor;
+        double mAlpha_tau;
      
         double mGamma1;
         double mGamma2;

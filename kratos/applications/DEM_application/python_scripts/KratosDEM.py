@@ -11,7 +11,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 sys.path.insert(0,'')
- 
 # DEM Application
 import DEM_explicit_solver_var as DEM_parameters
 
@@ -32,9 +31,7 @@ if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # DEM Application MPI
     import DEM_procedures_mpi as DEM_procedures
     import DEM_material_test_script_mpi as DEM_material_test_script
-
     print("Running under MPI...........")
-
 else:
     # DEM Application
     import DEM_procedures
@@ -69,13 +66,12 @@ procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
 spheres_model_part      = ModelPart("SpheresPart");
-rigid_face_model_part   = ModelPart("RigidFace_Part");
-mixed_model_part        = ModelPart("Mixed_Part");
-cluster_model_part      = ModelPart("Cluster_Part");
-DEM_inlet_model_part    = ModelPart("DEMInletPart")
+rigid_face_model_part = ModelPart("RigidFace_Part");  
+mixed_model_part      = ModelPart("Mixed_Part");
+cluster_model_part    = ModelPart("Cluster_Part");
+DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part      = ModelPart("Mappingmodel_part")
-contact_model_part      = ""
-
+contact_model_part    = ""
 #EXTRA ModelPart Operations
 #
 #
@@ -117,6 +113,7 @@ DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"
 model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
 model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
+
 # Setting up the buffer size
 spheres_model_part.SetBufferSize(1)
 cluster_model_part.SetBufferSize(1)
@@ -140,6 +137,8 @@ creator_destructor = ParticleCreatorDestructor()
 # Creating necessary directories
 main_path = os.getcwd()
 [post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+
+
 
 os.chdir(main_path)
 
@@ -172,7 +171,6 @@ multifiles = (
     )
 
 demio.SetMultifileLists(multifiles)
-
 os.chdir(post_path)
 demio.InitializeMesh(mixed_model_part,
                      spheres_model_part,
@@ -210,6 +208,7 @@ if ( DEM_parameters.ContactMeshOption =="ON" ) :
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
 # Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
+
 if (DEM_parameters.dem_inlet_option):    
     max_node_Id = creator_destructor.FindMaxNodeIdInModelPart(spheres_model_part)
     max_FEM_node_Id = creator_destructor.FindMaxNodeIdInModelPart(rigid_face_model_part)
@@ -281,22 +280,23 @@ mesh_motion = DEMFEMUtilities()
 post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
-while (time < DEM_parameters.FinalTime):
+while ( time < DEM_parameters.FinalTime):
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
-    
+
     spheres_model_part.ProcessInfo[TIME]            = time
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
     
-    rigid_face_model_part.ProcessInfo[TIME]         = time
-    rigid_face_model_part.ProcessInfo[DELTA_TIME]   = dt
-    rigid_face_model_part.ProcessInfo[TIME_STEPS]   = step
+    rigid_face_model_part.ProcessInfo[TIME]       = time
+    rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
+    rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
 
     cluster_model_part.ProcessInfo[TIME]            = time
     cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
-    cluster_model_part.ProcessInfo[TIME_STEPS]      = step 
+    cluster_model_part.ProcessInfo[TIME_STEPS]      = step
+
 
     # Perform a partition to balance the problem
     #if(not(step%(a-1))):
@@ -333,6 +333,7 @@ while (time < DEM_parameters.FinalTime):
     #### GENERAL FORCE GRAPHS ###################################
     #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
+    DEMFEMProcedures.PrintBallsGraph(time)  
 
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
@@ -363,8 +364,7 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(main_path)
 
         time_old_print = time
-  
-
+        
     #if((step%500) == 0):
       #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
           #MaterialTest.OrientationStudy(contact_model_part, step)
@@ -379,6 +379,7 @@ while (time < DEM_parameters.FinalTime):
 demio.FinalizeMesh()
 materialTest.FinalizeGraphs()
 DEMFEMProcedures.FinalizeGraphs(rigid_face_model_part)
+DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
 
 # Charlie: This didn't exist. I replaced it with the line above
 #if((DEM_parameters.TestType == "None")):
