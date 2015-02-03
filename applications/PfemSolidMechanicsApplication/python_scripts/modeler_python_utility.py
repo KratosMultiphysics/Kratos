@@ -186,7 +186,9 @@ class ModelerUtility:
 
         # set the domains number to mesh modeler
         
-        self.mesh_modeler.SetInitialMeshData(self.model_part.NumberOfMeshes())
+        number_of_domains = self.model_part.NumberOfMeshes();
+
+        self.mesh_modeler.SetInitialMeshData(number_of_domains)
 
         # set modeler utilities
         self.modeler_utils = ModelerUtilities()

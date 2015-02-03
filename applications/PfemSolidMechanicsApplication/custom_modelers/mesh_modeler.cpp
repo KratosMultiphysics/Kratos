@@ -67,7 +67,7 @@ namespace Kratos
   {
     KRATOS_TRY
     
-    if( mEchoLevel > 1 )
+    if( mEchoLevel > 0 )
       std::cout<<" INITIALIZE MESH DATA: [ number of domains = "<<NumberOfDomains<<" ]"<<std::endl;
     
     MeshingVariables Variables;
@@ -267,7 +267,15 @@ namespace Kratos
     KRATOS_TRY
 
     unsigned int start=0;
-    unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
+    unsigned int NumberOfDomains = mMeshingVariables.size()-1;
+    unsigned int NumberOfMeshes  = rModelPart.NumberOfMeshes();
+
+    if( NumberOfDomains > NumberOfMeshes )
+      std::cout<<" ERROR: MORE DOMAINS THAN MESHES "<<std::endl;
+
+    if( NumberOfDomains <= NumberOfMeshes )
+      NumberOfMeshes = NumberOfDomains;
+
     if(NumberOfMeshes>1) 
       start=1;
 
@@ -469,6 +477,7 @@ namespace Kratos
 
       }
 
+
     //Once all meshes are build, the main mesh Id=0 must be reassigned
     if(NumberOfMeshes>1){
       mModelerUtilities.BuildTotalMesh(rModelPart);
@@ -477,6 +486,7 @@ namespace Kratos
       mModelerUtilities.CleanMeshFlags(rModelPart,0);
     }
 	
+
     //remesh_performed = false; //deactivate searches
 	   
     if(remesh_performed){
@@ -510,10 +520,15 @@ namespace Kratos
 	  BoundarySkinProcess.SearchConditionMasters(MeshId);
 	}
 
+
       //BOUNDARY NORMALS SEARCH // SHRINKAGE FACTOR
       //ComputeBoundaryNormals BoundUtils;
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateBoundaryNormals(rModelPart, mEchoLevel);
+      for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
+	{
+	  BoundaryComputation.CalculateMeshBoundaryNormals(rModelPart, MeshId, mEchoLevel);
+	}
+
 
       //LAPLACIAN SMOOTHING
       for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
