@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 #include <cstddef>
+#include <map> // This is a provisional implmentation and should be changed to hash. Pooyan.
 
 
 // External includes
@@ -63,7 +64,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/node.h"
 #include "containers/data_value_container.h"
+#include "containers/all_variables_data_value_container.h"
 #include "includes/process_info.h"
+#include "includes/table.h"
 
 
 namespace Kratos
@@ -107,6 +110,11 @@ public:
     typedef Node<3> NodeType;
 
     typedef NodeType::IndexType IndexType;
+
+	typedef Table<double> TableType;
+
+	typedef std::map<__int64, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+
 
     ///@}
     ///@name Life Cycle
@@ -252,16 +260,42 @@ public:
         mData.GetValue(rV) = rValue;
     }
 
+    template<class XVariableType, class YVariableType>
+    typename TableType& GetTable(const XVariableType& XVariable, const YVariableType& YVariable)
+    {
+		return mTables[Key(XVariable, YVariable)];
+    }
+
+    template<class XVariableType, class YVariableType>
+    typename TableType const& GetTable(const XVariableType& XVariable, const YVariableType& YVariable) const
+    {
+		return mTables[Key(XVariable.Key(), YVariable.Key())];
+    }
+
+    template<class XVariableType, class YVariableType>
+    void SetTable(const XVariableType& XVariable, const YVariableType& YVariable, typename TableType const& rThisTable)
+    {
+		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
+    }
+
+	__int64 Key(std::size_t XKey, std::size_t YKey) const
+	{
+		__int64 result_key = XKey;
+		result_key = result_key << 32;
+		result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
+		return result_key;
+	}
+
     ///@}
     ///@name Access
     ///@{
 
-    DataValueContainer& Data()
+    ContainerType& Data()
     {
         return mData;
     }
 
-    DataValueContainer const& Data() const
+    ContainerType const& Data() const
     {
         return mData;
     }
@@ -356,6 +390,7 @@ private:
     ///@{
 
     ContainerType mData;
+	TablesContainerType mTables;
 
     ///@}
     ///@name Private Operators
