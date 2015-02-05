@@ -356,7 +356,7 @@ class MaterialTest(object):
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1] 
         total_force_bts += force_node_y
         
-      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)
+      self.total_stress_bts = 2.0*total_force_bts/(3.14159*self.parameters.SpecimenLength*self.parameters.SpecimenDiameter*1e6)     
       self.strain_bts += -100*2*self.parameters.LoadingVelocityTop*dt/self.parameters.SpecimenDiameter
     else:
 
@@ -397,7 +397,7 @@ class MaterialTest(object):
           
           self.ApplyLateralPressure(self.Pressure, self.XLAT, self.XBOT, self.XTOP, self.XBOTCORNER, self.XTOPCORNER,self.alpha_top,self.alpha_bot,self.alpha_lat)
             
-  def PrintGraph(self, step):
+  def PrintGraph(self, time):
     
     if(self.graph_counter == self.graph_frequency):
       
@@ -405,20 +405,20 @@ class MaterialTest(object):
       
       if(self.parameters.TestType == "BTS"):
         
-        self.bts_export.write(str(step)+"  "+str(self.total_stress_bts)+'\n')   # changed str(self.strain) for str(step)
+        self.bts_export.write(str("%.8g"%time).rjust(12) +"  "+ str("%.6g"%self.total_stress_bts).rjust(13)+'\n')
         self.bts_export.flush()
-      
+             
       else:
       
-        self.graph_export.write(str(self.strain)+"    "+str(self.total_stress_mean)+'\n')
-        self.graph_export_1.write(str(self.strain)+"    "+str(self.total_stress_top)+'\n')
-        self.graph_export_2.write(str(self.strain)+"    "+str(self.total_stress_bot)+'\n')
+        self.graph_export.write(str("%.8g"%self.strain).rjust(12)+"  "+str("%.6g"%self.total_stress_mean).rjust(13)+'\n')
+        self.graph_export_1.write(str("%.8g"%self.strain).rjust(12)+"  "+str("%.6g"%self.total_stress_top).rjust(13)+'\n')
+        self.graph_export_2.write(str("%.8g"%self.strain).rjust(12)+"  "+str("%.6g"%self.total_stress_bot).rjust(13)+'\n')     
         self.graph_export.flush()
         self.graph_export_1.flush()
         self.graph_export_2.flush()
         
         if( self.parameters.TestType =="Hydrostatic"):        
-          self.graph_export_volumetric.write(str(self.volumetric_strain)+"    "+str(self.total_stress_mean)+'\n')
+          self.graph_export_volumetric.write(str("%.8g"%self.volumetric_strain).rjust(12)+"    "+str("%.6g"%self.total_stress_mean).rjust(13)+'\n')
           self.graph_export_volumetric.flush()
 
     self.graph_counter += 1 
@@ -435,25 +435,25 @@ class MaterialTest(object):
 
     self.chart.write(("***********PARAMETERS*****************")+'\n')
     self.chart.write( "                                    " +'\n')
-    self.chart.write( "    DENSI  = " + (str(self.parameters.w_densi))+" Kg/m3     "+'\n')
-    self.chart.write( "    STAFRC = " + (str(self.parameters.InternalFriction))+"           "+'\n')
-    self.chart.write( "    DYNFRC = " + (str(self.parameters.w_dynfrc))+"          " +'\n')
-    self.chart.write( "    YOUNG  = " + (str(self.parameters.w_young/1e9))+" GPa"+"     " +'\n')
-    self.chart.write( "    POISS  = " + (str(self.parameters.w_poiss))+"           " +'\n')
-    self.chart.write( "    FTS    = " + (str(self.parameters.NormalTensileStrength))+" Mpa        " +'\n')
-    self.chart.write( "    LCS1   = " + (str(self.parameters.LCS1))+" Mpa       " +'\n')
-    self.chart.write( "    LCS2   = " + (str(self.parameters.LCS2))+" Mpa       " +'\n')
-    self.chart.write( "    LCS3   = " + (str(self.parameters.LCS3))+" Mpa       " +'\n')
-    self.chart.write( "    YRC1   = " + (str(self.parameters.YRC1))+"           " +'\n')
-    self.chart.write( "    YRC2   = " + (str(self.parameters.YRC2))+"           " +'\n')
-    self.chart.write( "    YRC3   = " + (str(self.parameters.YRC3))+"           " +'\n')
-    self.chart.write( "    FSS    = " + (str(self.parameters.TangentialStrength))+" Mpa       " +'\n')
-    self.chart.write( "    YEP    = " + (str(self.parameters.PlasticYoungModulus/1e9))+" GPa"+"     " +'\n')
-    self.chart.write( "    YIELD  = " + (str(self.parameters.PlasticYieldStress))+" Mpa       " +'\n')
-    self.chart.write( "    EDR    = " + (str(self.parameters.DamageDeformationFactor))+"           " +'\n')
-    self.chart.write( "    GDAMP  = " + (str(self.parameters.GlobalForceReduction))+"           " +'\n')
-    self.chart.write( "    LDAMP  = " + (str(self.parameters.LocalDampingFactor))+"           " +'\n')
-    self.chart.write( "    ALPHA  = " + str(1.00) +"           " +'\n')
+    self.chart.write( "    DENSI  = " + (str(self.parameters.w_densi).rjust(3))+" Kg/m3     "+'\n')
+    self.chart.write( "    STAFRC = " + (str(self.parameters.InternalFriction).rjust(3))+"           "+'\n')
+    self.chart.write( "    DYNFRC = " + (str(self.parameters.w_dynfrc).rjust(3))+"          " +'\n')
+    self.chart.write( "    YOUNG  = " + (str(self.parameters.w_young/1e9).rjust(3))+" GPa"+"     " +'\n')
+    self.chart.write( "    POISS  = " + (str(self.parameters.w_poiss).rjust(3))+"           " +'\n')
+    self.chart.write( "    FTS    = " + (str(self.parameters.NormalTensileStrength).rjust(3))+" Mpa        " +'\n')
+    self.chart.write( "    LCS1   = " + (str(self.parameters.LCS1).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    LCS2   = " + (str(self.parameters.LCS2).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    LCS3   = " + (str(self.parameters.LCS3).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    YRC1   = " + (str(self.parameters.YRC1).rjust(3))+"           " +'\n')
+    self.chart.write( "    YRC2   = " + (str(self.parameters.YRC2).rjust(3))+"           " +'\n')
+    self.chart.write( "    YRC3   = " + (str(self.parameters.YRC3).rjust(3))+"           " +'\n')
+    self.chart.write( "    FSS    = " + (str(self.parameters.TangentialStrength).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    YEP    = " + (str(self.parameters.PlasticYoungModulus/1e9).rjust(3))+" GPa"+"     " +'\n')
+    self.chart.write( "    YIELD  = " + (str(self.parameters.PlasticYieldStress).rjust(3))+" Mpa       " +'\n')
+    self.chart.write( "    EDR    = " + (str(self.parameters.DamageDeformationFactor).rjust(3))+"           " +'\n')
+    self.chart.write( "    GDAMP  = " + (str(self.parameters.GlobalForceReduction).rjust(3))+"           " +'\n')
+    self.chart.write( "    LDAMP  = " + (str(self.parameters.LocalDampingFactor).rjust(3))+"           " +'\n')
+    self.chart.write( "    ALPHA  = " + str(1.00).rjust(3) +"           " +'\n')
     self.chart.write( "                                    " +'\n')
     self.chart.write( "**************************************" +'\n')
 
