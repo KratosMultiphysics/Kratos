@@ -7,6 +7,7 @@ import math
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_material_test_script
 import os
+import shutil
 
 def Var_Translator(variable):
 
@@ -466,15 +467,15 @@ class Procedures(object):
               element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
     def CreateDirectories(self, main_path,problem_name):
-
+        
         root             = main_path + '/' + problem_name
-
         post_path        = root + '_Post_Files'
         list_path        = root + '_Post_Lists'
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
 
+        shutil.rmtree(main_path + '/' + problem_name + '_Post_Files', ignore_errors=True)
         for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
                 os.makedirs(str(directory))
