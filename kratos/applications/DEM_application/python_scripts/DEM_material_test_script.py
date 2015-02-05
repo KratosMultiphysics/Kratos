@@ -120,7 +120,7 @@ class MaterialTest(object):
 
       if(self.parameters.TestType == "BTS"):
 
-        self.bts_export = open(self.parameters.problem_name + "_bts" + ".grf", 'w');
+        self.bts_export = open(self.parameters.problem_name + ".grf", 'w');
         self.BtsSkinDetermination()
 
       else:
@@ -405,7 +405,7 @@ class MaterialTest(object):
       
       if(self.parameters.TestType == "BTS"):
         
-        self.bts_export.write(str(self.strain_bts)+"  "+str(self.total_stress_bts)+'\n')
+        self.bts_export.write(str(step)+"  "+str(self.total_stress_bts)+'\n')   # changed str(self.strain) for str(step)
         self.bts_export.flush()
       
       else:
