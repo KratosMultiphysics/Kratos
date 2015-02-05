@@ -69,11 +69,13 @@ namespace Kratos {
             
             mesh_number++;
             int mesh_size=mesh_it->NumberOfNodes();
+            if (!mesh_size) continue;
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
             
-            if (mInletModelPart.GetProperties(mesh_number)[VELOCITY][0] == 0 &&
-                mInletModelPart.GetProperties(mesh_number)[VELOCITY][1] == 0 &&
-                mInletModelPart.GetProperties(mesh_number)[VELOCITY][2] == 0) {
+            if ((mInletModelPart.GetProperties(mesh_number)[VELOCITY][0] == 0.0) &&
+                (mInletModelPart.GetProperties(mesh_number)[VELOCITY][1] == 0.0) &&
+                (mInletModelPart.GetProperties(mesh_number)[VELOCITY][2] == 0.0)) {
+                
                 KRATOS_ERROR(std::runtime_error, "There is at least one inlet velocity set to", 0);
             }
             
