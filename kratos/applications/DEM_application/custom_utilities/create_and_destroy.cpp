@@ -46,7 +46,6 @@ namespace Kratos {
     
     static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity){
         
-        
         double velocity_modulus = sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]);
         array_1d<double, 3 > unitary_velocity;
         noalias(unitary_velocity) = velocity / velocity_modulus;
@@ -138,7 +137,7 @@ namespace Kratos {
             pnew_node->SetId(aId);
             pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
             //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
-            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 1000;
+            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100;
         }
         else {
             pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
@@ -158,7 +157,6 @@ namespace Kratos {
 
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;        
         pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
-        
 
         //The next section is commented because initialization to 0 is done automatically of all variables in GetSolutionStepvariable
         /*if (pnew_node->SolutionStepsDataHas(SOLID_FRACTION_PROJECTED)) {
@@ -267,11 +265,11 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::NodeCreatorForClusters(ModelPart& r_modelpart,
-            Node < 3 > ::Pointer& pnew_node,
-            int aId,
-            array_1d<double, 3 > & reference_coordinates,
-            double radius,
-            Properties& params) {
+        Node < 3 > ::Pointer& pnew_node,
+        int aId,
+        array_1d<double, 3 > & reference_coordinates,
+        double radius,
+        Properties& params) {
         double bx = reference_coordinates[0];
         double cy = reference_coordinates[1];
         double dz = reference_coordinates[2];
@@ -309,13 +307,13 @@ namespace Kratos {
     }
 
     Kratos::SphericParticle* ParticleCreatorDestructor::ElementCreatorForClusters(ModelPart& r_modelpart,
-            int r_Elem_Id,
-            double radius,
-            array_1d<double, 3 > & reference_coordinates,
-            double cluster_mass,
-            Properties::Pointer r_params,
-            const Element& r_reference_element,
-            const int cluster_id) {
+        int r_Elem_Id,
+        double radius,
+        array_1d<double, 3 > & reference_coordinates,
+        double cluster_mass,
+        Properties::Pointer r_params,
+        const Element& r_reference_element,
+        const int cluster_id) {
 
         Node < 3 > ::Pointer pnew_node;
 
@@ -740,7 +738,7 @@ namespace Kratos {
                 unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
                 for (unsigned int i = 0; i < number_of_contact_elements; i++) {
                     Particle_Contact_Element* p_to_contact_element = node_to_neigh_element_pointer[i];
-                    if (p_to_contact_element != NULL) { //NULL happens when the initial neighbour was a ghost and had a lower Id than others.
+                    if (p_to_contact_element != NULL) { //NULL happens when the initial neighbor was a ghost and had a lower Id than the others
                         p_to_contact_element->Set(TO_ERASE);
                     }
                 }
