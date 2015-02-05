@@ -50,9 +50,9 @@ class MdpaCreator(object):
         mdpa.write('\n')
         mdpa.write('Begin Nodes')
         mdpa.write('\n')
-
+        
         for node in model_part.Nodes:
-            mdpa.write(str(node.Id) + '   ' + str(node.X) + '  ' + str(node.Y) + '  ' + str(node.Z))
+            mdpa.write(str(node.Id).rjust(12) + ' ' + str(node.X).rjust(8) + ' ' + str(node.Y).rjust(8) + ' ' + str(node.Z).rjust(8))
             mdpa.write('\n')
 
         mdpa.write('End Nodes')
@@ -663,7 +663,7 @@ class DEMFEMProcedures(object):
                             
                             PostUtilities().IntegrationOfForces(mesh_nodes, total_force)
                                                                                       
-                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str(time)+" "+str(total_force[0])+" "+str(total_force[1])+" "+str(total_force[2])+"\n")
+                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+"\n")
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
 
             self.graph_counter += 1
@@ -696,7 +696,7 @@ class DEMFEMProcedures(object):
                                 self.total_force_y += force_node_y
                                 self.total_force_z += force_node_z                    
 
-                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str(time)+" "+str(self.total_force_x)+" "+str(self.total_force_y)+" "+str(self.total_force_z)+"\n")
+                            self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+" "+str("%.6g"%self.total_force_z).rjust(13)+"\n")
                             self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()                    
 
 
@@ -837,9 +837,9 @@ class MaterialTest(object):
         if (self.type != "None"):
             self.script.MeasureForcesAndPressure()
             
-    def PrintGraph(self, step):
+    def PrintGraph(self, time):
         if (self.type != "None"):
-            self.script.PrintGraph(step)
+            self.script.PrintGraph(time)
 
     def FinalizeGraphs(self):
         if (self.type != "None"):
