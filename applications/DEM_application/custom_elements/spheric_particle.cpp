@@ -80,7 +80,9 @@ void SphericParticle::Initialize()
     double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
     mass                      = 4 *  KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
     mRealMass                 = mass;
-    GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
+    
+    if (this->IsNot(BLOCKED)) GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
+    
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION) ){
