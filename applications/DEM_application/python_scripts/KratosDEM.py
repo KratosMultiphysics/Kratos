@@ -328,7 +328,7 @@ while ( time < DEM_parameters.FinalTime):
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
-    materialTest.PrintGraph(step)
+    materialTest.PrintGraph(time)
 
     #### GENERAL FORCE GRAPHS ###################################
     #DEMFEMProcedures.MeasureForces()
