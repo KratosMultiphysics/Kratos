@@ -159,41 +159,7 @@ namespace Kratos {
         mListOfCoordinates[82][0] =-0.3568963682174680; mListOfCoordinates[82][1] = 0.101075247192382; mListOfCoordinates[82][2] = 0.15478396227359870;
         mListOfCoordinates[83][0] =-0.3929164709091187; mListOfCoordinates[83][1] =-0.240009811210632; mListOfCoordinates[83][2] = 0.07486742961406722;
         mListOfCoordinates[84][0] =-0.4530466222763061; mListOfCoordinates[84][1] =-0.092443091583252; mListOfCoordinates[84][2] = 0.00000000000000000;
-        
-//        mListOfCoordinates[ 0][0] = -0.40590893001556405; mListOfCoordinates[ 0][1] = -0.1111421392440797; mListOfCoordinates[ 0][2] =  0.17642473061084818;
-//        mListOfCoordinates[ 1][0] =  0.47344441127777082; mListOfCoordinates[ 1][1] =  0.0733408405303953; mListOfCoordinates[ 1][2] = -0.02537642452716770;
-//        mListOfCoordinates[ 2][0] =  0.33472375469207771; mListOfCoordinates[ 2][1] =  0.1822050567626952; mListOfCoordinates[ 2][2] = -0.23256184537410624;
-//        mListOfCoordinates[ 3][0] =  0.56460310878753639; mListOfCoordinates[ 3][1] = -0.0963236337661744; mListOfCoordinates[ 3][2] =  0.16870258734226251;
-//        mListOfCoordinates[ 4][0] =  0.32878087100982667; mListOfCoordinates[ 4][1] = -0.1812875110626222; mListOfCoordinates[ 4][2] = -0.13149494359493286;
-//        mListOfCoordinates[ 5][0] =  0.42678535594940181; mListOfCoordinates[ 5][1] =  0.3765731285095215; mListOfCoordinates[ 5][2] =  0.06393966071605650;
-//        mListOfCoordinates[ 6][0] =  0.48246255474090527; mListOfCoordinates[ 6][1] =  0.0497414611816403; mListOfCoordinates[ 6][2] =  0.29653935091495587;
-//        mListOfCoordinates[ 7][0] =  0.38346726436614997; mListOfCoordinates[ 7][1] = -0.2492731698989869; mListOfCoordinates[ 7][2] =  0.12303228857517201;
-//        mListOfCoordinates[ 8][0] =  0.43776911907196026; mListOfCoordinates[ 8][1] = -0.1408024623870850; mListOfCoordinates[ 8][2] =  0.35195349428653788;
-//        mListOfCoordinates[ 9][0] =  0.06512453761100734; mListOfCoordinates[ 9][1] =  0.1588365505218506; mListOfCoordinates[ 9][2] = -0.38417096822261870;
-//        mListOfCoordinates[10][0] =  0.14596727371215812; mListOfCoordinates[10][1] =  0.4473857585906981; mListOfCoordinates[10][2] = -0.27225562894344341;
-//        mListOfCoordinates[11][0] =  0.31025015583038329; mListOfCoordinates[11][1] = -0.3806503376007081; mListOfCoordinates[11][2] =  0.28436096937656341;
-//        mListOfCoordinates[12][0] =  0.12898134698867791; mListOfCoordinates[12][1] = -0.1621527778625490; mListOfCoordinates[12][2] = -0.27579260995387939;
-//        mListOfCoordinates[13][0] =  0.22260097942352275; mListOfCoordinates[13][1] =  0.3606399356842042; mListOfCoordinates[13][2] =  0.27350471117496422;
-//        mListOfCoordinates[14][0] =  0.22154463500976551; mListOfCoordinates[14][1] =  0.1670334453582763; mListOfCoordinates[14][2] =  0.40253746740818119;
-//        mListOfCoordinates[15][0] =  0.07167685508728006; mListOfCoordinates[15][1] = -0.4515603391647339; mListOfCoordinates[15][2] =  0.09333994553089208;
-//        mListOfCoordinates[16][0] =  0.10313486518859849; mListOfCoordinates[16][1] =  0.5025729267120362; mListOfCoordinates[16][2] =  0.04219804468154908;
-//        mListOfCoordinates[17][0] =  0.19300469608306881; mListOfCoordinates[17][1] = -0.0318021209716797; mListOfCoordinates[17][2] =  0.45881696016788448;
-//        mListOfCoordinates[18][0] = -0.08554545764923116; mListOfCoordinates[18][1] = -0.3854616682052613; mListOfCoordinates[18][2] = -0.13886199452876991;
-//        mListOfCoordinates[19][0] = -0.07910990724563605; mListOfCoordinates[19][1] = -0.1535058553695680; mListOfCoordinates[19][2] = -0.32649596745967907;
-//        mListOfCoordinates[20][0] = -0.05192046356201185; mListOfCoordinates[20][1] =  0.4674975048065186; mListOfCoordinates[20][2] = -0.10875714070796949;
-//        mListOfCoordinates[21][0] =  0.12144971151351902; mListOfCoordinates[21][1] = -0.2187592034339905; mListOfCoordinates[21][2] =  0.44422787859439788;
-//        mListOfCoordinates[22][0] = -0.28869090518951435; mListOfCoordinates[22][1] =  0.1308492828369139; mListOfCoordinates[22][2] = -0.34010083997249568;
-//        mListOfCoordinates[23][0] = -0.23290276737213156; mListOfCoordinates[23][1] =  0.3008109188079832; mListOfCoordinates[23][2] = -0.24706867215633371;
-//        mListOfCoordinates[24][0] = -0.04557969856262223; mListOfCoordinates[24][1] =  0.2361313179016112; mListOfCoordinates[24][2] =  0.37295285265445788;
-//        mListOfCoordinates[25][0] = -0.12592964925766004; mListOfCoordinates[25][1] =  0.3036115795135498; mListOfCoordinates[25][2] =  0.16006849529743139;
-//        mListOfCoordinates[26][0] = -0.23983878021240246; mListOfCoordinates[26][1] = -0.4158826732635498; mListOfCoordinates[26][2] =  0.18596135160923044;
-//        mListOfCoordinates[27][0] = -0.34925576763153088; mListOfCoordinates[27][1] = -0.1216195806503298; mListOfCoordinates[27][2] = -0.31143167207240990;
-//        mListOfCoordinates[28][0] = -0.36950179004669215; mListOfCoordinates[28][1] =  0.1858364109039306; mListOfCoordinates[28][2] = -0.10226518380641902;
-//        mListOfCoordinates[29][0] = -0.15328230323791514; mListOfCoordinates[29][1] = -0.1348304447174073; mListOfCoordinates[29][2] =  0.34775432722568578;
-//        mListOfCoordinates[30][0] = -0.42678535594940187; mListOfCoordinates[30][1] = -0.3765731285095216; mListOfCoordinates[30][2] = -0.06393966071605650;
-//        mListOfCoordinates[31][0] = -0.24874963264465344; mListOfCoordinates[31][1] =  0.0554953987121579; mListOfCoordinates[31][2] =  0.32740528643131217;
-//        mListOfCoordinates[32][0] = -0.35689636821746817; mListOfCoordinates[32][1] =  0.1010752471923827; mListOfCoordinates[32][2] =  0.15478396227359870;
-        
+             
         for (int i = 0; i < 85; i++) { 
             mListOfCoordinates[i][0] *= cl;  mListOfCoordinates[i][1] *= cl;  mListOfCoordinates[i][2] *= cl;
         }
