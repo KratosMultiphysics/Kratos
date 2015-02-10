@@ -34,7 +34,7 @@
 
 namespace Kratos
 {
-
+    
     /// Short class definition.
     /** Detail class definition.
     */
@@ -118,11 +118,12 @@ namespace Kratos
         */
         virtual void Initialize();
         virtual void CustomInitialize();
+        virtual void SetOrientation(const array_1d<double, 3>& euler_angles);
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part);
         virtual void UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt);
-        virtual void GetClustersForce( const array_1d<double,3>& gravity );
+        virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
-        virtual void ComputeAdditionalForces( const array_1d<double,3>& gravity );
+        virtual void ComputeAdditionalForces(const array_1d<double,3>& gravity);
         unsigned int GetNumberOfSpheres() { return mListOfSphericParticles.size(); };
         std::vector<SphericParticle*>  GetSpheres() { return mListOfSphericParticles; };
         /**
