@@ -23,13 +23,13 @@ namespace Kratos {
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {                
         
-        PartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(),false);
-        mLayerRemoved.resize(inlet_modelpart.NumberOfMeshes(),false);
+        PartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(), false);
+        mLayerRemoved.resize(inlet_modelpart.NumberOfMeshes(), false);
         
-        int mesh_iterator_number=0;   
+        int mesh_iterator_number = 0;   
         
-        for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin();
-                                                      mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
+        for (ModelPart::MeshesContainerType::iterator mesh_it  = inlet_modelpart.GetMeshes().begin();
+                                                      mesh_it != inlet_modelpart.GetMeshes().end()  ;    ++mesh_it)
         {
          PartialParticleToInsert[mesh_iterator_number] = 0.0;
          mLayerRemoved[mesh_iterator_number] = false;
@@ -230,12 +230,12 @@ namespace Kratos {
         DettachClusters(r_clusters_modelpart, max_Id);
                 
         int mesh_number = 0;
-        for (ModelPart::MeshesContainerType::iterator mesh_it = mInletModelPart.GetMeshes().begin()+1;
-                                               mesh_it != mInletModelPart.GetMeshes().end();    ++mesh_it)
+        for (ModelPart::MeshesContainerType::iterator mesh_it  = mInletModelPart.GetMeshes().begin()+1;
+                                                      mesh_it != mInletModelPart.GetMeshes().end()    ; ++mesh_it)
         {            
             mesh_number++;
 
-            if(r_modelpart.GetProcessInfo()[TIME] < mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME]) continue;
+            if (r_modelpart.GetProcessInfo()[TIME] < mInletModelPart.GetProperties(mesh_number)[INLET_START_TIME]) continue;
             
             int mesh_size_elements = mesh_it->NumberOfElements();
             
