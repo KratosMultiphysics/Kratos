@@ -376,11 +376,7 @@ namespace Kratos
 
      static inline void RotatePointAboutArbitraryLine(array_1d<double,3>& TargetPoint, const array_1d<double,3>& CentrePoint, const array_1d<double,3>& LineVector, const double RotationAngle)
      {
-
-  
-    
-          
-
+         
         const double O = RotationAngle;
 
         double x = TargetPoint[0], a = CentrePoint[0], u = LineVector[0];
@@ -388,19 +384,6 @@ namespace Kratos
         double z = TargetPoint[2], c = CentrePoint[2], w = LineVector[2];
 
         double L = u*u+v*v+w*w;
-
-
-        /*
-        KRATOS_WATCH(x)
-        KRATOS_WATCH(y)
-                KRATOS_WATCH(z)
-         KRATOS_WATCH(u)
-         KRATOS_WATCH(v)
-                KRATOS_WATCH(w)
-         KRATOS_WATCH(a)
-                KRATOS_WATCH(b)
-                KRATOS_WATCH(c)
-         */
 
         if (L==0)
         {
