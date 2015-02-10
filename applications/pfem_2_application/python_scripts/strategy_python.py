@@ -151,10 +151,10 @@ class SolvingStrategyPython:
         self.scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
 
         if(echo_level == 3):
-            print "after finalize iteration"
-            print "SystemMatrix = ", self.A 
-            print "solution obtained = ", self.Dx 
-            print "RHS = ", self.b
+            print("after finalize iteration")
+            print("SystemMatrix = ", self.A)
+            print("solution obtained = ", self.Dx)
+            print("RHS = ", self.b)
     
         
         #calculate the norm of the "correction" Dx
