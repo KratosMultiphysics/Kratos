@@ -353,12 +353,12 @@ namespace Kratos {
                                                                         ElementsContainerType& array_of_injector_elements,
                                                                         int& number_of_added_spheres) {
         
-        
         Node < 3 > ::Pointer pnew_node;
 
         double radius = (*r_params)[RADIUS];
         double max_radius = 1.5 * radius;
-
+        array_1d<double, 3> euler_angles;
+        
         if (initial) {
             radius = max_radius;
         } else {
@@ -384,14 +384,31 @@ namespace Kratos {
         }
         else {
             Kratos::Cluster3D* p_cluster = dynamic_cast<Kratos::Cluster3D*> (p_particle.get());
-            p_cluster->Initialize();
+            p_cluster->Initialize();                        
+                    
+            if ((*r_params)[RANDOM_EULER_ANGLES]) {
+                
+                double random_factor = 2.0 * KRATOS_M_PI / RAND_MAX;
+                euler_angles[0] = random_factor * rand();
+                euler_angles[1] = random_factor * rand();
+                euler_angles[2] = random_factor * rand();                
+            }
+            
+            else {
+                euler_angles[0] = (*r_params)[EULER_ANGLES][0];
+                euler_angles[1] = (*r_params)[EULER_ANGLES][1];
+                euler_angles[2] = (*r_params)[EULER_ANGLES][2];
+            }
+            
+            p_cluster->SetOrientation(euler_angles);            
+            
             ParticleCreatorDestructor* creator_destructor_ptr = this;
             p_cluster->CreateParticles(creator_destructor_ptr, r_modelpart);
             number_of_added_spheres = p_cluster->GetNumberOfSpheres();
             
             Kratos::SphericParticle* injector_spheric_particle = dynamic_cast<Kratos::SphericParticle*> (injector_element.get());
             
-            for(unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++){ 
+            for (unsigned int i=0; i<p_cluster->GetNumberOfSpheres(); i++) { 
                 Kratos::SphericParticle* spheric_p_particle = p_cluster->GetSpheres()[i];
                 injector_spheric_particle->mNeighbourElements.push_back(spheric_p_particle);
                 spheric_p_particle->mNeighbourElements.push_back(injector_spheric_particle);
