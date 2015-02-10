@@ -59,13 +59,13 @@ class PFEM2Solver:
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         #definition of the solvers
-	gmres_size = 50
-	tol = 1e-5
-	verbosity = 1
-	pDiagPrecond = DiagonalPreconditioner()
-	#self.monolitic_linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
-	self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,50,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
-	#(self.monolitic_linear_solver).is_symmetric=True;
+        gmres_size = 50
+        tol = 1e-5
+        verbosity = 1
+        pDiagPrecond = DiagonalPreconditioner()
+        #self.monolitic_linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
+        self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,50,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
+        #(self.monolitic_linear_solver).is_symmetric=True;
         self.conv_criteria = DisplacementCriteria(1e-9,1e-15)  #tolerance for the solver 
         
         self.domain_size = domain_size
@@ -73,8 +73,8 @@ class PFEM2Solver:
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
         (self.neighbour_search).Execute()
-	self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
-	(self.neighbour_elements_search).Execute()
+        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
+        (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
         
