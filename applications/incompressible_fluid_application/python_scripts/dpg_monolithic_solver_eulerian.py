@@ -24,22 +24,22 @@ distance_settings.SetDensityVariable(DISTANCE)
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(ACCELERATION)
-    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(ACCELERATION) #
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY) #
     model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(IS_FLUID)
+    model_part.AddNodalSolutionStepVariable(IS_FLUID) #
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
-    model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
+    model_part.AddNodalSolutionStepVariable(IS_INTERFACE) #
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(DENSITY)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-    model_part.AddNodalSolutionStepVariable(NODAL_H)
-    model_part.AddNodalSolutionStepVariable(THAWONE)
-    model_part.AddNodalSolutionStepVariable(THAWTWO)
+    model_part.AddNodalSolutionStepVariable(NODAL_H) #
+    model_part.AddNodalSolutionStepVariable(THAWONE) #
+    model_part.AddNodalSolutionStepVariable(THAWTWO) #
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(DISTANCE)
@@ -53,7 +53,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(FILLTIME)
     model_part.AddNodalSolutionStepVariable(MAX_VEL)
-    # model_part.AddNodalSolutionStepVariable(WET_VOLUME)
+    model_part.AddNodalSolutionStepVariable(WET_VOLUME) #
     # variables needed for the distance solver
     levelset_solver.AddVariables(model_part, distance_settings)
 
@@ -79,7 +79,7 @@ def AddDofs(model_part):
 class MonolithicSolver:
     #
 
-    def __init__(self, model_part, domain_size):
+    def __init__(self, model_part, domain_size,linear_solver_iterations=300, linear_solver_tolerance=1e-5):
 
         self.model_part = model_part
         self.domain_size = domain_size
@@ -108,8 +108,8 @@ class MonolithicSolver:
         # self.linear_solver = PastixSolver(verbosity,False)
         # new solvers
         self.gmres_size = 200
-        self.iterations = 200
-        self.tol = 1e-3 #Before 1e-5
+        self.iterations = linear_solver_iterations #400 # Ojo, antes 200
+        self.tol = linear_solver_tolerance #1e-5 #Before 1e-5
         self.verbosity = 1
         self.linear_solver = ScalingSolver(AMGCLSolver(
             AMGCLSmoother.ILU0,
@@ -219,6 +219,7 @@ class MonolithicSolver:
         # mu1 = self.mu
         # mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
+        print ("MU = " + str(mu1))
         #print("sssssssss ", mu1)
         BiphasicFillingUtilities().ApplyFluidProperties(self.model_part, mu1, self.rho1, mu2, self.rho2)
 # for node in self.model_part.Nodes:
@@ -332,43 +333,7 @@ class MonolithicSolver:
         Timer.Start("ConvectDistance")
         # convect distance function
 
-        #### pa borrar
-        for node in self.model_part.GetNodes():
-            if node.Id==1404:
-                dkk=node.GetValue(DISTANCE)
-                isvisit=node.GetValue(IS_VISITED)
-
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print(" Before Convecting dostance-----------------------")
-        print(dkk," --- ",isvisit)
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
         self.ConvectDistance()
-        #### pa borrar
-        for node in self.model_part.GetNodes():
-            if node.Id==1404:
-                dkk=node.GetValue(DISTANCE)
-                isvisit=node.GetValue(IS_VISITED)
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("after Convect distance-------------------------------")
-        print(dkk," --- ",isvisit)
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        print("-------------------------------------------------")
-        Timer.Stop("ConvectDistance")
-
-
 
         # recompute distance function as needed
         Timer.Start("DoRedistance")
@@ -380,46 +345,12 @@ class MonolithicSolver:
             for node in self.inlet_nodes:
                 if( node.GetSolutionStepValue(DISTANCE) > 0.0):
                     node.SetSolutionStepValue(DISTANCE,0,  -0.01*self.max_edge_size)
-            
-            #### pa borrar
-            for node in self.model_part.GetNodes():
-                if node.Id==1404:
-                    dkk=node.GetValue(DISTANCE)
-                    isvisit=node.GetValue(IS_VISITED)
-
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print(" Before Redistance-----------------------")
-            print(dkk," --- ",isvisit)
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
+ 
             self.DoRedistance()
+            self.next_redistance = self.internal_step_counter + self.redistance_frequency
         
-            #### pa borrar
-            for node in self.model_part.GetNodes():
-                if node.Id==1404:
-                    dkk=node.GetValue(DISTANCE)
-                    isvisit=node.GetValue(IS_VISITED)
-
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("after redistance-----------------------")
-            print(dkk," --- ",isvisit)
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            print("-------------------------------------------------")
-            self.next_redistance = self.internal_step_counter + \
-                self.redistance_frequency
         Timer.Stop("DoRedistance")
+        
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
