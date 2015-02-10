@@ -42,11 +42,11 @@ class SolvingStrategyPython:
         
     #######################################################################
     def Initialize(self):
-	if(self.scheme.SchemeIsInitialized() == False):
-	    self.scheme.Initialize(self.model_part)
-			
-	if (self.scheme.ElementsAreInitialized() == False): 
-	    self.scheme.InitializeElements(self.model_part)
+        if(self.scheme.SchemeIsInitialized() == False):
+            self.scheme.Initialize(self.model_part)
+        	
+        if (self.scheme.ElementsAreInitialized() == False): 
+            self.scheme.InitializeElements(self.model_part)
 
 
     #######################################################################
@@ -129,7 +129,7 @@ class SolvingStrategyPython:
        		
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
 	
-	#full output if needed
+        #full output if needed
         #if(echo_level == 3):
         #    print "SystemMatrix = ", self.A 
         #    print "solution obtained = ", self.Dx 
@@ -151,7 +151,7 @@ class SolvingStrategyPython:
         self.scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
 
         if(echo_level == 3):
-	    print "after finalize iteration"
+            print "after finalize iteration"
             print "SystemMatrix = ", self.A 
             print "solution obtained = ", self.Dx 
             print "RHS = ", self.b
