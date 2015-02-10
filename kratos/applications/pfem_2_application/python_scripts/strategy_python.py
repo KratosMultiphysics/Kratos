@@ -17,10 +17,10 @@ class SolvingStrategyPython:
 
         #default values for some variables
         self.rebuild_level = 1 #rebuild at each solution step
-        self.echo_level = 1	
-	
+        self.echo_level = 1 
+        
         self.builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-  	#self.builder_and_solver.SetEchoLevel(1)
+        #self.builder_and_solver.SetEchoLevel(1)
 
         #local matrices and vectors
         self.pA = self.space_utils.CreateEmptyMatrixPointer()
@@ -44,7 +44,7 @@ class SolvingStrategyPython:
     def Initialize(self):
         if(self.scheme.SchemeIsInitialized() == False):
             self.scheme.Initialize(self.model_part)
-        	
+        
         if (self.scheme.ElementsAreInitialized() == False): 
             self.scheme.InitializeElements(self.model_part)
 
@@ -83,7 +83,7 @@ class SolvingStrategyPython:
         self.SolutionStepIsInitialized = False
         
         #clear if needed - deallocates memory 
- 	if(self.ReformDofSetAtEachStep == True):
+        if(self.ReformDofSetAtEachStep == True):
             self.Clear();
 
             
@@ -99,7 +99,7 @@ class SolvingStrategyPython:
         if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
             #initialize the list of degrees of freedom to be used
             self.builder_and_solver.SetUpDofSet(self.scheme,self.model_part);
-            #reorder the list of degrees of freedom to identify fixity and system size	  			
+            #reorder the list of degrees of freedom to identify fixity and system size 
             self.builder_and_solver.SetUpSystem(self.model_part)
             #allocate memory for the system and preallocate the structure of the matrix
             self.builder_and_solver.ResizeAndInitializeVectors(self.pA,self.pDx,self.pb,self.model_part.Elements,self.model_part.Conditions,self.model_part.ProcessInfo);
@@ -122,13 +122,13 @@ class SolvingStrategyPython:
 
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
 
-        self.space_utils.SetToZeroVector(self.Dx)			
+        self.space_utils.SetToZeroVector(self.Dx) 
         self.space_utils.SetToZeroVector(self.b)
         #build and solve the problem
         self.space_utils.SetToZeroMatrix(self.A)
-       		
+        
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
-	
+        
         #full output if needed
         #if(echo_level == 3):
         #    print "SystemMatrix = ", self.A 
