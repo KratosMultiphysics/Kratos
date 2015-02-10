@@ -81,6 +81,14 @@ namespace Kratos {
     }
     
     void Cluster3D::CustomInitialize() {}
+    
+    void Cluster3D::SetOrientation(const array_1d<double, 3>& euler_angles) {
+        
+        this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)[0] = euler_angles[0];
+        this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)[1] = euler_angles[1];
+        this->GetGeometry()[0].FastGetSolutionStepValue(EULER_ANGLES)[2] = euler_angles[2];
+        
+    }
       
     void Cluster3D::CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part){
         
@@ -96,15 +104,9 @@ namespace Kratos {
         const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
-        
-        double random_factor = 2.0 * KRATOS_M_PI / RAND_MAX;
-        
-        central_node.FastGetSolutionStepValue(EULER_ANGLES)[0] = random_factor * rand();
-        central_node.FastGetSolutionStepValue(EULER_ANGLES)[1] = random_factor * rand();
-        central_node.FastGetSolutionStepValue(EULER_ANGLES)[2] = random_factor * rand();
-        
-        const array_1d<double, 3>& euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
           
+        const array_1d<double, 3>& euler_angles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
+        
         const double mass = central_node.FastGetSolutionStepValue(NODAL_MASS);
         array_1d<double, 3> coordinates_of_sphere;
         array_1d<double, 3> global_relative_coordinates;
@@ -178,7 +180,7 @@ namespace Kratos {
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);        
         array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
-        center_forces[0]= center_forces[1]= center_forces[2]= center_torque[0]= center_torque[1]= center_torque[2]= 0.0;
+        center_forces[0] = center_forces[1]= center_forces[2]= center_torque[0]= center_torque[1]= center_torque[2]= 0.0;
         
         array_1d<double, 3> center_to_sphere_vector;
         array_1d<double, 3> additional_torque;
@@ -211,19 +213,18 @@ namespace Kratos {
             center_torque[1] += additional_torque[1];
             center_torque[2] += additional_torque[2];
             
-        }
-        
+        }    
     }
     
-    void  Cluster3D::GetClustersForce( const array_1d<double,3>& gravity ) {
+    void Cluster3D::GetClustersForce(const array_1d<double,3>& gravity) {
         
         CollectForcesAndTorquesFromSpheres();
-        ComputeAdditionalForces( gravity );
+        ComputeAdditionalForces(gravity);
     }
     
-    void  Cluster3D::ComputeAdditionalForces( const array_1d<double,3>& gravity ){
+    void Cluster3D::ComputeAdditionalForces(const array_1d<double,3>& gravity){
         const double mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES) ) += mass * gravity;                        
+        noalias(GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES)) += mass * gravity;                        
     }
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -269,8 +270,7 @@ namespace Kratos {
 // 
 //      }
 
-        KRATOS_CATCH("")
-        
+        KRATOS_CATCH("")    
     }
 
 
@@ -281,8 +281,7 @@ namespace Kratos {
         
         KRATOS_TRY
 
-        KRATOS_CATCH("")
-        
+        KRATOS_CATCH("")    
     }
 
     //**************************************************************************************************************************************************
