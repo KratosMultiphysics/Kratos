@@ -223,7 +223,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-    def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupluing
+
+    def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,Param)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     
@@ -458,13 +459,13 @@ class Procedures(object):
             #z = element.GetNode(0).Z
           
             if(x>21.1):
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(x<1.25):
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(y>1.9):
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
             if(y<0.1):
-              element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
     def CreateDirectories(self, main_path,problem_name):
         
@@ -571,9 +572,9 @@ class DEMFEMProcedures(object):
         
         
         if self.TestType == "None":  
-          print (self.graphs_path)
-          open_graph_files(self,RigidFace_model_part)            
-          open_balls_graph_files(self,spheres_model_part)   
+            print (self.graphs_path)
+            open_graph_files(self,RigidFace_model_part)            
+            open_balls_graph_files(self,spheres_model_part)   
 
         # SIMULATION SETTINGS
 
@@ -745,10 +746,10 @@ class DEMFEMProcedures(object):
 
                         for node in self.mesh_nodes:
 
-                              node.SetSolutionStepValue(VELOCITY_X, vx)
-                              node.SetSolutionStepValue(VELOCITY_Z, vz)
-                              node.Fix(VELOCITY_X)
-                              node.Fix(VELOCITY_Z)
+                            node.SetSolutionStepValue(VELOCITY_X, vx)
+                            node.SetSolutionStepValue(VELOCITY_Z, vz)
+                            node.Fix(VELOCITY_X)
+                            node.Fix(VELOCITY_Z)
 
            
 
@@ -856,21 +857,21 @@ class MultifileList(object):
         self.index = 0
         self.step = step
         self.name = name
-        self.file = open(self.name+"_"+str(step)+".post.lst","w")
+        self.file = open("_list_"+self.name+"_"+str(step)+".post.lst","w")
 
 
 class DEMIo(object):
 
     def __init__(self):
         # Printing variables
-        self.global_variables          = []
-        self.spheres_variables            = []
-        self.sphere_local_axis_variables  = []
-        self.fem_boundary_variables    = []
-        self.mapping_variables            = []
-        self.cluster_variables         = []
-        self.contact_variables         = []
-        self.multifilelists            = []
+        self.global_variables            = []
+        self.spheres_variables           = []
+        self.sphere_local_axis_variables = []
+        self.fem_boundary_variables      = []
+        self.mapping_variables           = []
+        self.cluster_variables           = []
+        self.contact_variables           = []
+        self.multifilelists              = []
 
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
@@ -932,6 +933,7 @@ class DEMIo(object):
         self.PushPrintVar( 1,                                               PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar( 1,                                               TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar( 1,                                               SHEAR_STRESS, self.fem_boundary_variables)
+    
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
 
