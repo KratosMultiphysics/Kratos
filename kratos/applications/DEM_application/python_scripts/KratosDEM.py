@@ -161,7 +161,7 @@ demio.Configure(DEM_parameters.problem_name,
 
 demio.SetOutputName(DEM_parameters.problem_name)
 
-os.chdir(list_path)
+os.chdir(post_path)
 
 multifiles = (
     DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
