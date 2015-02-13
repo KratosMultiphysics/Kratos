@@ -557,6 +557,12 @@ protected:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
 
+    /**
+     * Finalize and Initialize label
+     */
+    bool mFinalized;
+
+	
     ///@}
     ///@name Protected Operators
     ///@{
