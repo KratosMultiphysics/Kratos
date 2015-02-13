@@ -316,7 +316,7 @@ class Procedures(object):
 
                 Total_Contacts += 1.0
 
-            Coordination_Number = 1.0 * (double(Total_Contacts) * 2.0) / double(Total_Particles)
+            Coordination_Number = 1.0 * (Total_Contacts * 2.0) / (Total_Particles)
 
         Model_Data.write("Total Number of Particles: " + str(Total_Particles) + '\n')
         Model_Data.write("Total Number of Contacts: " + str(Total_Contacts) + '\n')
