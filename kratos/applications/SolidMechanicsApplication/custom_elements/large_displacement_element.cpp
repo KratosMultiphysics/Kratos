@@ -68,6 +68,7 @@ LargeDisplacementElement::LargeDisplacementElement( LargeDisplacementElement con
     :Element(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
+    ,mFinalized(rOther.mFinalized)
 {
 }
 
@@ -1034,6 +1035,9 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
                 GetGeometry(),
                 row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
                 rCurrentProcessInfo );
+
+    mFinalized = false;
+
 }
 
 
@@ -1094,6 +1098,8 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 	//call the element internal variables update
 	this->FinalizeStepVariables(Variables,rCurrentProcessInfo);
     }
+
+    mFinalized = true;
 
     KRATOS_CATCH( "" )
 }
@@ -1737,6 +1743,12 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
+	    //to take in account previous step writing
+	    if( mFinalized ){
+	      Variables.F    = IdentityMatrix(3);
+	      Variables.detF = 1;
+	    }		
+
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
@@ -1793,6 +1805,12 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
+	    //to take in account previous step writing
+	    if( mFinalized ){
+	      Variables.F    = IdentityMatrix(3);
+	      Variables.detF = 1;
+	    }		
+
             //set general variables to constitutivelaw parameters
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
@@ -1823,6 +1841,12 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
         {
             //compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
+
+	    //to take in account previous step writing
+	    if( mFinalized ){
+	      Variables.F    = IdentityMatrix(3);
+	      Variables.detF = 1;
+	    }	
 
             //Compute Green-Lagrange Strain
             if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
