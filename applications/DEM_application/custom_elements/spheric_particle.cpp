@@ -572,8 +572,6 @@ void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
     double velB[3]                    = {0.0};
     double dRotaDisp[3]               = {0.0};
     const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    //double VelTemp[3]                 = {      ang_vel[0],       ang_vel[1],       ang_vel[2]};
-    //double OtherVelTemp[3]            = {other_ang_vel[0], other_ang_vel[1], other_ang_vel[2]};
 
     GeometryFunctions::CrossProduct(      ang_vel, OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD.
     GeometryFunctions::CrossProduct(other_ang_vel, OldLocalCoordSystem[2], velB);
@@ -1484,8 +1482,9 @@ double SphericParticle::SlowGetPoisson()                                        
 double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                       }
 double SphericParticle::SlowGetLnOfRestitCoeff()                                         { return GetProperties()[LN_OF_RESTITUTION_COEFF];                                 }
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
-double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
+
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
+double SphericParticle::SlowGetParticleCohesion()                                        { return GetProperties()[PARTICLE_COHESION];                                       }
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
