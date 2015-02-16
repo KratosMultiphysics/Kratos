@@ -231,6 +231,9 @@ namespace Kratos
 		template<class TMatrix3x3>
 		inline void ToRotationMatrix(TMatrix3x3& R)const
 		{
+		        if( R.size1()!=3 || R.size2()!=3 )
+		          R.resize(3,3,false);
+		  
 			R(0, 0) = 2.0 * ( mW*mW + mX*mX - 0.5 );
 			R(0, 1) = 2.0 * ( mX*mY - mW*mZ );
 			R(0, 2) = 2.0 * ( mX*mZ + mW*mY );
@@ -296,6 +299,9 @@ namespace Kratos
 		template<class TVector3>
 		inline void ToRotationVector(TVector3& v)const
 		{
+		        if( v.size()!=3 )
+			  v.resize(3);
+
 			this->ToRotationVector(v(0), v(1), v(2));
 		}
 
