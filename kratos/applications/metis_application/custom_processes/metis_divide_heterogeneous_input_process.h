@@ -135,6 +135,16 @@ public:
         // Partition elements
         IO::ConnectivitiesContainerType ElementConnectivities;
         SizeType NumElements =  BaseType::mrIO.ReadElementsConnectivities(ElementConnectivities);
+        if (NumElements != ElementConnectivities.size())
+        {
+            std::stringstream Msg;
+            Msg << std::endl;
+            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+            Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
+            Msg << "Elements are most likely not correlatively numbered." << std::endl;
+
+            KRATOS_ERROR(std::runtime_error,Msg.str(),"");
+        }
 
         std::vector<int> ElementPartition;
 
@@ -146,6 +156,16 @@ public:
         // Partition conditions
         IO::ConnectivitiesContainerType ConditionConnectivities;
         SizeType NumConditions = BaseType::mrIO.ReadConditionsConnectivities(ConditionConnectivities);
+        if (NumConditions != ConditionConnectivities.size())
+        {
+            std::stringstream Msg;
+            Msg << std::endl;
+            Msg << "ERROR in MetisDivideHeterogenousInputProcess:" << std::endl;
+            Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
+            Msg << "Conditions are most likely not correlatively numbered." << std::endl;
+
+            KRATOS_ERROR(std::runtime_error,Msg.str(),"");
+        }
 
         std::vector<int> ConditionPartition;
 
