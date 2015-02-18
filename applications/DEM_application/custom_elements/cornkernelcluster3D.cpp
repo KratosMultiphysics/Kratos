@@ -58,55 +58,65 @@ namespace Kratos {
         mListOfRadii.resize(number_of_spheres);
         mListOfCoordinates.resize(number_of_spheres);
         mListOfSphericParticles.resize(number_of_spheres);
-                
-        for (int i = 0; i < 17; i++) { mListOfRadii[i]= 0.0012156; }
+        
+        double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);        
+        
+        // Original maximum distance in the geometry in corn_kernel_design_05.gid is 0.00818309 m
+        // It coincides with the main axis of the geometry, the almost-symmetrical one
+        // So, first of all, the geometry must be converted into unity length,
+        // so we multiply by 1/0.00818309, obtaining 122.20322641
+        // and we finally multiply that by the characteristic length given in the problem type 
+        
+        cl *= 122.20322641;
+        
+        for (int i = 0; i < 17; i++) { mListOfRadii[i]= 0.0012156 * cl; }
         
         //RADIUS 0.0012156
-        mListOfCoordinates[ 0][0] =  0.00011844806399999969; mListOfCoordinates[ 0][1] =  0.00287423149800000035; mListOfCoordinates[ 0][2] = 0.0;
-        mListOfCoordinates[ 1][0] = -0.00120891420000000025; mListOfCoordinates[ 1][1] =  0.00276718576200000065; mListOfCoordinates[ 1][2] = 0.0;
-        mListOfCoordinates[ 2][0] =  0.00129596331599999885; mListOfCoordinates[ 2][1] =  0.00276718576200000065; mListOfCoordinates[ 2][2] = 0.0;
-        mListOfCoordinates[ 3][0] = -0.00126624189600000015; mListOfCoordinates[ 3][1] =  0.00105445398600000030; mListOfCoordinates[ 3][2] = 0.0; 
-        mListOfCoordinates[ 4][0] =  0.00168128420399999895; mListOfCoordinates[ 4][1] =  0.00135423310200000160; mListOfCoordinates[ 4][2] = 0.0;  
-        mListOfCoordinates[ 5][0] =  0.00137918329200000035; mListOfCoordinates[ 5][1] = -0.00015627145799999956; mListOfCoordinates[ 5][2] = 0.0;
-        mListOfCoordinates[ 6][0] = -0.00092971519199999995; mListOfCoordinates[ 6][1] = -0.00078205018199999955; mListOfCoordinates[ 6][2] = 0.0;  
-        mListOfCoordinates[ 7][0] =  0.00014921489999999976; mListOfCoordinates[ 7][1] =  0.00085791577800000085; mListOfCoordinates[ 7][2] = 0.0;
-        mListOfCoordinates[ 8][0] =  0.00077499362400000040; mListOfCoordinates[ 8][1] = -0.00170992981799999985; mListOfCoordinates[ 8][2] = 0.0;  
-        mListOfCoordinates[ 9][0] = -0.00060383714400000026; mListOfCoordinates[ 9][1] = -0.00175962354599999995; mListOfCoordinates[ 9][2] = 0.0;
-        mListOfCoordinates[10][0] = -0.00131780764800000050; mListOfCoordinates[10][1] =  0.00193457269799999995; mListOfCoordinates[10][2] = 0.0;
-        mListOfCoordinates[11][0] = -0.00109543794000000000; mListOfCoordinates[11][1] =  0.00025407863400000091; mListOfCoordinates[11][2] = 0.0;
-        mListOfCoordinates[12][0] = -0.00058999146000000033; mListOfCoordinates[12][1] =  0.00285779658599999990; mListOfCoordinates[12][2] = 0.0;
-        mListOfCoordinates[13][0] =  0.00150612840000000080; mListOfCoordinates[13][1] =  0.00208500319800000035; mListOfCoordinates[13][2] = 0.0; 
-        mListOfCoordinates[14][0] =  0.00156623982000000050; mListOfCoordinates[14][1] =  0.00065963926199999988; mListOfCoordinates[14][2] = 0.0;  
-        mListOfCoordinates[15][0] =  0.00121268256000000020; mListOfCoordinates[15][1] = -0.00091943729399999931; mListOfCoordinates[15][2] = 0.0;
-        mListOfCoordinates[16][0] =  0.00069562710000000035; mListOfCoordinates[16][1] =  0.00288153725399999985; mListOfCoordinates[16][2] = 0.0;  
+        mListOfCoordinates[ 0][0] =  0.000118448063999999 * cl; mListOfCoordinates[ 0][1] =  0.002874231498000000 * cl; mListOfCoordinates[ 0][2] = 0.0;
+        mListOfCoordinates[ 1][0] = -0.001208914200000000 * cl; mListOfCoordinates[ 1][1] =  0.002767185762000000 * cl; mListOfCoordinates[ 1][2] = 0.0;
+        mListOfCoordinates[ 2][0] =  0.001295963315999998 * cl; mListOfCoordinates[ 2][1] =  0.002767185762000000 * cl; mListOfCoordinates[ 2][2] = 0.0;
+        mListOfCoordinates[ 3][0] = -0.001266241896000000 * cl; mListOfCoordinates[ 3][1] =  0.001054453986000000 * cl; mListOfCoordinates[ 3][2] = 0.0; 
+        mListOfCoordinates[ 4][0] =  0.001681284203999998 * cl; mListOfCoordinates[ 4][1] =  0.001354233102000001 * cl; mListOfCoordinates[ 4][2] = 0.0;  
+        mListOfCoordinates[ 5][0] =  0.001379183292000000 * cl; mListOfCoordinates[ 5][1] = -0.000156271457999999 * cl; mListOfCoordinates[ 5][2] = 0.0;
+        mListOfCoordinates[ 6][0] = -0.000929715191999999 * cl; mListOfCoordinates[ 6][1] = -0.000782050181999999 * cl; mListOfCoordinates[ 6][2] = 0.0;  
+        mListOfCoordinates[ 7][0] =  0.000149214899999999 * cl; mListOfCoordinates[ 7][1] =  0.000857915778000000 * cl; mListOfCoordinates[ 7][2] = 0.0;
+        mListOfCoordinates[ 8][0] =  0.000774993624000000 * cl; mListOfCoordinates[ 8][1] = -0.001709929817999999 * cl; mListOfCoordinates[ 8][2] = 0.0;  
+        mListOfCoordinates[ 9][0] = -0.000603837144000000 * cl; mListOfCoordinates[ 9][1] = -0.001759623545999999 * cl; mListOfCoordinates[ 9][2] = 0.0;
+        mListOfCoordinates[10][0] = -0.001317807648000000 * cl; mListOfCoordinates[10][1] =  0.001934572697999999 * cl; mListOfCoordinates[10][2] = 0.0;
+        mListOfCoordinates[11][0] = -0.001095437940000000 * cl; mListOfCoordinates[11][1] =  0.000254078634000000 * cl; mListOfCoordinates[11][2] = 0.0;
+        mListOfCoordinates[12][0] = -0.000589991460000000 * cl; mListOfCoordinates[12][1] =  0.002857796585999999 * cl; mListOfCoordinates[12][2] = 0.0;
+        mListOfCoordinates[13][0] =  0.001506128400000000 * cl; mListOfCoordinates[13][1] =  0.002085003198000000 * cl; mListOfCoordinates[13][2] = 0.0; 
+        mListOfCoordinates[14][0] =  0.001566239820000000 * cl; mListOfCoordinates[14][1] =  0.000659639261999999 * cl; mListOfCoordinates[14][2] = 0.0;  
+        mListOfCoordinates[15][0] =  0.001212682560000000 * cl; mListOfCoordinates[15][1] = -0.000919437293999999 * cl; mListOfCoordinates[15][2] = 0.0;
+        mListOfCoordinates[16][0] =  0.000695627100000000 * cl; mListOfCoordinates[16][1] =  0.002881537253999999 * cl; mListOfCoordinates[16][2] = 0.0;  
         
         //RADIUS 0.0008104
-        for (int i = 17; i < 20; i++) { mListOfRadii[i]= 0.0008104; }
-        mListOfCoordinates[17][0] = -0.000382275; mListOfCoordinates[17][1] = -0.00274055; mListOfCoordinates[17][2] = 0.0;
-        mListOfCoordinates[18][0] =  0.000492665; mListOfCoordinates[18][1] = -0.00266845; mListOfCoordinates[18][2] = 0.0;  
-        mListOfCoordinates[19][0] = -0.000112185; mListOfCoordinates[19][1] = -0.00310410; mListOfCoordinates[19][2] = 0.0;
+        for (int i = 17; i < 20; i++) { mListOfRadii[i]= 0.0008104 * cl; }
+        mListOfCoordinates[17][0] = -0.000382275 * cl; mListOfCoordinates[17][1] = -0.00274055 * cl; mListOfCoordinates[17][2] = 0.0;
+        mListOfCoordinates[18][0] =  0.000492665 * cl; mListOfCoordinates[18][1] = -0.00266845 * cl; mListOfCoordinates[18][2] = 0.0;  
+        mListOfCoordinates[19][0] = -0.000112185 * cl; mListOfCoordinates[19][1] = -0.00310410 * cl; mListOfCoordinates[19][2] = 0.0;
         
         //RADIUS 0.0003039
-        for (int i = 20; i < 21; i++) { mListOfRadii[i]= 0.0003039; }
-        mListOfCoordinates[20][0] = -0.000118455; mListOfCoordinates[20][1] = -0.00378590; mListOfCoordinates[20][2] = 0.0;
+        for (int i = 20; i < 21; i++) { mListOfRadii[i]= 0.0003039 * cl; }
+        mListOfCoordinates[20][0] = -0.000118455 * cl; mListOfCoordinates[20][1] = -0.00378590 * cl; mListOfCoordinates[20][2] = 0.0;
         
-        double particle_density = this->SlowGetDensity();
+        //double particle_density = this->SlowGetDensity();
         
-        double a = 0.00531;
-        double b = 0.00818;
-        double c = 0.00251;
+        double a = 0.00531 * cl;
+        double b = 0.00818 * cl;
+        double c = 0.00251 * cl;
         
-        double cluster_volume = a * b * c;
+        //double cluster_volume = a * b * c;
         
-        double cluster_mass = particle_density * cluster_volume;
+        //double cluster_mass = particle_density * cluster_volume;
         
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * a * b * c;
         
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.08333333333 * cluster_mass * (b * b + c * c);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.08333333333 * cluster_mass * (a * a + c * c);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.08333333333 * cluster_mass * (a * a + b * b);
-         
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double,3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        
+        base_principal_moments_of_inertia[0] = 0.08333333333 * cluster_mass * (b * b + c * c);
+        base_principal_moments_of_inertia[1] = 0.08333333333 * cluster_mass * (a * a + c * c);
+        base_principal_moments_of_inertia[2] = 0.08333333333 * cluster_mass * (a * a + b * b);
             
     }     
     
