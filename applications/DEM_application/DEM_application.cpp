@@ -258,6 +258,7 @@ namespace Kratos
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_FORCES)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(ANGULAR_MOMENTUM)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TANGENTIAL_ELASTIC_FORCES)
+  
   // ENERGY
   
   KRATOS_CREATE_VARIABLE(double, KINETIC_ENERGY)
@@ -331,20 +332,19 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, CHARACTERISTIC_LENGTH)
           
   //  For DEM_FEM condition
-//  KRATOS_CREATE_VARIABLE( Vector, RESIDUAL_VECTOR )
-//  KRATOS_CREATE_VARIABLE( Vector, EXTERNAL_FORCES_VECTOR )
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_RESIDUAL )
-//  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
+  //  KRATOS_CREATE_VARIABLE( Vector, RESIDUAL_VECTOR )
+  //  KRATOS_CREATE_VARIABLE( Vector, EXTERNAL_FORCES_VECTOR )
+  //  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_RESIDUAL )
+  //  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( EXTERNAL_FORCE )
 
   // DUMMY VARIABLES FOR CALCULATE
   KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA)
   KRATOS_CREATE_VARIABLE(double, CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA)
   KRATOS_CREATE_VARIABLE(double, CALCULATE_SET_INITIAL_DEM_CONTACTS)
   KRATOS_CREATE_VARIABLE(double, CALCULATE_SET_INITIAL_FEM_CONTACTS)
-  
-  
+    
 
-    ///Cfeng,131013,RigidFace Movement
+  ///Cfeng,131013,RigidFace Movement
   
   KRATOS_CREATE_VARIABLE(double, WALL_FRICTION)
   
@@ -359,6 +359,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, RIGID_FACE_FLAG)
   KRATOS_CREATE_VARIABLE(Vector, RIGID_FACE_COMPUTE_MOVEMENT)
   KRATOS_CREATE_VARIABLE(double, SHEAR_STRESS)
+  KRATOS_CREATE_VARIABLE(double, NON_DIMENSIONAL_VOLUME_WEAR)
+  KRATOS_CREATE_VARIABLE(double, IMPACT_WEAR)
           
   //OPTIMIZATION
  
@@ -417,16 +419,16 @@ namespace Kratos
 
     KratosApplication::Register();
     
-    std::cout <<std::endl;
-    std::cout << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "<< std::endl;
-    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "<< std::endl;
-    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "<< std::endl;
-    std::cout << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      "<< std::endl<< std::endl;
-    std::cout << "Initializing DEMApplication..." << std::endl;
+    std::cout << std::endl;
+    std::cout << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      "  << std::endl;
+    std::cout << "            | | | |  _| | |\\/| | |_) / _` |/ __| |/ /      "    << std::endl;
+    std::cout << "            | |_| | |___| |  | |  __/ (_| | (__|   <       "     << std::endl;
+    std::cout << "            |____/|_____|_|  |_|_|   \\__,_|\\___|_|\\_\\      " << std::endl << std::endl;
+    std::cout << "Initializing DEMApplication..."                                  << std::endl;
 
     
-    KRATOS_REGISTER_VARIABLE (CONTINUUM_INI_NEIGHBOUR_ELEMENTS )
-    KRATOS_REGISTER_VARIABLE ( NODE_TO_NEIGH_ELEMENT_POINTER )
+    KRATOS_REGISTER_VARIABLE (CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
+    KRATOS_REGISTER_VARIABLE (NODE_TO_NEIGH_ELEMENT_POINTER)
   
     
     //constitutive law
@@ -757,7 +759,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(RIGID_FACE_FLAG)
     KRATOS_REGISTER_VARIABLE(RIGID_FACE_COMPUTE_MOVEMENT)
     KRATOS_REGISTER_VARIABLE(SHEAR_STRESS)
-       
+    KRATOS_REGISTER_VARIABLE(NON_DIMENSIONAL_VOLUME_WEAR) 
+    KRATOS_REGISTER_VARIABLE(IMPACT_WEAR)
+            
     //OPTIMIZATION 
 
     //FOR RECAREY FORMULAE
