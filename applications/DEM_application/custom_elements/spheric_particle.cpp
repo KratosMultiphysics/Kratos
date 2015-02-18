@@ -670,13 +670,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         noalias(rInitialRotaMoment)        = coeff_acc * ang_vel; // the moment needed to stop the spin in one time step
     }
 
-    double kn;
-    double kt;
-    double equiv_visco_damp_coeff_normal;
-    double equiv_visco_damp_coeff_tangential;
-    double equiv_tg_of_fri_ang;
-    double cohesion;
-    double cohesion_area;
+    double kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, cohesion, cohesion_area;
     
     double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
     double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
