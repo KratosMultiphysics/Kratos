@@ -813,6 +813,63 @@ protected:
         KRATOS_CATCH("")
     }
 
+	template<class TablesContainerType>
+    void ReadTableBlock(TablesContainerType& rTables)
+    {
+        KRATOS_TRY
+
+        ModelPart::TableType temp_table;
+
+        SizeType table_id;
+        std::string word;
+
+        std::string variable_name;
+        ReadWord(variable_name);
+
+        if(!KratosComponents<VariableData>::Has(variable_name))
+
+        {
+            std::stringstream buffer;
+            buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+
+        }
+
+		VariableData const& r_x_variable = KratosComponents<VariableData>::Get(variable_name);
+
+        ReadWord(variable_name);
+
+        if(!KratosComponents<VariableData>::Has(variable_name))
+        {
+            std::stringstream buffer;
+            buffer << variable_name << " is not a valid value variable!!! Table only accepts double values." << std::endl;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+
+        }
+		VariableData const& r_y_variable = KratosComponents<VariableData>::Get(variable_name);
+
+        while(!mInput.eof())
+        {
+            double x;
+            double y;
+            ReadWord(word);
+            if(CheckEndBlock("Table", word))
+                break;
+
+            ExtractValue(word, x);
+            ReadWord(word);
+            ExtractValue(word, y);
+
+            temp_table.insert(x,y);
+        }
+
+        rTables.SetTable(r_x_variable, r_y_variable, temp_table);
+
+        KRATOS_CATCH("")
+    }
+
     void ReadTableBlock(ModelPart::TablesContainerType& rTables)
     {
         KRATOS_TRY
@@ -1098,7 +1155,14 @@ protected:
             if(CheckEndBlock("Properties", variable_name))
                 break;
 
-	    if(KratosComponents<Variable<std::string> >::Has(variable_name))
+		if(variable_name == "Begin") // here we have some nested block. 
+		{
+            ReadBlockName(variable_name);
+			if(variable_name == "Table") // At this moment the only supported nested block is a table
+                ReadTableBlock(temp_properties);
+		}
+
+	    else if(KratosComponents<Variable<std::string> >::Has(variable_name))
             {
                 std::string value;
 		        std::string  temp;
