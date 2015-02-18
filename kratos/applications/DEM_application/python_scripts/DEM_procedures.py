@@ -170,7 +170,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-
+        model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
+        model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
         if(DEM_parameters.PostGroupId):
             model_part.AddNodalSolutionStepVariable(GROUP_ID)   
             
@@ -200,7 +201,7 @@ class Procedures(object):
 
         # OTHER PROPERTIES
         model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-
+                
         # LOCAL AXIS
         if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
@@ -211,7 +212,7 @@ class Procedures(object):
             model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differenced groups for plotting, etc..
         # ONLY VISUALIZATION
         if (Var_Translator(Param.PostExportId)):
-           model_part.AddNodalSolutionStepVariable(EXPORT_ID)
+            model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
         if (Var_Translator(Param.PostGroupId)):
             model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
@@ -223,7 +224,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-
+        
     def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,Param)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
@@ -323,7 +324,7 @@ class Procedures(object):
         Model_Data.write("Coordination Number NC: " + str(Coordination_Number) + '\n')
         Model_Data.write('\n')
 
-        # Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
+        #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
 
         Model_Data.close()
 
@@ -879,17 +880,19 @@ class DEMIo(object):
 
     def AddGlobalVariables(self):
         # Global Variables
-        self.PushPrintVar(DEM_parameters.PostDisplacement, DISPLACEMENT,    self.global_variables)
-        self.PushPrintVar(DEM_parameters.PostVelocity,     VELOCITY,        self.global_variables)
-        self.PushPrintVar(DEM_parameters.PostTotalForces,  TOTAL_FORCES,    self.global_variables)
+        self.PushPrintVar(DEM_parameters.PostDisplacement,             DISPLACEMENT,                self.global_variables)
+        self.PushPrintVar(DEM_parameters.PostVelocity,                 VELOCITY,                    self.global_variables)
+        self.PushPrintVar(DEM_parameters.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
+        self.PushPrintVar(DEM_parameters.PostNonDimensionalVolumeWear, NON_DIMENSIONAL_VOLUME_WEAR, self.global_variables)
+        self.PushPrintVar(DEM_parameters.PostImpactWear,               IMPACT_WEAR,                 self.global_variables)
         
     def AddSpheresVariables(self):
         # Spheres Variables
-        self.PushPrintVar(DEM_parameters.PostAppliedForces,    EXTERNAL_APPLIED_FORCE, self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostDampForces,       DAMP_FORCES,            self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostRadius,           RADIUS,                 self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostExportId,         EXPORT_ID,              self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostExportSkinSphere, EXPORT_SKIN_SPHERE,     self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostRadius,           RADIUS,                       self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostExportId,         EXPORT_ID,                    self.spheres_variables)
+        self.PushPrintVar(DEM_parameters.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
         # Spheres Rotation
@@ -899,7 +902,7 @@ class DEMIo(object):
             self.PushPrintVar(DEM_parameters.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
 
         # Spheres Strain
-        if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
+        if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or (DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
             self.PushPrintVar(DEM_parameters.StressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
@@ -923,17 +926,13 @@ class DEMIo(object):
          self.PushPrintVar( 1, LUMPED_PROJECTION_NODAL_MASS, self.global_variables)
      
     def AddFEMBoundaryVariables(self):
-        #pass
-        #self.PushPrintVar(DEM_parameters.PostWallsElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
-        #self.PushPrintVar(DEM_parameters.PostWallsPressure,                PRESSURE, self.fem_boundary_variables)
-        #self.PushPrintVar(DEM_parameters.PostWallsTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
-        #self.PushPrintVar(DEM_parameters.PostWallsShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
-        #self.PushPrintVar(DEM_parameters.PostWallsNodalArea,               NODAL_AREA, self.fem_boundary_variables)
-        self.PushPrintVar( 1,                                               ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar( 1,                                               PRESSURE, self.fem_boundary_variables)
-        self.PushPrintVar( 1,                                               TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar( 1,                                               SHEAR_STRESS, self.fem_boundary_variables)
-    
+        
+        self.PushPrintVar(DEM_parameters.PostElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(DEM_parameters.PostPressure,                PRESSURE, self.fem_boundary_variables)
+        self.PushPrintVar(DEM_parameters.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(DEM_parameters.PostShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
+        self.PushPrintVar(DEM_parameters.PostNodalArea,               NODAL_AREA, self.fem_boundary_variables)
+        
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
 
@@ -942,7 +941,7 @@ class DEMIo(object):
     
     def AddContactVariables(self):
         # Contact Elements Variables
-        if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or(DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
+        if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or (DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
             if (Var_Translator(DEM_parameters.ContactMeshOption)):
                 self.PushPrintVar(DEM_parameters.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
                 self.PushPrintVar(DEM_parameters.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
