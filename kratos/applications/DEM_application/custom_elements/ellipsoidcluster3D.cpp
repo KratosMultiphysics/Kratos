@@ -93,20 +93,20 @@ namespace Kratos {
             }
         }
         
-        double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
+        //double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * 0.5 * 0.375 * 0.25 * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        //double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * 0.5 * 0.375 * 0.25 * cl * cl * cl; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
-        double cluster_mass = particle_density * cluster_volume;
+        //double cluster_mass = particle_density * cluster_volume;
         
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 0.3333333333 * 4.0 * KRATOS_M_PI * 0.5 * 0.375 * 0.25 * cl * cl * cl;
         
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.2 * cluster_mass * cl * cl * (0.375 * 0.375 + 0.25 * 0.25);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.2 * cluster_mass * cl * cl * (0.5 * 0.5 + 0.25 * 0.25);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.2 * cluster_mass * cl * cl * (0.5 * 0.5 + 0.375 * 0.375);
+        array_1d<double,3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA); 
+        
+        base_principal_moments_of_inertia[0] = 0.2 * cluster_mass * cl * cl * (0.375 * 0.375 + 0.25 * 0.25);
+        base_principal_moments_of_inertia[1] = 0.2 * cluster_mass * cl * cl * (0.5 * 0.5 + 0.25 * 0.25);
+        base_principal_moments_of_inertia[2] = 0.2 * cluster_mass * cl * cl * (0.5 * 0.5 + 0.375 * 0.375);
          
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);     
-  
     }     
     
       
