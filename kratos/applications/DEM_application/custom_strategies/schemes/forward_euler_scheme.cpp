@@ -104,6 +104,7 @@ namespace Kratos {
     }
 
     void ForwardEulerScheme::CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes) {
+        
         KRATOS_TRY
 
         ProcessInfo& rCurrentProcessInfo = model_part.GetProcessInfo();
