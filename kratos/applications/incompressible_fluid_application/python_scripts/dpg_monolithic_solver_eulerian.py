@@ -24,22 +24,22 @@ distance_settings.SetDensityVariable(DISTANCE)
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(ACCELERATION) #
-    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY) #
+    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(IS_FLUID) #
+    model_part.AddNodalSolutionStepVariable(IS_FLUID)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
-    model_part.AddNodalSolutionStepVariable(IS_INTERFACE) #
+    model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(DENSITY)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-    model_part.AddNodalSolutionStepVariable(NODAL_H) #
-    model_part.AddNodalSolutionStepVariable(THAWONE) #
-    model_part.AddNodalSolutionStepVariable(THAWTWO) #
+    model_part.AddNodalSolutionStepVariable(NODAL_H)
+    model_part.AddNodalSolutionStepVariable(THAWONE)
+    model_part.AddNodalSolutionStepVariable(THAWTWO)
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(DISTANCE)
@@ -219,8 +219,6 @@ class MonolithicSolver:
         # mu1 = self.mu
         # mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
-        print ("MU = " + str(mu1))
-        #print("sssssssss ", mu1)
         BiphasicFillingUtilities().ApplyFluidProperties(self.model_part, mu1, self.rho1, mu2, self.rho2)
 # for node in self.model_part.Nodes:
 # dist = node.GetSolutionStepValue(DISTANCE)
@@ -345,12 +343,9 @@ class MonolithicSolver:
             for node in self.inlet_nodes:
                 if( node.GetSolutionStepValue(DISTANCE) > 0.0):
                     node.SetSolutionStepValue(DISTANCE,0,  -0.01*self.max_edge_size)
- 
             self.DoRedistance()
-            self.next_redistance = self.internal_step_counter + self.redistance_frequency
-        
         Timer.Stop("DoRedistance")
-        
+
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
