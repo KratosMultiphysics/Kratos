@@ -137,8 +137,8 @@ namespace Kratos {
             pnew_node->SetId(aId);
             pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;            
             //(actually it should be the velocity of the inlet layer, which is different from the particles being inserted)
-            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100;
-        }
+            pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL] + 100; //So the inlet ghost spheres are not in the same
+        }                                                                                             //layer of the inlet newly created spheres
         else {
             pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
             array_1d<double, 3 > velocity = params[VELOCITY];
@@ -340,18 +340,18 @@ namespace Kratos {
     }    
     
     void ParticleCreatorDestructor::ClusterCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                        ModelPart& r_clusters_modelpart,
-                                                                        int r_Elem_Id,
-                                                                        Node < 3 > ::Pointer reference_node,
-                                                                        Element::Pointer injector_element,
-                                                                        Properties::Pointer r_params,
-                                                                        const Element& r_reference_element,
-                                                                        PropertiesProxy* p_fast_properties,
-                                                                        bool has_sphericity,
-                                                                        bool has_rotation,
-                                                                        bool initial,
-                                                                        ElementsContainerType& array_of_injector_elements,
-                                                                        int& number_of_added_spheres) {
+                                                                         ModelPart& r_clusters_modelpart,
+                                                                         int r_Elem_Id,
+                                                                         Node < 3 > ::Pointer reference_node,
+                                                                         Element::Pointer injector_element,
+                                                                         Properties::Pointer r_params,
+                                                                         const Element& r_reference_element,
+                                                                         PropertiesProxy* p_fast_properties,
+                                                                         bool has_sphericity,
+                                                                         bool has_rotation,
+                                                                         bool initial,
+                                                                         ElementsContainerType& array_of_injector_elements,
+                                                                         int& number_of_added_spheres) {
         
         Node < 3 > ::Pointer pnew_node;
 
@@ -429,10 +429,10 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::CalculateSurroundingBoundingBox(ModelPart& r_balls_model_part,
-            ModelPart& r_clusters_model_part,
-            ModelPart& r_rigid_faces_model_part,
-            double scale_factor,
-            bool automatic) {
+                                                                    ModelPart& r_clusters_model_part,
+                                                                    ModelPart& r_rigid_faces_model_part,
+                                                                    double scale_factor,
+                                                                    bool automatic) {
         KRATOS_TRY
 
         if (automatic) {
