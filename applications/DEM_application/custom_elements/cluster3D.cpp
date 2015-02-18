@@ -187,7 +187,7 @@ namespace Kratos {
         
         for (unsigned int i=0; i<mListOfSphericParticles.size(); i++) {
             
-            if(mListOfSphericParticles[i]->mNeighbourElements.size()==0 && mListOfSphericParticles[i]->mNeighbourRigidFaces.size()==0) continue; //Assuming the sphere only adds contact forces to the cluster
+            if (mListOfSphericParticles[i]->mNeighbourElements.size()==0 && mListOfSphericParticles[i]->mNeighbourRigidFaces.size()==0) continue; //Assuming the sphere only adds contact forces to the cluster
             
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
             array_1d<double, 3>& particle_forces = sphere_node.FastGetSolutionStepValue(TOTAL_FORCES);  
