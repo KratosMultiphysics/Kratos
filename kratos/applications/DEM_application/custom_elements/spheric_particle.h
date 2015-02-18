@@ -272,7 +272,7 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
                     array_1d<double, 3> &rElasticForce,
-                    const double &i_neighbour_count);
+                    const unsigned int i_neighbour_count);
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     double LocalContactForce[3],
@@ -281,7 +281,7 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
                     array_1d<double, 3> &rElasticForce,
-                    const double &iRigidFaceNeighbour);
+                    const unsigned int iRigidFaceNeighbour);
 
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& rCurrentProcessInfo);
 
