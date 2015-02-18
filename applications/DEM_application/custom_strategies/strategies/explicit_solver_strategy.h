@@ -24,7 +24,6 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
-#include <iostream>
 #include <time.h> 
 
 /* External includes */
@@ -116,7 +115,7 @@ namespace Kratos
   class TSparseSpace,
   class TDenseSpace,
   class TLinearSolver>
-  class ExplicitSolverStrategy: public  SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+  class ExplicitSolverStrategy: public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
       public:
       ///@name Type Definitions
@@ -227,7 +226,6 @@ namespace Kratos
                              typename SpatialSearch::Pointer pSpSearch
       ): BaseType(r_model_part, move_mesh_flag)
       {
-
           mDeltaOption                   = delta_option;
           mSearchTolerance               = search_tolerance;
           mCoordinationNumber            = coordination_number;
@@ -282,7 +280,7 @@ namespace Kratos
           KRATOS_TRY         
                                   
           #pragma omp parallel for 
-          for(int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){  
+          for (int i = 0; i < (int)rCustomListOfSphericParticles.size(); i++){  
               rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);                         
           }                     
           return;            
@@ -596,7 +594,9 @@ namespace Kratos
             Vector rhs_elem;
             rhs_elem.resize(6);
             #pragma omp for schedule(guided)
-            for(int i=0; i<(int)mListOfSphericParticles.size(); i++){              
+            
+            for (int i = 0; i < (int)mListOfSphericParticles.size(); i++){
+                              
                 mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);  
             }
           }
@@ -907,8 +907,9 @@ namespace Kratos
                     }
                                                            
                     node_area += 0.333333333333333 * Element_Area;
-                    //node_pressure actually refers to normal force. It is really computed later in function Calculate_Nodal_Pressures_and_Stresses()
-                    //as a real pressure
+                    
+                    //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
+                    
                     node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
                     
                     node_rhs_tang += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
