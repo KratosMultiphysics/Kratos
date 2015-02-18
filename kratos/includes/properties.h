@@ -124,10 +124,10 @@ public:
     ///@{
 
     /// Default constructor.
-    Properties(IndexType NewId = 0) : BaseType(NewId), mData() {}
+	Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData) {}
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
 
     /// Destructor.
     virtual ~Properties() {}
@@ -336,6 +336,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
         mData.PrintData(rOStream);
+		rOStream << "This properties contains " << mTables.size() << " tables";
     }
 
 
