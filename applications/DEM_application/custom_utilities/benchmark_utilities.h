@@ -1,5 +1,5 @@
-#ifndef KRATOS_BECHMARK_UTILITIES_H
-#define KRATOS_BECHMARK_UTILITIES_H
+#ifndef KRATOS_BENCHMARK_UTILITIES_H
+#define KRATOS_BENCHMARK_UTILITIES_H
 
 // Project includes
 #include "includes/model_part.h"
@@ -54,4 +54,4 @@ std::vector<PropertiesProxy> mFastProperties;
 };
 
 }
-#endif // KRATOS_BECHMARK_UTILITIES_H
+#endif // KRATOS_BENCHMARK_UTILITIES_H
