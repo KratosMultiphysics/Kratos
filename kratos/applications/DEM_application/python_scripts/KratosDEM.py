@@ -36,7 +36,6 @@ else:
     # DEM Application
     import DEM_procedures
     import DEM_material_test_script
-
     print("Running under OpenMP........")
 
 #EXTRA IMPORTS
@@ -65,13 +64,14 @@ KRATOSprint   = procedures.KRATOSprint
 procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
-spheres_model_part      = ModelPart("SpheresPart");
+spheres_model_part    = ModelPart("SpheresPart");
 rigid_face_model_part = ModelPart("RigidFace_Part");  
 mixed_model_part      = ModelPart("Mixed_Part");
 cluster_model_part    = ModelPart("Cluster_Part");
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part      = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
+
 #EXTRA ModelPart Operations
 #
 #
@@ -137,8 +137,6 @@ creator_destructor = ParticleCreatorDestructor()
 # Creating necessary directories
 main_path = os.getcwd()
 [post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
-
-
 
 os.chdir(main_path)
 
@@ -220,9 +218,9 @@ if (DEM_parameters.dem_inlet_option):
         
     for properties in DEM_inlet_model_part.Properties:
             
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
+        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
 
     # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
@@ -253,13 +251,13 @@ first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; control = 0.0
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     if (DEM_parameters.ContactMeshOption == "ON"):
-      (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-      KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
-      os.chdir(main_path)
+        (coordination_number) = procedures.ModelData(spheres_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
+        KRATOSprint ("Coordination Number: " + str(coordination_number) + "\n")
+        os.chdir(main_path)
     else:
-      KRATOSprint("Activate Contact Mesh for ModelData information")
+        KRATOSprint("Activate Contact Mesh for ModelData information")
 
-if(DEM_parameters.Dempack):
+if (DEM_parameters.Dempack):
 #    if(mpi.rank == 0):
     materialTest.PrintChart();
     materialTest.PrepareDataForGraph()
@@ -289,9 +287,9 @@ while ( time < DEM_parameters.FinalTime):
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
     
-    rigid_face_model_part.ProcessInfo[TIME]       = time
-    rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
-    rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
+    rigid_face_model_part.ProcessInfo[TIME]         = time
+    rigid_face_model_part.ProcessInfo[DELTA_TIME]   = dt
+    rigid_face_model_part.ProcessInfo[TIME_STEPS]   = step
 
     cluster_model_part.ProcessInfo[TIME]            = time
     cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
