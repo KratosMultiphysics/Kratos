@@ -75,27 +75,25 @@ namespace Kratos {
         mListOfCoordinates[1][0] = 0.0; mListOfCoordinates[1][1] = -0.870 * cl; mListOfCoordinates[1][2] = 0.0;
         mListOfCoordinates[2][0] = 0.0; mListOfCoordinates[2][1] = -2.643 * cl; mListOfCoordinates[2][2] = 0.0; 
         
-        double particle_density = this->SlowGetDensity();
+        //double particle_density = this->SlowGetDensity();
         
         //For the time being, we assume, in order to obtain the inertias, an equivalent sphere with an average diameter
         //'a' is the equivalent radius
         
         double a = 2.742 * cl;
                 
-        double cluster_volume = 1.33333333333333333 * KRATOS_M_PI * a * a * a;
+        //double cluster_volume = 1.33333333333333333 * KRATOS_M_PI * a * a * a;
                 
-        double cluster_mass = particle_density * cluster_volume;
+        //double cluster_mass = particle_density * cluster_volume;
         
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 1.33333333333333333 * KRATOS_M_PI * a * a * a;
         
         double inertia = 0.4 * cluster_mass * a * a;
         
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = inertia;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = inertia;
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = inertia;
-         
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
-            
+        array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        
+        base_principal_moments_of_inertia[0] = base_principal_moments_of_inertia[1] = base_principal_moments_of_inertia[2] = inertia;
+        
     }     
     
       
