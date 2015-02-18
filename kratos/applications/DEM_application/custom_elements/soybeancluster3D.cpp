@@ -59,11 +59,23 @@ namespace Kratos {
         mListOfCoordinates.resize(number_of_spheres);
         mListOfSphericParticles.resize(number_of_spheres);
         
-        /////////////////////PAPER INFO DATA TAKEN FROM
+        /////////////////////PAPER INFO DATA TAKEN FROM *************************************** ADD!!!!!
         
-        double a, b, c, /* FULL-AXES */ rf, resize_factor; //to convert millimeters to meters and divide by two to get semi-axes
+        //Element built using 3ds max, there is nothing in GiD
         
-        a = 6.55;  b = 5.56;  c = 4.53;  resize_factor = 0.001 * 0.5;  rf = resize_factor;
+        double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
+        
+        // Original maximum distance in the geometry is 6.55 m
+        // It coincides with the main axis of the geometry
+        // So, first of all, the geometry must be converted into unity length,
+        // so we multiply by 1/6.55, obtaining 0.152671756
+        // and we finally multiply that by the characteristic length given in the problem type
+        
+        double a, b, c; // Full ellipsoid axes
+        
+        cl *= 0.152671756;     
+                
+        a = 6.55 * 0.5 * cl;  b = 5.56 * 0.5 * cl;  c = 4.53 * 0.5 * cl; //Conversion to semi-axes
         
         mListOfCoordinates[ 0][0] =  0.0;  mListOfCoordinates[ 0][1] =  0.0;  mListOfCoordinates[ 0][2] =   0.0;
         mListOfCoordinates[ 1][0] =  3.0;  mListOfCoordinates[ 1][1] =  0.0;  mListOfCoordinates[ 1][2] =   0.0;
@@ -80,26 +92,26 @@ namespace Kratos {
         mListOfCoordinates[12][0] = -1.7;  mListOfCoordinates[12][1] =  0.0;  mListOfCoordinates[12][2] = -0.75;
         
         for (int i = 1; i < 13; i++) { 
-            mListOfCoordinates[i][0] *= rf;  mListOfCoordinates[i][1] *= rf;  mListOfCoordinates[i][2] *= rf;
+            mListOfCoordinates[i][0] *= cl;  mListOfCoordinates[i][1] *= cl;  mListOfCoordinates[i][2] *= cl;
         }
         
-        mListOfRadii[0]= 4.53 * rf;
-        for (int i = 1; i < 13; i++) { mListOfRadii[i]= 3.53 * rf; }
+        mListOfRadii[0]= 4.53 * cl;
+        for (int i = 1; i < 13; i++) { mListOfRadii[i]= 3.53 * cl; }
                         
-        double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
+        //double particle_density = this->SlowGetDensity(); /////////////////////////////USE FAST
          
-        double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * a * b * c * rf * rf * rf; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
+        //double cluster_volume = 0.3333333333 * 4.0 * KRATOS_M_PI * a * b * c; ////APPROXIMATE VOLUME, CALCULATE MORE EXACTLY
         
-        double cluster_mass = particle_density * cluster_volume;
+        //double cluster_mass = (this->SlowGetDensity()) * 0.3333333333 * 4.0 * KRATOS_M_PI * a * b * c;
         
-        GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;
+        double cluster_mass = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = (this->SlowGetDensity()) * 0.3333333333 * 4.0 * KRATOS_M_PI * a * b * c;
         
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = 0.2 * cluster_mass * (b * b * rf * rf + c * c * rf * rf);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.2 * cluster_mass * (a * a * rf * rf + c * c * rf * rf);
-        GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.2 * cluster_mass * (a * a * rf * rf + b * b * rf * rf);
+        array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        
+        base_principal_moments_of_inertia[0] = 0.2 * cluster_mass * (b * b + c * c);
+        base_principal_moments_of_inertia[1] = 0.2 * cluster_mass * (a * a + c * c);
+        base_principal_moments_of_inertia[2] = 0.2 * cluster_mass * (a * a + b * b);
          
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);  
-  
     }     
     
       
