@@ -117,6 +117,14 @@ DEMWall::~DEMWall()
 void DEMWall::Initialize()
 {
   mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+  
+  this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+  this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+  this->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+  
+  this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+  this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+  this->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
 }
 
 //***********************************************************************************
@@ -124,13 +132,13 @@ void DEMWall::Initialize()
 
 void DEMWall::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    
- }
+    ProcessInfo& rCurrentProcessInfo) {
+}
+
 
 void DEMWall::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
 }
+
 
 void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     
