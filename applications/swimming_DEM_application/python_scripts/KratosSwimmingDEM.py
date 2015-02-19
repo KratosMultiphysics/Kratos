@@ -589,7 +589,7 @@ while time <= final_time:
 
     if step >= 3 and not stationarity:
 
-        print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )")
+        print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
 
         fluid_solver.Solve()
@@ -627,7 +627,7 @@ while time <= final_time:
     if pressure_gradient_counter.Tick():
         custom_functions_tool.CalculatePressureGradient(fluid_model_part)
 
-    print("Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)")
+    print("Solving DEM... (", balls_model_part.NumberOfElements(0), "elements )")
     sys.stdout.flush()
     first_dem_iter = True
 
