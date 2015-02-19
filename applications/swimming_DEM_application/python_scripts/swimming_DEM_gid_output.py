@@ -24,6 +24,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                  deformed_mesh,
                  write_conditions)
 
+    
     def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
@@ -53,7 +54,22 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
             else:
                 self.write_step_to_list(0)
+                
+    
+    def write_step_to_list(self, step_label):
+        
+        if self.post_mode   == GiDPostMode.GiD_PostBinary:
+            ext = ".post.bin"
+        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+            ext = ".post.res"
+        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+            ext = ".post.res"
 
+        with open(self.listfilename, "a") as listfile:
+            listfile.write("Multiple\n")
+            listfile.write(self.filename+"_"+"%.12g"%step_label+ext+"\n")
+            
+            
     def write_swimming_DEM_results(self, label,
                                   fluid_model_part,
                                   DEM_model_part,
@@ -65,7 +81,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                                   cluster_variables,
                                   mixed_nodal_variables,
                                   fluid_gp_variables):
-       # label = str(label) #it should be a C double
+        # label = str(label) #it should be a C double
         # update cut data if necessary
         out_model_part = self.get_out_model_part(fluid_model_part)
 
@@ -104,5 +120,6 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()
 
-            with open(self.listfilename, "w") as listfile:
+            with open(self.listfilename, "a") as listfile:
                 self.write_step_to_list(label)
+
