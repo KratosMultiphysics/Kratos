@@ -416,7 +416,7 @@ dem_physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
 if pp.projection_module_option:
 
-    if pp.meso_scale_length <= 0.0  and balls_model_part.NumberOfElements(0) > 0:
+    if pp.meso_scale_length <= 0.0 and balls_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(balls_model_part, RADIUS)
         pp.meso_scale_length = 20 * biggest_size
 
