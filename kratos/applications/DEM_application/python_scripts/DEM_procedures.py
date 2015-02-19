@@ -756,6 +756,51 @@ class DEMFEMProcedures(object):
 
            
 
+    def ApplyMovementbySteps(self,time):
+
+                    
+            if (time < 0.001e-0 ) :    
+                
+                #while ( time < DEM_parameters.FinalTime):
+                #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            
+                vy = 0.1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+
+                              node.SetSolutionStepValue(VELOCITY_Y, vy)
+                              node.Fix(VELOCITY_Y)
+
+            if (time > 0.001e-0 ) and (time < 1e-1 ) :    
+                
+                vy = 10
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+
+                              node.SetSolutionStepValue(VELOCITY_Y, vy)
+                              node.Fix(VELOCITY_Y)
+
+            else :    
+                
+                vy = 0.1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+
+                              node.SetSolutionStepValue(VELOCITY_Y, vy)
+                              node.Fix(VELOCITY_Y)
+
+
+
+
 class Report(object):
 
     def __init__(self):
@@ -853,7 +898,11 @@ class MaterialTest(object):
     def PrintChart(self):        
         if (self.type != "None"):
             self.script.PrintChart()  
-
+            
+    def ApplyMovementbySteps(self, time):        
+        if (self.type != "None"):
+            self.script.ApplyMovementbySteps(time)  
+    
 class MultifileList(object):
 
     def __init__(self,name,step):
