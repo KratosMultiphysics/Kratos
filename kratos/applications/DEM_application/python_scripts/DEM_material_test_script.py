@@ -399,6 +399,14 @@ class MaterialTest(object):
             
   def PrintGraph(self, time):
     
+    for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+
+                        for node in self.mesh_nodes:
+                            if (node.Id == 1):
+                                coordinateY = node.Y
+    
     if(self.graph_counter == self.graph_frequency):
       
       self.graph_counter = 0
@@ -410,9 +418,9 @@ class MaterialTest(object):
              
       else:
       
-        self.graph_export.write(str("%.8g"%self.strain).rjust(12)+"  "+str("%.6g"%self.total_stress_mean).rjust(13)+'\n')
-        self.graph_export_1.write(str("%.8g"%self.strain).rjust(12)+"  "+str("%.6g"%self.total_stress_top).rjust(13)+'\n')
-        self.graph_export_2.write(str("%.8g"%self.strain).rjust(12)+"  "+str("%.6g"%self.total_stress_bot).rjust(13)+'\n')     
+        self.graph_export.write(str("%.6g"%self.strain).rjust(13)+"  "+str("%.6g"%self.total_stress_mean).rjust(13) +"  "+str("%.8g"%time).rjust(12) + str(coordinateY).rjust(12)+'\n')
+        self.graph_export_1.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_top).rjust(13)+'\n')
+        self.graph_export_2.write(str("%.8g"%self.strain).rjust(15)+"  "+str("%.6g"%self.total_stress_bot).rjust(13)+'\n')     
         self.graph_export.flush()
         self.graph_export_1.flush()
         self.graph_export_2.flush()
@@ -735,6 +743,66 @@ class MaterialTest(object):
       
       return radial_strain
     
+    
+  def ApplyMovementbySteps(self,time):
+        
+            if (time < 0.003 ) :    
+                
+                vy = -1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+                        
+                        #self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
+                        #for node in self.mesh_nodes:
+                              #print("TIME STEP BEGINS.  STEP:"+str(time)+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+                        #      node.SetSolutionStepValue(VELOCITY_Y, vy)
+                        #      node.Fix(VELOCITY_Y)
+
+            elif (time > 0.003 ) and (time < 0.004 ) :    
+                
+                vy = 1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+                              
+            elif (time > 0.004 ) and (time < 0.008 ) :    
+                
+                vy = -1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+                              
+            elif (time > 0.008 ) and (time < 0.009) :    
+                
+                vy = 1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+
+                  
+            elif (time > 0.009 ) and (time < 0.013 ) :    
+                
+                vy = -1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+                              
+            elif (time > 0.013 ) and (time < 0.014) :    
+                
+                vy = 1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+
+            else :    
+                
+                vy = -1
+                for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
+                    if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
+                        self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
+  
+  
   def PoissonMeasure(self):
       print("Not Working now")
     
