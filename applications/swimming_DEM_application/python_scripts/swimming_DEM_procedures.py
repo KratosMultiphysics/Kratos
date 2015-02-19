@@ -7,6 +7,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import DEM_procedures
+import shutil
 
 def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_faces_model_part):
 
@@ -197,7 +198,9 @@ class IOTools:
         for name in dir_names:
             dir_abs_path = main_path + '/' + name
             directories[name] = dir_abs_path
-
+        
+            shutil.rmtree(main_path + '/' + name, ignore_errors = True)
+        
             if not os.path.isdir(dir_abs_path):
                 os.makedirs(str(dir_abs_path))
 
