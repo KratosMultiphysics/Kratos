@@ -872,35 +872,35 @@ class MaterialTest(object):
         pass
 
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-        self.type = DEM_parameters.TestType
+        self.TestType = DEM_parameters.TestType
 
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
             self.script.Initialize()
  
     def PrepareDataForGraph(self):
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script.PrepareDataForGraph()
 
     def MeasureForcesAndPressure(self):
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script.MeasureForcesAndPressure()
             
     def PrintGraph(self, time):
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script.PrintGraph(time)
 
     def FinalizeGraphs(self):
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script.FinalizeGraphs()
             
             
     def PrintChart(self):        
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script.PrintChart()  
             
     def ApplyMovementbySteps(self, time):        
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script.ApplyMovementbySteps(time)  
     
 class MultifileList(object):
@@ -924,33 +924,60 @@ class DEMIo(object):
         self.cluster_variables           = []
         self.contact_variables           = []
         self.multifilelists              = []
-
+        
+        # Reading Post options from DEM_parameters  
+        self.PostDisplacement             = getattr(DEM_parameters, "PostDisplacement", 0 )
+        self.PostVelocity                 = getattr(DEM_parameters, "PostVelocity", 0 )
+        self.PostTotalForces              = getattr(DEM_parameters, "PostTotalForces", 0 )
+        self.PostNonDimensionalVolumeWear = getattr(DEM_parameters, "PostNonDimensionalVolumeWear", 0 )
+        self.PostImpactWear               = getattr(DEM_parameters, "PostImpactWear", 0 )
+        self.PostAppliedForces            = getattr(DEM_parameters, "PostAppliedForces", 0 )
+        self.PostDampForces               = getattr(DEM_parameters, "PostDampForces", 0 )
+        self.PostRadius                   = getattr(DEM_parameters, "PostRadius", 0 )
+        self.PostExportId                 = getattr(DEM_parameters, "PostExportId", 0 )
+        self.PostExportSkinSphere         = getattr(DEM_parameters, "PostExportSkinSphere", 0 )
+        self.PostAngularVelocity          = getattr(DEM_parameters, "PostAngularVelocity", 0 )
+        self.PostParticleMoment           = getattr(DEM_parameters, "PostParticleMoment", 0 )
+        self.PostEulerAngles              = getattr(DEM_parameters, "PostEulerAngles", 0 )
+        self.PostLocalContactForce        = getattr(DEM_parameters, "PostLocalContactForce", 0 )
+        self.PostFailureCriterionState    = getattr(DEM_parameters, "PostFailureCriterionState", 0 )
+        self.PostContactFailureId         = getattr(DEM_parameters, "PostContactFailureId", 0 )
+        self.PostContactTau               = getattr(DEM_parameters, "PostContactTau", 0 )
+        self.PostContactSigma             = getattr(DEM_parameters, "PostContactSigma", 0 )
+        self.PostMeanContactArea          = getattr(DEM_parameters, "PostMeanContactArea", 0 )
+        self.PostElasticForces            = getattr(DEM_parameters, "PostElasticForces", 0 )
+        self.PostPressure                 = getattr(DEM_parameters, "PostPressure", 0 )
+        self.PostTangentialElasticForces  = getattr(DEM_parameters, "PostTangentialElasticForces", 0 )
+        self.PostShearStress              = getattr(DEM_parameters, "PostShearStress", 0 )
+        self.PostNodalArea                = getattr(DEM_parameters, "PostNodalArea", 0 )
+  
+    
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
             print_list.append(name)
 
     def AddGlobalVariables(self):
         # Global Variables
-        self.PushPrintVar(DEM_parameters.PostDisplacement,             DISPLACEMENT,                self.global_variables)
-        self.PushPrintVar(DEM_parameters.PostVelocity,                 VELOCITY,                    self.global_variables)
-        self.PushPrintVar(DEM_parameters.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
-        self.PushPrintVar(DEM_parameters.PostNonDimensionalVolumeWear, NON_DIMENSIONAL_VOLUME_WEAR, self.global_variables)
-        self.PushPrintVar(DEM_parameters.PostImpactWear,               IMPACT_WEAR,                 self.global_variables)
+        self.PushPrintVar(self.PostDisplacement,             DISPLACEMENT,                self.global_variables)
+        self.PushPrintVar(self.PostVelocity,                 VELOCITY,                    self.global_variables)
+        self.PushPrintVar(self.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
+        self.PushPrintVar(self.PostNonDimensionalVolumeWear, NON_DIMENSIONAL_VOLUME_WEAR, self.global_variables)
+        self.PushPrintVar(self.PostImpactWear,               IMPACT_WEAR,                 self.global_variables)
         
     def AddSpheresVariables(self):
         # Spheres Variables
-        self.PushPrintVar(DEM_parameters.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostRadius,           RADIUS,                       self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostExportId,         EXPORT_ID,                    self.spheres_variables)
-        self.PushPrintVar(DEM_parameters.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
+        self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
+        self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
+        self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
+        self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
+        self.PushPrintVar(self.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
         # Spheres Rotation
         if (Var_Translator(DEM_parameters.RotationOption)):  # xapuza
-            self.PushPrintVar(DEM_parameters.PostAngularVelocity, ANGULAR_VELOCITY, self.spheres_variables)
-            self.PushPrintVar(DEM_parameters.PostParticleMoment,  PARTICLE_MOMENT,  self.spheres_variables)
-            self.PushPrintVar(DEM_parameters.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
+            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.spheres_variables)
+            self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,  self.spheres_variables)
+            self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
 
         # Spheres Strain
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or (DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
@@ -978,11 +1005,11 @@ class DEMIo(object):
      
     def AddFEMBoundaryVariables(self):
         
-        self.PushPrintVar(DEM_parameters.PostElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(DEM_parameters.PostPressure,                PRESSURE, self.fem_boundary_variables)
-        self.PushPrintVar(DEM_parameters.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(DEM_parameters.PostShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
-        self.PushPrintVar(DEM_parameters.PostNodalArea,               NODAL_AREA, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostPressure,                PRESSURE, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostNodalArea,               NODAL_AREA, self.fem_boundary_variables)
         
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
@@ -994,12 +1021,12 @@ class DEMIo(object):
         # Contact Elements Variables
         if ((DEM_parameters.ElementType == "SphericContPartDEMElement3D") or (DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
             if (Var_Translator(DEM_parameters.ContactMeshOption)):
-                self.PushPrintVar(DEM_parameters.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
-                self.PushPrintVar(DEM_parameters.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
-                self.PushPrintVar(DEM_parameters.PostContactFailureId,      CONTACT_FAILURE,         self.contact_variables)
-                self.PushPrintVar(DEM_parameters.PostContactTau,            CONTACT_TAU,             self.contact_variables)
-                self.PushPrintVar(DEM_parameters.PostContactSigma,          CONTACT_SIGMA,           self.contact_variables)
-                self.PushPrintVar(DEM_parameters.PostMeanContactArea,       MEAN_CONTACT_AREA,       self.contact_variables)
+                self.PushPrintVar(self.PostLocalContactForce,     LOCAL_CONTACT_FORCE,     self.contact_variables)
+                self.PushPrintVar(self.PostFailureCriterionState, FAILURE_CRITERION_STATE, self.contact_variables)
+                self.PushPrintVar(self.PostContactFailureId,      CONTACT_FAILURE,         self.contact_variables)
+                self.PushPrintVar(self.PostContactTau,            CONTACT_TAU,             self.contact_variables)
+                self.PushPrintVar(self.PostContactSigma,          CONTACT_SIGMA,           self.contact_variables)
+                self.PushPrintVar(self.PostMeanContactArea,       MEAN_CONTACT_AREA,       self.contact_variables)
 
     def AddMpiVariables(self):
         pass
