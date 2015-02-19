@@ -72,37 +72,46 @@ public:
     }    
     
     
-    array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3>& low_point, const array_1d<double, 3>& high_point){
+    array_1d<double,3> VelocityTrap(ModelPart& rModelPart, const array_1d<double,3>& low_point, const array_1d<double,3>& high_point){
         
         ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
 
         OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());          
 
         double velocity_X = 0.0, velocity_Y = 0.0, velocity_Z = 0.0;
+        
         int number_of_elements = 0;
           
-        //#pragma omp parallel for
-        #pragma omp parallel for reduction(+:velocity_X,velocity_Y,velocity_Z,number_of_elements)
+        #pragma omp parallel for reduction(+: velocity_X, velocity_Y, velocity_Z, number_of_elements)
         
         for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            
             ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
                  
-                array_1d<double, 3 > coor = (it)->GetGeometry()[0].Coordinates();                  
+                array_1d<double,3> coor = (it)->GetGeometry()[0].Coordinates();                  
                             
-                if( coor[0] >= low_point[0] && coor[0] <= high_point[0]  && 
-                    coor[1] >= low_point[1] && coor[1] <= high_point[1]  && 
-                    coor[2] >= low_point[2] && coor[2] <= high_point[2] ) {
+                if (coor[0] >= low_point[0] && coor[0] <= high_point[0] && 
+                    coor[1] >= low_point[1] && coor[1] <= high_point[1] && 
+                    coor[2] >= low_point[2] && coor[2] <= high_point[2]) {
                     
                     velocity_X += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
                     velocity_Y += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
                     velocity_Z += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
-                    number_of_elements ++;
+                    
+                    number_of_elements++;
                 }
                   
             } //elements for
+            
+            for (int i = 0; i < 3; ++i) {
+
+                if (high_point[i] < low_point[i]) {
+                    KRATOS_ERROR(std::logic_error, "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates.", "");
+                }
+            }
 
         } //parallel for
               
@@ -111,10 +120,13 @@ public:
             velocity_Y /= number_of_elements;
             velocity_Z /= number_of_elements;
         }
-        array_1d<double, 3> velocity; 
-        velocity[0]= velocity_X;
-        velocity[1]= velocity_Y;
-        velocity[2]= velocity_Z;
+        
+        array_1d<double,3> velocity; 
+        
+        velocity[0] = velocity_X;
+        velocity[1] = velocity_Y;
+        velocity[2] = velocity_Z;
+        
         return velocity;
         
     }//VelocityTrap
