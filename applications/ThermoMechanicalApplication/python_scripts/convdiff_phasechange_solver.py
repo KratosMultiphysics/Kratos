@@ -78,7 +78,7 @@ class Solver:
         gmres_size = 50
         tol = 1e-6 #ATTENTION, BEFORE 1e-4
         verbosity = 0
-        self.non_symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK, tol, 200, verbosity, gmres_size)#AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size)
+        self.non_symmetric_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0, AMGCLIterativeSolverType.GMRES, tol, 200, verbosity, gmres_size) #AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK, tol, 200, verbosity, gmres_size)#
         self.stage0_time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
         self.stage0_conv_criteria = IncrementalDisplacementCriteria(1e-2, 1e-4)
         self.stage0_max_iterations = 2
