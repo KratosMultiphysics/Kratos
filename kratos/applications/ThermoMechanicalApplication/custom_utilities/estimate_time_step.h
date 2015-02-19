@@ -406,7 +406,7 @@ namespace Kratos
 
 	 double CheckStopTemperature(ModelPart& ThisModelPart,const double stop_temperature)
 	  {			
-	    KRATOS_TRY	
+	    KRATOS_TRY
 		const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];	
 		double delta_max_temp = TT_liquid - stop_temperature;
 		double sum_temp = 0.0;
@@ -416,15 +416,13 @@ namespace Kratos
 	       {
             ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
 		    double temp = it_nd->FastGetSolutionStepValue(TEMPERATURE);
-			sum_temp += temp;
-			//if( temp > stop_temperature)
-			//	return 0.0;
+			sum_temp += std::max(temp,0.999*stop_temperature); // before temp
+
 		   }
 		sum_temp /= double(node_size);
 		sum_temp -= stop_temperature;
 
 		double cooled_percent = 100.0*(1.0 - sum_temp/delta_max_temp);
-
 		return cooled_percent;
 	    KRATOS_CATCH("")	
 	  }	
