@@ -196,12 +196,8 @@ solver.search_strategy = parallelutils.GetSearchStrategy(solver, spheres_model_p
 dt = DEM_parameters.MaxTimeStep
 solver.Initialize()    # Possible modifications of DELTA_TIME
 ##
-##
-##
-##
-##
 
-if ( DEM_parameters.ContactMeshOption =="ON" ) :
+if (DEM_parameters.ContactMeshOption =="ON") :
     contact_model_part = solver.contact_model_part
   
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
@@ -278,7 +274,8 @@ mesh_motion = DEMFEMUtilities()
 post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
-while ( time < DEM_parameters.FinalTime):
+while (time < DEM_parameters.FinalTime):
+    
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
@@ -295,7 +292,6 @@ while ( time < DEM_parameters.FinalTime):
     cluster_model_part.ProcessInfo[DELTA_TIME]      = dt
     cluster_model_part.ProcessInfo[TIME_STEPS]      = step
 
-
     # Perform a partition to balance the problem
     #if(not(step%(a-1))):
         #parallelutils.Repart(spheres_model_part)
@@ -306,7 +302,7 @@ while ( time < DEM_parameters.FinalTime):
     
     #### SOLVE #########################################
     solver.Solve()
-	##
+    ####
     
     #### TIME CONTROL ##################################
     
@@ -328,7 +324,7 @@ while ( time < DEM_parameters.FinalTime):
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(time)
 
-    #### GENERAL FORCE GRAPHS ###################################
+    #### GENERAL FORCE GRAPHS ############################
     #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
     DEMFEMProcedures.PrintBallsGraph(time)  
@@ -336,7 +332,7 @@ while ( time < DEM_parameters.FinalTime):
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if ( time_to_print >= DEM_parameters.OutputTimeStep):               
+    if (time_to_print >= DEM_parameters.OutputTimeStep):               
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
@@ -364,10 +360,10 @@ while ( time < DEM_parameters.FinalTime):
         time_old_print = time
         
     #if((step%500) == 0):
-      #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
-          #MaterialTest.OrientationStudy(contact_model_part, step)
+        #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
+            #MaterialTest.OrientationStudy(contact_model_part, step)
     
-    #print("TIME STEP ENDS ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    #print("TIME STEP ENDS +++++++++++++++++++++++++++++++++++++++++++++++++")
 ##############################################################################
 #                                                                            #
 #    FINALIZATION                                                            #
@@ -387,5 +383,5 @@ demio.CloseMultifiles()
 
 os.chdir(main_path)
 
-# Print tmes and more info
+# Print times and more info
 KRATOSprint(report.FinalReport(timer))
