@@ -468,7 +468,7 @@ class Procedures(object):
             if(y<0.1):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE,1)
 
-    def CreateDirectories(self, main_path,problem_name):
+    def CreateDirectories(self, main_path, problem_name):
         
         root             = main_path + '/' + problem_name
         post_path        = root + '_Post_Files'
@@ -477,7 +477,9 @@ class Procedures(object):
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
 
-        shutil.rmtree(main_path + '/' + problem_name + '_Post_Files', ignore_errors=True)
+        shutil.rmtree(main_path + '/' + problem_name + '_Post_Files', ignore_errors = True)
+        shutil.rmtree(main_path + '/' + problem_name + '_Graphs', ignore_errors = True)
+        
         for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
                 os.makedirs(str(directory))
