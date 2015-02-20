@@ -71,8 +71,8 @@ void InitializeVelocity(Triple * field,
   for(uint k = BWP; k < Z + BWP; k++) {
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++ ) {
-        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][0] = -omega * (double)(j-(Y+1)/2.0);
-        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][1] = omega * (double)(i-(X+1)/2.0);
+        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][0] = -omega * (double)(j-(Y+1.0)/2.0);
+        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][1] = omega * (double)(i-(X+1.0)/2.0);
         field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][2] = 0.0;
 
     		maxv = std::max((double)abs(field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][0]),maxv);
@@ -87,9 +87,22 @@ template <typename T>
 void WriteHeatFocus(T * gridA,
     const uint &X, const uint &Y, const uint &Z) {
 
-  for(uint k = 4; k < 5; k++) {
-    for(uint i = 1 ; i < (X+1); i++ ) {
-      gridA[(Z+1)/2*(Z+BW)*(Y+BW)+(Y+1)/2*(Y+BW)+i] = 8.8;
+  uint Xc, Yc, Zc;
+
+  Xc = 1.0/3.0*(X);
+  Yc = 1.0/3.0*(Y);
+  Zc = 1.0/2.0*(Z);
+
+  for(uint k = 0; k < Z + BW; k++) {
+    for(uint j = 0; j < Y + BW; j++) {
+      for(uint i = 0; i < Z + BW; i++) {
+
+        double d2 = pow((Xc - (double)(i)),2) + pow((Yc - (double)(j)),2) + pow((Zc - (double)(k)),2); 
+	double rr = pow(X/6.0,2);  
+        
+	if(d2 < rr)
+          gridA[k*(Y+BW)*(X+BW)+j*(X+BW)+i] = 1.0 - d2/rr;
+      }
     }
   }
 
@@ -156,7 +169,26 @@ template <typename T, typename U>
 void advection(T * gridA, T * gridB, U * fieldA, U * fieldB,
     const uint &X, const uint &Y, const uint &Z) {
 
-  for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
+   for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
+    for(uint j = BWP; j < Y + BWP; j++) {
+      for(uint i = BWP; i < X + BWP; i++) {
+        uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
+
+	Triple origin;
+        Triple backward;
+
+        origin[0] = i; origin[1] = j; origin[2] = k;
+
+        for(int d = 0; d < 3; d++) {
+          backward[d] = origin[d]*h-fieldA[cell][d]*dt;
+        }
+
+	gridB[cell] = bfceeInterpolationSteep(backward,gridA,N,N,N);
+	}
+      }
+    }
+
+   for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++) {
         uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
@@ -165,12 +197,9 @@ void advection(T * gridA, T * gridB, U * fieldA, U * fieldB,
 
         Triple backward;
         Triple backwardVel;
-
         Triple forward;
-        Triple error;
-        Triple corrected;
 
-        origin[0] = i; origin[1] = j; origin[2] = k;
+	origin[0] = i; origin[1] = j; origin[2] = k;
 
         for(int d = 0; d < 3; d++) {
           backward[d] = origin[d]*h-fieldA[cell][d]*dt;
@@ -180,12 +209,9 @@ void advection(T * gridA, T * gridB, U * fieldA, U * fieldB,
 
         for(int d = 0; d < 3; d++) {
           forward[d] = backward[d] + backwardVel[d] * dt;
-          error[d] = -1/2 * (origin[d]-forward[d]);
-          corrected[d] = origin[d]-error[d]; 
-          backward[d] = corrected[d] * h - fieldA[cell][d] * dt;
         }
 
-        gridB[cell] = bfceeInterpolationSteep(backward,gridA,N,N,N);
+        gridA[cell] = 3.0/2.0 * gridB[cell] - 0.5 * bfceeInterpolationSteep(forward,gridB,N,N,N);
       }
     } 
   }
@@ -210,7 +236,7 @@ void WriteGidMesh(T * grid,
     const uint &X, const uint &Y, const uint &Z,
     const char * fileName) {
 
-  std::ofstream outputFile("grid.post.msh");
+  std::ofstream outputFile(fileName);
 
   outputFile << "MESH \"Grid\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
   outputFile << "# color 96 96 96" << std::endl;
@@ -252,12 +278,10 @@ void WriteGidMesh(T * grid,
 template <typename T>
 void WriteGidResults(T * grid, 
     const uint &X, const uint &Y, const uint &Z,
-    const char * fileName) {
+    std::ofstream& results,
+    int step) {
 
-  std::ofstream results(fileName);
-
-  results << "GiD Post Results File 1.0" << std::endl << std::endl;
-  results << "Result \"Temperature\" \"Kratos\" 1 Scalar OnNodes" << std::endl;
+  results << "Result \"Temperature\" \"Kratos\" " << step << " Scalar OnNodes" << std::endl;
   results << "Values" << std::endl;
 
   for(uint k = 0; k < Z + BW; k++) {
@@ -302,16 +326,23 @@ int main(int argc, char *argv[]) {
 
   dt = CFL*h/maxv;
 
-  WriteGidMesh(step0,N,N,N,"grid.dat");
+  std::stringstream name_mesh;
+  std::stringstream name_post;
+
+  name_mesh << "grid" << N << ".post.msh";
+  name_post << "grid" << N << ".post.res";
+
+  std::ofstream results(name_post.str().c_str());
+  results << "GiD Post Results File 1.0" << std::endl << std::endl;
+
+  WriteGidMesh(step0,N,N,N,name_mesh.str().c_str());
   printf("Begin...\n");
   for(int i = 0; i < steeps; i++) {
       advection(step0,step1,velf0,velf1,N,N,N);
-      std::stringstream name;
-      name << "grid.post.res." << i;
-      std::cout << name.str() << std::endl;
-      WriteGidResults(step0,N,N,N,name.str().c_str());
+          
+      WriteGidResults(step0,N,N,N,results,i);
       //difussion(step1,step2,N,N,N);
-      std::swap(step0,step1);
+      //std::swap(step0,step1);
   }
   //WriteGridXYZ(velf0,N,N,N,"velc.dat");
 
