@@ -746,7 +746,7 @@ class MaterialTest(object):
     
   def ApplyMovementbySteps(self,time):
         
-            if (time < 0.003 ) :    
+            if (time < 0.006 ) :    
                 
                 vy = -1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
@@ -759,21 +759,21 @@ class MaterialTest(object):
                         #      node.SetSolutionStepValue(VELOCITY_Y, vy)
                         #      node.Fix(VELOCITY_Y)
 
-            elif (time > 0.003 ) and (time < 0.004 ) :    
+            elif (time > 0.006 ) and (time < 0.0065 ) :    
                 
                 vy = 1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
                         self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
                               
-            elif (time > 0.004 ) and (time < 0.008 ) :    
+            elif (time > 0.0065 ) and (time < 0.013 ) :    
                 
                 vy = -1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
                         self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
                               
-            elif (time > 0.008 ) and (time < 0.009) :    
+            elif (time > 0.013 ) and (time < 0.0135) :    
                 
                 vy = 1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
@@ -781,14 +781,14 @@ class MaterialTest(object):
                         self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
 
                   
-            elif (time > 0.009 ) and (time < 0.013 ) :    
+            elif (time > 0.0135 ) and (time < 0.02 ) :    
                 
                 vy = -1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                     if(self.RigidFace_model_part.GetMesh(mesh_number)[TOP]):
                         self.RigidFace_model_part.GetMesh(mesh_number)[VELOCITY_Y]= vy   
                               
-            elif (time > 0.013 ) and (time < 0.014) :    
+            elif (time > 0.02 ) and (time < 0.0205) :    
                 
                 vy = 1
                 for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
