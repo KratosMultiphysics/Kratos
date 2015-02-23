@@ -820,7 +820,7 @@ protected:
 
         ModelPart::TableType temp_table;
 
-        SizeType table_id;
+        //SizeType table_id;
         std::string word;
 
         std::string variable_name;
