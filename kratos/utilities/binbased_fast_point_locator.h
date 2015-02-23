@@ -219,12 +219,7 @@ public:
 
         return is_found;
     }
-
-protected:
-
-
-private:
-
+    
     //***************************************
     //***************************************
     inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
@@ -309,6 +304,13 @@ private:
 
         return false;
     }
+    
+protected:
+
+
+private:
+
+
 
     inline double CalculateVol(const double x0, const double y0,
                                const double x1, const double y1,
