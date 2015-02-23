@@ -245,8 +245,8 @@ public:
             rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
         
-       Matrix MassMatrix(LocalSize,LocalSize,0.0);
-        
+       Matrix MassMatrix = ZeroMatrix(LocalSize, LocalSize);
+
        //****************************************************
         //Get Vector of BDF coefficients
         const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
