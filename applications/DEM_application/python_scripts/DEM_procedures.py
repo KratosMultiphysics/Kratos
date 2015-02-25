@@ -170,8 +170,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-        model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
-        model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
+
         if(DEM_parameters.PostGroupId):
             model_part.AddNodalSolutionStepVariable(GROUP_ID)   
             
@@ -224,6 +223,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+        model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
+        model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
         
     def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,Param)
@@ -961,10 +962,8 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement,             DISPLACEMENT,                self.global_variables)
         self.PushPrintVar(self.PostVelocity,                 VELOCITY,                    self.global_variables)
         self.PushPrintVar(self.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
-        self.PushPrintVar(self.PostNonDimensionalVolumeWear, NON_DIMENSIONAL_VOLUME_WEAR, self.global_variables)
-        self.PushPrintVar(self.PostImpactWear,               IMPACT_WEAR,                 self.global_variables)
-        
-    def AddSpheresVariables(self):
+    
+	def AddSpheresVariables(self):
         # Spheres Variables
         self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
@@ -1005,11 +1004,13 @@ class DEMIo(object):
      
     def AddFEMBoundaryVariables(self):
         
-        self.PushPrintVar(self.PostElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostPressure,                PRESSURE, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostNodalArea,               NODAL_AREA, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostPressure,                 PRESSURE, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostTangentialElasticForces,  TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostShearStress,              SHEAR_STRESS, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostNodalArea,                NODAL_AREA, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostNonDimensionalVolumeWear, NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostImpactWear,               IMPACT_WEAR,                 self.fem_boundary_variables)
         
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
