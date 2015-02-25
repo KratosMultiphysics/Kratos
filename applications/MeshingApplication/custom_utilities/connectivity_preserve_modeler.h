@@ -91,7 +91,7 @@ public:
     ///the elements and conditions of the DestinationModelPart part use the same connectivity (and id) as the
     ///OriginModelPart but their type is determined by @param rReferenceElement and @param rReferenceBoundaryCondition
 
-    void GenerateModelPart(
+    virtual void GenerateModelPart(
         ModelPart& OriginModelPart,
         ModelPart& DestinationModelPart,
         Element const& rReferenceElement,

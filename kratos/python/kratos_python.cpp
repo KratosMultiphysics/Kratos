@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_model_part_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
+#include "add_modeler_to_python.h"
 #include "add_kernel_to_python.h"
 #include "add_kratos_application_to_python.h"
 //#include "add_equation_systems_to_python.h"
@@ -133,6 +134,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddNodeToPython();
     AddPropertiesToPython();
     AddMeshToPython();
+    AddModelerToPython();
     AddKernelToPython();
     AddKratosApplicationToPython();
 //	AddEquationSystemsToPython();
