@@ -88,19 +88,19 @@ class DEMFEMUtilities
                     const double angular_velocity_start_time = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_START_TIME];
                     const double angular_velocity_stop_time = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_STOP_TIME];
 
-                    array_1d<double, 3 >& previous_displ = r_model_part.GetMesh(mesh_number)[DISPLACEMENT];
-                    const array_1d<double, 3 >& linear_velocity = r_model_part.GetMesh(mesh_number)[VELOCITY];
+                    array_1d<double, 3>& previous_displ = r_model_part.GetMesh(mesh_number)[DISPLACEMENT];
+                    const array_1d<double, 3>& linear_velocity = r_model_part.GetMesh(mesh_number)[VELOCITY];
                     const double linear_period = r_model_part.GetMesh(mesh_number)[VELOCITY_PERIOD];
-                    const array_1d<double, 3 >& angular_velocity = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY];
+                    const array_1d<double, 3>& angular_velocity = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY];
                     const double angular_period = r_model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_PERIOD];
-                    const array_1d<double, 3 >& initial_center = r_model_part.GetMesh(mesh_number)[ROTATION_CENTER];
+                    const array_1d<double, 3>& initial_center = r_model_part.GetMesh(mesh_number)[ROTATION_CENTER];
                     const bool fixed_mesh = r_model_part.GetMesh(mesh_number)[FIXED_MESH_OPTION];
-                    array_1d<double, 3 > center_position;
-                    array_1d<double, 3 > linear_velocity_changed;
-                    array_1d<double, 3 > angular_velocity_changed;
-                    array_1d<double, 3 > angle = ZeroVector(3);
+                    array_1d<double, 3> center_position;
+                    array_1d<double, 3> linear_velocity_changed;
+                    array_1d<double, 3> angular_velocity_changed;
+                    array_1d<double, 3> angle = ZeroVector(3);
                     double sign_angle = 1.0;
-                    array_1d<double, 3 > final_angle = ZeroVector(3);
+                    array_1d<double, 3> final_angle = ZeroVector(3);
 
                     if (time < velocity_start_time || time > velocity_stop_time) {
                         center_position[0] = initial_center[0] + previous_displ[0];
@@ -279,7 +279,7 @@ class DEMFEMUtilities
         ///@name Input and output
         ///@{
 
-        /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+        /// Turn back information as a string.
 
         virtual std::string Info() const
         {
