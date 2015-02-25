@@ -562,8 +562,6 @@ class DEMFEMProcedures(object):
         self.graph_forces = {}  
         
         
-        
-        
         def open_balls_graph_files(self,spheres_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
@@ -571,8 +569,6 @@ class DEMFEMProcedures(object):
                  self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
         
         self.particle_graph_forces = {}      
-        
-        
         
         
         if self.TestType == "None":  
@@ -628,7 +624,6 @@ class DEMFEMProcedures(object):
                 self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].close()            
                 
                 
-
     def MeasureForces(self):    # not used atm
         
         if self.TestType == "None":
@@ -711,8 +706,7 @@ class DEMFEMProcedures(object):
 
         if DEM_parameters.TestType == "None":
             self.close_balls_graph_files(spheres_model_part)
-            
-            
+                    
             
     def ApplyNodalRotation(self,time):
 
@@ -758,7 +752,6 @@ class DEMFEMProcedures(object):
            
 
     def ApplyMovementbySteps(self,time):
-
                     
             if (time < 0.001e-0 ) :    
                 
@@ -798,7 +791,6 @@ class DEMFEMProcedures(object):
 
                               node.SetSolutionStepValue(VELOCITY_Y, vy)
                               node.Fix(VELOCITY_Y)
-
 
 
 
@@ -963,7 +955,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostVelocity,                 VELOCITY,                    self.global_variables)
         self.PushPrintVar(self.PostTotalForces,              TOTAL_FORCES,                self.global_variables)
     
-	def AddSpheresVariables(self):
+    def AddSpheresVariables(self):
         # Spheres Variables
         self.PushPrintVar(self.PostAppliedForces,    EXTERNAL_APPLIED_FORCE,       self.spheres_variables)
         self.PushPrintVar(self.PostDampForces,       DAMP_FORCES,                  self.spheres_variables)
