@@ -889,7 +889,7 @@ namespace Kratos
                 p_wall->CalculateNormal(Normal_to_Element);                                                                                       
                 const unsigned int& dim = geom.WorkingSpaceDimension();
                 
-                for (unsigned int i = 0; i <geom.size(); i++) { //talking about each of the three nodes of the condition  
+                for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition  
                                                                 //we are studying a certain condition here
                     index = i * dim;    //*2;                 
                     geom(i)->SetLock();                    
