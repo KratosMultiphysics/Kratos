@@ -578,17 +578,17 @@ private:
 
         /* 		  std::cout << "Element1 #" << rElement1.Id() << " : " << rElement1.GetGeometry()[0].Id()  << " : " << rElement1.GetGeometry()[1].Id() << " : " << rElement1.GetGeometry()[2].Id() << std::endl; */
         /* 		  std::cout << "Element2 #" << rElement2.Id() << " : " << rElement2.GetGeometry()[0].Id()  << " : " << rElement2.GetGeometry()[1].Id() << " : " << rElement2.GetGeometry()[2].Id() << std::endl; */
-        KRATOS_WATCH(Edge1);
-        KRATOS_WATCH(Edge2);
+        //KRATOS_WATCH(Edge1);
+        //KRATOS_WATCH(Edge2);
 
-        KRATOS_WATCH(rElement1.GetGeometry().Area())
-        KRATOS_WATCH(rElement2.GetGeometry().Area())
+        //KRATOS_WATCH(rElement1.GetGeometry().Area())
+        //KRATOS_WATCH(rElement2.GetGeometry().Area())
 
         rElement1.GetGeometry()(next2[Edge1]) = rElement2.GetGeometry()(Edge2);
         rElement2.GetGeometry()(next2[Edge2]) = rElement1.GetGeometry()(Edge1);
 
-        KRATOS_WATCH(rElement1.GetGeometry().Area())
-        KRATOS_WATCH(rElement2.GetGeometry().Area())
+        //KRATOS_WATCH(rElement1.GetGeometry().Area())
+        //KRATOS_WATCH(rElement2.GetGeometry().Area())
 
 
     }
