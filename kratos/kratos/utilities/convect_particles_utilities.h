@@ -118,7 +118,8 @@ public:
         array_1d<double, 3 > veulerian;
         array_1d<double, 3 > acc_particle;
         array_1d<double, TDim + 1 > N;
-        const int max_results = 10000;
+        const int max_results = rModelPart.Nodes().size();
+
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
         const int nparticles = rModelPart.Nodes().size();
@@ -132,21 +133,23 @@ public:
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
             array_1d<double,3> current_position = iparticle->GetInitialPosition() + iparticle->FastGetSolutionStepValue(DISPLACEMENT,1);
-            
+
             Element::Pointer pelement;
+            bool is_found = false;
+
 
             while(substep++ < subdivisions)
             {
 
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
-                bool is_found = false;
-                
-                
+                is_found = false;
+
+
                 if(substep > 1 ) //first check if it falls within the same element
                 {
                     is_found = mpSearchStructure->CalculatePosition(pelement->GetGeometry(), current_position[0], current_position[1], current_position[2], N);
-                    
+
                     if(is_found == false)
                         is_found = mpSearchStructure->FindPointOnMesh(current_position, N, pelement, result_begin, max_results);
                 }
@@ -167,16 +170,24 @@ public:
                     noalias(veulerian) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY,1));
                     for (unsigned int k = 1; k < geom.size(); k++)
                         noalias(veulerian) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY,1) );
-
                     noalias(current_position) += small_dt*veulerian;
 
                     (iparticle)->Set(TO_ERASE, false);
 
                 }
+                else
+                    break;
+
+
             }
 
-            iparticle->FastGetSolutionStepValue(DISPLACEMENT) = current_position - iparticle->GetInitialPosition();
-            noalias(pparticle->Coordinates()) = current_position;
+            if (is_found == true)
+            {
+
+
+                iparticle->FastGetSolutionStepValue(DISPLACEMENT) = current_position - iparticle->GetInitialPosition();
+                noalias(pparticle->Coordinates()) = current_position;
+            }
         }
 
         KRATOS_CATCH("")
@@ -210,37 +221,40 @@ public:
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
             array_1d<double,3> initial_position = iparticle->GetInitialPosition() + iparticle->FastGetSolutionStepValue(DISPLACEMENT,1);
-            
+
             Element::Pointer pelement;
             bool is_found = false;
             //STEP1
             {
                 is_found = mpSearchStructure->FindPointOnMesh(initial_position, N, pelement, result_begin, max_results);
+                if( is_found == false) goto end_of_particle;
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 noalias(v1) = N[0] * ( geom[0].FastGetSolutionStepValue(VELOCITY,1));
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v1) += N[k] * ( geom[k].FastGetSolutionStepValue(VELOCITY,1) );
             }
-            
+
             //STEP2
-            if(is_found == true)
+//             if(is_found == true)
             {
                 noalias(x) = initial_position + (0.5*dt)*v1;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
+                if( is_found == false) goto end_of_particle;
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 const double new_step_factor = 0.5;
                 const double old_step_factor = 0.5;
-            
+
                 noalias(v2) = N[0] * ( new_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[0].FastGetSolutionStepValue(VELOCITY,1));
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v2) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY,1) );
             }
-            
+
             //STEP3
-            if(is_found == true)
+//             if(is_found == true)
             {
                 const array_1d<double,3> x = initial_position + (0.5*dt)*v2;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
+                if( is_found == false) goto end_of_particle;
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 const double new_step_factor = 0.5; //as the step before
                 const double old_step_factor = 0.5;
@@ -249,9 +263,9 @@ public:
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v3) += N[k] * ( new_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY) + old_step_factor*geom[k].FastGetSolutionStepValue(VELOCITY,1) );
             }
-            
+
             //STEP4
-            if(is_found == true)
+//             if(is_found == true)
             {
                 const array_1d<double,3> x = initial_position + (dt)*v3;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
@@ -260,20 +274,22 @@ public:
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v4) += N[k] * ( geom[k].FastGetSolutionStepValue(VELOCITY) );
             }
-            
+
             if(is_found == false)
                 (iparticle)->Set(TO_ERASE, true);
             else
                 (iparticle)->Set(TO_ERASE, false);
             //finalize step
             noalias(x) = initial_position;
-            noalias(x) += 0.16666666666666666666667*dt*v1; 
-            noalias(x) += 0.33333333333333333333333*dt*v2; 
-            noalias(x) += 0.33333333333333333333333*dt*v3; 
-            noalias(x) += 0.16666666666666666666667*dt*v4; 
-            
+            noalias(x) += 0.16666666666666666666667*dt*v1;
+            noalias(x) += 0.33333333333333333333333*dt*v2;
+            noalias(x) += 0.33333333333333333333333*dt*v3;
+            noalias(x) += 0.16666666666666666666667*dt*v4;
+
             iparticle->FastGetSolutionStepValue(DISPLACEMENT) = x - iparticle->GetInitialPosition();
             noalias(pparticle->Coordinates()) = x;
+            
+            end_of_particle:  ;
         }
 
         KRATOS_CATCH("")
