@@ -115,11 +115,9 @@ RigidFace3D::~RigidFace3D()
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidFace3D::Initialize()
-{
- 
-  mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+void RigidFace3D::Initialize() {
 
+    mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
 
 }
 
