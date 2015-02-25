@@ -88,8 +88,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
-#include "custom_elements/fractional_step_bingham.h"
-#include "custom_elements/fractional_step_discontinuous_bingham.h"
 
 #include "custom_elements/bingham_fluid.h"
 #include "custom_elements/herschel_bulkley_fluid.h"
@@ -308,15 +306,7 @@ private:
     const DPGVMS<2> mDPGVMS2D;
     /// 3D instance of the DPGVMS element
     const DPGVMS<3> mDPGVMS3D;
-    
-    /// 2D instance of the fractional step discontinuous element non-Newtonian
-    const FractionalStepBingham<2> mFractionalStepBingham2D;
-    /// 3D instance of the fractional step discontinuous element non-Newtonian
-    const FractionalStepBingham<3> mFractionalStepBingham3D;    
-    /// 2D instance of the fractional step discontinuous element non-Newtonian
-    const FractionalStepDiscontinuousBingham<2> mFractionalStepDiscontinuousBingham2D;
-    /// 3D instance of the fractional step discontinuous element non-Newtonian
-    const FractionalStepDiscontinuousBingham<3> mFractionalStepDiscontinuousBingham3D;    
+
 
     // Non-Newtonian variants
 
