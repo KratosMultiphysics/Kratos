@@ -38,7 +38,7 @@ void MPIConnectivityPreserveModeler::GenerateModelPart(ModelPart &rOriginModelPa
      * using the new elements.
      */
     Communicator& rReferenceComm = rOriginModelPart.GetCommunicator();
-    typename Communicator::Pointer pDestinationComm = rReferenceComm.Create();
+    Communicator::Pointer pDestinationComm = rReferenceComm.Create();
     pDestinationComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() );
     pDestinationComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
     pDestinationComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
