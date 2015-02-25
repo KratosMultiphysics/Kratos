@@ -58,10 +58,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mFSPeriodicConditionEdge3D(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mDPGVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mDPGVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mFractionalStepBingham2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFractionalStepBingham3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))), 
-    mFractionalStepDiscontinuousBingham2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mFractionalStepDiscontinuousBingham3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mBinghamFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -114,11 +110,6 @@ void KratosFluidDynamicsApplication::Register()
     
     KRATOS_REGISTER_ELEMENT("DPGVMS2D",mDPGVMS2D);
     KRATOS_REGISTER_ELEMENT("DPGVMS3D",mDPGVMS3D);
-    
-    KRATOS_REGISTER_ELEMENT("FractionalStepBingham2D",mFractionalStepBingham2D);
-    KRATOS_REGISTER_ELEMENT("FractionalStepBingham3D",mFractionalStepBingham3D);  
-    KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuousBingham2D",mFractionalStepDiscontinuousBingham2D);
-    KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuousBingham3D",mFractionalStepDiscontinuousBingham3D); 
 
     KRATOS_REGISTER_ELEMENT("BinghamVMS2D",mBinghamVMS2D);
     KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D);
@@ -141,7 +132,6 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_CONDITION("WallConditionDiscontinuous3D",mWallConditionDiscontinuous3D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D",mMonolithicWallCondition2D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D",mMonolithicWallCondition3D);
-
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D",mFSPeriodicCondition2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D",mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("FSPeriodicConditionEdge2D",mFSPeriodicConditionEdge2D);
