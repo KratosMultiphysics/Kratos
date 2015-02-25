@@ -80,7 +80,6 @@ void SphericParticle::Initialize()
     double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
     mass                      = 4 *KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
     mRealMass                 = mass;
-    GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
     
     if (this->IsNot(BLOCKED)) GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
     
@@ -760,8 +759,8 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 //**************************************************************************************************************************************************
 
 void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino,
-                                                   double LocalCoordSystem[3][3], double & DistPToB,
-                                                   array_1d<double, 3 > &other_to_me_vel, int & ContactType)
+                                                   double LocalCoordSystem[3][3], double& DistPToB,
+                                                   array_1d<double,3>& other_to_me_vel, int& ContactType)
 {
     KRATOS_TRY
 
@@ -771,16 +770,16 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 
     int ino1 = ino * 16;
 
-    LocalCoordSystem[0][0] = RF_Pram[ino1 + 0];
-    LocalCoordSystem[0][1] = RF_Pram[ino1 + 1];
-    LocalCoordSystem[0][2] = RF_Pram[ino1 + 2];
-    LocalCoordSystem[1][0] = RF_Pram[ino1 + 3];
-    LocalCoordSystem[1][1] = RF_Pram[ino1 + 4];
-    LocalCoordSystem[1][2] = RF_Pram[ino1 + 5];
-    LocalCoordSystem[2][0] = RF_Pram[ino1 + 6];
-    LocalCoordSystem[2][1] = RF_Pram[ino1 + 7];
-    LocalCoordSystem[2][2] = RF_Pram[ino1 + 8];
-    DistPToB               = RF_Pram[ino1 + 9];
+    LocalCoordSystem[0][0] = RF_Pram[ino1 +  0];
+    LocalCoordSystem[0][1] = RF_Pram[ino1 +  1];
+    LocalCoordSystem[0][2] = RF_Pram[ino1 +  2];
+    LocalCoordSystem[1][0] = RF_Pram[ino1 +  3];
+    LocalCoordSystem[1][1] = RF_Pram[ino1 +  4];
+    LocalCoordSystem[1][2] = RF_Pram[ino1 +  5];
+    LocalCoordSystem[2][0] = RF_Pram[ino1 +  6];
+    LocalCoordSystem[2][1] = RF_Pram[ino1 +  7];
+    LocalCoordSystem[2][2] = RF_Pram[ino1 +  8];
+    DistPToB               = RF_Pram[ino1 +  9];
     Weight[0]              = RF_Pram[ino1 + 10];
     Weight[1]              = RF_Pram[ino1 + 11];
     Weight[2]              = RF_Pram[ino1 + 12];
@@ -813,16 +812,23 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
     double myPoisson                   = GetPoisson();
     double cohesion                    = GetParticleCohesion();
     double area                        = KRATOS_M_PI * mRadius * mRadius;
-    double inverse_of_volume           = 1.0 / (4.0 * 0.333333333333333 * area * mRadius);
+    double density                     = GetDensity();
     array_1d<double, 3> vel            = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-    double& non_dim_volume_wear        = GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR);
-    double& impact_wear                = GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR);
-    array_1d<double, 3> local_vel; //S
+    double non_dim_volume_wear         = 0.0;
+    double non_dim_impact_wear         = 0.0;
+    array_1d<double, 3> local_vel      = ZeroVector(3);
+    double inverse_of_volume           = 1.0 / (4.0 * 0.333333333333333 * area * mRadius);
     
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         
         DEMWall* cast_neighbour = rNeighbours[i];
         double WallBallFriction = cast_neighbour->mTgOfFrictionAngle;
+        
+        //S WEAR
+        double WallSeverityOfWear  = cast_neighbour->GetProperties()[SEVERITY_OF_WEAR];
+        double WallImpactSeverityOfWear  = cast_neighbour->GetProperties()[IMPACT_WEAR_SEVERITY];
+        double InverseOfWallBrinellHardness = 1.0 / (cast_neighbour->GetProperties()[BRINELL_HARDNESS]);
+        
         double LocalElasticContactForce[3]  = {0.0};
         double GlobalElasticContactForce[3] = {0.0};
         double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
@@ -890,11 +896,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         DeltDisp[1] = DeltVel[1] * mTimeStep;
         DeltDisp[2] = DeltVel[2] * mTimeStep;
 
-        if (this->Is(DEMFlags::HAS_ROTATION)){
+        if (this->Is(DEMFlags::HAS_ROTATION)) {
+            
             double velA[3]      = {0.0};
             double dRotaDisp[3] = {0.0};
 
-            array_1d<double, 3 > AngularVel= GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double,3> AngularVel= GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
             double Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
             GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
@@ -951,10 +958,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             }
         }
         
-        //S
-        //cohesion *= 0.5; // If we consider that walls have no cohesion so the mean cohesion between them and
-                           // the spheres would be cohesion * 0.5
-        cohesion *= 0.0; //If we consider no cohesion at all with walls, so cohesion = 0;
+        // If we consider that walls have no cohesion, the mean cohesion between them and the spheres would be cohesion * 0.5
+        // If we consider no cohesion at all with walls, cohesion would be 0;
+        
+        if (cast_neighbour->GetProperties()[COHESIVE_WALL]) cohesion *= 0.5; //S
+            else cohesion *= 0.0;
+        
         
         if (indentation > 0.0) {
             LocalElasticContactForce[2] =  kn_el * indentation - area * cohesion; //S!!!!
@@ -982,7 +991,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
             else {
 
-                if (GetLnOfRestitCoeff() > 0.0){
+                if (GetLnOfRestitCoeff() > 0.0) {
                     equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
                 }
 
@@ -1007,36 +1016,35 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbor!!
         }
         
-        //S Implementation of the Impact Wear
+        //Implementation of Abrassive (Archard) and Impact Wear
         
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, vel, local_vel);
         
-        double vel_module = std::sqrt(vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]);
+        double vel_module = sqrt(vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]);
         
-        double angle = std::asin(local_vel[2]/vel_module);
+        double quotient_of_vels = fabs(local_vel[2]) / vel_module;
         
-        double sine = std::sin(angle);
+        non_dim_impact_wear = 0.5 * WallImpactSeverityOfWear * InverseOfWallBrinellHardness * density * quotient_of_vels * quotient_of_vels
+                                                     * pow(1.0 - 4.0 * (1.0 - quotient_of_vels), 2) * vel_module * vel_module;
         
-        impact_wear = sine * sine * std::pow(1.0 - 4.0 * (1.0 - sine), 2) * vel_module * mRadius;
+        if (LocalElasticContactForce[2] * WallBallFriction < 0.95 * sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                    + LocalElasticContactForce[1] * LocalElasticContactForce[1])) {
+                non_dim_volume_wear = 0.0;
+            } else {
+
+                non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * inverse_of_volume * LocalElasticContactForce[2]
+                        * sqrt(LocalDeltDisp[0] * LocalDeltDisp[0] + LocalDeltDisp[1] * LocalDeltDisp[1]);
+            }
         
-        if ( LocalElasticContactForce[2] * WallBallFriction < 0.95 * sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                                                        + LocalElasticContactForce[1] * LocalElasticContactForce[1]) ) {
-            non_dim_volume_wear += 0.0;
-        }
+        //ABRASSIVE WEAR
+        cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += 0.3333333333333 * non_dim_volume_wear;
+        cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += 0.3333333333333 * non_dim_volume_wear;
+        cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += 0.3333333333333 * non_dim_volume_wear;
         
-        else {
-            
-            non_dim_volume_wear += inverse_of_volume * LocalElasticContactForce[2] * std::sqrt(LocalDeltDisp[0] * LocalDeltDisp[0]
-                                                                                        + LocalDeltDisp[1] * LocalDeltDisp[1]); //S
-        }
-        
-        cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += 0.3333333 * non_dim_volume_wear;
-        cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += 0.3333333 * non_dim_volume_wear;
-        cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += 0.3333333 * non_dim_volume_wear;
-        
-        cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333 * impact_wear;
-        cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333 * impact_wear;
-        cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333 * impact_wear;
+        //IMPACT WEAR        
+        cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333333333 * non_dim_impact_wear;
+        cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333333333 * non_dim_impact_wear;
+        cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333333333 * non_dim_impact_wear;
         
     }
     
