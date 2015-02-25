@@ -75,7 +75,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
-#include "custom_elements/bingham_vms.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/stationary_stokes.h"
@@ -93,6 +92,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/fractional_step_discontinuous_bingham.h"
 
 #include "custom_elements/bingham_fluid.h"
+#include "custom_elements/herschel_bulkley_fluid.h"
 
 namespace Kratos
 {
@@ -256,16 +256,6 @@ private:
     const VMS<2> mVMS2D;
     /// 3D instance of the VMS element
     const VMS<3> mVMS3D;
-//    /// 2D instance of the BinghamVMS element
-//    const BinghamVMS<2> mBinghamVMS2D;
-//    /// 3D instance of the BinghamVMS element
-//    const BinghamVMS<3> mBinghamVMS3D;
-//    /// 2D instance of the Dynamic Subscale element
-//    const DynamicVMS<2> mDynamicVMS2D;
-//    /// 3D instance of the Dynamic Subscale element
-//    const DynamicVMS<3> mDynamicVMS3D;
-//    const DynamicVMS<2> mDynamicVMS2D4N;
-//    const DynamicVMS<3> mDynamicVMS3D8N;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
 
@@ -341,6 +331,9 @@ private:
 
     const BinghamFluid< FractionalStepDiscontinuous<2> > mBinghamFractionalStepDiscontinuous2D;
     const BinghamFluid< FractionalStepDiscontinuous<3> > mBinghamFractionalStepDiscontinuous3D;
+
+    const HerschelBulkleyFluid< VMS<2> > mHerschelBulkleyVMS2D;
+    const HerschelBulkleyFluid< VMS<3> > mHerschelBulkleyVMS3D;
 
     ///@}
     ///@name Private Operators
