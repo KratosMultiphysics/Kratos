@@ -94,7 +94,8 @@ namespace Kratos
           ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
 
           //Cfeng,RigidFace
-          if( mFemOldNeighbourIds.size() > 0)
+          
+          if (mFemOldNeighbourIds.size() > 0)
           {
             ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt);
           }
