@@ -127,12 +127,11 @@ void RigidFace3D::Initialize() {
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidFace3D::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                         ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int MatSize = number_of_nodes * 3;
+    unsigned int MatSize = number_of_nodes * 3;
  
 	if (rRightHandSideVector.size() != MatSize)
 	{
@@ -142,13 +141,13 @@ void RigidFace3D::CalculateRightHandSide(
 	
 	std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
 
-	for(unsigned int i=0; i<rNeighbours.size(); i++)
+	for (unsigned int i=0; i<rNeighbours.size(); i++)
 	{       
                 std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
 
-		for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+		for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
 		{          
-			if( rRFnei[i_nei]->Id() == this->Id() )
+			if ( rRFnei[i_nei]->Id() == this->Id() )
 			{
 				double weight[4] = {0.0};
 				double ContactForce[3] = {0.0};
@@ -168,7 +167,7 @@ void RigidFace3D::CalculateRightHandSide(
 				ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
 				ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
 				
-				for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
+				for (unsigned int inode = 0; inode < GetGeometry().size(); inode++)
 				{
 					unsigned int ino1 =  inode * 3;					
 					rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
