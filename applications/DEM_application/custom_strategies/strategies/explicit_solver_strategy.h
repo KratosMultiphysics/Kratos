@@ -409,7 +409,11 @@ namespace Kratos
               for(int i = 0; i < 10; i++)
               CalculateInitialMaxIndentations();
           }
-          
+
+          if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]){
+              InitialTimeStepCalculation();
+          }
+
            // 5. Finalize Solution Step.
           //FinalizeSolutionStep();
           //KRATOS_WATCH(r_model_part.GetNodalSolutionStepVariablesList())
@@ -561,7 +565,8 @@ namespace Kratos
           ElementsIterator it_end   = pElements.ptr_end();
 
           double& process_info_delta_time = rCurrentProcessInfo[DELTA_TIME];
-          double temp_time_step           = mMaxTimeStep;
+          process_info_delta_time         = mMaxTimeStep;
+          double temp_time_step           = std::numeric_limits<double>::infinity();
           double elem_critical_time_step  = temp_time_step;
 
           for (ElementsIterator it = it_begin; it != it_end; it++){
@@ -574,9 +579,12 @@ namespace Kratos
           }
 
           temp_time_step /= mSafetyFactor;
-          process_info_delta_time = temp_time_step;
 
-          std::cout<< "****************** Calculated time step is " << temp_time_step << " ******************" << "\n" << std::endl;
+          if(temp_time_step < mMaxTimeStep) process_info_delta_time = temp_time_step;
+
+          std::cout << std::scientific;
+          std::cout << std::setprecision(3) << "************* Using " << process_info_delta_time << " time step. (Critical: "
+                    << temp_time_step << " with a diving factor: " << mSafetyFactor <<" ) *************" << "\n" << std::endl;
 
           KRATOS_CATCH("")
       }
