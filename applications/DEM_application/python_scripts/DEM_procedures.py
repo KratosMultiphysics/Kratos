@@ -898,7 +898,7 @@ class MaterialTest(object):
     
 class MultifileList(object):
 
-    def __init__(self,name,step):
+    def __init__(self, name, step):
         self.index = 0
         self.step = step
         self.name = name
@@ -1052,17 +1052,19 @@ class DEMIo(object):
 
         self.post_utility = PostUtilities()
 
-    def SetOutputName(self,name):
+    def SetOutputName(self, name):
         self.gid_io.ChangeOutputName(name)
 
-    def SetMultifileLists(self,multifile_list):
+    def SetMultifileLists(self, multifile_list):
         for mfilelist in multifile_list:
             self.multifilelists.append(mfilelist)
 
         for mfilelist in self.multifilelists:
             mfilelist.file.write("Multiple\n")
-
-    def PrintMultifileLists(self,time, post_path):
+            mfilelist.index = 1
+            
+    def PrintMultifileLists(self, time, post_path):
+        
         for mfilelist in self.multifilelists:
             
             if mfilelist.index == mfilelist.step:
