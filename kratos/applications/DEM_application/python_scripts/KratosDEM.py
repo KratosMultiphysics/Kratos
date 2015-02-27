@@ -345,7 +345,7 @@ while (time < DEM_parameters.FinalTime):
         #properties_list = ProceduresMonitorPhysicalProperties(spheres_model_part, physics_calculator, properties_list)
 
         os.chdir(list_path)
-        demio.PrintMultifileLists(time,post_path)
+        demio.PrintMultifileLists(time, post_path)
         os.chdir(main_path)
 
         os.chdir(post_path)
