@@ -824,17 +824,17 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         DEMWall* cast_neighbour = rNeighbours[i];
         double WallBallFriction = cast_neighbour->mTgOfFrictionAngle;
         
-        //S WEAR
+        // WEAR
         double WallSeverityOfWear  = cast_neighbour->GetProperties()[SEVERITY_OF_WEAR];
         double WallImpactSeverityOfWear  = cast_neighbour->GetProperties()[IMPACT_WEAR_SEVERITY];
         double InverseOfWallBrinellHardness = 1.0 / (cast_neighbour->GetProperties()[BRINELL_HARDNESS]);
         
         double LocalElasticContactForce[3]  = {0.0};
         double GlobalElasticContactForce[3] = {0.0};
-        double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+        double LocalCoordSystem[3][3]       = {{0.0}, {0.0}, {0.0}};
         array_1d<double, 3> other_to_me_vel = ZeroVector(3);
         array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
-        double node_coor[3];
+        double node_coor[3]                 = {0.0};
 
         DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
 
@@ -901,7 +901,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             double velA[3]      = {0.0};
             double dRotaDisp[3] = {0.0};
 
-            array_1d<double,3> AngularVel= GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            array_1d<double,3> AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
             double Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
             GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
@@ -985,7 +985,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             double mass = mRealMass;
 
             if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
-                equiv_visco_damp_coeff_normal     = r_current_process_info[DEMPACK_DAMPING]*2.0*sqrt(kn_el/(mass+mass))*mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
+                equiv_visco_damp_coeff_normal     = r_current_process_info[DEMPACK_DAMPING] * 2.0 * sqrt(kn_el / (mass+mass)) * mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
                 equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
             }
 
@@ -1301,7 +1301,7 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                                array_1d<double, 3>& r_elastic_force,
                                                const unsigned int iRigidFaceNeighbour)
 {
-    for (unsigned int index = 0; index < 3; index++){
+    for (unsigned int index = 0; index < 3; index++) {
         LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
     }
 
