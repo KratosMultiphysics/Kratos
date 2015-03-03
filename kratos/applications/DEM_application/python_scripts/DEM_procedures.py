@@ -82,7 +82,7 @@ class GranulometryUtils(object):
     def UpdateData(self, domain_volume):
         
         self.physics_calculator = SphericElementGlobalPhysicsCalculator(self.spheres_model_part)
-        self.number_of_spheres    = self.spheres_model_part.NumberOfElements(0)
+        self.number_of_spheres  = self.spheres_model_part.NumberOfElements(0)
         self.solid_volume       = self.physics_calculator.CalculateTotalVolume(self.spheres_model_part)
         self.d_50               = self.physics_calculator.CalculateD50(self.spheres_model_part)
 
@@ -116,13 +116,13 @@ class PostUtils(object):
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
         if (self.DEM_parameters.VelocityTrapOption):
+            
             average_velocity = Array3()
             low_point = Array3()
-
-            low_point[0] = self.DEM_parameters.VelocityTrapMinX
-            low_point[1] = self.DEM_parameters.VelocityTrapMinY
-            low_point[2] = self.DEM_parameters.VelocityTrapMinZ
-            high_point = Array3()
+            low_point[0]  = self.DEM_parameters.VelocityTrapMinX
+            low_point[1]  = self.DEM_parameters.VelocityTrapMinY
+            low_point[2]  = self.DEM_parameters.VelocityTrapMinZ
+            high_point    = Array3()
             high_point[0] = self.DEM_parameters.VelocityTrapMaxX
             high_point[1] = self.DEM_parameters.VelocityTrapMaxY
             high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
@@ -150,7 +150,7 @@ class Procedures(object):
         self.contact_mesh_OPTION           = Var_Translator(DEM_parameters.ContactMeshOption)
         self.arlequin                      = 0
         if (hasattr(DEM_parameters, "arlequin")):
-          self.arlequin                    = Var_Translator(DEM_parameters.arlequin)
+            self.arlequin                  = Var_Translator(DEM_parameters.arlequin)
         #self.solver = solver
         
         # SIMULATION SETTINGS
