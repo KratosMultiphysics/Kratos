@@ -254,7 +254,7 @@ namespace Kratos
         Weight[2] = area[0] / s;
      }
 
-     static inline  double DistancePointToPlane(double CoordInPlane[3], double PlaneUnitNormalVector[3], double TestCoord[3])
+     static inline double DistancePointToPlane(double CoordInPlane[3], double PlaneUnitNormalVector[3], double TestCoord[3])
      {
          double Vector1[3] = {0.0};
 
