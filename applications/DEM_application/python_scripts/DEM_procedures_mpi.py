@@ -84,9 +84,13 @@ class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
         if (mpi.rank == 0):
             super(DEMFEMProcedures,self).PrintGraph(time)
 
-    def FinalizeGraphs(self):
+    def FinalizeGraphs(self,RigidFace_model_part):
         if (mpi.rank == 0):
-            super(DEMFEMProcedures,self).FinalizeGraphs()
+            super(DEMFEMProcedures,self).FinalizeGraphs(RigidFace_model_part)
+            
+    def FinalizeBallsGraphs(self,spheres_model_part):
+        if (mpi.rank == 0):
+            super(DEMFEMProcedures,self).FinalizeBallsGraphs(spheres_model_part)
 
 
 class Report(DEM_procedures.Report):
@@ -103,9 +107,9 @@ class MaterialTest(DEM_procedures.MaterialTest):
     # Important: This has to be defined here as the imports from
     # the superclase and the derived clase are different
     def Initialize(self, DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part):
-        self.type = DEM_parameters.TestType
+        self.TestType = DEM_parameters.TestType
 
-        if (self.type != "None"):
+        if (self.TestType != "None"):
             self.script = DEM_material_test_script.MaterialTest(DEM_parameters, procedures, solver, graphs_path, post_path, balls_model_part, rigid_face_model_part)
             self.script.Initialize()
 
