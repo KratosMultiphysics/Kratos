@@ -17,7 +17,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_discontinuous.cpp
-    #        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spalart_allmaras_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spalart_allmaras.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stationary_stokes.cpp
 
