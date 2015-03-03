@@ -71,13 +71,23 @@ namespace Kratos {
             int mesh_size=mesh_it->NumberOfNodes();
             if (!mesh_size) continue;
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+            std::string& identifier = mInletModelPart.GetProperties(mesh_number)[IDENTIFIER];
             
-            if ((mInletModelPart.GetProperties(mesh_number)[VELOCITY][0] == 0.0) &&
-                (mInletModelPart.GetProperties(mesh_number)[VELOCITY][1] == 0.0) &&
-                (mInletModelPart.GetProperties(mesh_number)[VELOCITY][2] == 0.0)) {
+            array_1d<double, 3 >& inlet_velocity = mInletModelPart.GetProperties(mesh_number)[VELOCITY];
+            
+            if ((inlet_velocity[0] == 0.0) &&
+                (inlet_velocity[1] == 0.0) &&
+                (inlet_velocity[2] == 0.0)) {
                 
-                KRATOS_ERROR(std::runtime_error, "There is at least one inlet velocity set to", 0);
+                KRATOS_ERROR(std::runtime_error, "The inlet velocity cannot be zero for group ", identifier);
             }
+            
+            double max_rand_dev_angle = mInletModelPart.GetProperties(mesh_number)[MAX_RAND_DEVIATION_ANGLE];
+            if ( max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
+                
+                KRATOS_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ",identifier);
+            }
+            
             
             int general_properties_id = mInletModelPart.GetProperties(mesh_number).Id();  
             PropertiesProxy* p_fast_properties = NULL;
