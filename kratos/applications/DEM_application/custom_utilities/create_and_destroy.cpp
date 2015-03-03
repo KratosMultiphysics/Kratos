@@ -44,7 +44,7 @@ namespace Kratos {
         return return_value;
     }
     
-    static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity){
+    static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity, const double angle_in_degrees){
         
         double velocity_modulus = sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]);
         array_1d<double, 3 > unitary_velocity;
@@ -77,8 +77,23 @@ namespace Kratos {
         
         //CrossProduct(NormalDirection,Vector0,Vector1);
         normal_2[0] = unitary_velocity[1]*normal_1[2] - unitary_velocity[2]*normal_1[1];
-        normal_2[1] = normal_1[0]*unitary_velocity[2] - unitary_velocity[0]*normal_1[2];
-        normal_2[2] = unitary_velocity[0]*normal_1[1] - unitary_velocity[1]*normal_1[0];                        
+        normal_2[1] = unitary_velocity[2]*normal_1[0] - unitary_velocity[0]*normal_1[2];
+        normal_2[2] = unitary_velocity[0]*normal_1[1] - unitary_velocity[1]*normal_1[0];     
+        
+        double angle_in_radians = angle_in_degrees * KRATOS_M_PI / 180;
+        double radius = tan(angle_in_radians) * velocity_modulus;
+        double radius_square = radius * radius;
+        double local_added_velocity_modulus_square = radius_square + 1.0; //just greater than the radius, to get at least one iteration of the while
+        array_1d<double, 3 > local_added_velocity; local_added_velocity[0] = local_added_velocity[1] = local_added_velocity[2] = 0.0;
+        
+        while (local_added_velocity_modulus_square > radius_square) {
+            //Random in a range: (max - min) * ( (double)rand() / (double)RAND_MAX ) + min
+            local_added_velocity[0] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_velocity[1] = 2*radius * (double)rand() / (double)RAND_MAX - radius;
+            local_added_velocity_modulus_square = local_added_velocity[0]*local_added_velocity[0] + local_added_velocity[1]*local_added_velocity[1];
+        }
+        
+        noalias(velocity) += local_added_velocity[0] * normal_1 + local_added_velocity[1] * normal_2;
         
         
     }
@@ -142,7 +157,8 @@ namespace Kratos {
         else {
             pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
             array_1d<double, 3 > velocity = params[VELOCITY];
-            //AddRandomPerpendicularVelocityToGivenVelocity(velocity);
+            double max_rand_deviation_angle = params[MAX_RAND_DEVIATION_ANGLE];
+            AddRandomPerpendicularVelocityToGivenVelocity(velocity, max_rand_deviation_angle);
             pnew_node->FastGetSolutionStepValue(VELOCITY) = velocity;
             pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
         }
