@@ -680,9 +680,6 @@ class DEMFEMProcedures(object):
                                                                                       
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+"\n")
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
-                            
-            print("graph_counter =", self.graph_counter)
-            print("graph_frequency =", self.graph_frequency)
             
             self.graph_counter += 1
 
