@@ -112,28 +112,38 @@ class PostUtils(object):
         self.DEM_parameters = DEM_parameters
         self.spheres_model_part = spheres_model_part
         self.post_utilities = PostUtilities()
+        
+        self.vel_trap_graph_counter = 0
+
+        self.vel_trap_graph_frequency = int(DEM_parameters.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        if self.vel_trap_graph_frequency < 1:
+            self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
         if (self.DEM_parameters.VelocityTrapOption):
             
-            average_velocity = Array3()
-            low_point = Array3()
-            low_point[0]  = self.DEM_parameters.VelocityTrapMinX
-            low_point[1]  = self.DEM_parameters.VelocityTrapMinY
-            low_point[2]  = self.DEM_parameters.VelocityTrapMinZ
-            high_point    = Array3()
-            high_point[0] = self.DEM_parameters.VelocityTrapMaxX
-            high_point[1] = self.DEM_parameters.VelocityTrapMaxY
-            high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
+            if (self.vel_trap_graph_counter == self.vel_trap_graph_frequency):
+                self.vel_trap_graph_counter = 0
+            
+                average_velocity = Array3()
+                low_point     = Array3()
+                low_point[0]  = self.DEM_parameters.VelocityTrapMinX
+                low_point[1]  = self.DEM_parameters.VelocityTrapMinY
+                low_point[2]  = self.DEM_parameters.VelocityTrapMinZ
+                high_point    = Array3()
+                high_point[0] = self.DEM_parameters.VelocityTrapMaxX
+                high_point[1] = self.DEM_parameters.VelocityTrapMaxY
+                high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
 
-            average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
-            f = open(file_name, 'a')
-            tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2]) + "\n"
-            f.write(tmp)
-            f.flush()
-            f.close()
-
+                average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
+                f = open(file_name, 'a')
+                tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2]) + "\n"
+                f.write(tmp)
+                f.flush()
+                f.close()
+            
+            self.vel_trap_graph_counter += 1
 
 class Procedures(object):
 
@@ -549,7 +559,8 @@ class DEMFEMProcedures(object):
 
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.graph_frequency < 1:
-            self.graph_frequency = 1
+            self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+
         os.chdir(self.graphs_path)
         #self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')                
         
@@ -646,13 +657,16 @@ class DEMFEMProcedures(object):
 
     def PrintGraph(self, time):
 
-        if DEM_parameters.TestType == "None":            
-            if(self.graph_counter == self.graph_frequency):
+        if DEM_parameters.TestType == "None":
+            
+            if (self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
+                
                 if self.RigidFace_model_part.NumberOfMeshes() > 1:
                     
                     for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
-                        if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
+                        
+                        if (self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]):
                             mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
                             
                             total_force = Array3()
@@ -668,6 +682,7 @@ class DEMFEMProcedures(object):
 
             self.graph_counter += 1
 
+    
     def FinalizeGraphs(self,RigidFace_model_part):
 
         if DEM_parameters.TestType == "None":
