@@ -553,7 +553,7 @@ class DEMFEMProcedures(object):
         os.chdir(self.graphs_path)
         #self.graph_forces = open(DEM_parameters.problem_name +"_force_graph.grf", 'w')                
         
-        def open_graph_files(self,RigidFace_model_part):
+        def open_graph_files(self, RigidFace_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
                 if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
@@ -562,7 +562,7 @@ class DEMFEMProcedures(object):
         self.graph_forces = {}  
         
         
-        def open_balls_graph_files(self,spheres_model_part):
+        def open_balls_graph_files(self, spheres_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
                 if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
