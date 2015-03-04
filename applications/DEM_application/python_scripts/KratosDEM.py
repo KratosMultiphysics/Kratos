@@ -327,7 +327,7 @@ while (time < DEM_parameters.FinalTime):
     #### GENERAL FORCE GRAPHS ############################
     #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
-    DEMFEMProcedures.PrintBallsGraph(time)  
+    #DEMFEMProcedures.PrintBallsGraph(time)  
 
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
@@ -353,7 +353,7 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         
-        demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part,mapping_model_part, time)
+        demio.PrintResults(mixed_model_part, spheres_model_part, rigid_face_model_part, cluster_model_part, contact_model_part, mapping_model_part, time)
                 
         os.chdir(main_path)
 
