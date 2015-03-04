@@ -556,7 +556,8 @@ class DEMFEMProcedures(object):
         self.fem_mesh_nodes = []
 
         self.graph_counter = 0
-
+        self.balls_graph_counter = 0
+        
         self.graph_frequency        = int(DEM_parameters.GraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.graph_frequency < 1:
             self.graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
@@ -679,7 +680,10 @@ class DEMFEMProcedures(object):
                                                                                       
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+"\n")
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
-
+                            
+            print("graph_counter =", self.graph_counter)
+            print("graph_frequency =", self.graph_frequency)
+            
             self.graph_counter += 1
 
     
@@ -692,8 +696,8 @@ class DEMFEMProcedures(object):
     def PrintBallsGraph(self, time):
 
         if self.TestType == "None":
-            if(self.graph_counter == self.graph_frequency):
-                self.graph_counter = 0
+            if(self.balls_graph_counter == self.graph_frequency):
+                self.balls_graph_counter = 0
                 if self.spheres_model_part.NumberOfMeshes() > 1:
                     
                     for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
@@ -715,7 +719,7 @@ class DEMFEMProcedures(object):
                             self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()                    
 
 
-            self.graph_counter += 1        
+            self.balls_graph_counter += 1        
             
     def FinalizeBallsGraphs(self,spheres_model_part):
 
