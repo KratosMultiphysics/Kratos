@@ -145,6 +145,7 @@ class PostUtils(object):
             
             self.vel_trap_graph_counter += 1
 
+
 class Procedures(object):
 
     def __init__(self, DEM_parameters):
@@ -175,7 +176,6 @@ class Procedures(object):
         # MODEL
         self.domain_size = DEM_parameters.Dimension
  
-
     def AddCommonVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -507,7 +507,6 @@ class Procedures(object):
 
         return maxid
 
-    
     def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
         
         b_box_low = Array3()
@@ -523,17 +522,15 @@ class Procedures(object):
         creator_destructor.SetHighNode(b_box_high)
         
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
-            
-            
+                 
     def PreProcessModel(self, DEM_parameters):
         pass
 
     def KRATOSprint(self,message):
         print(message)
         sys.stdout.flush()
-        
-        
-                
+      
+                             
 # #~CHARLIE~# Aixo no ho entenc 
 class DEMFEMProcedures(object):
 
@@ -573,7 +570,6 @@ class DEMFEMProcedures(object):
         
         self.graph_forces = {}  
         
-        
         def open_balls_graph_files(self, spheres_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
@@ -581,7 +577,6 @@ class DEMFEMProcedures(object):
                  self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
         
         self.particle_graph_forces = {}      
-        
         
         if self.TestType == "None":  
             print (self.graphs_path)
@@ -621,9 +616,7 @@ class DEMFEMProcedures(object):
                 self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
         else:
             self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
-            
-    
-                    
+                         
     def close_graph_files(self,RigidFace_model_part):
         for mesh_number in range(1, self.RigidFace_model_part.NumberOfMeshes()):
             if(self.RigidFace_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
@@ -634,8 +627,7 @@ class DEMFEMProcedures(object):
         for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
             if(self.spheres_model_part.GetMesh(mesh_number)[FORCE_INTEGRATION_GROUP]): 
                 self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].close()            
-                
-                
+                            
     def MeasureForces(self):    # not used atm
         
         if self.TestType == "None":
@@ -654,7 +646,6 @@ class DEMFEMProcedures(object):
                             self.total_force_x += force_node_x
                             self.total_force_y += force_node_y
                             self.total_force_z += force_node_z
-
 
     def PrintGraph(self, time):
 
@@ -683,13 +674,11 @@ class DEMFEMProcedures(object):
             
             self.graph_counter += 1
 
-    
     def FinalizeGraphs(self,RigidFace_model_part):
 
         if DEM_parameters.TestType == "None":
             self.close_graph_files(RigidFace_model_part)
-            
-            
+                    
     def PrintBallsGraph(self, time):
 
         if self.TestType == "None":
@@ -715,15 +704,13 @@ class DEMFEMProcedures(object):
                             self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%self.total_force_x).rjust(13)+" "+str("%.6g"%self.total_force_y).rjust(13)+" "+str("%.6g"%self.total_force_z).rjust(13)+"\n")
                             self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]].flush()                    
 
-
             self.balls_graph_counter += 1        
             
     def FinalizeBallsGraphs(self,spheres_model_part):
 
         if DEM_parameters.TestType == "None":
             self.close_balls_graph_files(spheres_model_part)
-                    
-            
+                            
     def ApplyNodalRotation(self,time):
 
             #if (time < 0.5e-2 ) :
@@ -765,8 +752,6 @@ class DEMFEMProcedures(object):
                             node.Fix(VELOCITY_X)
                             node.Fix(VELOCITY_Z)
 
-           
-
     def ApplyMovementbySteps(self,time):
                     
             if (time < 0.001e-0 ) :    
@@ -807,7 +792,6 @@ class DEMFEMProcedures(object):
 
                               node.SetSolutionStepValue(VELOCITY_Y, vy)
                               node.Fix(VELOCITY_Y)
-
 
 
 class Report(object):
@@ -902,8 +886,7 @@ class MaterialTest(object):
     def FinalizeGraphs(self):
         if (self.TestType != "None"):
             self.script.FinalizeGraphs()
-            
-            
+                    
     def PrintChart(self):        
         if (self.TestType != "None"):
             self.script.PrintChart()  
@@ -911,6 +894,7 @@ class MaterialTest(object):
     def ApplyMovementbySteps(self, time):        
         if (self.TestType != "None"):
             self.script.ApplyMovementbySteps(time)  
+
     
 class MultifileList(object):
 
@@ -960,7 +944,6 @@ class DEMIo(object):
         self.PostShearStress              = getattr(DEM_parameters, "PostShearStress", 0 )
         self.PostNodalArea                = getattr(DEM_parameters, "PostNodalArea", 0 )
   
-    
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
             print_list.append(name)
@@ -998,7 +981,6 @@ class DEMIo(object):
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
             self.PushPrintVar(DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
-    
     
     def AddArlequinVariables(self):
          self.PushPrintVar( 1, DISTANCE, self.global_variables)
@@ -1216,3 +1198,4 @@ class ParallelUtils(object):
 
     def GetSearchStrategy(self, solver, model_part):
         return solver.search_strategy
+    
