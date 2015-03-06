@@ -154,7 +154,7 @@ class Solver:
         
         #compute BDF2_coefficients
         ComputeBDFCoefficientsProcess(self.model_part,2).Execute()
-        
+        print(self.model_part.ProcessInfo[BDF_COEFFICIENTS])
         #thermal_inlet = []
         #for node in self.model_part.Nodes:
             #if(node.IsFixed(TEMPERATURE)):
@@ -202,7 +202,7 @@ class Solver:
             self.stage0_solver.Solve()
         else:
             BDFVector = self.model_part.ProcessInfo.GetValue(BDF_COEFFICIENTS)
-            print(self.model_part.ProcessInfo[DELTA_TIME])
+            print("DELTA_TIME=",self.model_part.ProcessInfo[DELTA_TIME])
             print(BDFVector)
             aux1 = BDFVector[1]/BDFVector[0]
             aux2 = BDFVector[2]/BDFVector[0]
