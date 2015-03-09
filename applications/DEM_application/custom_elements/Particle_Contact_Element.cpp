@@ -200,7 +200,7 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
     mLocalContactForce[2] = 0.0;
     if (mFailureCriterionState<1.0) {
         mFailureCriterionState = 0.0;
-    }
+    } // else we keep it at 1.0.
 
 }
 
