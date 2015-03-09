@@ -554,9 +554,9 @@ namespace Kratos
 
                 double tau_strength = mTauZero;
 
-		        if (contact_sigma >= 0) {  tau_strength = mTauZero + mTanContactInternalFriccion * contact_sigma;}
+		if (contact_sigma >= 0) {  tau_strength = mTauZero + mTanContactInternalFriccion * contact_sigma;}
 
-		        if ( contact_tau > tau_strength ) { mHistory[mapping_new_cont][5] = 1.0; }
+		if ( contact_tau > tau_strength ) { mHistory[mapping_new_cont][5] = 1.0; }
 
                 if (mHistory[mapping_new_cont][5] != 0.0) {
 
@@ -591,8 +591,8 @@ namespace Kratos
                 } else {
 
                     if (contact_sigma < 0) {
-                        failure_criterion_state = GeometryFunctions::max(ShearForceNow / tau_strength, -contact_sigma / mTensionLimit);
-                    } else failure_criterion_state = ShearForceNow / tau_strength;
+                        failure_criterion_state = GeometryFunctions::max( contact_tau / tau_strength, -contact_sigma / mTensionLimit);
+                    } else failure_criterion_state = contact_tau / tau_strength;
 
                 }
 
