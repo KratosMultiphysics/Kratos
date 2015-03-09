@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/face_heat_utilities.h"
 #include "custom_utilities/pure_convection_tools.h"
 #include "custom_utilities/pure_convection_CrankN_tools.h"
+#include "custom_utilities/bfecc_convection.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -126,7 +127,13 @@ void  AddCustomUtilitiesToPython()
     .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
+    class_<BFECCConvection<2> > ("BFECCConvection2D", init< typename BinBasedFastPointLocator < 2 >::Pointer >())
+    .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
+    ;                   
 
+    class_<BFECCConvection<3> > ("BFECCConvection3D", init< typename BinBasedFastPointLocator < 3 >::Pointer >())
+    .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
+    ;
 
 
 }
