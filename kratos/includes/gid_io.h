@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
+#include "includes/datafile_io.h"
 #include "geometries/geometry_data.h"
 
 #include "includes/gid_gauss_point_container.h"
@@ -94,14 +94,14 @@ enum MultiFileFlag {SingleFile, MultipleFiles};
  * in order to provide GiD compliant I/O functionality
  */
 template<class TGaussPointContainer = GidGaussPointsContainer, class TMeshContainer = GidMeshContainer>
-class GidIO : public IO
+class GidIO : public DatafileIO
 {
 public:
     ///pointer definition of GidIO
     KRATOS_CLASS_POINTER_DEFINITION(GidIO);
 
     ///typedefs
-	typedef IO BaseType;
+    typedef DatafileIO BaseType;
 
     ///Flags for mesh writing
 //             enum WriteDeformedMeshFlag{WriteDeformed, WriteUndeformed};
@@ -109,6 +109,36 @@ public:
 //             enum MultiFileFlag{SingleFile, MultipleFiles};
 
     ///Constructor
+    GidIO( const std::string& rNodeDatafilename,
+           const std::string& rPropertiesDatafilename,
+           const std::string& rElementDatafilename,
+           const std::string& rConditionDatafilename,
+           const std::string& rInitialValueDatafilename,
+           const  std::string& rResultFilename,
+           GiD_PostMode Mode,
+           MultiFileFlag use_multiple_files_flag,
+           WriteDeformedMeshFlag write_deformed_flag,
+           WriteConditionsFlag write_conditions_flag
+         )
+        : BaseType( rNodeDatafilename, rPropertiesDatafilename,
+                    rElementDatafilename, rConditionDatafilename,
+                    rInitialValueDatafilename
+                  )
+    {
+        mMode = Mode;
+        mResultFileOpen = false;
+        mMeshFileOpen = false;
+        mWriteDeformed = write_deformed_flag;
+        mWriteConditions = write_conditions_flag;
+        mUseMultiFile = use_multiple_files_flag;
+        mResultFileName = rResultFilename;
+        InitializeResultFile(mResultFileName);
+        mMeshFileName = mResultFileName;
+        mMeshFileName += ".post.msh";
+        SetUpMeshContainers();
+        SetUpGaussPointContainers();
+    }
+
     ///single stream IO constructor
     GidIO( const std::string& rDatafilename,
            GiD_PostMode Mode,
@@ -116,6 +146,7 @@ public:
            WriteDeformedMeshFlag write_deformed_flag,
            WriteConditionsFlag write_conditions_flag
          )
+        : BaseType(rDatafilename)
     {
         mMode = Mode;
         mResultFileOpen = false;
@@ -471,6 +502,7 @@ public:
      */
     virtual void PrintData(std::ostream& rOStream) const
     {
+        BaseType::PrintData(rOStream);
     }
 
     ///result functions
