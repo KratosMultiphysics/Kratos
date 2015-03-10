@@ -571,9 +571,11 @@ namespace Kratos
                     if (mAlpha_tau != 0.0) {
                         damage_tau = mHistory[mapping_new_cont][4] / (u1_tau * (mAlpha_tau));
                     }
+                    
+                    double aux = (1.0 - damage_tau) * (tau_strength / contact_tau);
 
-                    LocalElasticContactForce[0] = (1.0 - damage_tau) * (tau_strength / contact_tau) * LocalElasticContactForce[0];
-                    LocalElasticContactForce[1] = (1.0 - damage_tau) * (tau_strength / contact_tau) * LocalElasticContactForce[1];
+                    LocalElasticContactForce[0] = aux * LocalElasticContactForce[0];
+                    LocalElasticContactForce[1] = aux * LocalElasticContactForce[1];
 
                     failure_criterion_state = 1.0;
 
@@ -593,6 +595,8 @@ namespace Kratos
                     if (contact_sigma < 0) {
                         failure_criterion_state = GeometryFunctions::max( contact_tau / tau_strength, -contact_sigma / mTensionLimit);
                     } else failure_criterion_state = contact_tau / tau_strength;
+                    
+                    if(failure_criterion_state > 1.0) failure_criterion_state = 1.0;
 
                 }
 
