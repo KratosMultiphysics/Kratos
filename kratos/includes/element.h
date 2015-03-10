@@ -1053,7 +1053,7 @@ public:
 
 	void SetFlags(Flags const& rThisFlags)
 	{
-		static_cast<Flags>(*this) = rThisFlags;
+		Flags::operator=(rThisFlags);
 	}
     ///@}
     ///@name Inquiry
