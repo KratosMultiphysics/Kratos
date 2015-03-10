@@ -10,6 +10,11 @@
 #_____________________________________________________________________________________________________________________________________
 
 from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import sys
+#sys.path.append(pp.kratos_path)
+sys.path.insert(0,'')
+
+
 # import the configuration data as read from the GiD
 import ProjectParameters as pp # MOD
 import define_output
@@ -17,8 +22,7 @@ import define_output
 # setting the domain size for the problem to be solved
 domain_size = pp.domain_size
 
-import sys
-sys.path.append(pp.kratos_path)
+
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
