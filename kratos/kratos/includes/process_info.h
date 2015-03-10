@@ -113,7 +113,7 @@ public:
 
     /// Default constructor.
     ProcessInfo() :
-        DataValueContainer(),
+		BaseType(),
         Flags(),
         mIsTimeStep(true),
         mSolutionStepIndex(),
@@ -124,7 +124,7 @@ public:
 
     /// Copy constructor.
     ProcessInfo(const ProcessInfo& Other) :
-        DataValueContainer(Other),
+		BaseType(Other),
         Flags(Other),
         mIsTimeStep(Other.mIsTimeStep),
         mSolutionStepIndex(Other.mSolutionStepIndex),
@@ -306,7 +306,7 @@ public:
         if(mIsTimeStep)
             mpPreviousTimeStepInfo = mpPreviousSolutionStepInfo;
         mIsTimeStep = false;
-        DataValueContainer::Clear();
+		BaseType::Clear();
     }
 
 //       void CloneSolutionStepInfo(IndexType SolutionStepIndex = 0)
@@ -579,7 +579,7 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Is Time Step",mIsTimeStep);
         rSerializer.save("Solution Step Index",mSolutionStepIndex);
@@ -589,7 +589,7 @@ private:
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Is Time Step",mIsTimeStep);
         rSerializer.load("Solution Step Index",mSolutionStepIndex);
