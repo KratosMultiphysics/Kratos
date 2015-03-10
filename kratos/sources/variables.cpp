@@ -704,7 +704,7 @@ namespace Kratos
   Kratos::Variable<double> SOLIDIF_TIME( "SOLIDIF TIME (s)" );
   Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS (cm)" );
   Kratos::Variable<double> FILLTIME( "FILLTIME (s)" );
-  KRATOS_CREATE_VARIABLE(double, MACRO_POROSITY );
+  KRATOS_CREATE_VARIABLE(double, MACRO_POROSITY )
   Kratos::Variable<double> SHRINKAGE_POROSITY( "SHRINKAGE_POROSITY (m^3)" );
   Kratos::Variable<double> MAX_VEL( "MAX VEL (m/s)" );
   KRATOS_CREATE_VARIABLE(int, IS_GRAVITY_FILLING)
