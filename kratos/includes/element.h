@@ -1038,6 +1038,24 @@ public:
     }
 
     ///@}
+    ///@name Flags
+    ///@{
+
+	Flags& GetFlags() 
+	{
+		return *this;
+	}
+
+	Flags const& GetFlags() const
+	{
+		return *this;
+	}
+
+	void SetFlags(Flags const& rThisFlags)
+	{
+		static_cast<Flags>(*this) = rThisFlags;
+	}
+    ///@}
     ///@name Inquiry
     ///@{
     ///@}

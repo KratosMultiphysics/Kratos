@@ -463,7 +463,7 @@ public:
     }
 
 
-    SolutionStepsDataContainerType::Pointer GetSolutionStepsData()
+    SolutionStepsDataContainerType* GetSolutionStepsData()
     {
         return mpSolutionStepsData;
     }
