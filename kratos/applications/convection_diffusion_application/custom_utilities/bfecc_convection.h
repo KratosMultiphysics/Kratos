@@ -121,7 +121,7 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
         
         //FIRST LOOP: estimate rVar(n+1) 
-        #pragma omp parallel for firstprivate(results,N,max_results)
+        #pragma omp parallel for firstprivate(results,N)
         for (int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -150,7 +150,7 @@ public:
         }
         
         //now obtain the value AT TIME STEP N by taking it from N+1
-        #pragma omp parallel for firstprivate(results,N,max_results)
+        #pragma omp parallel for firstprivate(results,N)
         for (int i = 0; i < nparticles; i++)
         {
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -176,7 +176,7 @@ public:
             }
         }
 
-//         #pragma omp parallel for firstprivate(results,N,v1,v2,v3,v4,vtot,x)
+         #pragma omp parallel for 
         for (int i = 0; i < nparticles; i++)
         {
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
