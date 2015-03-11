@@ -127,11 +127,11 @@ void  AddCustomUtilitiesToPython()
     .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
     ;
 
-    class_<BFECCConvection<2> > ("BFECCConvection2D", init< typename BinBasedFastPointLocator < 2 >::Pointer >())
+    class_<BFECCConvection<2> > ("BFECCConvection2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     ;                   
 
-    class_<BFECCConvection<3> > ("BFECCConvection3D", init< typename BinBasedFastPointLocator < 3 >::Pointer >())
+    class_<BFECCConvection<3> > ("BFECCConvection3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     ;
 
