@@ -508,7 +508,7 @@ public:
                     if(zz > zmax) zmax = zz;
                     if(zz < zmin) zmin = zz;
 
-                    unsigned int compressed_index = -1;
+                    unsigned int compressed_index;
                     if( i%mndof == 0 )  
                     {
                         compressed_index = i/mndof;
