@@ -135,10 +135,11 @@ void  AddLinearSolvers()
             .value("BICGSTAB", BICGSTAB)
             .value("CG",CG)
             .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
+            .value("BICGSTAB2",BICGSTAB2)
             ;
             
         enum_<AMGCLCoarseningType>("AMGCLCoarseningType")
-            .value("RUBE_STUBEN", RUBE_STUBEN)
+            .value("RUGE_STUBEN", RUGE_STUBEN)
             .value("AGGREGATION", AGGREGATION)
             .value("SA",SA)
             .value("SA_EMIN",SA_EMIN)
@@ -148,6 +149,8 @@ void  AddLinearSolvers()
         class_<AmgclMPISolverType, bases<TrilinosLinearSolverType>, boost::noncopyable >
             ("AmgclMPISolver",init<double, int,int,bool >())
             .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType,double,int,int,bool>())
+            .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
+            .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
             ;
             
 
