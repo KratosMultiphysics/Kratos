@@ -805,6 +805,7 @@ public:
 
                     Element::Pointer p_element;
                     p_element = it->Create(current_id, geom, it->pGetProperties());
+                    p_element->SetFlags(*it);
                     p_element->Initialize();
                     p_element->InitializeSolutionStep(rCurrentProcessInfo);
                     p_element->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -965,44 +966,44 @@ public:
         //compute Condition ids
         int nel = this_model_part.Conditions().size();
 
-        if (nel != 0)
+        int el_before = -1;
+        mrComm.ScanSum(&nel, &el_before, 1);
+        //            int el_end_id = el_before + 1;
+        int el_start_id = el_before - nel + 1;
+        if (el_start_id <= 0) KRATOS_ERROR(std::logic_error, "wrong id in renumbering of the Conditions", "")
+
+            unsigned int id_elem = el_start_id;
+        for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin();
+                it != this_model_part.ConditionsEnd(); ++it)
         {
-            int el_before = -1;
-            mrComm.ScanSum(&nel, &el_before, 1);
-            //            int el_end_id = el_before + 1;
-            int el_start_id = el_before - nel + 1;
-            if (el_start_id < 0) KRATOS_ERROR(std::logic_error, "wrong id in renumbering of the Conditions", "")
-
-                unsigned int id_elem = el_start_id;
-            for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin();
-                    it != this_model_part.ConditionsEnd(); ++it)
+            if (it->Id() != id_elem)
             {
-                if (it->Id() != id_elem)
-                {
-                    it->SetId(id_elem);
-                }
-                id_elem++;
+                it->SetId(id_elem);
             }
-
-            //verify that the nodes are numbered consecutively
-            int local_max_id = (mr_model_part.GetCommunicator().LocalMesh().NodesEnd() - 1)->Id();
-            int local_number_of_nodes = mr_model_part.GetCommunicator().LocalMesh().Nodes().size();
-            int max_id = -1;
-            int tot_nnodes = -1;
-            mrComm.MaxAll(&local_max_id, &max_id, 1);
-            mrComm.SumAll(&local_number_of_nodes, &tot_nnodes, 1);
-            if (max_id != tot_nnodes)
-                KRATOS_ERROR(std::logic_error, "node ids are not consecutive", "");
-
-            int tot_Conditions;
-            int local_max_elem_id = (mr_model_part.Conditions().end() - 1)->Id();
-            int local_number_of_elem = mr_model_part.Conditions().size();
-            mrComm.MaxAll(&local_max_elem_id, &max_id, 1);
-            mrComm.SumAll(&local_number_of_elem, &tot_Conditions, 1);
-            if (max_id != tot_Conditions)
-                KRATOS_ERROR(std::logic_error, "Condition ids are not consecutive", "");
-
+            id_elem++;
         }
+
+        //verify that the nodes are numbered consecutively
+        int local_max_id = (mr_model_part.GetCommunicator().LocalMesh().NodesEnd() - 1)->Id();
+        int local_number_of_nodes = mr_model_part.GetCommunicator().LocalMesh().Nodes().size();
+        int max_id = -1;
+        int tot_nnodes = -1;
+        mrComm.MaxAll(&local_max_id, &max_id, 1);
+        mrComm.SumAll(&local_number_of_nodes, &tot_nnodes, 1);
+        if (max_id != tot_nnodes)
+            KRATOS_ERROR(std::logic_error, "node ids are not consecutive", "");
+
+        int tot_Conditions;
+
+        int local_max_elem_id = 0;
+        if (nel != 0) local_max_elem_id = (mr_model_part.Conditions().end() - 1)->Id();
+        int local_number_of_elem = mr_model_part.Conditions().size();
+
+        mrComm.MaxAll(&local_max_elem_id, &max_id, 1);
+        mrComm.SumAll(&local_number_of_elem, &tot_Conditions, 1);
+        if (max_id != tot_Conditions)
+            KRATOS_ERROR(std::logic_error, "Condition ids are not consecutive", "");
+
         KRATOS_CATCH("")
 
     }
@@ -1355,14 +1356,14 @@ protected:
     {
         KRATOS_TRY
 
+        boost::numeric::ublas::matrix<int> new_conectivity;
+
+        int total_existing_Conditions = -1;
+        int local_existing_Conditions = this_model_part.Conditions().size();
+        mrComm.SumAll(&local_existing_Conditions, &total_existing_Conditions, 1);
+
         if (this_model_part.Conditions().size() != 0)
         {
-            boost::numeric::ublas::matrix<int> new_conectivity;
-
-            int total_existing_Conditions = -1;
-            int local_existing_Conditions = this_model_part.Conditions().size();
-            mrComm.SumAll(&local_existing_Conditions, &total_existing_Conditions, 1);
-
             unsigned int to_be_deleted = 0;
             unsigned int large_id = total_existing_Conditions * 4;
             bool create_Condition = false;
@@ -1410,6 +1411,7 @@ protected:
 
                         Condition::Pointer p_Condition;
                         p_Condition = it->Create(current_id, geom, it->pGetProperties());
+                        p_Condition->SetFlags(*it);
                         p_Condition->Initialize();
                         p_Condition->InitializeSolutionStep(rCurrentProcessInfo);
                         p_Condition->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -1445,14 +1447,17 @@ protected:
             {
                 this_model_part.Conditions().push_back(*(it_new.base()));
             }
+        }
 
-            int number_of_Conditions_before = -1;
-            int number_of_own_Conditions = this_model_part.Conditions().size();
-            mrComm.ScanSum(&number_of_own_Conditions, &number_of_Conditions_before, 1);
-            number_of_Conditions_before = number_of_Conditions_before - number_of_own_Conditions;
-            if (number_of_Conditions_before < 0)
-                KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+        int number_of_Conditions_before = -1;
+        int number_of_own_Conditions = this_model_part.Conditions().size();
+        mrComm.ScanSum(&number_of_own_Conditions, &number_of_Conditions_before, 1);
+        number_of_Conditions_before = number_of_Conditions_before - number_of_own_Conditions;
+        if (number_of_Conditions_before < 0)
+            KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
 
+        if (this_model_part.Conditions().size() != 0)
+        {
             int start_elem_id = number_of_Conditions_before + 1;
             //            int end_elem_id = number_of_Conditions_before + number_of_own_Conditions;
 
