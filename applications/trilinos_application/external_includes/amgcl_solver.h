@@ -68,7 +68,7 @@ enum AMGCLIterativeSolverType
 
 enum AMGCLCoarseningType
 {
-    RUBE_STUBEN,AGGREGATION,SA,SA_EMIN
+    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
 };
 
 
@@ -96,7 +96,7 @@ struct deflation_space
 
     double operator()(int idx, int k) const
     {
-        if (mdirichlet[idx]) return 0.0;
+         if (mdirichlet[idx]) return 0.0;
 
         int j = idx/mblock_size;
         int m = idx%mblock_size;
@@ -140,7 +140,7 @@ struct constant_deflation_space
 
     double operator()(int idx, int k) const
     {
-        if (mdirichlet[idx]) return 0.0;
+         if (mdirichlet[idx]) return 0.0;
 
         if(k == (idx%mblock_size) ) return 1.0;
         return 0.0;
@@ -258,14 +258,18 @@ public:
 
         switch(coarsening)
         {
-        case RUBE_STUBEN:
+        case RUGE_STUBEN:
             mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
+            break;
         case AGGREGATION:
             mcoarsening = amgcl::runtime::coarsening::aggregation;
+            break;
         case SA:
             mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+            break;
         case SA_EMIN:
             mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
+            break;
         };
 
 
@@ -279,12 +283,14 @@ public:
 #endif
     }
 
+    //put("solver.M", 100) --> to set the size of the gmres search space
+    //put("amg.ncycle", 2) --> to do more swipes...
     void SetDoubleParameter(std::string param_name, const double value)
     {
         mprm.put(param_name,value);
     }
 
-    void SetIntParameter(std::string param_name, const double value)
+    void SetIntParameter(std::string param_name, const int value)
     {
         mprm.put(param_name,value);
     }
@@ -488,7 +494,7 @@ public:
             {
                 if (it->GetSolutionStepValue(PARTITION_INDEX) == my_pid)
                 {
-
+                   
                     ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
 
                     double xx = inode->X();
@@ -502,9 +508,15 @@ public:
                     if(zz > zmax) zmax = zz;
                     if(zz < zmin) zmin = zz;
 
-                    mplinear_def_space->mxx[i] = xx;
-                    mplinear_def_space->myy[i] = yy;
-                    mplinear_def_space->mzz[i] = zz;
+                    unsigned int compressed_index = -1;
+                    if( i%mndof == 0 )  
+                    {
+                        compressed_index = i/mndof;
+                                    
+                        mplinear_def_space->mxx[compressed_index] = xx;
+                        mplinear_def_space->myy[compressed_index] = yy;
+                        mplinear_def_space->mzz[compressed_index] = zz;
+                    }
 
                     i++;
                 }
