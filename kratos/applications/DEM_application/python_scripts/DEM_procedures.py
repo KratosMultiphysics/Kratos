@@ -114,8 +114,8 @@ class PostUtils(object):
         self.post_utilities = PostUtilities()
         
         self.vel_trap_graph_counter = 0
-
-        self.vel_trap_graph_frequency = int(DEM_parameters.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.dem_io = DEMIo()
+        self.vel_trap_graph_frequency = int(self.dem_io.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
 
@@ -943,6 +943,7 @@ class DEMIo(object):
         self.PostTangentialElasticForces  = getattr(DEM_parameters, "PostTangentialElasticForces", 0 )
         self.PostShearStress              = getattr(DEM_parameters, "PostShearStress", 0 )
         self.PostNodalArea                = getattr(DEM_parameters, "PostNodalArea", 0 )
+        self.VelTrapGraphExportFreq       = getattr(DEM_parameters, "VelTrapGraphExportFreq", 0 )
   
     def PushPrintVar(self,variable,name,print_list):
         if (Var_Translator(variable)):
