@@ -70,10 +70,10 @@ class ExplicitStrategy:
         self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
-        self.activate_search                = 1
+        self.search_control                = 1
         if(Var_Translator(Param.DontSearchUntilFailure)):
           print ("Search is not active until a bond is broken.")
-          self.activate_search                = 0
+          self.search_control                = 0
           if (len(fem_model_part.Nodes)>0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
             print ("WARNING: Search should be activated since there might contact with FEM.")
 
@@ -246,7 +246,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
-        self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
+        self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
