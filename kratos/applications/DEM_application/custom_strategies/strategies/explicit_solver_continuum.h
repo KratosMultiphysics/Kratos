@@ -289,7 +289,9 @@ namespace Kratos
 
 
             // 1. Search Neighbours /////////////////////////////////     
-            if (rCurrentProcessInfo[SEARCH_CONTROL] == 1) {
+
+            if (rCurrentProcessInfo[SEARCH_CONTROL] > 0) {
+
                 if ((time_step + 1) % this->GetNStepSearch() == 0 && time_step > 0) {
 
                     if (this->GetBoundingBoxOption() == 1) {
@@ -303,7 +305,7 @@ namespace Kratos
                     BaseType::SetOriginalRadius(r_model_part);
                     BaseType::SearchRigidFaceNeighbours();
                     BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
-
+                    rCurrentProcessInfo[SEARCH_CONTROL] = 2;
                     if (this->GetBoundingBoxOption() == 1 && has_mpi) {  //This block rebuilds all the bonds between continuum particles
                         if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1) {                            
                             this->CreateContactElements();
@@ -313,6 +315,12 @@ namespace Kratos
                             this->Particle_Area_Calculate(false); //2nd time
                         }
                     }
+
+                }
+
+                else{
+
+                    rCurrentProcessInfo[SEARCH_CONTROL] = 1;
 
                 }
 
