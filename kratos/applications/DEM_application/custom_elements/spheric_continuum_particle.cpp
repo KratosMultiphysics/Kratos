@@ -315,9 +315,9 @@ namespace Kratos
 
                 const double dt_i = 1 / dt;
         const int time_steps = rCurrentProcessInfo[TIME_STEPS];
-
-        int& activate_search = rCurrentProcessInfo[SEARCH_CONTROL];
-        vector<int>& activate_search_vector = rCurrentProcessInfo[SEARCH_CONTROL_VECTOR];
+        
+        int& search_control = rCurrentProcessInfo[SEARCH_CONTROL];
+        vector<int>& search_control_vector = rCurrentProcessInfo[SEARCH_CONTROL_VECTOR];
 
         /* Initializations */
 
@@ -607,9 +607,9 @@ namespace Kratos
 
             }
 
-            if (activate_search == 0) {
+            if (search_control == 0) {
                 if (mNeighbourFailureId[i_neighbour_count] != 0) {
-                    activate_search_vector[OpenMPUtils::ThisThread()] = 1;
+                    search_control_vector[OpenMPUtils::ThisThread()] = 1;
                 }
 
             }
