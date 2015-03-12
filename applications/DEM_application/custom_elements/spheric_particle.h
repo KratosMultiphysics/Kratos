@@ -205,7 +205,7 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
                                           ProcessInfo& rCurrentProcessInfo,
                                           double mTimeStep);
 
-virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel, int & ContactType);
+virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], array_1d<double, 3 > &other_to_me_vel, int & ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 void CalculateKineticEnergy(double& rKineticEnergy);
@@ -302,6 +302,7 @@ virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Outp
 int mDimension;
 int mDampType;
 int mElasticityType;
+int mSearchControl;
 
 array_1d<double, 3> mContactForce;
 array_1d<double, 3> mContactMoment;

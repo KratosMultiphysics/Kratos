@@ -170,7 +170,7 @@ namespace Kratos
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
         
-        rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
+        rCurrentProcessInfo[SEARCH_CONTROL_VECTOR].resize(this->GetNumberOfThreads());
         this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
 
         CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *BaseType::mpInlet_model_part, *BaseType::mpCluster_model_part);
@@ -273,13 +273,13 @@ namespace Kratos
           //this->ContactInitializeSolutionStep();
           
                                   
-          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
+          if(rCurrentProcessInfo[SEARCH_CONTROL]==0)
           {            
             for (int i = 0; i < this->GetNumberOfThreads(); i++)
             {
-              if(rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][i]==1)
+              if(rCurrentProcessInfo[SEARCH_CONTROL_VECTOR][i]==1)
               {
-                rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
+                rCurrentProcessInfo[SEARCH_CONTROL]=1;
                 std::cout << "From now on, the search is activated because some failure occurred " <<std::endl;   
                 break;
                 
@@ -289,7 +289,7 @@ namespace Kratos
 
 
             // 1. Search Neighbours /////////////////////////////////     
-            if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1) {
+            if (rCurrentProcessInfo[SEARCH_CONTROL] == 1) {
                 if ((time_step + 1) % this->GetNStepSearch() == 0 && time_step > 0) {
 
                     if (this->GetBoundingBoxOption() == 1) {
@@ -333,7 +333,7 @@ namespace Kratos
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
                                       
           //Synch this var.
-          r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
+          r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[SEARCH_CONTROL]);
                    
                                  
           // 4. Finalize step   /////////////////////////////////            

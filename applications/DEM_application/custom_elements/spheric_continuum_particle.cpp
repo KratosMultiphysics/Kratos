@@ -316,8 +316,8 @@ namespace Kratos
                 const double dt_i = 1 / dt;
         const int time_steps = rCurrentProcessInfo[TIME_STEPS];
 
-        int& activate_search = rCurrentProcessInfo[ACTIVATE_SEARCH];
-        vector<int>& activate_search_vector = rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR];
+        int& activate_search = rCurrentProcessInfo[SEARCH_CONTROL];
+        vector<int>& activate_search_vector = rCurrentProcessInfo[SEARCH_CONTROL_VECTOR];
 
         /* Initializations */
 

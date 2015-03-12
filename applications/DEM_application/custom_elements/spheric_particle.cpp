@@ -305,29 +305,21 @@ void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_in
 {
     r_current_max_indentation = - std::numeric_limits<double>::max();
 
-    array_1d<double, 3> node_coor_array = this->GetGeometry()[0].Coordinates();
-    double node_coor[3];
-
-    DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
+    std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 
     for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++){
-        double DistPToB;
-        DEMWall* ineighbourface = mNeighbourRigidFaces[i];
-        double Coord[4][3] = {{0.0}, {0.0}, {0.0}, {0.0}};
-
-        // Triangle
-        DEM_COPY_SECOND_TO_FIRST_3(Coord[0], ineighbourface->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
-        DEM_COPY_SECOND_TO_FIRST_3(Coord[1], ineighbourface->GetGeometry()[1].Coordinates())
-        DEM_COPY_SECOND_TO_FIRST_3(Coord[2], ineighbourface->GetGeometry()[2].Coordinates())
-
-        if (ineighbourface->GetGeometry().size() == 4){
-            DEM_COPY_SECOND_TO_FIRST_3(Coord[3], ineighbourface->GetGeometry()[3].Coordinates())
+        
+        int ino1                = i * 16;
+        double DistPToB         = RF_Pram[ino1 +  9];
+        int ContactType         = RF_Pram[ino1 + 15];
+        
+        if(ContactType > 0){
+            double indentation = mRadius - DistPToB;
+            r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;    
+            
         }
-
-        GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord , node_coor, mRadius, DistPToB);
-        double indentation = mRadius - DistPToB;
-        r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
-    }
+                
+    } //for every rigidface neighbor
 }
 
 //**************************************************************************************************************************************************
@@ -760,11 +752,11 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
 void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino,
                                                    double LocalCoordSystem[3][3], double& DistPToB,
+                                                   double Weight[4],
                                                    array_1d<double,3>& other_to_me_vel, int& ContactType)
 {
     KRATOS_TRY
 
-    double Weight[4] = {0.0};
 
     std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 
@@ -866,26 +858,35 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         double DistPToB = 0.0;
 
         int ContactType = -1;
+        double Weight[4] = {0.0};
 
-        ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, other_to_me_vel, ContactType);
+        ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, other_to_me_vel, ContactType);
 
         //MSI: Renew Distance for steps in between searches.
-        // The flag ContactType takes value 0 for a plane contact, 1 for line and 2 for point. The optimized function is created for Plane contact, not for other cases yet.
+        if (ContactType == 1 || ContactType == 2 || ContactType == 3)
+        {
 
-        if (ContactType == 0) {
+        if(mSearchControl==1){ //Search active but not performed in this timestep
             
             double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
-
-            // Triangle
-            DEM_COPY_SECOND_TO_FIRST_3(Coord[0], rNeighbours[i]->GetGeometry()[0].Coordinates()) //MSIMSI 1 can be optimized with vector access.
-            DEM_COPY_SECOND_TO_FIRST_3(Coord[1], rNeighbours[i]->GetGeometry()[1].Coordinates())
-            DEM_COPY_SECOND_TO_FIRST_3(Coord[2], rNeighbours[i]->GetGeometry()[2].Coordinates())
-
-            if (rNeighbours[i]->GetGeometry().size() == 4){
-                DEM_COPY_SECOND_TO_FIRST_3(Coord[3], rNeighbours[i]->GetGeometry()[3].Coordinates())
+            double total_weight = 0.0;
+            int points = 0;
+                
+            for (unsigned int inode = 0; inode < (rNeighbours[i]->GetGeometry().size()); inode++){
+                
+                if (Weight[inode] > 0.0){
+                    DEM_COPY_SECOND_TO_FIRST_3(Coord[0+points], rNeighbours[i]->GetGeometry()[inode].Coordinates())
+                    total_weight = total_weight + Weight[inode];
+                    points++;
+                }
+                if (fabs(total_weight - 1.0) < 1.0e-15){
+                    break;
+                }
             }
 
-            GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord, node_coor, mRadius, DistPToB);
+            if (points == 3 || points == 4) {GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord, node_coor, DistPToB);}
+            if (points == 2) {GeometryFunctions::QuickDistanceForAKnownEdgeNeighbour(Coord, node_coor, DistPToB); }
+            if (points == 1) {GeometryFunctions::QuickDistanceForAKnownPointNeighbour(Coord, node_coor, DistPToB);}
         }
 
         double indentation = -(DistPToB - mRadius) - ini_delta;
@@ -1046,7 +1047,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333333333 * non_dim_impact_wear;
         cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333333333 * non_dim_impact_wear;
         cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += 0.3333333333333 * non_dim_impact_wear;
-        
+     }   
     }
     
     KRATOS_CATCH("")
@@ -1337,6 +1338,7 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
     mDampType                                    = r_process_info[DAMP_TYPE];
     mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];
+    mSearchControl                               = r_process_info[SEARCH_CONTROL];
     if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION,true);
     else                                         this->Set(DEMFlags::HAS_ROTATION,false);
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION,true);
