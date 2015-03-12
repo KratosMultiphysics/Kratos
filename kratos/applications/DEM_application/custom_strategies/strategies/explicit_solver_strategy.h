@@ -51,6 +51,7 @@
 
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
+#include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
 /* Timer defines */
 #ifdef CUSTOMTIMER
@@ -146,6 +147,7 @@ namespace Kratos
  
       typedef PointerVectorSet<Properties, IndexedObject>               PropertiesContainerType;
       typedef typename PropertiesContainerType::iterator                PropertiesIterator;
+      typedef RigidFaceGeometricalObjectConfigure<3>                    RigidFaceGeometricalConfigureType;
  
 
       /// Pointer definition of ExplicitSolverStrategy
@@ -380,6 +382,7 @@ namespace Kratos
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
                    
           GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+          GetSearchControl()     = rCurrentProcessInfo[SEARCH_CONTROL];
 
           InitializeSolutionStep();
           InitializeDEMElements();                    
@@ -402,6 +405,9 @@ namespace Kratos
           
           SearchRigidFaceNeighbours();
           ComputeNewRigidFaceNeighboursHistoricalData();
+          
+          //set flag to 2 (search performed this timestep)
+          mSearchControl = 2;
           
           // Finding overlapping of initial configurations
 
@@ -500,8 +506,8 @@ namespace Kratos
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo          
           InitializeSolutionStep();
           
-          // 2. Neighboring search. Every N times. + destruction of particles outside the bounding box                   
-    
+          // 2. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
+
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
@@ -524,7 +530,13 @@ namespace Kratos
               SetOriginalRadius(r_model_part);              
               SearchRigidFaceNeighbours();
               ComputeNewRigidFaceNeighboursHistoricalData();
+              mSearchControl = 2; // Search is active and search has been performed during this timestep
               
+          }
+
+          else{
+              
+              mSearchControl = 1; // Search is active but no search has been done this timestep;
           }
            
           RebuildPropertiesProxyPointers(mListOfSphericParticles);
@@ -1201,7 +1213,8 @@ namespace Kratos
                 for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){                                                  
                     Condition* p_neighbour_condition = (*neighbour_it).get();
                     DEMWall* p_wall = dynamic_cast<DEMWall*>( p_neighbour_condition );
-                    neighbour_rigid_faces.push_back(p_wall); 
+                    bool ContactExists = RigidFaceGeometricalConfigureType::RigidContact(mListOfSphericParticles[i], p_wall);
+                    if (ContactExists) { neighbour_rigid_faces.push_back(p_wall); }
                 }
                 this->GetRigidFaceResults()[i].clear();
                 this->GetRigidFaceResultsDistances()[i].clear();   
@@ -1437,6 +1450,7 @@ namespace Kratos
     RadiusArrayType&                             GetOriginalRadius(){return(mOriginalRadius);}
     
     int&                                         GetNStepSearch(){return (mNStepSearch);}
+    int&                                         GetSearchControl(){return mSearchControl;}
     int&                                         GetBoundingBoxOption(){return (mBoundingBoxOption);}
     int&                                         GetNumberOfThreads(){return (mNumberOfThreads);}
 
@@ -1474,6 +1488,7 @@ namespace Kratos
     RadiusArrayType                              mOriginalRadius;
 
     int                                          mNStepSearch;
+    int                                          mSearchControl;
     int                                          mBoundingBoxOption;
     int                                          mNumberOfThreads;
     int                                          mNumberOfElementsOldRadiusList;

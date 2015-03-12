@@ -223,6 +223,15 @@ namespace Kratos
 
          return sqrt(dx * dx + dy * dy + dz * dz);
      }
+     
+     static inline double DistanceOfTwoPointSquared(double coord1[3], double coord2[3])
+    {
+        double dx = coord1[0] - coord2[0];
+        double dy = coord1[1] - coord2[1];
+        double dz = coord1[2] - coord2[2];
+
+        return (dx * dx + dy * dy + dz * dz);
+    }
 
      static inline void  TriAngleArea(double Coord1[3],double Coord2[3],double Coord3[3],double &area)
     {
@@ -285,7 +294,8 @@ namespace Kratos
      }
 
 
-     static inline void Compute2DimElementEdgeLocalSystem(double EdgeCoord1[3], double EdgeCoord2[3], double Centroid[3], double LocalCoordSystem[3][3])
+     //MSI::NOT USED
+     static inline void Compute2DimElementEdgeLocalSystem(double EdgeCoord1[3], double EdgeCoord2[3], double ParticleCoord[3], double LocalCoordSystem[3][3])
      {
          double Vector1[3] = {0.0};
          double Vector2[3] = {0.0};
@@ -296,9 +306,9 @@ namespace Kratos
          Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
          Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
 
-         Vector2[0] = Centroid[0] - EdgeCoord1[0];
-         Vector2[1] = Centroid[1] - EdgeCoord1[1];
-         Vector2[2] = Centroid[2] - EdgeCoord1[2];
+         Vector2[0] = ParticleCoord[0] - EdgeCoord1[0];
+         Vector2[1] = ParticleCoord[1] - EdgeCoord1[1];
+         Vector2[2] = ParticleCoord[2] - EdgeCoord1[2];
 
          normalize(Vector1);
          normalize(Vector2);
@@ -327,8 +337,8 @@ namespace Kratos
          }
      }
 
-     static inline void Compute3DimElementFaceLocalSystem(double FaceCoord1[3], double FaceCoord2[3], double FaceCoord3[3], double Centroid[3], double LocalCoordSystem[3][3])
-     {
+    static inline void Compute3DimElementFaceLocalSystem(double FaceCoord1[3], double FaceCoord2[3], double FaceCoord3[3], double ParticleCoord[3], double LocalCoordSystem[3][3]){
+         
          double Vector1[3] = {0.0};
          double Vector2[3] = {0.0};
          double Vector3[3] = {0.0};
@@ -343,16 +353,15 @@ namespace Kratos
          Vector2[2] = FaceCoord3[2] - FaceCoord2[2];
 
          normalize(Vector1);
-         normalize(Vector2);
          CrossProduct(Vector1, Vector2, Normal);
          normalize(Normal);
 
          CrossProduct(Normal, Vector1, Vector2);
          normalize(Vector2);
 
-         Vector3[0] = FaceCoord1[0] - Centroid[0];
-         Vector3[1] = FaceCoord1[1] - Centroid[1];
-         Vector3[2] = FaceCoord1[2] - Centroid[2];
+         Vector3[0] = FaceCoord1[0] - ParticleCoord[0];
+         Vector3[1] = FaceCoord1[1] - ParticleCoord[1];
+         Vector3[2] = FaceCoord1[2] - ParticleCoord[2];
          normalize(Vector3);
 
 
@@ -375,7 +384,7 @@ namespace Kratos
                     LocalCoordSystem[2][ia] = -Normal [ia];
              }
          }
-     }
+     }//Compute3DimElementFaceLocalSystem
 
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      ///////////////******Rotate a point over an arbitrary line though an arbitrary point******/////////////////////////////////////
@@ -460,7 +469,7 @@ namespace Kratos
     }*/
 	
     
-    static inline void QuickDistanceForAKnownNeighbour(double Coord[4][3], double Particle_Coord[3], double rad,  double &DistPToB) //M.Santasusana
+    static inline void QuickDistanceForAKnownNeighbour(double Coord[4][3], double Particle_Coord[3],  double &DistPToB) //M.Santasusana
     {
      
           double Vector1[3] = {0.0};
@@ -485,176 +494,232 @@ namespace Kratos
 
      } 
     
+    static inline void QuickDistanceForAKnownEdgeNeighbour(double Coord[4][3], double Particle_Coord[3],  double &DistPToB) //M.Santasusana
+    {
+     
+                 double Vector1[3] = {0.0};
+                 double Vector2[3] = {0.0};
+                 double Vector3[3] = {0.0};
+                 double NormalV[3] = {0.0};
+                 
+                 Vector1[0] = Coord[1][0] - Coord[0][0];
+                 Vector1[1] = Coord[1][1] - Coord[0][1];
+                 Vector1[2] = Coord[1][2] - Coord[0][2];
+                 //normalize(Vector1);
+                 
+                 Vector2[0] = Particle_Coord[0] - Coord[0][0];
+                 Vector2[1] = Particle_Coord[1] - Coord[0][1];
+                 Vector2[2] = Particle_Coord[2] - Coord[0][2];
+                 //normalize(Vector2);
+                 
+                 CrossProduct(Vector1, Vector2, Vector3); 
+                 //normalize(Vector3);
+                 
+                 CrossProduct(Vector3, Vector1, NormalV);
+                 //normalize(NormalV);
+         
+                 if(DotProduct(NormalV,Vector2) < 0)
+                 { 
+                         NormalV[0] = -NormalV[0];
+                         NormalV[1] = -NormalV[1]; 
+                         NormalV[2] = -NormalV[2];
+                 }
+         
+         normalize(NormalV);
+
+        DistPToB = DistancePointToPlane(Coord[0], NormalV, Particle_Coord);
+     }
+     
+    static inline void QuickDistanceForAKnownPointNeighbour(double Coord[4][3], double Particle_Coord[3],  double &DistPToB) //J.Irazábal
+    {
+
+        DistPToB = DistanceOfTwoPoint(Coord[0], Particle_Coord);
+
+     }
     
     
-	static inline bool JudgeIfThisPointIsContactWithParticle(double PointCoord[3], double Particle_Coord[3], double rad, double LocalCoordSystem[3][3], double &DistPToB)
-	{
-		bool If_Conact = false;
-		
-		DistPToB = DistanceOfTwoPoint(PointCoord, Particle_Coord);
-		
-		if(DistPToB < rad)
-		{
-			If_Conact = true;
-			
-			//double Vector1[3] = {0.0};
-                        array_1d<double,3> Vector1;
-			Vector1[0] = Particle_Coord[0] - PointCoord[0];
-			Vector1[1] = Particle_Coord[1] - PointCoord[1];		
-			Vector1[2] = Particle_Coord[2] - PointCoord[2];			
-			normalize(Vector1);
-			
-			ComputeContactLocalCoordSystem(Vector1, 1.0, LocalCoordSystem); 
-		}
-		
-		
-		return If_Conact;
-		
-	}
-	
+    static inline bool JudgeIfThisPointIsContactWithParticle(double PointCoord[3], double Particle_Coord[3], double rad, double LocalCoordSystem[3][3], double &DistPToB)
+    {
+        bool If_Contact = false;
+
+        DistPToB = DistanceOfTwoPoint(PointCoord, Particle_Coord);
+
+        if(DistPToB < rad)
+        {
+            If_Contact = true;
+
+            //double Vector1[3] = {0.0};
+            array_1d<double,3> Vector1;
+            Vector1[0] = Particle_Coord[0] - PointCoord[0];
+            Vector1[1] = Particle_Coord[1] - PointCoord[1];
+            Vector1[2] = Particle_Coord[2] - PointCoord[2];
+            normalize(Vector1);
+
+            ComputeContactLocalCoordSystem(Vector1, 1.0, LocalCoordSystem); 
+        }
+        return If_Contact;
+
+    }
     
- static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Particle_Coord[3], double rad)
-     {
-         bool If_Conact = false;
+    static inline bool JudgeIfThisPointIsContactWithParticle(double PointCoord[3], double Particle_Coord[3], double rad, double &dist)
+    {
+        bool If_Contact = false;
+                
+        dist = DistanceOfTwoPoint(PointCoord, Particle_Coord);
+                
+        if(dist < rad)
+        {
+            If_Contact = true;
+                
+        }
+        
+        return If_Contact;
+    }
+  
+    static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Particle_Coord[3], double rad, double &dist)
+    {
+         bool If_Contact = false;
 
          double LocalCoordSystem[3][3];
-
-		 double Vector1[3] = {0.0};
-		 double Vector2[3] = {0.0};
-		 double Vector3[3] = {0.0};
-		 double NormalV[3] = {0.0};
-		 
-		 Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
-		 Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
-		 Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
-		 normalize(Vector1);
-		
-		 Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
-		 Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
-		 Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
-		 normalize(Vector2);
-		 
-		 CrossProduct(Vector1, Vector2, Vector3);		 
-		 normalize(Vector3);
-		 
-		 CrossProduct(Vector3, Vector1, NormalV);
-		 normalize(NormalV);
-		 
-		 
-		 
-		 LocalCoordSystem[0][0] = Vector3[0];
-		 LocalCoordSystem[0][1] = Vector3[1];		 
-		 LocalCoordSystem[0][2] = Vector3[2];
-		 
-		 LocalCoordSystem[1][0] = Vector1[0];
-		 LocalCoordSystem[1][1] = Vector1[1];		 
-		 LocalCoordSystem[1][2] = Vector1[2];
-		 
-		 LocalCoordSystem[2][0] = NormalV[0];
-		 LocalCoordSystem[2][1] = NormalV[1];		 
-		 LocalCoordSystem[2][2] = NormalV[2];
-		 
-		 
-		 if(DotProduct(NormalV,Vector2) < 0)
-		 {
-			 LocalCoordSystem[0][0] = -Vector3[0];
-			 LocalCoordSystem[0][1] = -Vector3[1];		 
-			 LocalCoordSystem[0][2] = -Vector3[2];
-			 
-			 LocalCoordSystem[1][0] = -Vector1[0];
-			 LocalCoordSystem[1][1] = -Vector1[1];		 
-			 LocalCoordSystem[1][2] = -Vector1[2];
-			 
-			 LocalCoordSystem[2][0] = -NormalV[0];
-			 LocalCoordSystem[2][1] = -NormalV[1];		 
-			 LocalCoordSystem[2][2] = -NormalV[2];
-		 }
          
-         double dist = DistancePointToPlane(EdgeCoord1, LocalCoordSystem[2], Particle_Coord);
+         double Vector1[3] = {0.0};
+         double Vector2[3] = {0.0};
+         double Vector3[3] = {0.0};
+         double NormalV[3] = {0.0};
+ 
+         Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
+         Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
+         Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
+         normalize(Vector1);
+
+         Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
+         Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
+         Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
+         normalize(Vector2);
+
+         CrossProduct(Vector1, Vector2, Vector3); 
+         normalize(Vector3);
+
+         CrossProduct(Vector3, Vector1, NormalV);
+         normalize(NormalV);
+
+         LocalCoordSystem[0][0] = Vector3[0];
+         LocalCoordSystem[0][1] = Vector3[1]; 
+         LocalCoordSystem[0][2] = Vector3[2];
+         
+         LocalCoordSystem[1][0] = Vector1[0];
+         LocalCoordSystem[1][1] = Vector1[1]; 
+         LocalCoordSystem[1][2] = Vector1[2];
+
+         LocalCoordSystem[2][0] = NormalV[0];
+         LocalCoordSystem[2][1] = NormalV[1]; 
+         LocalCoordSystem[2][2] = NormalV[2];
+
+         if(DotProduct(NormalV,Vector2) < 0)
+         {
+             LocalCoordSystem[0][0] = -Vector3[0];
+             LocalCoordSystem[0][1] = -Vector3[1]; 
+             LocalCoordSystem[0][2] = -Vector3[2];
+             
+             LocalCoordSystem[1][0] = -Vector1[0];
+             LocalCoordSystem[1][1] = -Vector1[1]; 
+             LocalCoordSystem[1][2] = -Vector1[2];
+             
+             LocalCoordSystem[2][0] = -NormalV[0];
+             LocalCoordSystem[2][1] = -NormalV[1]; 
+             LocalCoordSystem[2][2] = -NormalV[2];
+         }
+         
+         dist = DistancePointToPlane(EdgeCoord1, LocalCoordSystem[2], Particle_Coord);
 
          if(dist < rad)
          {
              double IntersectionCoord[3] = {0.0};
 
              CoordProjectionOnPlane(Particle_Coord, EdgeCoord1, LocalCoordSystem, IntersectionCoord);
+             
+             double dist1 = DistanceOfTwoPoint(EdgeCoord1, EdgeCoord2);
+             double dist2 = DistanceOfTwoPoint(EdgeCoord1, IntersectionCoord);
+             double dist3 = DistanceOfTwoPoint(EdgeCoord2, IntersectionCoord);
 
-             Vector1[0] = IntersectionCoord[0] - EdgeCoord1[0];
-             Vector1[1] = IntersectionCoord[1] - EdgeCoord1[1];
-             Vector1[2] = IntersectionCoord[2] - EdgeCoord1[2];
-
-             Vector2[0] = IntersectionCoord[0] - EdgeCoord2[0];
-             Vector2[1] = IntersectionCoord[1] - EdgeCoord2[1];
-             Vector2[2] = IntersectionCoord[2] - EdgeCoord2[2];
-
-             normalize(Vector1);
-             normalize(Vector2);
-
-             if( DotProduct(Vector1, Vector2) <= 0.0)
+             if( fabs(((dist2 + dist3)/dist1) - 1.0) < 1.0e-15 )
              {
-                 If_Conact = true;
-             }
+                 If_Contact = true;
+             } 
 
-         }
+//              Vector1[0] = IntersectionCoord[0] - EdgeCoord1[0];
+//              Vector1[1] = IntersectionCoord[1] - EdgeCoord1[1];
+//              Vector1[2] = IntersectionCoord[2] - EdgeCoord1[2];
+// 
+//              Vector2[0] = IntersectionCoord[0] - EdgeCoord2[0];
+//              Vector2[1] = IntersectionCoord[1] - EdgeCoord2[1];
+//              Vector2[2] = IntersectionCoord[2] - EdgeCoord2[2];
+// 
+//              normalize(Vector1);
+//              normalize(Vector2);
+// 
+//              if( DotProduct(Vector1, Vector2) <= 0.0)
+//              {
+//                  If_Contact = true;
+//              }
 
-         return If_Conact;
-     }
+        }
 
-     static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Centroid[3], double Particle_Coord[3], double rad,
+        return If_Contact;
+    }
+
+     static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Particle_Coord[3], double rad,
                                                              double LocalCoordSystem[3][3], double Weight[2], double &DistPToB)
      {
-         bool If_Conact = false;
+         bool If_Contact = false;
 
-		 double Vector1[3] = {0.0};
-		 double Vector2[3] = {0.0};
-		 double Vector3[3] = {0.0};
-		 double NormalV[3] = {0.0};
-		 
-		 Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
-		 Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
-		 Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
-		 normalize(Vector1);
-		
-		 Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
-		 Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
-		 Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
-		 normalize(Vector2);
-		 
-		 CrossProduct(Vector1, Vector2, Vector3);		 
-		 normalize(Vector3);
-		 
-		 CrossProduct(Vector3, Vector1, NormalV);
-		 normalize(NormalV);
-		 
-		 
-		 
-		 LocalCoordSystem[0][0] = Vector3[0];
-		 LocalCoordSystem[0][1] = Vector3[1];		 
-		 LocalCoordSystem[0][2] = Vector3[2];
-		 
-		 LocalCoordSystem[1][0] = Vector1[0];
-		 LocalCoordSystem[1][1] = Vector1[1];		 
-		 LocalCoordSystem[1][2] = Vector1[2];
-		 
-		 LocalCoordSystem[2][0] = NormalV[0];
-		 LocalCoordSystem[2][1] = NormalV[1];		 
-		 LocalCoordSystem[2][2] = NormalV[2];
-		 
-		 
-		 if(DotProduct(NormalV,Vector2) < 0)
-		 {
-			 LocalCoordSystem[0][0] = -Vector3[0];
-			 LocalCoordSystem[0][1] = -Vector3[1];		 
-			 LocalCoordSystem[0][2] = -Vector3[2];
-			 
-			 LocalCoordSystem[1][0] = -Vector1[0];
-			 LocalCoordSystem[1][1] = -Vector1[1];		 
-			 LocalCoordSystem[1][2] = -Vector1[2];
-			 
-			 LocalCoordSystem[2][0] = -NormalV[0];
-			 LocalCoordSystem[2][1] = -NormalV[1];		 
-			 LocalCoordSystem[2][2] = -NormalV[2];
-		 }
-		 
+         double Vector1[3] = {0.0};
+         double Vector2[3] = {0.0};
+         double Vector3[3] = {0.0};
+         double NormalV[3] = {0.0};
+ 
+         Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
+         Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
+         Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
+         normalize(Vector1);
+
+         Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
+         Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
+         Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
+         normalize(Vector2);
+
+         CrossProduct(Vector1, Vector2, Vector3); 
+         normalize(Vector3);
+
+         CrossProduct(Vector3, Vector1, NormalV);
+         normalize(NormalV);
+
+         LocalCoordSystem[0][0] = Vector3[0];
+         LocalCoordSystem[0][1] = Vector3[1]; 
+         LocalCoordSystem[0][2] = Vector3[2];
+
+         LocalCoordSystem[1][0] = Vector1[0];
+         LocalCoordSystem[1][1] = Vector1[1]; 
+         LocalCoordSystem[1][2] = Vector1[2];
+
+         LocalCoordSystem[2][0] = NormalV[0];
+         LocalCoordSystem[2][1] = NormalV[1]; 
+         LocalCoordSystem[2][2] = NormalV[2];
+ 
+         if(DotProduct(NormalV,Vector2) < 0)
+         {
+             LocalCoordSystem[0][0] = -Vector3[0];
+             LocalCoordSystem[0][1] = -Vector3[1]; 
+             LocalCoordSystem[0][2] = -Vector3[2];
+
+             LocalCoordSystem[1][0] = -Vector1[0];
+             LocalCoordSystem[1][1] = -Vector1[1]; 
+             LocalCoordSystem[1][2] = -Vector1[2];
+
+             LocalCoordSystem[2][0] = -NormalV[0];
+             LocalCoordSystem[2][1] = -NormalV[1];
+             LocalCoordSystem[2][2] = -NormalV[2];
+         }
 
          DistPToB = DistancePointToPlane(EdgeCoord1, LocalCoordSystem[2], Particle_Coord);
 
@@ -667,71 +732,19 @@ namespace Kratos
              double dist2 = DistanceOfTwoPoint(EdgeCoord1, IntersectionCoord);
              double dist3 = DistanceOfTwoPoint(EdgeCoord2, IntersectionCoord);
 
-             if( dist2 <= dist1 && dist3 <= dist1 )
+             //if( dist2 <= dist1 && dist3 <= dist1 )
+             if( fabs(((dist2 + dist3)/dist1) - 1.0) < 1.0e-15 )
              {
-                 If_Conact = true;
+                 If_Contact = true;
                  Weight[0] = dist3 / dist1;
                  Weight[1] = 1.0 - Weight[0];
              }
          }
 
-         return If_Conact;
+         return If_Contact;
      }
 
-
-     static inline bool JudgeIfThisFaceIsContactWithParticle(int FaceNodeTotal, double Coord[4][3], double Centroid[3], double Particle_Coord[3], double rad)
-     {
-         bool If_Conact = false;
-
-         double LocalCoordSystem[3][3];
-         Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Centroid, LocalCoordSystem);
-
-         double dist = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
-		 
-
-         if(dist < rad)
-         {
-             double IntersectionCoord[3];
-             CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
-
-
-             if(FaceNodeTotal == 3)
-             {
-                 double Weight[3] = {0.0};
-                 TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, Weight);
-
-                 if( fabs(Weight[0] + Weight[1] + Weight[2] - 1.0) < 1.0e-3 )
-                 {
-                     If_Conact = true;
-                 }
-
-             }
-             else if(FaceNodeTotal == 4)
-             {
-                 double FaceArea;
-                 double TempFace[2];
-                 TriAngleArea(Coord[0], Coord[1], Coord[2], TempFace[0]);
-                 TriAngleArea(Coord[2], Coord[3], Coord[0], TempFace[1]);
-                 FaceArea = TempFace[0] + TempFace[1];
-
-                 double AreaComponent[4] = {0.0};
-                 TriAngleArea(IntersectionCoord, Coord[0], Coord[1], AreaComponent[0]);
-                 TriAngleArea(IntersectionCoord, Coord[1], Coord[2], AreaComponent[1]);
-                 TriAngleArea(IntersectionCoord, Coord[2], Coord[3], AreaComponent[2]);
-                 TriAngleArea(IntersectionCoord, Coord[3], Coord[0], AreaComponent[3]);
-
-                 if(fabs( (AreaComponent[0] + AreaComponent[1] + AreaComponent[2] + AreaComponent[3] - FaceArea) / FaceArea) < 1.0e-3)
-                 {
-                     If_Conact = true;
-                 }
-             }
-         }
-
-         return If_Conact;
-     }
-	
-
-
+   
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      ///////////////******The four Functions BELOW are used to calculate the weight coefficient for quadrilateral*******///////////
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -909,90 +922,6 @@ namespace Kratos
      ///////////////******The four Functions ABOVE are used to calculate the weight coefficient for quadrilateral*******///////////
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-    static inline bool JudgeIfThisFaceIsContactWithParticle(int FaceNodeTotal, double Coord[4][3], double Centroid[3], double Particle_Coord[3], double rad,
-                                                          double LocalCoordSystem[3][3], double Weight[4], double &DistPToB)
-    {
-      bool If_Conact = false;
-
-      double TempPoint[3] = {0.0};
-      TempPoint[0] = Particle_Coord[0];
-      TempPoint[1] = Particle_Coord[1];
-      TempPoint[2] = Particle_Coord[2];
-
-          Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], TempPoint, LocalCoordSystem);
-
-      ///Cfeng,131007,normal vector should point to particle
-      LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-      LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-      LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-
-      LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-      LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-      LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-
-      LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-      LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-      LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
-
-      DistPToB = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
-
-      if(DistPToB < rad )
-      {
-          double IntersectionCoord[3];
-          CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
-
-
-          if(FaceNodeTotal == 3)
-          {
-            
-              double TriWeight[3] = {0.0};
-              TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
-
-              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-3 )
-              {
-                  Weight[0] = TriWeight[0];
-                  Weight[1] = TriWeight[1];
-                  Weight[2] = TriWeight[2];
-
-                  If_Conact = true;
-              }
-
-          }
-          
-          
-          else if(FaceNodeTotal == 4)
-          {
-            
-            
-            double FaceArea;
-              double TempFace[2];
-              TriAngleArea(Coord[0], Coord[1], Coord[2], TempFace[0]);
-              TriAngleArea(Coord[2], Coord[3], Coord[0], TempFace[1]);
-              FaceArea = TempFace[0] + TempFace[1];
-
-              double AreaComponent[4] = {0.0};
-              TriAngleArea(IntersectionCoord, Coord[0], Coord[1], AreaComponent[0]);
-              TriAngleArea(IntersectionCoord, Coord[1], Coord[2], AreaComponent[1]);
-              TriAngleArea(IntersectionCoord, Coord[2], Coord[3], AreaComponent[2]);
-              TriAngleArea(IntersectionCoord, Coord[3], Coord[0], AreaComponent[3]);
-
-              if(fabs( (AreaComponent[0] + AreaComponent[1] + AreaComponent[2] + AreaComponent[3] - FaceArea) / FaceArea) < 1.0e-3)
-              {
-                
-                  If_Conact = true;
-
-                  CalQuadWeightCoefficient(Coord, LocalCoordSystem, IntersectionCoord, Weight);
-                  
-                  
-              }
-              
-            }
-        }
-
-        return If_Conact;
-          
-     }
     
      static inline void GetRotationMatrix(const array_1d<double, 3 > & EulerAngles, double rotation_matrix[3][3]){                    
          
