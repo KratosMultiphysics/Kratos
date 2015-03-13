@@ -767,8 +767,8 @@ public:
     static inline bool QuickClosestEdgeVertexDetermination(/*int& ContactType,*/ double Coord[4][3], double Particle_Coord[3], int size, double particle_radius) 
     {                  
         
-        double dist_sq[size*2]; //vertices and edges of the face
-        double dist[size*2];
+        std::vector<double> dist_sq(size*2, 0.0); //vertices and edges of the face       
+        std::vector<double> dist(size*2, 0.0);
         double base[4][3];
         double base_sq    = 0.0; 
         double tau_sq     = 0.0;
