@@ -842,7 +842,7 @@ namespace Kratos
 	y_etasp=etasp;
     }
 
-    static void CalQuadWeightCoefficient(double Coord[4][3], double LocalCoordSystem[3][3], double IntersectionCoord[3], double Weight[4])
+    /*static void CalQuadWeightCoefficient(double Coord[4][3], double LocalCoordSystem[3][3], double IntersectionCoord[3], double Weight[4])
     {
       
       
@@ -916,7 +916,7 @@ namespace Kratos
         
         
         
-    }
+    }*/
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      ///////////////******The four Functions ABOVE are used to calculate the weight coefficient for quadrilateral*******///////////
