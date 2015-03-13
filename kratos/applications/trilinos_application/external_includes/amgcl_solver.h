@@ -111,11 +111,11 @@ struct deflation_space
             if( n == 0) //constant deflation
                 return mconstant_value;
             else if( n == 1) //x coordinate
-                return mxx[j]/static_cast<double>(n);
+                return mxx[j]*mconstant_value;
             else if( n == 2) //y coordinate
-                return myy[j]/static_cast<double>(n);
+                return myy[j]*mconstant_value;
             else if( n == 3) //z coordinate
-                return mzz[j]/static_cast<double>(n);
+                return mzz[j]*mconstant_value;
         }
         return 0.0;
 
