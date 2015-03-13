@@ -79,6 +79,7 @@ struct deflation_space
     std::vector<bool> mdirichlet;
     int mblock_size;
     int mdim;
+    double mconstant_value;
     std::vector<double> mxx;
     std::vector<double> myy;
     std::vector<double> mzz;
@@ -87,7 +88,9 @@ struct deflation_space
     //block_size is the size of the block
     deflation_space(int n, int block_size, int dim)
         : mdirichlet(n, 0), mblock_size(block_size), mdim(dim), mxx(n/block_size) , myy(n/block_size), mzz(n/block_size)
-    {}
+    {
+        mconstant_value = 1.0/static_cast<double>(n);
+    }
 
     int dim() const
     {
@@ -106,13 +109,13 @@ struct deflation_space
         if(m == l)
         {
             if( n == 0) //constant deflation
-                return 1.0;
+                return mconstant_value;
             else if( n == 1) //x coordinate
-                return mxx[j];
+                return mxx[j]/static_cast<double>(n);
             else if( n == 2) //y coordinate
-                return myy[j];
+                return myy[j]/static_cast<double>(n);
             else if( n == 3) //z coordinate
-                return mzz[j];
+                return mzz[j]/static_cast<double>(n);
         }
         return 0.0;
 
@@ -124,14 +127,16 @@ struct constant_deflation_space
     std::vector<bool> mdirichlet;
     int mblock_size;
     int mdim;
-
+    double mconstant_value;
 
     //n is the size of the chunk
     //block_size is the size of the block
     //dim is the dimension of the working space
     constant_deflation_space(int n, int block_size, int dim)
         : mdirichlet(n, 0), mblock_size(block_size), mdim(dim)
-    {}
+    {
+        mconstant_value = 1.0/static_cast<double>(n);
+    }
 
     int dim() const
     {
@@ -142,7 +147,7 @@ struct constant_deflation_space
     {
          if (mdirichlet[idx]) return 0.0;
 
-        if(k == (idx%mblock_size) ) return 1.0;
+        if(k == (idx%mblock_size) ) return mconstant_value;
         return 0.0;
 
     }
@@ -497,20 +502,21 @@ public:
                    
                     ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
 
-                    double xx = inode->X();
-                    double yy = inode->Y();
-                    double zz = inode->Z();
 
-                    xg += xx;
-                    yg += yy;
-                    zg += zz;
-                    
-                    if(zz > zmax) zmax = zz;
-                    if(zz < zmin) zmin = zz;
 
                     unsigned int compressed_index;
                     if( i%mndof == 0 )  
                     {
+                        double xx = inode->X();
+                        double yy = inode->Y();
+                        double zz = inode->Z();
+
+                        xg += xx;
+                        yg += yy;
+                        zg += zz;
+                        
+                        if(zz > zmax) zmax = zz;
+                        if(zz < zmin) zmin = zz;
                         compressed_index = i/mndof;
                                     
                         mplinear_def_space->mxx[compressed_index] = xx;
