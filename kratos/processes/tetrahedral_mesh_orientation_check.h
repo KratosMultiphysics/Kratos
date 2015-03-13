@@ -146,7 +146,7 @@ public:
             }
 
             // Re-orient if the face normal is not aligned with node normals
-            if (MismatchCount > 0)
+            if (MismatchCount == NumNodes)
             {
                 rGeom(0).swap(rGeom(1));
                 CondSwitchCount++;
