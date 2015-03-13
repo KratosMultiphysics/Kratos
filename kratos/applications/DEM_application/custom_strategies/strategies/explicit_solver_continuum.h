@@ -157,13 +157,13 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
         
         // Omp initializations
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        BaseType::mNumberOfThreads = OpenMPUtils::GetNumThreads();
         
         std::cout << "          **************************************************" << std::endl;
         std::cout << "            Parallelism Info:  MPI number of nodes: " << r_model_part.GetCommunicator().TotalProcesses() <<std::endl;
         if( r_model_part.GetCommunicator().TotalProcesses() > 1 )
             std::cout << "            Parallelism Info:  MPI node Id: " << r_model_part.GetCommunicator().MyPID() <<std::endl;
-        std::cout << "            Parallelism Info:  OMP number of processors: " << mNumberOfThreads <<std::endl;
+        std::cout << "            Parallelism Info:  OMP number of processors: " << BaseType::mNumberOfThreads <<std::endl;
         std::cout << "          **************************************************" << std::endl << std::endl;
         
         this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
@@ -171,8 +171,8 @@ namespace Kratos
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().LocalMesh().Elements(), BaseType::mListOfSphericParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
         
-        rCurrentProcessInfo[SEARCH_CONTROL_VECTOR].resize(mNumberOfThreads);
-        this->GetNeighbourCounter().resize(mNumberOfThreads);
+        rCurrentProcessInfo[SEARCH_CONTROL_VECTOR].resize(BaseType::mNumberOfThreads);
+        this->GetNeighbourCounter().resize(BaseType::mNumberOfThreads);
 
         CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *BaseType::mpInlet_model_part, *BaseType::mpCluster_model_part);
         
@@ -276,7 +276,7 @@ namespace Kratos
                                   
           if(rCurrentProcessInfo[SEARCH_CONTROL]==0)
           {            
-            for (int i = 0; i < mNumberOfThreads; i++)
+            for (int i = 0; i < BaseType::mNumberOfThreads; i++)
             {
               if(rCurrentProcessInfo[SEARCH_CONTROL_VECTOR][i]==1)
               {
@@ -393,13 +393,13 @@ namespace Kratos
           if(time_step == 2)
           {
             
-            std::vector<double> total_area_vector (mNumberOfThreads);
+            std::vector<double> total_area_vector (BaseType::mNumberOfThreads);
             
             double total_area = 0.0;
             
             this->AreaDebugging(total_area_vector);
 
-            for (int i=0 ; i<mNumberOfThreads; i++)
+            for (int i=0 ; i<BaseType::mNumberOfThreads; i++)
             {
               total_area += total_area_vector[i];
               
@@ -516,10 +516,10 @@ namespace Kratos
         //CONTACT MODEL PART      
         ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);      
         vector<unsigned int> contact_element_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
         #pragma omp parallel for        
-        for (int k = 0; k < mNumberOfThreads; k++) {
+        for (int k = 0; k < BaseType::mNumberOfThreads; k++) {
             typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
             typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
             
@@ -539,10 +539,10 @@ namespace Kratos
          
           vector<unsigned int> contact_element_partition;
           
-          OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+          OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pContactElements.size(), contact_element_partition);
           #pragma omp parallel for
           
-          for(int k=0; k<mNumberOfThreads; k++)
+          for(int k=0; k<BaseType::mNumberOfThreads; k++)
           {
               typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
               typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
@@ -562,11 +562,11 @@ namespace Kratos
                
         vector<unsigned int> contact_element_partition;
 
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
         #pragma omp parallel for
 
-        for(int k=0; k<mNumberOfThreads; k++)
+        for(int k=0; k<BaseType::mNumberOfThreads; k++)
         { 
             typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
             typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
@@ -615,10 +615,10 @@ namespace Kratos
               
         vector<unsigned int> contact_element_partition;
           
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+        OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
         #pragma omp parallel for                   
-        for(int k=0; k<mNumberOfThreads; k++) {
+        for(int k=0; k<BaseType::mNumberOfThreads; k++) {
             typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
             typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
               
@@ -638,11 +638,11 @@ namespace Kratos
 
             vector<unsigned int> contact_element_partition;
 
-            OpenMPUtils::CreatePartition(mNumberOfThreads, pContactElements.size(), contact_element_partition);
+            OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pContactElements.size(), contact_element_partition);
 
             #pragma omp parallel for          
 
-            for (int k = 0; k < mNumberOfThreads; k++) {
+            for (int k = 0; k < BaseType::mNumberOfThreads; k++) {
                 typename ElementsArrayType::iterator it_contact_begin = pContactElements.ptr_begin() + contact_element_partition[k];
                 typename ElementsArrayType::iterator it_contact_end = pContactElements.ptr_begin() + contact_element_partition[k + 1];
 
@@ -671,12 +671,12 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
             ElementsArrayType& pElements = GetElements(r_model_part);
 
-            OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
+            OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
             double Output = 0.0;
 
             #pragma omp parallel for          
-            for (int k = 0; k < mNumberOfThreads; k++) {
+            for (int k = 0; k < BaseType::mNumberOfThreads; k++) {
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
                 typename ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -746,10 +746,10 @@ namespace Kratos
       ProcessInfo& rCurrentProcessInfo  = BaseType::GetFemModelPart().GetProcessInfo();
       Vector rhs_cond;
       vector<unsigned int> condition_partition;
-      OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
+      OpenMPUtils::CreatePartition(BaseType::mNumberOfThreads, pConditions.size(), condition_partition);
             
       #pragma omp parallel for private (rhs_cond)            
-      for(int k=0; k<mNumberOfThreads; k++) {
+      for(int k=0; k<BaseType::mNumberOfThreads; k++) {
           typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
           typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
 
