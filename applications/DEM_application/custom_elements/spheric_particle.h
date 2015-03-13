@@ -97,7 +97,7 @@ virtual ~SphericParticle();
 ///@{
 virtual void Initialize();
 virtual void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
-void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
+virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
 void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt);
 void CollectCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);
 void FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
@@ -105,7 +105,7 @@ void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProces
 void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
-void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
 void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
