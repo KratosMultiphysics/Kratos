@@ -622,8 +622,8 @@ public:
            double IntersectionCoord[3];
            GeometryFunctions::CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
           
-            if(FaceNodeTotal == 3)
-            {
+            //if(FaceNodeTotal == 3)
+           // {
           
               double TriWeight[3] = {0.0};
               GeometryFunctions::TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
@@ -638,10 +638,10 @@ public:
               }
               
 
-          }
+          //}
           
           
-          else if(FaceNodeTotal == 4)
+          /*else if(FaceNodeTotal == 4)
           {
             
             
@@ -667,7 +667,7 @@ public:
                   
               }
               
-            }
+            }*/
         }
 
         return If_Contact;
