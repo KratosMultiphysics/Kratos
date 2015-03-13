@@ -256,11 +256,12 @@ namespace Kratos
           
           KRATOS_TRY
               
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+          OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
           
-          rCustomListOfParticles.resize( pElements.size() );
+          rCustomListOfParticles.resize( pElements.size() );          
+          
           #pragma omp parallel for
-          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          for (int k = 0; k < mNumberOfThreads; k++){
               
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -280,9 +281,10 @@ namespace Kratos
       void RebuildPropertiesProxyPointers(std::vector<SphericParticle*>& rCustomListOfSphericParticles){
           //This function is called for the local mesh and the ghost mesh, so mListOfSphericElements must not be used here.
           KRATOS_TRY         
-                                  
+         
+          const int number_of_particles = (int)rCustomListOfSphericParticles.size();
           #pragma omp parallel for 
-          for (int i = 0; i < (int)rCustomListOfSphericParticles.size(); i++){  
+          for (int i = 0; i < number_of_particles; i++){  
               rCustomListOfSphericParticles[i]->SetFastProperties(mFastProperties);                         
           }                     
           return;            
@@ -316,9 +318,10 @@ namespace Kratos
       
       void RepairPointersToNormalProperties(std::vector<SphericParticle*>& rCustomListOfSphericParticles){                   
           
-          bool found = false;    
-          //#pragma omp parallel for
-          for (int i=0; i<(int)rCustomListOfSphericParticles.size(); i++){
+          bool found = false; 
+          const int number_of_particles = (int)rCustomListOfSphericParticles.size();
+          //#pragma omp parallel for //TODO
+          for (int i=0; i<number_of_particles; i++){
                             
               int own_properties_id = rCustomListOfSphericParticles[i]->GetProperties().Id();  
               
@@ -367,8 +370,8 @@ namespace Kratos
           SendProcessInfoToClustersModelPart();          
                     
           // Omp initializations
-          GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
-          mNeighbourCounter.resize(this->GetNumberOfThreads());
+          mNumberOfThreads = OpenMPUtils::GetNumThreads();
+          mNeighbourCounter.resize(mNumberOfThreads);
           
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
           RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
@@ -412,8 +415,7 @@ namespace Kratos
           // Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
-              for(int i = 0; i < 10; i++)
-              CalculateInitialMaxIndentations();
+              for(int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
           }
 
           if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]){
@@ -427,29 +429,28 @@ namespace Kratos
 
       KRATOS_CATCH("")
       }// Initialize()
-    
-      
-      virtual void InitializeClusters() {
-          
-          KRATOS_TRY
 
-          ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();    
-          
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-          typename ElementsArrayType::iterator it_end = pElements.ptr_end();
-          
-          for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-      
-              Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);
-              
-              (cluster_element).Initialize();
-              (cluster_element).CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part);
-              
-          }
-          
-          KRATOS_CATCH("")
-        
-      }
+        virtual void InitializeClusters() {
+
+            KRATOS_TRY
+
+            ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
+            const int number_of_clusters = pElements.size();
+
+            #pragma omp parallel for schedule(guided)
+            for (int k = 0; k < number_of_clusters; k++) {
+
+                typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                
+                cluster_element.Initialize();
+                cluster_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part);
+            }
+
+
+            KRATOS_CATCH("")
+
+        }
 
         virtual void GetClustersForce() {
 
@@ -458,25 +459,22 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
             const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY]; 
 
-            ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
-
+            ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();  
+            const int number_of_clusters = pElements.size();
+            
             #pragma omp parallel for schedule(guided)
-            for (int k = 0; k < this->GetNumberOfThreads(); k++){
-                typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-                typename ElementsArrayType::iterator it_end = pElements.ptr_end();
+            for (int k = 0; k < number_of_clusters; k++) {
+                
+                typename ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                
+                cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
+                cluster_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
 
-                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
+                cluster_element.GetClustersForce(gravity);
 
-                    Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-
-                    cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
-                    cluster_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
-
-                    (cluster_element).GetClustersForce( gravity );
-
-                }  // loop over clusters
-            } // loop threads OpenMP
-
+            } // loop over clusters
+                                                            
             KRATOS_CATCH("")                                                                                                            
         }
         
@@ -609,39 +607,22 @@ namespace Kratos
           double dt = rCurrentProcessInfo[DELTA_TIME];
           const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];             
 
+          const int number_of_particles = (int)mListOfSphericParticles.size();
+          
           #pragma omp parallel
           {
             Vector rhs_elem;
             rhs_elem.resize(6);
             #pragma omp for schedule(guided)
             
-            for (int i = 0; i < (int)mListOfSphericParticles.size(); i++){
+            for (int i = 0; i < number_of_particles; i++){
                               
                 mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);  
             }
           }
 
           KRATOS_CATCH("")
-      }
-      
-      void ClusterGetForce() {
-          
-          KRATOS_TRY
-
-          ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();    
-          
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-          typename ElementsArrayType::iterator it_end = pElements.ptr_end();
-                            
-          for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-      
-              //Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&>(*it);
-                  
-          }
-        
-          KRATOS_CATCH("")
-        
-      }
+      }            
             
       void FastGetForce()
       {
@@ -650,19 +631,20 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo    = BaseType::GetModelPart().GetProcessInfo();
           double dt = rCurrentProcessInfo[DELTA_TIME];
           const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
+          const int number_of_particles = (int)mListOfSphericParticles.size();
 
           #pragma omp parallel
           {
               #pragma omp for
-              for(int i=0; i<(int)mListOfSphericParticles.size(); i++){ 
+              for(int i=0; i<number_of_particles; i++){ 
                   mListOfSphericParticles[i]->FirstCalculateRightHandSide(rCurrentProcessInfo, dt); 
               }
               #pragma omp for
-              for(int i=0; i<(int)mListOfSphericParticles.size(); i++){ 
+              for(int i=0; i<number_of_particles; i++){ 
                   mListOfSphericParticles[i]->CollectCalculateRightHandSide(rCurrentProcessInfo); 
               }
               #pragma omp for
-              for(int i=0; i<(int)mListOfSphericParticles.size(); i++){ 
+              for(int i=0; i<number_of_particles; i++){ 
                   mListOfSphericParticles[i]->FinalCalculateRightHandSide(rCurrentProcessInfo, dt, gravity); 
               }
 
@@ -693,10 +675,10 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+          OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
-          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          for (int k = 0; k < mNumberOfThreads; k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -732,10 +714,10 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+          OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
-          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          for (int k = 0; k < mNumberOfThreads; k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -787,17 +769,18 @@ namespace Kratos
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
          
-        unsigned int total_contacts = 0;        
+        unsigned int total_contacts = 0;  
+        const int number_of_particles = (int)mListOfSphericParticles.size();
            
         #pragma omp parallel 
         {
             mNeighbourCounter[OpenMPUtils::ThisThread()] = 0;        
             #pragma omp for
-            for(int i=0; i<(int)mListOfSphericParticles.size(); i++){              
+            for(int i=0; i<number_of_particles; i++){              
                   mNeighbourCounter[OpenMPUtils::ThisThread()] += mListOfSphericParticles[i]->mNeighbourElements.size();
             }
         }                                      
-        for (int i = 0; i < this->GetNumberOfThreads(); i++)
+        for (int i = 0; i < mNumberOfThreads; i++)
         {
           total_contacts += mNeighbourCounter[i];                  
         }
@@ -823,10 +806,10 @@ namespace Kratos
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
         #pragma omp parallel for 
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+        for (int k = 0; k < mNumberOfThreads; k++){
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -844,16 +827,13 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
-        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+        const int number_of_particles = (int)mListOfSphericParticles.size();
 
         #pragma omp parallel for
-        for(int i=0; i<(int)mListOfSphericParticles.size(); i++){
+        for(int i=0; i<number_of_particles; i++){
             mListOfSphericParticles[i]->FullInitialize(rCurrentProcessInfo);
         }
-        
-        
+                
         KRATOS_CATCH("")
     }
     
@@ -863,10 +843,10 @@ namespace Kratos
 
         ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
         
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pTConditions.size(), this->GetElementPartition());
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pTConditions.size(), this->GetElementPartition());
 
         #pragma omp parallel for 
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+        for (int k = 0; k < mNumberOfThreads; k++){
             typename ConditionsArrayType::iterator it_begin = pTConditions.ptr_begin() + this->GetElementPartition()[k];
             typename ConditionsArrayType::iterator it_end   = pTConditions.ptr_begin() + this->GetElementPartition()[k + 1];
 
@@ -889,11 +869,11 @@ namespace Kratos
         
         Vector rhs_cond;
         vector<unsigned int> condition_partition;    
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);    
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);    
         unsigned int index;
                
         #pragma omp parallel for private (index, rhs_cond)
-        for (int k = 0; k < this->GetNumberOfThreads(); k++) {
+        for (int k = 0; k < mNumberOfThreads; k++) {
             
             typename ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];        
             typename ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k+1];
@@ -951,10 +931,10 @@ namespace Kratos
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
         vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
-        for (int k=0; k<this->GetNumberOfThreads(); k++) {
+        for (int k=0; k<mNumberOfThreads; k++) {
             
             typename NodesArrayType::iterator i_begin=pNodes.ptr_begin() + node_partition[k];
             typename NodesArrayType::iterator i_end=pNodes.ptr_begin() + node_partition[k+1];
@@ -988,10 +968,10 @@ namespace Kratos
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
         vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
 
         #pragma omp parallel for
-        for (int k = 0; k < this->GetNumberOfThreads(); k++) {
+        for (int k = 0; k < mNumberOfThreads; k++) {
             
             typename NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
             typename NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k+1];
@@ -1038,11 +1018,11 @@ namespace Kratos
           NodesArrayType& pNodes = mesh_it->Nodes();
         
           vector<unsigned int> node_partition;
-          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
+          OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
 
           #pragma omp parallel for
           
-          for(int k=0; k<this->GetNumberOfThreads(); k++)
+          for(int k=0; k<mNumberOfThreads; k++)
           {
               typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
               typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
@@ -1137,9 +1117,10 @@ namespace Kratos
         GetRigidFaceResultsDistances().resize(number_of_elements);
         
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
+        const int number_of_particles = (int)mListOfSphericParticles.size();
         
         #pragma omp parallel for schedule(guided)
-        for (int i=0; i<(int)mListOfSphericParticles.size(); i++){
+        for (int i=0; i<number_of_particles; i++){
             mListOfSphericParticles[i]->mNeighbourElements.clear();
             for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[i].begin(); neighbour_it != this->GetResults()[i].end(); ++neighbour_it){
                 Element* p_neighbour_element = (*neighbour_it).get();
@@ -1157,6 +1138,7 @@ namespace Kratos
     virtual void ComputeNewNeighboursHistoricalData() {
         
         KRATOS_TRY  
+        const int number_of_particles = (int)mListOfSphericParticles.size();
 
         #pragma omp parallel
         {
@@ -1165,7 +1147,7 @@ namespace Kratos
             std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
         
             #pragma omp for
-            for(int i=0; i<(int)mListOfSphericParticles.size(); i++){
+            for(int i=0; i<number_of_particles; i++){
                 mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds,mTempNeighbourElasticContactForces,mTempNeighbourTotalContactForces);
             }
         }
@@ -1176,9 +1158,10 @@ namespace Kratos
      void ComputeNewRigidFaceNeighboursHistoricalData()
     {
         KRATOS_TRY
+        const int number_of_particles = (int)mListOfSphericParticles.size();
 
         #pragma omp parallel for
-        for (int i = 0; i < (int)mListOfSphericParticles.size(); i++){
+        for (int i = 0; i < number_of_particles; i++){
             mListOfSphericParticles[i]->ComputeNewRigidFaceNeighboursHistoricalData();
         }
 
@@ -1195,10 +1178,10 @@ namespace Kratos
         
         if (pTConditions.size() > 0) {
         
-            OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+            const int number_of_particles = (int)mListOfSphericParticles.size();
             
             #pragma omp parallel for 
-            for (int i = 0; i < (int)mListOfSphericParticles.size(); i++){
+            for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
                 mListOfSphericParticles[i]->mNeighbourRigidFacesPram.resize(0);
                 mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce.resize(0);
@@ -1208,7 +1191,7 @@ namespace Kratos
             moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
             
             #pragma omp parallel for
-            for (int i = 0; i < (int)mListOfSphericParticles.size(); i++ ){
+            for (int i = 0; i < number_of_particles; i++ ){
                 std::vector<DEMWall*>& neighbour_rigid_faces = mListOfSphericParticles[i]->mNeighbourRigidFaces;
                 for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it){                                                  
                     Condition* p_neighbour_condition = (*neighbour_it).get();
@@ -1225,11 +1208,12 @@ namespace Kratos
             }
                                      
             //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+            const int number_of_conditions = (int)pTConditions.size();
             
             #pragma omp parallel 
             {              
                 #pragma omp for
-                for (int i = 0; i < (int)pTConditions.size(); i++)
+                for (int i = 0; i < number_of_conditions; i++)
                 {               
                     ConditionsArrayType::iterator ic = pTConditions.begin() + i;
                     DEMWall* wall = dynamic_cast<Kratos::DEMWall*>( &(*ic) );
@@ -1237,7 +1221,7 @@ namespace Kratos
                 }       
 
                 #pragma omp for
-                for (int i = 0; i < (int)mListOfSphericParticles.size(); i++ ){                                  
+                for (int i = 0; i < number_of_particles; i++ ){                                  
                     for (unsigned int j = 0; j < mListOfSphericParticles[i]->mNeighbourRigidFaces.size(); j++) 
                     {
                         DEMWall* p_wall = mListOfSphericParticles[i]->mNeighbourRigidFaces[j];
@@ -1262,9 +1246,11 @@ namespace Kratos
         std::vector<double> indentations_list, indentations_list_ghost;
         indentations_list.resize(mListOfSphericParticles.size());
         indentations_list_ghost.resize(mListOfGhostSphericParticles.size());
+        
+        const int number_of_particles = (int)mListOfSphericParticles.size();
                
         #pragma omp parallel for
-        for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
+        for( int i=0; i<number_of_particles; i++ ){
             double indentation;
             mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
             double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
@@ -1275,21 +1261,22 @@ namespace Kratos
         }
 
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
-        for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
+        for( int i=0; i<number_of_particles; i++ ){
             mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list[i];
             mListOfSphericParticles[i]->SetRadius(mListOfSphericParticles[i]->GetRadius() - indentations_list[i]);
         }
 
         SynchronizeSolidMesh(BaseType::GetModelPart());
+        const int number_of_ghost_particles = (int)mListOfGhostSphericParticles.size();
 
         #pragma omp parallel for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
-        for( int i=0; i<(int)mListOfGhostSphericParticles.size(); i++ ){
+        for( int i=0; i<number_of_ghost_particles; i++ ){
             mListOfGhostSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) -= indentations_list_ghost[i];
             mListOfGhostSphericParticles[i]->SetRadius(mListOfGhostSphericParticles[i]->GetRadius() - indentations_list_ghost[i]);
         }
        
         #pragma omp parallel for
-        for( int i=0; i<(int)mListOfSphericParticles.size(); i++ ){
+        for( int i=0; i<number_of_particles; i++ ){
             double indentation;
             mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation);
         }
