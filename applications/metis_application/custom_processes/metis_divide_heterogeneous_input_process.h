@@ -190,8 +190,12 @@ public:
         if (mVerbosity > 0)
         {
             KRATOS_WATCH(NumColors);
-            KRATOS_WATCH(ColoredDomainGraph);
         }
+
+	if (mVerbosity > 2)
+	{
+            KRATOS_WATCH(ColoredDomainGraph);
+	}
 
         // Write partition info into separate input files
         IO::PartitionIndicesContainerType nodes_all_partitions;
