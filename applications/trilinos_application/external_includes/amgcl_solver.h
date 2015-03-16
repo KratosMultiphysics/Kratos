@@ -491,8 +491,12 @@ public:
             double xg = 0.0;
             double yg = 0.0;
             double zg = 0.0;
-            double zmin = 0.0;
-            double zmax = 0.0;
+            double xmin = 1e20;
+            double xmax = -1e20;
+            double ymin = 1e20;
+            double ymax = -1e20;
+            double zmin = 1e20;
+            double zmax = -1e20;
             i=0;
 
             for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
@@ -515,6 +519,10 @@ public:
                         yg += yy;
                         zg += zz;
                         
+                        if(xx > xmax) xmax = xx;
+                        if(xx < xmin) xmin = xx;
+                        if(yy > ymax) ymax = yy;
+                        if(yy < ymin) ymin = yy;
                         if(zz > zmax) zmax = zz;
                         if(zz < zmin) zmin = zz;
                         compressed_index = i/mndof;
@@ -532,6 +540,10 @@ public:
             yg /= static_cast<double>(nn);
             zg /= static_cast<double>(nn);
 
+            const double dx = xmax - xmin;
+            const double dy = ymax - ymin;
+            const double dz = zmax - zmin;
+            
             double zgmax = fabs(zmax-zmin);
             r_model_part.GetCommunicator().MaxAll(zgmax);
             if(zgmax <1e-20) //2d problem!! - change the dimension of the space
@@ -546,6 +558,10 @@ public:
                 mplinear_def_space->mxx[i] -= xg;
                 mplinear_def_space->myy[i] -= yg;
                 mplinear_def_space->mzz[i] -= zg;
+  
+                mplinear_def_space->mxx[i] /= dx;
+                mplinear_def_space->myy[i] /= dy;
+                mplinear_def_space->mzz[i] /= dz;
             }
 
 
