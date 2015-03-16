@@ -72,7 +72,7 @@ DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part    = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
 
-#EXTRA ModelPart Operations
+# EXTRA ModelPart Operations
 #
 #
 #
@@ -126,7 +126,7 @@ SolverStrategy.AddDofs(cluster_model_part)
 SolverStrategy.AddDofs(DEM_inlet_model_part)
 #
 
-#Utilities
+# Utilities
 
 # Constructing a creator/destructor object
 creator_destructor = ParticleCreatorDestructor()
@@ -162,9 +162,11 @@ demio.SetOutputName(DEM_parameters.problem_name)
 os.chdir(post_path)
 
 multifiles = (
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name, 1),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name, 2),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name, 5),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,50),
     )
 
@@ -185,8 +187,8 @@ parallelutils.CalculateModelNewIds(spheres_model_part)
 
 os.chdir(post_path)
 
-#Setting up the BoundingBox
-if(DEM_parameters.BoundingBoxOption == "ON"):
+# Setting up the BoundingBox
+if (DEM_parameters.BoundingBoxOption == "ON"):
     procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
 # Creating a solver object and set the search strategy
@@ -228,7 +230,7 @@ if (DEM_parameters.dem_inlet_option):
 
 DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(DEM_parameters, graphs_path, spheres_model_part, rigid_face_model_part)
 
-#Procedures.SetCustomSkin(spheres_model_part)
+# Procedures.SetCustomSkin(spheres_model_part)
 
 materialTest.Initialize(DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part)
 
@@ -293,11 +295,11 @@ while (time < DEM_parameters.FinalTime):
     cluster_model_part.ProcessInfo[TIME_STEPS]      = step
 
     # Perform a partition to balance the problem
-    #if(not(step%(a-1))):
+    # if(not(step%(a-1))):
         #parallelutils.Repart(spheres_model_part)
         #parallelutils.CalculateModelNewIds(spheres_model_part)
     
-    #walls movement:
+    # walls movement:
     mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
     
     #### SOLVE #########################################
