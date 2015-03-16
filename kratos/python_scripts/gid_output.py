@@ -199,11 +199,11 @@ class GiDOutput(object):
             self._initialize_results(label, out_model_part)
 
         for var in nodal_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = KratosGlobals.GetVariable(var)
             self._write_nodal_results(label, out_model_part, kratos_variable)
 
         for var in gp_variables:
-            kratos_variable = globals()[var]
+            kratos_variable = KratosGlobals.GetVariable(var)
             self._write_gp_results(label, out_model_part, kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:

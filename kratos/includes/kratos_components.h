@@ -493,6 +493,7 @@ template class KRATOS_EXPORT_DLL KratosComponents<Variable<Vector> >;
 template class KRATOS_EXPORT_DLL KratosComponents<Variable<Matrix> >;
 template class KRATOS_EXPORT_DLL KratosComponents<Variable<std::string> >;
 template class KRATOS_EXPORT_DLL KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+template class KRATOS_EXPORT_DLL KratosComponents<Variable<Flags> >;
 template class KRATOS_EXPORT_DLL KratosComponents<Flags>;
 
 #ifdef KratosCore_EXPORTS
@@ -532,6 +533,7 @@ void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<Vect
 void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<Matrix> const& ThisComponent);
 void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<std::string> const& ThisComponent);
 void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const& ThisComponent);
+void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Flags const& ThisComponent);
 void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComponent);
 
 template<class TComponentType> void AddKratosComponent(std::string const& Name, TComponentType const& ThisComponent)
