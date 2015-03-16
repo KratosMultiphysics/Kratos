@@ -15,6 +15,8 @@ from Kratos import *
 KratosGlobals = kratos_globals.KratosGlobals(
     Kernel(), inspect.stack()[1], KratosLoader.kratos_applications)
 
+# Initialize Kernel so that core variables have an assigned Key even if we are not importing applications
+KratosGlobals.Kernel.Initialize()
 
 def CheckForPreviousImport():
 
