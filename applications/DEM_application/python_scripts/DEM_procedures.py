@@ -233,8 +233,9 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-        model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
-        model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
+        if (Var_Translator(Param.PostNonDimensionalVolumeWear)):
+            model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
+            model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
         
     def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,Param)
@@ -1000,9 +1001,10 @@ class DEMIo(object):
         self.PushPrintVar(self.PostTangentialElasticForces,  TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress,              SHEAR_STRESS, self.fem_boundary_variables)
         self.PushPrintVar(self.PostNodalArea,                NODAL_AREA, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostNonDimensionalVolumeWear, NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostImpactWear,               IMPACT_WEAR,                 self.fem_boundary_variables)
-        
+        if (Var_Translator(DEM_parameters.PostNonDimensionalVolumeWear)):
+            self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
+            self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
+            
     def AddMappingVariables(self):
         self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
 
