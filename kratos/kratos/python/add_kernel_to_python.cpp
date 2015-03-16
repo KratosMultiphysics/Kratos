@@ -62,6 +62,23 @@ namespace Python
 {
 using namespace boost::python;
 
+template< class TVariableType >
+bool HasVariable(Kernel& rKernel, const std::string& variable_name)
+{
+    return KratosComponents<TVariableType>::Has(variable_name);
+}
+
+template< class TVariableType >
+const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_name)
+{
+    if(KratosComponents<TVariableType>::Has(variable_name))
+    {
+        return KratosComponents<TVariableType>::Get(variable_name);
+    }
+
+    return TVariableType::StaticObject();
+}
+
 
 void  AddKernelToPython()
 {
@@ -70,6 +87,27 @@ void  AddKernelToPython()
     .def("AddApplication",&Kernel::AddApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
     .def("InitializeApplication",&Kernel::InitializeApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
     //.def("",&Kernel::Initialize)
+    .def("HasBoolVariable",HasVariable< Variable<bool> >)
+    .def("GetBoolVariable",GetVariable< Variable<bool> >,return_internal_reference<>())
+    .def("HasIntVariable",HasVariable< Variable<int> >)
+    .def("GetIntVariable",GetVariable< Variable<int> >,return_internal_reference<>())
+    .def("HasUnsignedIntVariable",HasVariable< Variable<unsigned int> >)
+    .def("GetUnsignedIntVariable",GetVariable< Variable<unsigned int> >,return_internal_reference<>())
+    .def("HasDoubleVariable",HasVariable< Variable<double> >)
+    .def("GetDoubleVariable",GetVariable< Variable<double> >,return_internal_reference<>())
+    .def("HasArrayVariable",HasVariable< Variable< array_1d<double,3> > >)
+    .def("GetArrayVariable",GetVariable< Variable< array_1d<double,3> > >,return_internal_reference<>())
+    .def("HasVectorVariable",HasVariable< Variable<Vector> >)
+    .def("GetVectorVariable",GetVariable< Variable<Vector> >,return_internal_reference<>())
+    .def("HasMatrixVariable",HasVariable< Variable<Matrix> >)
+    .def("GetMatrixVariable",GetVariable< Variable<Matrix> >,return_internal_reference<>())
+    .def("HasStringVariable",HasVariable< Variable<std::string> >)
+    .def("GetStringVariable",GetVariable< Variable<std::string> >,return_internal_reference<>())
+    .def("HasVariableComponent",HasVariable< VariableComponent< VectorComponentAdaptor< array_1d<double,3> > > > )
+    .def("GetVariableComponent",GetVariable< VariableComponent< VectorComponentAdaptor< array_1d<double,3> > > > ,return_internal_reference<>())
+    .def("HasFlagsVariable",HasVariable< Variable<Flags> >)
+    .def("GetFlagsVariable",GetVariable< Variable<Flags> >,return_internal_reference<>())
+    .def("HasVariableData",HasVariable< VariableData >)
     .def(self_ns::str(self))
     ;
 }
