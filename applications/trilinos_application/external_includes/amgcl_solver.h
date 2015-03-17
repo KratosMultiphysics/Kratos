@@ -49,26 +49,35 @@ ARISING IN ANY WAY OUT OF THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIB
 // #include <amgcl/relaxation/ilu0.hpp>
 // #include <amgcl/solver/bicgstabl.hpp>
 #include <amgcl/mpi/subdomain_deflation.hpp>
+#include <amgcl/profiler.hpp>
 
 #include <amgcl/mpi/runtime.hpp>
 
+namespace amgcl {
+    profiler<> prof;
+}
 
 namespace Kratos
 {
 
-enum AMGCLSmoother
+class TrilinosAmgclSettings
 {
-    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
-};
+public:
 
-enum AMGCLIterativeSolverType
-{
-    GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
-};
+    enum AMGCLSmoother
+    {
+        SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
+    };
 
-enum AMGCLCoarseningType
-{
-    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
+    enum AMGCLIterativeSolverType
+    {
+        GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
+    };
+
+    enum AMGCLCoarseningType
+    {
+        RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
+    };
 };
 
 
@@ -203,9 +212,9 @@ public:
 
     }
 
-    AmgclMPISolver( AMGCLSmoother smoother,
-                    AMGCLIterativeSolverType solver,
-                    AMGCLCoarseningType coarsening,
+    AmgclMPISolver( TrilinosAmgclSettings::AMGCLSmoother smoother,
+                    TrilinosAmgclSettings::AMGCLIterativeSolverType solver,
+                    TrilinosAmgclSettings::AMGCLCoarseningType coarsening,
                     double tol,
                     int nit_max,
                     int verbosity=0,
@@ -214,6 +223,8 @@ public:
     {
         mtol = tol;
         mmax_iter = nit_max;
+        mverbosity = verbosity;
+        muse_linear_deflation = use_linear_deflation;
 
         mprm.put("amg.coarse_enough",500);
         mprm.put("amg.coarsening.aggr.eps_strong",0);
@@ -223,58 +234,65 @@ public:
         //choose smoother
         switch(smoother)
         {
-        case SPAI0:
+        case TrilinosAmgclSettings::SPAI0:
             mrelaxation = amgcl::runtime::relaxation::spai0;
             break;
-        case ILU0:
+        case TrilinosAmgclSettings::ILU0:
             mrelaxation = amgcl::runtime::relaxation::ilu0;
             break;
-        case DAMPED_JACOBI:
+        case TrilinosAmgclSettings::DAMPED_JACOBI:
             mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
             break;
-        case GAUSS_SEIDEL:
+        case TrilinosAmgclSettings::GAUSS_SEIDEL:
             mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
             break;
-        case CHEBYSHEV:
+        case TrilinosAmgclSettings::CHEBYSHEV:
             mrelaxation = amgcl::runtime::relaxation::chebyshev;
             break;
+        default:
+            KRATOS_ERROR(std::logic_error,"default case is selected for amgcl_mpi smoother, while it should be prescribed explicitly" , "");
         };
 
         switch(solver)
         {
-            case GMRES:
+            case TrilinosAmgclSettings::GMRES:
                 miterative_solver = amgcl::runtime::solver::gmres;
                 break;
-            case BICGSTAB:
+            case TrilinosAmgclSettings::BICGSTAB:
                 miterative_solver = amgcl::runtime::solver::bicgstab;
                 break;
-            case CG:
+            case TrilinosAmgclSettings::CG:
                 miterative_solver = amgcl::runtime::solver::cg;
                 break;
-            case BICGSTAB2:
+            case TrilinosAmgclSettings::BICGSTAB2:
                 miterative_solver = amgcl::runtime::solver::bicgstabl;
                 break;
-            case BICGSTAB_WITH_GMRES_FALLBACK:
+            case TrilinosAmgclSettings::BICGSTAB_WITH_GMRES_FALLBACK:
             {
                 KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
                 break;
             }
+            default:
+                KRATOS_ERROR(std::logic_error,"default case is selected for amgcl_mpi solver, while it should be prescribed explicitly" , "");
         };
 
         switch(coarsening)
         {
-        case RUGE_STUBEN:
+        case TrilinosAmgclSettings::RUGE_STUBEN:
             mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
             break;
-        case AGGREGATION:
+        case TrilinosAmgclSettings::AGGREGATION:
             mcoarsening = amgcl::runtime::coarsening::aggregation;
             break;
-        case SA:
+        case TrilinosAmgclSettings::SA:
             mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
             break;
-        case SA_EMIN:
+        case TrilinosAmgclSettings::SA_EMIN:
             mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
             break;
+        default:
+            KRATOS_ERROR(std::logic_error,"default case is selected for amgcl_mpi coarsening, while it should be prescribed explicitly" , "");
+        
         };
 
 
@@ -317,6 +335,8 @@ public:
     {
         KRATOS_TRY
 
+        using amgcl::prof;
+          
         amgcl::mpi::communicator world(MPI_COMM_WORLD);
         if (world.rank == 0) std::cout << "World size: " << world.size << std::endl;
 
@@ -333,15 +353,15 @@ public:
 
         if(muse_linear_deflation == true)
         {
+            prof.tic("setup");
             SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mplinear_def_space, mprm );
+            double tm_setup = prof.toc("setup");
 
-//         double tm_setup = prof.toc("setup");
-
-//         prof.tic("Solve");
+            prof.tic("Solve");
             size_t iters;
             double resid;
             boost::tie(iters, resid) = solve(frange, xrange);
-//         double solve_tm = prof.toc("Solve");
+            double solve_tm = prof.toc("Solve");
 
 
 
@@ -349,9 +369,11 @@ public:
             {
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
-                        << "Iterations: " << iters   << std::endl
-                        << "Error:      " << resid   << std::endl;
-                //<< prof                      << std::endl;
+                        << "Iterations      : " << iters   << std::endl
+                        << "Error           : " << tm_setup   << std::endl
+                        << "amgcl setup time: " << resid   << std::endl
+                        << "amgcl solve time: " << solve_tm   << std::endl//;
+                        << prof                      << std::endl;
             }
 
 
@@ -362,15 +384,17 @@ public:
         }
         else //use constant deflation
         {
+            prof.tic("setup");
             SDD solve(mcoarsening, mrelaxation, miterative_solver, mdirect_solver, world, amgcl::backend::map(rA), *mpconstant_def_space, mprm );
+            double tm_setup = prof.toc("setup");
 
             //         double tm_setup = prof.toc("setup");
 
-//         prof.tic("Solve");
+            prof.tic("Solve");
             size_t iters;
             double resid;
             boost::tie(iters, resid) = solve(frange, xrange);
-//         double solve_tm = prof.toc("Solve");
+            double solve_tm = prof.toc("Solve");
 
 
 
@@ -378,9 +402,11 @@ public:
             {
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
-                        << "Iterations: " << iters   << std::endl
-                        << "Error:      " << resid   << std::endl;
-                //<< prof                      << std::endl;
+                        << "Iterations      : " << iters   << std::endl
+                        << "Error           : " << tm_setup   << std::endl
+                        << "amgcl setup time: " << resid   << std::endl
+                        << "amgcl solve time: " << solve_tm   << std::endl//;
+                        << prof                      << std::endl;
             }
 
 
