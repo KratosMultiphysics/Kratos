@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "includes/datafile_io.h"
+#include "includes/io.h"
 #include "includes/model_part_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
@@ -68,15 +68,6 @@ void (GidIO<>::*pointer_to_io_read_single_properties)(Properties& rThisPropertie
 
 void (GidIO<>::*pointer_to_io_read_properties)(IO::PropertiesContainerType& rThisProperties ) = &IO::ReadProperties;
 
-std::string PrintDatafileIO(DatafileIO const& rDataFileIO)
-{
-    std::stringstream buffer;
-    rDataFileIO.PrintInfo(buffer);
-    buffer << std::endl;
-    rDataFileIO.PrintData(buffer);
-
-    return buffer.str();
-}
 
 void WriteNodeMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
 {
@@ -169,19 +160,9 @@ void  AddIOToPython()
     .def("ReadInitialValues",&IO::ReadInitialValues)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
-    .def("__str__",PrintDatafileIO)
+    //.def("__str__",PrintDatafileIO)
     ;
 
-    class_<DatafileIO, DatafileIO::Pointer, bases<IO>,  boost::noncopyable>(
-        "DatafileIO",init<std::string const&>())
-    .def(init<std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&>())
-    //.def("",&DatafileIO::)
-    //.def(self_ns::str(self))
-    ;
 
     class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
         "ModelPartIO",init<std::string const&>())
@@ -192,22 +173,12 @@ void  AddIOToPython()
         "ModelPartIOWithSkipReadFlag",init<std::string const&, bool const>())
     ;*/
 
-    class_<GidIO<>, GidIO<>::Pointer, bases<DatafileIO>, boost::noncopyable>(
+    class_<GidIO<>, GidIO<>::Pointer, bases<IO>, boost::noncopyable>(
         "GidIO",init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
     //.def(init<std::string const&>())
-    .def(init<std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         GiD_PostMode,
-         MultiFileFlag,
-         WriteDeformedMeshFlag,
-         WriteConditionsFlag>())
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
     .def("WriteSphereMesh",WriteSphereMesh)
