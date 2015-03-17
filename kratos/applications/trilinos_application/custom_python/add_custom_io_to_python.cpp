@@ -53,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-// #include "includes/datafile_io.h"
 // #include "includes/gid_io.h"
 #include "custom_utilities/custom_gid_io.h"
 #include "custom_utilities/custom_gid_mesh_container.h"
@@ -151,22 +150,12 @@ void  AddCustomIOToPython()
 
     using namespace boost::python;
 
-    class_<GidIOType, GidIOType::Pointer, bases<DatafileIO>, boost::noncopyable>(
+    class_<GidIOType, GidIOType::Pointer, bases<IO>, boost::noncopyable>(
         "TrilinosGidIO",init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
     //.def(init<std::string const&>())
-    .def(init<std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         GiD_PostMode,
-         MultiFileFlag,
-         WriteDeformedMeshFlag,
-         WriteConditionsFlag>())
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
 
