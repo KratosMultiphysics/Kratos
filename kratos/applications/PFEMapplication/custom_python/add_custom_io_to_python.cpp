@@ -127,22 +127,12 @@ void  AddCustomIOToPython()
 
     using namespace boost::python;
 
-    class_<GidIOType, GidIOType::Pointer, bases<DatafileIO>, boost::noncopyable>(
+    class_<GidIOType, GidIOType::Pointer, bases<IO>, boost::noncopyable>(
         "TwoFluidGidIO",init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
     //.def(init<std::string const&>())
-    .def(init<std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         std::string const&,
-         GiD_PostMode,
-         MultiFileFlag,
-         WriteDeformedMeshFlag,
-         WriteConditionsFlag>())
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
 
