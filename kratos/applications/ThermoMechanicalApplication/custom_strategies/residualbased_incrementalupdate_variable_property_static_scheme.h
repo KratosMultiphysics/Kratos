@@ -388,7 +388,7 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         //const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
         //const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
-        const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
+        //const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
         //const double amb_temp = CurrentProcessInfo[AMBIENT_TEMPERATURE];
 
         ModelPart::TableType rDensityVar_table = r_model_part.GetTable(1);
