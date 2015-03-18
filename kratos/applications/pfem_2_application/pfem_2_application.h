@@ -33,7 +33,12 @@
 #include "custom_elements/2fluid_2d.h" //including the file for the element
 #include "custom_elements/fluid_phase_2d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
+#include "custom_elements/monolithic_3fluid_2d.h" //including the file for the element
+#include "custom_elements/monolithic_3fluid_3d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_3d.h" //including the file for the element
+#include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
+#include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
+
 #include "custom_elements/fsi_2d.h" //including the file for the element
 #include "custom_elements/no_particles_solid_only_2d.h" //including the file for the element
 #include "custom_elements/fsi_3d.h" //including the file for the element
@@ -253,7 +258,11 @@ namespace Kratos
  		const PFEM23D   mPFEM23D; 
  		const FluidPhasePFEM22D   mFluidPhasePFEM22D; 
  		const MonolithicPFEM22D   mMonolithicPFEM22D; 
+ 		const Monolithic3FluidPFEM22D mMonolithic3FluidPFEM22D;
+ 		const Monolithic3FluidPFEM23D mMonolithic3FluidPFEM23D;
  		const MonolithicPFEM23D   mMonolithicPFEM23D; 
+ 		const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
+ 		const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
  		const FsiPFEM22D   mFsiPFEM22D; 
  		const FsiPFEM23D   mFsiPFEM23D; 
  		const NoParticlesSolidOnlyPFEM22D   mNoParticlesSolidOnlyPFEM22D; 
