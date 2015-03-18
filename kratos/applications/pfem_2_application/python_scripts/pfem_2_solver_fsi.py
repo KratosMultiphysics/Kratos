@@ -179,19 +179,20 @@ class PFEM2Solver:
         (self.moveparticles).ResetBoundaryConditions(True) 
         (self.VariableUtils).CopyScalarVar(PRESSURE,SOLID_PRESSURE,self.model_part.Nodes)	
         (self.VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes)	
+        (self.VariableUtils).CopyScalarVar(DISTANCE,CORRECTED_DISTANCE,self.model_part.Nodes)	
         
         (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
         (self.moveparticles).CopyScalarVarToPreviousTimeStep(PRESSURE,self.model_part.Nodes)
 
         t5 = timer.time()
 
-        (self.moveparticles).FlagSplittedElementsAndTheirNodes();
+        (self.moveparticles).CorrectFreeSurface();
 
         t6 = timer.time()
 
         #iterations:
         non_linear_iteration_number=1
-        for i in range(0,50):
+        for i in range(0,1):
             self.model_part.ProcessInfo.SetValue(NL_ITERATION_NUMBER, non_linear_iteration_number)
             #implicit everything
             #self.CalculatePressureProjection()
