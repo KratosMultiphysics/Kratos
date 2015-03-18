@@ -84,11 +84,15 @@ namespace Kratos
  			mPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
  			mFluidPhasePFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
  			mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
+ 			mMonolithicAutoSlipPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
+ 			mMonolithic3FluidPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
+ 			mMonolithic3FluidPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
  			mFsiPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
  			mNoParticlesSolidOnlyPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3, Node<3>() ) ) ) ),
  			mFsiPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
  			mPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
  			mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
+ 			mMonolithicAutoSlipPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
  			mFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
  			mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) )
  	{}
@@ -101,7 +105,11 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("PFEM22D", mPFEM22D);
  		KRATOS_REGISTER_ELEMENT("FluidPhasePFEM22D", mFluidPhasePFEM22D);
  		KRATOS_REGISTER_ELEMENT("MonolithicPFEM23D", mMonolithicPFEM23D);
+ 		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM22D", mMonolithicAutoSlipPFEM22D);
+ 		KRATOS_REGISTER_ELEMENT("MonolithicAutoSlipPFEM23D", mMonolithicAutoSlipPFEM23D);
  		KRATOS_REGISTER_ELEMENT("MonolithicPFEM22D", mMonolithicPFEM22D);
+ 		KRATOS_REGISTER_ELEMENT("Monolithic3FluidPFEM22D", mMonolithic3FluidPFEM22D);
+ 		KRATOS_REGISTER_ELEMENT("Monolithic3FluidPFEM23D", mMonolithic3FluidPFEM23D);
  		//KRATOS_REGISTER_ELEMENT("MonolithicGeomechPFEM22D", mMonolithicGeomechPFEM22D);
  		KRATOS_REGISTER_ELEMENT("FsiPFEM22D", mFsiPFEM22D);
  		KRATOS_REGISTER_ELEMENT("NoParticlesSolidOnlyPFEM22D", mNoParticlesSolidOnlyPFEM22D);
