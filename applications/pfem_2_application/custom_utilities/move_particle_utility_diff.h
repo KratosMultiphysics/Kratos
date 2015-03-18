@@ -324,7 +324,7 @@ namespace Kratos
 					
 						
 					//COMMENT TO GET A CONTINOUS DISTANCE FUNCTION FIELD:
-					if (distance>0 && distance<1.5)
+					if (distance>0 && distance<2.0)
 					{
 						distance=1.0;
 						//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1.0-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
@@ -370,7 +370,7 @@ namespace Kratos
 					else 
 					{
 						pparticle.GetEraseFlag()=true; //kill it!
-						distance=2.0;
+						distance=3.0;
 						//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1.0-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
 						pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR]/1000.0;
 						pparticle.GetBulkModulus() = CurrentProcessInfo[BULK_AIR];
@@ -945,7 +945,225 @@ namespace Kratos
 			
 			KRATOS_CATCH("")
 		}
-		
+
+
+
+		void CorrectFreeSurface()
+		{
+			KRATOS_TRY
+
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			
+			const int offset = CurrentProcessInfo[PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+			KRATOS_WATCH(offset)																	//(flag managed only by MoveParticlesDiff
+			
+			//first we flag all the node to SPLIT_ELEMENT=false
+			//we might also use nodal_area to smooth the solution a little bit
+			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
+			#pragma omp parallel for
+			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			{
+				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+				inode->FastGetSolutionStepValue(SPLIT_ELEMENT)=false;
+				inode->FastGetSolutionStepValue(NODAL_AREA)=1.0e-8;
+				inode->FastGetSolutionStepValue(CORRECTED_DISTANCE)=inode->FastGetSolutionStepValue(DISTANCE)-2.0;
+			}
+			
+			//now we detect the wrong split elements (read next loop why we need to pull it back)
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+			#pragma omp parallel for
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			{
+				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+				Geometry<Node<3> >& geom = ielem->GetGeometry();
+				bool is_split=false;
+				double first_distance = geom[0].FastGetSolutionStepValue(CORRECTED_DISTANCE);
+				for (unsigned int i=1; i<(TDim+1);i++) //we do not check node zero
+				{
+					double & current_distance =  geom[i].FastGetSolutionStepValue(CORRECTED_DISTANCE);
+					if ((current_distance*first_distance)<0.0)
+					{
+						is_split=true;
+						break;
+					}
+				}
+				
+				//ielem->GetValue(SPLIT_ELEMENT)=is_split;
+				
+				if (is_split)
+					for (unsigned int i=0; i<3;i++)
+					{
+						geom[i].SetLock();
+						if (geom[i].FastGetSolutionStepValue(CORRECTED_DISTANCE)<0.0) //we only need the ones that currently are on the negative sides, the other ones are actually one layer away from the interface, so we dont care about them
+							geom[i].FastGetSolutionStepValue(SPLIT_ELEMENT)=is_split;
+						geom[i].UnSetLock();
+						//now the nodes that are flagged as split_element will have to become positive in the following loop.
+					}
+			}
+			
+			//KRATOS_WATCH("ln 304")
+			KRATOS_WATCH("About to fix free surface")
+			// fist step, we have to "pull back" the free surface.
+			// elements that have at least one node that is positive
+			// have no particles inside, so actually they should have all its node positive.
+			//now we set all negative nodes to small values and positive nodes to really large values
+			#pragma omp parallel for
+			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			{
+				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+				if( inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) < 0.0) //we must only modify the nodes that are currently negative
+				{
+					if(inode->FastGetSolutionStepValue(SPLIT_ELEMENT)==true)
+						inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) = 1.0e8; //node that actually must be positive
+					else
+						inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) = -1.0e-8; //we suppose that this node is as close to the surface as possible
+
+				}
+
+			}
+
+
+			//having pulled back the free surface, now the interface elements are those that have positive and negative nodes
+			//so we will try to find the free surface in them. 
+			#pragma omp parallel for
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			{
+				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+				
+				array_1d<double,(TDim+1)> nodal_distances = ZeroVector((TDim+1)); //for negatives nodes, it will be the furthest away possible, while for positive nodes it must be as small as possible
+				array_1d<double,(TDim+1)> nodal_signs = ZeroVector((TDim+1)); //to make operations easier without so many ifs
+				array_1d<double,(TDim+1)> nodal_area_contribution = ZeroVector((TDim+1)); //for the nodal areas
+				boost::numeric::ublas::bounded_matrix<double, (TDim+1) , (TDim+1) > Ns_of_closest_particle =ZeroMatrix((TDim+1),(TDim+1)); // each row is a node, and the columns and the Ns;
+				array_1d<double,3*(TDim+1)> nodes_positions;
+				//array_1d<double,(TDim+1)> nodes_addedweights = ZeroVector((TDim+1));
+
+				Geometry<Node<3> >& geom = ielem->GetGeometry();
+				
+				
+				bool has_positive_node = false;
+				bool has_negative_node = false;
+				unsigned int number_of_positive_nodes=0;
+				unsigned int number_of_negative_nodes=0;
+				for (int i=0 ; i!=(TDim+1) ; ++i) 
+				{
+					if(geom[i].FastGetSolutionStepValue(CORRECTED_DISTANCE)<0.0)
+					{
+						has_negative_node=true;
+						nodal_distances(i) = - 1e-8;
+						nodal_signs(i) = -1.0;
+						number_of_negative_nodes++;
+					}
+					else
+					{
+						has_positive_node=true;
+						nodal_distances(i) = 1e8; //we start with a large value, to later search for the smallest
+						nodal_signs(i) = 1.0;
+						number_of_positive_nodes++;
+					}
+					
+					nodes_positions[i*3+0]=geom[i].X();
+					nodes_positions[i*3+1]=geom[i].Y();
+					nodes_positions[i*3+2]=geom[i].Z();
+					
+				}
+				if (has_positive_node && has_negative_node) //ok, element that has the interface inside!
+				{
+					int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_PARTICLES);
+					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(PARTICLE_POINTERS));
+					
+					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
+
+					for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					{
+						if (iii==mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
+							break; 
+
+						PFEM_Particle & pparticle = element_particle_pointers[offset+iii];
+						
+						if (pparticle.GetEraseFlag()==false) 
+						{
+							
+							array_1d<double,3> & position = pparticle.Coordinates();
+							//const double& particle_distance = pparticle.GetDistance();  // -1 if water, +1 if air					
+							array_1d<double,TDim+1> N;
+							bool is_found = CalculatePosition(geom,position[0],position[1],position[2],N);
+							if (is_found==false) //something went wrong. if it was close enough to the edge we simply send it inside the element.
+							{
+								KRATOS_WATCH(N);
+								for (int j=0 ; j!=(TDim+1); j++)
+									if (N[j]<0.0 && N[j]> -1e-5)
+										N[j]=1e-10;
+							
+							}
+							
+							for (int j=0 ; j!=(TDim+1); j++) //going through the 3/4 nodes of the element
+							{
+								double sq_dist = 0;
+								for (int k=0 ; k!=(TDim); k++) sq_dist += ((position[k] - nodes_positions[j*3+k])*(position[k] - nodes_positions[j*3+k]));
+								const double distance_to_node = sqrt(sq_dist);
+								if ((distance_to_node)<(nodal_distances[j])) //we are only modifying the POSITIVE NODES, pulling the free surface to us (+ nodes ) as much as possible
+								{
+									nodal_distances[j] = distance_to_node; //saving the smallest. for negative nodes it is the furthest away from the node, while for positive the closest.
+									for (int k=0 ; k!=(TDim+1); k++) //shape_functions
+										Ns_of_closest_particle(j,k)=N(k);
+								}	
+							}
+						}
+					}
+					
+					for (int i=0 ; i!=(TDim+1) ; ++i) 
+					{
+						geom[i].SetLock();
+						if (nodal_distances[i]<geom[i].FastGetSolutionStepValue(CORRECTED_DISTANCE)) //just for positive nodes.
+						{
+							geom[i].FastGetSolutionStepValue(CORRECTED_DISTANCE) = nodal_distances[i];
+						}
+						if(nodal_signs[i]<0.0) //now for negative nodes
+						{
+							double contribution_to_node = 0.0;
+							double weight = 0.0;
+							for (int k=0 ; k!=(TDim+1); k++) //we go through all the nodes, although only the positive ones will contribute.
+							{
+								double distance = - nodal_distances(k) * Ns_of_closest_particle(k,k) / (1.0 - Ns_of_closest_particle(k,k) ); //approx way to calculate the distance, we take it as the distance to the opposite edge of the element
+								contribution_to_node +=  distance * Ns_of_closest_particle(k,i)  ; //the weight is the shape function
+								weight+=Ns_of_closest_particle(k,i);
+							}
+							geom[i].FastGetSolutionStepValue(CORRECTED_DISTANCE) += contribution_to_node;
+							geom[i].FastGetSolutionStepValue(NODAL_AREA) += weight;
+						}
+						
+						geom[i].FastGetSolutionStepValue(SPLIT_ELEMENT)=true; // all the interface elements are now flagged as IS_SPLIT
+						geom[i].UnSetLock();
+					}
+				}
+			}
+			
+			//finally we fix the distance on the negative nodes that were not part of the cut element
+			//we set it to a reasonable value, just for representation porpouses
+			#pragma omp parallel for
+			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			{
+				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+				//double sum_weights = inode->FastGetSolutionStepValue(YP);
+				if (inode->FastGetSolutionStepValue(CORRECTED_DISTANCE)<0.0) 
+				{
+					if(inode->FastGetSolutionStepValue(SPLIT_ELEMENT)==false)
+						inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) = -1.0; //we give negative nodes a reasonable value, instead of the -1e-8
+					else
+						inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) = inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) / inode->FastGetSolutionStepValue(NODAL_AREA);
+				}
+				if (inode->FastGetSolutionStepValue(CORRECTED_DISTANCE)>1.0e7)
+				 inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) =1.0;
+
+				if (inode->FastGetSolutionStepValue(DISTANCE)>0.0 && inode->FastGetSolutionStepValue(SPLIT_ELEMENT)==true)
+				 inode->FastGetSolutionStepValue(DISTANCE) = inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) + 2.0;
+
+			}
+			
+
+			KRATOS_CATCH("")
+		}
+
 		
 		
 
@@ -1434,7 +1652,7 @@ namespace Kratos
 					inode->FastGetSolutionStepValue(ACCELERATION)=inode->GetSolutionStepValue(ACCELERATION,1);
 
 					//inode->FastGetSolutionStepValue(OXYGEN_FRACTION)=inode->GetSolutionStepValue(OXYGEN_FRACTION,1); //resetting the temperature
-					inode->FastGetSolutionStepValue(DISTANCE)=2.0; //resetting the temperature
+					inode->FastGetSolutionStepValue(DISTANCE)=3.0; //resetting the temperature
 				}
 				///finally, if there was an inlet that had a fixed position for the distance function, that has to remain unchanged:
 				if (inode->IsFixed(DISTANCE))
@@ -2361,10 +2579,10 @@ namespace Kratos
 								//oxygen=0.0;
 							}
 							else
-							{   if (mesh_distance<1.5)
+							{   if (mesh_distance<2.05)
 									distance=1.0;
 								else
-									distance=2.0;
+									distance=3.0;
 							}
 								
 							if (distance<0.0 && sum_Ns_without_air_nodes>0.01)
@@ -2390,7 +2608,7 @@ namespace Kratos
 							pparticle.GetPressure()=pressure;
 							pparticle.GetSigma()=ielem->GetValue(ELEMENT_MEAN_STRESS);
 							
-							if (distance>0 && distance<1.5)
+							if (distance>0 && distance<2.0)
 							//if (true) 
 							{
 								distance=1.0;
@@ -2414,7 +2632,7 @@ namespace Kratos
 							}
 							else //distance>1.5
 							{
-								distance=2.0;
+								distance=3.0;
 								//pparticle.GetEraseFlag()=true;
 								pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR]/1000.0;
 								pparticle.GetBulkModulus() = CurrentProcessInfo[BULK_AIR];
@@ -2752,10 +2970,10 @@ namespace Kratos
 									//oxygen=0.0;
 								}
 								else
-								{   if (mesh_distance<1.5)
+								{   if (mesh_distance<2.0)
 										distance=1.0;
 									else
-										distance=2.0;
+										distance=3.0;
 								}
 									
 								if (distance<0.0 && sum_Ns_without_air_nodes>0.01)
@@ -2782,7 +3000,7 @@ namespace Kratos
 								pparticle.GetSigma()=ielem->GetValue(ELEMENT_MEAN_STRESS);
 								
 								//KRATOS_WATCH("a particle!")
-								if (distance>0 && distance<1.5)
+								if (distance>0 && distance<2.0)
 								//if (true) 
 								{
 									distance=1.0;
@@ -2806,7 +3024,7 @@ namespace Kratos
 								}
 								else //distance>1.5
 								{
-									distance=2.0;
+									distance=3.0;
 									//pparticle.GetEraseFlag()=true;
 									//const double lambda = CurrentProcessInfo[YOUNG_MODULUS] * CurrentProcessInfo[POISSON_RATIO] / ( (1.0+CurrentProcessInfo[POISSON_RATIO])*(1-2.0*CurrentProcessInfo[POISSON_RATIO]) );	 
 									pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR]/1000.0;
@@ -3167,7 +3385,7 @@ namespace Kratos
 			{
 				for(unsigned int j=0; j<(TDim+1); j++)
 				{
-					if ((geom[j].FastGetSolutionStepValue(DISTANCE))<1.5) //ok. useful info!
+					if ((geom[j].FastGetSolutionStepValue(DISTANCE))<2.0) //ok. useful info!
 					{
 						sum_Ns_without_other_phase_nodes += N[j];
 						noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
@@ -3308,7 +3526,7 @@ namespace Kratos
 						for(unsigned int j=0; j<(TDim+1); j++)
 						{
 							//if ((geom[j].FastGetSolutionStepValue(YP))>1e-12)
-							if ((geom[j].FastGetSolutionStepValue(DISTANCE))<1.5) //ok. useful info!
+							if ((geom[j].FastGetSolutionStepValue(DISTANCE))<2.0) //ok. useful info!
 							{
 								noalias(vel_without_other_phase_nodes) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j] ;
 								g_value += geom[j].FastGetSolutionStepValue(G_VALUE)*N[j];
@@ -3829,8 +4047,8 @@ namespace Kratos
 			}
 			
 			///COMMENT TO GET A A CONTINOUS DISTANCE FUNCTION FIELD!!!!!
-			if (distance>1.5)
-				distance=2.0;
+			if (distance>2.0)
+				distance=3.0;
 			else if(distance>0.0)
 				distance=1.0;
 			else
@@ -3853,7 +4071,7 @@ namespace Kratos
 				pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR];
 				pparticle.GetBulkModulus() = CurrentProcessInfo[BULK_AIR];
 				pparticle.GetDensity() = CurrentProcessInfo[DENSITY_AIR];
-				if (distance>1.5)
+				if (distance>2.0)
 				{
 					pparticle.GetDensity() = CurrentProcessInfo[DENSITY_AIR]*0.001;
 					pparticle.GetShearModulus() = CurrentProcessInfo[VISCOSITY_AIR]*0.001;
@@ -3932,7 +4150,7 @@ namespace Kratos
 		}
 		else //it is outside the topographic domain, therefore it is air or whatever it means
 		{
-			particle_distance= 2.0;
+			particle_distance= 3.0;
 			pparticle.GetEraseFlag()=true;
 		}
 			
