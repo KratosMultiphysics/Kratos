@@ -14,6 +14,7 @@ import time as timer
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
+    model_part.AddNodalSolutionStepVariable(CORRECTED_DISTANCE);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(G_VALUE);
@@ -37,6 +38,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_MASS) 
     model_part.AddNodalSolutionStepVariable(SPLIT_ELEMENT)
     model_part.AddNodalSolutionStepVariable(PRESSUREAUX)
+    model_part.AddNodalSolutionStepVariable(BODY_FORCE)
 
 
 
@@ -59,13 +61,13 @@ class PFEM2Solver:
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         #definition of the solvers
-        gmres_size = 50
-        tol = 1e-5
-        verbosity = 1
-        pDiagPrecond = DiagonalPreconditioner()
-        #self.monolitic_linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
-        self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,50,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
-        #(self.monolitic_linear_solver).is_symmetric=True;
+	gmres_size = 50
+	tol = 1e-5
+	verbosity = 1
+	pDiagPrecond = DiagonalPreconditioner()
+	#self.monolitic_linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
+	self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
+	#(self.monolitic_linear_solver).is_symmetric=True;
         self.conv_criteria = DisplacementCriteria(1e-9,1e-15)  #tolerance for the solver 
         
         self.domain_size = domain_size
@@ -73,8 +75,8 @@ class PFEM2Solver:
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
         (self.neighbour_search).Execute()
-        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
-        (self.neighbour_elements_search).Execute()
+	self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
+	(self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
         
@@ -113,14 +115,14 @@ class PFEM2Solver:
 
         self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);  
         condition_number=1
-        '''
+        
         if self.domain_size==2:
-        	self.addBC = AddFixedVelocityCondition2D(self.model_part)
+        	self.addBC = AddMonolithicFixedVelocityCondition2D(self.model_part)
         else:
-        	self.addBC = AddFixedVelocityCondition3D(self.model_part)
+        	self.addBC = AddMonolithicFixedVelocityCondition3D(self.model_part)
 
         (self.addBC).AddThem()
-        '''	
+        	
 
         import strategy_python #implicit solver
 
@@ -141,6 +143,7 @@ class PFEM2Solver:
         self.implicitviscosity=0.0
         
       
+
                  
     #######################################################################   
     #######################################################################   
@@ -180,15 +183,18 @@ class PFEM2Solver:
                 t5 = timer.time()
                 self.lagrangiantoeulerian = self.lagrangiantoeulerian + t5-t4
 
+                #(self.moveparticles).CorrectFreeSurface();
                 (self.moveparticles).FlagSplittedElementsAndTheirNodes();
-
                 t6 = timer.time()
-
+                for node in self.model_part.Nodes:
+                    distance= node.GetSolutionStepValue(DISTANCE)
+                    node.SetSolutionStepValue(CORRECTED_DISTANCE,distance-2.0)
                 #TransferLagrtoEul copied info to MESH_VEL, but the solver uses simply velocity, so we copy the variable there.
                 (self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
-
+                
                 #implicit everything
                 full_reset=True;
+                self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 20)
                 (self.moveparticles).ResetBoundaryConditions(full_reset) 
                 (self.monolitic_solver).Solve() #implicit resolution of the pressure system. All the other tasks are explicit
                 self.CalculatePressureProjection()
@@ -206,6 +212,7 @@ class PFEM2Solver:
 
                 #reseeding in elements that have few particles to avoid having problems in next iterations:
                 post_minimum_number_of_particles=self.domain_size*2;
+
                 self.water_volume = (self.calculatewatervolume).Calculate()
                 if (self.water_initial_volume_flag): 
                 	print("calculated water volume for the first time")
@@ -250,7 +257,7 @@ class PFEM2Solver:
                 (self.ExplicitStrategy).FinalizeSolutionStep(self.model_part.ProcessInfo);
 
     def CalculatePressureProjection(self):
-                self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 3) #explicit contribution by viscosity is defined as fract step = 0
+                self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 3)
                 (self.ExplicitStrategy).InitializeSolutionStep(self.model_part.ProcessInfo);
                 (self.ExplicitStrategy).AssembleLoop(self.model_part.ProcessInfo);
                 self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
