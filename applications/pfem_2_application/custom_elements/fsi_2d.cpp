@@ -254,11 +254,11 @@ namespace Kratos
 					{
 						if( pparticle.HasUpdatedStresses()==true)
 						{
-							double particle_area = standard_particle_area  * (pparticle.GetDistance() * (-1.0) );
+							double particle_area = standard_particle_area;//  * (pparticle.GetDistance() * (-1.0) );
 							has_solid_particle=true;
 							{
 								solid_area += particle_area;	
-								double fluidized_particle_area = standard_particle_area  * (1.0 + pparticle.GetDistance() ) ;
+								double fluidized_particle_area = 0.0* standard_particle_area  * (1.0 + pparticle.GetDistance() ) ;
 								fluid_area += fluidized_particle_area;
 								
 								viscosity_integral += pparticle.GetShearModulus()*fluidized_particle_area;
@@ -828,7 +828,8 @@ namespace Kratos
 				*/
 				
 				//OVERWRITING THE VISCOSITY!
-				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, (solid_area)*0.2 , theta_fluid, cohesion_fluid , viscosity);
+				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, (solid_area)*0.1 , theta_fluid, cohesion_fluid , viscosity);
+				this->AddDruckerPragerViscousTerm(rLeftHandSideMatrix,DN_DX, fluid_area , theta_fluid, cohesion_fluid , viscosity);
 				
 				if (has_solid_particle==true)
 					is_solid_element=true;
@@ -2590,7 +2591,7 @@ namespace Kratos
 				
 				
 				const double eq_plastic_deformation = sqrt(3.0/2.0* ( pow(plastic_deformation(0),2)+pow(plastic_deformation(1),2) + 2.0*pow((plastic_deformation(2)),2) ) ) ;
-				pparticle.GetDistance()= -1.0 + eq_plastic_deformation * 0.0001; //when the equivalent plastic deformation is above 0.2%, we simulate it as a fluid
+				pparticle.GetDistance()= -1.0 + eq_plastic_deformation * 100.0001; //when the equivalent plastic deformation is above 0.2%, we simulate it as a fluid
 				if (pparticle.GetDistance()>0.0)
 				{
 					particle_stress *=0.000000000000000001; //kill the stresses
@@ -2774,7 +2775,7 @@ namespace Kratos
         // Read the viscosity for the fluidified phase from the nodes
         // In Kratos, the viscosity is assumed to be given in kinematic units (m^2/s)
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
-        double m = 1.0e3;
+        double m = 1.0e2;
         double OutputDynamicViscosity=DynamicViscosity;
         if (GammaDot > 1e-12) // Normal behaviour
         {
