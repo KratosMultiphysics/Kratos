@@ -106,6 +106,7 @@ namespace Python
                     .def("UpdateParticleStresses", &MoveParticleUtilityDiff<2>::UpdateParticleStresses)
                     .def("ComputeCalculationDomainDisplacement", &MoveParticleUtilityDiff<2>::ComputeCalculationDomainDisplacement)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<2>::ExecuteParticlesPritingTool)
+                    .def("CorrectFreeSurface", &MoveParticleUtilityDiff<2>::CorrectFreeSurface)
                     ; 
                     
 		class_< MoveParticleUtilityDiff<3> > ("MoveParticleUtilityDiff3D", init<ModelPart& , int >())
@@ -131,6 +132,7 @@ namespace Python
                     .def("UpdateParticleStresses", &MoveParticleUtilityDiff<3>::UpdateParticleStresses)
                     .def("ComputeCalculationDomainDisplacement", &MoveParticleUtilityDiff<3>::ComputeCalculationDomainDisplacement)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<3>::ExecuteParticlesPritingTool)
+                    .def("CorrectFreeSurface", &MoveParticleUtilityDiff<3>::CorrectFreeSurface)
                     ;            
         
         
@@ -151,6 +153,7 @@ namespace Python
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<2>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<2>::PostReseedOnlyInBoundingBox)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<2>::ExecuteParticlesPritingTool)
+                    .def("CorrectFreeSurface", &MoveParticleUtilityDiffFluidOnly<2>::CorrectFreeSurface)
                     ; 
                     
 		class_< MoveParticleUtilityDiffFluidOnly<3> > ("MoveParticleUtilityDiffFluidOnly3D", init<ModelPart& , int >())
@@ -169,6 +172,7 @@ namespace Python
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<3>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<3>::PostReseedOnlyInBoundingBox)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<3>::ExecuteParticlesPritingTool)
+                    .def("CorrectFreeSurface", &MoveParticleUtilityDiffFluidOnly<3>::CorrectFreeSurface)
                     ;             
                     
                     
