@@ -13,6 +13,14 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuit
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/malla )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
 
+#include pragmatic libraries if so selected
+if(PRAGMATIC_ACTIVATED MATCHES ON)
+    add_definitions( -DPRAGMATIC_ACTIVATED )
+    message( "Include directory for PRAGMATIC " ${PRAGMATIC_INCLUDE_DIR} )
+    include_directories( ${PRAGMATIC_INCLUDE_DIR} )
+    include_directories( ${PRAGMATIC_INCLUDE_DIR}/include )
+endif(PRAGMATIC_ACTIVATED MATCHES ON)
+
 ##add subdirectories for compilation of dependent libraries
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
@@ -33,6 +41,7 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
 target_link_libraries(KratosMeshingApplication KratosCore triangle tetgen msuite tetMeshOpt  )
+
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 
