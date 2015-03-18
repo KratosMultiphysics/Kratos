@@ -31,6 +31,10 @@
 #include "custom_utilities/tetrahedra_reconnect_utility.h"
 #include "utilities/split_tetrahedra.h"
 
+#ifdef PRAGMATIC_ACTIVATED
+    #include "external_includes/pragmatic_adapt_3d.h"
+#endif
+
 
 namespace Kratos
 {
@@ -123,6 +127,12 @@ void AddCustomUtilitiesToPython()
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
 
+    #ifdef PRAGMATIC_ACTIVATED
+    class_<PragmaticAdaptor >("PragmaticAdaptor", init< >())
+    .def("AdaptMesh", &PragmaticAdaptor::AdaptMesh)
+    ;        
+    #endif
+    
     class_<Cutting_Application >("Cutting_Application", init< >())
     .def("GenerateCut", &Cutting_Application::GenerateCut)
     .def("UpdateCutData", &Cutting_Application ::UpdateCutData)
