@@ -304,7 +304,7 @@ namespace Kratos
 			
 			const int  enrich_velocity_dofs=2; //number of enrichments for the velocity field
 			const int  enrich_pressure_dofs=2; //number of enrichments for the pressure field
-			const int  enrich_pressure_offset=2; //the enrichment utility returns several (4) shape functions. we will avoid the first 2 and use the third and fourth
+			const int  enrich_pressure_offset=0; //the enrichment utility returns several (4) shape functions. we will avoid the first 2 and use the third and fourth
 			
 			boost::numeric::ublas::bounded_matrix<double, 3, 3> Laplacian_matrix =ZeroMatrix(3,3); //standard pressures. we will keep these dof so the size remains			
 			boost::numeric::ublas::bounded_matrix<double, 3, 6+enrich_velocity_dofs > D_matrix ; //(divergence) //this matrix will increase its size since we need more  
@@ -465,7 +465,7 @@ namespace Kratos
 					if (Length < mElemSize) mElemSize = Length;
 				}
 			mElemSize = sqrt(mElemSize);
-			const double   TauOne = 0.01 / (( 1.0 / delta_t + 4.0 * element_viscosity / (mElemSize * mElemSize * element_density ) + 2.0 * AdvVelNorm / mElemSize) );
+			const double   TauOne = 1.00 / (( 1.0 / delta_t + 4.0 * element_viscosity / (mElemSize * mElemSize * element_density ) + 2.0 * AdvVelNorm / mElemSize) );
 			
 			////////////////////
 			//TauOne=1.0;
@@ -604,10 +604,10 @@ namespace Kratos
 			positive_side_only_velocity_at_interface /= sum_n_positive;
 			//we will force the velocity of the previous time step at the interface to match the one of the negative side, as it the other had negligible viscosity
 			//the V* shape funcion has value = 1.0 at the interface, so that means the N* will be direcly the difference between what we want (the negative side vel) and the complete one:
-			//array_1d<double,3> N_vel_star = ZeroVector(3); 
-			//for (unsigned int i=0; i!=2;i++) //TDim 
-			//	N_vel_star(i) = negative_side_only_velocity_at_interface(i)-positive_side_only_velocity_at_interface(i);
-			//N_vel_star *= 0.5; //should be 0.5, but might become unstable	
+			array_1d<double,3> N_vel_star = ZeroVector(3); 
+			for (unsigned int i=0; i!=2;i++) //TDim 
+				N_vel_star(i) = negative_side_only_velocity_at_interface(i)-positive_side_only_velocity_at_interface(i);
+			N_vel_star *= 0.5; //should be 0.5, but might become unstable	
 			
 			
 			
@@ -615,8 +615,8 @@ namespace Kratos
 			{
 				rhs_enrich(0) = local_gravity(0,0)*condensed_dof_mass1;
 				rhs_enrich(1) = local_gravity(1,0)*condensed_dof_mass2;
-				//rhs_enrich(0) += N_vel_star(0) * condensed_dof_mass1/delta_t; //we are using the difference in the Y component
-				//rhs_enrich(1) += N_vel_star(1) * condensed_dof_mass2/delta_t;
+				rhs_enrich(0) += N_vel_star(0) * condensed_dof_mass1/delta_t; //we are using the difference in the Y component
+				rhs_enrich(1) += N_vel_star(1) * condensed_dof_mass2/delta_t;
 				
 			}
 						
