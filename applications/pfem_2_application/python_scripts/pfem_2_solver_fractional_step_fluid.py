@@ -188,7 +188,7 @@ class PFEM2Solver:
 		t3 = timer.time()
 		self.streamlineintegration = self.streamlineintegration + t3-t2a
 		t3a = timer.time()
-
+		print "holaaaa"
 		#Reseeding using streamlines in inverse way in case there are too few particles. Not very accurate since particles follow streamlines, no matter if it's water or air.
 		#(for 1 fluid should be accurate though
 		pre_minimum_number_of_particles=self.domain_size;
