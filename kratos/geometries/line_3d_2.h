@@ -347,9 +347,15 @@ public:
     */
     virtual double Length() const
     {
-        double lenght = pow( BaseType::GetPoint( 0 ).X() - BaseType::GetPoint( 1 ).X(), 2 ) + pow( BaseType::GetPoint( 0 ).Y() - BaseType::GetPoint( 1 ).Y(), 2 ) +
-                        pow( BaseType::GetPoint( 0 ).Z() - BaseType::GetPoint( 1 ).Z(), 2 );
-        return sqrt( lenght );
+        const TPointType& point0 = BaseType::GetPoint(0);
+        const TPointType& point1 = BaseType::GetPoint(1);
+        const double lx = point0.X() - point1.X();
+        const double ly = point0.Y() - point1.Y();
+        const double lz = point0.Z() - point1.Z();
+        
+        const double length = lx * lx + ly * ly + lz * lz;
+        
+        return sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
@@ -381,8 +387,15 @@ public:
     */
     virtual double DomainSize() const
     {
-        double lenght = pow( BaseType::GetPoint( 0 ).X() - BaseType::GetPoint( 1 ).X(), 2 ) + pow( BaseType::GetPoint( 0 ).Y() - BaseType::GetPoint( 1 ).Y(), 2 );
-        return sqrt( lenght );
+        const TPointType& point0 = BaseType::GetPoint(0);
+        const TPointType& point1 = BaseType::GetPoint(1);
+        const double lx = point0.X() - point1.X();
+        const double ly = point0.Y() - point1.Y();
+        const double lz = point0.Z() - point1.Z();
+        
+        const double length = lx * lx + ly * ly + lz * lz;
+        
+        return sqrt( length );
     }
 
 //      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const

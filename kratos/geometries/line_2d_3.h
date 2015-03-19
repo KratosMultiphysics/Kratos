@@ -343,8 +343,14 @@ public:
     */
     virtual double Length() const
     {
-        double lenght = pow( BaseType::GetPoint( 0 ).X() - BaseType::GetPoint( 1 ).X(), 2 ) + pow( BaseType::GetPoint( 0 ).Y() - BaseType::GetPoint( 1 ).Y(), 2 );
-        return sqrt( lenght );
+        const TPointType& point0 = BaseType::GetPoint(0);
+        const TPointType& point1 = BaseType::GetPoint(2);
+        const double lx = point0.X() - point1.X();
+        const double ly = point0.Y() - point1.Y();
+        
+        const double length = lx * lx + ly * ly;
+        
+        return sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
@@ -376,8 +382,14 @@ public:
     */
     virtual double DomainSize() const
     {
-        double lenght = pow( BaseType::GetPoint( 0 ).X() - BaseType::GetPoint( 2 ).X(), 2 ) + pow( BaseType::GetPoint( 0 ).Y() - BaseType::GetPoint( 2 ).Y(), 2 );
-        return sqrt( lenght );
+        const TPointType& point0 = BaseType::GetPoint(0);
+        const TPointType& point1 = BaseType::GetPoint(2);
+        const double lx = point0.X() - point1.X();
+        const double ly = point0.Y() - point1.Y();
+        
+        const double length = lx * lx + ly * ly;
+        
+        return sqrt( length );
     }
 
 
