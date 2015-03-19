@@ -176,6 +176,18 @@ public:
         KRATOS_CATCH("");
     }
 
+    void SwapAll()
+    {
+        for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
+        {
+            ConditionType::GeometryType& rGeom = itCond->GetGeometry();
+            GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
+
+            if ( GeoType == GeometryData::Kratos_Triangle3D3 )
+                rGeom(0).swap(rGeom(1));
+        }
+    }
+
 
     ///@}
     ///@name Access
