@@ -191,10 +191,13 @@ namespace Kratos
 		int iteration_number =  rCurrentProcessInfo[NL_ITERATION_NUMBER];
 		double mDENSITY_AIR = rCurrentProcessInfo[DENSITY_AIR]; // * (1.0-theta) ;
 		double mDENSITY_WATER = rCurrentProcessInfo[DENSITY_WATER]; // * (1.0-theta) ;
-		//Vector densities(3);
-		//Vector partition_densities(3);
-		//KRATOS_WATCH(delta_t);
-		//bool neighbour_of_splitted_element=false;
+		
+		const double porosity=rCurrentProcessInfo[POROSITY];
+		const double diameter=rCurrentProcessInfo[DIAMETER];
+		const double water_visc=0.0001;
+		const double water_dens=1000.0;
+		double darcy_coeff = 150.0*pow((1.0-porosity),2)/(pow(porosity,3))*water_visc/(pow(diameter,2));//rCurrentProcessInfo[LIN_DARCY_COEF];
+		double nonlin_darcy_coeff = 1.75*(1.0-porosity)/(pow(porosity,3))*water_dens/(diameter); ;//rCurrentProcessInfo[NONLIN_DARCY_COEF];
 
 		double enrich_rhs=0.0;
 		double extra_enrich_rhs=0.0;
@@ -242,17 +245,25 @@ namespace Kratos
 
         boost::numeric::ublas::bounded_matrix<double, 6, 1 > fract_vel;
         array_1d<double, 3 > old_pressures;
+        array_1d<double, 3 > vectorial_mean_vel=ZeroVector(3);
+        
+        
         
         for(unsigned int iii = 0; iii<3; iii++)
         {
 			array_1d<double,3> velocity = GetGeometry()[iii].FastGetSolutionStepValue(WATER_VELOCITY);
+			array_1d<double,3> solid_velocity = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY);
 			fract_vel(iii*2,0) = velocity[0];
 			fract_vel(iii*2+1,0) = velocity[1];
 			//old_pressures(iii) = GetGeometry()[iii].GetSolutionStepValue(PRESSURE,1);
 			old_pressures(iii) = GetGeometry()[iii].FastGetSolutionStepValue(PREVIOUS_ITERATION_PRESSURE);
 			//if ((GetGeometry()[iii].GetValue(SPLIT_ELEMENT))==true)
 			//	neighbour_of_splitted_element=true;
+			vectorial_mean_vel += one_third * (velocity-solid_velocity); //we just need the difference to compute the nonlinear darcy coeff
 		}
+		
+		const double mean_vel = sqrt(pow(vectorial_mean_vel[0],2)+pow(vectorial_mean_vel[1],2)); //do not forget to add the z vel in 3d!
+		
 		//const array_1d<double, 3 > & proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
 		//const array_1d<double, 3 > & proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
 		//const array_1d<double, 3 > & proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
@@ -313,9 +324,11 @@ namespace Kratos
 			//for (unsigned int i = 0; i < TNumNodes; i++)
 			//	this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)=distances[i];
 
-			double darcy_coeff = rCurrentProcessInfo[LIN_DARCY_COEF];
 			if ((geom[0].FastGetSolutionStepValue(DISTANCE)+geom[1].FastGetSolutionStepValue(DISTANCE)+geom[2].FastGetSolutionStepValue(DISTANCE))>0.0) //that is, there is  NO solid inside this element
+			{
+				nonlin_darcy_coeff=0.0;
 				darcy_coeff=0.0;
+			}
 				
 			array_1d<double,3>  laplacian_coeffs(0);
 			for (unsigned int i = 0; i!=ndivisions; i++) //the 3 partitions of the triangle
@@ -328,7 +341,7 @@ namespace Kratos
 				else
 				{
 					densities(i) = mDENSITY_WATER;
-					darcies(i) = darcy_coeff;
+					darcies(i) = darcy_coeff + mean_vel*nonlin_darcy_coeff;
 				}
 				laplacian_coeffs(i) = 1.0/(densities(i)*(1.0/delta_t+darcies(i)));
 			}
@@ -339,24 +352,18 @@ namespace Kratos
 			
 			//boost::numeric::ublas::bounded_matrix<double, 2, 2> DN_DX_enrich;
 			//boost::numeric::ublas::bounded_matrix<double, 2, 2> DN_DX_enrich_negative;
-			boost::numeric::ublas::bounded_matrix<double, 2, 2 > Laplacian_enrich;
-			noalias(Laplacian_enrich) = ZeroMatrix(2,2);	
+			boost::numeric::ublas::bounded_matrix<double, 1, 1 > Laplacian_enrich;
+			noalias(Laplacian_enrich) = ZeroMatrix(1,1);	
 			//double inv_Laplacian_enrich_weighted;
 			//double inv_Laplacian_enrich;
 			boost::numeric::ublas::bounded_matrix<double, 1, 3 > mixed_Laplacian;
 			noalias(mixed_Laplacian) = ZeroMatrix(1,3);	
-			
-			boost::numeric::ublas::bounded_matrix<double, 1, 3 > mixed_Laplacian_jump;
-			noalias(mixed_Laplacian_jump) = ZeroMatrix(1,3);
 			
 			
 			//To calculate D* =int (N*DN_DX_enrich).  we must use the N at the gauss point of the partition (returned by the enrichment util) and multiply by the area. 
 			//notice that this first row is only the upper part of the mixed D. we also need the lower one for the jump 
 			boost::numeric::ublas::bounded_matrix<double, 1, 6 > D_matrix_mixed;
 			noalias(D_matrix_mixed) = ZeroMatrix(1,6);	
-			//lower part of D, the one corresponding to the second enrichmend function (jump)
-			boost::numeric::ublas::bounded_matrix<double, 1, 6 > D_matrix_mixed_jump;
-			noalias(D_matrix_mixed_jump) = ZeroMatrix(1,6);	
 			
 				
 			
@@ -366,21 +373,14 @@ namespace Kratos
 			for (unsigned int i = 0; i < ndivisions; i++)  //we go through the 3 partitions of the domain
 			{
 				Laplacian_enrich(0,0) -= (pow(gauss_gradients[i](0,0),2)+pow(gauss_gradients[i](0,1),2))*volumes(i)*laplacian_coeffs(i);
-				Laplacian_enrich(0,1) -= ((gauss_gradients[i](0,0)*gauss_gradients[i](1,0))+(gauss_gradients[i](0,1)*gauss_gradients[i](1,1)))*volumes(i)*laplacian_coeffs(i);
-				Laplacian_enrich(1,1) -= (pow(gauss_gradients[i](1,0),2)+pow(gauss_gradients[i](1,1),2))*volumes(i)*laplacian_coeffs(i);
-				Laplacian_enrich(1,0) -= ((gauss_gradients[i](0,0)*gauss_gradients[i](1,0))+(gauss_gradients[i](0,1)*gauss_gradients[i](1,1)))*volumes(i)*laplacian_coeffs(i);
 				//and the 'mixed laplacians' (standard shape functions * enrichments)
 				for (unsigned int j = 0; j < 3; j++) //we go through the 3 standard shape functions
 				{
 					mixed_Laplacian(0,j) -= DN_DX(j,0)*(gauss_gradients[i](0,0)*volumes(i)*laplacian_coeffs(i))+ DN_DX(j,1)*(gauss_gradients[i](0,1)*volumes(i)*laplacian_coeffs(i));
-					mixed_Laplacian_jump(0,j) -= DN_DX(j,0)*(gauss_gradients[i](1,0)*volumes(i)*laplacian_coeffs(i))+ DN_DX(j,1)*(gauss_gradients[i](1,1)*volumes(i)*laplacian_coeffs(i));
 					//and also the D matrixes
 
 					D_matrix_mixed(0,j*2) -= gauss_gradients[i](0,0) *volumes(i)*Ngauss(i,j);
 					D_matrix_mixed(0,j*2+1) -= gauss_gradients[i](0,1) *volumes(i)*Ngauss(i,j);
-					D_matrix_mixed_jump(0,j*2) -= gauss_gradients[i](1,0) *volumes(i)*Ngauss(i,j);
-					D_matrix_mixed_jump(0,j*2+1) -= gauss_gradients[i](1,1) *volumes(i)*Ngauss(i,j);
-					
 				}
 				
 				
@@ -434,21 +434,21 @@ namespace Kratos
 		 
 		else //uncut(normal, not interfase) element
         {
-			const double darcy_coeff= rCurrentProcessInfo[LIN_DARCY_COEF];
+
 			double laplacian_coefficient = 1.0;
 			if ((geom[0].FastGetSolutionStepValue(WATER_DISTANCE)+geom[1].FastGetSolutionStepValue(WATER_DISTANCE)+geom[2].FastGetSolutionStepValue(WATER_DISTANCE))<0.0) //that is, there is water inside this element
 			{
 				if ((geom[0].FastGetSolutionStepValue(DISTANCE)+geom[1].FastGetSolutionStepValue(DISTANCE)+geom[2].FastGetSolutionStepValue(DISTANCE))>0.0) //that is, there is  NO solid inside this element
 					laplacian_coefficient = delta_t/rCurrentProcessInfo[DENSITY_WATER];
 				else //the water is flowing through a porous media.
-					laplacian_coefficient = 1.0/(rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+darcy_coeff));
+					laplacian_coefficient = 1.0/(rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+(darcy_coeff+nonlin_darcy_coeff)));
 			}
 			else
 			{
 				if ((geom[0].FastGetSolutionStepValue(DISTANCE)+geom[1].FastGetSolutionStepValue(DISTANCE)+geom[2].FastGetSolutionStepValue(DISTANCE))>0.0) //that is, there is  NO solid inside this element
 					laplacian_coefficient = delta_t/rCurrentProcessInfo[DENSITY_AIR];
 				else
-					laplacian_coefficient = 1.0/(rCurrentProcessInfo[DENSITY_AIR]*(1.0/delta_t+darcy_coeff*0.0));
+					laplacian_coefficient = 1.0/(rCurrentProcessInfo[DENSITY_AIR]*(1.0/delta_t+darcy_coeff*0.0)); //air can move freely
 			}	
 			Laplacian_matrix =  -prod(DN_DX,trans(DN_DX))*Area*laplacian_coefficient;  // B B^T  (standard laplacian, now we must add the contribution of the condensed new nodes.
 		}		
@@ -521,7 +521,12 @@ namespace Kratos
 		
 					double mDENSITY_AIR = rCurrentProcessInfo[DENSITY_AIR]; // * (1.0-theta) ;
 					double mDENSITY_WATER = rCurrentProcessInfo[DENSITY_WATER]; // * (1.0-theta) ;
-					double darcy_coeff = rCurrentProcessInfo[LIN_DARCY_COEF];
+					const double porosity=rCurrentProcessInfo[POROSITY];
+					const double diameter=rCurrentProcessInfo[DIAMETER];
+					const double water_visc=0.0001;
+					const double water_dens=1000.0;
+					double darcy_coeff = 150.0*pow((1.0-porosity),2)/(pow(porosity,3))*water_visc/(pow(diameter,2));//rCurrentProcessInfo[LIN_DARCY_COEF];
+					double nonlin_darcy_coeff = 1.75*(1.0-porosity)/(pow(porosity,3))*water_dens/(diameter); ;//rCurrentProcessInfo[NONLIN_DARCY_COEF];
 					double delta_t = rCurrentProcessInfo[DELTA_TIME];
 					//array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
 					//double x_force  = gravity(0);
@@ -541,6 +546,16 @@ namespace Kratos
 					double density =1.0;
 					double lhs_coeff = 1.0;
 					double rhs_fluid_coeff = 1.0;
+					
+					array_1d<double, 3 > vectorial_mean_vel=ZeroVector(3);
+					for(unsigned int iii = 0; iii<3; iii++)
+					{
+						array_1d<double,3> velocity = GetGeometry()[iii].FastGetSolutionStepValue(WATER_VELOCITY);
+						array_1d<double,3> solid_velocity = GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY);
+						vectorial_mean_vel += nodal_weight * (velocity-solid_velocity); //we just need the difference to compute the nonlinear darcy coeff
+					}
+					const double mean_vel = sqrt(pow(vectorial_mean_vel[0],2)+pow(vectorial_mean_vel[1],2)); //do not forget to add the z vel in 3d!
+					
 					
 					if((geom[0].FastGetSolutionStepValue(WATER_DISTANCE)*geom[1].FastGetSolutionStepValue(WATER_DISTANCE))<0.0 || (geom[1].FastGetSolutionStepValue(WATER_DISTANCE)*geom[2].FastGetSolutionStepValue(WATER_DISTANCE))<0.0)
 					{
@@ -606,7 +621,7 @@ namespace Kratos
 							else
 							{
 								densities(i)= mDENSITY_WATER;
-								darcies[i] = darcy_coeff;
+								darcies[i] = darcy_coeff+nonlin_darcy_coeff*mean_vel;
 							}
 						}
 
@@ -653,7 +668,7 @@ namespace Kratos
 							}
 							else //the water is flowing through a porous media.
 							{
-								lhs_coeff = (rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+darcy_coeff));
+								lhs_coeff = (rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+darcy_coeff+nonlin_darcy_coeff*mean_vel));
 								rhs_fluid_coeff = (rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t));
 								density = rCurrentProcessInfo[DENSITY_WATER];
 							}
@@ -697,7 +712,7 @@ namespace Kratos
 														
 								array_1d<double, 3 > & current_rhs = geom[j].FastGetSolutionStepValue(RHS);
 								for (unsigned int k=0;k!=(2);k++) //k component of local stress
-										current_rhs[k] += (density*darcy_coeff*solid_velocities(j,k)+rhs_fluid_coeff*fluid_velocities(j,k)+gravity(k)*density)*nodal_weight*Area;
+										current_rhs[k] += (density*(darcy_coeff+nonlin_darcy_coeff*mean_vel)*solid_velocities(j,k)+rhs_fluid_coeff*fluid_velocities(j,k)+gravity(k)*density)*nodal_weight*Area;
 								
 								geom[j].FastGetSolutionStepValue(NODAL_MASS) += Area*lhs_coeff*nodal_weight;							
 							//geom[j].UnSetLock();
@@ -720,7 +735,12 @@ namespace Kratos
 					const double delta_t = rCurrentProcessInfo[DELTA_TIME];
 					const double mDENSITY_AIR = rCurrentProcessInfo[DENSITY_AIR]; // * (1.0-theta) ;
 					const double mDENSITY_WATER = rCurrentProcessInfo[DENSITY_WATER]; // * (1.0-theta) ;
-					double darcy_coeff = rCurrentProcessInfo[LIN_DARCY_COEF];
+										const double porosity=rCurrentProcessInfo[POROSITY];
+					const double diameter=rCurrentProcessInfo[DIAMETER];
+					const double water_visc=0.0001;
+					const double water_dens=1000.0;
+					double darcy_coeff = 150.0*pow((1.0-porosity),2)/(pow(porosity,3))*water_visc/(pow(diameter,2));//rCurrentProcessInfo[LIN_DARCY_COEF];
+					double nonlin_darcy_coeff = 1.75*(1.0-porosity)/(pow(porosity,3))*water_dens/(diameter); ;//rCurrentProcessInfo[NONLIN_DARCY_COEF];
 					
 					//const double delta_t = rCurrentProcessInfo[DELTA_TIME];
 					//array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
@@ -743,8 +763,13 @@ namespace Kratos
 					array_1d<double,(2+1)> nodal_masses = ZeroVector(2+1);
 
 					array_1d<double,(2+1)> pressure;
+					array_1d<double,(3)> vectorial_mean_vel=ZeroVector(3);
 					for (unsigned int i=0; i<(2+1);i++)
+					{
 						pressure(i) = geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+						vectorial_mean_vel += mass_factor*(geom[i].FastGetSolutionStepValue(VELOCITY) - geom[i].FastGetSolutionStepValue(WATER_VELOCITY));
+					}
+					const double mean_vel = sqrt(pow(vectorial_mean_vel[0],2)+pow(vectorial_mean_vel[1],2)); // do not forget to add the z vel in 3d!
 						
 					/*
 					boost::numeric::ublas::bounded_matrix<double, (2+1), (2-1)*6 > G_matrix; //(gradient)
@@ -870,7 +895,7 @@ namespace Kratos
 							else
 							{
 								densities(i) = mDENSITY_WATER;
-								darcies(i) = darcy_coeff;
+								darcies(i) = darcy_coeff+nonlin_darcy_coeff*mean_vel;
 							}
 						}
 
@@ -950,7 +975,6 @@ namespace Kratos
 						noalias(G_matrix_no_ro) = ZeroMatrix((2+1),(2-1)*6);
 						//noalias(G_matrix) = ZeroMatrix((2+1),(2-1)*6);
 						
-						double darcy_coeff= rCurrentProcessInfo[LIN_DARCY_COEF];
 						//double density =1.0;
 						double lhs_coeff = 1.0;
 						//double rhs_coeff = 1.0;
@@ -966,7 +990,7 @@ namespace Kratos
 							}
 							else //the water is flowing through a porous media.
 							{
-								lhs_coeff = (rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+darcy_coeff));
+								lhs_coeff = (rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+darcy_coeff+nonlin_darcy_coeff*mean_vel));
 								//rhs_coeff = (rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t));
 								//density = rCurrentProcessInfo[DENSITY_WATER];
 							}
