@@ -339,21 +339,21 @@ class ExplicitStrategy:
         self.settings.inlet_model_part = self.inlet_model_part   
         self.settings.cluster_model_part = self.cluster_model_part
                 
-        self.solver = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+        self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                       self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
                                                     
                                                       
-        self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating)
+        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating)
 
         #Setting the constitutive LAWS
 
     def Initial_Critical_Time(self):
-        (self.solver).InitialTimeStepCalculation()
+        (self.cplusplus_strategy).InitialTimeStepCalculation()
 
     #
 
     def Solve(self):
-        (self.solver).Solve()
+        (self.cplusplus_strategy).Solve()
         
     def PrepareContactElementsForPrinting(self):
-        (self.solver).PrepareContactElementsForPrinting()
+        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
