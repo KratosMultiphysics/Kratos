@@ -235,25 +235,25 @@ class ExplicitStrategy:
         self.settings.cluster_model_part = self.cluster_model_part   
         
         
-        self.solver = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
+        self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
                                              self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
        
-        #self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
+        #self.cplusplus_strategy = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.cluster_model_part,self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
         #                                     self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
 
-        self.solver.Initialize()  # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
+        self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
    
         #Setting the constitutive LAWS
  
     #
 
     def Solve(self):
-        (self.solver).Solve()
+        (self.cplusplus_strategy).Solve()
 
     def DoAllOperations(self,DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path):
-        (self.solver).DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path)
+        (self.cplusplus_strategy).DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path)
 
     def Compute_RigidFace_Movement(self):
-        (self.solver).Compute_RigidFace_Movement()
+        (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
     #
