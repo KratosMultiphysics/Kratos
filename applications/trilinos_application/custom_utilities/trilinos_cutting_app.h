@@ -432,7 +432,7 @@ public:
         Clear();
         //KRATOS_WATCH(new_model_part)
 		ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
-        ParallelFillCommunicator(new_model_part).PrintDebugInfo(); //changed from PrintDebugInfo to Execute
+        //ParallelFillCommunicator(new_model_part).PrintDebugInfo(); //changed from PrintDebugInfo to Execute
         
         if (mrComm.MyPID() == 0) std::cout << "copyng conditions and recalculation plan have been completed" << std::endl;
         KRATOS_CATCH("")
