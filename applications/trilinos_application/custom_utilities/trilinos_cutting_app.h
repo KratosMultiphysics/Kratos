@@ -392,7 +392,7 @@ public:
                 pnode->FastGetSolutionStepValue(PARTITION_INDEX)= it_node->FastGetSolutionStepValue(PARTITION_INDEX);
                 new_model_part.Nodes().push_back(pnode);
                 //if (mrComm.MyPID()==0)
-					std::cout <<  mrComm.MyPID() << " " << pnode->Id() <<" " << pnode->FastGetSolutionStepValue(PARTITION_INDEX) <<std::endl;
+                    //std::cout <<  mrComm.MyPID() << " " << pnode->Id() <<" " << pnode->FastGetSolutionStepValue(PARTITION_INDEX) <<std::endl;
             }
         }
         new_model_part.Nodes().Sort();
@@ -493,23 +493,23 @@ public:
 
         CSR_Row_Matrix(mr_model_part, p_edge_ids, used_nodes_matrix);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) std::cout << "index matrix constructed" << std::endl;
+        //if (mrComm.MyPID() == 0) std::cout << "index matrix constructed" << std::endl;
 
         FirstLoop(mr_model_part, p_edge_ids, p_partition_ids, versor, Xp, number_of_triangles, Elems_In_Plane, tolerance, used_nodes_matrix);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) std::cout << "Search_Edge_To_Be_Refined completed" << std::endl;
+        //if (mrComm.MyPID() == 0) std::cout << "Search_Edge_To_Be_Refined completed" << std::endl;
 
         Create_List_Of_New_Nodes(mr_model_part, mr_new_model_part, p_edge_ids, p_partition_ids, List_New_Nodes, partition_new_nodes, father_node_ids, used_nodes_matrix);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) std::cout << "Create_List_Of_New_Nodes completed" << std::endl;
+        //if (mrComm.MyPID() == 0) std::cout << "Create_List_Of_New_Nodes completed" << std::endl;
 
         Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, mr_new_model_part, father_node_ids, List_New_Nodes, partition_new_nodes, versor, Xp, tolerance);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) std::cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << std::endl;
+        //if (mrComm.MyPID() == 0) std::cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << std::endl;
 
         GenerateElements(mr_model_part, mr_new_model_part, Elems_In_Plane, p_edge_ids, versor, plane_number, number_of_triangles);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (mrComm.MyPID() == 0) std::cout << "finished generating elements" << std::endl;
+        //if (mrComm.MyPID() == 0) std::cout << "finished generating elements" << std::endl;
 
 
 
