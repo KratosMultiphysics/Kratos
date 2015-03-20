@@ -213,7 +213,7 @@ public:
     void SwapNormals(ModelPart& rModelPart)
 	{
 		KRATOS_TRY
-        KRATOS_WATCH(rModelPart.ConditionsBegin()->GetGeometry()[0].Id())
+        //KRATOS_WATCH(rModelPart.ConditionsBegin()->GetGeometry()[0].Id())
 		for(ModelPart::ConditionsContainerType::iterator it=rModelPart.ConditionsBegin(); it!=rModelPart.ConditionsEnd(); it++)
 		{
             Node<3>::Pointer paux = it->GetGeometry()(0);
@@ -221,7 +221,7 @@ public:
             it->GetGeometry()(1) = paux;
 			//it->GetGeometry()(0).swap(it->GetGeometry()(1));
 		}
-        KRATOS_WATCH(rModelPart.ConditionsBegin()->GetGeometry()[0].Id())
+        //KRATOS_WATCH(rModelPart.ConditionsBegin()->GetGeometry()[0].Id())
 		KRATOS_CATCH("")
 	}
 
