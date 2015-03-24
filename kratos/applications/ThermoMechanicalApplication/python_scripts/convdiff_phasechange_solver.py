@@ -197,8 +197,6 @@ class Solver:
             print("************* stage 0 *******************")
             self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE, self.max_distance, True) 
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,0)
-
-
             self.stage0_solver.Solve()
         else:
             BDFVector = self.model_part.ProcessInfo.GetValue(BDF_COEFFICIENTS)

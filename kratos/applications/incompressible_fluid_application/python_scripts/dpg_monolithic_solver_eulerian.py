@@ -336,8 +336,8 @@ class MonolithicSolver:
         # recompute distance function as needed
         Timer.Start("DoRedistance")
         if(self.internal_step_counter >= self.next_redistance):
-            net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
-            BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
+            #net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
+            #BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
             
             #ensure that inlet nodes are still wet
             for node in self.inlet_nodes:

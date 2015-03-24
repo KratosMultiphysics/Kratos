@@ -304,7 +304,7 @@ namespace Kratos
 			      KRATOS_WATCH(delta_solid);
 		double new_dt = (solidification_percent /  delta_solid) * current_dt;
 		if( new_dt > dt_max)
-		  new_dt = 1.5 * current_dt;//dt_max;
+		  new_dt = dt_max; //1.5 * current_dt;//dt_max;
 		else if( new_dt < dt_min)
 		  new_dt = dt_min;
 
@@ -320,7 +320,7 @@ namespace Kratos
 	   //coling delta_t
 	   else
 	   {
-        double cooling_dt_max = 30.0*dt_max;
+        double cooling_dt_max = dt_max;//30.0*dt_max;
 	    int node_size = ThisModelPart.Nodes().size();
 	    double max_delta_temp = 0.0;
 	    for (int ii = 0; ii < node_size; ii++)
@@ -376,6 +376,7 @@ namespace Kratos
 	    const double density = ThisModelPart.GetProcessInfo()[DENSITY];
 	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
 	    const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
+		const double ambient_temperature=ThisModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];	   
     	    
 	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
 	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];		  
@@ -392,13 +393,19 @@ namespace Kratos
 		 double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
 		 tot_area += area;
 	       }
-	    
+	    // Added by Jordi Rubio. looks like NODAL_VOLUME ADDS 3xvolume
+		tot_vol=tot_vol/3.0;
+
 	    if ( tot_area == 0.0 || tot_vol == 0.0)
 	      KRATOS_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
 	    
 	    
-	    solidification_time = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
-	    solidification_time *= pow(tot_vol/tot_area , 0.8);	    
+	    solidification_time = density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * (TT_solid-ambient_temperature));
+		solidification_time *= pow(tot_vol/tot_area , 0.8);
+		//solidification_time = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
+	    //solidification_time *= pow(tot_vol/tot_area , 0.8);
+		//double solidification_time2 = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
+	    //solidification_time2 *= pow(tot_vol/tot_area , 0.8);
 	    return solidification_time;
 	    
 	    KRATOS_CATCH("")	
@@ -407,8 +414,8 @@ namespace Kratos
 	 double CheckStopTemperature(ModelPart& ThisModelPart,const double stop_temperature)
 	  {			
 	    KRATOS_TRY
-		const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];	
-		double delta_max_temp = TT_liquid - stop_temperature;
+		const double avg_temp = ThisModelPart.GetProcessInfo()[AVERAGE_TEMPERATURE];	
+		double delta_max_temp = avg_temp - stop_temperature;
 		double sum_temp = 0.0;
 
 	    int node_size = ThisModelPart.Nodes().size();	    
@@ -458,6 +465,30 @@ namespace Kratos
 		return ((wave_dt>max_Dt) ? max_Dt : wave_dt);
 	    KRATOS_CATCH("")	
 	  }	
+	
+	 int CheckIsInTransition(ModelPart& ThisModelPart)
+	 {
+		double const sol_temp = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE] ;
+		double const liq_temp = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE] ;
+		int is_in_range_point = 0;
+		int node_size = ThisModelPart.Nodes().size();
+
+		for (int ii = 0; ii < node_size; ii++)
+		    {
+		      ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+
+		      double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+	      
+			  if( current_temp >sol_temp && current_temp<liq_temp){
+				is_in_range_point = 1;
+				break;
+		      }		      
+		    }
+	       
+		ThisModelPart.GetCommunicator().MaxAll(is_in_range_point);
+
+		return (is_in_range_point==1)? 1 : 0;
+	 }
 
 	private:
 

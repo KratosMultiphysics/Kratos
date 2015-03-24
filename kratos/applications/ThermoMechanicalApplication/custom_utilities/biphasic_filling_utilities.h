@@ -334,7 +334,7 @@ public:
 	}
     //**********************************************************************************************
     //**********************************************************************************************
-    void VolumeCorrection(ModelPart& ThisModelPart, const double Net_volume, const double max_correction)
+    void VolumeCorrection(ModelPart& ThisModelPart, const double Net_volume, const double max_correction, const bool CorrectNegativeVolume=true)
     {
         KRATOS_TRY
 
@@ -467,6 +467,14 @@ public:
 				//std::cout << "Volume Correction performed: it= "<< iteration <<" Correction =" << correction << " Wet_volume =" << wet_volume << " Net Volume =" << fabs(Net_volume) << std::endl;
 				}
 			}
+		//BLOCK TO BE MODIFIED, JUST COMPUTE CORRECTION IF IT SUPPOSED TO DO IT
+		//Now we set the correction to be 0 if it is negative -> if it is positive, the distance of point near 0 positive becomes negotive, so that the front advances
+		if(CorrectNegativeVolume==false && correction<0)
+		{
+			correction=0.0;
+			ComputeVolumeAndCuttedAreaInDistance(ThisModelPart,wet_volume,cutted_area,correction);
+		}
+		// END OF BLOCK TO BE MODIFIED
 		// Now we correct the distances
         #pragma omp parallel for firstprivate(node_size)
         for (int ii = 0; ii < node_size; ii++)
@@ -1044,7 +1052,7 @@ private:
 		ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 		//double temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 		double distance = it->FastGetSolutionStepValue(DISTANCE);
-		if(distance < 0 && fabs(distance) <= ref_dist){
+		if(distance <= 0.0 && fabs(distance) <= ref_dist){
 			double solid_fraction = it->FastGetSolutionStepValue(SOLID_FRACTION);
 			if(solid_fraction < 0.9)
             {
@@ -1056,7 +1064,6 @@ private:
       
 
 	  ThisModelPart.GetCommunicator().MaxAll(is_hot);
-
 	  return is_hot;
 
 	  KRATOS_CATCH("")
