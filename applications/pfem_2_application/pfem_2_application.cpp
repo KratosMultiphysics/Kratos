@@ -94,6 +94,7 @@ namespace Kratos
  			mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
  			mMonolithicAutoSlipPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4, Node<3>() ) ) ) ),
  			mFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
+ 			mWaterFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) ),
  			mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1, Node<3>() ) ) ) )
  	{}
  	
@@ -117,6 +118,7 @@ namespace Kratos
  		KRATOS_REGISTER_ELEMENT("PFEM23D", mPFEM23D);
  		
  		KRATOS_REGISTER_CONDITION("FixedVelocity2D", mFixedVelocity2D);
+ 		KRATOS_REGISTER_CONDITION("WaterFixedVelocity2D", mWaterFixedVelocity2D);
 		KRATOS_REGISTER_CONDITION("FixedVelocity3D", mFixedVelocity3D);
  				
  		KRATOS_REGISTER_VARIABLE( PRESS_GRADIENT_JUMP )
