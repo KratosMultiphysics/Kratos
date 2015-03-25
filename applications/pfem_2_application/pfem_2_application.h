@@ -30,6 +30,7 @@
 
 
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
+#include "custom_conditions/water_fixed_velocity_2d.h" //the condition
 #include "custom_elements/2fluid_2d.h" //including the file for the element
 #include "custom_elements/fluid_phase_2d.h" //including the file for the element
 #include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
@@ -268,6 +269,7 @@ namespace Kratos
  		const NoParticlesSolidOnlyPFEM22D   mNoParticlesSolidOnlyPFEM22D; 
  		
 		const FixedVelocity2D   mFixedVelocity2D; 
+		const WaterFixedVelocity2D   mWaterFixedVelocity2D; 
  		const FixedVelocity3D   mFixedVelocity3D; 
  		
 
