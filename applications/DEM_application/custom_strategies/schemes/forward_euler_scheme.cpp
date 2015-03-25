@@ -51,12 +51,12 @@ namespace Kratos {
 
             for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
                 if (i->Is(DEMFlags::BELONGS_TO_A_CLUSTER)) continue;
-                array_1d<double, 3 > & vel = i->FastGetSolutionStepValue(VELOCITY);
-                array_1d<double, 3 > & displ = i->FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double, 3 > & delta_displ = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                array_1d<double, 3 > & coor = i->Coordinates();
-                array_1d<double, 3 > & initial_coor = i->GetInitialPosition();
-                array_1d<double, 3 > & force = i->FastGetSolutionStepValue(TOTAL_FORCES);
+                array_1d<double, 3 >& vel = i->FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3 >& displ = i->FastGetSolutionStepValue(DISPLACEMENT);
+                array_1d<double, 3 >& delta_displ = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                array_1d<double, 3 >& coor = i->Coordinates();
+                array_1d<double, 3 >& initial_coor = i->GetInitialPosition();
+                array_1d<double, 3 >& force = i->FastGetSolutionStepValue(TOTAL_FORCES);
                 double mass = i->FastGetSolutionStepValue(NODAL_MASS);
 
                 double aux = delta_t / mass;
@@ -127,9 +127,9 @@ namespace Kratos {
 
                 double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-                array_1d<double, 3 > & AngularVel = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3 > & RotaMoment = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                array_1d<double, 3 > & Rota_Displace = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                array_1d<double, 3 >& AngularVel = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3 >& RotaMoment = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
+                array_1d<double, 3 >& Rota_Displace = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
                 array_1d<double, 3 > delta_rotation_displ;
                 double Orientation_real;
                 array_1d<double, 3 > Orientation_imag;
