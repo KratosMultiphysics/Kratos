@@ -10,15 +10,15 @@ def AddAdditionalVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
     
     if(Var_Translator(Param.StressStrainOption)):       
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
-      model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
+        model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
       
     # ONLY VISUALIZATION
 
@@ -72,10 +72,10 @@ class ExplicitStrategy:
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.search_control                = 1
         if(Var_Translator(Param.DontSearchUntilFailure)):
-          print ("Search is not active until a bond is broken.")
-          self.search_control                = 0
-          if (len(fem_model_part.Nodes)>0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
-            print ("WARNING: Search should be activated since there might contact with FEM.")
+            print ("Search is not active until a bond is broken.")
+            self.search_control                = 0
+            if (len(fem_model_part.Nodes)>0 or Param.TestType== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+                print ("WARNING: Search should be activated since there might contact with FEM.")
 
         self.fix_velocities_flag                 = 0       
 
@@ -85,7 +85,7 @@ class ExplicitStrategy:
         self.virtual_mass_option            = 0
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
         if(self.nodal_mass_coeff != 1.00):
-           self.virtual_mass_option            = 1
+            self.virtual_mass_option            = 1
         
         self.delta_option = Var_Translator(Param.DeltaOption)
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
@@ -110,7 +110,7 @@ class ExplicitStrategy:
 
        
         if(self.delta_option > 0):
-           self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
+            self.case_option = 2     #MSIMSI. only 2 cases, with delta or without but continuum always.
 
                 
         self.fixed_vel_top = Param.LoadingVelocityTop
