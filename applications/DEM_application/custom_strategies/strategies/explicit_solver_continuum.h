@@ -203,7 +203,7 @@ namespace Kratos
         BaseType::SetOriginalRadius(r_model_part);
         BaseType::SetSearchRadius(r_model_part, 1.0);
 
-        // 3. Search Neighbours with tolerance (after first repartition process)
+        // 3. Search Neighbors with tolerance (after first repartition process)
         BaseType::SearchNeighbours();
         
         if(this->GetDeltaOption() == 2) {
@@ -289,7 +289,7 @@ namespace Kratos
           }
 
 
-            // 1. Search Neighbours /////////////////////////////////     
+            // 1. Search Neighbors /////////////////////////////////     
 
             if (rCurrentProcessInfo[SEARCH_CONTROL] > 0) {
 
@@ -333,7 +333,9 @@ namespace Kratos
           //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes          
           BaseType::Clear_forces_FEM();
           BaseType::Calculate_Conditions_RHS_and_Add();
-          if(mDempackOption) { this->GlobalDamping(); }       
+          if (mDempackOption) {
+              this->GlobalDamping();
+          }       
           
            
           // 3. Move particles   /////////////////////////////////  
@@ -413,7 +415,7 @@ namespace Kratos
     } 
     
     
-    void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
+    void CreateContactElements() //better not to apply OMP parallelization since it is creation of spheres
     {                
         KRATOS_TRY        
                 
@@ -426,9 +428,9 @@ namespace Kratos
         ElementName = std::string("ParticleContactElement");
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
         
-          //Here we are going to create contact elements when we are on a target particle and we see a neighbour whose id is higher than ours.
+          //Here we are going to create contact elements when we are on a target particle and we see a neighbor whose id is higher than ours.
           //We create also a pointer from the node to the element, after creating it.
-          //When our particle has a higher ID than the neighbour we also create a pointer to the (previously) created contact element.
+          //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
           //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
                      
         Properties::Pointer properties =  (*BaseType::mpContact_model_part).pGetProperties(0); //Needed for the creation. It is arbitrary since there are non meaningful properties in this application.
@@ -450,7 +452,7 @@ namespace Kratos
                        
             for ( unsigned int j=0; j<r_continuum_ini_neighbours.size(); j++ ) {
                 
-                if ( r_continuum_ini_neighbours[j] == NULL ) continue; //The initial neighbour was deleted at some point in time!!
+                if ( r_continuum_ini_neighbours[j] == NULL ) continue; //The initial neighbor was deleted at some point in time!!
                 
                 if ( mListOfSphericContinuumParticles[i]->Id() > r_continuum_ini_neighbours[j]->Id() ) continue;                                
 
@@ -484,7 +486,7 @@ namespace Kratos
 
             for ( unsigned int j = 0; j<r_continuum_ini_neighbours.size(); j++ ) {
                 
-                if ( r_continuum_ini_neighbours[j] == NULL ) continue; //The initial neighbour was deleted at some point in time!!
+                if ( r_continuum_ini_neighbours[j] == NULL ) continue; //The initial neighbor was deleted at some point in time!!
                 
                 if ( mListOfSphericContinuumParticles[i]->Id() < r_continuum_ini_neighbours[j]->Id() ) continue;
                 
@@ -493,7 +495,7 @@ namespace Kratos
                 for ( unsigned int k=0; k<r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements.size(); k++ ) {     
                     //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!! 
                     //In all functions using mBondElements we must check that this bond is not used.
-                    if( r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k] == NULL ) continue; //The initial neighbour was deleted at some point in time!!
+                    if( r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k] == NULL ) continue; //The initial neighbor was deleted at some point in time!!
                     
                     if( r_continuum_ini_neighbours[j]->mContinuumIniNeighbourElements[k]->Id() == mListOfSphericContinuumParticles[i]->Id() ) {
                         Particle_Contact_Element* bond = r_continuum_ini_neighbours[j]->mBondElements[k];
