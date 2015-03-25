@@ -88,12 +88,12 @@ namespace Kratos
             mContinuumIniNeighbourElements.clear(); ///////////////////////
                         
             size_t ini_size = 0;
-            size_t continuum_ini_size =0;
+            size_t continuum_ini_size = 0;
 
             //default
-            mFailureId=1;
+            mFailureId = 1;
 
-            size_t cont_ini_mapping_index= 0;
+            size_t cont_ini_mapping_index = 0;
             
             unsigned int neighbours_size = mNeighbourElements.size(); //////////////////////
             mIniNeighbourIds.resize(neighbours_size);
@@ -104,7 +104,7 @@ namespace Kratos
             
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
-        for( unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
             SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);    
 
             array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
@@ -173,7 +173,7 @@ namespace Kratos
   //**************************************************************************************************************************************************
 
 
-      void SphericContinuumParticle::CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo )
+      void SphericContinuumParticle::CreateContinuumConstitutiveLaws(ProcessInfo& rCurrentProcessInfo)
       {
           unsigned int cont_neigh_size = mContinuumIniNeighbourElements.size();
 
@@ -394,7 +394,7 @@ namespace Kratos
             double acumulated_damage = 0.0;
 
 
-            // Getting neighbour properties
+            // Getting neighbor properties
             double other_young = neighbour_iterator->GetYoung();
             double other_poisson = neighbour_iterator->GetPoisson();
             double other_ln_of_restit_coeff = neighbour_iterator->GetLnOfRestitCoeff();
@@ -828,7 +828,7 @@ namespace Kratos
     array_1d<double, 3> vector_of_zeros;
         vector_of_zeros[0] = vector_of_zeros[1] = vector_of_zeros[2] = 0.0;
     
-    unsigned int neighbour_counter       = 0; //Not increased at every iteration!! only if found as a real neighbour.
+    unsigned int neighbour_counter       = 0; //Not increased at every iteration!! only if found as a real neighbor.
 
     for (unsigned int i = 0; i < mTempNeighbourElements.size(); i++) {
       SphericParticle* i_neighbour = mTempNeighbourElements[i];
@@ -840,7 +840,7 @@ namespace Kratos
       double                mapping_new_ini     = -1;  
       double                mapping_new_cont    = -1;
 
-      //Loop Over Initial Neighbours        
+      //Loop Over Initial Neighbors        
         
             for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) {
                 if (static_cast<int> ((i_neighbour)->Id()) == mIniNeighbourIds[k]) {
@@ -852,7 +852,7 @@ namespace Kratos
         }
       }
                   
-      //Loop Over Last time-step Neighbours
+      //Loop Over Last time-step Neighbors
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((i_neighbour)->Id()) == mOldNeighbourIds[j]) {
             neigh_elastic_forces = mOldNeighbourElasticContactForces[j];
@@ -861,7 +861,7 @@ namespace Kratos
           }
       }
         
-        //Judge if its neighbour            
+        //Judge if its neighbor            
         double other_radius                 = i_neighbour->GetRadius();
         double radius_sum                   = mRadius + other_radius;
         array_1d<double,3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
@@ -1100,7 +1100,7 @@ namespace Kratos
             }
           }
           
-          //Judge if its neighbour                  
+          //Judge if its neighbor                  
           double indentation = -(DistPToB - mRadius) - ini_delta;                    
           
             if ( indentation > 0.0 ) {
@@ -1141,7 +1141,7 @@ namespace Kratos
 
             for (unsigned int i=0; i<r_continuum_ini_neighbours.size(); i++)
             {         
-                  if ( r_continuum_ini_neighbours[i] == NULL ) continue; //The initial neighbour was deleted at some point in time!!
+                  if ( r_continuum_ini_neighbours[i] == NULL ) continue; //The initial neighbor was deleted at some point in time!!
                   
                   Particle_Contact_Element* bond_i = mBondElements[i];
                   double other_partition_index = 0.0;
@@ -1165,7 +1165,7 @@ namespace Kratos
                       }                                              
                     } //both skin or both inner.
                     
-                    else if( !im_skin && neigh_is_skin ) {//we will store both the same only comming from the inner to the skin.                    
+                    else if( !im_skin && neigh_is_skin ) {//we will store both the same only coming from the inner to the skin.                    
                         if(!has_mpi){
                                 bond_i -> mLocalContactAreaHigh = mcont_ini_neigh_area[i];
                                 bond_i -> mLocalContactAreaLow = mcont_ini_neigh_area[i];                                                                
@@ -1297,7 +1297,7 @@ namespace Kratos
     {            
       
       
-    }//calculate Output vector.
+    }//calculate Output vector
       
 
          
@@ -1305,7 +1305,7 @@ namespace Kratos
     {
           //const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
 
-          if(mTriaxialOption && *mSkinSphere) //could be applified to selected particles.
+          if (mTriaxialOption && *mSkinSphere) //could be applied to selected particles.
           {
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);            
           }                     
@@ -1398,7 +1398,7 @@ namespace Kratos
                                                             const double &distance,
                                                             const double &radius_sum,
                                                             const double &calculation_area,
-                                                            //ParticleWeakIteratorType neighbour_iterator, 
+                                                            //ParticleWeakIteratorType neighbor_iterator, 
                                                             SphericParticle* neighbour_iterator, 
                                                             ProcessInfo& rCurrentProcessInfo, 
                                                             double &rRepresentative_Volume)
@@ -1487,7 +1487,7 @@ namespace Kratos
             
             mpCurrentTime =&(rCurrentProcessInfo[TIME]); 
                     
-        if(mDempack) {              
+        if (mDempack) {              
               
               mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
               mDempack_global_damping = rCurrentProcessInfo[DEMPACK_GLOBAL_DAMPING];
@@ -1514,7 +1514,7 @@ namespace Kratos
             
             mStressStrainOption            = rCurrentProcessInfo[STRESS_STRAIN_OPTION];
 
-        if (mTriaxialOption ) {
+        if (mTriaxialOption) {
                 mFinalPressureTime      = 0.01*rCurrentProcessInfo[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
             }
 
@@ -1534,7 +1534,7 @@ namespace Kratos
             
             //nonlinear parameters:
             
-        if(mElasticityType == 2) {              
+        if (mElasticityType == 2) {              
                 mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
                 mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
                 mN3 = rCurrentProcessInfo[SLOPE_FRACTION_N3];
@@ -1560,11 +1560,11 @@ namespace Kratos
 
 //NOTE::
 /*
- * #1: Here, Initial_delta is expected to be positive if it is embeding and negative if there's a separation.
+ * #1: Here, Initial_delta is expected to be positive if it is embedding and negative if there's a separation.
  * #2: 0.25 is because we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
  * #3: For detached particles we enter only if the indentation is > 0. For attached particles we enter only if the particle is still attached.
  * #4: we use incremental calculation. YADE develops a complicated "absolute method"
- * #5: We only store in the initial neighbours array the ones that are cohesive or the ones that have possitive or negative initial indentation. In other words,
+ * #5: We only store in the initial neighbors array the ones that are cohesive or the ones that have positive or negative initial indentation. In other words,
  *     the non-cohesive ones with 0 indentation (<some tolerance) don't have to be stored since we can treat it indistinctly from other new neighbours that the particle in stury would meet.
 */
 
