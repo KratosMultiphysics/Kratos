@@ -4,6 +4,7 @@ import os
 from KratosMultiphysics import *
 
 def Norm(v):
+    
     res = 0.0
 
     for x in v:
@@ -20,9 +21,11 @@ def Normalize(v):
     return [x * c for x in v]
 
 def Cross(v, w):
+    
     v_x_w = [v[1] * w[2] - v[2] * w[1],
              v[2] * w[0] - v[0] * w[2],
              v[0] * w[1] - v[1] * w[0]]
+    
     return v_x_w
 
 def RotateRightHandedBasisAroundAxis(e1, e2, axis, ang):
@@ -41,30 +44,28 @@ def RotateRightHandedBasisAroundAxis(e1, e2, axis, ang):
     new_axes2[2] = axis[2] * (axis[0] * e2[0] + axis[1] * e2[1] + axis[2] * e2[2]) * (1 - cang) + e2[2] * cang + (- axis[1] * e2[0] + axis[0] * e2[1]) * sang    
 
     new_axes3    = Vector(3)
-    new_axes3 = Cross(new_axes1, new_axes2)
+    new_axes3    = Cross(new_axes1, new_axes2)
 
     return [new_axes1, new_axes2, new_axes3]
-
 
 def MoveAllMeshes(model_part, time):
 
     if model_part.NumberOfMeshes() > 1:
 
         for mesh_number in range(1, model_part.NumberOfMeshes()):
-            mesh_nodes       = model_part.GetMesh(mesh_number).Nodes
+            mesh_nodes         = model_part.GetMesh(mesh_number).Nodes
             # print model_part.Properties[mesh_number]
-            linear_velocity  = model_part.GetMesh(mesh_number)[VELOCITY]
-            linear_period    = model_part.GetMesh(mesh_number)[VELOCITY_PERIOD]
-            angular_velocity = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY]
-            angular_period   = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_PERIOD]
-            initial_center   = model_part.GetMesh(mesh_number)[ROTATION_CENTER]
+            linear_velocity    = model_part.GetMesh(mesh_number)[VELOCITY]
+            linear_period      = model_part.GetMesh(mesh_number)[VELOCITY_PERIOD]
+            angular_velocity   = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY]
+            angular_period     = model_part.GetMesh(mesh_number)[ANGULAR_VELOCITY_PERIOD]
+            initial_center     = model_part.GetMesh(mesh_number)[ROTATION_CENTER]
             
-            center_position = Vector(3)
+            center_position    = Vector(3)
             center_position[0] = 0.0
             center_position[1] = 0.0
             center_position[2] = 0.0 
             
-
             if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
                 inv_linear_omega = 1/linear_omega
@@ -84,10 +85,9 @@ def MoveAllMeshes(model_part, time):
             else:
                 angle = angular_velocity * time
                 angular_velocity_changed = angular_velocity
-                
-                
+                            
             mod_angular_velocity = Norm(angular_velocity)
-            relative_position = Vector(3)
+            relative_position    = Vector(3)
             relative_position[0] = 0.0
             relative_position[1] = 0.0
             relative_position[2] = 0.0                                    
@@ -108,17 +108,17 @@ def MoveAllMeshes(model_part, time):
                 [new_axes1, new_axes2, new_axes3] = RotateRightHandedBasisAroundAxis(e1, e2, rotation_axis, ang)  
                 
             else:
-                new_axes1 = Vector(3)
+                new_axes1    = Vector(3)
                 new_axes1[0] = 1.0
                 new_axes1[1] = 0.0
                 new_axes1[2] = 0.0
                 
-                new_axes2 = Vector(3)
+                new_axes2    = Vector(3)
                 new_axes2[0] = 0.0
                 new_axes2[1] = 1.0
                 new_axes2[2] = 0.0
                 
-                new_axes3 = Vector(3)
+                new_axes3    = Vector(3)
                 new_axes3[0] = 0.0
                 new_axes3[1] = 0.0
                 new_axes3[2] = 1.0
@@ -143,6 +143,7 @@ def MoveAllMeshes(model_part, time):
                     displacement[2] = node.Z - node.Z0
                     
                     velocity_due_to_rotation = Cross(angular_velocity_changed , relative_position)
+                    
                     # NEW VELOCITY                    
                     vel = Vector(3)
                     vel[0] = linear_velocity_changed[0] + velocity_due_to_rotation[0]
@@ -150,10 +151,8 @@ def MoveAllMeshes(model_part, time):
                     vel[2] = linear_velocity_changed[2] + velocity_due_to_rotation[2]
                     
                     #The next line only works for Vector(3) or Arrays, not for the lists we are working with here!!
+                    
                     #update VELOCITY
                     node.SetSolutionStepValue(VELOCITY, vel)
                     #update DISPLACEMENT
                     node.SetSolutionStepValue(DISPLACEMENT, displacement)
-            
-                    
-
