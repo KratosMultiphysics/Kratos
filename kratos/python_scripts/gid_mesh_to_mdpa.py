@@ -20,6 +20,27 @@ class GidMeshConverter:
         self.TriangleIds = []
         self.TriangleConnectivity = []
         
+    def ReadAndWriteResult(self,resfile,varname):
+        tmp = open( resfile)
+        
+        for line in tmp:
+                if line.find(varname) != -1:
+                    ids,values = self.ReadResult(tmp,varname)
+                                       
+                    self.out_file.write("Begin NodalData "+varname+"\n")
+                    
+                    for i in range(0,len(ids) ):
+                        self.out_file.write( str(ids[i]) + " 0 " + str(values[i]) + "\n" )
+                    
+                    self.out_file.write("End NodalData \n")
+        
+                    break
+        
+        
+                    
+        
+        tmp.close()
+        
     def Read(self):
         if self.input_file:
             for line in self.input_file:
@@ -47,7 +68,27 @@ class GidMeshConverter:
             else:
                 break
         print("read ",counter, " Nodes in total")
-                   
+ 
+    def ReadResult(self,inputfile,varname):
+        counter = 0
+        ids = []
+        values = []
+        for line in inputfile:
+            if line.find("End") == -1:
+                if line.find("Values") == -1:
+                    counter += 1
+                    words = self.ReadWords(line)
+                    ids.append( int(words[0]) )
+                    values.append( float(words[1]))
+                else:
+                    pass
+            else:
+                break
+            
+        print("read ",counter, " values in total")
+        
+        return ids,values
+        
     def ReadElements(self):
         tetra_counter = 0
         tri_counter = 0
@@ -80,7 +121,7 @@ class GidMeshConverter:
         
         for i in range(0,len(self.NodeIds) ):
             coords = self.coordinates[i]
-            self.out_file.write( str(self.NodeIds[i]) + " " + str(coords[0]) + " " + str(coords[1]) + " " + str(coords[2]) + "\n" )
+            self.out_file.write( str(self.NodeIds[i]) + " " + str(float(coords[0])) + " " + str(float(coords[1])) + " " + str(float(coords[2])) + "\n" )
         
         self.out_file.write("End Nodes\n")
         
