@@ -279,6 +279,65 @@ namespace Kratos
 	};
 	
 	
+	class AddWaterFixedVelocityCondition2D
+	{
+	public:
+	
+		KRATOS_CLASS_POINTER_DEFINITION(AddWaterFixedVelocityCondition2D);
+
+		AddWaterFixedVelocityCondition2D(ModelPart& model_part)
+			: mr_model_part(model_part) 
+		{
+			KRATOS_TRY	
+			std::cout << "Hello, I am the constructor of the Water Fixed Velocity 2d Utility" << std::endl;
+			KRATOS_CATCH("")	
+		}
+		
+
+		~AddWaterFixedVelocityCondition2D()
+		{}
+
+		
+		void AddThem() 
+		{
+			KRATOS_TRY
+			
+			unsigned int condition_number=1;
+			if(mr_model_part.Conditions().size()!=0)
+			{
+				ModelPart::ConditionsContainerType::iterator lastcondition = (mr_model_part.ConditionsEnd()-1);
+				condition_number += lastcondition->Id();
+			}
+			
+			//Condition const& rReferenceCondition = FixedVelocity2D();         //condition type
+			//getting data for the given geometry
+			for(ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); 
+				inode!=mr_model_part.NodesEnd(); inode++)
+			{
+				if ((inode->IsFixed(WATER_VELOCITY_X)) || (inode->IsFixed(WATER_VELOCITY_Y)) || (inode->IsFixed(WATER_VELOCITY_Z)) )
+				{
+					Condition const& rReferenceCondition = KratosComponents<Condition>::Get("WaterFixedVelocity2D");         //condition type
+					Point2D<Node<3> > geometry(Node<3>::Pointer( *inode.base() ));//mr_model_part.Nodes().(inode->Id()));//Node<3>::Pointer( *inode.base() ));
+					Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(0); 		//this will allow us later to turn this layer on/off in GID
+					Condition::Pointer p_condition = rReferenceCondition.Create(condition_number, geometry, properties); 
+					mr_model_part.Conditions().push_back(p_condition);
+					++condition_number;
+				}
+			}
+			std::cout << "Finished adding conditions on fixed velocity boundaries" << condition_number << std::endl;
+			
+			
+			KRATOS_CATCH("")
+		} 
+		
+		
+	protected:
+
+
+	private:
+		ModelPart& mr_model_part;
+
+	};
 	
 
 }  // namespace Kratos.
