@@ -15,6 +15,7 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_phase_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/water_fixed_velocity_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_3fluid_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_3fluid_3d.cpp
