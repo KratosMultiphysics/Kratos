@@ -379,8 +379,12 @@ namespace Kratos
 					mixed_Laplacian(0,j) -= DN_DX(j,0)*(gauss_gradients[i](0,0)*volumes(i)*laplacian_coeffs(i))+ DN_DX(j,1)*(gauss_gradients[i](0,1)*volumes(i)*laplacian_coeffs(i));
 					//and also the D matrixes
 
-					D_matrix_mixed(0,j*2) -= gauss_gradients[i](0,0) *volumes(i)*Ngauss(i,j);
-					D_matrix_mixed(0,j*2+1) -= gauss_gradients[i](0,1) *volumes(i)*Ngauss(i,j);
+					//D_matrix_mixed(0,j*2) -= gauss_gradients[i](0,0) *volumes(i)*Ngauss(i,j); //integrated by parts!
+					//D_matrix_mixed(0,j*2+1) -= gauss_gradients[i](0,1) *volumes(i)*Ngauss(i,j);
+					D_matrix_mixed(0,j*2) += DN_DX(j,0) * volumes(i) * Nenriched(i,0); //D matrix
+					D_matrix_mixed(0,j*2+1) += DN_DX(j,1) * volumes(i) * Nenriched(i,0); //D matrix
+					
+					
 				}
 				
 				
@@ -441,7 +445,7 @@ namespace Kratos
 				if ((geom[0].FastGetSolutionStepValue(DISTANCE)+geom[1].FastGetSolutionStepValue(DISTANCE)+geom[2].FastGetSolutionStepValue(DISTANCE))>0.0) //that is, there is  NO solid inside this element
 					laplacian_coefficient = delta_t/rCurrentProcessInfo[DENSITY_WATER];
 				else //the water is flowing through a porous media.
-					laplacian_coefficient = 1.0/(rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+(darcy_coeff+nonlin_darcy_coeff)));
+					laplacian_coefficient = 1.0/(rCurrentProcessInfo[DENSITY_WATER]*(1.0/delta_t+(darcy_coeff+nonlin_darcy_coeff*mean_vel)));
 			}
 			else
 			{
@@ -605,7 +609,10 @@ namespace Kratos
 							ndivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched); //, face_gauss_N, face_gauss_Nenriched, face_Area, face_n  ,single_triangle_node);
 
 						if ((geom[0].FastGetSolutionStepValue(DISTANCE)+geom[1].FastGetSolutionStepValue(DISTANCE)+geom[2].FastGetSolutionStepValue(DISTANCE))>0.0) //that is, there is  NO solid inside this element
+						{
+							nonlin_darcy_coeff=0.0;
 							darcy_coeff=0.0;
+						}
 						for (unsigned int i = 0; i < ndivisions; i++)
 						{
 							//in case we've changed the distance function inside the enrichmentutility:
@@ -882,7 +889,10 @@ namespace Kratos
 
 						//in case we've changed the distance function:
 						if ((geom[0].FastGetSolutionStepValue(DISTANCE)+geom[1].FastGetSolutionStepValue(DISTANCE)+geom[2].FastGetSolutionStepValue(DISTANCE))>0.0) //that is, there is  NO solid inside this element
+						{
 						   darcy_coeff=0.0;
+						   nonlin_darcy_coeff=0.0;
+					   }
 						for (unsigned int i = 0; i < ndivisions; i++)
 						{
 							//geom[i].FastGetSolutionStepValue(DISTANCE)=distances[i];
