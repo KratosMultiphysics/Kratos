@@ -102,7 +102,7 @@ class ListFilesUtility:
                 for lfile in range(0, num_list_files):
                     if(self.file_list[lfile] == self.listprint[lfile]):
 
-                        problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
+                        problempath = os.path.join(self.problem_path, "_List_" + str(self.file_list[lfile]) + "_" + self.problem_name + ".post.lst")
 
                         if(self.FileExists(problempath) == False):
                             self.header_in_list[lfile]
@@ -150,7 +150,7 @@ class ListFilesUtility:
                 for lfile in range(0, num_list_files):
 
                     if(self.file_list[lfile] == self.listprint[lfile]):
-                        problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
+                        problempath = os.path.join(self.problem_path, "_List_" + str(self.file_list[lfile]) + "_" + self.problem_name + ".post.lst")
                         listfile = open(problempath, "a")
 
                         if(self.header_in_list[lfile]):
