@@ -358,7 +358,7 @@ void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy)
         double radius_sum                   = mRadius + other_radius;
         double radius_sum_i                 = 1.0 / radius_sum;
         double equiv_radius                 = 2.0 * mRadius * other_radius * radius_sum_i;
-        double equiv_area                   = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+        double equiv_area                   = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
         double equiv_young;
         double equiv_poisson;
         double kn;
@@ -561,9 +561,9 @@ void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
                                                 const array_1d<double, 3>& ang_vel,
                                                 SphericParticle* p_neighbour)
 {
-    double velA[3]                    = {0.0};
-    double velB[3]                    = {0.0};
-    double dRotaDisp[3]               = {0.0};
+    double velA[3]      = {0.0};
+    double velB[3]      = {0.0};
+    double dRotaDisp[3] = {0.0};
     const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
 
     GeometryFunctions::CrossProduct(      ang_vel, OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD.
@@ -1362,13 +1362,13 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     mDampType                                    = r_process_info[DAMP_TYPE];
     mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];
     mSearchControl                               = r_process_info[SEARCH_CONTROL];
-    if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION,true);
-    else                                         this->Set(DEMFlags::HAS_ROTATION,false);
-    if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION,true);
-    else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION,false);
-    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME,true);
-    else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME,false);
-                                                 this->Set(DEMFlags::HAS_ROTATION_SPRING,false);
+    if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION, true);
+    else                                         this->Set(DEMFlags::HAS_ROTATION, false);
+    if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
+    else                                         this->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
+    if (r_process_info[CRITICAL_TIME_OPTION])    this->Set(DEMFlags::HAS_CRITICAL_TIME, true);
+    else                                         this->Set(DEMFlags::HAS_CRITICAL_TIME, false);
+                                                 this->Set(DEMFlags::HAS_ROTATION_SPRING, false);
 
     AdditionalMemberDeclarationFirstStep(r_process_info);
     
