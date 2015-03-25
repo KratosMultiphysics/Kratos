@@ -168,7 +168,7 @@ namespace Kratos
 				ielem->SetId(ii+1);
 			}
 			mlast_elem_id= (mr_model_part.ElementsEnd()-1)->Id();
-            	
+            int node_id=0;	
             // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
@@ -188,7 +188,10 @@ namespace Kratos
 						distance=current_distance;
 				}
 				pnode->FastGetSolutionStepValue(MEAN_SIZE)=distance;
+				
+				node_id=pnode->GetId();
 			}
+			mlast_node_id=node_id;
 			
 			//we also calculate the element mean size in the same way for the courant number
 			//also we set the right size to the LHS vector
@@ -2439,7 +2442,103 @@ namespace Kratos
 
 		}
 		
-		
+		void ExecuteParticlesPritingToolForDroppletsOnly( ModelPart& lagrangian_model_part, int input_filter_factor ) 
+		{
+			KRATOS_TRY
+			//mfilter_factor; //we will only print one out of every "filter_factor" particles of the total particle list
+			const int first_particle_id=5000000;
+			if(mparticle_printing_tool_initialized==false)
+			{
+				mfilter_factor=input_filter_factor;
+				
+				if(lagrangian_model_part.NodesBegin()-lagrangian_model_part.NodesEnd()>0)
+					KRATOS_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
+				
+				lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY);
+				lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+				lagrangian_model_part.AddNodalSolutionStepVariable(DISTANCE);
+				
+				for (unsigned int i=0; i!=((mmaximum_number_of_particles*mnelems)/mfilter_factor)+mfilter_factor; i++)
+				{
+					Node < 3 > ::Pointer pnode = lagrangian_model_part.CreateNewNode( i+first_particle_id+1 , 0.0, 0.0, 0.0);  //recordar que es el nueevo model part!!
+					//pnode->SetBufferSize(mr_model_part.NodesBegin()->GetBufferSize());
+					pnode->SetBufferSize(1);
+				}
+				mparticle_printing_tool_initialized=true;
+			}
+			
+			//resetting data of the unused particles
+			const double inactive_particle_position= -10.0;
+			array_1d<double,3>inactive_particle_position_vector;
+			inactive_particle_position_vector(0)=inactive_particle_position;
+			inactive_particle_position_vector(1)=inactive_particle_position;
+			inactive_particle_position_vector(2)=inactive_particle_position;
+			ModelPart::NodesContainerType::iterator inodebegin = lagrangian_model_part.NodesBegin();
+			for(unsigned int ii=0; ii<lagrangian_model_part.Nodes().size(); ii++)
+			{
+				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
+				inode->FastGetSolutionStepValue(DISTANCE) = 0.0;
+				inode->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
+				inode->FastGetSolutionStepValue(DISPLACEMENT) = inactive_particle_position_vector;
+			}
+			const int max_number_of_printed_particles=lagrangian_model_part.Nodes().size();
+			
+			
+			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
+																				//(flag managed only by MoveParticlesDiff
+			KRATOS_WATCH(offset)
+			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
+			
+			int counter=0;
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			{
+				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
+				Element::Pointer pelement(*ielem.base());
+				Geometry<Node<3> >& geom = ielem->GetGeometry(); 
+				//double mean_elem_dist=0.0;
+				bool pure_air_elem=true;
+				for(unsigned int j=0; j<(TDim+1); j++)
+				{
+					if (geom[j].FastGetSolutionStepValue(DISTANCE)<0.0)
+						pure_air_elem=false;
+					//mean_elem_dist += geom[j].FastGetSolutionStepValue(DISTANCE);
+				}
+				//if (mean_elem_dist>0.0) //only air elements
+				if (pure_air_elem==true)
+				{	
+					ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
+					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
+					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
+					
+					for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					{
+						//KRATOS_WATCH(iii)
+						if (iii>mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
+							break; 
+
+						PFEM_Particle_Fluid & pparticle = element_particle_pointers[offset+iii];
+						
+						
+						bool erase_flag= pparticle.GetEraseFlag();
+						if (erase_flag==false && pparticle.GetDistance()<0.0)
+						{
+							ModelPart::NodesContainerType::iterator inode = inodebegin+counter; //copying info from the particle to the (printing) node.
+							inode->FastGetSolutionStepValue(DISTANCE) = pparticle.GetDistance();
+							inode->FastGetSolutionStepValue(VELOCITY) = pparticle.GetVelocity();
+							inode->FastGetSolutionStepValue(DISPLACEMENT) = pparticle.Coordinates();
+							counter++;
+						}
+					}
+				}
+				
+				if (counter>(max_number_of_printed_particles-30)) //we are approaching the end of the model part. so we stop before it's too late
+					break;
+			}
+			
+			KRATOS_CATCH("")
+
+		}
 					
 
 	protected:
