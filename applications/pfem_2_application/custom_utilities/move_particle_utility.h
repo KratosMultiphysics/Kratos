@@ -266,7 +266,8 @@ namespace Kratos
 					particle_pointers.push_back(&firstparticle);
 				int & number_of_particles = ielem->GetValue(NUMBER_OF_PARTICLES);
 				int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
-				
+				number_of_particles=0;
+				number_of_water_particles=0;
 				Geometry< Node<3> >& geom = ielem->GetGeometry();
 				//unsigned int elem_id = ielem->Id();
 				//mareas_vector[i_int]=CalculateArea(geom); UNUSED SO COMMENTED 
