@@ -327,7 +327,7 @@ namespace Kratos
 					rhs_stab[j] += node_press_proj(j)*one_third;
 			}
 			
-			const bool use_press_proj=false;
+			const bool use_press_proj=true;
 			for (unsigned int i = 0; i < TNumNodes; i++)
 			{
 				array_1d<double,3>& body_force = GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
