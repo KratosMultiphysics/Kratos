@@ -18,8 +18,10 @@
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
 #include "external_includes/tetgen_pfem_refine.h"
+#include "external_includes/tetgen_pfem_refine_vms.h"
 #include "external_includes/tetgen_pfem_refine_face.h"
 #include "external_includes/trigen_pfem_refine.h"
+#include "external_includes/trigen_pfem_refine_vms.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
 #include "external_includes/tetgen_pfem_contact.h"
 #include "external_includes/tetgen_cdt.h"
@@ -84,6 +86,23 @@ void TetRegenerateMeshContact(TetGenPfemContact& Mesher, char* ElementName, char
                           KratosComponents<Condition>::Get(ConditionName)
                          );
 }
+///////////////////////////////////////////////////////////////////////////////////////////
+//											//
+//				VMS Mesher			                        //
+//											//
+//////////////////////////////////////////////////////////////////////////////////////////
+
+//tetgen pfem refine
+void TetRegenerateMeshVMS(TetGenPfemModelerVms& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
+{
+    Mesher.ReGenerateMesh(model_part,
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
+
+
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
@@ -158,7 +177,19 @@ void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* Element
                           KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+//											//
+//				VMS 2D Mesher			                        //
+//											//
+//////////////////////////////////////////////////////////////////////////////////////////
 
+//trigen pfem vms refine
+void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+{
+    Mesher.ReGenerateMesh(model_part,
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
+}
 
 
 
@@ -187,6 +218,11 @@ void  AddMeshersToPython()
                                init< >())
     .def("GenerateCDT",GenerateCDT)
     ;
+
+    class_<TetGenPfemModelerVms >("TetGenPfemModelerVms",
+                                  init< >())
+    .def("ReGenerateMesh",&TetGenPfemModelerVms::ReGenerateMesh)
+    ;
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
     class_<TriGenPFEMModeler >("TriGenPFEMModeler",
@@ -195,6 +231,9 @@ void  AddMeshersToPython()
     .def("ReGenerateMesh",&TriGenPFEMModeler::ReGenerateMesh)
     ;
 
+    class_<TriGenPFEMModelerVMS>("TriGenPFEMModelerVMS",
+                                 init< >())
+            .def("ReGenerateMesh",&TriGenPFEMModelerVMS::ReGenerateMesh);
     /*
      class_<TriGenModeler >("TriGenModeler",
     	 init< >())
