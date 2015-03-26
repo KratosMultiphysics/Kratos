@@ -806,9 +806,6 @@ public:
            
             int j=(i+1)%size;
             
-            double length_projection_1  = 0.0;
-            double length_projection_2  = 0.0;
-            
             for (int k=0;k<3;k++)
             {
                 base[i][k] = (Coord[j][k] - Coord[i][k]); 
@@ -820,30 +817,27 @@ public:
             diag_back  = dist[i];
             diag_front = dist[j];
             
-            TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
+            double a2  =  dist_sq[i];
+            double b2  =  base_sq;
+            double c2  =  dist_sq[i];
             
-            dist_sq[i+size] = tau_sq/base_sq; 
             
-            if ( dist_sq[i+size] <= particle_radius_sq )
-            {
+            if ( (a2 <= b2 + c2) || (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
                 
-                for (int k=0;k<3;k++)
-                {
-            
-                    length_projection_1 += base[i][k]*NodeToP[i][k];
-                    length_projection_2 += -base[i][k]*NodeToP[j][k]; // -base[i][k] == base[j][k]
-                }
+                TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
                 
-                if( (length_projection_1) >= 0.0 && (length_projection_2 >=0.0))
+                dist_sq[i+size] = tau_sq/base_sq; 
+                
+                if ( dist_sq[i+size] <= particle_radius_sq )
                 {
+                   
                     //ContactType=2;
                     return true;
+                    
                 }
-                                    
-                length_projection_1 = 0.0;
-                length_projection_2 = 0.0;
-                
+            
             }
+            
         }//for each edge starting at node i going to j
         
         return false;
