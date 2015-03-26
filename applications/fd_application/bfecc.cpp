@@ -19,6 +19,7 @@
 // Solver
 #include "defines.h"
 #include "stencils.h"
+#include "file_io.h"
 // #include "simd.h"
 // #include "hacks.h"
 
@@ -313,71 +314,6 @@ void difussion(T * &gridA, T * &gridB,
   }
 }
 
-template <typename T>
-void WriteGidMesh(T * grid, 
-    const uint &X, const uint &Y, const uint &Z,
-    const char * fileName) {
-
-  std::ofstream outputFile(fileName);
-
-  outputFile << "MESH \"Grid\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
-  outputFile << "# color 96 96 96" << std::endl;
-  outputFile << "Coordinates" << std::endl;
-  outputFile << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
-
-  for(uint k = 0; k < Z + BW; k++) {
-    for(uint j = 0; j < Y + BW; j++) {
-      uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
-      for(uint i = 0; i < X + BW; i++) {
-        outputFile << cell++ << "  " << i << "  " << j << "  " << k << std::endl;
-      }
-    }
-  }
-
-  outputFile << "end coordinates" << std::endl;
-  outputFile << "Elements" << std::endl;
-  outputFile << "# Element node_1 node_2 node_3 node_4 node_5 node_6 node_7 node_8" << std::endl;
-
-  for(uint k = BWP; k < Z + BWP-1; k++) {
-    for(uint j = BWP; j < Y + BWP-1; j++) {
-      uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
-      for(uint i = BWP; i < X + BWP; i++) {
-        outputFile << cell++ << " ";
-
-        outputFile << cell                        << " " << cell+1                    << "  ";
-        outputFile << cell+1+(Y+BW)               << " " << cell+(Y+BW)               << "  ";
-        outputFile << cell+(Z+BW)*(Y+BW)          << " " << cell+1+(Z+BW)*(Y+BW)      << "  ";
-        outputFile << cell+1+(Z+BW)*(Y+BW)+(Y+BW) << " " << cell+(Z+BW)*(Y+BW)+(Y+BW) << "  ";
-
-        outputFile << std::endl;
-      }
-    }
-  }
-
-  outputFile << "end Elements" << std::endl;
-}
-
-template <typename T>
-void WriteGidResults(T * grid, 
-    const uint &X, const uint &Y, const uint &Z,
-    std::ofstream& results,
-    int step) {
-
-  results << "Result \"Temperature\" \"Kratos\" " << step << " Scalar OnNodes" << std::endl;
-  results << "Values" << std::endl;
-
-  for(uint k = 0; k < Z + BW; k++) {
-    for(uint j = 0; j < Y + BW; j++) {
-      uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
-      for(uint i = 0; i < X + BW; i++) {
-        results << cell << "  " << grid[cell-1] << std::endl; cell++;
-      }
-    }
-  }
-
-  results << "End Values" << std::endl;
-}
-
 int main(int argc, char *argv[]) {
 
   N  = atoi(argv[1]);
@@ -385,8 +321,10 @@ int main(int argc, char *argv[]) {
   h = 1;
   dx = h/N;
 
-  double * step0 = NULL;
-  double * step1 = NULL;
+  FileIO<PrecisionType> io;
+
+  PrecisionType * step0 = NULL;
+  PrecisionType * step1 = NULL;
 
   Triple * velf0 = NULL;
   Triple * velf1 = NULL;
@@ -423,12 +361,12 @@ int main(int argc, char *argv[]) {
   std::ofstream results(name_post.str().c_str());
   results << "GiD Post Results File 1.0" << std::endl << std::endl;
 
-  WriteGidMesh(step0,N,N,N,name_mesh.str().c_str());
+  io.WriteGidMesh(step0,N,N,N,name_mesh.str().c_str());
   printf("Begin...\n");
   for(int i = 0; i < steeps; i++) {
       advection(step0,step1,velf0,velf1,form0,N,N,N);
           
-      WriteGidResults(step0,N,N,N,results,i);
+      io.WriteGidResults(step0,N,N,N,results,i);
       //difussion(step1,step2,N,N,N);
       //std::swap(step0,step1);
   }
