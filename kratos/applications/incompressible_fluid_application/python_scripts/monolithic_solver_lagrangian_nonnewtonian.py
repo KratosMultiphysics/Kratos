@@ -35,8 +35,10 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(NODAL_H)
+    model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(ADVPROJ)
     model_part.AddNodalSolutionStepVariable(DIVPROJ)
+    model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(THAWONE)
     model_part.AddNodalSolutionStepVariable(THAWTWO)
     model_part.AddNodalSolutionStepVariable(REACTION)
@@ -122,7 +124,7 @@ class MonolithicSolver:
 # self.Mesher = TetGenPfemRefineFace()
             self.neigh_finder = FindNodalNeighboursProcess(model_part, 20, 30)
 
-        self.alpha_shape = 1.4
+        self.alpha_shape = 1.6
         self.h_factor = 0.4
 # self.h_factor = 0.7
         # detecting free_surface to all nodes
