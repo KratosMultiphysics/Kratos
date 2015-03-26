@@ -31,6 +31,7 @@ message("MESHLESS_APPLICATION.................${MESHLESS_APPLICATION}")
 message("WIND_TURBINE_APPLICATION ........... ${WIND_TURBINE_APPLICATION}")
 message("CLICK2CAST_APPLICATION ........... ${CLICK2CAST_APPLICATION}")
 message("MULTISCALE_APPLICATION ........... ${MULTISCALE_APPLICATION}")
+message("PFEM_FLUID_DYNAMIC_APPLICATION......${PFEM_FLUID_DYNAMIC_APPLICATION}")
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -166,6 +167,10 @@ endif(${MULTISCALE_APPLICATION} MATCHES ON)
 if(${NURBS_APPLICATION} MATCHES ON)
   add_subdirectory(nurbs_application)
 endif(${NURBS_APPLICATION} MATCHES ON)
+
+if(${PFEM_FLUID_DYNAMIC_APPLICATION} MATCHES ON)
+   add_subdirectory(pfem_fluid_dynamic_application)
+endif(${PFEM_FLUID_DYNAMIC_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
