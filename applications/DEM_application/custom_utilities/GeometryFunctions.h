@@ -686,7 +686,7 @@ namespace Kratos
          Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
          Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
          Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
-         normalize(Vector2);
+         //normalize(Vector2);//useess
 
          CrossProduct(Vector1, Vector2, Vector3); 
          normalize(Vector3);
