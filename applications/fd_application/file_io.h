@@ -4,11 +4,61 @@
 
 template <typename T>
 class FileIO {
+private:
+
+    std::stringstream name_mesh;
+    std::stringstream name_post;
+
+    std::ofstream * mesh_file;
+    std::ofstream * post_file;
+
+    /**
+     * Sets the name for the mesh file
+     * @name:     name of the mesh
+     **/
+    void SetMeshName(const char * mesh, const uint &N) {
+
+      name_mesh << mesh << N << ".post.msh";
+    }
+
+    /**
+     * Sets the name for the mesh file
+     * @name:     name of the mesh
+     **/
+    void setPostName(const char * post, const uint &N) {
+
+      name_post << post << N << ".post.res";
+    }
+
+    /**
+     * Initial formating for the post file
+     **/
+    void PreparePostFile() {
+      (*post_file) << "GiD Post Results File 1.0" << std::endl << std::endl;
+    }
+
 public:
 
     // Creator & destructor
-    FileIO(){};
-    ~FileIO(){};
+    FileIO(const char * name, const uint &N) {
+
+      SetMeshName(name,N);
+      setPostName(name,N);
+
+      mesh_file = new std::ofstream(name_mesh.str().c_str());
+      post_file = new std::ofstream(name_post.str().c_str());
+
+      PreparePostFile();
+    };
+
+    ~FileIO() {
+
+      mesh_file->close();
+      post_file->close();
+
+      delete mesh_file;
+      delete post_file;
+    };
 
     /**
      * Writes the mesh in raw format and wipes previous content in the file.
@@ -24,9 +74,6 @@ public:
 
       std::ofstream outputFile(fileName);
 
-      outputFile << std::fixed;
-      outputFile << std::setprecision(2);
-
       for(uint k = 0; k < Z + BW; k++) {
         for(uint j = 0; j < Y + BW; j++) {
           for(uint i = 0; i < X + BW; i++) {
@@ -37,7 +84,6 @@ public:
         outputFile << std::endl;
       }
       outputFile << "%" << std::endl;
-      
     }
 
     /**
@@ -67,7 +113,6 @@ public:
         outputFile << std::endl;
       }
       outputFile << "%" << std::endl;
-      
     }
 
     /**
@@ -76,49 +121,45 @@ public:
      * @X:        X-Size of the grid
      * @Y:        Y-Size of the grid
      * @Z:        Z-Size of the grid
-     * @fileName: Name of the output file
      **/
     void WriteGidMesh(T * grid, 
-        const uint &X, const uint &Y, const uint &Z,
-        const char * fileName) {
+        const uint &X, const uint &Y, const uint &Z) {
 
-      std::ofstream outputFile(fileName);
-
-      outputFile << "MESH \"Grid\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
-      outputFile << "# color 96 96 96" << std::endl;
-      outputFile << "Coordinates" << std::endl;
-      outputFile << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
+      (*mesh_file) << "MESH \"Grid\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
+      (*mesh_file) << "# color 96 96 96" << std::endl;
+      (*mesh_file) << "Coordinates" << std::endl;
+      (*mesh_file) << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
 
       for(uint k = 0; k < Z + BW; k++) {
         for(uint j = 0; j < Y + BW; j++) {
           uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
           for(uint i = 0; i < X + BW; i++) {
-            outputFile << cell++ << "  " << i << "  " << j << "  " << k << std::endl;
+            (*mesh_file) << cell++ << "  " << i << "  " << j << "  " << k << std::endl;
           }
         }
       }
 
-      outputFile << "end coordinates" << std::endl;
-      outputFile << "Elements" << std::endl;
-      outputFile << "# Element node_1 node_2 node_3 node_4 node_5 node_6 node_7 node_8" << std::endl;
+      (*mesh_file) << "end coordinates" << std::endl;
+      (*mesh_file) << "Elements" << std::endl;
+      (*mesh_file) << "# Element node_1 node_2 node_3 node_4 node_5 node_6 node_7 node_8" << std::endl;
 
       for(uint k = BWP; k < Z + BWP-1; k++) {
         for(uint j = BWP; j < Y + BWP-1; j++) {
           uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
           for(uint i = BWP; i < X + BWP; i++) {
-            outputFile << cell++ << " ";
+            (*mesh_file) << cell++ << " ";
 
-            outputFile << cell                        << " " << cell+1                    << "  ";
-            outputFile << cell+1+(Y+BW)               << " " << cell+(Y+BW)               << "  ";
-            outputFile << cell+(Z+BW)*(Y+BW)          << " " << cell+1+(Z+BW)*(Y+BW)      << "  ";
-            outputFile << cell+1+(Z+BW)*(Y+BW)+(Y+BW) << " " << cell+(Z+BW)*(Y+BW)+(Y+BW) << "  ";
+            (*mesh_file) << cell                        << " " << cell+1                    << "  ";
+            (*mesh_file) << cell+1+(Y+BW)               << " " << cell+(Y+BW)               << "  ";
+            (*mesh_file) << cell+(Z+BW)*(Y+BW)          << " " << cell+1+(Z+BW)*(Y+BW)      << "  ";
+            (*mesh_file) << cell+1+(Z+BW)*(Y+BW)+(Y+BW) << " " << cell+(Z+BW)*(Y+BW)+(Y+BW) << "  ";
 
-            outputFile << std::endl;
+            (*mesh_file) << std::endl;
           }
         }
       }
 
-      outputFile << "end Elements" << std::endl;
+      (*mesh_file) << "end Elements" << std::endl;
     }
 
     /**
@@ -127,25 +168,23 @@ public:
      * @X:        X-Size of the grid
      * @Y:        Y-Size of the grid
      * @Z:        Z-Size of the grid
-     * @results:  Output file stream
      * @step:     Step of the result
      **/
     void WriteGidResults(T * grid, 
-        const uint &X, const uint &Y, const uint &Z,
-        std::ofstream& results, int step) {
+        const uint &X, const uint &Y, const uint &Z, int step) {
 
-      results << "Result \"Temperature\" \"Kratos\" " << step << " Scalar OnNodes" << std::endl;
-      results << "Values" << std::endl;
+      (*post_file) << "Result \"Temperature\" \"Kratos\" " << step << " Scalar OnNodes" << std::endl;
+      (*post_file) << "Values" << std::endl;
 
       for(uint k = 0; k < Z + BW; k++) {
         for(uint j = 0; j < Y + BW; j++) {
           uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
           for(uint i = 0; i < X + BW; i++) {
-            results << cell << "  " << grid[cell-1] << std::endl; cell++;
+            (*post_file) << cell << "  " << grid[cell-1] << std::endl; cell++;
           }
         }
       }
 
-      results << "End Values" << std::endl;
+      (*post_file) << "End Values" << std::endl;
     }
 };

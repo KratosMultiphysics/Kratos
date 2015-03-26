@@ -20,14 +20,13 @@
 #include "defines.h"
 #include "stencils.h"
 #include "file_io.h"
-// #include "simd.h"
-// #include "hacks.h"
 
 #include "utils.h"
 
 const double PI = 3.14159265;
 
 uint N = 0;
+
 double dx = 0;
 double dt = 0.1;
 double h = 16;
@@ -321,7 +320,7 @@ int main(int argc, char *argv[]) {
   h = 1;
   dx = h/N;
 
-  FileIO<PrecisionType> io;
+  FileIO<PrecisionType> io("grid",N);
 
   PrecisionType * step0 = NULL;
   PrecisionType * step1 = NULL;
@@ -352,21 +351,13 @@ int main(int argc, char *argv[]) {
 
   dt = CFL*h/maxv;
 
-  std::stringstream name_mesh;
-  std::stringstream name_post;
-
-  name_mesh << "grid" << N << ".post.msh";
-  name_post << "grid" << N << ".post.res";
-
-  std::ofstream results(name_post.str().c_str());
-  results << "GiD Post Results File 1.0" << std::endl << std::endl;
-
-  io.WriteGidMesh(step0,N,N,N,name_mesh.str().c_str());
+  io.WriteGidMesh(step0,N,N,N);
   printf("Begin...\n");
+
   for(int i = 0; i < steeps; i++) {
       advection(step0,step1,velf0,velf1,form0,N,N,N);
           
-      io.WriteGidResults(step0,N,N,N,results,i);
+      io.WriteGidResults(step0,N,N,N,i);
       //difussion(step1,step2,N,N,N);
       //std::swap(step0,step1);
   }
@@ -374,10 +365,8 @@ int main(int argc, char *argv[]) {
 
   ReleaseGrid(&step0);
   ReleaseGrid(&step1);
-
   ReleaseGrid(&velf0);
   ReleaseGrid(&velf1);
-
   ReleaseGrid(&form0);
 
   printf("De-Allocation correct\n");
