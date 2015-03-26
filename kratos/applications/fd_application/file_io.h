@@ -14,7 +14,7 @@ private:
 
     /**
      * Sets the name for the mesh file
-     * @name:     name of the mesh
+     * @name:     name of the mesh file
      **/
     void SetMeshName(const char * mesh, const uint &N) {
 
@@ -22,8 +22,8 @@ private:
     }
 
     /**
-     * Sets the name for the mesh file
-     * @name:     name of the mesh
+     * Sets the name for the post file
+     * @name:     name of the post file
      **/
     void setPostName(const char * post, const uint &N) {
 

@@ -26,6 +26,7 @@
 const double PI = 3.14159265;
 
 uint N = 0;
+uint OutputStep = 0;
 
 double dx = 0;
 double dt = 0.1;
@@ -72,27 +73,12 @@ void InitializeVelocity(Triple * field,
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++ ) {
         field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][0] = -omega * (double)(j-(Y+1.0)/2.0);
-        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][1] = omega * (double)(i-(X+1.0)/2.0);
-        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][2] = 0.0;
+        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][1] =  omega * (double)(i-(X+1.0)/2.0);
+        field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][2] =  0.0;
 
         maxv = std::max((double)abs(field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][0]),maxv);
         maxv = std::max((double)abs(field[k*(Z+BW)*(Y+BW)+j*(Y+BW)+i][1]),maxv);
       }
-    }
-  }
-
-}
-
-void InitializeCorrectionField(Triple * field,
-    const uint &X, const uint &Y, const uint &Z) {
-
-  for(uint k = 0; k < Z + BW; k++) {
-    for(uint j = 0; j < Y + BW; j++) {
-      for(uint i = 0; i < X + BW; i++) {
-        field[k*(Y+BW)*(X+BW)+j*(X+BW)+i][0] = 0.5;
-        field[k*(Y+BW)*(X+BW)+j*(X+BW)+i][1] = 0.5;
-        field[k*(Y+BW)*(X+BW)+j*(X+BW)+i][2] = 0.5;
-      } 
     }
   }
 
@@ -104,8 +90,8 @@ void WriteHeatFocus(T * gridA,
 
   uint Xc, Yc, Zc;
 
-  Xc = 1.0/3.0*(X);
-  Yc = 1.0/3.0*(Y);
+  Xc = 2.0/5.0*(X);
+  Yc = 2.0/5.5*(Y);
   Zc = 1.0/2.0*(Z);
 
   for(uint k = 0; k < Z + BW; k++) {
@@ -116,7 +102,7 @@ void WriteHeatFocus(T * gridA,
         double rr = pow(X/6.0,2);  
         
         if(d2 < rr)
-          gridA[k*(Y+BW)*(X+BW)+j*(X+BW)+i] = 1.0;// - d2/rr;
+          gridA[k*(Y+BW)*(X+BW)+j*(X+BW)+i] = 1.0 - d2/rr;
       }
     }
   }
@@ -180,108 +166,23 @@ double bfceeInterpolationSteep(Triple prevDelta, T * gridA,
   );
 }
 
-void calculateFormFactor(Triple prevDelta, Triple * correction, uint cell) {
-
-  correction[cell][0] = 1-(prevDelta[0] - floor(prevDelta[0]));
-  correction[cell][1] = 1-(prevDelta[1] - floor(prevDelta[1]));
-  correction[cell][2] = 1-(prevDelta[2] - floor(prevDelta[2]));
-}
-
-template <typename T>
-double bfceeInterpolationSteepWithCorrection(Triple prevDelta, T * gridA, Triple * dc,
-    const uint &X, const uint &Y, const uint &Z, uint cell) {
-
-  uint pi,pj,pk,ni,nj,nk;
-
-  pi = floor(prevDelta[0]); ni = pi+1;
-  pj = floor(prevDelta[1]); nj = pj+1;
-  pk = floor(prevDelta[2]); nk = pk+1;
-
-  double Nx, Ny, Nz;
-
-  Nx = 1-(prevDelta[0] - floor(prevDelta[0]));
-  Ny = 1-(prevDelta[1] - floor(prevDelta[1]));
-  Nz = 1-(prevDelta[2] - floor(prevDelta[2]));
-
-  uint index_a = pk*(Z+BW)*(Y+BW)+pj*(Y+BW)+pi;
-  uint index_b = pk*(Z+BW)*(Y+BW)+pj*(Y+BW)+ni;
-  uint index_c = pk*(Z+BW)*(Y+BW)+nj*(Y+BW)+pi;
-  uint index_d = pk*(Z+BW)*(Y+BW)+nj*(Y+BW)+ni;
-  uint index_e = nk*(Z+BW)*(Y+BW)+pj*(Y+BW)+pi;
-  uint index_f = nk*(Z+BW)*(Y+BW)+pj*(Y+BW)+ni;
-  uint index_g = nk*(Z+BW)*(Y+BW)+nj*(Y+BW)+pi;
-  uint index_h = nk*(Z+BW)*(Y+BW)+nj*(Y+BW)+ni;
-
-  double a_fact = 0.5;
-  double b_fact = 0.5;
-
-  return (
-    gridA[index_a] * (    Nx * a_fact + dc[cell][0] * b_fact) * (    Ny * a_fact + dc[cell][1] * b_fact) * (    Nz * a_fact + dc[cell][2] * b_fact) +
-    gridA[index_b] * (1 - Nx * a_fact - dc[cell][0] * b_fact) * (    Ny * a_fact + dc[cell][1] * b_fact) * (    Nz * a_fact + dc[cell][2] * b_fact) +
-    gridA[index_c] * (    Nx * a_fact + dc[cell][0] * b_fact) * (1 - Ny * a_fact - dc[cell][1] * b_fact) * (    Nz * a_fact + dc[cell][2] * b_fact) +
-    gridA[index_d] * (1 - Nx * a_fact - dc[cell][0] * b_fact) * (1 - Ny * a_fact - dc[cell][1] * b_fact) * (    Nz * a_fact + dc[cell][2] * b_fact) +
-    gridA[index_e] * (    Nx * a_fact + dc[cell][0] * b_fact) * (    Ny * a_fact + dc[cell][1] * b_fact) * (1 - Nz * a_fact - dc[cell][2] * b_fact) +
-    gridA[index_f] * (1 - Nx * a_fact - dc[cell][0] * b_fact) * (    Ny * a_fact + dc[cell][1] * b_fact) * (1 - Nz * a_fact - dc[cell][2] * b_fact) +
-    gridA[index_g] * (    Nx * a_fact + dc[cell][0] * b_fact) * (1 - Ny * a_fact - dc[cell][1] * b_fact) * (1 - Nz * a_fact - dc[cell][2] * b_fact) +
-    gridA[index_h] * (1 - Nx * a_fact - dc[cell][0] * b_fact) * (1 - Ny * a_fact - dc[cell][1] * b_fact) * (1 - Nz * a_fact - dc[cell][2] * b_fact)
-  );
-
-  // return (
-  //   gridA[pk*(Z+BW)*(Y+BW)+pj*(Y+BW)+pi] * (    Nx) * (    Ny) * (    Nz) +
-  //   gridA[pk*(Z+BW)*(Y+BW)+pj*(Y+BW)+ni] * (1 - Nx) * (    Ny) * (    Nz) +
-  //   gridA[pk*(Z+BW)*(Y+BW)+nj*(Y+BW)+pi] * (    Nx) * (1 - Ny) * (    Nz) +
-  //   gridA[pk*(Z+BW)*(Y+BW)+nj*(Y+BW)+ni] * (1 - Nx) * (1 - Ny) * (    Nz) +
-  //   gridA[nk*(Z+BW)*(Y+BW)+pj*(Y+BW)+pi] * (    Nx) * (    Ny) * (1 - Nz) +
-  //   gridA[nk*(Z+BW)*(Y+BW)+pj*(Y+BW)+ni] * (1 - Nx) * (    Ny) * (1 - Nz) +
-  //   gridA[nk*(Z+BW)*(Y+BW)+nj*(Y+BW)+pi] * (    Nx) * (1 - Ny) * (1 - Nz) +
-  //   gridA[nk*(Z+BW)*(Y+BW)+nj*(Y+BW)+ni] * (1 - Nx) * (1 - Ny) * (1 - Nz)
-  // );
-
-}
-
 template <typename T, typename U>
 void advection(T * gridA, T * gridB, U * fieldA, U * fieldB, Triple * dCorrection,
     const uint &X, const uint &Y, const uint &Z) {
 
+  // First loop. Estimate var(n+1)
   for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++) {
         uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
 
         Triple origin;
-        Triple backward;
-
-        origin[0] = i; origin[1] = j; origin[2] = k;
-
-        for(int d = 0; d < 3; d++) {
-          backward[d] = origin[d]*h-fieldA[cell][d]*dt;
-        }
-
-        static int firstime = 1;
-        if(firstime) {
-          firstime = 0;
-          calculateFormFactor(backward,dCorrection,cell);
-        }
-
-        gridB[cell] = bfceeInterpolationSteepWithCorrection(backward,gridA,dCorrection,N,N,N,cell);
-
-        calculateFormFactor(backward,dCorrection,cell);
-      }
-    }
-  }
-
-  for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
-    for(uint j = BWP; j < Y + BWP; j++) {
-      for(uint i = BWP; i < X + BWP; i++) {
-        uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
-
-        Triple origin;
-
         Triple backward;
         Triple backwardVel;
-        Triple forward;
 
-        origin[0] = i; origin[1] = j; origin[2] = k;
+        origin[0] = i;
+        origin[1] = j;
+        origin[2] = k;
 
         for(int d = 0; d < 3; d++) {
           backward[d] = origin[d]*h-fieldA[cell][d]*dt;
@@ -290,10 +191,39 @@ void advection(T * gridA, T * gridB, U * fieldA, U * fieldB, Triple * dCorrectio
         bfceeInterpolationSteep(backward,backwardVel,fieldA,N,N,N);
 
         for(int d = 0; d < 3; d++) {
-          forward[d] = backward[d] + backwardVel[d] * dt;
+          backward[d] = origin[d]*h-backwardVel[d]*dt;
         }
 
-        gridA[cell] = 3.0/2.0 * gridB[cell] - 0.5 * bfceeInterpolationSteep(forward,gridB,N,N,N);
+        gridB[cell] = bfceeInterpolationSteep(backward,gridA,N,N,N);
+      }
+    }
+  }
+
+  // First loop. Estimate var(n+1)
+  for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
+    for(uint j = BWP; j < Y + BWP; j++) {
+      for(uint i = BWP; i < X + BWP; i++) {
+        uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
+
+        Triple origin;
+        Triple forward;
+        Triple forwardVel;
+
+        origin[0] = i;
+        origin[1] = j;
+        origin[2] = k;
+
+        for(int d = 0; d < 3; d++) {
+          forward[d] = origin[d]*h+fieldA[cell][d]*dt;
+        }
+
+        bfceeInterpolationSteep(forward,forwardVel,fieldA,N,N,N);
+
+        for(int d = 0; d < 3; d++) {
+          forward[d] = origin[d]*h-forwardVel[d]*dt;
+        }
+ 
+        gridA[cell] = 1.5 * gridB[cell] - 0.5 * bfceeInterpolationSteep(forward,gridB,N,N,N);
       }
     } 
   }
@@ -327,7 +257,6 @@ int main(int argc, char *argv[]) {
 
   Triple * velf0 = NULL;
   Triple * velf1 = NULL;
-
   Triple * form0 = NULL;
 
   // Temperature
@@ -347,9 +276,8 @@ int main(int argc, char *argv[]) {
   Initialize(step0,step1,N,N,N);
   WriteHeatFocus(step0,N,N,N);
   InitializeVelocity(velf0,N,N,N);
-  InitializeCorrectionField(form0,N,N,N);
 
-  dt = CFL*h/maxv;
+  dt = 0.25 * CFL*h/maxv;
 
   io.WriteGidMesh(step0,N,N,N);
   printf("Begin...\n");
@@ -357,9 +285,14 @@ int main(int argc, char *argv[]) {
   for(int i = 0; i < steeps; i++) {
       advection(step0,step1,velf0,velf1,form0,N,N,N);
           
-      io.WriteGidResults(step0,N,N,N,i);
+      if(OutputStep == 0) {
+        io.WriteGidResults(step0,N,N,N,i);
+        OutputStep = 10;
+      }
       //difussion(step1,step2,N,N,N);
       //std::swap(step0,step1);
+
+      OutputStep--;
   }
   //WriteGridXYZ(velf0,N,N,N,"velc.dat");
 
