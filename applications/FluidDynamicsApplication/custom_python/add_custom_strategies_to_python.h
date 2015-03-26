@@ -49,7 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Revision:            $Revision: 1.2 $
 //
 //
-
+#pragma once
 
 #if !defined(KRATOS_STRATEGIES_PYTHON_H_INCLUDED )
 #define  KRATOS_STRATEGIES_PYTHON_H_INCLUDED
@@ -73,7 +73,8 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomStrategiesToPython();
+void AddCustomStrategiesToPython();
+
 
 }  // namespace Python.
 
