@@ -26,8 +26,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
     model_part.AddNodalSolutionStepVariable(RHS);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
-    model_part.AddNodalSolutionStepVariable(NORMAL);	
-    #model_part.AddNodalSolutionStepVariable(DENSITY);	
+    model_part.AddNodalSolutionStepVariable(NORMAL);
+    #model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ);
     model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE);
     #model_part.AddNodalSolutionStepVariable(FIRST_ITERATION_PRESSURE);
@@ -61,14 +61,14 @@ class PFEM2Solver:
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         #definition of the solvers
-	gmres_size = 50
-	tol = 1e-5
-	verbosity = 1
-	pDiagPrecond = DiagonalPreconditioner()
-	#self.linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
-	self.linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size) #SkylineLUFactorizationSolver() 
-	self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
-	#(self.monolitic_linear_solver).is_symmetric=True;
+        gmres_size = 50
+        tol = 1e-5
+        verbosity = 1
+        pDiagPrecond = DiagonalPreconditioner()
+        #self.linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
+        self.linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size) #SkylineLUFactorizationSolver() 
+        self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
+        #(self.monolitic_linear_solver).is_symmetric=True;
         self.conv_criteria = DisplacementCriteria(1e-9,1e-15)  #tolerance for the solver 
         
         self.domain_size = domain_size
@@ -76,8 +76,8 @@ class PFEM2Solver:
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
         (self.neighbour_search).Execute()
-	self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
-	(self.neighbour_elements_search).Execute()
+        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
+        (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
         
@@ -87,7 +87,7 @@ class PFEM2Solver:
     def Initialize(self):
         #creating the solution strategy
         CalculateReactionFlag = False
-        ReformDofSetAtEachStep = False	
+        ReformDofSetAtEachStep = False 
         MoveMeshFlag = False
         pDiagPrecond = DiagonalPreconditioner()
         maximum_number_of_particles= 8*self.domain_size
@@ -104,7 +104,7 @@ class PFEM2Solver:
         print( "self.domain_size = ", self.domain_size)
         if self.domain_size==2:
                 self.calculatewatervolume = CalculateWaterFraction2D(self.model_part)
-        else:	
+        else:
                 self.calculatewatervolume = CalculateWaterFraction3D(self.model_part)
 
         self.moveparticles.MountBinDiff()
@@ -118,9 +118,9 @@ class PFEM2Solver:
         condition_number=1
         
         if self.domain_size==2:
-        	self.addBC = AddMonolithicFixedVelocityCondition2D(self.model_part)
+                self.addBC = AddMonolithicFixedVelocityCondition2D(self.model_part)
         else:
-        	self.addBC = AddMonolithicFixedVelocityCondition3D(self.model_part)
+                self.addBC = AddMonolithicFixedVelocityCondition3D(self.model_part)
 
         (self.addBC).AddThem()
         
@@ -135,7 +135,7 @@ class PFEM2Solver:
            self.distance_utils = SignedDistanceCalculationUtils2D()
         else:
             self.distance_utils = SignedDistanceCalculationUtils3D()
-        self.redistance_step = 0	
+        self.redistance_step = 0 
         ########
 
         import strategy_python #implicit solver
@@ -168,7 +168,7 @@ class PFEM2Solver:
 
                 t1 = timer.time()
 
-                #calculating RHS by viscous forces using information of the previous time step:	
+                #calculating RHS by viscous forces using information of the previous time step: 
                 #self.CalculateExplicitViscosityContribution();
                 t2 = timer.time()
                 self.calculateinitialdrag = self.calculateinitialdrag + t2-t1
@@ -179,7 +179,7 @@ class PFEM2Solver:
 
                 #streamline integration:
                 self.moveparticles.MountBinDiff()
-                (self.moveparticles).MoveParticlesDiff(viscosity_streamline_integrate,add_gravity);	
+                (self.moveparticles).MoveParticlesDiff(viscosity_streamline_integrate,add_gravity); 
                 t3 = timer.time()
                 self.streamlineintegration = self.streamlineintegration + t3-t2a
                 t3a = timer.time()
@@ -240,14 +240,14 @@ class PFEM2Solver:
 
                 self.water_volume = (self.calculatewatervolume).Calculate()
                 if (self.water_initial_volume_flag): 
-                	print("calculated water volume for the first time")
-                	self.water_initial_volume=self.water_volume
-                	self.water_initial_volume_flag=False
+                        print("calculated water volume for the first time")
+                        self.water_initial_volume=self.water_volume
+                        self.water_initial_volume_flag=False
                 print(self.water_volume)
                 water_fraction= self.water_volume/(self.water_initial_volume+1e-9)
                 self.mass_correction_factor = (1.0 - water_fraction) * 100.0 * 0.5
                 if self.mass_correction_factor>0.5:
-                	 self.mass_correction_factor
+                        self.mass_correction_factor
                 print("mass correction factor: ", self.mass_correction_factor)
                 print("current mass loss is : " , (1.0 - water_fraction) * 100.0 , " % ")
                 (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);                
