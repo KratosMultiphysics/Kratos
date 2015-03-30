@@ -153,6 +153,7 @@ namespace Python
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<2>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<2>::PostReseedOnlyInBoundingBox)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<2>::ExecuteParticlesPritingTool)
+                    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityDiffFluidOnly<2>::ExecuteParticlesPritingToolForDroppletsOnly)
                     .def("CorrectFreeSurface", &MoveParticleUtilityDiffFluidOnly<2>::CorrectFreeSurface)
                     ; 
                     
@@ -172,12 +173,17 @@ namespace Python
                     .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<3>::PreReseedUsingTopographicDomain)
                     .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<3>::PostReseedOnlyInBoundingBox)
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<3>::ExecuteParticlesPritingTool)
+                    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityDiffFluidOnly<3>::ExecuteParticlesPritingToolForDroppletsOnly)
                     .def("CorrectFreeSurface", &MoveParticleUtilityDiffFluidOnly<3>::CorrectFreeSurface)
                     ;             
                     
                     
       	class_<AddFixedVelocityCondition2D > ("AddFixedVelocityCondition2D", init<ModelPart& >())
                     .def("AddThem", &AddFixedVelocityCondition2D::AddThem)
+                    ;
+                    
+        class_<AddWaterFixedVelocityCondition2D > ("AddWaterFixedVelocityCondition2D", init<ModelPart& >())
+                    .def("AddThem", &AddWaterFixedVelocityCondition2D::AddThem)
                     ;
                     
         class_<AddFixedVelocityCondition3D > ("AddFixedVelocityCondition3D", init<ModelPart& >())
