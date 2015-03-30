@@ -170,7 +170,7 @@ namespace Kratos
             // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
 				array_1d<double,3> position_node;
@@ -191,7 +191,7 @@ namespace Kratos
 			//we also calculate the element mean size in the same way for the courant number
 			//also we set the right size to the LHS vector
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				
@@ -493,7 +493,7 @@ namespace Kratos
 							results.resize(max_results);
 						//const int & elem_id = ielem->Id();
 						ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-						Element::Pointer pelement(*it_begin_topo.base());  //we have no idea in which element it might be from the topographic domain, so we just set it in the first element.
+						Element::Pointer pelement(*it_begin_topo);  //we have no idea in which element it might be from the topographic domain, so we just set it in the first element.
 						
 						//Geometry<Node<3> >& geom = ielem->GetGeometry(); 
 						//array_1d<double,TDim+1> N;
@@ -583,7 +583,7 @@ namespace Kratos
 				ResultContainerType results(max_results);
 				ResultIteratorType result_begin = results.begin();
 				
-				Element::Pointer pelement(*it_begin_topo.base());  //we have no idea in which element it might be from the topographic domain, so we just set it in the first element.
+				Element::Pointer pelement(*it_begin_topo);  //we have no idea in which element it might be from the topographic domain, so we just set it in the first element.
 
 				boost::numeric::ublas::bounded_matrix<double, (TDim+1), 3 > pos;
 				boost::numeric::ublas::bounded_matrix<double, (TDim+1) , (TDim+1) > N;
@@ -719,7 +719,7 @@ namespace Kratos
 			
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for firstprivate(vector_mean_velocity)
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -747,7 +747,7 @@ namespace Kratos
 			if (fully_reset_nodes)
 			{
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
@@ -775,7 +775,7 @@ namespace Kratos
 			else  //for fractional step only!
 			{
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
@@ -869,7 +869,7 @@ namespace Kratos
 			
 			
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 						inode->FastGetSolutionStepValue(DELTA_VELOCITY) = inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(MESH_VELOCITY) ;
@@ -891,7 +891,7 @@ namespace Kratos
 			
 			
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 						if (nl_it==1) // first iteration, so we must use the full velocity
@@ -908,7 +908,7 @@ namespace Kratos
 			KRATOS_TRY
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				inode->FastGetSolutionStepValue(SPLIT_ELEMENT)=false;
@@ -916,7 +916,7 @@ namespace Kratos
 			
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -961,7 +961,7 @@ namespace Kratos
 			//we might also use nodal_area to smooth the solution a little bit
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				inode->FastGetSolutionStepValue(SPLIT_ELEMENT)=false;
@@ -972,7 +972,7 @@ namespace Kratos
 			//now we detect the wrong split elements (read next loop why we need to pull it back)
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -1008,7 +1008,7 @@ namespace Kratos
 			// have no particles inside, so actually they should have all its node positive.
 			//now we set all negative nodes to small values and positive nodes to really large values
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				if( inode->FastGetSolutionStepValue(CORRECTED_DISTANCE) < 0.0) //we must only modify the nodes that are currently negative
@@ -1026,7 +1026,7 @@ namespace Kratos
 			//having pulled back the free surface, now the interface elements are those that have positive and negative nodes
 			//so we will try to find the free surface in them. 
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				
@@ -1141,7 +1141,7 @@ namespace Kratos
 			//finally we fix the distance on the negative nodes that were not part of the cut element
 			//we set it to a reasonable value, just for representation porpouses
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				//double sum_weights = inode->FastGetSolutionStepValue(YP);
@@ -1370,7 +1370,7 @@ namespace Kratos
 			
 			//now we pass info from the local vector to the elements:
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 				
@@ -1411,7 +1411,7 @@ namespace Kratos
 			//after having saved data, we reset them to zero, this way it's easier to add the contribution of the surrounding particles.
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				//inode->FastGetSolutionStepValue(TEMPERATURE_OLD_IT)=0.0; //resetting the temperature
@@ -1439,7 +1439,7 @@ namespace Kratos
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				
@@ -1603,7 +1603,7 @@ namespace Kratos
 			KRATOS_WATCH("ln 345")
 			
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				double sum_weights = inode->FastGetSolutionStepValue(YP);
@@ -1696,7 +1696,7 @@ namespace Kratos
 			
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				inode->FastGetSolutionStepValue(AVAILABLE_AIR_VOLUME) = 0.0;
@@ -1706,7 +1706,7 @@ namespace Kratos
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				
@@ -1916,7 +1916,7 @@ namespace Kratos
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				array_1d<double,3*(TDim+1)> nodes_positions;
