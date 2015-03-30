@@ -116,9 +116,9 @@ public:
 
     typedef BaseType CoordinatesArrayType;
 
-    typedef typename std::size_t SizeType;
+    typedef std::size_t SizeType;
 
-    typedef typename std::size_t IndexType;
+    typedef std::size_t IndexType;
 
     ///@}
     ///@name Constants
