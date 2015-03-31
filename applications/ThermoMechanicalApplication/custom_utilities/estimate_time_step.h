@@ -393,8 +393,6 @@ namespace Kratos
 		 double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
 		 tot_area += area;
 	       }
-	    // Added by Jordi Rubio. looks like NODAL_VOLUME ADDS 3xvolume
-		tot_vol=tot_vol/3.0;
 
 	    if ( tot_area == 0.0 || tot_vol == 0.0)
 	      KRATOS_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");

@@ -30,6 +30,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_FLUID)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
+    model_part.AddNodalSolutionStepVariable(IS_AIR_EXIT)
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -54,6 +55,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FILLTIME)
     model_part.AddNodalSolutionStepVariable(MAX_VEL)
     model_part.AddNodalSolutionStepVariable(WET_VOLUME) #
+    model_part.AddNodalSolutionStepVariable(MOULD_INNER_TEMPERATURE)
     # variables needed for the distance solver
     levelset_solver.AddVariables(model_part, distance_settings)
 
@@ -205,6 +207,7 @@ class MonolithicSolver:
 
         # volume correction
         self.volume_correction_switch = True
+        self.negative_volume_correction=True
 
         # element size
         self.maxmin = []
@@ -348,7 +351,7 @@ class MonolithicSolver:
 
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
-            BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
+            BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size,self.negative_volume_correction)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
         BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,100.0)

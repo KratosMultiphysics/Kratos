@@ -655,7 +655,7 @@ public:
                 i != ThisModelPart.ElementsEnd(); ++i)
         {
             Geometry< Node<3> >& rGeometry = i->GetGeometry();
-            double volume = 0.25 * rGeometry.DomainSize();
+            double volume = 0.25 * rGeometry.DomainSize()/3.0;//Attention DomainSize() Returns JAcobian/2.0, Volume is Jacobian/6.0
 
             for (int jj =0; jj<4; ++jj)
                 rGeometry[jj].FastGetSolutionStepValue(NODAL_VOLUME) += volume;
