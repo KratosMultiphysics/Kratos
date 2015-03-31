@@ -25,10 +25,13 @@
 
 const double PI = 3.14159265;
 
-uint N = 0;
+uint N  = 0;
+uint NB = 0;
+uint NE = 0;
 uint OutputStep = 0;
 
 double dx       =  0.0;
+double idx      =  0.0;
 double dt       =  0.1;
 double h        = 16.0;
 double omega    =  1.0;
@@ -48,12 +51,16 @@ inline double modfloor(double a, double b) {
 }
 
 void GlobalToLocal(Triple coord, double f) { 
+  if(f==1.0)
+    return;
   for(int d = 0; d < 3; d++) {
-    coord[d] /= f;
+    coord[d] *= f;
   }
 }
 
 void LocalToGlobal(Triple coord, double f) { 
+  if(f==1.0)
+    return;
   for(int d = 0; d < 3; d++) {
     coord[d] *= f;
   }
@@ -132,7 +139,7 @@ void Interpolate(Triple prevDelta, Triple prevVeloc, Triple * field,
 
   uint pi,pj,pk,ni,nj,nk;
 
-  GlobalToLocal(prevDelta,dx);
+  GlobalToLocal(prevDelta,idx);
 
   pi = floor(prevDelta[0]); ni = pi+1;
   pj = floor(prevDelta[1]); nj = pj+1;
@@ -164,7 +171,7 @@ double Interpolate(Triple prevDelta, T * gridA,
 
   uint pi,pj,pk,ni,nj,nk;
 
-  GlobalToLocal(prevDelta,dx);
+  GlobalToLocal(prevDelta,idx);
 
   pi = floor(prevDelta[0]); ni = pi+1;
   pj = floor(prevDelta[1]); nj = pj+1;
@@ -188,6 +195,16 @@ double Interpolate(Triple prevDelta, T * gridA,
   );
 }
 
+/**
+ * Performs the bfecc operation over a given element
+ * @R:  Result of the operation
+ * @A:  first operator  ( the one not interpolated )
+ * @B:  second operator ( the one interpolated )
+ * @F:  velocity field
+ * sg:  direction of the interpolation ( -1.0 backward, 1.0 forward )
+ * fA:  weigth of the first operator (A)
+ * fB:  weigth of the second operator (B)
+ **/
 template <typename T, typename U>
 void bfecc_kernel(T * R, T * A, T * B, U * F,
     const double sg, const double fA, const double fB,
@@ -214,34 +231,36 @@ template <typename T, typename U>
 void advection(T * gridA, T * gridB, T * gridC, U * fieldA, U * fieldB,
     const uint &X, const uint &Y, const uint &Z) {
 
-  for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
-    for(uint j = BWP; j < Y + BWP; j++) {
-      for(uint i = BWP; i < X + BWP; i++) {
-        bfecc_kernel(gridB,gridA,gridA,fieldA,-1.0,0.0,1.0,i,j,k,X,Y,Z);
-      }
-    }
-  }
+  // Backward
+  for(uint kk = 0; kk < NB; kk++)
+    for(uint jj = 0; jj < NB; jj++)
+      for(uint ii = 0; ii < NB; ii++)
+        for(uint k = BWP + (kk * NE) + omp_get_thread_num(); k < BWP + ((kk+1) * NE); k+=omp_get_num_threads())
+          for(uint j = BWP + (jj * NE); j < BWP + ((jj+1) * NE); j++)
+            for(uint i = BWP + (ii * NE); i < BWP + ((ii+1) * NE); i++)
+              bfecc_kernel(gridB,gridA,gridA,fieldA,-1.0,0.0,1.0,i,j,k,X,Y,Z);
 
   #pragma omp barrier
 
-  for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
-    for(uint j = BWP; j < Y + BWP; j++) {
-      for(uint i = BWP; i < X + BWP; i++) {
-        bfecc_kernel(gridC,gridA,gridB,fieldA,1.0,1.5,-0.5,i,j,k,X,Y,Z);
-      }
-    } 
-  }
+  // Forward
+  for(uint kk = 0; kk < NB; kk++)
+    for(uint jj = 0; jj < NB; jj++)
+      for(uint ii = 0; ii < NB; ii++)
+        for(uint k = BWP + (kk * NE) + omp_get_thread_num(); k < BWP + ((kk+1) * NE); k+=omp_get_num_threads())
+          for(uint j = BWP + (jj * NE); j < BWP + ((jj+1) * NE); j++)
+            for(uint i = BWP + (ii * NE); i < BWP + ((ii+1) * NE); i++)
+              bfecc_kernel(gridC,gridA,gridB,fieldA,1.0,1.5,-0.5,i,j,k,X,Y,Z);
 
   #pragma omp barrier
 
-  for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
-    for(uint j = BWP; j < Y + BWP; j++) {
-      for(uint i = BWP; i < X + BWP; i++) {
-        bfecc_kernel(gridA,gridA,gridC,fieldA,-1.0,0.0,1.0,i,j,k,X,Y,Z);
-      }
-    }
-  }
-
+  // Backward
+  for(uint kk = 0; kk < NB; kk++)
+    for(uint jj = 0; jj < NB; jj++)
+      for(uint ii = 0; ii < NB; ii++)
+        for(uint k = BWP + (kk * NE) + omp_get_thread_num(); k < BWP + ((kk+1) * NE); k+=omp_get_num_threads())
+          for(uint j = BWP + (jj * NE); j < BWP + ((jj+1) * NE); j++)
+            for(uint i = BWP + (ii * NE); i < BWP + ((ii+1) * NE); i++)
+              bfecc_kernel(gridA,gridA,gridC,fieldA,-1.0,0.0,1.0,i,j,k,X,Y,Z);
 }
 
 template <typename T>
@@ -263,8 +282,12 @@ int main(int argc, char *argv[]) {
   N           = atoi(argv[1]);
   int steeps  = atoi(argv[2]);
   h           = atoi(argv[3]);
+
+  NB          = atoi(argv[4]);
+  NE          = N/NB; 
   
   dx          = h/N;
+  idx         = 1.0/dx;
 
   FileIO<PrecisionType> io("grid",N,dx);
 
@@ -314,14 +337,14 @@ int main(int argc, char *argv[]) {
   for(int i = 0; i < steeps; i++) {
       advection(step0,step1,step2,velf0,velf1,N,N,N);
        
-       #pragma omp single
-       {
-         if(OutputStep == 0) {
-          io.WriteGidResults(step0,N,N,N,i);
-           OutputStep = 10;
-         }
-         OutputStep--;
-       }
+      // #pragma omp single
+      // {
+      //   if(OutputStep == 0) {
+      //     io.WriteGidResults(step0,N,N,N,i);
+      //     OutputStep = 10;
+      //   }
+      //   OutputStep--;
+      // }
 
       // difussion(step1,step2,N,N,N);
       // std::swap(step0,step1);
