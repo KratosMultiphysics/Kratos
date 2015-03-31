@@ -164,8 +164,6 @@ double Interpolate(Triple prevDelta, T * gridA,
 
   uint pi,pj,pk,ni,nj,nk;
 
-  //std::cout << "-----------" << std::endl;
-  //std::cout << prevDelta[0] << " " << prevDelta[1] << " " << prevDelta[2] << std::endl;
   GlobalToLocal(prevDelta,dx);
 
   pi = floor(prevDelta[0]); ni = pi+1;
@@ -177,8 +175,6 @@ double Interpolate(Triple prevDelta, T * gridA,
   Nx = 1-(prevDelta[0] - floor(prevDelta[0]));
   Ny = 1-(prevDelta[1] - floor(prevDelta[1]));
   Nz = 1-(prevDelta[2] - floor(prevDelta[2]));
-
-  //std::cout << pi << " " << pj << " " << pk << std::endl;
 
   return (
     gridA[pk*(Z+BW)*(Y+BW)+pj*(Y+BW)+pi] * (    Nx) * (    Ny) * (    Nz) +
@@ -193,26 +189,35 @@ double Interpolate(Triple prevDelta, T * gridA,
 }
 
 template <typename T, typename U>
+void bfecc_kernel(T * R, T * A, T * B, U * F,
+    const double sg, const double fA, const double fB,
+    const uint &i, const uint &j, const uint &k,
+    const uint &X, const uint &Y, const uint &Z) {
+
+  uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
+  
+  Triple origin;
+  Triple displacement;
+
+  origin[0] = i * dx;
+  origin[1] = j * dx;
+  origin[2] = k * dx;
+
+  for(int d = 0; d < 3; d++) {
+    displacement[d] = origin[d] + sg * F[cell][d]*dt;
+  }
+
+  R[cell] = fA * A[cell] + fB * Interpolate(displacement,B,X,Y,Z);
+}
+
+template <typename T, typename U>
 void advection(T * gridA, T * gridB, T * gridC, U * fieldA, U * fieldB,
     const uint &X, const uint &Y, const uint &Z) {
 
   for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++) {
-        uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
-
-        Triple origin;
-        Triple backward;
-
-        origin[0] = i * dx;
-        origin[1] = j * dx;
-        origin[2] = k * dx;
-
-        for(int d = 0; d < 3; d++) {
-          backward[d] = origin[d]-fieldA[cell][d]*dt;
-        }
-
-        gridB[cell] = Interpolate(backward,gridA,N,N,N);
+        bfecc_kernel(gridB,gridA,gridA,fieldA,-1.0,0.0,1.0,i,j,k,X,Y,Z);
       }
     }
   }
@@ -222,20 +227,7 @@ void advection(T * gridA, T * gridB, T * gridC, U * fieldA, U * fieldB,
   for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++) {
-        uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
-
-        Triple origin;
-        Triple forward;
-
-        origin[0] = i * dx;
-        origin[1] = j * dx;
-        origin[2] = k * dx;
-
-        for(int d = 0; d < 3; d++) {
-          forward[d] = origin[d]+fieldA[cell][d]*dt;
-        }
- 
-        gridC[cell] = 1.5 * gridA[cell] - 0.5 * Interpolate(forward,gridB,N,N,N);
+        bfecc_kernel(gridC,gridA,gridB,fieldA,1.0,1.5,-0.5,i,j,k,X,Y,Z);
       }
     } 
   }
@@ -245,20 +237,7 @@ void advection(T * gridA, T * gridB, T * gridC, U * fieldA, U * fieldB,
   for(uint k = BWP + omp_get_thread_num(); k < Z + BWP; k+=omp_get_num_threads()) {
     for(uint j = BWP; j < Y + BWP; j++) {
       for(uint i = BWP; i < X + BWP; i++) {
-        uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+i;
-
-        Triple origin;
-        Triple backward;
-
-        origin[0] = i * dx;
-        origin[1] = j * dx;
-        origin[2] = k * dx;
-
-        for(int d = 0; d < 3; d++) {
-          backward[d] = origin[d]-fieldA[cell][d]*dt;
-        }
-
-        gridA[cell] = Interpolate(backward,gridC,N,N,N);
+        bfecc_kernel(gridA,gridA,gridC,fieldA,-1.0,0.0,1.0,i,j,k,X,Y,Z);
       }
     }
   }
@@ -335,14 +314,14 @@ int main(int argc, char *argv[]) {
   for(int i = 0; i < steeps; i++) {
       advection(step0,step1,step2,velf0,velf1,N,N,N);
        
-       // #pragma omp single
-       // {
-       //   if(OutputStep == 0) {
-       //    io.WriteGidResults(step0,N,N,N,i);
-       //     OutputStep = 10;
-       //   }
-       //   OutputStep--;
-       // }
+       #pragma omp single
+       {
+         if(OutputStep == 0) {
+          io.WriteGidResults(step0,N,N,N,i);
+           OutputStep = 10;
+         }
+         OutputStep--;
+       }
 
       // difussion(step1,step2,N,N,N);
       // std::swap(step0,step1);
