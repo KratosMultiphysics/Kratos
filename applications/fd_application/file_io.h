@@ -12,6 +12,8 @@ private:
     std::ofstream * mesh_file;
     std::ofstream * post_file;
 
+    double mdx;
+
     /**
      * Sets the name for the mesh file
      * @name:     name of the mesh file
@@ -40,10 +42,12 @@ private:
 public:
 
     // Creator & destructor
-    FileIO(const char * name, const uint &N) {
+    FileIO(const char * name, const uint &N, const double &dx) {
 
       SetMeshName(name,N);
       setPostName(name,N);
+
+      mdx = dx;
 
       mesh_file = new std::ofstream(name_mesh.str().c_str());
       post_file = new std::ofstream(name_post.str().c_str());
@@ -134,7 +138,7 @@ public:
         for(uint j = 0; j < Y + BW; j++) {
           uint cell = k*(Z+BW)*(Y+BW)+j*(Y+BW)+BWP;
           for(uint i = 0; i < X + BW; i++) {
-            (*mesh_file) << cell++ << "  " << i << "  " << j << "  " << k << std::endl;
+            (*mesh_file) << cell++ << "  " << i * mdx << "  " << j * mdx << "  " << k * mdx << std::endl;
           }
         }
       }
