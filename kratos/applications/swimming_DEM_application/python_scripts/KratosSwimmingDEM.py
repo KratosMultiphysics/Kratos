@@ -576,7 +576,6 @@ while time <= final_time:
 
     else:
         time_final_DEM_substepping = time
-        time_dem = time - Dt + Dt_DEM
 
     # walls movement
     mesh_motion.MoveAllMeshes(rigid_faces_model_part, time, Dt)
