@@ -79,6 +79,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                                   fluid_nodal_variables,
                                   DEM_nodal_variables,
                                   cluster_variables,
+                                  rigid_faces_variables,
                                   mixed_nodal_variables,
                                   fluid_gp_variables):
         # label = str(label) #it should be a C double
@@ -108,6 +109,10 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         for var in cluster_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, clusters_model_part, kratos_variable)
+            
+        for var in rigid_faces_variables:
+            kratos_variable = globals()[var]
+            self._write_nodal_results(label, rigid_faces_model_part, kratos_variable)
             
         for var in mixed_nodal_variables:
             kratos_variable = globals()[var]
