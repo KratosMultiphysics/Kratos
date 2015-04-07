@@ -36,6 +36,24 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, rigid_fac
         for node in rigid_faces_model_part.Nodes:
             node.Id += max_id
 
+
+def RenumberModelPartNodesFromGivenId(model_part, id):
+
+    new_id = id + 1
+
+    for node in model_part.Nodes:
+        node.Id = new_id
+        new_id = new_id + 1
+
+def RenumberModelPartElementsFromGivenId(model_part, id):
+
+    new_id = id + 1
+
+    for element in model_part.Elements:
+        element.Id = new_id
+        new_id = new_id + 1
+
+
 def SetModelPartSolutionStepValue(model_part, var, value):
 
     for node in model_part.Nodes:
@@ -58,6 +76,12 @@ def GetWordWithSpaces(word, total_length):
         word += ' '
 
     return word
+    
+def TransferFacePressuresToPressure(model_part):
+    
+    for node in model_part.Nodes:
+        total_pressure = node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE) + node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE)
+        node.SetSolutionStepValue(PRESSURE, total_pressure)         
 
 class FluidFractionFieldUtility:
 
@@ -160,6 +184,18 @@ def FindMaxNodeIdInFLuid(fluid_model_part):
             max = node.Id
 
     return max
+    
+    
+def FindMaxElementIdInFLuid(fluid_model_part):
+
+    max = 0
+
+    for element in fluid_model_part.Elements:
+
+        if element.Id > max:
+            max = element.Id
+
+    return max    
 
 def FunctionsCalculator(pp):
     if pp.domain_size == 2:
@@ -366,7 +402,7 @@ class PostUtils:
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.rigid_faces_model_part)
             self.post_utilities.AddModelPartToModelPart(self.mixed_model_part, self.fluid_model_part)
 
-        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.rigid_faces_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
+        self.gid_io.write_swimming_DEM_results(time, self.fluid_model_part, self.balls_model_part, self.clusters_model_part, self.rigid_faces_model_part, self.mixed_model_part, self.pp.nodal_results, self.pp.dem_nodal_results, self.pp.clusters_nodal_results, self.pp.rigid_faces_nodal_results, self.pp.mixed_nodal_results, self.pp.gauss_points_results)
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
