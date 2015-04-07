@@ -102,6 +102,7 @@ def ConstructListsOfVariables(pp):
 def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
     pp.clusters_nodal_results = []
+    pp.rigid_faces_nodal_results = []
 
     if (pp.dem.PostRadius):
         pp.dem_nodal_results += ["RADIUS"]
@@ -148,6 +149,9 @@ def ConstructListsOfResultsToPrint(pp):
 
         if (pp.print_LIFT_FORCE_option):
             pp.dem_nodal_results += ["LIFT_FORCE"]
+    
+    pp.rigid_faces_nodal_results += ["POSITIVE_FACE_PRESSURE"]
+    pp.rigid_faces_nodal_results += ["NEGATIVE_FACE_PRESSURE"]
 
     # changes on the fluid variables to print for the sake of consistency
     ChangeListOfFluidNodalResultsToPrint(pp)
@@ -157,8 +161,9 @@ def ConstructListsOfResultsToPrint(pp):
     pp.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
     pp.dem_printing_vars = []
-    pp.clusters_printing_var = []
+    pp.clusters_printing_vars = []
     pp.fluid_printing_vars = []
+    pp.rigid_faces_printing_vars = []
 
     for variable in pp.nodal_results:
         pp.fluid_printing_vars += [eval(variable)]
@@ -168,6 +173,9 @@ def ConstructListsOfResultsToPrint(pp):
 
     for variable in pp.clusters_nodal_results:
         pp.clusters_printing_vars += [eval(variable)]
+        
+    for variable in pp.rigid_faces_nodal_results:
+        pp.rigid_faces_printing_vars += [eval(variable)]
 
     for variable in pp.mixed_nodal_results:
         pp.dem_printing_vars += [eval(variable)]
