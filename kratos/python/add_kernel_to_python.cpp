@@ -49,6 +49,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // External includes
 #include <boost/python.hpp>
+#include "boost/python/suite/indexing/map_indexing_suite.hpp"
 
 
 // Project includes
@@ -79,9 +80,18 @@ const TVariableType& GetVariable(Kernel& rKernel, const std::string& variable_na
     return TVariableType::StaticObject();
 }
 
+template< class TVariableType >
+void PrintVariablesName(Kernel& rKernel)
+{
+	KratosComponents<TVariableType> kratos_components;
+	kratos_components.PrintData(std::cout);
+}
 
 void  AddKernelToPython()
 {
+//class_<std::map<std::string, const VariableData*> >("VariableDataMap")
+// .def(map_indexing_suite<std::map<std::string, const VariableData> >())
+//  ;
     class_<Kernel, Kernel::Pointer, boost::noncopyable >("Kernel")
     .def("Initialize",&Kernel::Initialize)
     .def("AddApplication",&Kernel::AddApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
@@ -108,6 +118,17 @@ void  AddKernelToPython()
     .def("HasFlagsVariable",HasVariable< Variable<Flags> >)
     .def("GetFlagsVariable",GetVariable< Variable<Flags> >,return_internal_reference<>())
     .def("HasVariableData",HasVariable< VariableData >)
+	.def("PrintAllVariables", PrintVariablesName<VariableData>)
+	.def("PrintBoolVariables", PrintVariablesName<Variable<bool> >)
+	.def("PrintIntVariables", PrintVariablesName<Variable<int> >)
+	.def("PrintUnsignedIntVariables", PrintVariablesName<Variable<int> >)
+	.def("PrintDoubleVariables", PrintVariablesName<Variable <double> >)
+	.def("PrintArrayVariables", PrintVariablesName<Variable <array_1d<double,3> > >)
+	.def("PrintVectorVariables", PrintVariablesName<Variable <Vector> >)
+	.def("PrintMatrixVariables", PrintVariablesName<Variable <Matrix> >)
+	.def("PrintStringVariables", PrintVariablesName<Variable <std::string> >)
+	.def("PrintFlagsVariables", PrintVariablesName<Variable <Flags> >)
+	.def("PrintVariableComponentVariables", PrintVariablesName<VariableComponent< VectorComponentAdaptor< array_1d<double,3> > > >)
     .def(self_ns::str(self))
     ;
 }
