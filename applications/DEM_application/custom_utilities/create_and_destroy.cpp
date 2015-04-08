@@ -564,8 +564,8 @@ namespace Kratos {
         KRATOS_TRY
 
                 //Type definitions
-                typedef ModelPart::ElementsContainerType ElementsArrayType;
-        typedef ElementsArrayType::iterator ElementsIterator;
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
+//        typedef ElementsArrayType::iterator ElementsIterator;
 
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
         ModelPart::NodesContainerType& rNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
@@ -603,7 +603,7 @@ namespace Kratos {
 
                 //Type definitions
                 typedef ModelPart::ElementsContainerType ElementsArrayType;
-        typedef ElementsArrayType::iterator ElementsIterator;
+//        typedef ElementsArrayType::iterator ElementsIterator;
 
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
@@ -629,7 +629,7 @@ namespace Kratos {
         KRATOS_TRY
 
                 typedef ModelPart::ElementsContainerType ElementsArrayType;
-        typedef ElementsArrayType::iterator ElementsIterator;
+//        typedef ElementsArrayType::iterator ElementsIterator;
 
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
