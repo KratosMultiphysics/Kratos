@@ -395,6 +395,13 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix, GEOMETRIC_STIFFNESS_MATRIX )
 
   KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS )
+  
+  
+  // *************** Thermal only BEGIN *************
+  KRATOS_CREATE_VARIABLE(double, HEATFLUX)
+  KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
+  // *************** Thermal only END ***************      
+  
 
   /************************************************************************************************************************************************************/
   /************************************************************************************************************************************************************/
@@ -406,6 +413,7 @@ namespace Kratos
   mCylinderContinuumParticle2D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mSphericParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+  mThermalSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Sphere3D1<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
   mRigidFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
   mRigidFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
@@ -712,6 +720,12 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(DEM_STRESS_ZY)
     KRATOS_REGISTER_VARIABLE(DEM_STRESS_ZZ)
     // *************** Continuum only END *************
+            
+            
+    // *************** Thermal only BEGIN *************
+    KRATOS_REGISTER_VARIABLE(HEATFLUX)
+    KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)        
+    // *************** Thermal only END ***************              
 
     // Possible future blocks (no FEM) interaction
 
@@ -805,6 +819,7 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("CylinderContinuumParticle2D", mCylinderContinuumParticle2D)
     KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
+    KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
 		
 	

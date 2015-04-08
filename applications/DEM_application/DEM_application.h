@@ -48,6 +48,7 @@
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
 #include "custom_conditions/RigidEdge.h"
+#include "custom_elements/thermal_spheric_particle.h"
 
 #include "DEM_application_variables.h"
 
@@ -190,7 +191,8 @@ private:
     const CylinderParticle mCylinderParticle2D;
     const CylinderContinuumParticle mCylinderContinuumParticle2D;
     const SphericParticle mSphericParticle3D;
-    const SphericContinuumParticle mSphericContinuumParticle3D;    
+    const SphericContinuumParticle mSphericContinuumParticle3D; 
+    const ThermalSphericParticle mThermalSphericContinuumParticle3D;  
     const Particle_Contact_Element mParticleContactElement;
     const VariablesList mVariablesList;
     const RigidFace3D  mRigidFace3D3N;
