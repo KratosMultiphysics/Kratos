@@ -370,8 +370,13 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE( Matrix, MATERIAL_STIFFNESS_MATRIX )
   KRATOS_DEFINE_VARIABLE( Matrix, GEOMETRIC_STIFFNESS_MATRIX )
   KRATOS_DEFINE_VARIABLE( double, VON_MISES_STRESS )
+  
+  // *************** Thermal only BEGIN *************
+  KRATOS_DEFINE_VARIABLE( double, HEATFLUX )
+  KRATOS_DEFINE_VARIABLE( double, THERMAL_CONDUCTIVITY )
+  // *************** Thermal only END ***************  
 
-
+  
 class DEMFlags
   {
   public:
