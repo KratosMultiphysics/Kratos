@@ -34,7 +34,7 @@ class RestartUtility:
         restart_path = os.path.join(self.problem_path, self.problem_name + "_" + str(restart_step))
 
         if(os.path.exists(restart_path+".rest") == False):
-            print("::Restart Utility:: RESTART file do not exists , check the RestartStep selected ")
+            print("::Restart Utility:: RESTART file does not exist , check the RestartStep selected ")
 
         kratos_serializer_variable = globals()[self.serializer_flag]
         serializer = Serializer(restart_path, kratos_serializer_variable)
@@ -47,7 +47,7 @@ class RestartUtility:
     def CleanPreviousFileType(self, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print("::Restart Utility:: Problem Path do not exists , check the Problem Path selected ")
+            print("::Restart Utility:: Problem Path does not exist , check the Problem Path selected ")
         else:
             filelist = [f for f in os.listdir(self.problem_path) if f.endswith(file_ending_type)]
 
@@ -61,7 +61,7 @@ class RestartUtility:
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print(" ::[Restart Utility]:: Problem Path do not exists , check the Problem Path selected ")
+            print(" ::[Restart Utility]:: Problem Path does not exist , check the Problem Path selected ")
         else:
             filelist = []
             for f in os.listdir(self.problem_path):
