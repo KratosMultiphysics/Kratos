@@ -531,7 +531,8 @@ if pp.make_results_directories_option:
 def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
     current_time += delta_time
 
-    while current_time < current_time_plus_increment:
+    tolerance = 0.0001
+    while current_time < (current_time_plus_increment - tolerance * delta_time):
         yield current_time
         current_time += delta_time
 
