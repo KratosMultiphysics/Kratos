@@ -1407,6 +1407,10 @@ REAL area;                                      /* The area of the triangle. */
 /**                                                                         **/
 /**                                                                         **/
 
+extern void *__cxa_allocate_exception(size_t thrown_size);
+extern void  __cxa_throw(void *thrown_exception, void*  *tinfo, void (*dest) (void *) );  
+extern void * _ZTIl;
+
 #ifdef ANSI_DECLARATORS
 void triexit(int status)
 #else /* not ANSI_DECLARATORS */
@@ -1415,6 +1419,9 @@ int status;
 #endif /* not ANSI_DECLARATORS */
 
 {
+   int64_t * p = (int64_t*)__cxa_allocate_exception(8);
+   *p = 1976;
+   __cxa_throw(p,&_ZTIl,0);
   exit(status);
 }
 
