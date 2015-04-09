@@ -46,6 +46,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+#include <sstream>
 
 // External includes
 #include <boost/python.hpp>
@@ -85,6 +86,14 @@ void PrintVariablesName(Kernel& rKernel)
 {
 	KratosComponents<TVariableType> kratos_components;
 	kratos_components.PrintData(std::cout);
+}
+template< class TVariableType >
+std::string GetVariableNames(Kernel& rKernel)
+{
+	KratosComponents<TVariableType> kratos_components;
+	std::stringstream buffer;
+	kratos_components.PrintData(buffer);
+	return buffer.str();
 }
 
 void  AddKernelToPython()
@@ -129,6 +138,17 @@ void  AddKernelToPython()
 	.def("PrintStringVariables", PrintVariablesName<Variable <std::string> >)
 	.def("PrintFlagsVariables", PrintVariablesName<Variable <Flags> >)
 	.def("PrintVariableComponentVariables", PrintVariablesName<VariableComponent< VectorComponentAdaptor< array_1d<double,3> > > >)
+	.def("GetAllVariableNames", GetVariableNames<VariableData>)
+	.def("GetBoolVariableNames", GetVariableNames<Variable<bool> >)
+	.def("GetIntVariableNames", GetVariableNames<Variable<int> >)
+	.def("GetUnsignedIntVariableNamess", GetVariableNames<Variable<int> >)
+	.def("GetDoubleVariableNamess", GetVariableNames<Variable <double> >)
+	.def("GetArrayVariableNamess", GetVariableNames<Variable <array_1d<double,3> > >)
+	.def("GetVectorVariableNamess", GetVariableNames<Variable <Vector> >)
+	.def("GetMatrixVariableNames", GetVariableNames<Variable <Matrix> >)
+	.def("GetStringVariableNames", GetVariableNames<Variable <std::string> >)
+	.def("GetFlagsVariableNames", GetVariableNames<Variable <Flags> >)
+	.def("GetVariableComponentVariableNames", GetVariableNames<VariableComponent< VectorComponentAdaptor< array_1d<double,3> > > >)
     .def(self_ns::str(self))
     ;
 }
