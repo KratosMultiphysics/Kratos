@@ -231,8 +231,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
         if (Var_Translator(Param.PostNonDimensionalVolumeWear)):
-        model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
-        model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
+            model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
+            model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
         
     def AddElasticFaceVariables(self, model_part, Param): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,Param)
