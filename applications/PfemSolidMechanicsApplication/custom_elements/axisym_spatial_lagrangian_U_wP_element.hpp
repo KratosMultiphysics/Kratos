@@ -6,16 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_element.hpp"
-
+#include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
 
 namespace Kratos
 {
@@ -34,11 +33,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
+/// Axisymmetric Spatial Lagrangian Large Displacement Lagrangian U-Pw Element.
 
 
-class SpatialLagrangianUwPElement
-    : public LargeDisplacementElement
+class AxisymSpatialLagrangianUwPElement
+    : public SpatialLagrangianUwPElement
 {
 public:
 
@@ -54,33 +53,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUwPElement );
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymSpatialLagrangianUwPElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    SpatialLagrangianUwPElement();
+    AxisymSpatialLagrangianUwPElement();
 
     /// Default constructors
-    SpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymSpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymSpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUwPElement(SpatialLagrangianUwPElement const& rOther);
+    AxisymSpatialLagrangianUwPElement(AxisymSpatialLagrangianUwPElement const& rOther);
 
 
     /// Destructor.
-    virtual ~SpatialLagrangianUwPElement();
+    virtual ~AxisymSpatialLagrangianUwPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUwPElement& operator=(SpatialLagrangianUwPElement const& rOther);
+    AxisymSpatialLagrangianUwPElement& operator=(AxisymSpatialLagrangianUwPElement const& rOther);
 
 
     ///@}
@@ -108,71 +107,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-    //************* GETTING METHODS
 
-    //SET
-
-    /**
-     * Set a double  Value on the Element Constitutive Law
-     */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
-    //GET:
-
-    /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
-
-    //************* STARTING - ENDING  METHODS
-
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize();
-
-    /**
-    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-    */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0);
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
-
-
-    //************************************************************************************
-    //************************************************************************************
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate Element Kinematics
@@ -186,14 +121,20 @@ public:
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
                                       Matrix& rF,
-                                      Matrix& rDeltaPosition);
+                                      Matrix& rDeltaPosition,
+                                      double& rCurrentRadius,
+                                      double& rReferenceRadius);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
                                             Matrix& rF,
-                                            Matrix& rDN_DX);
+                                            Vector& rN,
+                                            double& rCurrentRadius);
+
+
+    virtual void CalculateRadius(double & rCurrentRadius, double & rReferenceRadius, const Vector& rN);
 
     ///@}
     ///@name Access
@@ -216,22 +157,23 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    
+
     /**
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
-    std::vector< Matrix > mDeformationGradientF0;
+    //std::vector< Matrix > mDeformationGradientF0;
+
 
     /**
      * Container for the total deformation gradient determinants
      */
-    Vector mDeterminantF0;
+    //Vector mDeterminantF0;
 
 
     /**** 
        the time step (requiered). It shall be somewhere else.
     ****/    
-    double mTimeStep;
+    //double mTimeStep;
 
     /*** 
         Just to check a few things
@@ -245,9 +187,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    // TO BE DESTROYED BECAUSE IT DOES NOT MAKE ANY SENCE
-    void  GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);
 
     /**
      * Calculation and addition of the matrices of the LHS
@@ -274,7 +213,7 @@ protected:
    /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+    //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
 
 
     /**
@@ -334,15 +273,6 @@ protected:
                                         GeneralVariables & rVariables,
                                         double& rIntegrationWeight
                                        );
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables& rVariables,
-                                       Vector& rVolumeForce,
-                                       double& rIntegrationWeight
-                                      );
-
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
@@ -368,23 +298,6 @@ protected:
                                        GeneralVariables & rVariables,
                                        double& rIntegrationWeight
                                       );
-
-    /**
-     * Initialize System Matrices
-     */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                  VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags);
-
-    //on integration points:
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor);
-
-    virtual double GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l);
 
 
     ///@}
