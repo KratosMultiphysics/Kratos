@@ -57,8 +57,11 @@
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
 
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.hpp"
 
@@ -182,6 +185,12 @@ namespace Kratos
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
+    class_<HenckyPlasticUPJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HenckyPlasticUPJ2PlaneStrain2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
     class_<HenckyPlasticUPTrescaAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyPlasticUPTrescaAxisym2DLaw",
       init<>() )
@@ -202,6 +211,17 @@ namespace Kratos
       // 	;
     class_<HenckyTrescaPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyTrescaPlasticPlaneStrain2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+    class_<HenckyMohrCoulombPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HenckyMohrCoulombPlasticAxisym2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+      // 	;
+    class_<HenckyMohrCoulombPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HenckyMohrCoulombPlasticPlaneStrain2DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
