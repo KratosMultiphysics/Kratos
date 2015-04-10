@@ -184,6 +184,8 @@ def ConstructSolver(configuration):
                 amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.DAMPED_JACOBI
             elif(smoother_type == "SPAI0"):
                 amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.SPAI0
+            elif(smoother_type == "GAUSS_SEIDEL"):
+                amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.GAUSS_SEIDEL
             else:
                 print("ERROR: smoother_type shall be one of \"ILU0\", \"DAMPED_JACOBI\", \"SPAI0\", got \"{0}\".\n\"ILU0\" will be used.".format(smoother_type))
                 amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
@@ -207,13 +209,31 @@ def ConstructSolver(configuration):
         else:
             print("WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES")
             amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
+            
+            
+            
+        if hasattr(configuration, 'coarsening_type'):
+            coarsening_type = configuration.coarsening_type
+            if(coarsening_type == "RUGE_STUBEN"):
+                amgcl_coarsening_type = KratosMultiphysics.ExternalSolversApplication.AMGCLCoarseningType.RUGE_STUBEN
+            elif(coarsening_type == "AGGREGATION"):
+                amgcl_coarsening_type = KratosMultiphysics.ExternalSolversApplication.AMGCLCoarseningType.AGGREGATION
+            elif(coarsening_type == "SA"):
+                amgcl_coarsening_type = KratosMultiphysics.ExternalSolversApplication.AMGCLCoarseningType.SA
+            elif(coarsening_type == "SA_EMIN"):
+                amgcl_coarsening_type = KratosMultiphysics.ExternalSolversApplication.AMGCLCoarseningType.SA_EMIN             
+            else:
+                print("ERROR: coarsening_type shall be one of \"RUGE_STUBEN\", \"AGGREGATION\", \"SA\", \"SA_EMIN\", got \"{0}\".\n\"AGGREGATION\" will be used".format(krylov_type))
+                amgcl_coarsening_type = KratosMultiphysics.ExternalSolversApplication.AMGCLCoarseningType.AGGREGATION
+        else:
+            amgcl_coarsening_type = KratosMultiphysics.ExternalSolversApplication.AMGCLCoarseningType.AGGREGATION
 
         if hasattr(configuration, 'gmres_krylov_space_dimension'):
             m = configuration.gmres_krylov_space_dimension
         else:
             m = max_it
         linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(
-            amgcl_smoother, amgcl_krylov_type, tol, max_it, verbosity, m)
+            amgcl_smoother, amgcl_krylov_type, amgcl_coarsening_type, tol, max_it, verbosity, m)
     #
     elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
         import KratosMultiphysics.MKLSolversApplication
