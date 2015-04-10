@@ -6,16 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_wP_FIC_ELEMENT_H_INCLUDED )
+#define  KRATOS_SPATIAL_LAGRANGIAN_U_wP_FIC_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_element.hpp"
-
+#include "custom_elements/spatial_lagrangian_U_wP_Stab_element.hpp"
 
 namespace Kratos
 {
@@ -34,11 +33,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
+/// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
+/**
+ * Implements a Large Displacement Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
 
-class SpatialLagrangianUwPElement
-    : public LargeDisplacementElement
+class SpatialLagrangianUwPFICElement
+    : public SpatialLagrangianUwPStabElement
 {
 public:
 
@@ -54,33 +57,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUwPElement );
+    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUwPFICElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    SpatialLagrangianUwPElement();
+    SpatialLagrangianUwPFICElement();
 
     /// Default constructors
-    SpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SpatialLagrangianUwPFICElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SpatialLagrangianUwPFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUwPElement(SpatialLagrangianUwPElement const& rOther);
+    SpatialLagrangianUwPFICElement(SpatialLagrangianUwPFICElement const& rOther);
 
 
     /// Destructor.
-    virtual ~SpatialLagrangianUwPElement();
+    virtual ~SpatialLagrangianUwPFICElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUwPElement& operator=(SpatialLagrangianUwPElement const& rOther);
+    SpatialLagrangianUwPFICElement& operator=(SpatialLagrangianUwPFICElement const& rOther);
 
 
     ///@}
@@ -115,7 +118,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    //void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
 
     //GET:
@@ -123,11 +126,11 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    //void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    //void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
+    //void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
 
     //************* STARTING - ENDING  METHODS
 
@@ -135,32 +138,32 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    //void Initialize();
 
     /**
     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+    //void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    //void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0);
+    //void GetValuesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+    //void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+    //void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
 
 
     //************************************************************************************
@@ -177,23 +180,23 @@ public:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
-                                     const double& rPointNumber);
+    //virtual void CalculateKinematics(GeneralVariables& rVariables,
+    //                                 const double& rPointNumber);
 
 
     /**
      * Calculation of the Deformation Gradient F
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF,
-                                      Matrix& rDeltaPosition);
+    //void CalculateDeformationGradient(const Matrix& rDN_DX,
+    //                                  Matrix& rF,
+    //                                  Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX);
+    //virtual void CalculateDeformationMatrix(Matrix& rB,
+    //                                        Matrix& rF,
+    //                                        Matrix& rDN_DX);
 
     ///@}
     ///@name Access
@@ -216,27 +219,16 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    
-    /**
-     * Container for historical total elastic deformation measure F0 = dx/dX
-     */
-    std::vector< Matrix > mDeformationGradientF0;
+    /***
+       container for don't know what 
+    ***/
+    //std::vector< Matrix > mDeformationGradientF0;
 
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    Vector mDeterminantF0;
+    /***
+       container for don't know what 
+    ***/
+    //Vector mDeterminantF0;
 
-
-    /**** 
-       the time step (requiered). It shall be somewhere else.
-    ****/    
-    double mTimeStep;
-
-    /*** 
-        Just to check a few things
-     ***/
-    //bool mCompressibleWater;
 
     ///@}
     ///@name Protected Operators
@@ -247,84 +239,84 @@ protected:
     ///@{
 
     // TO BE DESTROYED BECAUSE IT DOES NOT MAKE ANY SENCE
-    void  GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);
+    //void  GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability);
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    double& rIntegrationWeight);
+    //virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    //                                GeneralVariables& rVariables,
+    //                                double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    GeneralVariables& rVariables,
-                                    Vector& rVolumeForce,
-                                    double& rIntegrationWeight);
+    //virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    //                                GeneralVariables& rVariables,
+    //                                Vector& rVolumeForce,
+    //                                double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    //virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
    /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+    //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber);
+    //virtual void SetGeneralVariables(GeneralVariables& rVariables,
+    //                                 ConstitutiveLaw::Parameters& rValues,
+    //                                 const int & rPointNumber);
 
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    //virtual void CalculateAndAddKuum(MatrixType& rK,
+    //                                 GeneralVariables & rVariables,
+    //                                 double& rIntegrationWeight
+    //                                );
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    //virtual void CalculateAndAddKuug(MatrixType& rK,
+    //                                 GeneralVariables & rVariables,
+    //                                 double& rIntegrationWeight
+    //                                );
 
     /**
      * Calculation of the Kup matrix
      */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-                                     GeneralVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    );
+    //virtual void CalculateAndAddKup (MatrixType& rK,
+    //                                 GeneralVariables & rVariables,
+    //                                 double& rIntegrationWeight
+    //                                );
 
     /**
      * Calculation of the Kpu matrix
      */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
+    /*virtual void CalculateAndAddKpu(MatrixType& rK,
                                     GeneralVariables & rVariables,
                                     double& rIntegrationWeight
-                                   );
+                                   );*/
 
 
     /**
      * Calculation of the Kpp matrix
      */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
+    /*virtual void CalculateAndAddKpp(MatrixType& rK,
                                     GeneralVariables & rVariables,
                                     double& rIntegrationWeight
-                                   );
+                                   );*/
 
 
     /**
@@ -337,20 +329,20 @@ protected:
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables& rVariables,
-                                       Vector& rVolumeForce,
-                                       double& rIntegrationWeight
-                                      );
+    //void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+    //                                   GeneralVariables& rVariables,
+    //                                   Vector& rVolumeForce,
+    //                                   double& rIntegrationWeight
+    //                                  );
 
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+    /*virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             double& rIntegrationWeight
-                                              );
+                                              );*/
 
 
     /**
@@ -364,28 +356,17 @@ protected:
     /**
       * Calculation of the Internal Forces due to sigma. Fi = B * sigma
       */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-                                       GeneralVariables & rVariables,
-                                       double& rIntegrationWeight
-                                      );
+    //virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+    //                                   GeneralVariables & rVariables,
+    //                                   double& rIntegrationWeight
+    //                                  );
 
     /**
      * Initialize System Matrices
      */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                  VectorType& rRightHandSideVector,
-                                  Flags& rCalculationFlags);
-
-    //on integration points:
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-    virtual void GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor);
-
-    virtual double GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l);
-
+    //void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+    //                              VectorType& rRightHandSideVector,
+    //                              Flags& rCalculationFlags);
 
     ///@}
     ///@name Protected  Access
@@ -442,10 +423,10 @@ private:
     ///@}
 
 
-}; // Class SpatialLagrangianUwPElement
+}; // Class SpatialLagrangianUwPFICElement
 
 
 
 } // namespace Kratos
-#endif // KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
+#endif // KRATOS_____
 
