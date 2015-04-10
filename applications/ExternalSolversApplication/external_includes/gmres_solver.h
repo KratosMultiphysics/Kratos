@@ -669,7 +669,7 @@ private:
                 h[k*mr+k] = c[k] * h[k*mr+k] - s[k] * h[(k+1)*mr+k];
                 h[(k+1)*mr+k] = 0;
                 mult_givens ( c[k], s[k], k, g );
-                rho = fabs ( g[k] );
+                rho = std::abs ( g[k] );
                 k = k + 1;
             }
             k = k-1;
