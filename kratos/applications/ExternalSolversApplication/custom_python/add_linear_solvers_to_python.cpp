@@ -99,6 +99,7 @@ void  AddLinearSolversToPython()
     .value("ILU0", ILU0)
     .value("DAMPED_JACOBI",DAMPED_JACOBI)
     .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
+    .value("CHEBYSHEV",CHEBYSHEV)
     ;
     
     enum_<AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
@@ -106,11 +107,22 @@ void  AddLinearSolversToPython()
     .value("BICGSTAB", BICGSTAB)
     .value("CG",CG)
     .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
+    .value("BICGSTAB2",BICGSTAB2)
     ;
+    
+    enum_<AMGCLCoarseningType>("AMGCLCoarseningType")
+    .value("RUGE_STUBEN", RUGE_STUBEN)
+    .value("AGGREGATION", AGGREGATION)
+    .value("SA",SA)
+    .value("SA_EMIN",SA_EMIN)
+    ;
+    
+
     
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
     class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
+    .def(init<AMGCLSmoother,AMGCLIterativeSolverType,AMGCLCoarseningType ,double,int,int,int>())
     ;
 #endif
     

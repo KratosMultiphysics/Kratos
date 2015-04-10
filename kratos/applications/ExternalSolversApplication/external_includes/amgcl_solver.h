@@ -11,15 +11,18 @@
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
 #include<utility>
-#include <amgcl/common.hpp>
+//#include <amgcl/common.hpp>
 #include <amgcl/amgcl.hpp>
-#include <amgcl/operations_ublas.hpp>
-#include <amgcl/interp_aggr.hpp>
-#include <amgcl/aggr_plain.hpp>
-#include <amgcl/level_cpu.hpp>
-#include <amgcl/gmres.hpp>
-#include <amgcl/bicgstab.hpp>
-#include <amgcl/cg.hpp>
+#include <boost/utility.hpp>
+// #include <amgcl/operations_ublas.hpp>
+// #include <amgcl/interp_aggr.hpp>
+// #include <amgcl/aggr_plain.hpp>
+// #include <amgcl/level_cpu.hpp>
+// #include <amgcl/gmres.hpp>
+// #include <amgcl/bicgstab.hpp>
+// #include <amgcl/cg.hpp>
+#include <amgcl/adapter/ublas.hpp>
+#include <amgcl/runtime.hpp>
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
@@ -30,12 +33,17 @@ namespace Kratos
   
   enum AMGCLSmoother
 {
-    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL
+    SPAI0, ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
 };
 
   enum AMGCLIterativeSolverType
 {
-   GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK
+   GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK,BICGSTAB2
+};
+
+enum AMGCLCoarseningType
+{
+    RUGE_STUBEN,AGGREGATION,SA,SA_EMIN
 };
 
 template< class TSparseSpaceType, class TDenseSpaceType,
@@ -62,7 +70,7 @@ public:
 	 * @param NewMaxIterationsNumber this number represents both the number of iterations AND the size of the krylov space
 	 * @param level of fill that will be used in the ILU
 	 * @param verbosity, a number from 0 (no output) to 2 (maximal output)
-	 * @param is_symmetric, set to True to solve assuming the matrix is symmetric
+	 * @param is_symmetric, set to True tAMGCLCoarseningTypeo solve assuming the matrix is symmetric
 	 */
 	AMGCLSolver(AMGCLSmoother smoother,
 		    AMGCLIterativeSolverType solver,
@@ -77,12 +85,147 @@ public:
 		mmax_it = NewMaxIterationsNumber;
 		mverbosity=verbosity;		
 		mndof = 1;
-		mgmres_size = gmres_size;
-		msmoother = smoother;	 
-		msolver = solver;
+
+        //choose smoother
+        switch(smoother)
+        {
+        case SPAI0:
+            mrelaxation = amgcl::runtime::relaxation::spai0;
+            break;
+        case ILU0:
+            mrelaxation = amgcl::runtime::relaxation::ilu0;
+            break;
+        case DAMPED_JACOBI:
+            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+            break;
+        case GAUSS_SEIDEL:
+            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+            break;
+       case CHEBYSHEV:
+           mrelaxation = amgcl::runtime::relaxation::chebyshev;
+           break;
+        };
+
+        switch(solver)
+        {
+            case GMRES:
+                miterative_solver = amgcl::runtime::solver::gmres;
+                break;
+            case BICGSTAB:
+                miterative_solver = amgcl::runtime::solver::bicgstab;
+                break;
+            case CG:
+                miterative_solver = amgcl::runtime::solver::cg;
+                break;
+            case BICGSTAB2:
+                miterative_solver = amgcl::runtime::solver::bicgstabl;
+                break;
+            case BICGSTAB_WITH_GMRES_FALLBACK:
+            {
+                KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+                break;
+            }
+        };
+
+/*        switch(coarsening)
+        {
+        case RUGE_STUBEN:
+            mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
+        case AGGREGATION:
+            mcoarsening = amgcl::runtime::coarsening::aggregation;
+        case SA:
+            mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+        case SA_EMIN:
+            mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
+        }; */       
+        mcoarsening = amgcl::runtime::coarsening::aggregation;
+     
+        
 	}
 
+/**
+     * Default constructor - uses ILU+GMRES
+     * @param NewMaxTolerance tolerance that will be achieved by the iterative solver
+     * @param NewMaxIterationsNumber this number represents both the number of iterations AND the size of the krylov space
+     * @param level of fill that will be used in the ILU
+     * @param verbosity, a number from 0 (no output) to 2 (maximal output)
+     * @param is_symmetric, set to True to solve assuming the matrix is symmetric
+     */
+    AMGCLSolver(AMGCLSmoother smoother,
+            AMGCLIterativeSolverType solver,
+            AMGCLCoarseningType coarsening,
+                double NewMaxTolerance,
+                            int NewMaxIterationsNumber,
+                int verbosity,
+                int gmres_size = 50
+                )
+    {
+        std::cout << "setting up AMGCL for iterative solve " << std::endl;
+        mTol = NewMaxTolerance;
+        mmax_it = NewMaxIterationsNumber;
+        mverbosity=verbosity;       
+        mndof = 1;
 
+        //choose smoother
+        switch(smoother)
+        {
+        case SPAI0:
+            mrelaxation = amgcl::runtime::relaxation::spai0;
+            break;
+        case ILU0:
+            mrelaxation = amgcl::runtime::relaxation::ilu0;
+            break;
+        case DAMPED_JACOBI:
+            mrelaxation = amgcl::runtime::relaxation::damped_jacobi;
+            break;
+        case GAUSS_SEIDEL:
+            mrelaxation = amgcl::runtime::relaxation::gauss_seidel;
+            break;
+       case CHEBYSHEV:
+           mrelaxation = amgcl::runtime::relaxation::chebyshev;
+           break;
+        };
+
+        switch(solver)
+        {
+            case GMRES:
+                miterative_solver = amgcl::runtime::solver::gmres;
+                break;
+            case BICGSTAB:
+                miterative_solver = amgcl::runtime::solver::bicgstab;
+                break;
+            case CG:
+                miterative_solver = amgcl::runtime::solver::cg;
+                break;
+            case BICGSTAB2:
+                miterative_solver = amgcl::runtime::solver::bicgstabl;
+                break;
+            case BICGSTAB_WITH_GMRES_FALLBACK:
+            {
+                KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+                break;
+            }
+        };
+
+        switch(coarsening)
+        {
+        case RUGE_STUBEN:
+            mcoarsening = amgcl::runtime::coarsening::ruge_stuben;
+            break;
+        case AGGREGATION:
+            mcoarsening = amgcl::runtime::coarsening::aggregation;
+            break;
+        case SA:
+            mcoarsening = amgcl::runtime::coarsening::smoothed_aggregation;
+            break;
+        case SA_EMIN:
+            mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
+            break;
+            
+        };       
+        
+    }
+    
 	/**
 	 * Destructor
 	 */
@@ -98,144 +241,60 @@ public:
 	 */
 	bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
-	  std::pair<int,double> cnv;
-	  if(msmoother == SPAI0)
-	  {
-		typedef amgcl::solver<
-			double, int,
-			amgcl::interp::aggregation<amgcl::aggr::plain>,
- 			amgcl::level::cpu<amgcl::relax::spai0> 
-			> AMG;
-		AMG::params prm;
-		prm.interp.dof_per_node = mndof;
-		prm.interp.eps_strong = 0;
+       //set block size
+//         mprm.put("amg.coarse_enough",500);
+        mprm.put("amg.coarsening.aggr.eps_strong",0.0);
+        mprm.put("amg.coarsening.aggr.block_size",mndof);
+        mprm.put("solver.tol", mTol);
+        mprm.put("solver.maxiter", mmax_it);
+        
+        //provide the null space
+//         Matrix B = ZeroMatrix(  rA.size1(), mndof  );
+//         for(unsigned int i=0; i<rA.size1(); i+=mndof)
+//         {
+//             for( unsigned int j=0; j<static_cast<unsigned int>(mndof); j++)
+//             {
+//                 B(i+j,  j) = 1.0;
+//             }
+//         }
+//         mprm.put("amg.coarsening.nullspace.cols", B.size2());
+//         mprm.put("amg.coarsening.nullspace.rows", B.size1());
+//         mprm.put("amg.coarsening.nullspace.B",    &(B.data()[0]));
+        
+//         unsigned int ncols = mndof;
+//         Vector B = ZeroVector(  rA.size1() *ncols  );
+//         
+//         for( unsigned int j=0; j<static_cast<unsigned int>(ncols); j++)
+//         {
+//             for(unsigned int i=rA.size1()*j+j; i<rA.size1()*(j+1); i+=ncols)
+//                B[i] = 1.0;
+//         }
+//         
+//         mprm.put("amg.coarsening.nullspace.cols", ncols);
+//         mprm.put("amg.coarsening.nullspace.rows", rA.size1());
+//         mprm.put("amg.coarsening.nullspace.B",    &(B.data()[0]));
 
-		AMG amg(amgcl::sparse::map(rA), prm);
-		if(mverbosity > 0) amg.print(std::cout);
-		
-		if(msolver == GMRES)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-		else if(msolver == BICGSTAB)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-		else if(msolver == CG)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));	  
-        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
+//        const unsigned int n = rA.size1();
+        typedef amgcl::runtime::make_solver< amgcl::backend::builtin<double> > SolverType;       
+
+        SolverType solve(mcoarsening, mrelaxation, miterative_solver, amgcl::backend::map(rA), mprm );     
+
+
+        size_t iters;
+        double resid;
+        boost::tie(iters, resid)  = solve(rB, rX);
+
+      
+        if(mverbosity > 0)
         {
-            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-            if(cnv.second > mTol )
-            {
-                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
-                TSparseSpaceType::SetToZero( rX); 
-                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-            }
-                
+            
+            std::cout << "Iterations: " << iters << std::endl
+                << "Error: " << resid << std::endl
+                << std::endl;
         }
-	    
-	  }
-	  else if(msmoother == ILU0)
-	  {
-		typedef amgcl::solver<
-			double, int,
-			amgcl::interp::aggregation<amgcl::aggr::plain>,
- 			amgcl::level::cpu<amgcl::relax::ilu0> 
-			> AMG;
-		AMG::params prm;
-		prm.interp.dof_per_node = mndof;
-		prm.interp.eps_strong = 0;
-
-		AMG amg(amgcl::sparse::map(rA), prm);
-  		if(mverbosity > 0) amg.print(std::cout);
-		if(msolver == GMRES)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-		else if(msolver == BICGSTAB)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-		else if(msolver == CG)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
-        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
-        {
-            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-            if(cnv.second > mTol )
-            {
-                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
-                TSparseSpaceType::SetToZero( rX); 
-                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-            }                
-        }
-	  }
-	  else if(msmoother == DAMPED_JACOBI)
-	  {
-		typedef amgcl::solver<
-			double, int,
-			amgcl::interp::aggregation<amgcl::aggr::plain>,
- 			amgcl::level::cpu<amgcl::relax::damped_jacobi> 
-			> AMG;
-		AMG::params prm;
-		prm.interp.dof_per_node = mndof;
-		prm.interp.eps_strong = 0;
-
-		AMG amg(amgcl::sparse::map(rA), prm);
-		if(mverbosity > 0) amg.print(std::cout);
-		
-		if(msolver == GMRES)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-		else if(msolver == BICGSTAB)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-		else if(msolver == CG)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
-        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
-        {
-            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-            if(cnv.second > mTol )
-            {
-                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
-                TSparseSpaceType::SetToZero( rX); 
-                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-            }                
-        }
-          
-    }	  
-	  else if(msmoother == GAUSS_SEIDEL)
-	  {
-		typedef amgcl::solver<
-			double, int,
-			amgcl::interp::aggregation<amgcl::aggr::plain>,
- 			amgcl::level::cpu<amgcl::relax::gauss_seidel> 
-			> AMG;
-		AMG::params prm;
-		prm.interp.dof_per_node = mndof;
-		prm.interp.eps_strong = 0;
-
-		AMG amg(amgcl::sparse::map(rA), prm);
-		if(mverbosity > 0) amg.print(std::cout);
-		
-		if(msolver == GMRES)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-		else if(msolver == BICGSTAB)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-		else if(msolver == CG)
-		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
-        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
-        {
-            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
-            if(cnv.second > mTol )
-            {
-                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
-                TSparseSpaceType::SetToZero( rX); 
-                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
-            }                
-        }
-	  }	
-	  if(mverbosity > 0)
-	  {
- 		std::cout << "Iterations: " << cnv.first << std::endl
- 			  << "Error: " << cnv.second << std::endl
- 			  << std::endl;
-	  }
-
-// 		std::cout << prof;
 
 		bool is_solved = true;
-		if(cnv.second > mTol)
+		if(resid > mTol)
 		  is_solved = false;
 		
 		return is_solved;
@@ -328,7 +387,7 @@ public:
 		else
 			mndof = ndof;
 			
-//		KRATOS_WATCH(mndof);
+		KRATOS_WATCH(mndof);
 
 
     }
@@ -339,9 +398,12 @@ private:
 	unsigned int mmax_it;
 	int mverbosity;
 	int mndof;
-        unsigned int mgmres_size;
-	AMGCLSmoother msmoother;
-	AMGCLIterativeSolverType msolver;
+    unsigned int mgmres_size;
+
+    amgcl::runtime::coarsening::type mcoarsening;
+    amgcl::runtime::relaxation::type mrelaxation;
+    amgcl::runtime::solver::type miterative_solver;
+    boost::property_tree::ptree mprm;
 
 	/**
 	 * Assignment operator.
