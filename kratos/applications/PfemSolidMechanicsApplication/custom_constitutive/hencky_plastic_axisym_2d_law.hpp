@@ -170,6 +170,7 @@ protected:
                                          Vector& rStrainVector );
 
 							      
+    virtual void ConvertConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix);
     /**
      * Calculates the isochoric constitutive matrix
      * @param rElasticVariables
@@ -177,21 +178,6 @@ protected:
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void  CalculateEigenValuesConstitutiveMatrix(const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix)
-    {
-        KRATOS_ERROR( std::logic_error, "Called the pullback configuration and it is not implemented", "" )
-    };
-    virtual void CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix)
-    {
-        KRATOS_ERROR( std::logic_error, "Called the pullback configuration and it is not implemented", "" )
-    };
-
-
-      virtual void  CalculateEigenValuesConstitutiveMatrix(const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, Matrix& rConstitutiveMatrix);
-
-
-      virtual void CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, Matrix& rConstitutiveMatrix);
-
 
 private:
 
@@ -227,12 +213,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticAxisym2DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlasticAxisym2DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
 

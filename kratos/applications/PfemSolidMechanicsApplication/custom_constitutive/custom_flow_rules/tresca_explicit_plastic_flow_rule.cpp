@@ -72,8 +72,9 @@ void TrescaExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHen
 void TrescaExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative)
 {
      //double YieldStress = mpYieldCriterion->GetHardeningLaw().GetProperties()[YIELD_STRESS];
-
-     rSecondDerivative = ZeroMatrix(6);
+     rFirstDerivative = ZeroVector(1);
+     rSecondDerivative = ZeroMatrix(1);
+     return;
 
 }
 void TrescaExplicitFlowRule::save( Serializer& rSerializer) const 

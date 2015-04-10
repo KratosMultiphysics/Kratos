@@ -101,5 +101,26 @@ Matrix NonLinearHenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToApp
 
 }
 
+//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+//************************************************************************************
+void NonLinearHenckyElasticPlasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+{
+    	//Set the type of law
+	rFeatures.mOptions.Set( PLANE_STRAIN_LAW );
+	rFeatures.mOptions.Set( FINITE_STRAINS );
+	rFeatures.mOptions.Set( ISOTROPIC );
+
+	//Set strain measure required by the consitutive law
+	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+	
+	//Set the strain size
+	rFeatures.mStrainSize = GetStrainSize();
+
+	//Set the spacedimension
+	rFeatures.mSpaceDimension = WorkingSpaceDimension();
+
+}
+
+
 
 } //end namespace kratos

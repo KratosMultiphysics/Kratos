@@ -110,7 +110,9 @@ public:
      */
     //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
 
+    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 
+    virtual void SetValue( const Variable<Vector>& rThisVariable, const Vector& rVector, ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output

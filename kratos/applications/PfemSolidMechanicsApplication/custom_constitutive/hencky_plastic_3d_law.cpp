@@ -94,14 +94,16 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     MatrixSplit SplitConstitutiveMatrix;
 
     //1.- Lame constants
-    //const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
-    //const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
-    const double YoungModulus = 2.069e5;
-    const double PoissonCoefficient = 0.3;
+    const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
+    //const double YoungModulus = 2.0e5;
+    //const double PoissonCoefficient = 0.3;
 
-    ReturnMappingVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
-    ReturnMappingVariables.LameMu          =  YoungModulus/(2.0*(1.0+PoissonCoefficient));
-    
+//    ReturnMappingVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
+//    ReturnMappingVariables.LameMu          =  YoungModulus/(2.0*(1.0+PoissonCoefficient));
+   
+    ReturnMappingVariables.YoungModulus = YoungModulus;
+    ReturnMappingVariables.PoissonCoefficient    = PoissonCoefficient; 
     //2.-Determinant of the Total Deformation Gradient
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
 
@@ -114,21 +116,61 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //4.-Left Cauchy-Green tensor b (without bar) to the new configuration
     ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(DeformationGradientFbar));
     ElasticVariables.CauchyGreenMatrix = prod(DeformationGradientFbar,ElasticVariables.CauchyGreenMatrix);
-    
 
-/*    //4.-Left Cauchy-Green tensor b_bar to the new configuration
-    ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(DeformationGradientFbar));
-    ElasticVariables.CauchyGreenMatrix = prod(DeformationGradientFbar,ElasticVariables.CauchyGreenMatrix);
+    if (false) {
 
-    //5.-Calculate trace of Left Cauchy-Green tensor b_bar
-    ElasticVariables.traceCG = 0;
-    for( unsigned int i=0; i<3; i++)
-    {
-       ElasticVariables.traceCG += ElasticVariables.CauchyGreenMatrix( i , i );
+       Matrix f = ZeroMatrix(3);
+
+       for (unsigned int i = 0; i <3; ++i)
+           f(i,i) = 1.0; 
+
+        int nPassos = 500;
+        Matrix DeltaDef = ZeroMatrix(3);
+        Matrix StressMatrix;
+        Vector PrincipalStrainTrial = ZeroVector(3);
+        for (int i = 0; i < nPassos; ++ i ) {
+            std::cout << " i " << i << std::endl;
+            if (i < 50) {
+               for (unsigned int j = 0; j < 3; ++ j) {
+                  DeltaDef(j,j) = 0.999;
+                }
+            }
+            else {
+               for (unsigned int j = 0; j < 3; ++j) {
+                  DeltaDef(j,j) = 1.0;
+               }
+               DeltaDef(0,1) = 0.001;
+            }
+            std::cout << " " << DeltaDef << std::endl;
+
+            ElasticVariables.CauchyGreenMatrix = prod( mElasticLeftCauchyGreen, trans(DeltaDef));
+            ElasticVariables.CauchyGreenMatrix = prod( DeltaDef, ElasticVariables.CauchyGreenMatrix);
+
+            std::cout << " " << ElasticVariables.CauchyGreenMatrix << std::endl;
+            this->CalculatePrincipalAxisHenckyTrial(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, PrincipalStrainTrial);
+      
+            //2. compute trial stress and perform return mapping
+            //returnmappingvariables.control.plasticregion = mpflowrule->calculatereturnmapping( returnmappingvariables, stressmatrix, principalstraintrial);
+            mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, PrincipalStrainTrial);
+
+            mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
+
+            mElasticLeftCauchyGreen = mpFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables);
+            f = prod( DeltaDef, f);
+            std::cout << "DEBUG stre " << StressMatrix << std::endl;
+            std::cout << "DEBUG elcg " << mElasticLeftCauchyGreen << std::endl;
+            std::cout << "DEBUG fff  " << f << std::endl;
+ 
+        }
+
+        KRATOS_ERROR( std::logic_error, "finishing the constitutive test debug zone blah blah blah", "" );
     }
 
-    ReturnMappingVariables.LameMu_bar = ElasticVariables.LameMu * ( ElasticVariables.traceCG / 3.0  );
-*/
+
+
+
+
+
     //4.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
@@ -144,25 +186,22 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-    // No només fa el Return Mapping sinó que també calcula el trial (i la descomposició). D'aquesta manera netegem coses.
-    //1. Compute Trial Hencky Strian in the principal Axis (and polar decomposition) 
-    //      Vector PrincipalStrainTrial = ZeroVector(3);
-    //      this->CalculatePrincipalAxisHenckyTrial(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, PrincipalStrainTrial); 
-
       Vector PrincipalStrainTrial= ZeroVector(3);
-      this->CalculatePrincipalAxisHenckyTrial(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, PrincipalStrainTrial);
       
       //2. Compute Trial Stress and perform return mapping
-      //ReturnMappingVariables.Control.PlasticRegion = mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, PrincipalStrainTrial);
+
+      this->CalculatePrincipalAxisHenckyTrial(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, PrincipalStrainTrial);
+      
       mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, PrincipalStrainTrial);
     }
+
+
     //OPTION 1:
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
 
         //Kirchhoff Stress:
         StressVector = MathUtils<double>::StressTensorToVector(StressMatrix, StressVector.size());
-
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
         {
 //            StressVector = SplitStressVector.Isochoric;
@@ -180,10 +219,8 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
         //initialize constitutive tensors
         ConstitutiveMatrix.clear();
-        SplitConstitutiveMatrix.EigenValues  = ConstitutiveMatrix;
-        SplitConstitutiveMatrix.EigenVectors = ConstitutiveMatrix;
 
-        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+        //ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
 
 	Matrix PrincipalTangentMatrix;
 	if (ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION)  ) {
@@ -191,38 +228,10 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         }
         else  {
            mpFlowRule->CalculatePrincipalAxisAlgorithmicTangent(ReturnMappingVariables, StressMatrix, PrincipalTangentMatrix);
-	   //Ll: Poner Aquí la matrix elastica normal en ejes principales.
         }
-	//Matrix& EigenVectors = mpFlowRule->GetEigenVectors();
-        //Vector& EigenValues  = mpFlowRule->GetEigenValues();
-        //Ll:
-       Matrix& EigenVectors = ReturnMappingVariables.EigenVectors;
-       Vector& EigenValues  = ReturnMappingVariables.TrialEigenValues;
 
-	if ( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) || Options.Is( ConstitutiveLaw::INITIAL_CONFIGURATION ) ){
-	  
-	  Matrix InverseDeformationGradientF ( 3, 3 );
-	  double DetInvF=0;
-	  MathUtils<double>::InvertMatrix( DeformationGradientFbar, InverseDeformationGradientF, DetInvF);
-
-	  this->CalculateEigenValuesConstitutiveMatrix(PrincipalTangentMatrix, EigenVectors, InverseDeformationGradientF, SplitConstitutiveMatrix.EigenValues);
-
-	  this->CalculateEigenVectorsConstitutiveMatrix(EigenVectors, EigenValues, StressMatrix, InverseDeformationGradientF, SplitConstitutiveMatrix.EigenVectors);
-
-	}
-	else{
-
-	  this->CalculateEigenValuesConstitutiveMatrix(PrincipalTangentMatrix, EigenVectors, SplitConstitutiveMatrix.EigenValues);
-
-	  this->CalculateEigenVectorsConstitutiveMatrix(EigenVectors, EigenValues, StressMatrix, SplitConstitutiveMatrix.EigenVectors);
-	  
-	  
-	}
-
-
-        //if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
-        ConstitutiveMatrix = SplitConstitutiveMatrix.EigenValues+ SplitConstitutiveMatrix.EigenVectors;
-        ConstitutiveMatrix(2,2) = 100.0; 
+        this->ConvertConstitutiveMatrixToAppropiateDimension( PrincipalTangentMatrix);
+        ConstitutiveMatrix = PrincipalTangentMatrix; 
 
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
         {
@@ -240,227 +249,30 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     {
       mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
-      //mElasticLeftCauchyGreen  = ( IsochoricStressMatrix * ( 1.0 / ElasticVariables.LameMu ) );
-      //mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.IdentityMatrix;
       mElasticLeftCauchyGreen = mpFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables);
- 
     }
 
 }
 
 
-void HenckyElasticPlastic3DLaw::CalculateEigenValuesConstitutiveMatrix(const Matrix & rPrincipalTangent, const Matrix & rEigenVectors, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix)
+void HenckyElasticPlastic3DLaw::ConvertConstitutiveMatrixToAppropiateDimension(Matrix&  PrincipalTangentMatrix)
 {
-
-    rConstitutiveMatrix.clear();
-
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
-        {
-	  rConstitutiveMatrix( i, j ) = EigenValuesConstitutiveComponent(rConstitutiveMatrix( i, j ),
-					  rPrincipalTangent, rEigenVectors, rInverseDeformationGradientF, 
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
-        }
-
-    }
-
-
-}
-
-
-void HenckyElasticPlastic3DLaw::CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix)
-{
-    Vector PrincipalStress;
-    PrincipalStress = this->GetStressVectorFromMatrix(rStressMatrix, PrincipalStress);
-    
-    rConstitutiveMatrix.clear();
-
-
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
-        {
-            rConstitutiveMatrix( i, j ) = EigenVectorsConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rEigenVectors, rEigenValues, PrincipalStress, rInverseDeformationGradientF, 
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
-        }
-
-    }
-
-}
-
-
-double& HenckyElasticPlastic3DLaw::EigenValuesConstitutiveComponent(double & rCabcd,
-	const Matrix & rPrincipalTangent, const Matrix& rEigenVectors, const Matrix&  rInverseDeformationGradientF, 
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d)
-{
-    rCabcd = 0;
-    double Cijkl=0;
-
-    unsigned int dimension = rInverseDeformationGradientF.size1();
-
-    //Cabcd
-    for(unsigned int j=0; j<dimension; j++)
-    {
-        for(unsigned int l=0; l<dimension; l++)
-        {
-            for(unsigned int k=0; k<dimension; k++)
-            {
-                for(unsigned int i=0; i<dimension; i++)
-                {
-                    //Cijkl
-		  rCabcd +=rInverseDeformationGradientF(a,i)*rInverseDeformationGradientF(b,j)*rInverseDeformationGradientF(c,k)*rInverseDeformationGradientF(d,l)*EigenValuesConstitutiveComponent(Cijkl,rPrincipalTangent,rEigenVectors,i,j,k,l);
-                }
-            }
-        }
-    }
-
-    return rCabcd;
-}
-
-
-double& HenckyElasticPlastic3DLaw::EigenVectorsConstitutiveComponent(double & rCabcd,
-	const Matrix & rEigenVectors, const Vector& rEigenValues, const Vector&  rPrincipalStress,
-	const Matrix & rInverseDeformationGradientF,  
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d)
-{
-    rCabcd = 0;
-    double Cijkl=0;
-
-    unsigned int dimension = rInverseDeformationGradientF.size1();
-
-    //Cabcd
-    for(unsigned int j=0; j<dimension; j++)
-    {
-        for(unsigned int l=0; l<dimension; l++)
-        {
-            for(unsigned int k=0; k<dimension; k++)
-            {
-                for(unsigned int i=0; i<dimension; i++)
-                {
-                    //Cijkl
-		  rCabcd +=rInverseDeformationGradientF(a,i)*rInverseDeformationGradientF(b,j)*rInverseDeformationGradientF(c,k)*rInverseDeformationGradientF(d,l)*EigenVectorsConstitutiveComponent(Cijkl, rEigenVectors, rEigenValues, rPrincipalStress, i,j,k,l);
-
-                }
-            }
-        }
-    }
-
-    return rCabcd;
-}
-
-
-void HenckyElasticPlastic3DLaw::CalculateEigenValuesConstitutiveMatrix(const Matrix & rPrincipalTangent, const Matrix & rEigenVectors, Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
-        {
-            rConstitutiveMatrix( i, j ) = EigenValuesConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rPrincipalTangent, rEigenVectors, 
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
-        }
-
-    }
-
-}
-
-
-void HenckyElasticPlastic3DLaw::CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, Matrix& rConstitutiveMatrix)
-{
-    Vector PrincipalStress;
-    PrincipalStress = this->GetStressVectorFromMatrix(rStressMatrix, PrincipalStress);
-    
-    rConstitutiveMatrix.clear();
-
-
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
-        {
-            rConstitutiveMatrix( i, j ) = EigenVectorsConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rEigenVectors, rEigenValues, PrincipalStress,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
-        }
-
-    }
 
 }
 
 
 
-double& HenckyElasticPlastic3DLaw::EigenVectorsConstitutiveComponent(double & rCabcd,
-	const Matrix & rEigenVectors, const Vector& rEigenValues,const Vector&  rPrincipalStress, 
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d)
+Vector& HenckyElasticPlastic3DLaw::GetStressVectorFromMatrix(const Matrix& rStressMatrix, Vector& rPrincipalStress, const Matrix& rEigenVectors)
 {
-	const Matrix& rEV = rEigenVectors;
-        rCabcd = 0.0;
-	for (unsigned int m = 0; m<3; ++m)
-	{
-	   for (unsigned int n = 0; n<3; ++n)
-           {
-	      if ( m == n) {
-	      }
-	      else {
-                 if ( abs(rEigenValues(m)-rEigenValues(n))>10E-5)
-                 {
-		     rCabcd += (rPrincipalStress(m)-rPrincipalStress(n)) / ( rEigenValues(m)-rEigenValues(n)) * (rEigenValues(m)*rEV(a,m)*rEV(b,n)*rEV(c,m)*rEV(d,n) + rEigenValues(n)*rEV(a,m)*rEV(b,n)*rEV(c,n)*rEV(d,n));
-	
-	         }
-              }
-            }
-	}
-        return rCabcd;
-                  
-}
-
-double& HenckyElasticPlastic3DLaw::EigenValuesConstitutiveComponent(double & rCabcd,
-        const Matrix & rPrincipalTangent, const Matrix & rEigenVectors,
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d)
-{
-    rCabcd = 0.0;
-    //Isochoric part of the hyperelastic constitutive tensor component
-    for (unsigned int i =0; i<3; ++i) {
-       for (unsigned int j = 0; j<3; ++j) {
-          rCabcd += rPrincipalTangent(i,j)*rEigenVectors(a,i)*rEigenVectors(b,i)*rEigenVectors(c,j)*rEigenVectors(d,j);
-       }
-    }
-
-    return rCabcd;
-}
-
-
-
-
-
-Vector& HenckyElasticPlastic3DLaw::GetStressVectorFromMatrix(const Matrix& rStressMatrix, Vector& rPrincipalStress)
-{
-   Matrix EigenVectors= ZeroMatrix(3);
 //   EigenVectors = mpFlowRule->GetEigenVectors();
 //Ll:
    Matrix auxMatrix = ZeroMatrix(3);
-   auxMatrix = prod( rStressMatrix, EigenVectors);
-   auxMatrix = prod( trans(EigenVectors), auxMatrix);
+   auxMatrix = prod( rStressMatrix, trans(rEigenVectors));
+   auxMatrix = prod( (rEigenVectors), auxMatrix);
    rPrincipalStress = ZeroVector(3);
    for (unsigned int i = 0; i<3; i++)
       rPrincipalStress(i) = auxMatrix(i,i);
+
    return rPrincipalStress;
 }
 
@@ -476,7 +288,7 @@ void HenckyElasticPlastic3DLaw::CalculatePrincipalAxisHenckyTrial(const Matrix& 
     //Vector rPrincipalStrain = ZeroVector(3);
     rReturnMappingVariables.EigenVectors = ZeroMatrix(3);
     rReturnMappingVariables.TrialEigenValues = ZeroVector(3);
-    SD_MathUtils<double>::EigenVectors(rCauchyGreenMatrix, rReturnMappingVariables.EigenVectors, rReturnMappingVariables.TrialEigenValues);
+    SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, rReturnMappingVariables.EigenVectors, rReturnMappingVariables.TrialEigenValues);
     for (unsigned int i = 0; i<3; ++i)
            rPrincipalStrain(i) = 0.50*std::log(rReturnMappingVariables.TrialEigenValues(i));
 }

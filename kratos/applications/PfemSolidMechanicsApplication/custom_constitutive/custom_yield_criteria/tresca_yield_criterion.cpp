@@ -85,12 +85,10 @@ double& TrescaYieldCriterion::CalculateYieldCondition(double& rStateFunction, co
         this->CalculateSmoothingInvariants( StressInvariants);
 
         rStateFunction = StressInvariants.J2InvSQ * ( StressInvariants.A - StressInvariants.B * std::sin( 3.0* StressInvariants.LodeAngle ) );
-//        std::cout << " THIS TH " << (StressInvariants.A - StressInvariants.B* std::sin( 3.0* StressInvariants.LodeAngle) ) << std::endl;
-//        std::cout << " THIS TH " << (StressInvariants.A ) <<" " << StressInvariants.B  << " " <<  std::sin( 3.0* StressInvariants.LodeAngle)  << std::endl;
-//        std::cout << " LOD ANG " << StressInvariants.LodeAngle * 180.0 / 3.14159 << std::endl;
    }
 
-   rStateFunction = rStateFunction/YieldStress - 1.0;
+   //rStateFunction = rStateFunction/YieldStress - 1.0;
+   rStateFunction = rStateFunction - 1.0*YieldStress;
    return rStateFunction; 
 
 }
@@ -98,16 +96,20 @@ double& TrescaYieldCriterion::CalculateYieldCondition(double& rStateFunction, co
 
 void TrescaYieldCriterion::CalculateSmoothingInvariants(  TrescaStressInvariants& rStressInvariants)
 {
-    double SignedSmoothing = this->GetSmoothingLodeAngle();
+   // NO SE PERQUE TINC LA B DE SIGNE CONTRARI, QUE COSAS...
 
+    double SignedSmoothing = this->GetSmoothingLodeAngle();
+    double SmoothingAngle = this->GetSmoothingLodeAngle();
 
     if ( rStressInvariants.LodeAngle < 0.0)
-           SignedSmoothing = -SignedSmoothing;
+           SignedSmoothing = -SmoothingAngle;
 
     //rStressInvariants.A = std::cos( SignedSmoothing ) + std::sin( 3.0*SignedSmoothing ) * std::tan( 3.0*SignedSmoothing ) / 3.0;
     rStressInvariants.A = std::cos( SignedSmoothing ) * ( 3.0 + std::tan( SignedSmoothing ) * std::tan(3.0 * SignedSmoothing) ) / 3.0;
-    rStressInvariants.B = std::sin( SignedSmoothing ) / ( 3.0 * std::cos( SignedSmoothing * 3.0 ) );
+    rStressInvariants.A = std::cos( SmoothingAngle ) *  ( 3.0 + std::tan(SmoothingAngle) * std::tan(3.0*SmoothingAngle) ) / 3.0;
 
+    rStressInvariants.B = std::sin( SignedSmoothing ) / ( 3.0 * std::cos( SignedSmoothing * 3.0 ) );
+    rStressInvariants.B = std::sin( SignedSmoothing ) / ( 3.0 * std::cos( 3.0*SmoothingAngle) );
 
 }
 
@@ -144,13 +146,14 @@ void TrescaYieldCriterion::CalculateStressInvariants( const Vector& rStressVecto
           rStressInvariants.LodeAngle /= pow( rStressInvariants.J2InvSQ, 3.0);
 
           // SHOULD BE LESS THAN ONE TO COMPUTE INVERSE SINUS
-          if ( fabs(rStressInvariants.LodeAngle) > 0.9999 ) { 
+          double Epsi = 10e-5;
+          if ( fabs(rStressInvariants.LodeAngle) > 1.0-Epsi ) { 
              rStressInvariants.LodeAngle = -30.0*GetPI() / 180.0 * rStressInvariants.LodeAngle / fabs(rStressInvariants.LodeAngle) ;
           }
           else {
-             rStressInvariants.LodeAngle  = std::asin( - rStressInvariants.LodeAngle) / 3.0;
+             rStressInvariants.LodeAngle  = std::asin( -rStressInvariants.LodeAngle) / 3.0;
           }
-          if (fabs(rStressInvariants.J2InvSQ) < 0.0001)  
+          if (fabs(rStressInvariants.J2InvSQ) < 0.001)  
               rStressInvariants.LodeAngle = 0.0;
           // RADIANTS 
 
@@ -165,6 +168,8 @@ void TrescaYieldCriterion::CalculateStressInvariants( const Vector& rStressVecto
 double TrescaYieldCriterion::GetSmoothingLodeAngle()
 {
     return 29.8*GetPI()/180.0;
+    //return 22.8*GetPI()/180.0;
+    //return 10.0*GetPI()/180.0;
 }
 
 
@@ -177,7 +182,7 @@ double TrescaYieldCriterion::GetPI()
 //**********************************************************************
 void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rYieldFunctionD, const double& rAlpha)
 {
-     double YieldStress = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
+     //double YieldStress = this->GetHardeningLaw().GetProperties()[YIELD_STRESS];
 
      TrescaStressInvariants StressInvariants;
      this->CalculateStressInvariants(rStressVector, StressInvariants );
@@ -190,9 +195,9 @@ void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStres
  
      if ( fabs(StressInvariants.LodeAngle) < LodeCut ) {
  
-        C2 = 2.0 * std::cos( StressInvariants.LodeAngle) * ( 1.0 + std::tan( StressInvariants.LodeAngle) * std::tan( 3.0 * StressInvariants.LodeAngle) );
+        C2 =  std::cos( StressInvariants.LodeAngle) * ( 1.0 - std::tan( StressInvariants.LodeAngle) * std::tan( 3.0 * StressInvariants.LodeAngle) );
 
-        C3 = pow( 3.0, 1.0/2.0) * std::sin( StressInvariants.LodeAngle) / std::cos( 3.0* StressInvariants.LodeAngle) ;
+        C3 = -pow( 3.0, 1.0/2.0)/2.0 * std::sin( StressInvariants.LodeAngle) / std::cos( 3.0* StressInvariants.LodeAngle) ;
         C3 /= pow(StressInvariants.J2InvSQ, 2.0);
      }
      else {
@@ -216,9 +221,11 @@ void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStres
 
      Vector C3Vector = ZeroVector(6);
 
-     C3Vector(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(3), 2.0);
-     C3Vector(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(4), 2.0);
-     C3Vector(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(5), 2.0);
+
+     // FALTER TERMES
+     C3Vector(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2.0); 
+     C3Vector(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2.0); 
+     C3Vector(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2.0); 
 
      C3Vector(3) = 2.0 * ( ShearStress(4)*ShearStress(5) - ShearStress(2)*ShearStress(3));
      C3Vector(4) = 2.0 * ( ShearStress(5)*ShearStress(3) - ShearStress(0)*ShearStress(4));
@@ -228,7 +235,7 @@ void TrescaYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStres
          C3Vector(i) += pow(StressInvariants.J2InvSQ, 2.0) / 3.0;
 
      rYieldFunctionD = C2*C2Vector + C3*C3Vector;
-     rYieldFunctionD /= YieldStress;
+     //rYieldFunctionD /= YieldStress;
  
 }
 void TrescaYieldCriterion::save( Serializer& rSerializer ) const

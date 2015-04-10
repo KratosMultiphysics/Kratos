@@ -77,6 +77,7 @@ void J2ExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector
 
       Matrix Aux = ZeroMatrix(6);
       rElasticMatrix = Aux;
+
       double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
       double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
       double diagonal =   Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
@@ -109,8 +110,12 @@ void J2ExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHenckyS
  
 void J2ExplicitFlowRule::CalculatePlasticPotentialDerivatives(const Vector& rStressVector, Vector& rFirstDerivative, Matrix& rSecondDerivative)
 {
+    rFirstDerivative = ZeroVector(1);
+    rSecondDerivative = ZeroMatrix(1);
+    return;  // program things only once
      double YieldStress = mpYieldCriterion->GetHardeningLaw().GetProperties()[YIELD_STRESS]
 ;
+
 
      rSecondDerivative = ZeroMatrix(6);
 

@@ -94,6 +94,11 @@ public:
      * Operators
      */
 
+   virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+
+   virtual void SetValue( const Variable<double>& rThisVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo );
+
+   virtual void SetValue( const Variable<Vector>& rThisVarialbe, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
     /**
      * Operations needed by the base class:
      */
@@ -139,6 +144,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+
     ///@}
     ///@name Protected Operations
     ///@{

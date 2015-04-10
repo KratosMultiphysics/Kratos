@@ -103,7 +103,20 @@ public:
         return 6;
     };
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    virtual void GetLawFeatures(Features& rFeatures);
+
+    virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+
+    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+
+
+    virtual void SetValue( const Variable<Vector>& rThisVariable,
+                   const Vector& rValue,
+                   const ProcessInfo& rCurrentProcessInfo );
+
+    virtual void SetValue( const Variable<double>& rThisVariable,
+                   const double& rValue,
+                   const ProcessInfo& rCurrentProcessInfo );
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );

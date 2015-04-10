@@ -11,6 +11,7 @@
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
 
 #include "solid_mechanics_application.h"
+#include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
 {
@@ -53,6 +54,9 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CorrectDomainPressure(Matrix& rStress
         MeanPressure += rStressMatrix(i,i);
  
     MeanPressure /=3.0;
+    //if ( fabs(MeanPressure) > 1.0E-4) 
+    //   std::cout << " UNCORRECTED PRESSURE " << MeanPressure << std::endl;
+
     for (unsigned int i = 0; i < 3; ++i)
         rStressMatrix(i,i) -= MeanPressure;
 
@@ -61,8 +65,9 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CorrectDomainPressure(Matrix& rStress
     GetDomainPressure( Pressure, rElasticVariables);
    
     for (unsigned int i = 0; i < 3; ++i)
-        rStressMatrix(i,i) += Pressure; 
+        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF0; 
 
+    //std::cout << " THIS DET " << rElasticVariables.DeterminantF0 << std::endl;
 }
 
 void NonLinearHenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables)
@@ -76,7 +81,7 @@ void NonLinearHenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure,
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(PRESSURE);
+        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(PRESSURE); //NOOOOO
     }
 
 }
@@ -126,8 +131,6 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
 
 }
 
-
-
 // I HAVE TO DELETE THE DEFINITION FROM THE HPP IN ORDER TO REMOVE THE TO FOLLOWING FUNCTIONS; THAT ARE COPY PASTE; THEY ARE ALREADY DEFINED BY INHERITANCE !!!!
 void NonLinearHenckyElasticPlasticUP3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
         Vector& rStrainVector )
@@ -167,6 +170,8 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix 
 }
 
 
+
+
 void NonLinearHenckyElasticPlasticUP3DLaw::CalculateOnlyDeviatoricPart( Matrix& rIncrementalDeformationGradient)
 {
      Matrix Aux = rIncrementalDeformationGradient;
@@ -182,6 +187,83 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateOnlyDeviatoricPart( Matrix& 
      det = pow( det, 1.0/3.0);
 
      rIncrementalDeformationGradient /= det;
+
+}
+
+//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+//************************************************************************************
+
+void NonLinearHenckyElasticPlasticUP3DLaw::GetLawFeatures(Features& rFeatures)
+{
+    	//Set the type of law
+	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
+	rFeatures.mOptions.Set( FINITE_STRAINS );
+	rFeatures.mOptions.Set( ISOTROPIC );
+	rFeatures.mOptions.Set( U_P_LAW );
+
+	//Set strain measure required by the consitutive law
+	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+	
+	//Set the strain size
+	rFeatures.mStrainSize = GetStrainSize();
+
+	//Set the spacedimension
+	rFeatures.mSpaceDimension = WorkingSpaceDimension();
+
+}
+
+Matrix& NonLinearHenckyElasticPlasticUP3DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
+{
+   if ( rThisVariable == KIRCHHOFF_STRESS_TENSOR )
+   {
+      Matrix StressMatrix;
+      Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
+
+      Matrix DeformationGradientF0 = ZeroMatrix(3);
+      for (unsigned int i = 0; i < 3; ++i)
+         DeformationGradientF0(i,i) = 1.0;
+      Matrix IncrementalDeformationGradient = DeformationGradientF0;
+
+      FlowRule::RadialReturnVariables ReturnMappingVariables;
+
+      mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+
+      double MeanStress = 0;
+      for (unsigned int i = 0; i < 3; ++i)
+         MeanStress += StressMatrix(i,i);
+      MeanStress /= 3.0;
+      for (unsigned int i = 0; i < 3; ++i)
+         StressMatrix(i,i) -= MeanStress;
+
+
+      rValue = StressMatrix;
+
+   }
+   else {
+      rValue = NonLinearHenckyElasticPlastic3DLaw::GetValue( rThisVariable, rValue);
+   }
+   return rValue;
+}
+
+void NonLinearHenckyElasticPlasticUP3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
+{
+
+   if ( rThisVariable == ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS)
+   {
+      Vector ThisVector = rValue;
+      double MeanStress = 0;
+      for (unsigned int i = 0; i < 3; i++)
+         MeanStress += ThisVector(i);
+      MeanStress /= 3.0;
+      for (unsigned int i = 0; i < 3; i++)
+         ThisVector(i) -= MeanStress;
+
+      NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, ThisVector, rCurrentProcessInfo);
+     
+   }
+   else {
+      NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo);
+   }
 
 }
 
