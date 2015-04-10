@@ -36,6 +36,12 @@
 
 //elements
 #include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_wP_Stab_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_wP_FIC_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_wP_Stab_Lag_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_wP_second_element.hpp"
+#include "custom_elements/axisym_spatial_lagrangian_U_wP_element.hpp"
+#include "custom_elements/axisym_spatial_lagrangian_U_wP_Stab_element.hpp"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -46,6 +52,7 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
@@ -54,6 +61,7 @@
 #include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
 
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
@@ -69,7 +77,10 @@
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_plane_strain_2D_law.hpp"
 
@@ -89,6 +100,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_STICK_CONTACTS )
   KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_SLIP_CONTACTS )
 
+
   KRATOS_DEFINE_VARIABLE(double, IMPOSED_WATER_PRESSURE )
   //geometrical
 
@@ -105,12 +117,22 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, SWELLING_SLOPE )
   KRATOS_DEFINE_VARIABLE(double, CRITICAL_STATE_LINE )
   KRATOS_DEFINE_VARIABLE(double, ALPHA_SHEAR )
-  KRATOS_DEFINE_VARIABLE(Vector, DARCY_FLOW )
+  KRATOS_DEFINE_VARIABLE(double, INITIAL_POROSITY )
+  KRATOS_DEFINE_VARIABLE(double, COHESION )
+  KRATOS_DEFINE_VARIABLE(double, INTERNAL_DILATANCY_ANGLE )
+
 
 
 
   //element
-  KRATOS_DEFINE_VARIABLE( Matrix, TOTAL_CAUCHY_STRESS )
+  KRATOS_DEFINE_VARIABLE(Matrix, TOTAL_CAUCHY_STRESS )
+  KRATOS_DEFINE_VARIABLE(Vector, DARCY_FLOW )
+
+  // transfer and initial state (set and get)
+  KRATOS_DEFINE_VARIABLE(Matrix, KIRCHHOFF_STRESS_TENSOR )
+  KRATOS_DEFINE_VARIABLE(Vector, ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS )
+  KRATOS_DEFINE_VARIABLE(Matrix, ELASTIC_LEFT_CAUCHY_GREEN_TENSOR )
+  KRATOS_DEFINE_VARIABLE(Vector, ELASTIC_LEFT_CAUCHY_GREEN_VECTOR )
 
   //thermal
 
@@ -142,7 +164,25 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, MU_STATIC )
   KRATOS_DEFINE_VARIABLE(double, MU_DYNAMIC )
 
+  // contact postprocess
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_STRESS )
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_STRESS )
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( EFFECTIVE_CONTACT_FORCE )
+  KRATOS_DEFINE_VARIABLE(double, CONTACT_ADHESION )
+  KRATOS_DEFINE_VARIABLE(double, CONTACT_FRICTION_ANGLE)
 
+  // some post process variables + stress invariants
+  KRATOS_DEFINE_VARIABLE(double, PRECONSOLIDATION )
+  KRATOS_DEFINE_VARIABLE(double, STRESS_INV_P )
+  KRATOS_DEFINE_VARIABLE(double, STRESS_INV_J2 )
+  KRATOS_DEFINE_VARIABLE(double, STRESS_INV_THETA )
+  KRATOS_DEFINE_VARIABLE(double, VOLUMETRIC_PLASTIC )
+  KRATOS_DEFINE_VARIABLE(double, INCR_SHEAR_PLASTIC )
+
+
+  KRATOS_DEFINE_VARIABLE(double, M_MODULUS )
+  KRATOS_DEFINE_VARIABLE(double, SIMILAR_YOUNG_MODULUS )
+  KRATOS_DEFINE_VARIABLE(double, STABILIZATION)
   ///@} 
   ///@name Type Definitions
   ///@{ 
@@ -299,7 +339,15 @@ namespace Kratos
     ///@name Member Variables 
     ///@{ 
 
+
     const SpatialLagrangianUwPElement       mSpatialLagrangianUwPElement2D3N;
+    const SpatialLagrangianUwPStabElement       mSpatialLagrangianUwPStabElement2D3N;
+    const SpatialLagrangianUwPFICElement        mSpatialLagrangianUwPFICElement2D3N;
+    const SpatialLagrangianUwPStabLagElement       mSpatialLagrangianUwPStabLagElement2D3N;
+    const SpatialLagrangianUwPSecondElement   mSpatialLagrangianUwPSecondElement2D3N;
+    //const SpatialLagrangianUwPSecondElement       mSpatialLagrangianUwPSecondElement2D3N;
+    const AxisymSpatialLagrangianUwPElement       mAxisymSpatialLagrangianUwPElement2D3N;
+    const AxisymSpatialLagrangianUwPStabElement       mAxisymSpatialLagrangianUwPStabElement2D3N;
 
     const Condition mCondition2D;
     const Condition mCondition3D;
@@ -326,14 +374,18 @@ namespace Kratos
     const HenckyJ2PlasticAxisym2DLaw                        mHenckyJ2PlasticAxisym2DLaw;
     const HenckyTrescaPlasticAxisym2DLaw                        mHenckyTrescaPlasticAxisym2DLaw;
     const HenckyTrescaPlasticPlaneStrain2DLaw                   mHenckyTrescaPlasticPlaneStrain2DLaw;
+    const HenckyMohrCoulombPlasticAxisym2DLaw                        mHenckyMohrCoulombPlasticAxisym2DLaw;
+    const HenckyMohrCoulombPlasticPlaneStrain2DLaw                   mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
-    const HenckyPlasticUPTrescaAxisym2DLaw                        mHenckyPlasticUPTrescaAxisym2DLaw;
-    const HenckyPlasticUPTrescaPlaneStrain2DLaw                        mHenckyPlasticUPTrescaPlaneStrain2DLaw;
+    const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
+    const HenckyPlasticUPTrescaAxisym2DLaw                    mHenckyPlasticUPTrescaAxisym2DLaw;
+    const HenckyPlasticUPTrescaPlaneStrain2DLaw               mHenckyPlasticUPTrescaPlaneStrain2DLaw;
 
 
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
     const TrescaExplicitFlowRule                 mTrescaExplicitFlowRule; 
+    const MohrCoulombExplicitFlowRule                 mMohrCoulombExplicitFlowRule; 
     const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
     const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
     const BorjaCamClayExplicitFlowRule        mBorjaCamClayExplicitFlowRule;
@@ -342,6 +394,7 @@ namespace Kratos
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion                   mTrescaYieldCriterion;
+    const MohrCoulombYieldCriterion                   mMohrCoulombYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;
