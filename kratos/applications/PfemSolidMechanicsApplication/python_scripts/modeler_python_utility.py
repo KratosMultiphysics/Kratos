@@ -68,7 +68,7 @@ class ModelerUtility:
         self.contact_transfer_done = False
         
     #
-    def InitializeDomains(self):
+    def InitializeDomains(self, ReloadFile = False):
 
         if( self.modeler_active ):        
             print("::[Modeler_Utility]:: Initialize Domains ")
@@ -84,7 +84,8 @@ class ModelerUtility:
                 # find neighbours
                 self.SearchNeighbours()
                 # find skin and boundary normals
-                self.BuildBoundarySkin()
+                if (ReloadFile == False):
+                    self.BuildBoundarySkin()
                 self.neighbours_set = True
 
     #
@@ -224,7 +225,7 @@ class ModelerUtility:
 
             #remesh data
             self.mesh_modeler.SetRemeshData(conditions["MeshElement"], "CompositeCondition2D", conditions["Remesh"], conditions["Constrained"], conditions["MeshSmoothing"], conditions["JacobiSmoothing"], self.avoid_tip_elements, self.alpha_shape, self.offset_factor, mesh_id)
-            
+
             #refine data
             self.mesh_modeler.SetRefineData(conditions["Refine"], self.h_factor, critical_mesh_size, conditions["DissipationVariable"], conditions["CriticalDissipation"], conditions["ErrorVariable"], conditions["CriticalError"], mesh_id)
 
