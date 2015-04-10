@@ -257,7 +257,7 @@ namespace Kratos
   
   // ENERGY
 
-  KRATOS_DEFINE_VARIABLE(double, KINETIC_ENERGY)
+  //KRATOS_DEFINE_VARIABLE(double, KINETIC_ENERGY)
   KRATOS_DEFINE_VARIABLE(double, ELASTIC_ENERGY_OF_CONTACTS)
 
   // *************** Continuum only BEGIN *************
