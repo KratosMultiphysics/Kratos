@@ -19,7 +19,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE)
     model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE)
     model_part.AddNodalSolutionStepVariable(CONTACT_FORCE)
-    # model_part.AddNodalSolutionStepVariable(CONTACT_STRESS)
+    model_part.AddNodalSolutionStepVariable(CONTACT_STRESS)
     # add specific variables for the problem conditions
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(IMPOSED_ROTATION)
@@ -55,9 +55,12 @@ def AddVariables(model_part, config=None):
         if hasattr(config, "WaterPressureDofs"):
             if config.WaterPressureDofs:
                 # add specific variables for the problem (pressure dofs)
+                print( " WE ARE HERE IN THE WATER " )
                 model_part.AddNodalSolutionStepVariable(WATER_PRESSURE)
                 model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
                 model_part.AddNodalSolutionStepVariable(IMPOSED_WATER_PRESSURE);                
+                model_part.AddNodalSolutionStepVariable(EFFECTIVE_CONTACT_FORCE)
+                model_part.AddNodalSolutionStepVariable(EFFECTIVE_CONTACT_STRESS)
     print("::[KPFEM-Mechanical Solver]:: Variables ADDED")
 
 

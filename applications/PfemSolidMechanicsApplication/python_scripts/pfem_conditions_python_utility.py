@@ -5,6 +5,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 CheckForPreviousImport()
 
+import math
 
 class ConditionsUtility:
     #
@@ -13,7 +14,7 @@ class ConditionsUtility:
 
         self.model_part = model_part
         self.domain_size = domain_size
-        
+
         # set time evolution
         self.incr_disp = False
         if(incr_disp == "True"):
@@ -31,6 +32,24 @@ class ConditionsUtility:
         if(self.rotation_dofs):
             self.SetIncrementalRotation(time_step)
 
+    def SetWeight(self):
+        for node in self.model_part.Nodes:
+            gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
+            gravetat[1] = -10;
+            node.SetSolutionStepValue(VOLUME_ACCELERATION, gravetat);
+
+        s1 = -10.0;
+        s2 = -20.0;
+        setWeight = SetMechanicalInitialStateProcess(self.model_part, True, s1, s2)
+        setWeight.ExecuteInitialize() ;
+
+    def SetConstantWeight(self, s1, s2):
+         for node in self.model_part.Nodes:
+            gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
+            gravetat[1] = -0;
+         #setWeight = SetMechanicalInitialState()
+         setWeight = SetMechanicalInitialStateProcess(self.model_part, False, s1, s2)
+         setWeight.ExecuteInitialize();
     #
     def SetIncrementalDisp(self, time_step):
 
@@ -58,17 +77,16 @@ class ConditionsUtility:
                 node.SetSolutionStepValue( IMPOSED_WATER_PRESSURE, ImposedWaterPressure);
 
             # For velocity imposition instead of displacement
-            if(node.IsFixed(VELOCITY_X) == 1):
-                ImposedDisp[0] = Velocity[0] * time_step;
-                Velocity[0] = 0;
-            if(node.IsFixed(VELOCITY_Y) == 1):
-                ImposedDisp[1] = Velocity[1] * time_step;
-                Velocity[1] = 0;
-                print( ImposedDisp)
-            if(node.IsFixed(VELOCITY_Z) == 1):
-                ImposedDisp[2] = Velocity[2] * time_step;
-                Velocity[2] = 0;
-                
+            #if(node.IsFixed(VELOCITY_X) == 1):
+            #    ImposedDisp[0] = Velocity[0] * time_step;
+            #    Velocity[0] = 0;
+            #if(node.IsFixed(VELOCITY_Y) == 1):
+            #    ImposedDisp[1] = Velocity[1] * time_step;
+            #    Velocity[1] = 0;
+            #if(node.IsFixed(VELOCITY_Z) == 1):
+            #    ImposedDisp[2] = Velocity[2] * time_step;
+            #    Velocity[2] = 0;
+
             # print " ImposedDisp  =", ImposedDisp
             # print " Displacement =", Displacement
             # print " Velocity     =", Velocity
@@ -83,11 +101,11 @@ class ConditionsUtility:
     #
     def SetIncrementalRotation(self, time_step):
 
-        
+
         for node in self.model_part.Nodes:
             ImposedRotation = node.GetSolutionStepValue(IMPOSED_ROTATION)
             Rotation = node.GetSolutionStepValue(ROTATION)
-            
+
             # For displacement imposition:
             if(node.IsFixed(ROTATION_X) == 1):
                 ImposedRotation[0] = Rotation[0]
@@ -104,25 +122,21 @@ class ConditionsUtility:
             # set to buffer variables to zero
             node.SetSolutionStepValue(ROTATION, Rotation)
 
-    #
-    def SetIncrementalWeight(self, incr_steps, time_step):
+
+    def CorrectBoundaryConditions(self,incr_steps,time_step):
+
 
         for node in self.model_part.Nodes:
-            gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
-            WaterPressure = node.GetSolutionStepValue( WATER_PRESSURE )
-            #print (gravetat )
-            if(gravetat[1] == 0):
-                gravetat[1] = -0.10;
-            #for dim in range(0, len(gravetat)):
-            #     gravetat[dim] = gravetat[dim] / (time_step * (incr_steps + 1e-8))
-            #gravetat = gravetat * time_step * (incr_steps + 1)
-            gravetat[1] = gravetat[1] - 0.01
-            if (gravetat[1] < -10.0):
-                gravetat[1] = -10.0;
+            CF = node.GetSolutionStepValue(CONTACT_FORCE);
+            if ( abs(CF[0]) + abs(CF[1]) ):
+                LineLoad = node.GetSolutionStepValue(LINE_LOAD);
+                LineLoad = 0.0*LineLoad;
+                node.SetSolutionStepValue(LINE_LOAD, LineLoad);
+                if (node.HasDofFor(WATER_PRESSURE)):
+                    if (node.IsFixed(WATER_PRESSURE)):
+                        print( " CORRECTING BOUNDARY CONDITION ")
+                        node.Free(WATER_PRESSURE);
 
-            node.SetSolutionStepValue(VOLUME_ACCELERATION, gravetat)
-            #if(node.IsFixed(WATER_PRESSURE) == 1):
-            #    WaterPressure = WaterPressure - 1.0;
 
 
 
@@ -162,7 +176,7 @@ class ConditionsUtility:
                     force[dim] = force[dim] / (time_step * (incr_steps))
                 force = force * time_step * (incr_steps + 1)
                 node.SetSolutionStepValue(POINT_LOAD, force);
-                
+
                 # point moment conditions
                 moment = node.GetSolutionStepValue(POINT_TORQUE);
                 for comp in [0,1,2]:
@@ -176,7 +190,7 @@ class ConditionsUtility:
         if(self.incr_disp == False):
             for node in self.model_part.Nodes:
                 ImposedDisp = node.GetSolutionStepValue(IMPOSED_DISPLACEMENT)
- 
+
                 # For displacement imposition:
                 if(node.IsFixed(DISPLACEMENT_X) == 1):
                     ImposedDisp[0] = 0
@@ -186,7 +200,7 @@ class ConditionsUtility:
                     ImposedDisp[2] = 0;
 
                 node.SetSolutionStepValue(IMPOSED_DISPLACEMENT, ImposedDisp);
-           
+
             if(self.rotation_dofs == True):
                 self.RestartImposedRotation();
 
@@ -197,7 +211,7 @@ class ConditionsUtility:
         if(self.incr_disp == False):
             for node in self.model_part.Nodes:
                 ImposedRotation = node.GetSolutionStepValue(IMPOSED_ROTATION)
- 
+
                 # For displacement imposition:
                 if(node.IsFixed(ROTATION_X) == 1):
                     ImposedRotation[0] = 0
