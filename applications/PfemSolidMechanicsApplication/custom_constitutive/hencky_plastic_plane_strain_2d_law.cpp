@@ -106,55 +106,30 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
 }
 
 
-//*********************** COMPUTE THE FIRST TERM OF THE CONSTITUTIVE MATRIX **********
-//************************************************************************************
 
-void HenckyElasticPlasticPlaneStrain2DLaw::CalculateEigenValuesConstitutiveMatrix(const Matrix & rPrincipalTangent, const Matrix & rEigenVectors, Matrix& rConstitutiveMatrix)
+
+
+void HenckyElasticPlasticPlaneStrain2DLaw::ConvertConstitutiveMatrixToAppropiateDimension(Matrix&  rPrincipalTangentMatrix)
 {
 
-    rConstitutiveMatrix.clear();
+    Matrix AuxiliarMatrix = ZeroMatrix(3);
+
+    AuxiliarMatrix(0,0) = rPrincipalTangentMatrix(0,0);
+    AuxiliarMatrix(0,1) = rPrincipalTangentMatrix(0,1);
+    AuxiliarMatrix(1,0) = rPrincipalTangentMatrix(1,0);
+    AuxiliarMatrix(1,1) = rPrincipalTangentMatrix(1,1);
 
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
+    AuxiliarMatrix(0,2) = rPrincipalTangentMatrix(0,3);
+    AuxiliarMatrix(1,2) = rPrincipalTangentMatrix(1,3);
+    AuxiliarMatrix(2,2) = rPrincipalTangentMatrix(3,3);
 
-    for(unsigned int i=0; i<3; i++)
-    {
-        for(unsigned int j=0; j<3; j++)
-        {
-            rConstitutiveMatrix( i, j ) = EigenValuesConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rPrincipalTangent, rEigenVectors, 
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
-        }
+    AuxiliarMatrix(2,0) = rPrincipalTangentMatrix(3,0);
+    AuxiliarMatrix(2,1) = rPrincipalTangentMatrix(3,1);
+    AuxiliarMatrix(2,2) = rPrincipalTangentMatrix(3,3);
 
-    }
-
+    rPrincipalTangentMatrix = AuxiliarMatrix;
 }
-
-//*********************** COMPUTE THE SECOND TERM OF THE CONSTITUTIVE MATRIX**********
-//************************************************************************************
-void HenckyElasticPlasticPlaneStrain2DLaw::CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, Matrix& rConstitutiveMatrix)
-{
-    Vector PrincipalStress;
-    PrincipalStress = this->GetStressVectorFromMatrix(rStressMatrix, PrincipalStress);
-    
-    rConstitutiveMatrix.clear();
-
-
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        for(unsigned int j=0; j<3; j++)
-        {
-            rConstitutiveMatrix( i, j ) = EigenVectorsConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rEigenVectors, rEigenValues, PrincipalStress,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
-        }
-
-    }
-
-}
-
 
 
 
@@ -168,7 +143,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculatePrincipalAxisHenckyTrial(con
     Auxiliar(2,2) = 1.0; 
     Matrix AuxEigenVectors = ZeroMatrix(3);
     Vector AuxEigenValues  = ZeroVector(3);
-    SD_MathUtils<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
+    SolidMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
 
     
     rReturnMappingVariables.EigenVectors = ZeroMatrix(3);
@@ -186,7 +161,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculatePrincipalAxisHenckyTrial(con
     rReturnMappingVariables.TrialEigenValues = ZeroVector(3);
     rReturnMappingVariables.TrialEigenValues(0) = AuxEigenValues(0);
     rReturnMappingVariables.TrialEigenValues(1) = AuxEigenValues(1);
-    rReturnMappingVariables.TrialEigenValues(2) = 1.0; // rCauchyGreenMatrix(2,2);
+    rReturnMappingVariables.TrialEigenValues(2) =  rCauchyGreenMatrix(2,2);
 
     for (unsigned int i = 0; i<3; i++)
            rPrincipalStrain(i) = 0.50*std::log(rReturnMappingVariables.TrialEigenValues(i));

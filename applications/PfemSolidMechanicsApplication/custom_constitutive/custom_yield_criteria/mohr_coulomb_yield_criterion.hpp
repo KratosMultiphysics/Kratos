@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_YIELD_CRITERION_H_INCLUDED )
-#define      KRATOS_CAM_CLAY_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_MOHR_COULOMB_YIELD_CRITERION_H_INCLUDED)
+#define      KRATOS_MOHR_COULOMB_YIELD_CRITERION_H_INCLUDED
 
 
 
@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+
 namespace Kratos
 {
 ///@addtogroup ApplicationNameApplication
@@ -29,6 +30,21 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
+   struct MohrCoulombStressInvariants {
+
+       double MeanStress;
+       double J2InvSQ;
+       double LodeAngle;
+
+   };
+
+   struct MohrCoulombSmoothingConstants {
+
+       double A;
+       double B;
+
+   };
+
 
 ///@}
 ///@name  Enum's
@@ -45,7 +61,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class CamClayYieldCriterion
+class MohrCoulombYieldCriterion
 	: public YieldCriterion 
 {
     public:
@@ -53,27 +69,27 @@ class CamClayYieldCriterion
         ///@{
 
         /// Pointer definition of MisesHuberYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION( CamClayYieldCriterion );
+        KRATOS_CLASS_POINTER_DEFINITION( MohrCoulombYieldCriterion );
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructor.
-        CamClayYieldCriterion();
-
-        /// Copy constructor.
-        CamClayYieldCriterion(CamClayYieldCriterion const& rOther);
+        MohrCoulombYieldCriterion();
 
         /// Initialization constructor.
-        CamClayYieldCriterion(HardeningLawPointer pHardeningLaw);
+        MohrCoulombYieldCriterion(HardeningLawPointer pHardeningLaw);
+
+        /// Copy constructor.
+        MohrCoulombYieldCriterion(MohrCoulombYieldCriterion const& rOther);
 
         /// Assignment operator.
-        CamClayYieldCriterion& operator=(CamClayYieldCriterion const& rOther);
+        MohrCoulombYieldCriterion& operator=(MohrCoulombYieldCriterion const& rOther);
 
 
         /// Destructor.
-        virtual ~CamClayYieldCriterion();
+        virtual ~MohrCoulombYieldCriterion();
 
 
         ///@}
@@ -132,13 +148,21 @@ class CamClayYieldCriterion
         ///@}
         ///@name Protected Operators
         ///@{
-        double EvaluateThirdInvariantEffect(const Vector& rStressVector);
 
-        void CalculateAndAddThirdInvDerivative(const Vector& rStressVector, Vector& rYieldFunctionD);
+
         ///@}
         ///@name Protected Operations
         ///@{
 
+        void CalculateSmoothingConstants( MohrCoulombSmoothingConstants& rSmoothingConstants, const MohrCoulombStressInvariants& rStressInvariants);
+
+        void CalculateStressInvariants( const Vector& rStressVector, MohrCoulombStressInvariants& rStressInvariants);
+
+        double GetSmoothingLodeAngle();
+
+        double GetPI();
+ 
+        double GetSmoothingHiperbolic();
 
         ///@}
         ///@name Protected  Access
@@ -175,13 +199,6 @@ class CamClayYieldCriterion
         ///@}
         ///@name Private Operations
         ///@{
-        void CalculateInvariants(const Vector& rStressVector, double& rMeanStress, double& rDeviatoricQ);
-
-        double GetPI();
-
-        double GetSmoothingLodeAngle();
- 
-        void GetSmoothingConstants(double& rA, double& rB, const double& rLode);
 
         ///@}
         ///@name Private  Access
@@ -243,6 +260,6 @@ class CamClayYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined 
 
 

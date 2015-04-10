@@ -107,7 +107,7 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
 bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMappingImpl(RadialReturnVariables& rReturnMappingVariables, const Matrix& rDeltaDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
 {
     bool PlasticityActive = false;
-    double Tolerance = 1e-5;
+    double Tolerance = 1e-4;
 
     InternalVariables PlasticVariables = mInternalVariables;
     rReturnMappingVariables.DeltaGamma = mInternalVariables.EquivalentPlasticStrain;
@@ -160,7 +160,7 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMappingExpl(RadialRet
 
    Vector NewStressVector;
    
-   double Tolerance = 1E-5;
+   double Tolerance = 1E-4;
 
 
    //2- Check for yield Condition (at the beggining)
@@ -378,13 +378,8 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialRe
         DeltaGamma = rDrift;
         DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
 
-        Vector AuxF = prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD);
 
-        double denominador = 0.0;
-        for (unsigned int k = 0; k < 6; ++k)
-             denominador += AuxiliarDerivatives.YieldFunctionD(k) * AuxF(k);
 
-        denominador += H;
         Vector MuyAuxiliar = -DeltaGamma*AuxiliarDerivatives.PlasticPotentialD/ 2.0;
         UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( MuyAuxiliar);
 
@@ -400,7 +395,7 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialRe
             rReturnMappingVariables.IncrementalPlasticShearStrain += pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) - AlphaUpdate/3.0, 2.0);
 
         for (unsigned int j = 3; j < 6; ++j)
-            rReturnMappingVariables.IncrementalPlasticShearStrain += pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j), 2.0);
+            rReturnMappingVariables.IncrementalPlasticShearStrain += 2.0*pow(DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(j) / 2.0, 2.0);
 
 
         Alpha += AlphaUpdate;
@@ -413,24 +408,46 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface( RadialRe
         rReturnMappingVariables.DeltaGamma = Alpha;
 //        this->CalculateKirchhoffStressVector( rNewElasticLeftCauchyGreen, StressVector);
 
-//        std::cout << i << " Drift " <<  rDrift << " rAlpha " << rAlpha <<  "DELTA " << DeltaGamma  << std::endl;
+//        std::cout << i << " Drift " <<  rDrift ;
 //        std::cout << rNewElasticLeftCauchyGreen << std::endl;
 //        std::cout << " stress " << StressVector << std::endl;
 //        std::cout << " AlphPrev " << rAlpha-AlphaUpdate << " UPDATE " << AlphaUpdate << std::endl;
 //        std::cout << " h  " << H <<  " " << MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)) << std::endl;
 //        std::cout << " " << std::endl;
         if( fabs(rDrift) < 10.0*rTolerance) {
-//            std::cout << " DRIFT LEAVING" << rDrift << " " << rTolerance << std::endl;
+            //std::cout << " DRIFT LEAVING" << rDrift << " " << rTolerance << std::endl;
             return;
         }
 
     }
 
-    if ( fabs(rDrift) > 500.0*rTolerance) {
+    if ( fabs(rDrift) > 100.0*rTolerance) {
        std::cout<< " " << std::endl;
        std::cout << "Leaving drift correction WITHOUT converging " << rDrift << std::endl;
        std::cout << " StressVector " << rStressVector << std::endl;
-}
+       // COMPTUING THE LODE ANGLE TO SEE WHAT HAPPENS
+       Matrix SM = ZeroMatrix(3);
+
+       SM = MathUtils<double>::StressVectorToTensor( rStressVector);
+
+       double p = 0.0;
+       for (unsigned int i = 0; i < 3; ++i)
+           p += SM(i,i) / 3.0;
+       double J2 = 0.0;
+       for (unsigned int i = 0; i < 3; ++i) {
+          SM(i,i) -= p;     
+          J2 += pow( SM(i,i)- p, 2.0);
+       }
+       for (unsigned int i = 0; i < 6; ++i)
+          J2 += 2.0*pow( rStressVector(i), 2.0);
+       J2 = sqrt(J2 / 2.0);
+
+       double Lode = MathUtils<double>::Det( SM);
+       Lode *= 3.0*sqrt(3.0) / 2.0;
+       Lode /= pow( J2, 3.0);
+
+       std::cout << " LODE " << std::asin( Lode) / 3.0 / 3.14159265359*180.0 << std::endl;
+    }
 
 
 }
@@ -550,7 +567,16 @@ void NonAssociativeExplicitPlasticFlowRule::UpdateDerivatives(const Vector& rHen
    this->CalculateKirchhoffStressVector( rHenckyStrain, StressVector);
    this->CalculatePlasticPotentialDerivatives(StressVector, rAuxiliarDerivatives.PlasticPotentialD, rAuxiliarDerivatives.PlasticPotentialDD);
    mpYieldCriterion->CalculateYieldFunctionDerivative(StressVector, rAuxiliarDerivatives.YieldFunctionD, rAlpha);
-   rAuxiliarDerivatives.PlasticPotentialD = rAuxiliarDerivatives.YieldFunctionD;
+
+   // in order to program things only once
+   if ( rAuxiliarDerivatives.PlasticPotentialD.size() == 1 ) {
+       rAuxiliarDerivatives.PlasticPotentialD = rAuxiliarDerivatives.YieldFunctionD;
+   }
+   else
+   {
+   } 
+
+
 }
 
 //****** COMPUTE INCREMENTAL DEFORMATION GRADIENT  ********* 
@@ -725,7 +751,7 @@ void NonAssociativeExplicitPlasticFlowRule::UpdateRadialReturnVariables( RadialR
 void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Matrix& rIncrementalDeformationGradient, const Matrix& rPreviousElasticCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, const bool& rElastoPlasticBool, const double& rTolerance)
 {
    double TimeStep = 0.5;
-   double MinTimeStep = 1.0e-3;
+   double MinTimeStep = 1.0e-4;
    double DoneTimeStep = 0.0;
    double MaxTimeStep = 0.5;
    TimeStep = MaxTimeStep;
@@ -739,6 +765,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
 
    ExplicitStressUpdateInformation  StressUpdateInformation;
    bool MayBeLast = false;
+   double StateFunction;
+
    while (DoneTimeStep < 1.0)  {
       //std::cout << " TIME " << DoneTimeStep << " " << TimeStep  << std::endl;
        if (DoneTimeStep + TimeStep >= 1.0) {
@@ -751,12 +779,18 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
        this->CalculateOneExplicitStep( SubstepDeformationGradient, ActualElasticLeftCauchyGreen, rReturnMappingVariables, rNewElasticLeftCauchyGreen, rNewStressVector,  rElastoPlasticBool, StressUpdateInformation);
 
 
-       if ( StressUpdateInformation.StressErrorMeasure < 10.0*rTolerance ) {
+       if ( StressUpdateInformation.StressErrorMeasure < rTolerance ) {
            // Se acepta el paso
            //std::cout << "   SUbstepping " << DoneTimeStep << " dt " << TimeStep << "Error " << StressErrorMeasure << std::endl;
            ActualElasticLeftCauchyGreen = rNewElasticLeftCauchyGreen;
 
            this->UpdateRadialReturnVariables( rReturnMappingVariables, StressUpdateInformation);
+
+           StateFunction = mpYieldCriterion->CalculateYieldCondition( StateFunction, rNewStressVector, rReturnMappingVariables.DeltaGamma);
+           if ( fabs( StateFunction) > rTolerance) {
+              //this->ReturnStressToYieldSurface( rReturnMappingVariables, rNewElasticLeftCauchyGreen, rNewStressVector, StateFunction, rTolerance);
+           }
+
            DoneTimeStep += TimeStep;
            if (MayBeLast == true)
                return;
@@ -765,8 +799,11 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
        else {
           if (TimeStep <= MinTimeStep) {
               if ( StressUpdateInformation.StressErrorMeasure > rTolerance) {
-                 std::cout << "ExplicitStressIntegrationDidNotConverged" << StressUpdateInformation.StressErrorMeasure << " " << TimeStep << std::endl;
+                 std::cout << "ExplicitStressIntegrationDidNotConverged: StressError: " << StressUpdateInformation.StressErrorMeasure << " dt " << TimeStep <<  " meanStress " << (rNewStressVector(0) + rNewStressVector(1) + rNewStressVector(2) ) / 3.0 << std::endl ;
                  std::cout << "    stress " << rNewStressVector << std::endl;
+                 double Hola;
+                 Hola = mpYieldCriterion->CalculateYieldCondition(Hola, rNewStressVector, StressUpdateInformation.NewEquivalentPlasticStrain);
+                 std::cout << "    rYieldValue " << Hola << std::endl;
                /*  std::cout << "    PreviousEGCG" << rPreviousElasticLeftCauchyGreen << std::endl;
                  std::cout << "    Actual  EGCG" <<    ActualElasticLeftCauchyGreen << std::endl;
                  std::cout << "    New     EGCG" << rNewElasticLeftCauchyGreen << std::endl;
@@ -789,7 +826,7 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
  
       }
 
-      TimeStep *= 0.9* (pow( 10.0*rTolerance / (StressUpdateInformation.StressErrorMeasure+ 1e-8), 1.0/2.0 ));
+      TimeStep *= 0.9* (pow( rTolerance / (StressUpdateInformation.StressErrorMeasure+ 1e-8), 1.0/2.0 ));
       TimeStep = std::max(TimeStep, MinTimeStep);
       TimeStep = std::min(TimeStep, MaxTimeStep);
   }
@@ -948,7 +985,113 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(co
 //      std::cout << std::endl;
 */
   }
+     else {
+        // try to do that
+        // rLeftCauchyGreenMatrix
+        Matrix KirchoffHencky = rElasticMatrix;
+        Matrix B = rLeftCauchyGreenMatrix;
 
+        Matrix EigenVectors;
+        Vector EigenValues;
+
+
+   /*     B = ZeroMatrix(3);
+        for (int ii = 0; ii < 3; ++ii){
+          B(ii,ii) = 1.0;
+        } */
+
+        SolidMechanicsMathUtilities<double>::EigenVectors( B , EigenVectors, EigenValues);
+
+        Matrix b = ZeroMatrix(3);
+        for (unsigned int i = 0; i < 3; ++i)
+           b(i,i ) = 1.0/(2.0* EigenValues(i) );
+        b = prod( b, trans(EigenVectors));
+        b = prod( EigenVectors, b);
+        /*std::cout << " WHAT? " << B << std::endl;
+        std::cout << "    b  " << b << std::endl;
+        std::cout << "    I " << prod( b, B ) << std::endl; */
+
+        Matrix ThisMat = ZeroMatrix(6);
+        Matrix ThisMat1 = ZeroMatrix(6);
+        Matrix E = ZeroMatrix(3);
+        for (unsigned int kk = 0; kk < 3; ++kk)
+          E(kk,kk) = 1.0;
+
+        unsigned int indexi, indexj;
+        double r1, r2;
+        unsigned int auxk, auxl, auxp, auxq;
+        for (unsigned int k = 0; k < 3; k++) {
+          for (unsigned int l = 0; l < 3; l++) {
+            for (unsigned int p = 0; p < 3; p++) {
+              for (unsigned int q = 0; q < 3; q++) {
+                 r1 = 1.0;
+                 r2 = 1.0;
+  
+                 if ( l > k) {
+                    auxl = l;
+                    auxk = k;
+                 }else {
+                    auxk = l;
+                    auxl = k;
+                 }
+                 if ( auxk == auxl) {
+                     indexi = k;
+                 }
+                 else {
+                    r1 = 1.0/sqrt(2.0);
+                    if ( auxk == 0) {
+                       if (auxl == 1) {
+                            indexi = 5;
+                       }
+                       else {
+                            indexi = 4;
+                       }
+                    }
+                    else {
+                      indexi = 3;
+                    }
+                 }
+                 if ( q > p) {
+                    auxq = q;
+                    auxp = p;
+                 }else {
+                    auxp = q;
+                    auxq = p;
+                 }
+                 if ( auxp == auxq) {
+                     indexj = auxp;
+                 }
+                 else {
+                    r2 = 1.0/sqrt(2.0);
+                    if ( auxp == 0) {
+                       if (auxq == 1) {
+                            indexj = 5;
+                       }
+                       else {
+                            indexj = 4;
+                       }
+                    }
+                    else {
+                      indexj = 3;
+                    }
+                 }
+                 //std::cout << " i j k l " << k<<" " << l << " " << p << " " << q << " INDEX " << indexi << " " << indexj << std::endl;
+                 ThisMat(indexi,indexj) += r1*r2*0.5*E(k, p)*E(l,q);
+                 ThisMat1(indexi,indexj) += r1*r2*b(k, p)*B(l,q);
+                 //std::cout << " ONE " << indexi << " " << indexj << " TERMS " << r1*r2*b(k,q)*B(l,p) << " and " << r1*r2*b(k,p)*B(l,q) << std::endl;
+               
+              }
+            }
+          }
+        }
+        ThisMat = ThisMat + ThisMat1;
+        rElasticMatrix = prod( rElasticMatrix, ThisMat);
+
+      /*  std::cout << " MATRIX COMPARISON " << std::endl;
+        std::cout << rElasticMatrix << std::endl;
+        std::cout << KirchoffHencky << std::endl;
+        std::cout << ThisMat << std::endl; */
+     }
 }
 
 
@@ -959,11 +1102,6 @@ Matrix NonAssociativeExplicitPlasticFlowRule::MyCrossProduct(const Matrix& rM, c
     Vector A = rA;
     Vector B = rB;
 
-    for (unsigned int i = 3; i<6; ++i) {
-//      A(i) /= 2.0;
-//      B(i) /= 2.0;
-    }
-
     A = prod(rM, A);
     B = prod(trans(B), rM); 
 
@@ -973,6 +1111,7 @@ Matrix NonAssociativeExplicitPlasticFlowRule::MyCrossProduct(const Matrix& rM, c
             Result(i,j) = A(i)*B(j);
         }
      }
+
      return Result;
 
 }

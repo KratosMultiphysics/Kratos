@@ -103,6 +103,8 @@ public:
         return 3;
     };
 
+    void GetLawFeatures(Features& rFeatures);
+
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );

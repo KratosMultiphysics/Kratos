@@ -6,28 +6,35 @@
 //
 //
 
-#if !defined (KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
-#define  KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_HENCKY_MOHR_COULOMB_AXISYM_STRAIN_2D_LAW_H_INCLUDED)
+#define       KRATOS_HENCKY_MOHR_COULOMB_AXISYM_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_3d_law.hpp"
+#include "custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.hpp"
+#include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
+#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D 
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
  * The functionality is limited to large displacements 
  */
 
-class HenckyElasticPlasticPlaneStrain2DLaw : public HenckyElasticPlastic3DLaw
+
+
+class HenckyMohrCoulombPlasticAxisym2DLaw 
+  : public NonLinearHenckyElasticPlasticAxisym2DLaw
+
 {
 public:
     /**
@@ -43,10 +50,10 @@ public:
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
-     * Counted pointer of HyperElasticPlasticPlaneStrain2DLaw
+     * Counted pointer of HyperElasticPlasticMohrCoulombPlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HenckyElasticPlasticPlaneStrain2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HenckyMohrCoulombPlasticAxisym2DLaw );
 
     /**
      * Life Cycle
@@ -55,22 +62,22 @@ public:
     /**
      * Default constructor.
      */
-    HenckyElasticPlasticPlaneStrain2DLaw();
+    HenckyMohrCoulombPlasticAxisym2DLaw();
 
 
-    HenckyElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HenckyMohrCoulombPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
      */
-    HenckyElasticPlasticPlaneStrain2DLaw (const HenckyElasticPlasticPlaneStrain2DLaw& rOther);
+    HenckyMohrCoulombPlasticAxisym2DLaw (const HenckyMohrCoulombPlasticAxisym2DLaw& rOther);
 
 
     /**
      * Assignment operator.
      */
 
-    //HyperElasticPlasticPlaneStrain2DLaw& operator=(const HyperElasticPlasticPlaneStrain2DLaw& rOther);
+    //HyperElasticPlasticJ2PlaneStrain2DLaw& operator=(const HyperElasticPlasticJ2PlaneStrain2DLaw& rOther);
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -81,7 +88,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HenckyElasticPlasticPlaneStrain2DLaw();
+    virtual ~HenckyMohrCoulombPlasticAxisym2DLaw();
 
     /**
      * Operators
@@ -90,23 +97,6 @@ public:
     /**
      * Operations needed by the base class:
      */
-
-    /**
-     * Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension()
-    {
-        return 2;
-    };
-
-    /**
-     * Voigt tensor size:
-     */
-    SizeType GetStrainSize()
-    {
-        return 3;
-    };
-
 
 
     /**
@@ -145,6 +135,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+	
     ///@}
     ///@name Protected Operators
     ///@{
@@ -152,35 +143,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Calculates the GreenLagrange strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
-
-
-    /**
-     * Calculates the Almansi strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
-
-							      
-    virtual void ConvertConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix);
-    /**
-     * Calculates the isochoric constitutive matrix
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-
-
-      virtual void CalculatePrincipalAxisHenckyTrial(const Matrix& rCauchyGreeMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStrain);
+    ///@}
 
 private:
 
@@ -216,17 +179,16 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticAxisym2DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyElasticPlasticAxisym2DLaw )
     }
 
 
 
-}; // Class HyperElasticPlasticPlaneStrain2DLaw
+}; // Class HyperElasticPlasticJ2PlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
-
+#endif // KRATOS_HENCKY_MATSUOKA_AXISYM_STRAIN_2D_LAW_H_INCLUDED defined

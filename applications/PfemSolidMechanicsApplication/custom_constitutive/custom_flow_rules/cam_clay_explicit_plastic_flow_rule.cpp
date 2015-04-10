@@ -259,14 +259,17 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
    rH *= 3.0;
    rH /= 3.0;
  
-   rH /= 1000.0;
-   rH /= 1000.0;
+   //rH /= 1000.0;
+   //rH /= 1000.0;
 }
 
 
 void CamClayExplicitFlowRule::CalculatePlasticPotentialDerivatives( const Vector& rStressVector, Vector& rFirstDerivative, Matrix & rSecondDerivative)
 {
 
+    rFirstDerivative = ZeroVector(1);
+    rSecondDerivative = ZeroMatrix(1);
+    return;
     double M = mpYieldCriterion->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE] ; 
 
     M = M * M;
@@ -284,8 +287,8 @@ void CamClayExplicitFlowRule::CalculatePlasticPotentialDerivatives( const Vector
  
     for (unsigned int i = 3; i < 6; ++i)
       rSecondDerivative(i,i) = 3.0*2.0 / M  ;
+    
 
-    rSecondDerivative /= 1000.0;
 
 }
 

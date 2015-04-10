@@ -103,6 +103,11 @@ public:
         return 3;
     };
 
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void GetLawFeatures(Features& rFeatures);
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );

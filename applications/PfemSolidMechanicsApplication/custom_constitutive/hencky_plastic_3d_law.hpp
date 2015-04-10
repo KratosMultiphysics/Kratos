@@ -136,16 +136,6 @@ public:
                              const Vector& rShapeFunctionsValues );
 
 
-/*    void InitializeSolutionStep( const Properties& props,
-                                 const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
-
-    void FinalizeSolutionStep( const Properties& props,
-                               const GeometryType& geom, //this is just to give the array of nodes
-                               const Vector& ShapeFunctionsValues ,
-                               const ProcessInfo& CurrentProcessInfo);
-*/
    /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -290,38 +280,23 @@ protected:
     /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
         in a pullback fashion
     */
-    virtual void  CalculateEigenValuesConstitutiveMatrix(const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix);
-
-    virtual void CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix);
     
-
+    virtual void ConvertConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix);
 
     /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
         in the actual configuration
     */
 
-    virtual void  CalculateEigenValuesConstitutiveMatrix(const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, Matrix& rConstitutiveMatrix);
-
-    virtual void CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, Matrix& rConstitutiveMatrix);
 
 
 
 
-  double& EigenValuesConstitutiveComponent(double& rCabcd, const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, const Matrix& rInverseDeformationGradientF, const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
- 
-  double& EigenVectorsConstitutiveComponent(double& rCabcd, const Matrix& rEigenVectors, const Vector& rEigenValues, const Vector& rPrincipalStress, const Matrix& rInverseDeformationGradientF, const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
+     Vector& GetStressVectorFromMatrix(const Matrix& rStressMatrix, Vector& rPrincipalStress, const Matrix& rEigenVectors);
 
 
-
-  double& EigenValuesConstitutiveComponent(double& rCabcd, const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
-
-  double& EigenVectorsConstitutiveComponent(double& rCabcd, const Matrix& rEigenVectors, const Vector& rEigenValues, const Vector& rPrincipalStress, const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
+     virtual void CalculatePrincipalAxisHenckyTrial(const Matrix& rCauchyGreeMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStrain);
 
 
-  Vector& GetStressVectorFromMatrix(const Matrix& rStressMatrix, Vector& rPrincipalStress);
-
-
-  virtual void CalculatePrincipalAxisHenckyTrial(const Matrix& rCauchyGreeMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStrain);
     /**
      * Calculates the isochoric constitutive matrix
      * @param rElasticVariables
@@ -546,14 +521,14 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
     }
 
-    void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlastic3DLaw )
     }
 
 

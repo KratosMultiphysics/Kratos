@@ -108,55 +108,23 @@ void HenckyElasticPlasticAxisym2DLaw::CalculateAlmansiStrain( const Matrix & rLe
 }
 
 
-//*********************** COMPUTE THE FIRST TERM OF THE CONSTITUTIVE MATRIX **********
-//************************************************************************************
 
-void HenckyElasticPlasticAxisym2DLaw::CalculateEigenValuesConstitutiveMatrix(const Matrix & rPrincipalTangent, const Matrix & rEigenVectors, Matrix& rConstitutiveMatrix)
+
+void HenckyElasticPlasticAxisym2DLaw::ConvertConstitutiveMatrixToAppropiateDimension(Matrix&  rPrincipalTangentMatrix)
 {
 
-    rConstitutiveMatrix.clear();
-
-
-
-    for(unsigned int i=0; i<4; i++)
-    {
-        for(unsigned int j=0; j<4; j++)
-        {  
-            rConstitutiveMatrix( i, j ) = EigenValuesConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rPrincipalTangent, rEigenVectors, 
-                                          this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
+   Matrix Auxiliar = ZeroMatrix(4);
+ 
+   for (unsigned int i = 0; i < 4; ++i) {
+        for (unsigned int j = 0; j < 4; ++j) {
+            Auxiliar(i,j) = rPrincipalTangentMatrix(i,j);
         }
-
     }
 
-}
+    rPrincipalTangentMatrix = Auxiliar;
 
-//*********************** COMPUTE THE SECOND TERM OF THE CONSTITUTIVE MATRIX**********
-//************************************************************************************
-void HenckyElasticPlasticAxisym2DLaw::CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, Matrix& rConstitutiveMatrix)
-{
-    Vector PrincipalStress;
-    PrincipalStress = this->GetStressVectorFromMatrix(rStressMatrix, PrincipalStress);
-    
-    rConstitutiveMatrix.clear();
-
-
-    for(unsigned int i=0; i<4; i++)
-    {
-        for(unsigned int j=0; j<4; j++)
-        {
-            rConstitutiveMatrix( i, j ) = EigenVectorsConstitutiveComponent(rConstitutiveMatrix( i, j ), 
-					  rEigenVectors, rEigenValues, PrincipalStress,
-                                          this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
-        }
-
-    }
 
 }
-
-
-
-
 
 
 

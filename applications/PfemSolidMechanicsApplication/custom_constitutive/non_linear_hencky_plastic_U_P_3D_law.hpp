@@ -103,6 +103,13 @@ public:
         return 6;
     };
 
+    virtual void GetLawFeatures(Features& rFeatures);
+
+    virtual Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+
+    virtual void SetValue( const Variable<Vector>& rThisVariable,
+                   const Vector& rValue,
+                   const ProcessInfo& rCurrentProcessInfo );
 
 /*    bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
