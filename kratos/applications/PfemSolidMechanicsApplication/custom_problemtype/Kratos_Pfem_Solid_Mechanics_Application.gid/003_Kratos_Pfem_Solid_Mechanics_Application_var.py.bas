@@ -285,7 +285,7 @@ nodal_results.append("REACTION")
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 nodal_results.append("NORMAL")
 nodal_results.append("CONTACT_FORCE")
-nodal_results.append("CONTACT_STRESS")
+#nodal_results.append("CONTACT_STRESS")
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 nodal_results.append("PRESSURE")
@@ -293,8 +293,8 @@ nodal_results.append("PRESSURE")
 *if(strcmp(GenData(DOFS),"U-wP")==0)
 nodal_results.append("WATER_PRESSURE")
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
-nodal_results.append("EFFECTIVE_CONTACT_FORCE")
-nodal_results.append("EFFECTIVE_CONTACT_STRESS")
+#nodal_results.append("EFFECTIVE_CONTACT_FORCE")
+#nodal_results.append("EFFECTIVE_CONTACT_STRESS")
 *endif
 *endif
 
@@ -303,16 +303,16 @@ gauss_points_results = []
 gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
 gauss_points_results.append("CAUCHY_STRESS_TENSOR")
 gauss_points_results.append("PLASTIC_STRAIN")
-gauss_points_results.append("INCR_SHEAR_PLASTIC")
-gauss_points_results.append("PRECONSOLIDATION")
-gauss_points_results.append("VOLUMETRIC_PLASTIC")
-gauss_points_results.append("STRESS_INV_P")
-gauss_points_results.append("STRESS_INV_J2")
-gauss_points_results.append("STRESS_INV_THETA")
+#gauss_points_results.append("INCR_SHEAR_PLASTIC")
+#gauss_points_results.append("PRECONSOLIDATION")
+#gauss_points_results.append("VOLUMETRIC_PLASTIC")
+#gauss_points_results.append("STRESS_INV_P")
+#gauss_points_results.append("STRESS_INV_J2")
+#gauss_points_results.append("STRESS_INV_THETA")
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0)
-gauss_points_results.append("TOTAL_CAUCHY_STRESS")
-gauss_points_results.append("DARCY_FLOW")
+#gauss_points_results.append("TOTAL_CAUCHY_STRESS")
+#gauss_points_results.append("DARCY_FLOW")
 *endif
 
 # GiD output configuration
