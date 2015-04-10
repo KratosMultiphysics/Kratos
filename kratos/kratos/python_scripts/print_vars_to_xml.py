@@ -33,7 +33,7 @@ def PrintVariablesToXMLenum(filename):
     out.write("<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" elementFormDefault=\"qualified\"> \n")
     
     #print double Variables
-    var_list = kernel.GetDoubleVariableNamess()
+    var_list = kernel.GetDoubleVariableNames()
     tmp = PrintVariablesString("KratosVar_double",var_list)
     out.write(tmp)
         
@@ -48,7 +48,7 @@ def PrintVariablesToXMLenum(filename):
     out.write(tmp)    
     
     #print array_1d Variables
-    var_list = kernel.GetArrayVariableNamess()
+    var_list = kernel.GetArrayVariableNames()
     tmp = PrintVariablesString("KratosVar_Array1d",var_list)
     out.write(tmp)      
     
