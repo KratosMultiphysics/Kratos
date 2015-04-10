@@ -1225,10 +1225,13 @@ namespace Kratos
     Point[2] = rNode.Z();
 
     int ContactFace = 0; //free surface
+    int AuxContactFace = 0;
     for( unsigned int i = 0; i < rRigidWalls.size(); i++ )
       {
 	ContactFace = 0;
-	if( rRigidWalls[i]->IsInside( Point, rCurrentProcessInfo[TIME], ContactFace ) ){
+        AuxContactFace = 0;
+	if( rRigidWalls[i]->IsInside( Point, rCurrentProcessInfo[TIME], AuxContactFace ) ){
+      ContactFace = AuxContactFace;  // OBS: in the case of circles, ContactFace = 2 and IsInside = false/true. Then, it does not break but it continues.
 	  // tip_radius = rRigidWalls[i]->GetRadius();
 	  // tip_center = rRigidWalls[i]->GetCenter();
 	  break;
