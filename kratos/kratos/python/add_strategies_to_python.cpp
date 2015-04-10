@@ -222,8 +222,8 @@ namespace Kratos
 
         void AddStrategiesToPython()
         {
-            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+	  //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType; //already done up in this file
+	  //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType; //already done up in this file
 
             // 			def("CreateEmptyMatrixPointer",CreateEmptyMatrixPointer);
             // 			def("CreateEmptyVectorPointer",CreateEmptyVectorPointer);
