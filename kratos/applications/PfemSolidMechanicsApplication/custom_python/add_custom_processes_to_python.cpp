@@ -26,6 +26,9 @@
 #include "custom_processes/rigid_wall_contact_search_process.hpp"
 #include "custom_processes/model_volume_calculation_process.hpp"
 
+//Set initial mechanical state
+#include "custom_processes/set_mechanical_initial_state_process.hpp"
+
 //Modeler Bounding Boxes
 #include "custom_modelers/spatial_bounding_box.hpp"
 #include "custom_modelers/rigid_nose_wall_bounding_box.hpp"
@@ -96,7 +99,14 @@ namespace Kratos
       	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
       	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
       	;
-
+      
+      // **** SET INITIAL MECHANICAL STATE **** //
+      class_<SetMechanicalInitialStateProcess, bases<ProcessBaseType>, boost::noncopyable >
+         (
+          "SetMechanicalInitialStateProcess", init<ModelPart&, bool, double, double>()
+         )
+         .def("ExecuteInitialize", &SetMechanicalInitialStateProcess::ExecuteInitialize)
+         ;
 
 
       //********MODEL VOLUME CALCULATION*********//
