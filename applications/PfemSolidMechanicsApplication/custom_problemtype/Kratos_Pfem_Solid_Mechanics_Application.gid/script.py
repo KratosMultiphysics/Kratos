@@ -283,7 +283,8 @@ modeler.BuildContactModeler(general_variables.contact_modeler_config)
 #--- MODELER INITIALIZATION---#
 
 #set mesh searches and modeler
-modeler.InitializeDomains();
+##modeler.InitializeDomains();
+modeler.InitializeDomains( load_restart ); ## due to the skin conditions at reloading
 
 # mesh size nodal h search
 if(load_restart == False):
@@ -385,7 +386,12 @@ for step in range(0,buffer_size):
 
 # writing a initial state results file
 current_id = 0
-if(load_restart == False): 
+if(load_restart == False):
+    if (general_variables.TryToSetTheWeight):
+        if (general_variables.TryToSetConstantWeight):
+            conditions.SetConstantWeight( general_variables.TryToSetWeightVertical, general_variables.TryToSetWeightHorizontal);
+        else:
+            conditions.SetWeight();
     gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
     list_files.PrintListFiles(current_id);
 
@@ -433,9 +439,10 @@ while(current_time < ending_time):
   #plot graphs
   if(plot_active):
     graph_plot.SetStepResult()
-    
+
   #incremental load
   conditions.SetIncrementalLoad(current_step, time_step);
+  ##conditions.CorrectBoundaryConditions(current_step, time_step); ## function to remove load conditions from the contact...
       
   #print the results at the end of the step
   if(general_variables.WriteResults == "PreMeshing"):

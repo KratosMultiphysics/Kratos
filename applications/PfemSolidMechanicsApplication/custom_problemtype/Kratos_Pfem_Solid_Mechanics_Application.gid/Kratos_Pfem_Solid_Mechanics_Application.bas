@@ -39,12 +39,6 @@ Begin Properties *MatNum
  YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
 *format "%10.5e"
  POISSON_RATIO *MatProp(POISSON_RATIO,real)
-*format "%10.5e"
- THICKNESS *MatProp(THICKNESS,real)
-*format "%10.5e"
- PERMEABILITY *MatProp(PERMEABILITY,real)
-*format "%10.5e"
- WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
 *if(strcmp(MatProp(HARDENING_MODEL),"SIMO")==0)
 *format "%10.5e"
  YIELD_STRESS *MatProp(YIELD_STRESS,real)
@@ -56,20 +50,47 @@ Begin Properties *MatNum
  REFERENCE_HARDENING_MODULUS *MatProp(REFERENCE_HARDENING_MODULUS,real)
 *format "%10.5e"
  INFINITY_HARDENING_MODULUS *MatProp(INFINITY_HARDENING,real)
-*elseif(strcmp(MatProp(HARDENING_MODEL),"CAMCLAY")==0)
+*elseif(strcmp(MatProp(HARDENING_MODEL),"BASIC_TRESCA")==0)
 *format "%10.5e"
- PRE_CONSOLIDATION_STRESS *MatProp(PRE_CONSOLIDATION_STRESS,real)
+ YIELD_STRESS *MatProp(YIELD_STRESS,real)
 *format "%10.5e"
- OVER_CONSOLIDATION_RATIO *MatProp(OVER_CONSOLIDATION_RATIO,real)
+ DENSITY_WATER *MatProp(WATER_DENSITY,real)
 *format "%10.5e"
- NORMAL_COMPRESSION_SLOPE *MatProp(NORMAL_COMPRESSION_SLOPE,real)
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
 *format "%10.5e"
- SWELLING_SLOPE *MatProp(SWELLING_SLOPE,real)
+ PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
- CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
+ STABILIZATION *MatProp(STABILIZATION,real)
 *format "%10.5e"
- ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
+ CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
+*format "%10.5e"
+ CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
+*elseif(strcmp(MatProp(HARDENING_MODEL),"MOHR_C")==0)
+*format "%10.5e"
+ INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
+*format "%10.5e"
+ INTERNAL_DILATANCY_ANGLE *MatProp(INTERNAL_DILATANCY_ANGLE,real)
+*format "%10.5e"
+ COHESION *MatProp(COHESION,real)
+*format "%10.5e"
+ DENSITY_WATER *MatProp(WATER_DENSITY,real)
+*format "%10.5e"
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
+*format "%10.5e"
+ PERMEABILITY *MatProp(PERMEABILITY,real)
+*format "%10.5e"
+ STABILIZATION *MatProp(STABILIZATION,real)
+*format "%10.5e"
+ CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
+*format "%10.5e"
+ CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
 *endif
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
 End Properties
 
 *endif
@@ -83,6 +104,8 @@ Begin Properties *MatNum
 *format "%10.5e"
  YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
 *format "%10.5e"
+ SWELLING_SLOPE *MatProp(SWELLING_SLOPE,real)
+*format "%10.5e"
  INITIAL_SHEAR_MODULUS *MatProp(INITIAL_SHEAR_MODULUS,real)
 *format "%10.5e"
  ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
@@ -93,13 +116,23 @@ Begin Properties *MatNum
 *format "%10.5e"
  NORMAL_COMPRESSION_SLOPE *MatProp(NORMAL_COMPRESSION_SLOPE,real)
 *format "%10.5e"
- SWELLING_SLOPE *MatProp(SWELLING_SLOPE,real)
-*format "%10.5e"
  CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
+*format "%10.5e"
+ INTERNAL_FRICTION_ANGLE *MatProp(INTERNAL_FRICTION_ANGLE,real)
+*format "%10.5e"
+ DENSITY_WATER *MatProp(WATER_DENSITY,real)
+*format "%10.5e"
+ WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
- WATER_BULK_MODULUS *MatProp(WATER_BULK_MODULUS,real)
+ STABILIZATION *MatProp(STABILIZATION,real)
+*format "%10.5e"
+ CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
+*format "%10.5e"
+ CONTACT_FRICTION_ANGLE *MatProp(CONTACT_FRICTION_ANGLE,real)
+*format "%10.5e"
+ K0 *MatProp(K0,real)
 *format "%10.5e"
  THICKNESS *MatProp(THICKNESS,real)
 End Properties
@@ -158,9 +191,81 @@ Begin Elements SpatialLagrangianUwPElement2D3N
 End Elements
 
 *endif
+*Set cond surface_SpatialLagrangianUwPStabElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements SpatialLagrangianUwPStabElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond surface_AxisymSpatialLagrangianUwPStabElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymSpatialLagrangianUwPStabElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
 *Set cond surface_SpatialLagrangianUPElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements SpatialLagrangianUPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond surface_SpatialLagrangianUPStabElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements SpatialLagrangianUPStabElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*Set cond surface_AxisymSpatialLagrangianUPStabElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymSpatialLagrangianUPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)

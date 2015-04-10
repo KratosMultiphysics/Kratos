@@ -43,6 +43,11 @@ class SolverSettings:
 *else
     PressureDofs = False
 *endif
+*if(strcmp(GenData(DOFS),"U-wP")==0)
+    WaterPressureDofs = True
+*else
+    WaterPressureDofs = False
+*endif
 *if(strcmp(GenData(Set_Contact_Technology),"1")==0 && strcmp(GenData(Contact_Method),"Lagrange-Multipliers")==0)
     ContactDofs = True
 *else
@@ -60,7 +65,6 @@ class SolverSettings:
     ComputeContactForces = *GenData(Write_Contact_Forces)
     LineSearch = *GenData(LineSearch)
     Implex = *GenData(Implex)
-    WaterPressureDofs = *GenData(WaterPressureDofs)
     ComponentWise = *GenData(Component_Wise_Criterion)
     convergence_criterion = "*GenData(Convergence_Criteria)"
 *format "%10.5e"
@@ -149,7 +153,7 @@ string = "*cond(Center_box)"
 BoxCenter*ndomains = [float(s) for s in string.split()]
 string = "*cond(Velocity_box)" 
 BoxVelocity*ndomains = [float(s) for s in string.split()]
-Conditions*ndomains = {"Subdomain":*cond(Group_ID), "StructuralType":"*cond(StructuralType)", "Remesh":*cond(Remesh), "Constrained":*cond(Constrained), "Refine":*cond(Refine), "MeshSmoothing":*cond(MeshSmoothing), "JacobiSmoothing":*cond(JacobiSmoothing), "MeshElement":"*cond(MeshingElement)", "CriticalMeshSize": *cond(Critical_Mesh_Size), "DissipationVariable": "*cond(Dissipation_Variable)", "CriticalDissipation": *cond(Critical_Dissipation), "ErrorVariable": "*cond(Error_Variable)", "CriticalError": *cond(Critical_Error), "TipRadiusRefine": *cond(Tip_Radius_Refine), "CriticalTipRadius": *cond(Critical_Tip_Radius), "RefineOnBoxOnly":*cond(Refine_on_box_only), "BoxCenter": BoxCenter*ndomains, "BoxVelocity": BoxVelocity*ndomains, "BoxRadius": *cond(Radius_box), "RemeshFrequency": *cond(Meshing_Frequency) }
+Conditions*ndomains = {"Subdomain":*cond(Group_ID), "StructuralType":"*cond(StructuralType)", "Remesh":*cond(Remesh), "Constrained":*cond(Constrained), "Refine":*cond(Refine), "MeshSmoothing":*cond(MeshSmoothing), "JacobiSmoothing":*cond(JacobiSmoothing), "MeshElement":"*cond(MeshingElement)", "CriticalMeshSize": *cond(Critical_Mesh_Size), "DissipationVariable": "*cond(Dissipation_Variable)", "CriticalDissipation": *cond(Critical_Dissipation), "ErrorVariable": "*cond(Error_Variable)", "CriticalError": *cond(Critical_Error), "TipRadiusRefine": *cond(Tip_Radius_Refine), "CriticalTipRadius": *cond(Critical_Tip_Radius), "RefineOnBoxOnly":*cond(Refine_on_box_only), "BoxCenter": BoxCenter*ndomains, "BoxVelocity": BoxVelocity*ndomains, "BoxRadius": *cond(Radius_box), "RemeshFrequency": *cond(Meshing_Frequency), "LSInterpolation": *cond(LSInterpolation) }
 MeshConditions.append(Conditions*ndomains)
 *end groups
 
@@ -270,6 +274,7 @@ Incremental_Displacement = "*GenData(Incremental_Displacement)"
 
 nodal_results = []
 nodal_results.append("DISPLACEMENT")
+#nodal_results.append("DISPLACEMENT_DT")
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
 nodal_results.append("VELOCITY")
 nodal_results.append("ACCELERATION")
@@ -280,12 +285,17 @@ nodal_results.append("REACTION")
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 nodal_results.append("NORMAL")
 nodal_results.append("CONTACT_FORCE")
-*endif
-*if(strcmp(GenData(WaterPressureDofs),"True")==0)
-nodal_results.append("WATER_PRESSURE")
+nodal_results.append("CONTACT_STRESS")
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 nodal_results.append("PRESSURE")
+*endif
+*if(strcmp(GenData(DOFS),"U-wP")==0)
+nodal_results.append("WATER_PRESSURE")
+*if(strcmp(GenData(Write_Contact_Forces),"True")==0)
+nodal_results.append("EFFECTIVE_CONTACT_FORCE")
+nodal_results.append("EFFECTIVE_CONTACT_STRESS")
+*endif
 *endif
 
 gauss_points_results = []
@@ -293,8 +303,14 @@ gauss_points_results = []
 gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
 gauss_points_results.append("CAUCHY_STRESS_TENSOR")
 gauss_points_results.append("PLASTIC_STRAIN")
+gauss_points_results.append("INCR_SHEAR_PLASTIC")
+gauss_points_results.append("PRECONSOLIDATION")
+gauss_points_results.append("VOLUMETRIC_PLASTIC")
+gauss_points_results.append("STRESS_INV_P")
+gauss_points_results.append("STRESS_INV_J2")
+gauss_points_results.append("STRESS_INV_THETA")
 *endif
-*if(strcmp(GenData(WaterPressureDofs),"True")==0)
+*if(strcmp(GenData(DOFS),"U-wP")==0)
 gauss_points_results.append("TOTAL_CAUCHY_STRESS")
 gauss_points_results.append("DARCY_FLOW")
 *endif
@@ -327,8 +343,21 @@ file_list.append(*GenData(List_Files,*i))
 
 # restart options
 SaveRestart = *GenData(Print_Restart)
-RestartFrequency = *GenData(Restart_Frequency)
+#RestartFrequency = *GenData(Restart_Frequency)
+RestartFrequency=GiDWriteFrequency
 LoadRestart = *GenData(Load_Restart)
 Restart_Step = *GenData(Load_Step)
+
+### ALL THE WEIGHT THING
+TryToSetTheWeight = *GenData(Set_initial_state)
+TryToSetConstantWeight = *GenData(Constant_weight)
+*if(strcmp(GenData(Set_initial_state),"True")==0)
+*if(strcmp(GenData(Constant_weight),"True")==0)
+TryToSetWeightVertical = *GenData(SY)
+TryToSetWeightHorizontal = *GenData(SX)
+*endif
+*endif
+CPT_PostProcess = *GenData(CPT_PostProcess)
+
 
 # Declare Python Variables
