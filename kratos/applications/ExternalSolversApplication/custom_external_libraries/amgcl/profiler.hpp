@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,8 @@ THE SOFTWARE.
 */
 
 /**
- * \file   profiler.hpp
- * \author Denis Demidov <ddemidov@ksu.ru>
+ * \file   amgcl/profiler.hpp
+ * \author Denis Demidov <dennis.demidov@gmail.com>
  * \brief  Profiler class.
  */
 
@@ -35,27 +35,34 @@ THE SOFTWARE.
 #include <iomanip>
 #include <map>
 #include <string>
-#include <stack>
+#include <vector>
 
-#include <boost/chrono.hpp>
+#include <boost/type_traits.hpp>
 #include <boost/io/ios_state.hpp>
+#include <amgcl/clock.hpp>
 
 
 namespace amgcl {
 
-/// Simple profiler class.
+/// Returns difference (in seconds) between two time points.
+/** The time points should come either from boost::chrono or std::chrono */
+template <class TP>
+inline
+typename boost::enable_if<boost::is_class<typename TP::duration>, double>::type
+seconds(TP tic, TP toc) {
+    return static_cast<double>(TP::duration::period::num)
+        * typename TP::duration(toc - tic).count()
+        / TP::duration::period::den;
+}
+
+/// Profiler class.
 /**
  * \param clock       Clock to use for profiling.
  * \param SHIFT_WIDTH Indentation for output of profiling results.
  *
- * Provides simple to use, possibly nested timers with nicely formatted output.
- * The implementation was inspired by a HOOMD-Blue code
- * (http://codeblue.umich.edu/hoomd-blue)
+ * Provides simple to use, hierarchical timers with nicely formatted output.
  */
-template <
-    class clock = boost::chrono::high_resolution_clock,
-    unsigned SHIFT_WIDTH = 2
-    >
+template <class clock = amgcl::clock, unsigned SHIFT_WIDTH = 2>
 class profiler {
     public:
         /// Initialization.
@@ -63,7 +70,8 @@ class profiler {
          * \param name Profile title to use with output.
          */
         profiler(const std::string &name = "Profile") : name(name) {
-            stack.push(&root);
+            stack.reserve(128);
+            stack.push_back(&root);
             root.start_time = clock::now();
         }
 
@@ -72,28 +80,30 @@ class profiler {
          * \param name Timer name.
          */
         void tic(const std::string &name) {
-            stack.top()->children[name].start_time = clock::now();
-            stack.push(&stack.top()->children[name]);
+            stack.back()->children[name].start_time = clock::now();
+            stack.push_back(&stack.back()->children[name]);
         }
 
         /// Stops named timer.
         double toc(const std::string& /*name*/) {
-            profile_unit *top = stack.top();
-            stack.pop();
+            profile_unit *top = stack.back();
+            stack.pop_back();
 
             double delta = seconds(top->start_time, clock::now());
             top->length += delta;
             return delta;
         }
 
-    private:
-        static double seconds(typename clock::time_point begin, typename clock::time_point end) {
-            return static_cast<double>(clock::duration::period::num)
-                * typename clock::duration(end - begin).count()
-                / clock::duration::period::den;
+        void reset() {
+            stack.clear();
+            root.length = 0;
+            root.children.clear();
 
+            stack.push_back(&root);
+            root.start_time = clock::now();
         }
 
+    private:
         struct profile_unit {
             profile_unit() : length(0) {}
 
@@ -155,10 +165,10 @@ class profiler {
 
         std::string name;
         profile_unit root;
-        std::stack<profile_unit*> stack;
+        std::vector<profile_unit*> stack;
 
         void print(std::ostream &out) {
-            if (stack.top() != &root)
+            if (stack.back() != &root)
                 out << "Warning! Profile is incomplete." << std::endl;
 
             root.length += seconds(root.start_time, clock::now());

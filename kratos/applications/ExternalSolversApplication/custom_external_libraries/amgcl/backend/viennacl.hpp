@@ -1,0 +1,435 @@
+#ifndef AMGCL_BACKEND_VIENNACL_HPP
+#define AMGCL_BACKEND_VIENNACL_HPP
+
+/*
+The MIT License
+
+Copyright (c) 2012-2015 Denis Demidov <dennis.demidov@gmail.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+/**
+ * \file   amgcl/backend/viennacl.hpp
+ * \author Denis Demidov <dennis.demidov@gmail.com>
+ * \brief  ViennaCL backend.
+ */
+
+#include <boost/type_traits.hpp>
+
+#include <viennacl/vector.hpp>
+#include <viennacl/compressed_matrix.hpp>
+#include <viennacl/ell_matrix.hpp>
+#include <viennacl/hyb_matrix.hpp>
+#include <viennacl/linalg/inner_prod.hpp>
+#include <viennacl/linalg/prod.hpp>
+
+#include <amgcl/util.hpp>
+#include <amgcl/backend/interface.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/backend/detail/default_direct_solver.hpp>
+
+namespace amgcl {
+namespace backend {
+
+/// ViennaCL backend
+/**
+ * This is a backend that uses types defined in the ViennaCL library
+ * (http://viennacl.sourceforge.net).
+ *
+ * \param Matrix ViennaCL matrix to use with the backend. Possible choices are
+ * viannacl::compressed_matrix<T>, viennacl::ell_matrix<T>, and
+ * viennacl::hyb_matrix<T>.
+ * \ingroup backends
+ */
+template <class Matrix>
+struct viennacl {
+    typedef typename backend::value_type<Matrix>::type value_type;
+    typedef ptrdiff_t                                  index_type;
+    typedef Matrix                                     matrix;
+    typedef ::viennacl::vector<value_type>             vector;
+    typedef detail::default_direct_solver<viennacl>    direct_solver;
+
+    struct provides_row_iterator : boost::false_type {};
+
+    /// Backend parameters.
+    struct params {
+        params() {}
+        params(const boost::property_tree::ptree&) {}
+        void get(boost::property_tree::ptree&, const std::string&) const {}
+    };
+
+    static std::string name() { return "viennacl"; }
+
+    /// Copy matrix from builtin backend.
+    static boost::shared_ptr<matrix>
+    copy_matrix(
+            boost::shared_ptr< typename builtin<value_type>::matrix > A,
+            const params&
+            )
+    {
+        boost::shared_ptr<matrix> m = boost::make_shared<matrix>();
+        ::viennacl::copy(viennacl_matrix_adapter(*A), *m);
+        return m;
+    }
+
+    /// Copy vector from builtin backend.
+    static boost::shared_ptr<vector>
+    copy_vector(typename builtin<value_type>::vector const &x, const params&)
+    {
+        boost::shared_ptr<vector> v = boost::make_shared<vector>(x.size());
+        ::viennacl::fast_copy(x, *v);
+        return v;
+    }
+
+    /// Copy vector from builtin backend.
+    static boost::shared_ptr<vector>
+    copy_vector(
+            boost::shared_ptr< typename builtin<value_type>::vector > x,
+            const params &prm
+            )
+    {
+        return copy_vector(*x, prm);
+    }
+
+    /// Create vector of the specified size.
+    static boost::shared_ptr<vector>
+    create_vector(size_t size, const params&)
+    {
+        return boost::make_shared<vector>(size);
+    }
+
+    /// Create direct solver for coarse level
+    static boost::shared_ptr<direct_solver>
+    create_solver(boost::shared_ptr< typename builtin<value_type>::matrix > A, const params &prm)
+    {
+        return boost::make_shared<direct_solver>(A, prm);
+    }
+
+    private:
+        struct viennacl_matrix_adapter {
+            typedef ptrdiff_t index_type;
+            typedef size_t    size_type;
+
+            class const_iterator1;
+
+            class const_iterator2 {
+                public:
+                    bool operator!=(const const_iterator2 &it) const {
+                        return pos != it.pos;
+                    }
+
+                    const const_iterator2& operator++() {
+                        ++pos;
+                        return *this;
+                    }
+
+                    index_type index1() const {
+                        return row;
+                    }
+
+                    index_type index2() const {
+                        return col[pos];
+                    }
+
+                    value_type operator*() const {
+                        return val[pos];
+                    }
+                private:
+                    const_iterator2(index_type row, index_type pos,
+                            const index_type *col, const value_type *val)
+                        : row(row), pos(pos), col(col), val(val)
+                    { }
+
+                    index_type        row;
+                    index_type        pos;
+                    const index_type *col;
+                    const value_type *val;
+
+                    friend class const_iterator1;
+            };
+
+            class const_iterator1 {
+                public:
+                    bool operator!=(const const_iterator1 &it) const {
+                        return pos != it.pos;
+                    }
+
+                    const const_iterator1& operator++() {
+                        ++pos;
+                        return *this;
+                    }
+
+                    index_type index1() const {
+                        return pos;
+                    }
+
+                    const const_iterator2 begin() const {
+                        return const_iterator2(pos, row[pos], col, val);
+                    }
+
+                    const const_iterator2 end() const {
+                        return const_iterator2(pos, row[pos + 1], col, val);
+                    }
+                private:
+                    const_iterator1(index_type pos,
+                            const index_type *row,
+                            const index_type *col,
+                            const value_type *val
+                            )
+                        : pos(pos), row(row), col(col), val(val)
+                    { }
+
+                    index_type pos;
+                    const index_type *row;
+                    const index_type *col;
+                    const value_type *val;
+
+                    friend class viennacl_matrix_adapter;
+            };
+
+            viennacl_matrix_adapter(
+                    const typename backend::builtin<value_type>::matrix &A)
+                : rows(A.nrows), cols(A.ncols),
+                  row(A.ptr.data()), col(A.col.data()), val(A.val.data())
+            { }
+
+            const_iterator1 begin1() const {
+                return const_iterator1(0, row, col, val);
+            }
+
+            const_iterator1 end1() const {
+                return const_iterator1(rows, row, col, val);
+            }
+
+            size_t size1() const {
+                return rows;
+            }
+
+            size_t size2() const {
+                return cols;
+            }
+            private:
+                size_t rows;
+                size_t cols;
+
+                const index_type *row;
+                const index_type *col;
+                const value_type *val;
+        };
+};
+
+template <class T>
+struct is_viennacl_matrix : boost::false_type {};
+
+template <class V>
+struct is_viennacl_matrix< ::viennacl::compressed_matrix<V> > : boost::true_type
+{};
+
+template <class V>
+struct is_viennacl_matrix< ::viennacl::hyb_matrix<V> > : boost::true_type
+{};
+
+template <class V>
+struct is_viennacl_matrix< ::viennacl::ell_matrix<V> > : boost::true_type
+{};
+
+template <class M>
+struct value_type<
+    M,
+    typename boost::enable_if< typename is_viennacl_matrix<M>::type >::type
+    >
+{
+    typedef typename M::value_type::value_type type;
+};
+
+template <class V>
+struct value_type< ::viennacl::vector<V> >
+{
+    typedef V type;
+};
+
+template <class M>
+struct rows_impl<
+    M,
+    typename boost::enable_if< typename is_viennacl_matrix<M>::type >::type
+    >
+{
+    static size_t get(const M &A) {
+        return A.size1();
+    }
+};
+
+template <class M>
+struct cols_impl<
+    M,
+    typename boost::enable_if< typename is_viennacl_matrix<M>::type >::type
+    >
+{
+    static size_t get(const M &A) {
+        return A.size2();
+    }
+};
+
+template <class V>
+struct nonzeros_impl< ::viennacl::compressed_matrix<V> > {
+    static size_t get(const ::viennacl::compressed_matrix<V> &A) {
+        return A.nnz();
+    }
+};
+
+template <class V>
+struct nonzeros_impl< ::viennacl::ell_matrix<V> > {
+    static size_t get(const ::viennacl::ell_matrix<V> &A) {
+        return A.nnz();
+    }
+};
+
+template <class V>
+struct nonzeros_impl< ::viennacl::hyb_matrix<V> > {
+    static size_t get(const ::viennacl::hyb_matrix<V> &A) {
+        return A.ell_nnz() + A.csr_nnz();
+    }
+};
+
+template <class Mtx, class Vec>
+struct spmv_impl<
+    Mtx, Vec, Vec,
+    typename boost::enable_if< typename is_viennacl_matrix<Mtx>::type >::type
+    >
+{
+    typedef typename value_type<Mtx>::type V;
+
+    static void apply(V alpha, const Mtx &A, const Vec &x, V beta, Vec &y)
+    {
+        if (beta)
+            y = alpha * ::viennacl::linalg::prod(A, x) + beta * y;
+        else
+            y = alpha * ::viennacl::linalg::prod(A, x);
+    }
+};
+
+template <class Mtx, class Vec>
+struct residual_impl<
+    Mtx, Vec, Vec, Vec,
+    typename boost::enable_if< typename is_viennacl_matrix<Mtx>::type >::type
+    >
+{
+    typedef typename value_type<Mtx>::type V;
+
+    static void apply(const Vec &rhs, const Mtx &A, const Vec &x, Vec &r)
+    {
+        r = ::viennacl::linalg::prod(A, x);
+        r = rhs - r;
+    }
+};
+
+template < typename V >
+struct clear_impl< ::viennacl::vector<V> >
+{
+    static void apply(::viennacl::vector<V> &x)
+    {
+        x.clear();
+    }
+};
+
+template < typename V >
+struct inner_product_impl<
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>
+    >
+{
+    static V get(const ::viennacl::vector<V> &x, const ::viennacl::vector<V> &y)
+    {
+        return ::viennacl::linalg::inner_prod(x, y);
+    }
+};
+
+template < typename V >
+struct axpby_impl<
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>
+    >
+{
+    static void apply(
+            V a, const ::viennacl::vector<V> &x,
+            V b, ::viennacl::vector<V> &y
+            )
+    {
+        if (b)
+            y = a * x + b * y;
+        else
+            y = a * x;
+    }
+};
+
+template < typename V >
+struct axpbypcz_impl<
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>
+    >
+{
+    static void apply(
+            V a, const ::viennacl::vector<V> &x,
+            V b, const ::viennacl::vector<V> &y,
+            V c,       ::viennacl::vector<V> &z
+            )
+    {
+        if (c)
+            z = a * x + b * y + c * z;
+        else
+            z = a * x + b * y;
+    }
+};
+
+template < typename V >
+struct vmul_impl<
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>
+    >
+{
+    static void apply(
+            V a, const ::viennacl::vector<V> &x, const ::viennacl::vector<V> &y,
+            V b, ::viennacl::vector<V> &z)
+    {
+        if (b)
+            z = a * ::viennacl::linalg::element_prod(x, y) + b * z;
+        else
+            z = a * ::viennacl::linalg::element_prod(x, y);
+    }
+};
+
+template < typename V >
+struct copy_impl<
+    ::viennacl::vector<V>,
+    ::viennacl::vector<V>
+    >
+{
+    static void apply(const ::viennacl::vector<V> &x, ::viennacl::vector<V> &y)
+    {
+        y = x;
+    }
+};
+
+} // namespace backend
+} // namespace amgcl
+
+#endif
