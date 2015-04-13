@@ -145,7 +145,7 @@ void BeamPointRigidContactCondition::EquationIdVector(EquationIdVectorType& rRes
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++) //TODO: fix this. Apparentñy, it would not work in 2D!! MA
     {
         int index = i * (dimension * (dimension-1));
         rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -178,7 +178,7 @@ void BeamPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
     if ( rValues.size() != condition_size ) 
       rValues.resize( condition_size, false );
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (unsigned int i = 0; i < number_of_nodes; i++) //TODO: fix this. Apparentñy, it would not work in 2D!! MA
     {
         unsigned int index = i * (dimension * (dimension-1));
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -209,7 +209,7 @@ void BeamPointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues,
 
     if ( rValues.size() != condition_size ) rValues.resize( condition_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( unsigned int i = 0; i < number_of_nodes; i++ ) //TODO: fix this. Apparentñy, it would not work in 2D!! MA
     {
         unsigned int index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -242,7 +242,7 @@ void BeamPointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues
 
     if ( rValues.size() != condition_size ) rValues.resize( condition_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( unsigned int i = 0; i < number_of_nodes; i++ ) //TODO: fix this. Apparentñy, it would not work in 2D!! MA
     {
         unsigned int index = i * (dimension * (dimension-1));
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
