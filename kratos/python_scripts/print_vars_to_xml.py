@@ -2,6 +2,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 
 
 
@@ -42,6 +45,11 @@ def PrintVariablesToXMLenum(filename):
     tmp = PrintVariablesString("KratosVar_int",var_list)
     out.write(tmp)
     
+    #print integer variables
+    var_list = kernel.GetUnsignedIntVariableNames()
+    tmp = PrintVariablesString("KratosVar_unsignedint",var_list)
+    out.write(tmp)    
+    
     #print Bool Variables
     var_list = kernel.GetBoolVariableNames()
     tmp = PrintVariablesString("KratosVar_bool",var_list)
@@ -51,10 +59,25 @@ def PrintVariablesToXMLenum(filename):
     var_list = kernel.GetArrayVariableNames()
     tmp = PrintVariablesString("KratosVar_Array1d",var_list)
     out.write(tmp)      
+
+    #print Vector Variables
+    var_list = kernel.GetVectorVariableNames()
+    tmp = PrintVariablesString("KratosVar_Vector",var_list)
+    out.write(tmp) 
+    
+    #print Matrix Variables
+    var_list = kernel.GetMatrixVariableNames()
+    tmp = PrintVariablesString("KratosVar_Matrix",var_list)
+    out.write(tmp) 
+    
+    #print Flags
+    var_list = kernel.GetFlagsVariableNames()
+    tmp = PrintVariablesString("KratosFlags",var_list)
+    out.write(tmp) 
     
     #finalize XSD schema and close file
     out.write("</xs:schema")
     out.close()
 
 
-PrintVariablesToXMLenum("vars.xmd")
+PrintVariablesToXMLenum("kratos_variables.xsd")
