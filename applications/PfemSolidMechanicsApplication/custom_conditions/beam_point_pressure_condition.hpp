@@ -59,6 +59,7 @@ public:
     typedef Node<3>::Pointer              PointPointerType;
     
     std::vector<PointPointerType> mNodesList;
+    array_1d<double, 3 > mForce;
 
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
@@ -85,6 +86,20 @@ public:
                               ThisNodes,  PropertiesType::Pointer pProperties) const;
     virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
     virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    void         GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo);
+    void         EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo); 
+    void AddExplicitContribution(const VectorType& rRHSVector, 
+						 const Variable<VectorType>& rRHSVariable, 
+						 Variable<array_1d<double,3> >& rDestinationVariable, 
+						 const ProcessInfo& rCurrentProcessInfo);
+    void InitializeSystemMatrices( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector);
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+    void CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo );
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+    void GetValuesVector(Vector& rValues, int Step);
+    void GetFirstDerivativesVector( Vector& rValues, int Step );
+    void GetSecondDerivativesVector( Vector& rValues, int Step );
+
 
 protected:
 
