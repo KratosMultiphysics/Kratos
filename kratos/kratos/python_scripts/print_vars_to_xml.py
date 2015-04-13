@@ -9,11 +9,12 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 
 
 def PrintVariablesString(header_name,input_string):
+    input_string = input_string.replace("    ","")
     #ititialize block
     outstring = "\n<xs:simpleType name=\"" + header_name + "\"> \n"
     outstring += "    <xs:restriction base=\"xs:string\"> \n"
     
-    words = input_string.split()
+    words = input_string.split('\n')
     
     for word in words:
         outstring += "         <xs:enumeration value=\"" + word + "\"> \n"
@@ -21,7 +22,7 @@ def PrintVariablesString(header_name,input_string):
     #finalize block
     outstring += "     </xs:restriction> \n"
     outstring += "</xs:simpleType> \n"
-    outstring += "\n"
+    outstring += "\n    "
     
     return outstring
     
@@ -37,19 +38,17 @@ def PrintVariablesToXMLenum(filename):
     
     #print double Variables
     var_list = kernel.GetDoubleVariableNames()
+    var_list += kernel.GetVariableComponentVariableNames()
+    
     tmp = PrintVariablesString("KratosVar_double",var_list)
     out.write(tmp)
         
     #print integer variables
     var_list = kernel.GetIntVariableNames()
+    var_list += kernel.GetUnsignedIntVariableNames() 
     tmp = PrintVariablesString("KratosVar_int",var_list)
     out.write(tmp)
-    
-    #print integer variables
-    var_list = kernel.GetUnsignedIntVariableNames()
-    tmp = PrintVariablesString("KratosVar_unsignedint",var_list)
-    out.write(tmp)    
-    
+        
     #print Bool Variables
     var_list = kernel.GetBoolVariableNames()
     tmp = PrintVariablesString("KratosVar_bool",var_list)
@@ -72,7 +71,7 @@ def PrintVariablesToXMLenum(filename):
     
     #print Flags
     var_list = kernel.GetFlagsVariableNames()
-    tmp = PrintVariablesString("KratosFlags",var_list)
+    tmp = PrintVariablesString("KratosVar_FlagsType",var_list)
     out.write(tmp) 
     
     #finalize XSD schema and close file
