@@ -749,7 +749,7 @@ public:
                 mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                 mMeshFileOpen = true;
             }
-            if ( mMode == GiD_PostBinary && ! mResultFileOpen )
+            if ( (mMode == GiD_PostBinary || mMode == GiD_PostHDF5) && ! mResultFileOpen )
             {
                 std::stringstream file_name;
                 file_name << std::setprecision(12) << mResultFileName << "_" << name << ".post.bin";
@@ -763,7 +763,7 @@ public:
         }
         if ( mUseMultiFile == SingleFile )
         {
-            if ( mMode == GiD_PostBinary && ! mResultFileOpen )
+            if ( (mMode == GiD_PostBinary || mMode == GiD_PostHDF5) && ! mResultFileOpen )
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
