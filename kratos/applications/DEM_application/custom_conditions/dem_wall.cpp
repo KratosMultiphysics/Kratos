@@ -135,6 +135,10 @@ void DEMWall::CalculateRightHandSide(
     ProcessInfo& rCurrentProcessInfo) {
 }
 
+void DEMWall::CalculateElasticForces(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo) {
+}
 
 void DEMWall::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
 }

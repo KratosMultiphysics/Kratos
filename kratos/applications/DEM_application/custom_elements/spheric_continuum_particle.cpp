@@ -306,6 +306,7 @@ namespace Kratos
        * @param rCurrentProcessInfo
        **/
        void SphericContinuumParticle::ComputeBallToBallContactForce(array_1d<double, 3 > & rElasticForce,
+            array_1d<double, 3 > & rContactForce,
             array_1d<double, 3 > & rInitialRotaMoment,
             ProcessInfo& rCurrentProcessInfo,
             double dt,
@@ -689,7 +690,7 @@ namespace Kratos
             }
 
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce[2], CohesionForce[2], LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                    GlobalElasticContactForce, ViscoDampingLocalContactForce, rElasticForce, i_neighbour_count);
+                    GlobalElasticContactForce, ViscoDampingLocalContactForce, rElasticForce, rContactForce, i_neighbour_count);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalElasticContactForce[2], mOldNeighbourElasticContactForces[i_neighbour_count], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator);

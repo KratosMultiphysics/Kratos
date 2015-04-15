@@ -609,17 +609,17 @@ namespace Kratos
 
           const int number_of_particles = (int)mListOfSphericParticles.size();
           
-          #pragma omp parallel
-          {
+          //#pragma omp parallel
+          //{
             Vector rhs_elem;
             rhs_elem.resize(6);
-            #pragma omp for schedule(guided)
+            #pragma omp parallel for schedule(guided)
             
             for (int i = 0; i < number_of_particles; i++){
                               
                 mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);  
             }
-          }
+          //}
 
           KRATOS_CATCH("")
       }            
@@ -864,15 +864,17 @@ namespace Kratos
         KRATOS_TRY
       
         Clear_forces_FEM();
-        ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+        //ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+        ConditionsArrayType& pConditions = GetFemModelPart().GetMesh(1).Conditions(); 
         ProcessInfo& CurrentProcessInfo = GetFemModelPart().GetProcessInfo();
         
         Vector rhs_cond;
+        Vector rhs_cond_elas;
         vector<unsigned int> condition_partition;    
         OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);    
         unsigned int index;
                
-        #pragma omp parallel for private (index, rhs_cond)
+        #pragma omp parallel for private (index, rhs_cond, rhs_cond_elas)
         for (int k = 0; k < mNumberOfThreads; k++) {
             
             typename ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];        
@@ -882,8 +884,9 @@ namespace Kratos
                 
                 Condition::GeometryType& geom = it->GetGeometry();            
                 double Element_Area = geom.Area();                     
-                it->CalculateRightHandSide(rhs_cond, CurrentProcessInfo);           
+                it->CalculateRightHandSide(rhs_cond, CurrentProcessInfo);
                 DEMWall* p_wall = dynamic_cast<DEMWall*>(&(*it));
+                p_wall->CalculateElasticForces(rhs_cond_elas, CurrentProcessInfo);
                 array_1d<double, 3> Normal_to_Element;
                 p_wall->CalculateNormal(Normal_to_Element);                                                                                       
                 const unsigned int& dim = geom.WorkingSpaceDimension();
@@ -893,7 +896,8 @@ namespace Kratos
                     index = i * dim;    //*2;                 
                     geom(i)->SetLock();                    
                     
-                    array_1d<double, 3>& node_rhs = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES); 
+                    array_1d<double, 3>& node_rhs      = geom(i)->FastGetSolutionStepValue(CONTACT_FORCES);
+                    array_1d<double, 3>& node_rhs_elas = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);
                     array_1d<double, 3>& node_rhs_tang = geom(i)->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
                     double& node_pressure = geom(i)->FastGetSolutionStepValue(PRESSURE);                  
                     double& node_area = geom(i)->FastGetSolutionStepValue(NODAL_AREA);
@@ -901,8 +905,9 @@ namespace Kratos
                     
                     for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
                         
-                        node_rhs[j] = node_rhs[j] + rhs_cond[index+j];
-                        rhs_cond_comp[j] =  rhs_cond[index+j];
+                        node_rhs[j]      = node_rhs[j]      + rhs_cond[index+j];
+                        node_rhs_elas[j] = node_rhs_elas[j] + rhs_cond_elas[index+j];
+                        rhs_cond_comp[j] = rhs_cond[index+j];
                     }
                                                            
                     node_area += 0.333333333333333 * Element_Area;
@@ -941,13 +946,15 @@ namespace Kratos
 
             for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
                 
-                array_1d<double, 3>& node_rhs      = i->FastGetSolutionStepValue(ELASTIC_FORCES);
+                array_1d<double, 3>& node_rhs      = i->FastGetSolutionStepValue(CONTACT_FORCES);
+                array_1d<double, 3>& node_rhs_elas = i->FastGetSolutionStepValue(ELASTIC_FORCES);
                 array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
                 double& node_pressure              = i->FastGetSolutionStepValue(PRESSURE);
                 double& node_area                  = i->FastGetSolutionStepValue(NODAL_AREA);
                 double& shear_stress               = i->FastGetSolutionStepValue(SHEAR_STRESS);
                 
                 noalias(node_rhs)      = ZeroVector(3);
+                noalias(node_rhs_elas) = ZeroVector(3);
                 noalias(node_rhs_tang) = ZeroVector(3);
                 node_pressure          = 0.0;
                 node_area              = 0.0;
@@ -1174,8 +1181,9 @@ namespace Kratos
         KRATOS_TRY
         
         ElementsArrayType&   pElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
-        ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
-        
+        //ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        ConditionsArrayType& pTConditions      = mpFem_model_part->GetMesh(1).Conditions();
+
         if (pTConditions.size() > 0) {
         
             const int number_of_particles = (int)mListOfSphericParticles.size();

@@ -339,6 +339,7 @@ namespace Kratos
 
     static inline void Compute3DimElementFaceLocalSystem(double FaceCoord1[3], double FaceCoord2[3], double FaceCoord3[3], double ParticleCoord[3], double LocalCoordSystem[3][3]){
          
+       //NOTE: this function is designed in a way that the normal always points the side where the centre of particle is found. Therefore should only be used in this way if the indentation is less than the radius value.
          double Vector1[3] = {0.0};
          double Vector2[3] = {0.0};
          double Vector3[3] = {0.0};
@@ -359,9 +360,9 @@ namespace Kratos
          CrossProduct(Normal, Vector1, Vector2);
          normalize(Vector2);
 
-         Vector3[0] = FaceCoord1[0] - ParticleCoord[0];
-         Vector3[1] = FaceCoord1[1] - ParticleCoord[1];
-         Vector3[2] = FaceCoord1[2] - ParticleCoord[2];
+         Vector3[0] = ParticleCoord[0] - FaceCoord1[0];
+         Vector3[1] = ParticleCoord[1] - FaceCoord1[1];
+         Vector3[2] = ParticleCoord[2] - FaceCoord1[2];
          normalize(Vector3);
 
 

@@ -201,7 +201,9 @@ protected:
 SphericParticle();
 
 virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticForce,
+                                          array_1d<double, 3>& rContactForce,
                                           array_1d<double, 3>& InitialRotaMoment,
+                                          array_1d<double, 3>& rigid_element_force,
                                           ProcessInfo& rCurrentProcessInfo,
                                           double mTimeStep);
 
@@ -213,6 +215,7 @@ void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
 void CalculateMomentum(array_1d<double, 3>& rMomentum);
 void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
+                                     array_1d<double, 3>& rContactForce,
                                      array_1d<double, 3>& InitialRotaMoment,
                                      ProcessInfo& rCurrentProcessInfo,
                                      double dt,
@@ -272,6 +275,7 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
                     array_1d<double, 3> &rElasticForce,
+                    array_1d<double, 3>& rContactForce,
                     const unsigned int i_neighbour_count);
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
@@ -281,6 +285,7 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
                     array_1d<double, 3> &rElasticForce,
+                    array_1d<double, 3>& rContactForce,
                     const unsigned int iRigidFaceNeighbour);
 
 virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& rCurrentProcessInfo);

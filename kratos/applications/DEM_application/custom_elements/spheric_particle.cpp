@@ -132,7 +132,9 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
     array_1d<double, 3> additional_forces;
     array_1d<double, 3> additionally_applied_moment;
     array_1d<double, 3> initial_rotation_moment;
-    array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+    array_1d<double, 3>& elastic_force       = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+    array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+    array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
 
     mContactForce.clear();
     mContactMoment.clear();
@@ -140,13 +142,15 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
     additionally_applied_moment.clear();
     initial_rotation_moment.clear();
     elastic_force.clear();
+    contact_force.clear();
+    rigid_element_force.clear();
 
     bool multi_stage_RHS = false;
 
-    ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt, multi_stage_RHS);
+    ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_current_process_info, dt, multi_stage_RHS);
 
     if (mFemOldNeighbourIds.size() > 0){
-        ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt);
+        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt);
     }
     
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
@@ -179,14 +183,18 @@ void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process
     KRATOS_TRY
 
     array_1d<double, 3> initial_rotation_moment;
-    array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+    array_1d<double, 3>& elastic_force       = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+    array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+    array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
 
     mContactForce.clear();
     mContactMoment.clear();
     initial_rotation_moment.clear();
     elastic_force.clear();
+    contact_force.clear();
+    rigid_element_force.clear();
 
-    ComputeBallToBallContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt, true); // The preset argument 'true' should be removed
+    ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_current_process_info, dt, true); // The preset argument 'true' should be removed
 
     std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
     std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
@@ -194,7 +202,7 @@ void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process
     std::fill(neighbour_rigid_faces_total_contact_force.begin(), neighbour_rigid_faces_total_contact_force.end(), 0.0);
 
     if (mFemOldNeighbourIds.size() > 0){
-        ComputeBallToRigidFaceContactForce(elastic_force, initial_rotation_moment, r_current_process_info, dt);
+        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt);
     }
 
     KRATOS_CATCH( "" )
@@ -222,6 +230,8 @@ void SphericParticle::CollectCalculateRightHandSide(ProcessInfo& r_current_proce
                 noalias(mContactForce) += mOldNeighbourTotalContactForces[i];
                 array_1d<double, 3>& r_elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
                 noalias(r_elastic_force) += mOldNeighbourElasticContactForces[i];
+                array_1d<double, 3>& r_contact_force = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+                noalias(r_contact_force) += mOldNeighbourTotalContactForces[i];
                 break;
             }
         }
@@ -645,6 +655,7 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
 //**************************************************************************************************************************************************
 
 void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elastic_force,
+                                                    array_1d<double, 3>& r_contact_force,
                                                     array_1d<double, 3>& rInitialRotaMoment,
                                                     ProcessInfo& r_current_process_info,
                                                     double dt,
@@ -736,7 +747,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         }
 
         // Transforming to global forces and adding up
-        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, cohesion_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, i);
+        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, cohesion_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
 
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
@@ -793,7 +804,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 //**************************************************************************************************************************************************
 
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
+                                                         array_1d<double, 3>& r_contact_force,
                                                          array_1d<double, 3>& rInitialRotaMoment,
+                                                         array_1d<double, 3>& rigid_element_force,
                                                          ProcessInfo& r_current_process_info,
                                                          double mTimeStep)
 {
@@ -996,7 +1009,11 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         double GlobalContactForce[3] = {0.0};
 
         AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                 GlobalElasticContactForce,ViscoDampingLocalContactForce, r_elastic_force, i);
+                                 GlobalElasticContactForce,ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
+
+        rigid_element_force[0] -= GlobalElasticContactForce[0];
+        rigid_element_force[1] -= GlobalElasticContactForce[1];
+        rigid_element_force[2] -= GlobalElasticContactForce[2];
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
             ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbor!!
@@ -1290,6 +1307,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             double GlobalElasticContactForce[3],
                                             double ViscoDampingLocalContactForce[3],
                                             array_1d<double, 3> &r_elastic_force,
+                                            array_1d<double, 3> &r_contact_force,
                                             const unsigned int i_neighbour_count)
 {
     for (unsigned int index = 0; index < 3; index++) {
@@ -1312,6 +1330,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
     DEM_COPY_SECOND_TO_FIRST_3(mOldNeighbourTotalContactForces[i_neighbour_count], GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
+    DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
 }
 
 //**************************************************************************************************************************************************
@@ -1324,6 +1343,7 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                                double GlobalElasticContactForce[3],
                                                double ViscoDampingLocalContactForce[3],
                                                array_1d<double, 3>& r_elastic_force,
+                                               array_1d<double, 3>& r_contact_force,
                                                const unsigned int iRigidFaceNeighbour)
 {
     for (unsigned int index = 0; index < 3; index++) {
@@ -1337,6 +1357,7 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
     std::copy(GlobalElasticContactForce, GlobalElasticContactForce + 3, mFemOldNeighbourContactForces[iRigidFaceNeighbour].begin());
     DEM_ADD_SECOND_TO_FIRST(mContactForce, GlobalContactForce)
     DEM_ADD_SECOND_TO_FIRST(r_elastic_force, GlobalElasticContactForce)
+    DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
 
     // Global stored contact force between rigid face and particle, used by FEM elements
     std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;

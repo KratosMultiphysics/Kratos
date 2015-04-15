@@ -602,17 +602,17 @@ public:
       GeometryFunctions::Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem);
 
       ///Cfeng,131007,normal vector should point to particle
-      LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-      LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-      LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-
-      LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-      LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-      LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-
-      LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-      LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-      LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
+//       LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
+//       LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
+//       LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
+// 
+//       LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
+//       LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
+//       LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
+// 
+//       LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
+//       LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
+//       LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
 
       DistPToB = GeometryFunctions::DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
 
@@ -685,17 +685,17 @@ public:
         GeometryFunctions::Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem);
 
         ///Cfeng,131007,normal vector should point to particle
-        LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-        LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-        LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-
-        LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-        LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-        LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-
-        LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-        LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-        LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
+//         LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
+//         LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
+//         LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
+// 
+//         LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
+//         LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
+//         LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
+// 
+//         LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
+//         LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
+//         LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
 
         DistPToB = GeometryFunctions::DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
 
