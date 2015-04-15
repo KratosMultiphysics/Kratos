@@ -415,9 +415,9 @@ public:
 
                 Geometry<Node<3> >& geom = pElement->GetGeometry();
 
-                for(unsigned int i=0; i<geom.size(); i++)
+                for(unsigned int j=0; j<geom.size(); j++)
                 {
-                    nodalPressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
+                    nodalPressures[j] = geom[j].FastGetSolutionStepValue(PRESSURE);
                 }
 
                 if(pElement->GetValue(SPLIT_ELEMENT)==true)
@@ -457,55 +457,55 @@ public:
 	}
 	//KRATOS_WATCH("THERE WERE THIS MANY BAD NODES ORIGINALLY")
 	//KRATOS_WATCH(n_bad_nodes)
-	while (n_bad_nodes>=1.0)
-	{
-	  	for (int i = 0; i < n_structure_nodes; i++)
-		{
-		    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-		    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+	while (n_bad_nodes >= 1.0) {
+                int n_bad_nodes_backup = n_bad_nodes;
 
-	  	    //here we store the number of neigbor nodes that were given the pressure in the previous loop (i.e. were found)
-		    if (p_structure_node->IsNot(VISITED))
-			{
-			    int n_good_neighbors=0;
-			    double pos_pres=0.0;
-			    double neg_pres=0.0;
-			    for( WeakPointerVector< Node<3> >::iterator i = p_structure_node->GetValue(NEIGHBOUR_NODES).begin();
-				        i != p_structure_node->GetValue(NEIGHBOUR_NODES).end(); i++)
-			    {
-				if(i->Is(VISITED)) 
-					{
-					n_good_neighbors++;
-					pos_pres+=i->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-					neg_pres+=i->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-					//KRATOS_WATCH("Good neighbor found")
-					}
-			    }
-			    if (n_good_neighbors!=0)
-					{
-					pos_pres/=n_good_neighbors;
-					neg_pres/=n_good_neighbors;
-					p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = pos_pres;
-				    	p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = neg_pres;    
-					p_structure_node->Set(VISITED);
-					n_bad_nodes--;
-					}
-			   //KRATOS_WATCH(pos_pres)
-			   //KRATOS_WATCH(neg_pres)          
-			}
-		 }
-	         /*int n_bad_nodes=0;
-		 for (int i = 0; i < n_structure_nodes; i++)
-        	 {
-		    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
-		    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
-		    if (p_structure_node->IsNot(VISITED))
-			n_bad_nodes++;		  
-		 }
-		*/
-		KRATOS_WATCH(n_bad_nodes)
+                for (int i = 0; i < n_structure_nodes; i++) {
+                    ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+                    Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
 
-	  }
+                    //here we store the number of neigbor nodes that were given the pressure in the previous loop (i.e. were found)
+                    if (p_structure_node->IsNot(VISITED)) {
+                        int n_good_neighbors = 0;
+                        double pos_pres = 0.0;
+                        double neg_pres = 0.0;
+                        WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
+                        
+                        for (WeakPointerVector< Node < 3 > >::iterator j = neighours.begin(); j != neighours.end(); j++) {
+                            if (j->Is(VISITED)) {
+                                n_good_neighbors++;
+                                pos_pres += j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                                neg_pres += j->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                                //KRATOS_WATCH("Good neighbor found")
+                            }
+                        }
+                        if (n_good_neighbors != 0) {
+                            pos_pres /= n_good_neighbors;
+                            neg_pres /= n_good_neighbors;
+                            p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = pos_pres;
+                            p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = neg_pres;
+                            p_structure_node->Set(VISITED);
+                            n_bad_nodes--;
+                        }
+                        //KRATOS_WATCH(pos_pres)
+                        //KRATOS_WATCH(neg_pres)          
+                    }
+                }
+                
+                if(n_bad_nodes == n_bad_nodes_backup) break; //WE BREAK THE WHILE HERE, OTHERWISE THE CODE HANGS (it was not able to remove any other node)
+
+                /*int n_bad_nodes=0;
+                for (int i = 0; i < n_structure_nodes; i++)
+                {
+                   ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+                   Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+                   if (p_structure_node->IsNot(VISITED))
+                       n_bad_nodes++;		  
+                }
+                 */
+                //KRATOS_WATCH(n_bad_nodes)
+
+            }
 		//THE BELOW ONE IS A "CHEAT".. THERE IS A PROBLEM OF INCORRECT PROJECTION BETWEEN THE MESHES AT SOME POINTS
 		//FOR NODES WITH PRESSURE VERY DIFFERENT FROM THAT OF THE NEIGHBORS, I JUST TAKE THE NEIGHBOR PRESSURE AVERAGED
 		for (int i = 0; i < n_structure_nodes; i++)
@@ -515,21 +515,23 @@ public:
 
 		    double pos_pressure=p_structure_node->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 		    double neg_pressure=p_structure_node->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                    
+                    WeakPointerVector< Node < 3 > >& neighours = p_structure_node->GetValue(NEIGHBOUR_NODES);
 			
-	  	    if (p_structure_node->GetValue(NEIGHBOUR_NODES).size()>=1.0)
+	  	    if (neighours.size()>=1.0)
 			{			    
 			    double av_pos_pres=0.0;
 			    double av_neg_pres=0.0;
-			    for( WeakPointerVector< Node<3> >::iterator i = p_structure_node->GetValue(NEIGHBOUR_NODES).begin();
-				        i != p_structure_node->GetValue(NEIGHBOUR_NODES).end(); i++)
+			    for( WeakPointerVector< Node<3> >::iterator j = neighours.begin();
+				        j != neighours.end(); j++)
 			    {
 				
-					av_pos_pres+=i->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-					av_neg_pres+=i->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+					av_pos_pres+=j->FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+					av_neg_pres+=j->FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
 										
 			    }
-			    av_pos_pres/=p_structure_node->GetValue(NEIGHBOUR_NODES).size();
-			    av_neg_pres/=p_structure_node->GetValue(NEIGHBOUR_NODES).size();
+			    av_pos_pres/=neighours.size();
+			    av_neg_pres/=neighours.size();
 			    
 			    //IF the average pressure of the neighbors is 10 times lower than of the given node, something is bad and we reset its value
 			    if (fabs(pos_pressure)>3.0*fabs(av_pos_pres))
@@ -892,7 +894,7 @@ public:
         unsigned int NumberIntersectionsOnTetCorner = 0;
 
         // Get leaves of octree intersecting with fluid Element
-        mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
+        mpOctree->GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
 
         int intersection_counter = 0;
 
@@ -1683,6 +1685,9 @@ public:
     {
         Timer::Start("Generating Octree");
         //std::cout << "Generating the Octree..." << std::endl;
+        boost::shared_ptr<OctreeType> temp_octree =  boost::shared_ptr<OctreeType>( new OctreeType() );
+        //OctreeType::Pointer temp_octree = OctreeType::Pointer(new OctreeType() );
+        mpOctree.swap(temp_octree);
         
         double low[3];
         double high[3];
@@ -1716,9 +1721,9 @@ public:
             }
         }
                 
-        mOctree.SetBoundingBox(low,high);
+        mpOctree->SetBoundingBox(low,high);
 
-        //mOctree.RefineWithUniformSize(0.0625);
+        //mpOctree->RefineWithUniformSize(0.0625);
 
         // loop over all structure nodes
         for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
@@ -1729,27 +1734,27 @@ public:
             temp_point[0] = i_node->X();
             temp_point[1] = i_node->Y();
             temp_point[2] = i_node->Z();
-            mOctree.Insert(temp_point);
+            mpOctree->Insert(temp_point);
         }
 
-        //mOctree.Constrain2To1(); // To be removed. Pooyan.
+        //mpOctree->Constrain2To1(); // To be removed. Pooyan.
 
         // loop over all structure elements
         for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin();
             i_element != mrSkinModelPart.ElementsEnd();
             i_element++)
         {
-            mOctree.Insert(*(i_element).base());
+            mpOctree->Insert(*(i_element).base());
         }
 
         Timer::Stop("Generating Octree");
 
-//        KRATOS_WATCH(mOctree);
+//        KRATOS_WATCH(mpOctree);
 
 //        std::cout << "######## WRITING OCTREE MESH #########" << std::endl;
 //        std::ofstream myfile;
 //        myfile.open ("octree.post.msh");
-//        mOctree.PrintGiDMesh(myfile);
+//        mpOctree.PrintGiDMesh(myfile);
 //        myfile.close();
 
         //std::cout << "Generating the Octree finished" << std::endl;
@@ -1762,7 +1767,7 @@ public:
     {
         Timer::Start("Generating Nodes");
         std::vector<OctreeType::cell_type*> all_leaves;
-        mOctree.GetAllLeavesVector(all_leaves);
+        mpOctree->GetAllLeavesVector(all_leaves);
 
         int leaves_size = all_leaves.size();
 
@@ -1820,7 +1825,7 @@ public:
         for (std::size_t i_direction = 0; i_direction < 8; i_direction++) {
             CellType::key_type neighbour_key[3];
             if (pCell->GetNeighbourKey(Position, i_direction, neighbour_key)) {
-                CellType* neighbour_cell = mOctree.pGetCell(neighbour_key);
+                CellType* neighbour_cell = mpOctree->pGetCell(neighbour_key);
                 if (!neighbour_cell || (neighbour_cell == pCell))
                     continue;
 
@@ -1851,7 +1856,7 @@ public:
 
         std::vector<CellType*> leaves;
 
-        mOctree.GetAllLeavesVector(leaves);
+        mpOctree->GetAllLeavesVector(leaves);
         //int leaves_size = leaves.size();
 
         //         for(int i = 0 ; i < leaves_size ; i++)
@@ -1881,7 +1886,7 @@ public:
 
     //           std::vector<CellType*> leaves;
 
-    //         mOctree.GetAllLeavesVector(leaves);
+    //         mpOctree->GetAllLeavesVector(leaves);
     //         int leaves_size = leaves.size();
 
     //         for(int i = 0 ; i < leaves_size ; i++)
@@ -1902,7 +1907,7 @@ public:
     //         int nodes_size = nodes.size();
     //           std::vector<CellType*> leaves;
 
-    //         mOctree.GetAllLeavesVector(leaves);
+    //         mpOctree->GetAllLeavesVector(leaves);
     //         int leaves_size = leaves.size();
 
     //#pragma omp parallel for firstprivate(nodes_size)
@@ -1927,7 +1932,7 @@ public:
 
         std::vector<CellType*> leaves;
 
-        mOctree.GetAllLeavesVector(leaves);
+        mpOctree->GetAllLeavesVector(leaves);
         int leaves_size = leaves.size();
 
         for(int i = 0 ; i < leaves_size ; i++)
@@ -1970,7 +1975,7 @@ public:
         // Creating the ray
         double ray[3] = {coords[0], coords[1], coords[2]};
         
-        mOctree.NormalizeCoordinates(ray);
+        mpOctree->NormalizeCoordinates(ray);
         ray[i_direction] = 0; // starting from the lower extreme
 
         //            KRATOS_WATCH_3(ray)
@@ -2035,7 +2040,7 @@ public:
                 pCell->GetKey(i_pos,keys);
 
                 double cell_point[3];
-                mOctree.CalculateCoordinates(keys,cell_point);
+                mpOctree->CalculateCoordinates(keys,cell_point);
 
                 //                cell_point[0] = pCell->GetCoordinate(keys[0]);
                 //                cell_point[1] = pCell->GetCoordinate(keys[1]);
@@ -2111,7 +2116,7 @@ public:
             // Creating the ray
             double ray[3] = {coords[0], coords[1], coords[2]};
             
-            mOctree.NormalizeCoordinates(ray);
+            mpOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // starting from the lower extreme
 
             GetIntersections(ray, i_direction, intersections);
@@ -2175,7 +2180,8 @@ public:
         // first clearing the intersections points vector
         intersections.clear();
 
-        OctreeType* octree = &mOctree;
+        //OctreeType* octree = &mOctree;
+        OctreeType* octree = mpOctree.get();
 
         OctreeType::key_type ray_key[3] = {octree->CalcKeyNormalized(ray[0]), octree->CalcKeyNormalized(ray[1]), octree->CalcKeyNormalized(ray[2])};
         OctreeType::key_type cell_key[3];
@@ -2287,7 +2293,8 @@ public:
         // first clearing the intersections points vector
         intersections.clear();
 
-        OctreeType* octree = &mOctree;
+        //OctreeType* octree = &mOctree;
+        OctreeType* octree = mpOctree.get();
 
         OctreeType::key_type ray_key[3] = {octree->CalcKeyNormalized(ray[0]), octree->CalcKeyNormalized(ray[1]), octree->CalcKeyNormalized(ray[2])};
         OctreeType::key_type cell_key[3];
@@ -2354,12 +2361,12 @@ public:
         double ray_point1[3] = {ray[0], ray[1], ray[2]};
         double ray_point2[3] = {ray[0], ray[1], ray[2]};
         double normalized_coordinate;
-        mOctree.CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
+        mpOctree->CalculateCoordinateNormalized(ray_key[direction], normalized_coordinate);
         ray_point1[direction] = normalized_coordinate;
-        ray_point2[direction] = ray_point1[direction] + mOctree.CalcSizeNormalized(cell);
+        ray_point2[direction] = ray_point1[direction] + mpOctree->CalcSizeNormalized(cell);
 
-        mOctree.ScaleBackToOriginalCoordinate(ray_point1);
-        mOctree.ScaleBackToOriginalCoordinate(ray_point2);
+        mpOctree->ScaleBackToOriginalCoordinate(ray_point1);
+        mpOctree->ScaleBackToOriginalCoordinate(ray_point2);
 
         for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++) {
             double intersection[3]={0.00,0.00,0.00};
@@ -2481,7 +2488,7 @@ public:
     void PrintGiDMesh(std::ostream & rOStream) const {
         std::vector<CellType*> leaves;
 
-        mOctree.GetAllLeavesVector(leaves);
+        mpOctree->GetAllLeavesVector(leaves);
 
         std::cout << "writing " << leaves.size() << " leaves" << std::endl;
         rOStream << "MESH \"leaves\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
@@ -2492,7 +2499,7 @@ public:
         for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
         {
             rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
-            //mOctree.Insert(temp_point);
+            //mpOctree->Insert(temp_point);
         }
         std::cout << "Nodes written..." << std::endl;
         rOStream << "end coordinates" << std::endl;
@@ -2517,7 +2524,7 @@ public:
     void PrintGiDResults(std::ostream & rOStream) const {
         std::vector<CellType*> leaves;
 
-        mOctree.GetAllLeavesVector(leaves);
+        mpOctree->GetAllLeavesVector(leaves);
 
         rOStream << "GiD Post Results File 1.0" << std::endl << std::endl;
 
@@ -2591,7 +2598,7 @@ private:
 
     DistanceSpatialContainersConfigure::data_type mOctreeNodes;
 
-    OctreeType mOctree;
+    boost::shared_ptr<OctreeType> mpOctree;
 
     static const double epsilon;
 
