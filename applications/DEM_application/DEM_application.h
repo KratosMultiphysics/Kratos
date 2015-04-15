@@ -44,6 +44,10 @@
 #include "custom_elements/rock1cluster3D.h"
 #include "custom_elements/rock2cluster3D.h"
 #include "custom_elements/wheat5cluster3D.h"
+#include "custom_elements/ballast1cluster3D.h"
+#include "custom_elements/ballast2cluster3D.h"
+#include "custom_elements/ballast3cluster3D.h"
+#include "custom_elements/ballast4cluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/dem_wall.h"
 #include "custom_conditions/RigidFace.h"
@@ -211,6 +215,10 @@ private:
     const Rock1Cluster3D  mRock1Cluster3D;
     const Rock2Cluster3D  mRock2Cluster3D;
     const Wheat5Cluster3D  mWheat5Cluster3D;
+    const Ballast1Cluster3D  mBallast1Cluster3D;
+    const Ballast2Cluster3D  mBallast2Cluster3D;
+    const Ballast3Cluster3D  mBallast3Cluster3D;
+    const Ballast4Cluster3D  mBallast4Cluster3D;
     const MAPcond    mMapCon3D3N;
 
     //       static const ApplicationCondition  msApplicationCondition;
