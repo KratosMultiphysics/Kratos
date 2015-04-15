@@ -80,7 +80,9 @@ namespace Kratos
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
           array_1d<double, 3> initial_rotation_moment;     
-          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+          array_1d<double, 3>& elastic_force       = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
+          array_1d<double, 3>& contact_force       = this->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+          array_1d<double, 3>& rigid_element_force = this->GetGeometry()[0].FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
 
           mContactForce.clear();
           mContactMoment.clear();
@@ -88,16 +90,18 @@ namespace Kratos
           additionally_applied_moment.clear();
           initial_rotation_moment.clear();
           elastic_force.clear();
+          contact_force.clear();
+          rigid_element_force.clear();
 
           bool multi_stage_RHS = false;
 
-          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
+          ComputeBallToBallContactForce(/*contact_force, contact_moment, */elastic_force, contact_force, initial_rotation_moment, rCurrentProcessInfo, dt, multi_stage_RHS );
 
           //Cfeng,RigidFace
           
           if (mFemOldNeighbourIds.size() > 0)
           {
-            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, initial_rotation_moment, rCurrentProcessInfo, dt);
+            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, contact_force, initial_rotation_moment, rigid_element_force, rCurrentProcessInfo, dt);
           }
               
           ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);

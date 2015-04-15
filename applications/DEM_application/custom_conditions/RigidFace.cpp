@@ -132,56 +132,104 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
- 
-	if (rRightHandSideVector.size() != MatSize)
-	{
-		rRightHandSideVector.resize(MatSize, false);
-	}
-	rRightHandSideVector = ZeroVector(MatSize); 
-	
-	std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
+    
+    if (rRightHandSideVector.size() != MatSize)
+    {
+        rRightHandSideVector.resize(MatSize, false);
+    }
+    rRightHandSideVector = ZeroVector(MatSize);
+    
+    std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
+    
+    for (unsigned int i=0; i<rNeighbours.size(); i++)
+    {
+        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
 
-	for (unsigned int i=0; i<rNeighbours.size(); i++)
-	{       
-                std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
+        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+        {
+            if ( rRFnei[i_nei]->Id() == this->Id() )
+            {
+                double weight[4] = {0.0};
+                double ContactForce[3] = {0.0};
 
-		for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
-		{          
-			if ( rRFnei[i_nei]->Id() == this->Id() )
-			{
-				double weight[4] = {0.0};
-				double ContactForce[3] = {0.0};
-				
-                                unsigned int ino = 16 * i_nei;
-                                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
+                unsigned int ino = 16 * i_nei;
+                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
+                
+                weight[0] = neighbour_rigid_faces_pram[ino + 10];
+                weight[1] = neighbour_rigid_faces_pram[ino + 11];
+                weight[2] = neighbour_rigid_faces_pram[ino + 12];
+                weight[3] = neighbour_rigid_faces_pram[ino + 13];
 
-				weight[0] = neighbour_rigid_faces_pram[ino + 10];
-				weight[1] = neighbour_rigid_faces_pram[ino + 11];
-				weight[2] = neighbour_rigid_faces_pram[ino + 12];
-				weight[3] = neighbour_rigid_faces_pram[ino + 13];
-				
-				ino = 3 * i_nei;
-				        
-                                std::vector<double>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce;
-				ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
-				ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
-				ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
-				
-				for (unsigned int inode = 0; inode < GetGeometry().size(); inode++)
-				{
-					unsigned int ino1 =  inode * 3;					
-					rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
-					rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
-					rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
-				}				
-				
-			}
-		}
-	
-	}
-	
- }
+                ino = 3 * i_nei;
+                
+                std::vector<double>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce;
+                ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
+                ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
+                ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
 
+                for (unsigned int inode = 0; inode < GetGeometry().size(); inode++)
+                {
+                    unsigned int ino1 =  inode * 3;
+                    rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
+                    rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
+                    rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
+                }
+            }
+        }
+    }
+}
+
+void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
+                                         ProcessInfo& rCurrentProcessInfo)
+{
+    const unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int MatSize = number_of_nodes * 3;
+    
+    if (rElasticForces.size() != MatSize)
+    {
+        rElasticForces.resize(MatSize, false);
+    }
+    rElasticForces = ZeroVector(MatSize);
+    
+    std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
+    
+    for (unsigned int i=0; i<rNeighbours.size(); i++)
+    {
+        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
+
+        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+        {
+            if ( rRFnei[i_nei]->Id() == this->Id() )
+            {
+                double weight[4] = {0.0};
+                double ContactElasticForce[3] = {0.0};
+
+                unsigned int ino = 16 * i_nei;
+                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
+                
+                weight[0] = neighbour_rigid_faces_pram[ino + 10];
+                weight[1] = neighbour_rigid_faces_pram[ino + 11];
+                weight[2] = neighbour_rigid_faces_pram[ino + 12];
+                weight[3] = neighbour_rigid_faces_pram[ino + 13];
+
+                ino = 3 * i_nei;
+                
+                std::vector<double>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce;
+                ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[ino + 0];
+                ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[ino + 1];
+                ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[ino + 2];
+
+                for (unsigned int inode = 0; inode < GetGeometry().size(); inode++)
+                {
+                    unsigned int ino1 =  inode * 3;
+                    rElasticForces[ino1 + 0] += -ContactElasticForce[0] * weight[inode];
+                    rElasticForces[ino1 + 1] += -ContactElasticForce[1] * weight[inode];
+                    rElasticForces[ino1 + 2] += -ContactElasticForce[2] * weight[inode];
+                }
+            }
+        }
+    }
+}
 
 void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
 {

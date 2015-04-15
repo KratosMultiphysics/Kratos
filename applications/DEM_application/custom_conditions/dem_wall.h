@@ -113,6 +113,7 @@ public:
 
     virtual void Initialize();
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );		
+    virtual void CalculateElasticForces(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
     virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
     virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);  
     virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);          

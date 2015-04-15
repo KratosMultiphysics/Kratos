@@ -190,6 +190,8 @@ class Procedures(object):
         
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
+        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
+        model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
         model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
@@ -226,6 +228,7 @@ class Procedures(object):
     def AddRigidFaceVariables(self, model_part, Param):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
+        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
@@ -258,6 +261,7 @@ class Procedures(object):
         
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
         
         model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
@@ -955,6 +959,8 @@ class DEMIo(object):
         self.PostContactSigma             = getattr(DEM_parameters, "PostContactSigma", 0 )
         self.PostMeanContactArea          = getattr(DEM_parameters, "PostMeanContactArea", 0 )
         self.PostElasticForces            = getattr(DEM_parameters, "PostElasticForces", 0 )
+        self.PostContactForces            = getattr(DEM_parameters, "PostContactForces", 0 )
+        self.PostRigidElementForces       = getattr(DEM_parameters, "PostRigidElementForces", 0 )
         self.PostPressure                 = getattr(DEM_parameters, "PostPressure", 0 )
         self.PostTangentialElasticForces  = getattr(DEM_parameters, "PostTangentialElasticForces", 0 )
         self.PostShearStress              = getattr(DEM_parameters, "PostShearStress", 0 )
@@ -981,6 +987,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
+        self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
@@ -1017,11 +1024,12 @@ class DEMIo(object):
      
     def AddFEMBoundaryVariables(self):
         
-        self.PushPrintVar(self.PostElasticForces,           ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostPressure,                PRESSURE, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostShearStress,             SHEAR_STRESS, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostNodalArea,               NODAL_AREA, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostContactForces,            CONTACT_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostPressure,                 PRESSURE, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostTangentialElasticForces,  TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostShearStress,              SHEAR_STRESS, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostNodalArea,                NODAL_AREA, self.fem_boundary_variables)
         if (Var_Translator(DEM_parameters.PostNonDimensionalVolumeWear)):
             self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
             self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
