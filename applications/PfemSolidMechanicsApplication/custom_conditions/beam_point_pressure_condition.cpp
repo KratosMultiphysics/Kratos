@@ -115,7 +115,7 @@ void BeamPointPressureCondition::EquationIdVector(EquationIdVectorType& rResult,
     if (rResult.size() != condition_size)
       rResult.resize( condition_size, false );
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) //TODO: fix this. Apparentñy, it would not work in 2D!! MA
+    for (unsigned int i = 0; i < number_of_nodes; i++) //TODO: fix this. Apparently, it would not work in 2D!! MA
     {
         int index = i * (dimension * (dimension-1));
         rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
@@ -129,6 +129,15 @@ void BeamPointPressureCondition::EquationIdVector(EquationIdVectorType& rResult,
 	
 	rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
     }
+    
+//    std::cout<<" Pressure condition "<<std::endl;
+//     for ( unsigned int i = 0; i < number_of_nodes; i++ )
+//       {
+//     	unsigned int index = i * ( dimension * 2 );
+//     	for ( unsigned int j = index; j <= (index+5); j ++ )
+//     	  std::cout<<rResult[j]<<" ";
+//        std::cout<<std::endl;
+//       }
 
     KRATOS_CATCH( "" )
 }
@@ -250,7 +259,6 @@ void BeamPointPressureCondition::GetSecondDerivativesVector( Vector& rValues, in
 	  rRightHandSideVector[j] = mForce[j]; //TODO: This force comes in GLOBAL AXES!! 
           rRightHandSideVector[dimension+j] = 0.0;
 	}   
-        //KRATOS_WATCH(rRightHandSideVector.size())
 
   }
   
@@ -265,7 +273,6 @@ void BeamPointPressureCondition::GetSecondDerivativesVector( Vector& rValues, in
       rRightHandSideVector[j] = mForce[j]; //TODO: This force comes in GLOBAL AXES!! 
       rRightHandSideVector[dimension+j] = 0.0;
     }   
-    //KRATOS_WATCH(rRightHandSideVector.size())
   }
   
   
@@ -313,9 +320,7 @@ void BeamPointPressureCondition::GetSecondDerivativesVector( Vector& rValues, in
           mForce += unitary_vector;
           
       }
-      
-      //KRATOS_WATCH(mForce)
-   
+         
   }
     
  
