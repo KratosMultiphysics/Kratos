@@ -220,6 +220,7 @@ void  AddIOToPython()
     .value("GiD_PostAscii", GiD_PostAscii)
     .value("GiD_PostAsciiZipped", GiD_PostAsciiZipped)
     .value("GiD_PostBinary", GiD_PostBinary)
+	.value("GiD_PostHDF5", GiD_PostHDF5)
     ;
 
     enum_<WriteDeformedMeshFlag>("WriteDeformedMeshFlag")
