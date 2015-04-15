@@ -482,6 +482,10 @@ void  AddMeshToPython()
     .def("ConditionsArray", &MeshType::ConditionsArray, return_internal_reference<>())
     .add_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
     .def("PropertiesArray", &MeshType::PropertiesArray, return_internal_reference<>())
+	.def("HasNode", &MeshType::HasNode)
+	.def("HasProperties", &MeshType::HasProperties)
+	.def("HasElement", &MeshType::HasElement)
+	.def("HasCondition", &MeshType::HasCondition)
     .def(self_ns::str(self))
     ;
 }
