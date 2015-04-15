@@ -350,6 +350,11 @@ public:
         return mpNodes->GetContainer();
     }
 
+	bool HasNode(IndexType NodeId) const
+	{
+		return (mpNodes->find(NodeId) != mpNodes->end());
+	}
+
     ///@}
     ///@name Properties
     ///@{
@@ -439,6 +444,11 @@ public:
     {
         return mpProperties->GetContainer();
     }
+
+	bool HasProperties(IndexType NodeId) const
+	{
+		return (mpProperties->find(NodeId) != mpProperties->end());
+	}
 
     ///@}
     ///@name Elements
@@ -530,6 +540,11 @@ public:
     }
 
 
+	bool HasElement(IndexType NodeId) const
+	{
+		return (mpElements->find(NodeId) != mpElements->end());
+	}
+
     ///@}
     ///@name Conditions
     ///@{
@@ -618,6 +633,11 @@ public:
     {
         return mpConditions->GetContainer();
     }
+
+	bool HasCondition(IndexType NodeId) const
+	{
+		return (mpConditions->find(NodeId) != mpConditions->end());
+	}
 
     ///@}
     ///@name Access
