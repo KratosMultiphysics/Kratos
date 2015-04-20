@@ -233,7 +233,7 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
         model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-        if (Var_Translator(Param.PostNonDimensionalVolumeWear)):
+        if (getattr(DEM_parameters, "PostNonDimensionalVolumeWear", 0 )):
             model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
             model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
         
@@ -509,7 +509,6 @@ class Procedures(object):
 
         return maxid
 
-    
     def SetBoundingBox(self, spheres_model_part, clusters_model_part, rigid_faces_model_part, creator_destructor):
         
         b_box_low = Array3()
@@ -990,6 +989,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
+
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
         # Spheres Rotation
@@ -1030,7 +1030,7 @@ class DEMIo(object):
         self.PushPrintVar(self.PostTangentialElasticForces,  TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress,              SHEAR_STRESS, self.fem_boundary_variables)
         self.PushPrintVar(self.PostNodalArea,                NODAL_AREA, self.fem_boundary_variables)
-        if (Var_Translator(DEM_parameters.PostNonDimensionalVolumeWear)):
+        if (Var_Translator(self.PostNonDimensionalVolumeWear)):
             self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
             self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
         
