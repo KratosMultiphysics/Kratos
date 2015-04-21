@@ -1097,7 +1097,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
                 rCurrentProcessInfo );
 
 	//call the element internal variables update
-	this->FinalizeStepVariables(Variables,rCurrentProcessInfo);
+	this->FinalizeStepVariables(Variables,PointNumber);
     }
 
     mFinalized = true;
