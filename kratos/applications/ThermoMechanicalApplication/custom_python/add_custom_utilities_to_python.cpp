@@ -95,6 +95,7 @@ void  AddCustomUtilitiesToPython()
     .def("CheckStopTemperature", &EstimateTimeStep < 3 >::CheckStopTemperature)
     .def("ComputeSurfaceWaveDt", &EstimateTimeStep < 3 >::ComputeSurfaceWaveDt)
     .def("CheckIsInTransition", &EstimateTimeStep < 3 >::CheckIsInTransition)
+	.def("EstimateCoolingTime", &EstimateTimeStep < 3 >::EstimateCoolingTime)
     ;
     
     class_<ParticleLevelSetUtils < 2 > >("ParticleLevelSetUtils2D", init<>())

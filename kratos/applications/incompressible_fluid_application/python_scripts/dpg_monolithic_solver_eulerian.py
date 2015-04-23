@@ -55,7 +55,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FILLTIME)
     model_part.AddNodalSolutionStepVariable(MAX_VEL)
     model_part.AddNodalSolutionStepVariable(WET_VOLUME) #
-    model_part.AddNodalSolutionStepVariable(MOULD_INNER_TEMPERATURE)
+    #model_part.AddNodalSolutionStepVariable(MOULD_INNER_TEMPERATURE)
     # variables needed for the distance solver
     levelset_solver.AddVariables(model_part, distance_settings)
 
