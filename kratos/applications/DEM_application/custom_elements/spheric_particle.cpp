@@ -803,42 +803,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-/*void SphericParticle::UpdateRF_Pram(DEMWall* rObj_2, std::size_t ino,
-                                                   double LocalCoordSystem[3][3], double& DistPToB,
-                                                   double Weight[4],
-                                                   array_1d<double,3>& other_to_me_vel, int& ContactType)
-{
-    KRATOS_TRY
-
-
-    std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
-
-    int ino1 = ino * 16;
-
-    RF_Pram[ino1 +  0] = LocalCoordSystem[0][0];
-    RF_Pram[ino1 +  1] = LocalCoordSystem[0][1];
-    RF_Pram[ino1 +  2] = LocalCoordSystem[0][2];
-    RF_Pram[ino1 +  3] = LocalCoordSystem[1][0];
-    RF_Pram[ino1 +  4] = LocalCoordSystem[1][1];
-    RF_Pram[ino1 +  5] = LocalCoordSystem[1][2];
-    RF_Pram[ino1 +  6] = LocalCoordSystem[2][0];
-    RF_Pram[ino1 +  7] = LocalCoordSystem[2][1];
-    RF_Pram[ino1 +  8] = LocalCoordSystem[2][2];
-    RF_Pram[ino1 +  9] = DistPToB;
-    RF_Pram[ino1 + 10] = Weight[0];
-    RF_Pram[ino1 + 11] = Weight[1];
-    RF_Pram[ino1 + 12] = Weight[2];
-    RF_Pram[ino1 + 13] = Weight[3];
-    RF_Pram[ino1 + 15] = ContactType;
-
-    }
-
-    KRATOS_CATCH("")
-}*/
-
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                          array_1d<double, 3>& r_contact_force,
                                                          array_1d<double, 3>& rInitialRotaMoment,
@@ -929,14 +893,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             if (points == 3 || points == 4) {GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord, node_coor, DistPToB);}
             if (points == 2) {GeometryFunctions::QuickDistanceForAKnownEdgeNeighbour(Coord, node_coor, DistPToB); }
             if (points == 1) {GeometryFunctions::QuickDistanceForAKnownPointNeighbour(Coord, node_coor, DistPToB);}
-            
-            /*ACTUALIZAR PESOS Y CONTACT TYPE*/
         }
-        //UpdateRF_Pram(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, other_to_me_vel, ContactType);
-        }
-        
-        if (ContactType == 1 || ContactType == 2 || ContactType == 3)
-        {
+
         double indentation = -(DistPToB - mRadius) - ini_delta;
         double DeltDisp[3] = {0.0};
         double DeltVel [3] = {0.0};
