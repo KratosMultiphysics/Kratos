@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream> 
 #include <algorithm>
-
+#include <cmath> // Added by Jordi Rubio
 // External includes 
 
 
@@ -386,24 +386,21 @@ namespace Kratos
             double tot_area = 0.0;	    
 	    int node_size = ThisModelPart.Nodes().size();	    
 	    for (int ii = 0; ii < node_size; ii++)
-	       {
-                 ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
-		 double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
-		 tot_vol += vol;
-		 double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
-		 tot_area += area;
-	       }
-
-	    if ( tot_area == 0.0 || tot_vol == 0.0)
+	    {
+			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
+			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+			tot_vol += vol;
+			double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
+			tot_area += area;
+	    }
+		
+	    
+		if ( tot_area == 0.0 || tot_vol == 0.0)
 	      KRATOS_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
-	    
-	    
+	    	    
 	    solidification_time = density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * (TT_solid-ambient_temperature));
 		solidification_time *= pow(tot_vol/tot_area , 0.8);
-		//solidification_time = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
-	    //solidification_time *= pow(tot_vol/tot_area , 0.8);
-		//double solidification_time2 = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
-	    //solidification_time2 *= pow(tot_vol/tot_area , 0.8);
+
 	    return solidification_time;
 	    
 	    KRATOS_CATCH("")	
@@ -487,6 +484,93 @@ namespace Kratos
 
 		return (is_in_range_point==1)? 1 : 0;
 	 }
+
+	//**********************************************************************************************
+	//**********************************************************************************************
+	//
+	 double EstimateCoolingTime(ModelPart& ThisModelPart,const double stop_temperature)
+	 {
+		 /* For solving this we are going to suppose that we dissipate all the energy through the mould outer surface. 
+		 We Estimate the inner Energy of the System as the SUM of 3 contributions. The energy loss needed to cool the 
+		 mart, the energy loss needed to make the part chage its phase and the energy needed to cool the mould. The 
+		 contribution of the mould only is considered if positive.
+		 All terms are linearized with respect to the temperature, so that.
+			E_1=V_{part}*C_{part}*\rho_{part}*T
+			E_2=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))*T
+			E_3=LH*\rho*V_{part}*(T-T_{end})/(T_{ini}-T_{end})
+		Now we have that, the q (Energy time derivative is)
+			dE/dt=HTC_{env}*Sfact*A_{part}*(T-T_{env})
+		We can set it as ODE, and solve analytacally (recall this is a linealization, but will be enough for our purpose)
+			dE_1/dT=V_{part}*C_{part}*\rho_{part}
+			dE_2/dT=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))
+			dE_3/dT=LH*\rho*V_{part}/(T_{ini}-T_{end})
+		Solving the ODE,we have that:
+			\Delta t= =( (dE_1/dT+dE_2/dT+dE_2/dT)/ HTC_{env}*Sfact*A_{part} )*ln( ((T_{ini}- T_{env})/(T_{end}- T_{env}) )
+		As starting temperature we suppose the Average temperature, and as initial mould temperature, we suppose the initial mouls temperature
+		 */
+		 // Auxiliaty variables
+		double CoolingTime;
+		double dE1=0.0;
+		double dE2=0.0;
+		double dE3=0.0;
+		double DENOM=0.0;
+		
+		// Environment and part variables
+		const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
+		const double ambient_temperature=ThisModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];	       
+	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
+	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];
+	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];
+		const double density = ThisModelPart.GetProcessInfo()[DENSITY];
+	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
+		const double initial_temperature= ThisModelPart.GetProcessInfo()[AVERAGE_TEMPERATURE];
+
+		// Loop Over the nodes - Compute E1 term
+	    double tot_vol = 0.0;
+        double tot_area = 0.0;	    
+	    int node_size = ThisModelPart.Nodes().size();	    
+	    for (int ii = 0; ii < node_size; ii++)
+	    {
+			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
+			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+			tot_vol += vol;
+			// dE1 - First Term
+			//dE_1/dT=V_{part}*C_{part}*\rho_{part}
+			dE1+= vol*density*cc;
+			// dE3 - Third Term
+			//dE_3/dT=LH*\rho*V_{part}/(T_{ini}-T_{end})
+			dE3+=LL*density*vol/(initial_temperature-stop_temperature);
+	    }
+
+		 // Loop over the conditions Compute E2, E3 and Denom term
+		 for (ModelPart::ConditionIterator itCond = ThisModelPart.ConditionsBegin(); itCond != ThisModelPart.ConditionsEnd(); itCond++ )
+        {
+			// Generate the Geometry of the condition
+			Condition::GeometryType& rGeom = itCond->GetGeometry();
+			const double mould_density= itCond->GetProperties()[MOULD_DENSITY]; 
+			const double mould_specific_heat= itCond->GetProperties()[MOULD_SPECIFIC_HEAT]; 
+			const double mould_thickness = itCond->GetProperties()[MOULD_THICKNESS]; 
+			const double mould_vfact= itCond->GetProperties()[MOULD_VFACT];
+			const double mould_sfact= itCond->GetProperties()[MOULD_SFACT];
+			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT]; 
+			const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
+			const double mould_temperature = itCond->GetProperties()[MOULD_TEMPERATURE];
+			const double condition_area=rGeom.DomainSize();
+			// dE2 - Second Term
+			//dE_2/dT=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))
+			double aux =condition_area*mould_thickness*mould_vfact*mould_density*mould_specific_heat;
+			double aux2=(mould_temperature- stop_temperature)/(initial_temperature-stop_temperature ) ;
+			dE2+=std::max(aux*aux2,0.0);
+			// Denom.
+			// HTC_{env}*Sfact*A_{part} )
+			DENOM+= mould_htc_env*condition_area*mould_sfact;
+		 }
+
+		 CoolingTime = ((dE1+dE2+dE3)/DENOM)*log( (initial_temperature-ambient_temperature)/(stop_temperature-ambient_temperature) );
+		 
+		 return CoolingTime;
+	 }
+
 
 	private:
 

@@ -38,6 +38,7 @@ def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(SOLIDIF_MODULUS);
     model_part.AddNodalSolutionStepVariable(IS_VISITED);
     model_part.AddNodalSolutionStepVariable(SOLIDFRACTION);
+    model_part.AddNodalSolutionStepVariable(MOULD_INNER_TEMPERATURE);
     print("variables for the THERMAL_SOLVER added correctly")
 
 
