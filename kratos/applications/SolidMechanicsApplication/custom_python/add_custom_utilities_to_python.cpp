@@ -26,6 +26,7 @@
 #include "custom_utilities/line_search_calculation_utilities.hpp"
 #include "custom_utilities/comparison_utilities.hpp"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/rigid_body_utilities.hpp"
 
 namespace Kratos
 {
@@ -59,10 +60,15 @@ void  AddCustomUtilitiesToPython()
 
     typedef Process                                         ProcessBaseType;
 
-
-
-
-
+    class_<RigidBodyUtilities>("RigidBodyUtilities", init< >())
+    .def("MassCalculation", &RigidBodyUtilities::MassCalculation)
+    .def("VolumeCalculation", &RigidBodyUtilities::VolumeCalculation)
+    .def("GetVolumeAcceleration", &RigidBodyUtilities::GetVolumeAcceleration)
+    .def("CalculateCenterOfMass", &RigidBodyUtilities::CalculateCenterOfMass)
+    .def("CalculateInertiaTensor", &RigidBodyUtilities::CalculateInertiaTensor)
+    .def("InertiaTensorMainAxesCalculation", &RigidBodyUtilities::InertiaTensorMainAxesCalculation)
+    .def("CenterOfMassCalculation", &RigidBodyUtilities::CenterOfMassCalculation)
+    ;
 
 }
 

@@ -93,13 +93,13 @@ solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rig
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
 procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
 procedures.AddMpiVariables(spheres_model_part)
-solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
+SolverStrategy.AddAdditionalVariables(spheres_model_part, DEM_parameters)
 procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
 procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
 procedures.AddMpiVariables(cluster_model_part)
 procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
 procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+SolverStrategy.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
 procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
@@ -133,9 +133,9 @@ DEM_inlet_model_part.SetBufferSize(1)
 rigid_face_model_part.SetBufferSize(1)
 
 # Adding dofs
-solver.AddDofs(spheres_model_part)
-solver.AddDofs(cluster_model_part)
-solver.AddDofs(DEM_inlet_model_part)
+SolverStrategy.AddDofs(spheres_model_part)
+SolverStrategy.AddDofs(cluster_model_part)
+SolverStrategy.AddDofs(DEM_inlet_model_part)
 #
 
 #Utilities
