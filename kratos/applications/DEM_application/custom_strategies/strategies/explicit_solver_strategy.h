@@ -609,8 +609,8 @@ namespace Kratos
 
           const int number_of_particles = (int)mListOfSphericParticles.size();
           
-          //#pragma omp parallel
-          //{
+          #pragma omp parallel
+          {
             Vector rhs_elem;
             rhs_elem.resize(6);
             #pragma omp parallel for schedule(guided)
@@ -619,7 +619,7 @@ namespace Kratos
                               
                 mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);  
             }
-          //}
+          }
 
           KRATOS_CATCH("")
       }            
@@ -864,8 +864,7 @@ namespace Kratos
         KRATOS_TRY
       
         Clear_forces_FEM();
-        //ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
-        ConditionsArrayType& pConditions = GetFemModelPart().GetMesh(1).Conditions(); 
+        ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
         ProcessInfo& CurrentProcessInfo = GetFemModelPart().GetProcessInfo();
         
         Vector rhs_cond;
@@ -1181,8 +1180,7 @@ namespace Kratos
         KRATOS_TRY
         
         ElementsArrayType&   pElements         = mpDem_model_part->GetCommunicator().LocalMesh().Elements();    
-        //ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
-        ConditionsArrayType& pTConditions      = mpFem_model_part->GetMesh(1).Conditions();
+        ConditionsArrayType& pTConditions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
 
         if (pTConditions.size() > 0) {
         
