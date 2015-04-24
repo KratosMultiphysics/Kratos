@@ -635,7 +635,6 @@ public:
             {
                 res[0] = 0.0;
                 res[1] = 0.0;
-                res[2] = 0.0;
                 std::cout << "detJ =" << det_j << "DeltaX = " << DeltaXi << " stopping calculation and assigning the baricenter" << std::endl;
                 break;
                 //KRATOS_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
