@@ -128,6 +128,8 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
                                              double dt, const array_1d<double,3>& gravity)
 {
     KRATOS_TRY
+    
+       
 
     array_1d<double, 3> additional_forces;
     array_1d<double, 3> additionally_applied_moment;
@@ -605,9 +607,10 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     mContactMoment[0] -= MA[0] * mRadius;
     mContactMoment[1] -= MA[1] * mRadius;
     mContactMoment[2] -= MA[2] * mRadius;
-
+    
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
+        
         double rolling_friction_coeff       = GetRollingFriction() * mRadius;
         const double other_rolling_friction = p_neighbour->GetRollingFriction();
         double other_rolling_friction_coeff = other_rolling_friction * p_neighbour->GetRadius();
@@ -649,6 +652,9 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
             }
         } // if (equiv_rolling_friction_coeff != 0.0)
     } // if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
+    
+    
+    
 }
 
 //**************************************************************************************************************************************************
@@ -984,7 +990,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             double mass = mRealMass;
 
             if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
-                equiv_visco_damp_coeff_normal     = r_current_process_info[DEMPACK_DAMPING] * 2.0 * sqrt(kn_el / (mass+mass)) * mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
+                equiv_visco_damp_coeff_normal     = GetProperties()[DEMPACK_LOCAL_DAMPING] * 2.0 * sqrt(kn_el / (mass+mass)) * mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
+
                 equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
             }
 
@@ -1179,7 +1186,7 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
                                                                 double& equiv_tg_of_fri_ang,
                                                                 SphericParticle* p_neighbour)
 {
-    double other_real_mass = p_neighbour->GetRealMass();
+    double other_real_mass = p_neighbour->GetMass();
     double radius_sum_i = 1 / radius_sum;
     double equiv_radius = 2 * mRadius * other_radius * radius_sum_i;
     double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
@@ -1545,8 +1552,8 @@ int    SphericParticle::GetClusterId()                                          
 void   SphericParticle::SetClusterId(int givenId)                                        { mClusterId = givenId;                                                                 }
 double SphericParticle::GetRadius()                                                      { return mRadius;                                                                  }
 void   SphericParticle::SetRadius(double radius)                                         { mRadius = radius;                                                                }
-double SphericParticle::GetRealMass()                                                    { return mRealMass;                                                                }
-void   SphericParticle::SetRealMass(double real_mass)                                    { mRealMass = real_mass;                                                           }
+double SphericParticle::GetMass()                                                    { return mRealMass;                                                                }
+void   SphericParticle::SetMass(double real_mass)                                    { mRealMass = real_mass;                                                           }
 
 double SphericParticle::GetYoung()                                                       { return GetFastProperties()->GetYoung();                                          }
 double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                }

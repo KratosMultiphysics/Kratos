@@ -25,7 +25,6 @@
 #include "discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "../custom_conditions/RigidFace.h"
 #include "../custom_conditions/dem_wall.h"
 #include "kratos_DEMApplication_export_dll.h"
@@ -60,6 +59,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class DEMWall;
+
 class KRATOS_DEMAPPLICATION_EXPORT_DLL SphericParticle : public DiscreteElement
 {
 public:
@@ -119,8 +119,8 @@ void  SetClusterId(const int Id);
 
 double GetRadius();
 void   SetRadius(double radius);
-double GetRealMass();
-void   SetRealMass(double real_mass);
+double GetMass();
+void   SetMass(double real_mass);
 double GetYoung();
 void   SetYoungFromProperties(double* young);
 double GetRollingFriction();
