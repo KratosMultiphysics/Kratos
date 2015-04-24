@@ -7,7 +7,7 @@
 
 // Project includes
 #include "DEM_application.h"
-#include "DEM_Dempack1_CL.h"
+#include "DEM_ExponentialHC_CL.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
@@ -16,7 +16,7 @@ namespace Kratos {
     
     
     
-    void DEM_Dempack1::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+    void DEM_ExponentialHC::Initialize(const ProcessInfo& rCurrentProcessInfo) {
         
     mHistoryMaxInd              = 0.0; //maximum indentation achieved
     mHistoryMaxForce            = 0.0; //maximum force achieved
@@ -26,23 +26,23 @@ namespace Kratos {
     mHistoryShearFlag           = 0.0; //superado el limite de cortante;       
     }
 
-    DEMContinuumConstitutiveLaw::Pointer DEM_Dempack1::Clone() const {
-        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_Dempack1(*this));
+    DEMContinuumConstitutiveLaw::Pointer DEM_ExponentialHC::Clone() const {
+        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_ExponentialHC(*this));
         return p_clone;
     }
 
-    void DEM_Dempack1::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << " Assigning DEM_Dempack1 to properties " << pProp->Id() << std::endl;
+    void DEM_ExponentialHC::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+        std::cout << " Assigning DEM_ExponentialHC to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
     
-    void DEM_Dempack1::CalculateContactArea(double mRadius, double other_radius, double &calculation_area){
+    void DEM_ExponentialHC::CalculateContactArea(double mRadius, double other_radius, double &calculation_area){
         double rmin = mRadius;
         if (other_radius < mRadius) rmin = other_radius;    
         calculation_area = KRATOS_M_PI * rmin*rmin;
     }
     
-    void DEM_Dempack1::CalculateElasticConstants(double &kn_el, 
+    void DEM_ExponentialHC::CalculateElasticConstants(double &kn_el, 
                                                 double &kt_el, 
                                                 double initial_dist, 
                                                 double equiv_young, 
@@ -53,7 +53,7 @@ namespace Kratos {
         kt_el = equiv_shear * calculation_area/initial_dist;
     }
     
-    void DEM_Dempack1::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+    void DEM_ExponentialHC::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                                                 double &equiv_visco_damp_coeff_tangential,
                                                 SphericContinuumParticle* element1,
                                                 SphericContinuumParticle* element2,
@@ -69,7 +69,7 @@ namespace Kratos {
     }
     
     
-    void DEM_Dempack1::CalculateNormalForces(double LocalElasticContactForce[3],
+    void DEM_ExponentialHC::CalculateNormalForces(double LocalElasticContactForce[3],
                                             const double kn_el,
                                             double equiv_young,
                                             double indentation,
@@ -80,7 +80,7 @@ namespace Kratos {
                                             int &mNeighbourFailureId_count,
                                             int &mIniNeighbourFailureId_mapping,
                                             int time_steps) {
-
+                       
         const double mN1 = element1->GetProperties()[SLOPE_FRACTION_N1];
         const double mN2 = element1->GetProperties()[SLOPE_FRACTION_N2];
         const double mN3 = element1->GetProperties()[SLOPE_FRACTION_N3];
@@ -91,7 +91,7 @@ namespace Kratos {
         const double mPlasticityLimit = element1->GetProperties()[PLASTIC_YIELD_STRESS]*1e6;
         const double mDamageMaxDisplacementFactor = element1->GetProperties()[DAMAGE_FACTOR];
         const double mTensionLimit = element1->GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2
-
+        
         double kn_b = kn_el / mN1;
         double kn_c = kn_el / mN2;
         double kn_d = kn_el / mN3;
@@ -110,6 +110,7 @@ namespace Kratos {
 
             fn = kn_el * indentation;
             double u_ela1 = Ncstr1_el / kn_el;
+            ;
             double u_ela2 = u_ela1 + (Ncstr2_el - Ncstr1_el) / (kn_b);
             double u_ela3 = u_ela2 + (Ncstr3_el - Ncstr2_el) / (kn_c);
 
@@ -118,40 +119,47 @@ namespace Kratos {
                 mHistoryMaxInd = indentation; // Guarda el threshold del màxim desplaçament
 
                 if (indentation > u_ela3) { //4rt tram
+
                     fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
                     mHistoryDegradation = kn_d / kn_el;
-                } else if (indentation > u_ela2) {//3r tram
+                } else if (indentation > u_ela2) {
+                    //3r tram
                     fn = Ncstr2_el + (indentation - u_ela2) * kn_c;
                     mHistoryDegradation = kn_c / kn_el;
                 } else {
+
                     if (indentation > u_ela1) { //2n tram
+
                         fn = Ncstr1_el + (indentation - u_ela1) * kn_b;
                         mHistoryDegradation = kn_b / kn_el;
                     }
                 }
-                mHistoryMaxForce = fn; //actualitzar la força màxima a compressió.
-            } else { //Per sota del màxim.
-                if (mHistoryMaxForce > 0.0) { //Màxim en compressió. 
+                mHistoryMaxForce = fn;                                 //actualitzar la força màxima a compressió.
+            } else {                                            //Per sota del màxim.
+
+                if (mHistoryMaxForce > 0.0) {                          //Màxim en compressió. 
 
                     double u_plas; //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
                     if (Yields_el <= Ncstr1_el) { //si el punt de plastificació està en la primera rama elastica.
 
                         u_plas = Yields_el / kn_el;
-                    } 
-                    else {
-                        if (Yields_el <= Ncstr2_el){ //si està en la segona...
+                    } else {
+
+                        if (Yields_el <= Ncstr2_el) //si està en la segona...
+                        {
                             u_plas = u_ela1 + (Yields_el - Ncstr1_el) / (kn_b);
                         } else if (Yields_el <= Ncstr3_el) { //si està en la tercera...
+
                             u_plas = u_ela2 + (Yields_el - Ncstr2_el) / (kn_c);
                         } else { //en la quarta                   
                             u_plas = u_ela3 + (Yields_el - Ncstr3_el) / (kn_d);
                         }
                     }
                     if (u_plas < u_max) { //si nosaltres estem per sota del maxim pero ja estem plastificant 
+
                         fn = mHistoryMaxForce - kp_el * (u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
                         mHistoryDegradation = kp_el / kn_el;
-                    } 
-                    else { // Esta en zona descarga elastica, ens despreocupem de la plasticitat                 
+                    } else { // Esta en zona descarga elastica, ens despreocupem de la plasticitat                 
                         if (indentation > u_ela3) { //en la 4a ramma                   
                             fn = Ncstr3_el + (indentation - u_ela3) * kn_d;
                         } else if (indentation > u_ela2) { //en la 3a ramma                    
@@ -167,16 +175,17 @@ namespace Kratos {
         }//Compression
         else { //tension      
             fn = kn_el * indentation;
+
             double u1 = Ntstr_el / kn_el;
             double u2 = u1 * (1 + mDamageMaxDisplacementFactor);
 
             if (fabs(indentation) > u2) { // FULL DAMAGE 
+
                 mNeighbourFailureId_count = 4; //tension failure
                 mIniNeighbourFailureId_mapping = 4;
                 acumulated_damage = 1.0;
                 fn = 0.0;
-            } 
-            else {
+            } else {
                 if (fabs(indentation) > u1) {
                     double u_frac = (fabs(indentation) - u1) / (u2 - u1);
                     //failure_criterion_state = fabs(indentation)/u2;
@@ -189,11 +198,12 @@ namespace Kratos {
                     fn = kn_damage * indentation;
                     //fn = indentation * kn_el*(1.0 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
                 }
+
             }
         } //Tension    
     }
 
-    void DEM_Dempack1::CalculateTangentialForces(double LocalElasticContactForce[3],
+    void DEM_ExponentialHC::CalculateTangentialForces(double LocalElasticContactForce[3],
                                                 double LocalDeltDisp[3],
                                                 double kt_el,
                                                 double indentation,
@@ -324,3 +334,73 @@ namespace Kratos {
     }        
 
 } /* namespace Kratos.*/
+
+
+//    void SphericContinuumParticle::NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) {
+//
+//        LocalElasticContactForce[2] = kn1 * (initial_dist - max_dist) + kn2 * (max_dist - distance);
+//    }
+
+
+//
+//        mGamma1                         = rCurrentProcessInfo[DONZE_G1];
+//        mGamma2                         = rCurrentProcessInfo[DONZE_G2];
+//        mGamma3                         = rCurrentProcessInfo[DONZE_G3];
+//        mMaxDef                         = rCurrentProcessInfo[DONZE_MAX_DEF];
+
+
+
+
+//sabemos que double indentation = initial_dist - distance; //#1
+           
+//double current_def = (initial_dist - distance) / initial_dist;
+//double kn1 = kn_el;
+//double kn2 = kn1 * mGamma3 + kn1 * mGamma1 * exp(mGamma2 * (current_def - mMaxDef));
+//if (kn2 > kn1) {kn2 = kn1;}
+//double max_dist = initial_dist * (1 - mMaxDef);
+//
+//initial_dist ???
+//double kn_plas = kn1; // modificable en el futuro con un input
+
+double &fn = LocalElasticContactForce[2] q inicialmente entra como 0.0
+
+if indentation >= 0 {
+    fn = kn1 * (initial_dist - distance); // = kn1 * indentation; fuerza en parte lineal
+    
+    if (distance < mHistDist) //// indentation >= u_max   vemos si esta en carga, comparando la distancia actual entre particulas con la maxima historica
+    {
+        mHistDist = distance;    
+        
+        if (distance < max_dist) //// indentation >= C1*Area/kn_el   se supera el limite para el cambio de pendiente.
+        {
+           fn = kn1 * (initial_dist - max_dist) + kn2 * (max_dist - distance);
+        }
+    }
+}
+double mHistoryMaxForce = fn; //guardamos el maximo historico de fuerza fn
+
+else // esta en descarga, la distancia entre particulas aumenta respecto la historica, current_dist > mHistDist
+{
+    if (hist_fn > 0); //  fuerza normal esta en el rango de compresion de la curva
+    {
+        plast_dist = max_dist; // initial_dist*(1-plast_def) distancia associada al valor de plast_def impuesto, por ahora coincide con el cambio de pendiente
+        if (plast_dist > mHistDist) // mientras se este por encima de la maxima historica, estamos en plasticidad.
+        {
+            fn = hist_fn + kn_el_plas * (mHistDist - distance); // en descarga: 500 - kn_plas(10 - 12). en carga 500 - kn_el(10 - 11) pero con distance > mHistDistance
+        } 
+        else // esta en descarga pero no en la zona plastica, descarga por la linea elastica
+        {
+            if (distance < max_dist) // se supera el limite para le cambio de pendiente, mientras plast_dist=max_dist nunca pasara, nunca descargara por kn2
+            {
+                NonlinearNormalForceCalculation(LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
+            } 
+            else // descarga por la primera rama elastica
+            {
+                LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
+            }
+        }
+    }
+}
+
+            
+

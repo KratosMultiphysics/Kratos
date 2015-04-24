@@ -27,32 +27,7 @@ namespace Kratos {
 
     DEMContinuumConstitutiveLaw::~DEMContinuumConstitutiveLaw() { //std::cout << "Law destructor..." ;
     }
-
-    void DEMContinuumConstitutiveLaw::CalculateContactForces(double mRadius,
-            double mRealMass,
-            double other_radius,
-            double otherMass,
-            double distance,
-            double initial_delta,
-            int& neighbour_failure_id,
-            ProcessInfo& rCurrentProcessInfo,
-            PropertiesProxy *myProperties,
-            PropertiesProxy *neighbourProperties,
-            int mapping_new_ini,
-            int mapping_new_cont,
-            unsigned int i_neighbour_count,
-            double LocalElasticContactForce[3],
-            double ViscoDampingLocalContactForce[3],
-            double LocalDeltDisp[3],
-            Vector mcont_ini_neigh_area,
-            array_1d<double, 6 > &mHistory_mapping_new_cont,
-            double mDempack_damping,
-            int mDampType,
-            int mIniNeighbourFailureId_mapping_new_ini,
-            double LocalCoordSystem[3][3],
-            double RelVel[3]) {
-    }
-
+    
     void DEMContinuumConstitutiveLaw::CalculateViscoDamping(double LocalRelVel[3],
             double ViscoDampingLocalContactForce[3],
             double indentation,

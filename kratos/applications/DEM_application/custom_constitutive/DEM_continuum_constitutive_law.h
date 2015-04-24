@@ -15,7 +15,7 @@
 #include "../custom_elements/Particle_Contact_Element.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
-
+//#include "../custom_elements/spheric_continuum_particle.h"
 
 
 
@@ -26,6 +26,9 @@ namespace Kratos {
     /**
      * Base class of constitutive laws.
      */
+    
+    class SphericContinuumParticle;  // forward declaration of spheric cont particle
+    
     class /*__declspec( dllexport )*/ DEMContinuumConstitutiveLaw : public Flags {
     public:
 
@@ -43,30 +46,6 @@ namespace Kratos {
 
         virtual DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
-        virtual void CalculateContactForces(double mRadius,
-                double mRealMass,
-                double other_radius,
-                double otherMass,
-                double distance,
-                double initial_delta,
-                int& neighbour_failure_id,
-                ProcessInfo& rCurrentProcessInfo,
-                PropertiesProxy *myProperties,
-                PropertiesProxy *neighbourProperties,
-                int mapping_new_ini,
-                int mapping_new_cont,
-                unsigned int i_neighbour_count,
-                double LocalElasticContactForce[3],
-                double ViscoDampingLocalContactForce[3],
-                double LocalDeltDisp[3],
-                Vector mcont_ini_neigh_area,
-                array_1d<double, 6 > &mHistory_mapping_new_cont,
-                double mDempack_damping,
-                int mDampType,
-                int mIniNeighbourFailureId_mapping_new_ini,
-                double LocalCoordSystem[3][3],
-                double RelVel[3]); //FF
-
 
         virtual void CalculateViscoDamping(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
@@ -75,46 +54,56 @@ namespace Kratos {
                 double equiv_visco_damp_coeff_tangential,
                 bool sliding,
                 int mDampType);
-
-        virtual void EvaluateFailureCriteria(
-                const double contact_sigma,
-                const double contact_tau,
-                double& failure_criterion_state,
-                bool& sliding,
-                const int FailureCriterionOption,
-                const double TauZero,
-                const double TanContactInternalFriccion,
-                const double SinContactInternalFriccion,
-                const double CosContactInternalFriccion,
-                int& NeighbourFailureId_i_neighbour_count,
-                int& IniNeighbourFailureId_mapping_new_ini,
-                const double TensionLimit) {std::cout<<"error this base class should be overloaded"<<std::endl;}
-
-        virtual void PlasticityAndDamage1D(double LocalElasticContactForce[3],
-                const double kn_el,
-                double equiv_young,
-                double indentation,
-                double calculation_area,
-                double radius_sum_i,
-                double& failure_criterion_state,
-                double& acumulated_damage,
-                int i_neighbour_count,
-                int mapping_new_cont,
-                int mapping_new_ini,
-                const double mN1,
-                const double mN2,
-                const double mN3,
-                const double mYoungPlastic,
-                const double mPlasticityLimit,
-                const double mC1,
-                const double mC2,
-                const double mC3,
-                const double mTensionLimit,
-                const double mDamageMaxDisplacementFactor,
-                array_1d <double, 6> &mHistory_mapping_new_cont,
-                int &mNeighbourFailureId_i_neighbour_count,
-                int &mIniNeighbourFailureId_mapping_new_ini,
-                int time_steps) {std::cout<<"error this base class should be overloaded"<<std::endl;}
+        
+                     
+        virtual void CalculateContactArea(double mRadius, 
+                                            double other_radius, 
+                                            double &calculation_area){};
+                                            
+        virtual void CalculateElasticConstants(double &kn_el, 
+                                                double &kt_el, 
+                                                double initial_dist, 
+                                                double equiv_young, 
+                                                double equiv_poisson, 
+                                                double calculation_area ){};
+        
+        virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+                                                double &equiv_visco_damp_coeff_tangential,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                double kn_el){};
+               
+        virtual void CalculateNormalForces(double LocalElasticContactForce[3],
+                                            const double kn_el,
+                                            double equiv_young,
+                                            double indentation,
+                                            double calculation_area,
+                                            double& acumulated_damage,
+                                            SphericContinuumParticle* element1,
+                                            SphericContinuumParticle* element2,
+                                            int &mNeighbourFailureId_count,
+                                            int &mIniNeighbourFailureId_mapping,
+                                            int time_steps) {std::cout<<"error this base class should be overloaded"<<std::endl;}
+        
+        
+        
+        virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
+                                                double LocalDeltDisp[3],
+                                                double kt_el,
+                                                double indentation,
+                                                double calculation_area,
+                                                double& failure_criterion_state,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                int &mNeighbourFailureId_count,
+                                                int &mIniNeighbourFailureId_mapping,
+                                                bool& sliding,
+                                                int search_control,
+                                                vector<int>& search_control_vector,
+                                                double mapping_new_cont){};
+        
+        
+        
 
 
     private:
