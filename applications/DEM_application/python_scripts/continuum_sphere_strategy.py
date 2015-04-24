@@ -107,17 +107,6 @@ class ExplicitStrategy:
         elif (Param.MaterialModel == "ExpHard"):
             self.force_calculation_type_id = 3
 
-        if (self.force_calculation_type_id == 2):
-            self.LCS1 = Param.LCS1
-            self.LCS2 = Param.LCS2
-            self.LCS3 = Param.LCS3
-            self.YRC1 = Param.YRC1
-            self.shear_energy_coef = Param.shear_energy_coef
-            self.YRC2 = Param.YRC2
-            self.YRC3 = Param.YRC3
-            self.plastic_young_modulus_ratio = Param.PlasticYoungModulus
-            self.plastic_yield_stress = Param.PlasticYieldStress
-            self.damage_deformation_factor = Param.DamageDeformationFactor
 
         if (self.force_calculation_type_id == 3):
             self.donze_g1 = Param.G1
@@ -137,12 +126,7 @@ class ExplicitStrategy:
             self.damp_id = 0
             
         self.dempack_option = Var_Translator(Param.Dempack)
-        
-        if(self.dempack_option):
-            self.local_damping = Param.LocalDampingFactor
-            self.global_damping = Param.GlobalForceReduction
-            
-        
+                         
         self.rolling_friction_option = 0
         if (Var_Translator(Param.RollingFrictionOption)):
             self.rolling_friction_option = 1
@@ -153,9 +137,6 @@ class ExplicitStrategy:
         elif (Param.FailureCriterionType == "Uncoupled"):
             self.failure_criterion_option = 2
 
-        self.tangential_strength = Param.TangentialStrength
-        self.normal_tensile_strength = Param.NormalTensileStrength
-        self.internal_fricc = Param.InternalFriction
 
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
@@ -237,27 +218,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
 
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
-
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
-        self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.normal_tensile_strength)
-        self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tangential_strength)
-        self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
-
-        if(self.dempack_option):
-            self.model_part.ProcessInfo.SetValue(DEMPACK_DAMPING, self.local_damping)           #MSIMSI 2 change name
-            self.model_part.ProcessInfo.SetValue(DEMPACK_GLOBAL_DAMPING, self.global_damping)   #MSIMSI 2 change name
-
-        if (self.force_calculation_type_id == 2):
-            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.YRC1)
-            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.YRC2)
-            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N3, self.YRC3)
-            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.LCS1)
-            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.LCS2)
-            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C3, self.LCS3)
-            self.model_part.ProcessInfo.SetValue(YOUNG_MODULUS_PLASTIC, self.plastic_young_modulus_ratio)
-            self.model_part.ProcessInfo.SetValue(PLASTIC_YIELD_STRESS, self.plastic_yield_stress)
-            self.model_part.ProcessInfo.SetValue(DAMAGE_FACTOR, self.damage_deformation_factor)
-            self.model_part.ProcessInfo.SetValue(SHEAR_ENERGY_COEF, self.shear_energy_coef)
 
         if (self.force_calculation_type_id == 3):
             self.model_part.ProcessInfo.SetValue(DONZE_G1, self.donze_g1)
