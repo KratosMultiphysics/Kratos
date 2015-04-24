@@ -1,7 +1,7 @@
 #if !defined(KRATOS_AMGCL_SOLVER )
 #define  KRATOS_AMGCL_SOLVER
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
+//#define BOOST_NO_CXX11_RVALUE_REFERENCES
 // External includes
 #include "boost/smart_ptr.hpp"
 #include <iostream>
