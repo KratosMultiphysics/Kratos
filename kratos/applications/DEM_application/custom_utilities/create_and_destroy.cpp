@@ -270,7 +270,7 @@ namespace Kratos {
         double density = spheric_p_particle->GetDensity();
         spheric_p_particle->SetRadius(radius);
         double mass = 4.0 / 3.0 * KRATOS_M_PI * density * radius * radius * radius;
-        spheric_p_particle->SetRealMass(mass);
+        spheric_p_particle->SetMass(mass);
 
         if (has_rotation) spheric_p_particle->Set(DEMFlags::HAS_ROTATION, true);
         else spheric_p_particle->Set(DEMFlags::HAS_ROTATION, false);
@@ -344,7 +344,7 @@ namespace Kratos {
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
         spheric_p_particle->SetRadius(radius);
-        spheric_p_particle->SetRealMass(cluster_mass);
+        spheric_p_particle->SetMass(cluster_mass);
         spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());
 
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
