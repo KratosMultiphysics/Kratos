@@ -74,7 +74,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, PARTICLE_TENSION)
   KRATOS_CREATE_VARIABLE(double, PARTICLE_COHESION)
   KRATOS_CREATE_VARIABLE(int, plot_OPTIONS)
-  KRATOS_CREATE_VARIABLE(double, DEMPACK_DAMPING)
+  KRATOS_CREATE_VARIABLE(double, DEMPACK_LOCAL_DAMPING)
   KRATOS_CREATE_VARIABLE(double, DEMPACK_GLOBAL_DAMPING)
   KRATOS_CREATE_VARIABLE(double, SURFACE_FRICTION_1)
   KRATOS_CREATE_VARIABLE(double, SURFACE_FRICTION_2)
@@ -402,7 +402,7 @@ namespace Kratos
   // *************** Thermal only BEGIN *************
   KRATOS_CREATE_VARIABLE(double, HEATFLUX)
   KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
-  // *************** Thermal only END ***************      
+  // *************** Thermal only END ***************   
   
 
   /************************************************************************************************************************************************************/
@@ -508,7 +508,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PARTICLE_COHESION)
         
     KRATOS_REGISTER_VARIABLE(plot_OPTIONS)
-    KRATOS_REGISTER_VARIABLE(DEMPACK_DAMPING)
+    KRATOS_REGISTER_VARIABLE(DEMPACK_LOCAL_DAMPING)
     KRATOS_REGISTER_VARIABLE(DEMPACK_GLOBAL_DAMPING)
     KRATOS_REGISTER_VARIABLE(SURFACE_FRICTION_1)
     KRATOS_REGISTER_VARIABLE(SURFACE_FRICTION_2)
@@ -733,8 +733,8 @@ namespace Kratos
     // *************** Thermal only BEGIN *************
     KRATOS_REGISTER_VARIABLE(HEATFLUX)
     KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)        
-    // *************** Thermal only END ***************              
-
+    // *************** Thermal only END ***************       
+            
     // Possible future blocks (no FEM) interaction
 
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
