@@ -24,12 +24,14 @@
 #include "includes/define.h"
 #include "spheric_particle.h"
 #include "Particle_Contact_Element.h"
+#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
 #include "containers/vector_component_adaptor.h"
+
 
 
 namespace Kratos
 {
-    
+  
   class SphericContinuumParticle : public SphericParticle
     {
     public:
@@ -71,7 +73,6 @@ namespace Kratos
                                               std::vector<int>&                  mTempNeighboursMapping,
                                               std::vector<int>&                  mTempContNeighboursMapping) ;
       virtual void ComputeNewRigidFaceNeighboursHistoricalData();      
-      virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist);            
       
       virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo, const bool first);      
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
@@ -114,7 +115,7 @@ namespace Kratos
       
     protected:
 
-       SphericContinuumParticle();
+        SphericContinuumParticle();
         
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG        
         virtual void ContactAreaWeighting2D();
@@ -138,24 +139,8 @@ namespace Kratos
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional                
                 
-        //DEMPACK
-        int mDempack;
-        double mDempack_damping;
-        double mDempack_global_damping;
-        vector< array_1d<double, 6> > mHistory;
-        double mNcstr1_el;
-        double mNcstr2_el;
-        double mYoungPlastic;
-        double mPlasticityLimit;
-        double mDamageMaxDisplacementFactor;
-        double mAlpha_tau;
-     
-        double mGamma1;
-        double mGamma2;
-        double mGamma3;
-        double mMaxDef;
-        
-        
+//        double mDempack_local_damping;
+        double mDempack_global_damping;             
         double mStressTensor[3][3]; 
         double mSymmStressTensor[3][3]; 
         bool mContinuumSimulationOption;
@@ -178,13 +163,7 @@ namespace Kratos
         double mCohesion;
         double mSectionalInertia;
         
-        
-        double mTensionLimit;
-        double mTauZero;
-        double mContactInternalFriccion;
-        double mTanContactInternalFriccion;
-        double mSinContactInternalFriccion;
-        double mCosContactInternalFriccion;
+
 
         //sphere neighbour information
         
@@ -203,15 +182,8 @@ namespace Kratos
         std::vector<double>         mFemIniNeighbourDelta;
         std::vector<int>            mFemMappingNewIni;
                         
-        std::vector<DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
+        std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
         
-        //Non-linear
-         double mN1;
-         double mN2;
-         double mN3;
-         double mC1;
-         double mC2;
-         double mC3;
                                     
         //FOR DEM_FEM APP        
         void ComputeParticleBlockContactForce_With_Rotation();
