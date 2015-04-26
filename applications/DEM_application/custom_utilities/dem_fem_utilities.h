@@ -33,8 +33,10 @@ class DEMFEMUtilities
     {
      public:
 
+     typedef ModelPart::ConditionType                                  ConditionType;
      typedef ModelPart::ElementsContainerType                          ElementsArrayType;
      typedef ModelPart::NodesContainerType                             NodesArrayType;
+     typedef ModelPart::PropertiesType                                 PropertiesType;
      typedef WeakPointerVector<Element>                                ParticleWeakVectorType;
      typedef WeakPointerVector<Element >::iterator                     ParticleWeakIteratorType;
 
@@ -234,137 +236,55 @@ class DEMFEMUtilities
 
                                 array_1d<double, 3 > velocity_due_to_rotation;
                                 CrossProduct(angular_velocity_changed, relative_position, velocity_due_to_rotation);
-
-                                array_1d<double, 3 > vel;
-                                noalias(vel) = linear_velocity_changed + velocity_due_to_rotation;                                
-                                node->FastGetSolutionStepValue(VELOCITY) = vel;
-                                node->FastGetSolutionStepValue(DISPLACEMENT) = displacement;
+                               
+                                noalias( node->FastGetSolutionStepValue(VELOCITY) ) = linear_velocity_changed + velocity_due_to_rotation; 
+                                noalias( node->FastGetSolutionStepValue(DISPLACEMENT) ) = displacement;
                             }
                         }
                     }
                 } //for (unsigned int mesh_number = 1; mesh_number < r_model_part.NumberOfMeshes(); mesh_number++)
             } //if ( r_model_part.NumberOfMeshes() > 1 )
         }        
-        ///@}
-        ///@name Access
-        ///@{
+
+
+        void CreateRigidFacesFromAllElements(ModelPart& r_model_part, PropertiesType::Pointer pProps) {
+            
+            ElementsArrayType&  all_elements = r_model_part.Elements();            
         
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
+            for(unsigned int i=0; i<all_elements.size(); i++) {  
+                ConditionType::Pointer pCondition;
+                ElementsArrayType::iterator pElement = all_elements.ptr_begin()+i;
+                pCondition = ConditionType::Pointer(new RigidFace3D( pElement->Id(), pElement->pGetGeometry(), pProps ));        
+                r_model_part.Conditions().push_back(pCondition); 
+            }
+            
+        }
+        
+        
+        
         /// Turn back information as a string.
-
         virtual std::string Info() const
         {
             return "";
         }
 
         /// Print information about this object.
-
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-        }
+        virtual void PrintInfo(std::ostream& rOStream) const {}
 
         /// Print object's data.
-
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-        }
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-        ///@}
+        virtual void PrintData(std::ostream& rOStream) const {}
 
     protected:
-        ///@name Protected static Member rVariables
-        ///@{
 
-
-        ///@}
-        ///@name Protected member rVariables
-        ///@{ template<class T, std::size_t dim>
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
         vector<unsigned int>                mElementPartition;
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
     private:
-
-
-        ///@name Static Member rVariables
-        ///@{
-
-
-        ///@}
-        ///@name Member rVariables
-        ///@{
 
         array_1d<double, 3> mInitialCenterOfMassAndMass;
         double mInitialMass;
 
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-
-
-        ///@}
-        ///@name Private Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
         /// Assignment operator.
         DEMFEMUtilities & operator=(DEMFEMUtilities const& rOther);
-
-
-        ///@}
 
     }; // Class DEMFEMUtilities
 
