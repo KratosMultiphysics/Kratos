@@ -289,7 +289,7 @@ public:
             boost::tie(iters, resid)  = solve(rB, rX);
         } //please do not remove this parenthesis!
 
-        if(mfallback_to_gmres==true and resid > mTol )
+        if(mfallback_to_gmres==true && resid > mTol )
         {
 
             std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
