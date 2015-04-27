@@ -898,8 +898,8 @@ namespace Kratos
                     array_1d<double, 3>& node_rhs      = geom(i)->FastGetSolutionStepValue(CONTACT_FORCES);
                     array_1d<double, 3>& node_rhs_elas = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);
                     array_1d<double, 3>& node_rhs_tang = geom(i)->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-                    double& node_pressure = geom(i)->FastGetSolutionStepValue(PRESSURE);                  
-                    double& node_area = geom(i)->FastGetSolutionStepValue(NODAL_AREA);
+                    double& node_pressure = geom(i)->FastGetSolutionStepValue(DEM_PRESSURE);                  
+                    double& node_area = geom(i)->FastGetSolutionStepValue(DEM_NODAL_AREA);
                     array_1d<double, 3> rhs_cond_comp;
                     
                     for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
@@ -948,8 +948,8 @@ namespace Kratos
                 array_1d<double, 3>& node_rhs      = i->FastGetSolutionStepValue(CONTACT_FORCES);
                 array_1d<double, 3>& node_rhs_elas = i->FastGetSolutionStepValue(ELASTIC_FORCES);
                 array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-                double& node_pressure              = i->FastGetSolutionStepValue(PRESSURE);
-                double& node_area                  = i->FastGetSolutionStepValue(NODAL_AREA);
+                double& node_pressure              = i->GetSolutionStepValue(DEM_PRESSURE);
+                double& node_area                  = i->GetSolutionStepValue(DEM_NODAL_AREA);
                 double& shear_stress               = i->FastGetSolutionStepValue(SHEAR_STRESS);
                 
                 noalias(node_rhs)      = ZeroVector(3);
@@ -984,8 +984,8 @@ namespace Kratos
 
             for (ModelPart::NodeIterator i = i_begin; i!= i_end; ++i) {
                 
-                double& node_pressure = i->FastGetSolutionStepValue(PRESSURE);
-                double& node_area = i->FastGetSolutionStepValue(NODAL_AREA);
+                double& node_pressure = i->FastGetSolutionStepValue(DEM_PRESSURE);
+                double& node_area = i->FastGetSolutionStepValue(DEM_NODAL_AREA);
                 double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
                 array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
 
