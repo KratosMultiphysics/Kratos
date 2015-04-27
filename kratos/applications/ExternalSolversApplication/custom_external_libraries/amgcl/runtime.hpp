@@ -42,7 +42,6 @@ THE SOFTWARE.
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/coarsening/ruge_stuben.hpp>
-#include <amgcl/coarsening/pointwise_aggregates.hpp>
 #include <amgcl/coarsening/aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggregation.hpp>
 #include <amgcl/coarsening/smoothed_aggr_emin.hpp>
@@ -337,25 +336,19 @@ inline void process_amg(
         case runtime::coarsening::aggregation:
             process_amg<
                 Backend,
-                amgcl::coarsening::aggregation<
-                    amgcl::coarsening::pointwise_aggregates
-                    >
+                amgcl::coarsening::aggregation
                 >(relaxation, func);
             break;
         case runtime::coarsening::smoothed_aggregation:
             process_amg<
                 Backend,
-                amgcl::coarsening::smoothed_aggregation<
-                    amgcl::coarsening::pointwise_aggregates
-                    >
+                amgcl::coarsening::smoothed_aggregation
                 >(relaxation, func);
             break;
         case runtime::coarsening::smoothed_aggr_emin:
             process_amg<
                 Backend,
-                amgcl::coarsening::smoothed_aggr_emin<
-                    amgcl::coarsening::pointwise_aggregates
-                    >
+                amgcl::coarsening::smoothed_aggr_emin
                 >(relaxation, func);
             break;
     }

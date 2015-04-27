@@ -47,14 +47,16 @@ namespace coarsening {
 namespace detail {
     struct skip_negative {
         const std::vector<ptrdiff_t> &key;
+        int block_size;
 
-        skip_negative(const std::vector<ptrdiff_t> &key) : key(key) { }
+        skip_negative(const std::vector<ptrdiff_t> &key, int block_size)
+            : key(key), block_size(block_size) { }
 
         bool operator()(ptrdiff_t i, ptrdiff_t j) const {
             // Cast to unsigned type to keep negative values at the end
             return
-                static_cast<size_t>(key[i]) <
-                static_cast<size_t>(key[j]);
+                static_cast<size_t>(key[i]) / block_size <
+                static_cast<size_t>(key[j]) / block_size;
         }
     };
 } // namespace detail
@@ -118,7 +120,8 @@ boost::shared_ptr<Matrix> tentative_prolongation(
         size_t n,
         size_t naggr,
         const std::vector<ptrdiff_t> aggr,
-        nullspace_params &nullspace
+        nullspace_params &nullspace,
+        int block_size
         )
 {
     typedef typename backend::value_type<Matrix>::type value_type;
@@ -133,13 +136,13 @@ boost::shared_ptr<Matrix> tentative_prolongation(
                 boost::counting_iterator<ptrdiff_t>(0),
                 boost::counting_iterator<ptrdiff_t>(n)
                 );
-        boost::sort(order, detail::skip_negative(aggr));
+        boost::stable_sort(order, detail::skip_negative(aggr, block_size));
 
         // Precompute the shape of the prolongation operator.
         // Each row contains exactly nullspace.cols non-zero entries.
         // Rows that do not belong to any aggregate are empty.
         P->nrows = n;
-        P->ncols = naggr * nullspace.cols;
+        P->ncols = nullspace.cols * naggr / block_size;
         P->ptr.reserve(n + 1);
 
         P->ptr.push_back(0);
@@ -156,16 +159,16 @@ boost::shared_ptr<Matrix> tentative_prolongation(
         // Compute the tentative prolongation operator and null-space vectors
         // for the coarser level.
         std::vector<double> Bnew;
-        Bnew.reserve(naggr * nullspace.cols * nullspace.cols);
+        Bnew.reserve(naggr * nullspace.cols * nullspace.cols / block_size);
 
         size_t offset = 0;
 
         amgcl::detail::QR<double> qr;
         std::vector<double> Bpart;
-        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(naggr); ++i) {
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(naggr / block_size); ++i) {
             int d = 0;
             Bpart.clear();
-            for(size_t j = offset; j < n && aggr[order[j]] == i; ++j, ++d)
+            for(size_t j = offset; j < n && aggr[order[j]] / block_size == i; ++j, ++d)
                 std::copy(
                         &nullspace.B[nullspace.cols * order[j]],
                         &nullspace.B[nullspace.cols * order[j]] + nullspace.cols,

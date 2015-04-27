@@ -81,6 +81,7 @@ public:
                 int gmres_size = 50
                )
     {
+        mprovide_coordinates = false;
         mfallback_to_gmres = false;
         std::cout << "setting up AMGCL for iterative solve " << std::endl;
         mTol = NewMaxTolerance;
@@ -160,9 +161,11 @@ public:
                 double NewMaxTolerance,
                 int NewMaxIterationsNumber,
                 int verbosity,
-                int gmres_size = 50
+                int gmres_size = 50,
+                bool provide_coordinates = false
                )
     {
+        mprovide_coordinates = provide_coordinates;
         mfallback_to_gmres = false;
         std::cout << "setting up AMGCL for iterative solve " << std::endl;
         mTol = NewMaxTolerance;
@@ -252,6 +255,28 @@ public:
         mprm.put("amg.coarsening.aggr.block_size",mndof);
         mprm.put("solver.tol", mTol);
         mprm.put("solver.maxiter", mmax_it);
+
+        Matrix B;
+        if(mprovide_coordinates == true)
+        {
+            B = ZeroMatrix(  rA.size1(), mndof*4  );
+            for(unsigned int i=0; i<rA.size1(); i+=mndof)
+            {
+                for( unsigned int j=0; j<static_cast<unsigned int>(mndof); j++)
+                {
+                    B(i+j,  j) = 1.0;
+                    
+                    unsigned int inode = i/mndof;
+
+                    B(i+j, mndof +j*3 + 0) = mcoords[inode][0];
+                    B(i+j, mndof +j*3 + 1) = mcoords[inode][1];
+                    B(i+j, mndof +j*3 + 2) = mcoords[inode][2];
+                }
+            }
+            mprm.put("amg.coarsening.nullspace.cols", B.size2());
+            mprm.put("amg.coarsening.nullspace.rows", B.size1());
+            mprm.put("amg.coarsening.nullspace.B",    &(B.data()[0]));
+        }
 
         //provide the null space
 //         Matrix B = ZeroMatrix(  rA.size1(), mndof  );
@@ -405,7 +430,21 @@ public:
 
         KRATOS_WATCH(mndof);
 
+        if(mprovide_coordinates == true)
+        {
+            mcoords.resize(rA.size1()/mndof);
+            unsigned int i=0;
+            for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it+=mndof)
+            {
+                if(it->EquationId() < rA.size1() )
+                {
+                    ModelPart::NodesContainerType::iterator inode = r_model_part.Nodes().find(it->Id());
+                    mcoords[ i ] = inode->Coordinates();
+                    i++;
 
+                }
+            }
+        }
     }
 
 private:
@@ -416,6 +455,8 @@ private:
     int mndof;
     unsigned int mgmres_size;
     bool mfallback_to_gmres;
+    bool mprovide_coordinates;
+    std::vector<array_1d<double,3> > mcoords;
 
     amgcl::runtime::coarsening::type mcoarsening;
     amgcl::runtime::relaxation::type mrelaxation;
