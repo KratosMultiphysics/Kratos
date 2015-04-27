@@ -229,10 +229,10 @@ class Procedures(object):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
-        model_part.AddNodalSolutionStepVariable(PRESSURE)
+        model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
-        model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+        model_part.AddNodalSolutionStepVariable(DEM_NODAL_AREA)
         if (getattr(DEM_parameters, "PostNonDimensionalVolumeWear", 0 )):
             model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
             model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
@@ -1026,10 +1026,10 @@ class DEMIo(object):
         
         self.PushPrintVar(self.PostElasticForces,            ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostContactForces,            CONTACT_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostPressure,                 PRESSURE, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostPressure,                 DEM_PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar(self.PostTangentialElasticForces,  TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress,              SHEAR_STRESS, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostNodalArea,                NODAL_AREA, self.fem_boundary_variables)
+        self.PushPrintVar(self.PostNodalArea,                DEM_NODAL_AREA, self.fem_boundary_variables)
         if (Var_Translator(self.PostNonDimensionalVolumeWear)):
             self.PushPrintVar(1,                             NON_DIMENSIONAL_VOLUME_WEAR, self.fem_boundary_variables)
             self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
