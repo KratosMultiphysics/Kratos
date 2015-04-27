@@ -232,8 +232,15 @@ def ConstructSolver(configuration):
             m = configuration.gmres_krylov_space_dimension
         else:
             m = max_it
+            
+
+        if hasattr(configuration, 'provide_coordinates'):
+            provide_coordinates = configuration.provide_coordinates
+        else:
+            provide_coordinates = False
+            
         linear_solver = KratosMultiphysics.ExternalSolversApplication.AMGCLSolver(
-            amgcl_smoother, amgcl_krylov_type, amgcl_coarsening_type, tol, max_it, verbosity, m)
+            amgcl_smoother, amgcl_krylov_type, amgcl_coarsening_type, tol, max_it, verbosity, m, provide_coordinates)
     #
     elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
         import KratosMultiphysics.MKLSolversApplication
