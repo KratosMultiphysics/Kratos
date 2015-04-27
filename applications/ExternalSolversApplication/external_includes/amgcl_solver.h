@@ -124,7 +124,8 @@ public:
             break;
         case BICGSTAB_WITH_GMRES_FALLBACK:
         {
-            KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+            mfallback_to_gmres=true;
+            miterative_solver = amgcl::runtime::solver::bicgstab;
             break;
         }
         };
