@@ -224,7 +224,7 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
 
-    //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_n]
+    //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_0]
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], mInvJ0[rPointNumber] );
 
     //Jacobian Determinant for the isoparametric and numerical integration
@@ -234,10 +234,9 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     rVariables.DomainSize = rVariables.detJ;
 
     //Determinant of the Deformation Gradient F0
-    // (in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law)
+    // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)
     rVariables.detF0 = 1;
     rVariables.F0    = identity_matrix<double> ( dimension );
-
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -337,6 +336,27 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
     return rTotalMass;
 
     KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void TotalLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+{
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+
+    //Calculate Delta Position
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+
+    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+    //Deformation Gradient F [dx_n/dx_0] = [dx_n/d£] [d£/dx_0]
+    noalias( rVariables.F0 ) = prod( rVariables.J[rPointNumber], mInvJ0[rPointNumber] );
+
+    //Deformation Gradient F0
+    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0);
 }
 
 //************************************************************************************

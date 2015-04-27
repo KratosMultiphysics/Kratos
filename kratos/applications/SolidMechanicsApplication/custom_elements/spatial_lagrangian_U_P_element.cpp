@@ -235,7 +235,7 @@ void SpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & 
     LargeDisplacementElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
-    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //set variables including all integration points values
 
@@ -486,6 +486,17 @@ void SpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void SpatialLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+{
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+
+    //Deformation Gradient F0
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+}
 
 //************************************************************************************
 //************************************************************************************

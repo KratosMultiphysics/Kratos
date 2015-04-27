@@ -342,6 +342,20 @@ void UpdatedLagrangianUPElement::CalculatePushForwardDN_DX(GeneralVariables& rVa
 
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+{
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+
+    //Deformation Gradient F0
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+}
+
+
 //************************************************************************************
 //************************************************************************************
 

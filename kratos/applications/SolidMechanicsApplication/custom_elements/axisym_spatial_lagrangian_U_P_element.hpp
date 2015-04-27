@@ -134,6 +134,16 @@ public:
       */
     void Initialize();
 
+    //************* COMPUTING  METHODS
+
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental mass matrix
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void CalculateMassMatrix(MatrixType& rMassMatrix, 
+		    ProcessInfo& rCurrentProcessInfo);
     //************************************************************************************
     //************************************************************************************
     /**
@@ -210,7 +220,7 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    double& CalculateTotalMass(double& rTotalMass);
+    double& CalculateTotalMass( double& rTotalMass, const int & rPointNumber );
 
 
     /**
@@ -321,6 +331,13 @@ protected:
                                             Matrix& rDN_DX,
                                             Vector& rN,
                                             double & rCurrentRadius);
+
+    /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
 
     /**
      * Calculation of the Green Lagrange Strain Vector

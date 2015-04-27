@@ -193,6 +193,13 @@ protected:
 
 
     /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
+
+    /**
      * Calculation of the Total Mass of the Element
      */
     double& CalculateTotalMass(double& rTotalMass);

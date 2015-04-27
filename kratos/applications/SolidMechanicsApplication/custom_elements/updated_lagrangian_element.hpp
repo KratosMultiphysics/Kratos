@@ -164,6 +164,13 @@ protected:
     void CalculateKinematics(GeneralVariables& rVariables,
                              const double& rPointNumber);
 
+
+    /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
     /**
      * Calculation of the Deformation Matrix  BL
      */

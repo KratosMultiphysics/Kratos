@@ -244,6 +244,12 @@ protected:
                                             Matrix& rF,
                                             Matrix& rDN_DX);
 
+    /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
     ///@}
     ///@name Protected  Access
     ///@{

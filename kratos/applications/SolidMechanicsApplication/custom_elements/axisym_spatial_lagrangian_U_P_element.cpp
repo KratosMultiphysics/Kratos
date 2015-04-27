@@ -330,29 +330,6 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents&
 }
 
 
-
-//************************************CALCULATE TOTAL MASS****************************
-//************************************************************************************
-
-double& AxisymSpatialLagrangianUPElement::CalculateTotalMass( double& rTotalMass )
-{
-    KRATOS_TRY
-
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_1 );
-    const unsigned int PointNumber = 0;
-    Vector N = row(Ncontainer , PointNumber);
-
-    double CurrentRadius = 0;
-    double ReferenceRadius = 0;
-    CalculateRadius (CurrentRadius, ReferenceRadius, N);
-
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * 2.0 * 3.141592654 * CurrentRadius;
-
-    return rTotalMass;
-
-    KRATOS_CATCH( "" )
-}
-
 //************************************************************************************
 //************************************************************************************
 
@@ -393,6 +370,9 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     //Step domain size
     rVariables.DomainSize = rVariables.detJ;
 
+    //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;
+    
+    
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
@@ -400,7 +380,7 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     rVariables.N=row( Ncontainer, rPointNumber);
 
     //Calculate IntegrationPoint radius
-    CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
+    this->CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
     CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
@@ -429,8 +409,8 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
 //************************************************************************************
 
 void AxisymSpatialLagrangianUPElement::CalculateRadius(double & rCurrentRadius,
-        double & rReferenceRadius,
-        const Vector& rN)
+						       double & rReferenceRadius,
+						       const Vector& rN)
 
 
 {
@@ -457,8 +437,8 @@ void AxisymSpatialLagrangianUPElement::CalculateRadius(double & rCurrentRadius,
 
             rCurrentRadius   += CurrentPosition[0]*rN[i];
             rReferenceRadius += ReferencePosition[0]*rN[i];
-            //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
-        }
+	}
+	//std::cout<<" CurrentRadius "<<rCurrentRadius<<std::endl;
     }
 
 
@@ -745,9 +725,10 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
-    //use of this variable for the complete parameter:
-    double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
-
+    //use of this variable for the complete parameter: (deffault: 4)
+    double AlphaStabilization = 4.0; //4.0; //GetProperties()[STABILIZATION];
+    
+    
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
         AlphaStabilization = 1.0/4.5;
@@ -1044,20 +1025,22 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
 
-    //use of this variable for the complete parameter:
-    double AlphaStabilization =4.0; //GetProperties()[STABILIZATION];
-
+    //use of this variable for the complete parameter: (deffault: 4)
+    double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
+    
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
         AlphaStabilization = 1.0/4.5;
 
     AlphaStabilization=(AlphaStabilization/LameMu);
+    
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int indexpj = dimension;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
+	    //AXISYM
             if(integration_points == 1)
             {
 
@@ -1070,8 +1053,8 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
             }
             else
             {
-                //AXISYM
-                consistent  = AlphaStabilization * rIntegrationWeight / rVariables.detF0;
+
+	        consistent  = AlphaStabilization * rIntegrationWeight / rVariables.detF0;
                 // if(indexpi==indexpj){
                 //   consistent *= ( rVariables.N[i] * rVariables.N[j] + (1.0/9.0) );
                 // }
@@ -1095,6 +1078,128 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
 }
 
 
+
+//************************************CALCULATE TOTAL MASS****************************
+//************************************************************************************
+
+double& AxisymSpatialLagrangianUPElement::CalculateTotalMass( double& rTotalMass, const int & rPointNumber )
+{
+    KRATOS_TRY
+
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( CurrentIntegrationMethod );
+    Vector N = row(Ncontainer , rPointNumber);
+
+    double CurrentRadius = 0;
+    double ReferenceRadius = 0;
+    this->CalculateRadius (CurrentRadius, ReferenceRadius, N);
+
+    unsigned int integration_points = GetGeometry().IntegrationPointsNumber( CurrentIntegrationMethod );
+    
+    double Area = GetGeometry().DomainSize() / double(integration_points);
+
+    rTotalMass =  Area * GetProperties()[DENSITY] * 2.0 * 3.141592654 * CurrentRadius;
+
+    return rTotalMass;
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymSpatialLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //lumped
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
+
+    if ( rMassMatrix.size1() != MatSize )
+        rMassMatrix.resize( MatSize, MatSize, false );
+
+    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+
+    double TotalMass = 0;
+
+
+    //reading integration points
+    IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
+
+    double Area = GetGeometry().DomainSize() / double(integration_points.size());
+
+    // std::cout<<" DomainSize "<<Area<<std::endl;
+
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    {
+   
+      this->CalculateTotalMass( TotalMass, PointNumber );
+
+      // Lumped Mass Matrix
+      // Vector LumpFact = ZeroVector(number_of_nodes);
+
+      // LumpFact = GetGeometry().LumpingFactors( LumpFact );
+     
+      // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      // 	{
+      // 	  double temp = LumpFact[i] * TotalMass;
+
+      // 	  unsigned int indexup = dimension * i + i;
+
+      // 	  for ( unsigned int j = 0; j < dimension; j++ )
+      // 	    {
+      // 	      rMassMatrix( indexup+j , indexup+j ) += temp;
+      // 	    }
+      // 	}
+
+      // Not Lumped Mass Matrix (numerical integration)
+      const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( CurrentIntegrationMethod );
+      Vector N = row(Ncontainer , PointNumber);
+
+      double IntegrationWeight = integration_points[PointNumber].Weight() * ( 2 * GetGeometry().DomainSize() );
+      TotalMass /= Area;
+
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      	{
+      	  unsigned int indexupi = dimension * i + i;
+
+      	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      	    {
+      	      unsigned int indexupj = dimension * j + j;
+
+      	      for ( unsigned int k = 0; k < dimension; k++ )
+      		{
+      		  rMassMatrix( indexupi+k , indexupj+k ) += N[i] * N[j] * TotalMass * IntegrationWeight;
+      		}
+      	    }
+      	}
+
+    }
+
+    // std::cout<<std::endl;
+    // std::cout<<" Mass Matrix "<<rMassMatrix<<std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymSpatialLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+{
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+
+    //Deformation Gradient F0
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+
+    rVariables.CurrentRadius = rVariables.ReferenceRadius;
+}
 
 //************************************************************************************
 //************************************************************************************
