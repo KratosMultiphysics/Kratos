@@ -39,6 +39,7 @@ THE SOFTWARE.
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/detail/galerkin.hpp>
+#include <amgcl/coarsening/pointwise_aggregates.hpp>
 #include <amgcl/coarsening/tentative_prolongation.hpp>
 #include <amgcl/util.hpp>
 
@@ -47,12 +48,12 @@ namespace coarsening {
 
 /// Smoothed aggregation coarsening.
 /**
- * \param Aggregates \ref aggregates formation.
  * \ingroup coarsening
  * \sa \cite Vanek1996
  */
-template <class Aggregates>
 struct smoothed_aggregation {
+    typedef pointwise_aggregates Aggregates;
+
     /// Coarsening parameters
     struct params {
         /// Aggregation parameters.
@@ -114,7 +115,7 @@ struct smoothed_aggregation {
 
         TIC("interpolation");
         boost::shared_ptr<Matrix> P_tent = tentative_prolongation<Matrix>(
-                n, aggr.count, aggr.id, prm.nullspace
+                n, aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
 
         boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
@@ -213,6 +214,9 @@ struct smoothed_aggregation {
 
         boost::shared_ptr<Matrix> R = boost::make_shared<Matrix>();
         *R = transpose(*P);
+
+        if (prm.nullspace.cols > 0)
+            prm.aggr.block_size = prm.nullspace.cols;
 
         return boost::make_tuple(P, R);
     }

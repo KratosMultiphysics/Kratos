@@ -41,6 +41,8 @@ THE SOFTWARE.
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/coarsening/detail/galerkin.hpp>
+#include <amgcl/coarsening/pointwise_aggregates.hpp>
+#include <amgcl/coarsening/tentative_prolongation.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/detail/sort_row.hpp>
 
@@ -199,12 +201,12 @@ namespace coarsening {
 
 /// Smoothed aggregation with energy minimization.
 /**
- * \param Aggregates \ref aggregates formation.
  * \ingroup coarsening
  * \sa \cite Sala2008
  */
-template <class Aggregates>
 struct smoothed_aggr_emin {
+    typedef pointwise_aggregates Aggregates;
+
     /// Coarsening parameters.
     struct params {
         /// Aggregation parameters.
@@ -243,7 +245,7 @@ struct smoothed_aggr_emin {
 
         TIC("interpolation");
         boost::shared_ptr<Matrix> P_tent = tentative_prolongation<Matrix>(
-                rows(A), aggr.count, aggr.id, prm.nullspace
+                rows(A), aggr.count, aggr.id, prm.nullspace, prm.aggr.block_size
                 );
 
         std::vector<Val> omega;
@@ -252,6 +254,9 @@ struct smoothed_aggr_emin {
         boost::shared_ptr<Matrix> P = interpolation(Af, *P_tent, omega);
         boost::shared_ptr<Matrix> R = restriction  (Af, *P_tent, omega);
         TOC("interpolation");
+
+        if (prm.nullspace.cols > 0)
+            prm.aggr.block_size = prm.nullspace.cols;
 
         return boost::make_tuple(P, R);
     }
