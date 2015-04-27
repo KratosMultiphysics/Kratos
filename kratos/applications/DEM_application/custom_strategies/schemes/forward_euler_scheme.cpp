@@ -271,8 +271,8 @@ namespace Kratos {
 
                 for (int j = 0; j < 3; j++) {
                     if (If_Fix_Rotation[j] == false) {
-                        AngularVel[j] += GlobalRotaAcc[j] * delta_t;
-                        delta_rotation_displ[j] = AngularVel[j] * delta_t; // TODO: CHECK ORDER HERE. DONE DIFFERENTLY IN PARTICLES If I calculate delta_rotation_displ before updating AngularVel, and is always 0!!
+                        delta_rotation_displ[j] = AngularVel[j] * delta_t;
+                        AngularVel[j] += GlobalRotaAcc[j] * delta_t;                         
                         Rota_Displace[j] += delta_rotation_displ[j];
                     } else {
                         AngularVel[j] = 0.0;
