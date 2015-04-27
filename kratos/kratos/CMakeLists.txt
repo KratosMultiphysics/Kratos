@@ -18,10 +18,12 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
-        ${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;	
      )
 
 set( KRATOS_PYTHON_SOURCES     
@@ -65,7 +67,10 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
+	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;	
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+
      )
 
 ###############################################################
