@@ -199,6 +199,12 @@ protected:
 
 
     /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
+    /**
      * Calculation of the DN_DX in the updated configuration
      */
     void CalculatePushForwardDN_DX(GeneralVariables& rVariables);

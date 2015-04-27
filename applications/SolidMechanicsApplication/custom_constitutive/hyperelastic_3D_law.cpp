@@ -237,7 +237,7 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     {
 
         //2.-Total Deformation Gradient
-        Matrix TotalDeformationGradientF0  = DeformationGradientF;
+        Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
         TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
 
         //3.-Determinant of the Total Deformation Gradient
@@ -271,7 +271,6 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
-
             this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
         }
 

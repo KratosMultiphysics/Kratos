@@ -572,7 +572,7 @@ void LargeDisplacementUPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMa
      // MatrixType Kh=rLeftHandSideMatrix;
 
     unsigned int indexi = 0;
-    unsigned int indexj  = 0;
+    unsigned int indexj = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         for ( unsigned int idim = 0; idim < dimension ; idim ++)

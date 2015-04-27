@@ -268,6 +268,13 @@ protected:
                                             double & rCurrentRadius);
 
     /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
+
+    /**
      * Calculation of the Green Lagrange Strain Vector
      */
     void CalculateGreenLagrangeStrain(const Matrix& rF,
