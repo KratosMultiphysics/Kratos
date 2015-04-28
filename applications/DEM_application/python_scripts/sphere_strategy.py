@@ -13,40 +13,6 @@ def Var_Translator(variable):
 
     return variable    
 
-def AddDofs(model_part):
-
-    for node in model_part.Nodes:
-        node.AddDof(VELOCITY_X, REACTION_X)
-        node.AddDof(VELOCITY_Y, REACTION_Y)
-        node.AddDof(VELOCITY_Z, REACTION_Z)
-        node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
-        node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
-        node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
-
-    print("DOFs for the DEM solution added correctly")
-    
-def AddAdditionalVariables(balls_model_part, DEM_parameters):
-
-    if (hasattr(DEM_parameters, "arlequin")):
-      
-        balls_model_part.AddNodalSolutionStepVariable(DISTANCE)
-        balls_model_part.AddNodalSolutionStepVariable(BORDER)
-        balls_model_part.AddNodalSolutionStepVariable(SOLUTION)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_1)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_2)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_4)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_1)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_2)
-        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_3)
-        balls_model_part.AddNodalSolutionStepVariable(ALPHA_ARLEQUIN)
-        balls_model_part.AddNodalSolutionStepVariable(LUMPED_PROJECTION_NODAL_MASS)
-        balls_model_part.AddNodalSolutionStepVariable(PROJECTED_DISPLACEMENT)
-        balls_model_part.AddNodalSolutionStepVariable(TRIAL_VELOCITY)
-        balls_model_part.AddNodalSolutionStepVariable(TEST_VARIABLE3D)
-        balls_model_part.AddNodalSolutionStepVariable(LAMBDA_LAGRANGE)
-        
-        balls_model_part.ProcessInfo[ARLEQUIN] = 1.0
 
 class ExplicitStrategy:
 
@@ -124,7 +90,7 @@ class ExplicitStrategy:
         elif (Param.MaterialModel == "ExpHard"):
             self.force_calculation_type_id = 3
         else:
-
+            
             raise Exception('Specified NormalForceCalculationType is not defined')
 
         if (Param.LocalContactDamping == "Both"):         
@@ -168,13 +134,12 @@ class ExplicitStrategy:
         else:
             print('scheme not defined')
 
-    #
-
+    
     def Initialize(self):
 
         # Setting ProcessInfo variables
 
-       # SIMULATION FLAGS
+        # SIMULATION FLAGS
        
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
@@ -221,8 +186,7 @@ class ExplicitStrategy:
             DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
             DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
             DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)           
-        
-        
+                
         self.contact_model_part = ModelPart("dummy")
         
         # RESOLUTION METHODS AND PARAMETERS
@@ -233,8 +197,7 @@ class ExplicitStrategy:
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part   
         self.settings.cluster_model_part = self.cluster_model_part   
-        
-        
+                
         self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
                                              self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_integration_scheme, self.search_strategy)
        
@@ -245,15 +208,53 @@ class ExplicitStrategy:
    
         #Setting the constitutive LAWS
  
-    #
-
+    
     def Solve(self):
         (self.cplusplus_strategy).Solve()
 
+    
     def DoAllOperations(self,DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path):
         (self.cplusplus_strategy).DoAllOperations(DEM_inlet_model_part, creator_destructor, mesh_motion, DEM_inlet, dem_inlet_element_type, FinalTime, OutputTimeStep, total_steps_expected, ControlTime, main_path)
 
+    
     def Compute_RigidFace_Movement(self):
         (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
-    #
+    
+    def AddAdditionalVariables(self, balls_model_part, DEM_parameters):
+
+        if (hasattr(DEM_parameters, "arlequin")):
+      
+            balls_model_part.AddNodalSolutionStepVariable(DISTANCE)
+            balls_model_part.AddNodalSolutionStepVariable(BORDER)
+            balls_model_part.AddNodalSolutionStepVariable(SOLUTION)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_1)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_2)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_3)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_4)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_1)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_2)
+            balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_3)
+            balls_model_part.AddNodalSolutionStepVariable(ALPHA_ARLEQUIN)
+            balls_model_part.AddNodalSolutionStepVariable(LUMPED_PROJECTION_NODAL_MASS)
+            balls_model_part.AddNodalSolutionStepVariable(PROJECTED_DISPLACEMENT)
+            balls_model_part.AddNodalSolutionStepVariable(TRIAL_VELOCITY)
+            balls_model_part.AddNodalSolutionStepVariable(TEST_VARIABLE3D)
+            balls_model_part.AddNodalSolutionStepVariable(LAMBDA_LAGRANGE)
+
+            balls_model_part.ProcessInfo[ARLEQUIN] = 1.0
+            
+    
+    def AddDofs(self, model_part):
+
+        for node in model_part.Nodes:
+            node.AddDof(VELOCITY_X, REACTION_X)
+            node.AddDof(VELOCITY_Y, REACTION_Y)
+            node.AddDof(VELOCITY_Z, REACTION_Z)
+            node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
+            node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
+            node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
+
+        print("DOFs for the DEM solution added correctly")
+        
+    
