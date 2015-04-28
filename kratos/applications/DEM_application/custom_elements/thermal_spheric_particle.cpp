@@ -53,29 +53,28 @@ namespace Kratos
       //**************************************************************************************************************************************************
     void ThermalSphericParticle::ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo){
         SphericContinuumParticle::ContinuumSphereMemberDeclarationFirstStep(rCurrentProcessInfo);
-        mSpecificHeat = rCurrentProcessInfo[SPECIFIC_HEAT];
-        mThermalConductivity = rCurrentProcessInfo[THERMAL_CONDUCTIVITY];  
+        mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
+        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];  
+        
     }
     void ThermalSphericParticle::CustomInitialize(){   
         SphericContinuumParticle::CustomInitialize();
-//        if (GetGeometry()[0].Coordinates()[1] > 0.15){   //0.15
-//        mTemperature    = 200.0;
-//            }
-//        else{
-//        mTemperature    = 0.0;}
+        if (GetGeometry()[0].Coordinates()[1] > 10){   //0.15
+        mTemperature    = 200.0;
+            }
+        else{
+        mTemperature    = 0.0;}
         
 //        mSkinSphere = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));  per crear la llista de particules de contorn o amb temperatura inicial
 //            mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
 //            mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
         
         
-        mTemperature    = 0.0;
-        mConductiveHeatFlux = 0.0 ;
+//        mTemperature    = 0.0;
+//        mConductiveHeatFlux = 0.0 ;
         }         
     
-    double ThermalSphericParticle::GetTemperature(){
-        return mTemperature; 
-    }
+    double ThermalSphericParticle::GetTemperature(){return mTemperature;}
 
     void ThermalSphericParticle::ComputeConductiveHeatFlux(const ProcessInfo& rCurrentProcessInfo)
                                                        
@@ -85,9 +84,7 @@ namespace Kratos
         /* Initializations */
         
         mConductiveHeatFlux = 0.0 ;
-        
-        
-        
+             
 //        if (GetGeometry()[0].Coordinates()[1] < 0.02){   //0.15
 //        mTemperature    = 0.0;
 //            }
@@ -109,20 +106,15 @@ namespace Kratos
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                     other_to_me_vect[1] * other_to_me_vect[1] +
                     other_to_me_vect[2] * other_to_me_vect[2]);
-            double inv_distance = distance;
-            //double inv_distance = 1/(mRadius+other_radius);
-    
-            mConductiveHeatFlux += - mThermalConductivity * inv_distance * calculation_area * (mTemperature - other_temperature);
-                        
-                                
+//             KRATOS_WATCH(distance)  
+            double inv_distance = 1.0 / distance;  
+            mConductiveHeatFlux += - mThermalConductivity * inv_distance * calculation_area * (mTemperature - other_temperature);                                                      
         }       //for each neighbor
-        
-        if (GetGeometry()[0].Coordinates()[1] > 0.29){   //0.15
-        mConductiveHeatFlux    = 1e-3;
-            }
-        
-//           KRATOS_WATCH(mConductiveHeatFlux) 
-        
+        if(rCurrentProcessInfo[TIME_STEPS]<2){KRATOS_WATCH(mConductiveHeatFlux) };
+//        if (GetGeometry()[0].Coordinates()[1] > 0.29){   //0.15
+//        mConductiveHeatFlux    = 1e-3;
+//            }
+                
         KRATOS_CATCH("")         
        
       }         //ComputeHeatFluxes  
@@ -179,8 +171,12 @@ namespace Kratos
     void ThermalSphericParticle::UpdateTemperature(const ProcessInfo& rCurrentProcessInfo) { 
         
             double thermal_inertia = mRealMass * mSpecificHeat;
+//            KRATOS_WATCH(thermal_inertia) 
+            
             double dt = rCurrentProcessInfo[DELTA_TIME];
             double temperature_increment = mConductiveHeatFlux / thermal_inertia * dt;
+            //if(rCurrentProcessInfo[TIME_STEPS]<2){KRATOS_WATCH(temperature_increment) };
+            
             mTemperature += temperature_increment;
             GetGeometry()[0].GetSolutionStepValue(TEMPERATURE) = mTemperature; 
             GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mConductiveHeatFlux;
