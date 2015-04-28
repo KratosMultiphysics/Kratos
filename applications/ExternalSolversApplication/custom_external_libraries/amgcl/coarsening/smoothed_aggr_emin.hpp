@@ -210,7 +210,7 @@ struct smoothed_aggr_emin {
     /// Coarsening parameters.
     struct params {
         /// Aggregation parameters.
-        typename Aggregates::params aggr;
+        Aggregates::params aggr;
 
         /// Near nullspace parameters.
         nullspace_params nullspace;
