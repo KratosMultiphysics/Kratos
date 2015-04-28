@@ -613,7 +613,7 @@ namespace Kratos
           {
             Vector rhs_elem;
             rhs_elem.resize(6);
-            #pragma omp parallel for schedule(guided)
+            #pragma omp for schedule(guided)
             
             for (int i = 0; i < number_of_particles; i++){
                               
@@ -686,7 +686,6 @@ namespace Kratos
                 (it)->InitializeSolutionStep(rCurrentProcessInfo); 
                 
               } // loop over particles
-
           } // loop threads OpenMP
 
         KRATOS_CATCH("")
