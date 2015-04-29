@@ -1319,9 +1319,26 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbor!!
             }
         
-            //IMPLEMENTATION OF ABRASIVE AND IMPACT WEAR
+            //WEAR
         
             if (cast_neighbour->GetProperties()[PRINT_WEAR]) {
+                ComputeWear(LocalCoordSystem, vel, tangential_vel, mTimeStep, density, sliding, inverse_of_volume, LocalElasticContactForce[2], cast_neighbour, node_coor_array);
+            } //cast_neighbour->GetProperties()[PRINT_WEAR] loop
+        
+        } //ContactType loop  
+        
+    } //rNeighbours.size loop
+    
+    KRATOS_CATCH("")
+
+}// ComputeBallToRigidFaceContactForce
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
+                                  double mTimeStep, double density, bool sliding, double inverse_of_volume,
+                                  double LocalElasticContactForce, DEMWall* cast_neighbour, array_1d<double, 3>& node_coor_array) {
         
                 array_1d<double, 3> local_vel;
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, vel, local_vel);
@@ -1337,11 +1354,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                                              * pow(1.0 - 4.0 * (1.0 - quotient_of_vels), 2) * vel_module * vel_module;
         
                 if (sliding) {
-                    non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * inverse_of_volume * LocalElasticContactForce[2]
+                non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * inverse_of_volume * LocalElasticContactForce
                                     * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
-                }
-                
-                else {
+                } else {
                     non_dim_volume_wear = 0.0;
                 }
             
@@ -1387,13 +1402,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += weight_2 * non_dim_impact_wear;
                 cast_neighbour->GetGeometry()[2].UnSetLock();
             
-            } //cast_neighbour->GetProperties()[PRINT_WEAR] loop
-        } //ContactType loop  
-    } //rNeighbours.size loop
-    
-    KRATOS_CATCH("")
-
-}// ComputeBallToRigidFaceContactForce
+} //ComputeWear
 
 
 
