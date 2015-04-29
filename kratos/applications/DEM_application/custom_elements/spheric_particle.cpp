@@ -9,6 +9,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <cmath>
 
 // External includes
 
@@ -519,7 +520,7 @@ void SphericParticle::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
+void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
                                                 double RelVel[3],
                                                 double LocalCoordSystem[3][3],
                                                 double OldLocalCoordSystem[3][3],
@@ -557,10 +558,17 @@ void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
     RelVel[1] = (vel[1] - other_vel[1]);
     RelVel[2] = (vel[2] - other_vel[2]);
 
-    //DeltDisp in global coordinates
-    DeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
-    DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
-    DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
+    // DeltDisp in global coordinates
+    RelDeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
+    RelDeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
+    RelDeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
+          
+    /*//SLS
+    double proj = GeometryFunctions::DotProduct(LocalCoordSystem[2], DeltDisp);
+    proj = fabs(proj);
+    DEM_MULTIPLY_BY_SCALAR_3(LocalCoordSystem[2], proj);
+    DEM_ADD_SECOND_TO_FIRST(DeltDisp, LocalCoordSystem[2]);
+    //SLS*/
 }
 
 //**************************************************************************************************************************************************
@@ -594,6 +602,216 @@ void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+void SphericParticle::DisplacementDueToRotation_2(double DeltDisp[3],
+                                                double OldLocalCoordSystem[3][3],
+                                                double LocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& ang_vel,
+                                                SphericParticle* p_neighbour)
+{
+    double velA[3]      = {0.0};
+    double velB[3]      = {0.0};
+    double dRotaDisp[3] = {0.0};
+    const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+    GeometryFunctions::CrossProduct(      ang_vel, OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD.
+    GeometryFunctions::CrossProduct(other_ang_vel, OldLocalCoordSystem[2], velB);
+
+    dRotaDisp[0] = - velA[0] * mRadius - velB[0] * other_radius;
+    dRotaDisp[1] = - velA[1] * mRadius - velB[1] * other_radius;
+    dRotaDisp[2] = - velA[2] * mRadius - velB[2] * other_radius;
+    
+    double proj = GeometryFunctions::DotProduct(LocalCoordSystem[2], dRotaDisp);
+    proj = fabs(proj);
+    DEM_MULTIPLY_BY_SCALAR_3(LocalCoordSystem[2], proj);
+    DEM_ADD_SECOND_TO_FIRST(dRotaDisp,LocalCoordSystem[2]);
+
+    // Contribution of the rotation velocity
+    DeltDisp[0] += dRotaDisp[0] * dt;
+    DeltDisp[1] += dRotaDisp[1] * dt;
+    DeltDisp[2] += dRotaDisp[2] * dt;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
+                                                double OldLocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& ang_vel,
+                                                SphericParticle* p_neighbour)
+{
+    double new_A[3] = {0.0};
+    double new_B[3] = {0.0};
+    
+    double old_A[3] = {0.0};
+    double old_B[3] = {0.0};
+    
+    double RotationMatrix_A[3][3] = {{0.0}, {0.0}, {0.0}};
+    double RotationMatrix_B[3][3] = {{0.0}, {0.0}, {0.0}};
+    
+    DEM_COPY_SECOND_TO_FIRST_3(old_A, OldLocalCoordSystem[2]);
+    DEM_COPY_SECOND_TO_FIRST_3(old_B, OldLocalCoordSystem[2]);
+    
+    DEM_MULTIPLY_BY_SCALAR_3(old_A, -mRadius)
+    DEM_MULTIPLY_BY_SCALAR_3(old_B, other_radius)
+        
+    const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    
+    double angle = other_ang_vel[2];
+    
+    RotationMatrix_A[0][0] = cos(angle * dt);
+    RotationMatrix_A[0][1] = -sin(angle * dt);
+    RotationMatrix_A[0][2] = 0;
+    RotationMatrix_A[1][0] = sin(angle * dt);
+    RotationMatrix_A[1][1] = cos(angle * dt);
+    RotationMatrix_A[1][2] = 0;
+    RotationMatrix_A[2][0] = 0;
+    RotationMatrix_A[2][1] = 0;
+    RotationMatrix_A[2][2] = 1;
+    
+    RotationMatrix_B[0][0] = cos(angle * dt);
+    RotationMatrix_B[0][1] = -sin(angle * dt);
+    RotationMatrix_B[0][2] = 0;
+    RotationMatrix_B[1][0] = sin(angle * dt);
+    RotationMatrix_B[1][1] = cos(angle * dt);
+    RotationMatrix_B[1][2] = 0;
+    RotationMatrix_B[2][0] = 0;
+    RotationMatrix_B[2][1] = 0;
+    RotationMatrix_B[2][2] = 1;
+            
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            new_A[i] += RotationMatrix_A[i][j] * old_A[j];
+            new_B[i] += RotationMatrix_B[i][j] * old_B[j];
+        }
+    }
+    
+    //double old_A_mod = DEM_MODULUS_3(old_A);
+    //double old_B_mod = DEM_MODULUS_3(old_B);
+    //double new_A_mod = DEM_MODULUS_3(new_A);
+    //double new_B_mod = DEM_MODULUS_3(new_B);
+    
+    //std::cout << std::endl << old_A_mod << " " << new_A_mod << " " <<  old_B_mod <<  " " << new_B_mod << std::endl;
+            
+    // Contribution of the rotation velocity
+    DeltDisp[0] += (new_A[0] - old_A[0] - new_B[0] + old_B[0]);
+    DeltDisp[1] += (new_A[1] - old_A[1] - new_B[1] + old_B[1]);
+    DeltDisp[2] += (new_A[2] - old_A[2] - new_B[2] + old_B[2]);
+    
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+void SphericParticle::DisplacementDueToRotationMatrix_2(double DeltDisp[3],
+                                                double RelVel[3],
+                                                double OldLocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& angular_vel,
+                                                SphericParticle* p_neighbour)
+{    
+        array_1d<double, 3>& neigh_angular_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY); 
+        array_1d<double, 3> temp_angular_vel = angular_vel;
+        array_1d<double, 3> angular_velocity = angular_vel;
+        array_1d<double, 3> other_angular_velocity = neigh_angular_vel;
+        array_1d<double, 3> temp_neigh_angular_vel = neigh_angular_vel;
+        
+        DEM_MULTIPLY_BY_SCALAR_3(temp_angular_vel, dt);
+        DEM_MULTIPLY_BY_SCALAR_3(temp_neigh_angular_vel, dt);
+        
+        double angle = DEM_MODULUS_3(temp_angular_vel);
+        double angle_2 = DEM_MODULUS_3(temp_neigh_angular_vel);
+        
+        array_1d<double, 3> e1;
+        
+        DEM_COPY_SECOND_TO_FIRST_3(e1, OldLocalCoordSystem[2]);
+        DEM_MULTIPLY_BY_SCALAR_3(e1, -mRadius)
+        
+        array_1d<double, 3> new_axes1 = e1;
+           
+        array_1d<double, 3> e2;
+        
+        DEM_COPY_SECOND_TO_FIRST_3(e2, OldLocalCoordSystem[2]);
+        DEM_MULTIPLY_BY_SCALAR_3(e2, other_radius) 
+                    
+        array_1d<double, 3> new_axes2 = e2;
+        
+        if (angle) {
+            
+            array_1d<double, 3> axis;
+            axis[0] = temp_angular_vel[0] / angle;
+            axis[1] = temp_angular_vel[1] / angle;
+            axis[2] = temp_angular_vel[2] / angle;
+
+            double cang = cos(angle);
+            double sang = sin(angle);
+
+            new_axes1[0] = axis[0] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[0] * cang + (-axis[2] * e1[1] + axis[1] * e1[2]) * sang;
+            new_axes1[1] = axis[1] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[1] * cang + (axis[2] * e1[0] - axis[0] * e1[2]) * sang;
+            new_axes1[2] = axis[2] * (axis[0] * e1[0] + axis[1] * e1[1] + axis[2] * e1[2]) * (1 - cang) + e1[2] * cang + (-axis[1] * e1[0] + axis[0] * e1[1]) * sang;
+            
+        } //if angle
+        
+        if (angle_2) {
+            
+            array_1d<double, 3> axis_2;
+            axis_2[0] = temp_neigh_angular_vel[0] / angle_2;
+            axis_2[1] = temp_neigh_angular_vel[1] / angle_2;
+            axis_2[2] = temp_neigh_angular_vel[2] / angle_2;
+
+            double cang = cos(angle_2);
+            double sang = sin(angle_2);
+
+            new_axes2[0] = axis_2[0] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[0] * cang + (-axis_2[2] * e2[1] + axis_2[1] * e2[2]) * sang;
+            new_axes2[1] = axis_2[1] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[1] * cang + (axis_2[2] * e2[0] - axis_2[0] * e2[2]) * sang;
+            new_axes2[2] = axis_2[2] * (axis_2[0] * e2[0] + axis_2[1] * e2[1] + axis_2[2] * e2[2]) * (1 - cang) + e2[2] * cang + (-axis_2[1] * e2[0] + axis_2[0] * e2[1]) * sang;
+
+        } //if angle_2
+        
+        //other_radius = p_neighbour->GetRadius();
+        
+        array_1d<double, 3> other_to_me_vect;
+        noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
+        double distance            = DEM_MODULUS_3(other_to_me_vect);
+        double radius_sum          = mRadius + other_radius;
+        double indentation         = radius_sum - distance;
+    
+        array_1d<double, 3> radial_vector = - other_to_me_vect;
+        array_1d<double, 3> other_radial_vector = other_to_me_vect;
+        
+        GeometryFunctions::normalize(radial_vector);
+        GeometryFunctions::normalize(other_radial_vector);
+        
+        double arm = mRadius - indentation * mRadius / radius_sum; //////////////////////////LINEAR FORMULATION: SHOULD BE COMPUTED BY THE CONSTITUTIVE LAW
+        double other_arm = other_radius - indentation * other_radius / radius_sum;
+        
+        radial_vector *= arm;
+        other_radial_vector *= other_arm;
+        //
+        array_1d<double, 3> vel = ZeroVector(3);
+        array_1d<double, 3> other_vel = ZeroVector(3);
+        
+        GeometryFunctions::CrossProduct(angular_velocity, radial_vector, vel);
+        GeometryFunctions::CrossProduct(other_angular_velocity, other_radial_vector, other_vel);
+        
+        
+        RelVel[0] += vel[0] - other_vel[0];
+        RelVel[1] += vel[1] - other_vel[1];
+        RelVel[2] += vel[2] - other_vel[2];
+        
+        // Contribution of the rotation velocity
+        DeltDisp[0] += (new_axes1[0] - e1[0] - new_axes2[0] + e2[0]);
+        DeltDisp[1] += (new_axes1[1] - e1[1] - new_axes2[1] + e2[1]);
+        DeltDisp[2] += (new_axes1[2] - e1[2] - new_axes2[2] + e2[2]);
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                                      array_1d<double, 3>& GlobalElasticContactForce,
                                      array_1d<double, 3>& rInitialRotaMoment,
@@ -603,11 +821,20 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     double MA[3] = {0.0};
 
     GeometryFunctions::CrossProduct(LocalCoordSystem2, GlobalElasticContactForce, MA);
-
-    mContactMoment[0] -= MA[0] * mRadius;
-    mContactMoment[1] -= MA[1] * mRadius;
-    mContactMoment[2] -= MA[2] * mRadius;
     
+    const double& other_radius = p_neighbour->GetRadius();
+    array_1d<double, 3> other_to_me_vect;
+    noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
+    double distance            = DEM_MODULUS_3(other_to_me_vect);
+    double radius_sum          = mRadius + other_radius;
+    double indentation         = radius_sum - distance;
+    
+    double arm = mRadius - indentation * mRadius / radius_sum;
+   
+    mContactMoment[0] -= MA[0] * arm;
+    mContactMoment[1] -= MA[1] * arm;
+    mContactMoment[2] -= MA[2] * arm;
+
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
         
@@ -755,9 +982,18 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         // Transforming to global forces and adding up
         AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, normal_force, cohesion_force, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
 
+        array_1d<double, 3> temp_force = ZeroVector(3);
+        
+        temp_force[0] = GlobalContactForce[0];
+        temp_force[1] = GlobalContactForce[1];
+        temp_force[2] = GlobalContactForce[2];
+
+        
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
-            ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
+//            ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
+            ComputeMoments(normal_force, temp_force, rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
+
         }
     }// for each neighbor
 
@@ -1251,7 +1487,14 @@ void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double,
             kt          = kn / (2.0 + equiv_poisson + equiv_poisson);
             break;
     }
-
+    
+    /*
+    double RCTS = 2.0 * sqrt(mRealMass / kn);
+    KRATOS_WATCH(RCTS)
+    std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl;
+    std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
+    */
+    
     if (GetLnOfRestitCoeff() > 0.0 || other_ln_of_restit_coeff > 0.0) { // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
         equiv_visco_damp_coeff_normal = 2.0 * sqrt(equiv_mass * kn);
     }
@@ -1284,7 +1527,7 @@ void SphericParticle::CalculateViscoDamping(double LocalRelVel[3],
                                             double equiv_visco_damp_coeff_tangential,
                                             bool sliding)
 {
-    //*** The comprobation is component-wise since localContactForce and RelVel have in principle no relationship.
+    //*** The check is component-wise since localContactForce and RelVel have in principle no relationship.
     // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
     // But in opposite direction the visco damping can't overpass the force...
 
@@ -1407,7 +1650,13 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
 
 void SphericParticle::NormalForceCalculation(double& normal_force, double kn, double indentation)
 
-{
+{           /*
+            double RCTS = 2.0 * sqrt(mRealMass / kn);
+            KRATOS_WATCH(RCTS)
+            std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl;
+            std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
+            */
+            
     switch (mElasticityType) { //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
         case 0:
             normal_force = kn * indentation;
