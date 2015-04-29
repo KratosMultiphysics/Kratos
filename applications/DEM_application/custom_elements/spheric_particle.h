@@ -255,6 +255,29 @@ virtual void DisplacementDueToRotation(double DeltDesp[3],
                     const array_1d<double, 3> &angl_vel,
                     SphericParticle* neighbour_iterator);
 
+virtual void DisplacementDueToRotation_2(double DeltDisp[3],
+                                                double OldLocalCoordSystem[3][3],
+                                                double LocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& ang_vel,
+                                                SphericParticle* p_neighbour);
+
+virtual void DisplacementDueToRotationMatrix(double DeltDisp[3],
+                                                double OldLocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& ang_vel,
+                                                SphericParticle* p_neighbour);
+
+virtual void DisplacementDueToRotationMatrix_2(double DeltDisp[3],
+                                                double RelVel[3],
+                                                double OldLocalCoordSystem[3][3],
+                                                const double& other_radius,
+                                                const double& dt,
+                                                const array_1d<double, 3>& ang_vel,
+                                                SphericParticle* p_neighbour);
+
 virtual void ComputeMoments(double normalLocalElasticContactForce,
                       array_1d<double, 3>& GlobalElasticContactForces,
                       array_1d<double, 3>& rInitialRotaMoment,
