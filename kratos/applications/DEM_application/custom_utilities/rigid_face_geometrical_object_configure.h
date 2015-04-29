@@ -283,7 +283,7 @@ public:
            }
            
            /////Particle-Face contact
-           ContactExists = JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord, Particle_Coord, rad, LocalCoordSystem, Weight, DistPToB);
+           ContactExists = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord, Particle_Coord, rad, LocalCoordSystem, Weight, DistPToB);
 
            if(ContactExists == true)
            {
@@ -573,7 +573,7 @@ public:
         double distance_point_to_plane        = 0.0;
         double dummy_local_coord_system[3][3] = { {0.0},{0.0},{0.0} }; //MSIMSI comproba que estigui ben inicialitzat. he copiat duna altre lloc
         
-        ContactExists = Fast_JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord,  Particle_Coord, Radius, dummy_local_coord_system, distance_point_to_plane);
+        ContactExists = GeometryFunctions::Fast_JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord,  Particle_Coord, Radius, dummy_local_coord_system, distance_point_to_plane);
             
         //if(ContactExists) { ContactType = 1; }
         //The key here is to see that we only need to check for further contact if not having contact with plane, the distance_point_to_plane is lower than the radius. 
@@ -583,275 +583,13 @@ public:
         if( (ContactExists == false) && (distance_point_to_plane <= Radius ) )
         {
          
-            ContactExists = QuickClosestEdgeVertexDetermination(/*ContactType ,*/Coord, Particle_Coord, facet_size, Radius);
+            ContactExists = GeometryFunctions::QuickClosestEdgeVertexDetermination(/*ContactType ,*/Coord, Particle_Coord, facet_size, Radius);
             
         }//no plane contact found
 
         return ContactExists;
         
     }//EasyIntersection
-   
-   
-   
-    static inline bool JudgeIfThisFaceIsContactWithParticle(int FaceNodeTotal, double Coord[4][3], double Particle_Coord[3], double rad,
-                                                          double LocalCoordSystem[3][3], double Weight[4], double &DistPToB)
-    {
-
-      bool If_Contact = false;
-      
-      GeometryFunctions::Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem);
-
-      ///Cfeng,131007,normal vector should point to particle
-//       LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-//       LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-//       LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-// 
-//       LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-//       LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-//       LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-// 
-//       LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-//       LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-//       LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
-
-      DistPToB = GeometryFunctions::DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
-
-      if(DistPToB < rad )
-      {
-   
-           double IntersectionCoord[3];
-           GeometryFunctions::CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
-          
-            //if(FaceNodeTotal == 3)
-           // {
-          
-              double TriWeight[3] = {0.0};
-              GeometryFunctions::TriAngleWeight(Coord[0], Coord[1], Coord[2], IntersectionCoord, TriWeight);
-
-              if( fabs(TriWeight[0] + TriWeight[1] + TriWeight[2] - 1.0) < 1.0e-15 )
-              {
-                  Weight[0] = TriWeight[0];
-                  Weight[1] = TriWeight[1];
-                  Weight[2] = TriWeight[2];
-
-                  If_Contact = true;
-              }
-              
-
-          //}
-          
-          
-          /*else if(FaceNodeTotal == 4)
-          {
-            
-            
-              double FaceArea;
-              double TempFace[2];
-              GeometryFunctions::TriAngleArea(Coord[0], Coord[1], Coord[2], TempFace[0]);
-              GeometryFunctions::TriAngleArea(Coord[2], Coord[3], Coord[0], TempFace[1]);
-              FaceArea = TempFace[0] + TempFace[1];
-
-              double AreaComponent[4] = {0.0};
-              GeometryFunctions::TriAngleArea(IntersectionCoord, Coord[0], Coord[1], AreaComponent[0]);
-              GeometryFunctions::TriAngleArea(IntersectionCoord, Coord[1], Coord[2], AreaComponent[1]);
-              GeometryFunctions::TriAngleArea(IntersectionCoord, Coord[2], Coord[3], AreaComponent[2]);
-              GeometryFunctions::TriAngleArea(IntersectionCoord, Coord[3], Coord[0], AreaComponent[3]);
-
-              if(fabs( (AreaComponent[0] + AreaComponent[1] + AreaComponent[2] + AreaComponent[3] - FaceArea) / FaceArea) < 1.0e-15)
-              {
-                
-                  If_Contact = true;
-
-                  GeometryFunctions::CalQuadWeightCoefficient(Coord, LocalCoordSystem, IntersectionCoord, Weight);
-                  
-                  
-              }
-              
-            }*/
-        }
-
-        return If_Contact;
-          
-     } //JudgeIfThisFaceIsContactWithParticle;
-
-
-    //M.Santasusana Februar 2015     
-    static inline bool Fast_JudgeIfThisFaceIsContactWithParticle(int FaceNodeTotal, double Coord[4][3], double Particle_Coord[3], double rad,
-                                                                double LocalCoordSystem[3][3], double &DistPToB)
-    {
-
-        bool If_Contact = false;
-
-        GeometryFunctions::Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Particle_Coord, LocalCoordSystem);
-
-        ///Cfeng,131007,normal vector should point to particle
-//         LocalCoordSystem[0][0] = -LocalCoordSystem[0][0];
-//         LocalCoordSystem[0][1] = -LocalCoordSystem[0][1];
-//         LocalCoordSystem[0][2] = -LocalCoordSystem[0][2];
-// 
-//         LocalCoordSystem[1][0] = -LocalCoordSystem[1][0];
-//         LocalCoordSystem[1][1] = -LocalCoordSystem[1][1];
-//         LocalCoordSystem[1][2] = -LocalCoordSystem[1][2];
-// 
-//         LocalCoordSystem[2][0] = -LocalCoordSystem[2][0];
-//         LocalCoordSystem[2][1] = -LocalCoordSystem[2][1];
-//         LocalCoordSystem[2][2] = -LocalCoordSystem[2][2];
-
-        DistPToB = GeometryFunctions::DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
-
-        if(DistPToB < rad )
-        {
-
-            double IntersectionCoord[3];
-            GeometryFunctions::CoordProjectionOnPlane(Particle_Coord, Coord[0], LocalCoordSystem, IntersectionCoord);
-            
-            If_Contact = Fast_PointInsideTriangle(Coord[0], Coord[1], Coord[2], IntersectionCoord);                  
-
-            if( (FaceNodeTotal == 4) && (If_Contact==false)) //maybe not found inside first triangle, then check second triangular half of the quadrilateral
-            {
-            
-                bool If_Contact2 = Fast_PointInsideTriangle(Coord[0], Coord[2], Coord[3], IntersectionCoord);                  
-                
-                if( (If_Contact == true) || (If_Contact2 == true)) { If_Contact = true; }
-                    
-                    
-            }
-            
-                        
-        }
-
-        return If_Contact;
-        
-    } //JudgeIfThisFaceIsContactWithParticle;
-
-   
-    
-   
-    static inline  bool SameSide(double Coord1[3], double Coord2[3], double ReferenceCoord[3], double JudgeCoord[3]){
-        
-        double cp1[3]  = {0.0};
-        double cp2[3]  = {0.0};
-        double b_a[3]  = {0.0};
-        double p1_a[3] = {0.0};
-        double p2_a[3] = {0.0};
-        
-        for (int i=0;i<3;i++){
-            
-            b_a[i]  = Coord2[i]-Coord1[i];
-            p1_a[i] = JudgeCoord[i]-Coord1[i];
-            p2_a[i] = ReferenceCoord[i]-Coord1[i];
-            
-        }
-        
-        GeometryFunctions::CrossProduct(b_a, p1_a, cp1);
-        GeometryFunctions::CrossProduct(b_a, p2_a, cp2);
-        
-        if (GeometryFunctions::DotProduct(cp1, cp2) >= 0) return true;
-            
-        else return false;
-        
-    }//SameSide
-
-
-    static inline  bool Fast_PointInsideTriangle(double Coord1[3], double Coord2[3], double Coord3[3], double JudgeCoord[3]){
-        
-        if( SameSide(Coord1, Coord2, Coord3, JudgeCoord) == false ) return false;
-        if( SameSide(Coord2, Coord3, Coord1, JudgeCoord) == false ) return false;
-        if( SameSide(Coord3, Coord1, Coord2, JudgeCoord) == false ) return false;
-                               
-        return true;    
-        
-    }
-    
-    
-    static inline bool QuickClosestEdgeVertexDetermination(/*int& ContactType,*/ double Coord[4][3], double Particle_Coord[3], int size, double particle_radius) 
-    {                  
-        
-        std::vector<double> dist_sq(size*2, 0.0); //vertices and edges of the face       
-        std::vector<double> dist(size*2, 0.0);
-        double base[4][3];
-        double base_sq    = 0.0; 
-        double tau_sq     = 0.0;
-        double base_leng  = 0.0;
-        double diag_back  = 0.0;
-        double diag_front = 0.0;
-        double particle_radius_sq = particle_radius*particle_radius;
-        
-        double NodeToP[4][3] = { {0.0},{0.0},{0.0},{0.0} };
-        
-        //VERTICES
-        for (int n=0;n<size;n++){ //vertices
-        
-            
-            for (int k= 0; k<3; k++){ //components
-            
-                NodeToP[n][k] =  Particle_Coord[k] - Coord[n][k];
-                dist_sq[n]    += NodeToP[n][k]*NodeToP[n][k];
-                
-            }
-            
-            if ( dist_sq[n] <= particle_radius_sq )
-            {
-                //ContactType = 3;
-                return true; 
-            }
-            
-            dist[n] = sqrt(dist_sq[n]);
-            
-        }
-       
-        //EDGES
-        for (int i=0;i<size;i++)
-        {
-           
-            int j=(i+1)%size;
-            
-            for (int k=0;k<3;k++)
-            {
-                base[i][k] = (Coord[j][k] - Coord[i][k]); 
-                base_sq += base[i][k]*base[i][k];
-            
-            }
-                    
-            base_leng = sqrt(base_sq);
-            diag_back  = dist[i];
-            diag_front = dist[j];
-            
-            double a2  =  dist_sq[i];
-            double b2  =  base_sq;
-            double c2  =  dist_sq[i];
-            
-            
-            if ( (a2 <= b2 + c2) || (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
-                
-                TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
-                
-                dist_sq[i+size] = tau_sq/base_sq; 
-                
-                if ( dist_sq[i+size] <= particle_radius_sq )
-                {
-                   
-                    //ContactType=2;
-                    return true;
-                    
-                }
-            
-            }
-            
-        }//for each edge starting at node i going to j
-        
-        return false;
-     
-    } //QuickClosestEdgeVertexDetermination
-
-    
-    static inline void TauSqCalculation(double& tau_sq, double d0, double d1, double d2)
-    {
-      
-        tau_sq = 0.25*( d0 + d1 - d2)*( d0 - d1 + d2)*( -d0 + d1 + d2)*( d0 + d1 + d2);
-        
-    }
-    
     
     ///@}
     ///@name Access

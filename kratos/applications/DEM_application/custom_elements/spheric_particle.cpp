@@ -1045,6 +1045,40 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
+void SphericParticle::UpdateRF_Pram(DEMWall* rObj_2, std::size_t ino,
+                                    double LocalCoordSystem[3][3], double& DistPToB,
+                                    double Weight[4], int& ContactType)
+{
+    KRATOS_TRY
+
+
+    std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
+
+    int ino1 = ino * 16;
+
+    RF_Pram[ino1 +  0] = LocalCoordSystem[0][0];
+    RF_Pram[ino1 +  1] = LocalCoordSystem[0][1];
+    RF_Pram[ino1 +  2] = LocalCoordSystem[0][2];
+    RF_Pram[ino1 +  3] = LocalCoordSystem[1][0];
+    RF_Pram[ino1 +  4] = LocalCoordSystem[1][1];
+    RF_Pram[ino1 +  5] = LocalCoordSystem[1][2];
+    RF_Pram[ino1 +  6] = LocalCoordSystem[2][0];
+    RF_Pram[ino1 +  7] = LocalCoordSystem[2][1];
+    RF_Pram[ino1 +  8] = LocalCoordSystem[2][2];
+    RF_Pram[ino1 +  9] = DistPToB;
+    RF_Pram[ino1 + 10] = Weight[0];
+    RF_Pram[ino1 + 11] = Weight[1];
+    RF_Pram[ino1 + 12] = Weight[2];
+    RF_Pram[ino1 + 13] = Weight[3];
+    RF_Pram[ino1 + 15] = ContactType;
+
+
+    KRATOS_CATCH("")
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
 void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_elastic_force,
                                                          array_1d<double, 3>& r_contact_force,
                                                          array_1d<double, 3>& rInitialRotaMoment,
@@ -1111,223 +1145,247 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, other_to_me_vel, ContactType);
 
         //MSI: Renew Distance for steps in between searches.
-        if (ContactType == 1 || ContactType == 2 || ContactType == 3)
-        {
-
-        if (mSearchControl==1) { //Search active but not performed in this timestep
+        if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
             
-            double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
-            double total_weight = 0.0;
-            int points = 0;
+            if (mSearchControl==1) { //Search active but not performed in this timestep
                 
-            for (unsigned int inode = 0; inode < (rNeighbours[i]->GetGeometry().size()); inode++){
+                double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
+                double total_weight = 0.0;
+                double tempWeight[2] = {0.0};
+                int points = 0;
+                int inode1 = 0, inode2 = 0;
                 
-                if (Weight[inode] > 0.0){
-                    DEM_COPY_SECOND_TO_FIRST_3(Coord[0+points], rNeighbours[i]->GetGeometry()[inode].Coordinates())
-                    total_weight = total_weight + Weight[inode];
-                    points++;
+                for (unsigned int inode = 0; inode < (rNeighbours[i]->GetGeometry().size()); inode++) {
+                    
+                    if (Weight[inode] > 1.0e-6){
+                        DEM_COPY_SECOND_TO_FIRST_3(Coord[0+points], rNeighbours[i]->GetGeometry()[inode].Coordinates())
+                        total_weight = total_weight + Weight[inode];
+                        points++;
+                        if (points == 1) {inode1 = inode;}
+                        if (points == 2) {inode2 = inode;}
+                    }
+
+                    if (fabs(total_weight - 1.0) < 1.0e-6){
+                        break;
+                    }
                 }
-                if (fabs(total_weight - 1.0) < 1.0e-15){
-                    break;
+            
+                bool contact_exist = true;
+
+                if (points == 3 || points == 4) {contact_exist = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(points, Coord, node_coor, mRadius, LocalCoordSystem, Weight, DistPToB);}
+                
+                if (points == 2) {
+                    contact_exist = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord[0], Coord[1], node_coor, mRadius, LocalCoordSystem, tempWeight, DistPToB);
+                    Weight[inode1] = tempWeight[0];
+                    Weight[inode2] = tempWeight[1];
                 }
+                
+                if (points == 1) {
+                    contact_exist = GeometryFunctions::JudgeIfThisPointIsContactWithParticle(Coord[0], node_coor, mRadius, LocalCoordSystem, DistPToB);
+                    Weight[inode1] = 1.0;
+                }
+            
+                if (contact_exist == false) {ContactType = -1;}
+            
+                UpdateRF_Pram(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, ContactType);
+            }
+        
+        }
+        
+        if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
+            
+            double indentation = -(DistPToB - mRadius) - ini_delta;
+            double DeltDisp[3] = {0.0};
+            double DeltVel [3] = {0.0};
+
+            DeltVel[0] = vel[0] - other_to_me_vel[0];
+            DeltVel[1] = vel[1] - other_to_me_vel[1];
+            DeltVel[2] = vel[2] - other_to_me_vel[2];
+
+            // For translation movement delta displacement
+            DeltDisp[0] = DeltVel[0] * mTimeStep;
+            DeltDisp[1] = DeltVel[1] * mTimeStep;
+            DeltDisp[2] = DeltVel[2] * mTimeStep;
+
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+            
+                double unitary_angular_vel[3] = {0.0};
+                //double tangential_vel[3]      = {0.0};
+
+                array_1d<double,3> AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                //double Ang_Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
+                GeometryFunctions::CrossProduct(AngularVel, LocalCoordSystem[2], unitary_angular_vel);
+
+                tangential_vel[0] = -unitary_angular_vel[0] * mRadius;
+                tangential_vel[1] = -unitary_angular_vel[1] * mRadius;
+                tangential_vel[2] = -unitary_angular_vel[2] * mRadius;
+   
+                // Contribution of the tangential velocity on the displacements
+  
+                DeltDisp[0] += tangential_vel[0] * mTimeStep;
+                DeltDisp[1] += tangential_vel[1] * mTimeStep;
+                DeltDisp[2] += tangential_vel[2] * mTimeStep;
             }
 
-            if (points == 3 || points == 4) {GeometryFunctions::QuickDistanceForAKnownNeighbour(Coord, node_coor, DistPToB);}
-            if (points == 2) {GeometryFunctions::QuickDistanceForAKnownEdgeNeighbour(Coord, node_coor, DistPToB); }
-            if (points == 1) {GeometryFunctions::QuickDistanceForAKnownPointNeighbour(Coord, node_coor, DistPToB);}
-        }
+            double LocalDeltDisp[3] = {0.0};
+    
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
 
-        double indentation = -(DistPToB - mRadius) - ini_delta;
-        double DeltDisp[3] = {0.0};
-        double DeltVel [3] = {0.0};
+            DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mFemOldNeighbourContactForces[i])
 
-        DeltVel[0] = vel[0] - other_to_me_vel[0];
-        DeltVel[1] = vel[1] - other_to_me_vel[1];
-        DeltVel[2] = vel[2] - other_to_me_vel[2];
-
-        // For translation movement delta displacement
-        DeltDisp[0] = DeltVel[0] * mTimeStep;
-        DeltDisp[1] = DeltVel[1] * mTimeStep;
-        DeltDisp[2] = DeltVel[2] * mTimeStep;
-
-        if (this->Is(DEMFlags::HAS_ROTATION)) {
-            
-            double unitary_angular_vel[3] = {0.0};
-            //double tangential_vel[3]      = {0.0};
-
-            array_1d<double,3> AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-            //double Ang_Vel_Temp[3] = {AngularVel[0], AngularVel[1], AngularVel[2]};
-            GeometryFunctions::CrossProduct(AngularVel, LocalCoordSystem[2], unitary_angular_vel);
-
-            tangential_vel[0] = -unitary_angular_vel[0] * mRadius;
-            tangential_vel[1] = -unitary_angular_vel[1] * mRadius;
-            tangential_vel[2] = -unitary_angular_vel[2] * mRadius;
-
-            // Contribution of the tangential velocity on the displacements
-            DeltDisp[0] += tangential_vel[0] * mTimeStep;
-            DeltDisp[1] += tangential_vel[1] * mTimeStep;
-            DeltDisp[2] += tangential_vel[2] * mTimeStep;
-        }
-
-        double LocalDeltDisp[3] = {0.0};
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
         
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+            LocalElasticContactForce[0] += - ks_el * LocalDeltDisp[0];
+            LocalElasticContactForce[1] += - ks_el * LocalDeltDisp[1];
 
-        DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mFemOldNeighbourContactForces[i])
-
-        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
-        
-        LocalElasticContactForce[0] += - ks_el * LocalDeltDisp[0];
-        LocalElasticContactForce[1] += - ks_el * LocalDeltDisp[1];
-
-        if (indentation > 0.0) {
-            //LocalElasticContactForce[2] = kn_el * indentation;
-            LocalElasticContactForce[2] = kn_el * indentation - area * total_cohesion;
-        }
+            if (indentation > 0.0) {
+                //LocalElasticContactForce[2] = kn_el * indentation;
+                LocalElasticContactForce[2] = kn_el * indentation - area * total_cohesion;
+            }
                
-        else {
-            LocalElasticContactForce[2] = 0.0;
-        }
+            else { LocalElasticContactForce[2] = 0.0;}
 
-        bool sliding = false;
+            bool sliding = false;
 
-        if (-LocalElasticContactForce[2] > 0.0) {
-            DEM_SET_COMPONENTS_TO_ZERO_3(LocalElasticContactForce)
-        }
-
-        else {
-            double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
-            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                      + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-
-            if (ShearForceMax == 0.0) {
-                LocalElasticContactForce[0] = 0.0;
-                LocalElasticContactForce[1] = 0.0;
-            }
-
-            else if (ShearForceNow > ShearForceMax) {
-                double inv_ShearForceNow = 1.0 / ShearForceNow;
-                LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
-                LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
-
-                sliding = true;
-            }
-        }
-        
-        //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
-
-        double ViscoDampingLocalContactForce[3] = {0.0};
-
-        if (indentation > 0.0) { // Compression , use visc damp
-            double LocalRelVel[3] = {0.0};
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
-            double equiv_visco_damp_coeff_normal     = 0.0;
-            double equiv_visco_damp_coeff_tangential = 0.0;
-            double mass = mRealMass;
-
-            if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
-                equiv_visco_damp_coeff_normal     = GetProperties()[DEMPACK_LOCAL_DAMPING] * 2.0 * sqrt(kn_el / (mass+mass)) * mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
-
-                equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
+            if (-LocalElasticContactForce[2] > 0.0) {
+                DEM_SET_COMPONENTS_TO_ZERO_3(LocalElasticContactForce)
             }
 
             else {
+                double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
+                double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                                          + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-                if (GetLnOfRestitCoeff() > 0.0) {
-                    equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
+                if (ShearForceMax == 0.0) {
+                    LocalElasticContactForce[0] = 0.0;
+                    LocalElasticContactForce[1] = 0.0;
+                }
+
+                else if (ShearForceNow > ShearForceMax) {
+                    double inv_ShearForceNow = 1.0 / ShearForceNow;
+                    LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
+                    LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
+
+                    sliding = true;
+                }
+            }
+        
+            //---------------------------------------------DAMPING-FORCE-CALCULATION------------------------------------------------------------//
+
+            double ViscoDampingLocalContactForce[3] = {0.0};
+
+            if (indentation > 0.0) { // Compression , use visc damp
+                double LocalRelVel[3] = {0.0};
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
+                double equiv_visco_damp_coeff_normal     = 0.0;
+                double equiv_visco_damp_coeff_tangential = 0.0;
+                double mass = mRealMass;
+
+
+                if (r_current_process_info[DEMPACK_OPTION]){  //MSIMSI: DEMPACK
+                    equiv_visco_damp_coeff_normal     = GetProperties()[DEMPACK_LOCAL_DAMPING] * 2.0 * sqrt(kn_el / (mass+mass)) * mass;//other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )  //MSIMSI: DEMPACK
+
+                    equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // dempack no l'utilitza...
                 }
 
                 else {
-                    equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
+
+                    if (GetLnOfRestitCoeff() > 0.0) {
+                        equiv_visco_damp_coeff_normal = 2.0 * sqrt(mass * kn_el);
+                    }
+
+                    else {
+                        equiv_visco_damp_coeff_normal = -2.0 * GetLnOfRestitCoeff() * sqrt(mass * kn_el / (GetLnOfRestitCoeff() * GetLnOfRestitCoeff() + KRATOS_M_PI * KRATOS_M_PI));
+                    }
+
+                    equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
                 }
 
-                equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * sqrt(ks_el / kn_el);
+                CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal,
+                equiv_visco_damp_coeff_tangential, sliding);
             }
 
-            CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal,
-            equiv_visco_damp_coeff_tangential, sliding);
-        }
+            double LocalContactForce[3]  = {0.0};
+            double GlobalContactForce[3] = {0.0};
 
-        double LocalContactForce[3]  = {0.0};
-        double GlobalContactForce[3] = {0.0};
+            AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
+                                     GlobalElasticContactForce,ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
 
-        AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                 GlobalElasticContactForce,ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
+            rigid_element_force[0] -= GlobalElasticContactForce[0];
+            rigid_element_force[1] -= GlobalElasticContactForce[1];
+            rigid_element_force[2] -= GlobalElasticContactForce[2];
 
-        rigid_element_force[0] -= GlobalElasticContactForce[0];
-        rigid_element_force[1] -= GlobalElasticContactForce[1];
-        rigid_element_force[2] -= GlobalElasticContactForce[2];
-
-        if (this->Is(DEMFlags::HAS_ROTATION)) {
-            ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbor!!
-        }
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbor!!
+            }
         
-        //IMPLEMENTATION OF ABRASIVE AND IMPACT WEAR
+            //IMPLEMENTATION OF ABRASIVE AND IMPACT WEAR
         
-        if (cast_neighbour->GetProperties()[PRINT_WEAR]) {
+            if (cast_neighbour->GetProperties()[PRINT_WEAR]) {
         
-            array_1d<double, 3> local_vel;
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, vel, local_vel);
-            double non_dim_volume_wear;
-            double WallSeverityOfWear           = cast_neighbour->GetProperties()[SEVERITY_OF_WEAR];
-            double WallImpactSeverityOfWear     = cast_neighbour->GetProperties()[IMPACT_WEAR_SEVERITY];
-            double InverseOfWallBrinellHardness = 1.0 / (cast_neighbour->GetProperties()[BRINELL_HARDNESS]);
-            double vel_module = DEM_MODULUS_3(vel);
-            double quotient_of_vels = fabs(local_vel[2]) / vel_module;
-            double Sliding_0 = tangential_vel[0] * mTimeStep;
-            double Sliding_1 = tangential_vel[1] * mTimeStep;
-            double non_dim_impact_wear = 0.5 * WallImpactSeverityOfWear * InverseOfWallBrinellHardness * density * quotient_of_vels * quotient_of_vels
-                                         * pow(1.0 - 4.0 * (1.0 - quotient_of_vels), 2) * vel_module * vel_module;
+                array_1d<double, 3> local_vel;
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, vel, local_vel);
+                double non_dim_volume_wear;
+                double WallSeverityOfWear           = cast_neighbour->GetProperties()[SEVERITY_OF_WEAR];
+                double WallImpactSeverityOfWear     = cast_neighbour->GetProperties()[IMPACT_WEAR_SEVERITY];
+                double InverseOfWallBrinellHardness = 1.0 / (cast_neighbour->GetProperties()[BRINELL_HARDNESS]);
+                double vel_module = DEM_MODULUS_3(vel);
+                double quotient_of_vels = fabs(local_vel[2]) / vel_module;
+                double Sliding_0 = tangential_vel[0] * mTimeStep;
+                double Sliding_1 = tangential_vel[1] * mTimeStep;
+                double non_dim_impact_wear = 0.5 * WallImpactSeverityOfWear * InverseOfWallBrinellHardness * density * quotient_of_vels * quotient_of_vels
+                                             * pow(1.0 - 4.0 * (1.0 - quotient_of_vels), 2) * vel_module * vel_module;
         
-            if (sliding) {
-                non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * inverse_of_volume * LocalElasticContactForce[2]
+                if (sliding) {
+                    non_dim_volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * inverse_of_volume * LocalElasticContactForce[2]
                                     * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
-            }
-            else {
-                non_dim_volume_wear = 0.0;
-            }
+                }
+                
+                else {
+                    non_dim_volume_wear = 0.0;
+                }
             
-            //COMPUTING THE PROJECTED POINT
+                //COMPUTING THE PROJECTED POINT
             
-            array_1d<double, 3> normal_to_cast_neighbour;
+                array_1d<double, 3> normal_to_cast_neighbour;
             
-            cast_neighbour->CalculateNormal(normal_to_cast_neighbour);
+                cast_neighbour->CalculateNormal(normal_to_cast_neighbour);
             
-            array_1d<double, 3> relative_vector = cast_neighbour->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
+                array_1d<double, 3> relative_vector = cast_neighbour->GetGeometry()[0].Coordinates() - node_coor_array; //We could have chosen [1] or [2], also.
             
-            double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_cast_neighbour);
+                double dot_prod = DEM_INNER_PRODUCT_3(relative_vector, normal_to_cast_neighbour);
             
-            DEM_MULTIPLY_BY_SCALAR_3(normal_to_cast_neighbour, dot_prod);
+                DEM_MULTIPLY_BY_SCALAR_3(normal_to_cast_neighbour, dot_prod);
             
-            array_1d<double, 3> inner_point = node_coor_array + normal_to_cast_neighbour;
+                array_1d<double, 3> inner_point = node_coor_array + normal_to_cast_neighbour;
             
-            array_1d<double, 3> relative_vector_0 = inner_point - cast_neighbour->GetGeometry()[0].Coordinates();
-            array_1d<double, 3> relative_vector_1 = inner_point - cast_neighbour->GetGeometry()[1].Coordinates();
-            array_1d<double, 3> relative_vector_2 = inner_point - cast_neighbour->GetGeometry()[2].Coordinates();
+                array_1d<double, 3> relative_vector_0 = inner_point - cast_neighbour->GetGeometry()[0].Coordinates();
+                array_1d<double, 3> relative_vector_1 = inner_point - cast_neighbour->GetGeometry()[1].Coordinates();
+                array_1d<double, 3> relative_vector_2 = inner_point - cast_neighbour->GetGeometry()[2].Coordinates();
             
-            double distance_0 = DEM_MODULUS_3(relative_vector_0);
-            double distance_1 = DEM_MODULUS_3(relative_vector_1);
-            double distance_2 = DEM_MODULUS_3(relative_vector_2);
-            double inverse_of_total_distance = 1.0 / (distance_0 + distance_1 + distance_2);
+                double distance_0 = DEM_MODULUS_3(relative_vector_0);
+                double distance_1 = DEM_MODULUS_3(relative_vector_1);
+                double distance_2 = DEM_MODULUS_3(relative_vector_2);
+                double inverse_of_total_distance = 1.0 / (distance_0 + distance_1 + distance_2);
             
-            double weight_0 = 1.0 - (distance_1 + distance_2) * inverse_of_total_distance;
-            double weight_1 = 1.0 - (distance_2 + distance_0) * inverse_of_total_distance;
-            double weight_2 = 1.0 - (distance_0 + distance_1) * inverse_of_total_distance; // It could be also: weight_2 = 1.0 - weight_0 - weight_1;
+                double weight_0 = 1.0 - (distance_1 + distance_2) * inverse_of_total_distance;
+                double weight_1 = 1.0 - (distance_2 + distance_0) * inverse_of_total_distance;
+                double weight_2 = 1.0 - (distance_0 + distance_1) * inverse_of_total_distance; // It could be also: weight_2 = 1.0 - weight_0 - weight_1;
                  
-            cast_neighbour->GetGeometry()[0].SetLock();
-            cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_0 * non_dim_volume_wear;
-            cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += weight_0 * non_dim_impact_wear;
-            cast_neighbour->GetGeometry()[0].UnSetLock();
+                cast_neighbour->GetGeometry()[0].SetLock();
+                cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_0 * non_dim_volume_wear;
+                cast_neighbour->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += weight_0 * non_dim_impact_wear;
+                cast_neighbour->GetGeometry()[0].UnSetLock();
             
-            cast_neighbour->GetGeometry()[1].SetLock();
-            cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_1 * non_dim_volume_wear;
-            cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += weight_1 * non_dim_impact_wear;
-            cast_neighbour->GetGeometry()[1].UnSetLock();
+                cast_neighbour->GetGeometry()[1].SetLock();
+                cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_1 * non_dim_volume_wear;
+                cast_neighbour->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) += weight_1 * non_dim_impact_wear;
+                cast_neighbour->GetGeometry()[1].UnSetLock();
             
-            cast_neighbour->GetGeometry()[2].SetLock();
-            cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_2 * non_dim_volume_wear;
-            cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += weight_2 * non_dim_impact_wear;
-            cast_neighbour->GetGeometry()[2].UnSetLock();
+                cast_neighbour->GetGeometry()[2].SetLock();
+                cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_2 * non_dim_volume_wear;
+                cast_neighbour->GetGeometry()[2].FastGetSolutionStepValue(IMPACT_WEAR) += weight_2 * non_dim_impact_wear;
+                cast_neighbour->GetGeometry()[2].UnSetLock();
             
             } //cast_neighbour->GetProperties()[PRINT_WEAR] loop
         } //ContactType loop  

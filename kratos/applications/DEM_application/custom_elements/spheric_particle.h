@@ -209,6 +209,8 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
 
 virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], array_1d<double, 3 > &other_to_me_vel, int & ContactType);
 
+virtual void UpdateRF_Pram(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], int & ContactType);
+
 virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 void CalculateKineticEnergy(double& rKineticEnergy);
 void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
