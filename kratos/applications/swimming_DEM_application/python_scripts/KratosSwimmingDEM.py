@@ -192,6 +192,7 @@ DEM_proc.AddMpiVariables(balls_model_part)
 vars_man.AddNodalVariables(balls_model_part, pp.dem_vars)
 DEM_proc.AddCommonVariables(rigid_faces_model_part, pp.dem)
 DEM_proc.AddRigidFaceVariables(rigid_faces_model_part, pp.dem)
+vars_man.AddNodalVariables(rigid_faces_model_part, pp.rigid_faces_vars)
 DEM_proc.AddMpiVariables(rigid_faces_model_part)
 DEM_proc.AddCommonVariables(clusters_model_part, pp.dem)
 DEM_proc.AddClusterVariables(clusters_model_part, pp.dem)
@@ -610,8 +611,8 @@ while time <= final_time:
     if particles_results_counter.Tick():
         # eliminating remote balls
         
-        if pp.dem.BoundingBoxOption == "ON":
-            creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+        #if pp.dem.BoundingBoxOption == "ON":
+        #    creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
             
         io_tools.PrintParticlesResults(pp.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
@@ -665,7 +666,7 @@ while time <= final_time:
         
         # eliminating remote balls
 
-        creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
+        #creator_destructor.DestroyParticlesOutsideBoundingBox(balls_model_part)
         
         first_dem_iter = False
 
