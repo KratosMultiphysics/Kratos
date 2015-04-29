@@ -299,7 +299,7 @@ virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double GlobalContactForce[3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
-                    array_1d<double, 3> &rElasticForce,
+                    array_1d<double, 3>& rElasticForce,
                     array_1d<double, 3>& rContactForce,
                     const unsigned int i_neighbour_count);
 
@@ -309,7 +309,7 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     double GlobalContactForce[3],
                     double GlobalElasticContactForce[3],
                     double ViscoDampingLocalContactForce[3],
-                    array_1d<double, 3> &rElasticForce,
+                    array_1d<double, 3>& rElasticForce,
                     array_1d<double, 3>& rContactForce,
                     const unsigned int iRigidFaceNeighbour);
 
@@ -321,6 +321,10 @@ virtual void CalculateViscoDamping(double LocalRelVel[3],
                                       double equiv_visco_damp_coeff_normal,
                                       double equiv_visco_damp_coeff_tangential,
                                       bool sliding);
+
+virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
+                         double mTimeStep, double density, bool sliding, double inverse_of_volume,
+                         double LocalElasticContactForce, DEMWall* cast_neighbour, array_1d<double, 3>& node_coor_array);
 
 virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
