@@ -334,7 +334,7 @@ namespace Kratos
                   }                  
               }
               
-              if(found) continue;
+              if (found) continue;
               
               for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it!= mpInlet_model_part->GetMesh(0).PropertiesEnd();   props_it++ ) {
                   int model_part_id = props_it->GetId();
@@ -414,11 +414,11 @@ namespace Kratos
           
           // Finding overlapping of initial configurations
 
-          if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
-              for(int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
+          if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]) {
+              for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations();
           }
 
-          if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]){
+          if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]) {
               InitialTimeStepCalculation();
           }
 
@@ -504,9 +504,10 @@ namespace Kratos
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo          
           InitializeSolutionStep();
           
-          // 2. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
+          // 2. Neighboring search. Every N times. + destruction of particles outside the bounding box                   
 
-          if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
+          if ((time_step + 1) % mNStepSearch == 0 && time_step > 0) {
+              
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
                   RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
@@ -532,7 +533,7 @@ namespace Kratos
               
           }
 
-          else{
+          else {
               
               mSearchControl = 1; // Search is active but no search has been done this timestep;
           }
@@ -554,7 +555,7 @@ namespace Kratos
           SynchronizeSolidMesh(r_model_part);
           
           // 5. Motion Integration
-          PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot                  
+          PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels desplaçaments i tot                  
           
           FinalizeSolutionStep();         
 
@@ -740,11 +741,11 @@ namespace Kratos
       std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
  
       if(in_coordination_number <= 0.0) {
-        KRATOS_ERROR(std::runtime_error,"The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
+        KRATOS_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
       }
       
       while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 ) {              
-          if(iteration>=maxiteration)   break;
+          if(iteration>=maxiteration) break;
           iteration++;
           mSearchTolerance *= in_coordination_number/out_coordination_number;
           SetSearchRadius(r_model_part, 1.0);
@@ -754,7 +755,7 @@ namespace Kratos
 
       if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << mSearchTolerance <<". "<<"\n"<<std::endl;
       else {   
-          std::cout<<"Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
+          std::cout << "Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
           KRATOS_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
           //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
       }                  
@@ -999,7 +1000,7 @@ namespace Kratos
     }
     
     
-     void ApplyPrescribedBoundaryConditions()
+    void ApplyPrescribedBoundaryConditions()
     {
       
       KRATOS_TRY
