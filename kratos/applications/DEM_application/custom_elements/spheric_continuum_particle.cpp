@@ -9,7 +9,8 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
+#include <iomanip> // to improve std::cout precision
 
 // External includes
 
@@ -403,7 +404,10 @@ namespace Kratos {
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                //DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                //DisplacementDueToRotation_2(DeltDisp, OldLocalCoordSystem, LocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                //DisplacementDueToRotationMatrix(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                DisplacementDueToRotationMatrix_2(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             }
 
             double LocalDeltDisp[3] = {0.0};
@@ -502,11 +506,16 @@ namespace Kratos {
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce[2], CohesionForce[2], LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                     GlobalElasticContactForce, ViscoDampingLocalContactForce, rElasticForce, rContactForce, i_neighbour_count);
 
-            if (this->Is(DEMFlags::HAS_ROTATION)) {ComputeMoments(LocalElasticContactForce[2], 
-                                                                    mOldNeighbourElasticContactForces[i_neighbour_count], 
-                                                                    rInitialRotaMoment, 
-                                                                    LocalCoordSystem[2], 
-                                                                    neighbour_iterator);}
+            array_1d<double, 3> temp_force = ZeroVector(3);
+        
+            temp_force[0] = GlobalContactForce[0];
+            temp_force[1] = GlobalContactForce[1];
+            temp_force[2] = GlobalContactForce[2];
+            
+            if (this->Is(DEMFlags::HAS_ROTATION)) {
+                //ComputeMoments(LocalElasticContactForce[2], mOldNeighbourElasticContactForces[i_neighbour_count], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator);
+                ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator);
+            }
 
             if (mContactMeshOption == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
                 CalculateOnContactElements(neighbour_iterator_id, 
@@ -1467,4 +1476,4 @@ namespace Kratos {
  * 
  */
 
-// #C3: InitializeContactElements : aqesta funcio començava abans de evaluatedeltadisplacement per poisson etc pero no crec ke faci falta ara.
+// #C3: InitializeContactElements : aquesta funcio començava abans de evaluatedeltadisplacement per poisson etc pero no crec ke faci falta ara.
