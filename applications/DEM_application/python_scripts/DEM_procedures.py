@@ -986,10 +986,11 @@ class DEMIo(object):
         self.PushPrintVar(self.PostRadius,           RADIUS,                       self.spheres_variables)
         self.PushPrintVar(self.PostExportId,         EXPORT_ID,                    self.spheres_variables)
         self.PushPrintVar(self.PostExportSkinSphere, EXPORT_SKIN_SPHERE,           self.spheres_variables)
+        #self.PushPrintVar(                        1, DELTA_DISPLACEMENT,           self.spheres_variables)
+        #self.PushPrintVar(                        1, PARTICLE_ROTATION_ANGLE,      self.spheres_variables)
         self.PushPrintVar(self.PostRigidElementForces, RIGID_ELEMENT_FORCE,          self.spheres_variables)
         self.PushPrintVar(self.PostTemperature,      TEMPERATURE,                  self.spheres_variables)
         self.PushPrintVar(self.PostHeatFlux,         HEATFLUX,                     self.spheres_variables)
-
         #self.PushPrintVar( 1,                                               DUMMY_1, self.spheres_variables) # miquel mapping
 
         # Spheres Rotation
