@@ -50,7 +50,7 @@ namespace Kratos
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			
 			#pragma omp parallel for reduction(+:sum_area) reduction(+:sum_water_area) 
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				const double & nodal_area = inode->FastGetSolutionStepValue(NODAL_AREA); //resetting the temperature	
@@ -151,7 +151,7 @@ namespace Kratos
 			{
 				double local_thread_water_height=-100000000.0;
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 					ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 					double & distance = (inode->FastGetSolutionStepValue(DISTANCE));
@@ -194,7 +194,7 @@ namespace Kratos
 			{
 				double local_thread_max_courant = 0.0;
 				#pragma omp parallel for
-				for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+				for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 				{
 					ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 					//double & distance = (inode->FastGetSolutionStepValue(DISTANCE));
@@ -233,7 +233,7 @@ namespace Kratos
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			
 			#pragma omp parallel for reduction(+:sum_courant)
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				//const double & velocity_over_elem_size = (ielem->GetValue(VELOCITY_OVER_ELEM_SIZE));
@@ -271,7 +271,7 @@ namespace Kratos
 			//ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			/*
 			#pragma omp parallel for 
-			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				noalias(inode->FastGetSolutionStepValue(RHS)) = zero3;
@@ -281,7 +281,7 @@ namespace Kratos
 			*/
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for firstprivate(velocities)
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				double face_force=0.0;
 				
