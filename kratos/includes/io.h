@@ -100,6 +100,12 @@ public:
     /// Pointer definition of IO
     KRATOS_CLASS_POINTER_DEFINITION(IO);
 
+	/// Local Flags
+	KRATOS_DEFINE_LOCAL_FLAG( READ );
+	KRATOS_DEFINE_LOCAL_FLAG( WRITE );
+	KRATOS_DEFINE_LOCAL_FLAG( APPEND );
+	KRATOS_DEFINE_LOCAL_FLAG( IGNORE_VARIABLES_ERROR );
+
     typedef Node<3> NodeType;
 
     typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
