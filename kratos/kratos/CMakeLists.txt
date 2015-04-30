@@ -12,7 +12,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set( KRATOS_CORE_SOURCES     
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/sources/datafile_io.cpp; 
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
@@ -23,7 +22,9 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;	
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES     
@@ -70,6 +71,8 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mpi_connectivity_preserve_modeler.cpp;
 	# ${CMAKE_CURRENT_SOURCE_DIR}/processes/mdpa_reorder_consecutive_process.cpp;	
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
 
      )
 
