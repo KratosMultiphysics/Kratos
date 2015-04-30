@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/io.h"
 #include "utilities/timer.h"
+#include "containers/flags.h"
 
 
 namespace Kratos
@@ -99,7 +100,7 @@ public:
     /// Pointer definition of ModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartIO);
 
-    typedef IO BaseType;
+   typedef IO BaseType;
 
     typedef BaseType::NodeType NodeType;
 
@@ -124,10 +125,7 @@ public:
     ///@{
 
     /// Constructor with  filenames.
-    ModelPartIO(std::string const& Filename, const bool IgnoreNonAddedNodalVariables = false);
-
-    /// Constructor with input and output filenames.
-    ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename, const bool IgnoreNonAddedNodalVariables = false);
+	ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
 
     /// Constructor with filenames.
@@ -277,6 +275,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
+	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
+	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
+	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
 
     ///@}
     ///@name Protected  Access
@@ -305,13 +306,10 @@ protected:
     ///@{
 
     SizeType mNumberOfLines;
-    std::string mInputBaseName;
-    std::string mOutputBaseName;
-    std::string mInputFilename;
-    std::string mOutputFilename;
-    std::ifstream mInput;
-    std::ofstream mOutput;
-    bool mIgnoreNonAddedNodalVariables;
+    std::string mBaseFilename;
+    std::string mFilename;
+    std::fstream mFile;
+    Flags mOptions;
 
 
     ///@}
