@@ -55,6 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/io.h"
 #include "includes/model_part_io.h"
+#include "includes/reorder_consecutive_model_part_io.h"
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 
@@ -160,13 +161,16 @@ void  AddIOToPython()
     .def("ReadInitialValues",&IO::ReadInitialValues)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
+	.add_static_property("READ", IO::READ)
+	.add_static_property("WRITE", IO::WRITE)
+	.add_static_property("APPEND", IO::APPEND)
+	.add_static_property("IGNORE_VARIABLES_ERROR", IO::IGNORE_VARIABLES_ERROR)
     //.def("__str__",PrintDatafileIO)
     ;
 
-
     class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
         "ModelPartIO",init<std::string const&>())
-        .def(init<std::string const&, bool const>())
+        .def(init<std::string const&, const Flags>())
     ;
     /*
     class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
