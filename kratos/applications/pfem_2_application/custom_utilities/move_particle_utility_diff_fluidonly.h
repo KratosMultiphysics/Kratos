@@ -3462,8 +3462,8 @@ namespace Kratos
 			if(is_found == true)
 			{
 				//pelement.clear();
-				//pelement.push_back( Element::WeakPointer((*(result_begin+i).base())));
-				pelement=Element::Pointer((*(result_begin+i).base()));
+				//pelement.push_back( Element::WeakPointer((*(result_begin+i))));
+				pelement=Element::Pointer((*(result_begin+i)));
 				return true;
 			}
 		}
@@ -3582,8 +3582,8 @@ namespace Kratos
 			if(is_found == true)
 			{
 				//pelement.clear();
-				//pelement.push_back( Element::WeakPointer((*(result_begin+i).base())));
-				pelement=Element::Pointer((*(result_begin+i).base()));
+				//pelement.push_back( Element::WeakPointer((*(result_begin+i))));
+				pelement=Element::Pointer((*(result_begin+i)));
 				if (number_of_elements_in_trajectory<20)
 				{
 				elements_in_trajectory(number_of_elements_in_trajectory)=pelement;
@@ -3688,8 +3688,8 @@ namespace Kratos
 			if(is_found == true)
 			{
 				//pelement.clear();
-				//pelement.push_back( Element::WeakPointer((*(result_begin+i).base())));
-				pelement=Element::Pointer((*(result_begin+i).base()));
+				//pelement.push_back( Element::WeakPointer((*(result_begin+i))));
+				pelement=Element::Pointer((*(result_begin+i)));
 				return true;
 			}
 		}
