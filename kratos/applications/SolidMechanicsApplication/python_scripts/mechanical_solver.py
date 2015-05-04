@@ -84,6 +84,7 @@ class MechanicalSolver:
         self.echo_level = 0
         self.model_part = model_part
         self.domain_size = domain_size
+        self.buffer_size = 3 #default buffer_size
 
         self.pressure_dofs = False
         self.rotation_dofs = False
@@ -134,6 +135,17 @@ class MechanicalSolver:
         print("::[Mechanical Solver]:: -START-")
 
     #
+    
+    def DefineBufferSize(self):
+      
+      if( self.time_integration_method == "Explicit"):
+        if(self.explicit_integration_scheme == "CentralDifferences"):
+            self.buffer_size = 2 
+            #could be 1 becouse it uses a extra variable - MIDDLE_VELOCITY for previous time step velocity and avoids extra buffer_size. However
+            #the prediction/application of B.C. need last step values 
+        if(self.arlequin == 1):
+            self.buffer_size = 2 
+                  
     def Initialize(self):
 
         # creating the builder and solver:
@@ -363,7 +375,8 @@ def CreateSolver(model_part, config):
     if(hasattr(config, "explicit_integration_scheme")):
         structural_solver.explicit_integration_scheme = config.explicit_integration_scheme
 
-
+    structural_solver.DefineBufferSize()
+    
     # definition of the solver parameters
     if(hasattr(config, "ComputeReactions")):
         structural_solver.compute_reactions = config.ComputeReactions  # bool
