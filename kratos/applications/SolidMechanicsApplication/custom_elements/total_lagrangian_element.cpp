@@ -221,17 +221,25 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
+    //Jacobian Determinant for the isoparametric and numerical integration
+	//
+    rVariables.detJ = mDetJ0[rPointNumber];
+
+    //Step domain size
+    rVariables.DomainSize = rVariables.detJ;
+
     //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
 
     //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_0]
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], mInvJ0[rPointNumber] );
 
-    //Jacobian Determinant for the isoparametric and numerical integration
-    rVariables.detJ = mDetJ0[rPointNumber];
+    //
+    //
+    //
 
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
+    //
+    //
 
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)
