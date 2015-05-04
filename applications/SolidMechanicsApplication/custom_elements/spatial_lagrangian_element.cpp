@@ -312,9 +312,8 @@ void SpatialLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
-    // Current Deformation Gradient F [dx_n+1/dx_n]
-    // this->CalculateDeformationGradient ( rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition );
-
+    //
+    //
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
@@ -326,6 +325,7 @@ void SpatialLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
+    //
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
