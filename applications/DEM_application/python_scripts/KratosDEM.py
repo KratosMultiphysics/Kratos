@@ -46,6 +46,7 @@ else:
 #
 #
 #
+#
 
 ##############################################################################
 #                                                                            #
@@ -67,13 +68,14 @@ KRATOSprint   = procedures.KRATOSprint
 procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
-spheres_model_part      = ModelPart("SpheresPart");
+spheres_model_part    = ModelPart("SpheresPart");
 rigid_face_model_part = ModelPart("RigidFace_Part");  
 mixed_model_part      = ModelPart("Mixed_Part");
 cluster_model_part    = ModelPart("Cluster_Part");
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part      = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
+
 #EXTRA ModelPart Operations
 #
 #
@@ -88,7 +90,6 @@ creator_destructor = ParticleCreatorDestructor()
 solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 
 
-
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
 procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
@@ -100,6 +101,7 @@ procedures.AddMpiVariables(cluster_model_part)
 procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
 procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
 solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
+#
 procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
@@ -140,11 +142,14 @@ solver.AddDofs(DEM_inlet_model_part)
 
 #Utilities
 
+# set the constitutive law
+#
+#
+#
 
 # Creating necessary directories
 main_path = os.getcwd()
 [post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
-
 
 os.chdir(main_path)
 
@@ -285,6 +290,7 @@ post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
 while ( time < DEM_parameters.FinalTime):
+    #
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
@@ -293,6 +299,7 @@ while ( time < DEM_parameters.FinalTime):
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
     
+    #
     rigid_face_model_part.ProcessInfo[TIME]       = time
     rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
     rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
@@ -320,7 +327,8 @@ while ( time < DEM_parameters.FinalTime):
     
     #### SOLVE #########################################
     solver.Solve()
-    ####
+    #
+    #
     
     #### TIME CONTROL ##################################
     
@@ -353,8 +361,9 @@ while ( time < DEM_parameters.FinalTime):
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if ( time_to_print >= DEM_parameters.OutputTimeStep):               
-        
+
+    if ( DEM_parameters.OutputTimeStep - time_to_print < 1e-2*dt  ):            
+
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfNodes(0)) + " nodes)")
@@ -379,7 +388,11 @@ while ( time < DEM_parameters.FinalTime):
         os.chdir(main_path)
 
         time_old_print = time
-        
+    
+    #AFTER PRINTING OPERATIONS
+    #
+  
+
     #if((step%500) == 0):
       #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
           #MaterialTest.OrientationStudy(contact_model_part, step)
