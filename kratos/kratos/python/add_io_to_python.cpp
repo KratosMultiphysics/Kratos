@@ -149,7 +149,7 @@ void  AddIOToPython()
 {
     using namespace boost::python;
 
-    class_<IO, IO::Pointer, boost::noncopyable>("IO")
+    class_<IO, IO::Pointer, boost::noncopyable> io_python_interface = class_<IO, IO::Pointer, boost::noncopyable>("IO")
     .def("ReadNode",&IO::ReadNode)
     .def("ReadNodes",&IO::ReadNodes)
     .def("WriteNodes",&IO::WriteNodes)
@@ -161,15 +161,18 @@ void  AddIOToPython()
     .def("ReadInitialValues",&IO::ReadInitialValues)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
-	.add_static_property("READ", IO::READ)
-	.add_static_property("WRITE", IO::WRITE)
-	.add_static_property("APPEND", IO::APPEND)
-	.add_static_property("IGNORE_VARIABLES_ERROR", IO::IGNORE_VARIABLES_ERROR)
-    //.def("__str__",PrintDatafileIO)
-    ;
-
+	;
+	io_python_interface.attr("READ") = IO::READ;
+	io_python_interface.attr("WRITE") =IO::WRITE;
+	io_python_interface.attr("APPEND") = IO::APPEND;
+	io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
+ 
     class_<ModelPartIO, ModelPartIO::Pointer, bases<IO>,  boost::noncopyable>(
         "ModelPartIO",init<std::string const&>())
+        .def(init<std::string const&, const Flags>())
+    ;
+	class_<ReorderConsecutiveModelPartIO, ReorderConsecutiveModelPartIO::Pointer, bases<ModelPartIO>,  boost::noncopyable>(
+        "ReorderConsecutiveModelPartIO",init<std::string const&>())
         .def(init<std::string const&, const Flags>())
     ;
     /*
