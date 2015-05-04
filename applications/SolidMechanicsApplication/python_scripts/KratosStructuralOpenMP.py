@@ -146,7 +146,7 @@ load_restart = general_variables.LoadRestart
 save_restart = general_variables.SaveRestart
 
 # set buffer size
-buffer_size = 3
+buffer_size = main_step_solver.buffer_size
 
 # define problem variables:
 solver_constructor.AddVariables(model_part, SolverSettings)
