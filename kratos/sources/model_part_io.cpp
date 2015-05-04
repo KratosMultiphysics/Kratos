@@ -67,7 +67,7 @@ namespace Kratos
 			if(!(mFile.is_open()))
 				KRATOS_ERROR(std::invalid_argument, "Error opening input file : ", mFilename.c_str());
 		}
-		if (mOptions.Is(IO::APPEND))
+		else if (mOptions.Is(IO::APPEND))
 		{
 			mFile.open(mFilename.c_str(), std::fstream::in|std::fstream::app);
 			if(!(mFile.is_open()))
@@ -79,6 +79,13 @@ namespace Kratos
 			if(!(mFile.is_open()))
 				KRATOS_ERROR(std::invalid_argument, "Error opening output file : ", mFilename.c_str());
 		}
+		else // if none of the READ, WRITE or APPEND are defined we will take READ as defualt.
+		{
+			mFile.open(mFilename.c_str(), std::fstream::in);
+			if(!(mFile.is_open()))
+				KRATOS_ERROR(std::invalid_argument, "Error opening input file : ", mFilename.c_str());
+		}
+
 
         Timer::SetOuputFile(Filename + ".time");
 
