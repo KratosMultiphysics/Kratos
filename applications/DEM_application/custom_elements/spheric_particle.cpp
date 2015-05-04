@@ -152,7 +152,7 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
 
     ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_current_process_info, dt, multi_stage_RHS);
 
-    if (mFemOldNeighbourIds.size() > 0){
+    if (mFemOldNeighbourIds.size() > 0){  //MSI: needed??
         ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt);
     }
     
@@ -1029,14 +1029,10 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
     Weight[1]              = RF_Pram[ino1 + 11];
     Weight[2]              = RF_Pram[ino1 + 12];
     Weight[3]              = RF_Pram[ino1 + 13];
-    int iNeighborID        = static_cast<int>(RF_Pram[ino1 + 14]);
     ContactType            = RF_Pram[ino1 + 15];
 
-    if (iNeighborID == static_cast<int>(rObj_2->Id())){
-
-        for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
-            noalias(other_to_me_vel) += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
-        }
+    for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
+        noalias(other_to_me_vel) += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
     }
 
     KRATOS_CATCH("")
@@ -1136,6 +1132,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         }
 
         double ks_el = kn_el / (2.0 * (1.0 + myPoisson));
+        
         double aux_norm_to_tang = sqrt(ks_el / kn_el);
         double DistPToB = 0.0;
 
