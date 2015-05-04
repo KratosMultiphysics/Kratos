@@ -575,36 +575,8 @@ void SphericParticle::EvaluateDeltaDisplacement(double RelDeltDisp[3],
 //**************************************************************************************************************************************************
 
 void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
+                                                double RelVel[3],
                                                 double OldLocalCoordSystem[3][3],
-                                                const double& other_radius,
-                                                const double& dt,
-                                                const array_1d<double, 3>& ang_vel,
-                                                SphericParticle* p_neighbour)
-{
-    double velA[3]      = {0.0};
-    double velB[3]      = {0.0};
-    double dRotaDisp[3] = {0.0};
-    const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-
-    GeometryFunctions::CrossProduct(      ang_vel, OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD.
-    GeometryFunctions::CrossProduct(other_ang_vel, OldLocalCoordSystem[2], velB);
-
-    dRotaDisp[0] = - velA[0] * mRadius - velB[0] * other_radius;
-    dRotaDisp[1] = - velA[1] * mRadius - velB[1] * other_radius;
-    dRotaDisp[2] = - velA[2] * mRadius - velB[2] * other_radius;
-
-    // Contribution of the rotation velocity
-    DeltDisp[0] += dRotaDisp[0] * dt;
-    DeltDisp[1] += dRotaDisp[1] * dt;
-    DeltDisp[2] += dRotaDisp[2] * dt;
-}
-
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-
-void SphericParticle::DisplacementDueToRotation_2(double DeltDisp[3],
-                                                double OldLocalCoordSystem[3][3],
-                                                double LocalCoordSystem[3][3],
                                                 const double& other_radius,
                                                 const double& dt,
                                                 const array_1d<double, 3>& ang_vel,
@@ -622,10 +594,12 @@ void SphericParticle::DisplacementDueToRotation_2(double DeltDisp[3],
     dRotaDisp[1] = - velA[1] * mRadius - velB[1] * other_radius;
     dRotaDisp[2] = - velA[2] * mRadius - velB[2] * other_radius;
     
-    double proj = GeometryFunctions::DotProduct(LocalCoordSystem[2], dRotaDisp);
-    proj = fabs(proj);
-    DEM_MULTIPLY_BY_SCALAR_3(LocalCoordSystem[2], proj);
-    DEM_ADD_SECOND_TO_FIRST(dRotaDisp,LocalCoordSystem[2]);
+    DEM_MULTIPLY_BY_SCALAR_3(velA, mRadius);
+    DEM_MULTIPLY_BY_SCALAR_3(velB, other_radius);
+    
+    RelVel[0] += velA[0] - velB[0];
+    RelVel[1] += velA[1] - velB[1];
+    RelVel[2] += velA[2] - velB[2];
 
     // Contribution of the rotation velocity
     DeltDisp[0] += dRotaDisp[0] * dt;
@@ -637,76 +611,6 @@ void SphericParticle::DisplacementDueToRotation_2(double DeltDisp[3],
 //**************************************************************************************************************************************************
 
 void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
-                                                double OldLocalCoordSystem[3][3],
-                                                const double& other_radius,
-                                                const double& dt,
-                                                const array_1d<double, 3>& ang_vel,
-                                                SphericParticle* p_neighbour)
-{
-    double new_A[3] = {0.0};
-    double new_B[3] = {0.0};
-    
-    double old_A[3] = {0.0};
-    double old_B[3] = {0.0};
-    
-    double RotationMatrix_A[3][3] = {{0.0}, {0.0}, {0.0}};
-    double RotationMatrix_B[3][3] = {{0.0}, {0.0}, {0.0}};
-    
-    DEM_COPY_SECOND_TO_FIRST_3(old_A, OldLocalCoordSystem[2]);
-    DEM_COPY_SECOND_TO_FIRST_3(old_B, OldLocalCoordSystem[2]);
-    
-    DEM_MULTIPLY_BY_SCALAR_3(old_A, -mRadius)
-    DEM_MULTIPLY_BY_SCALAR_3(old_B, other_radius)
-        
-    const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-    
-    double angle = other_ang_vel[2];
-    
-    RotationMatrix_A[0][0] = cos(angle * dt);
-    RotationMatrix_A[0][1] = -sin(angle * dt);
-    RotationMatrix_A[0][2] = 0;
-    RotationMatrix_A[1][0] = sin(angle * dt);
-    RotationMatrix_A[1][1] = cos(angle * dt);
-    RotationMatrix_A[1][2] = 0;
-    RotationMatrix_A[2][0] = 0;
-    RotationMatrix_A[2][1] = 0;
-    RotationMatrix_A[2][2] = 1;
-    
-    RotationMatrix_B[0][0] = cos(angle * dt);
-    RotationMatrix_B[0][1] = -sin(angle * dt);
-    RotationMatrix_B[0][2] = 0;
-    RotationMatrix_B[1][0] = sin(angle * dt);
-    RotationMatrix_B[1][1] = cos(angle * dt);
-    RotationMatrix_B[1][2] = 0;
-    RotationMatrix_B[2][0] = 0;
-    RotationMatrix_B[2][1] = 0;
-    RotationMatrix_B[2][2] = 1;
-            
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            new_A[i] += RotationMatrix_A[i][j] * old_A[j];
-            new_B[i] += RotationMatrix_B[i][j] * old_B[j];
-        }
-    }
-    
-    //double old_A_mod = DEM_MODULUS_3(old_A);
-    //double old_B_mod = DEM_MODULUS_3(old_B);
-    //double new_A_mod = DEM_MODULUS_3(new_A);
-    //double new_B_mod = DEM_MODULUS_3(new_B);
-    
-    //std::cout << std::endl << old_A_mod << " " << new_A_mod << " " <<  old_B_mod <<  " " << new_B_mod << std::endl;
-            
-    // Contribution of the rotation velocity
-    DeltDisp[0] += (new_A[0] - old_A[0] - new_B[0] + old_B[0]);
-    DeltDisp[1] += (new_A[1] - old_A[1] - new_B[1] + old_B[1]);
-    DeltDisp[2] += (new_A[2] - old_A[2] - new_B[2] + old_B[2]);
-    
-}
-
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
-
-void SphericParticle::DisplacementDueToRotationMatrix_2(double DeltDisp[3],
                                                 double RelVel[3],
                                                 double OldLocalCoordSystem[3][3],
                                                 const double& other_radius,
@@ -797,8 +701,7 @@ void SphericParticle::DisplacementDueToRotationMatrix_2(double DeltDisp[3],
         
         GeometryFunctions::CrossProduct(angular_velocity, radial_vector, vel);
         GeometryFunctions::CrossProduct(other_angular_velocity, other_radial_vector, other_vel);
-        
-        
+                
         RelVel[0] += vel[0] - other_vel[0];
         RelVel[1] += vel[1] - other_vel[1];
         RelVel[2] += vel[2] - other_vel[2];
@@ -945,7 +848,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, velocity, delta_displ, ineighbour, distance);
 
         if (this->Is(DEMFlags::HAS_ROTATION)) {
-            DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_velocity, ineighbour);
+            DisplacementDueToRotation(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_velocity, ineighbour);
         }
 
         double normal_force                     =  0.0;
