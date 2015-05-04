@@ -23,20 +23,29 @@ class ColladaImporter:
         f.close()
     
     def GenerateModelPartConditions(self, condition_name):
-        #loop over all the triangles and create new nodes assigning an Id in the order in which they appear
-        #at the same time also generate the Conditions
+        #kratos auxiliaries
         nodeid = 1
         elid = 1
         prop = self.model_part.Properties[0]
+
+        #loop over all the triangles and create new nodes assigning an Id in the order in which they appear
+        #at the same time also generate the Conditions
+        print("  inside collada_mesh ", self.collada_mesh)
         
-        for itmesh in range(0, len(self.collada_mesh.geometries)):
-            mesh = self.collada_mesh.geometries[itmesh]
+        scene = self.collada_mesh.scene
+        
+        #for itmesh in range(0, len(self.collada_mesh.geometries)):
+            #mesh = self.collada_mesh.geometries[itmesh]
+            
+        for mesh in scene.objects('geometry'):
             print("mesh = ",mesh)
             #first of all generate all of the kratos nodes for this mesh
-            primitives_list = list(mesh.primitives)
+            primitives_list = list(mesh.primitives())
+            print(primitives_list)
             for triset in primitives_list:
-                if( type(triset) == collada.triangleset.TriangleSet): 
-                    print("triset = ", type(triset) )
+                print("triset = ", type(triset) )
+                if( type(triset) == collada.triangleset.BoundTriangleSet): 
+                    
                 
                     #here we loop over all of the triangles
                     for tri_indices in triset.vertex_index:
