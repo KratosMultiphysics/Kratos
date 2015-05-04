@@ -93,7 +93,9 @@ class MechanicalSolver:
         self.scheme_type = "Dynamic"
         self.time_integration_method = "Implicit" 
         self.explicit_integration_scheme = "CentralDifferences" #for explicit strategies
-             
+        
+        self.arlequin = 0
+        
         self.linear_solver = SkylineLUFactorizationSolver()
 
         # definition of the convergence criteria
