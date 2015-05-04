@@ -415,10 +415,8 @@ namespace Kratos
      */
     std::size_t ModelPartIO::ReadNodalGraph(int **NodeIndices, int **NodeConnectivities)
     {
-        SizeType num_nodes = ReadNodesNumber();
-
-        // 1. Allocate an auxiliary vector of vectors
-        ConnectivitiesContainerType aux_connectivities(num_nodes);
+        // 1. Define an auxiliary vector of vectors
+        ConnectivitiesContainerType aux_connectivities(0);
 
         // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
         ResetInput();
@@ -437,6 +435,19 @@ namespace Kratos
                 SkipBlock(word);
         }
 
+        // Check that node indices are consecutive
+        unsigned int n = 0;
+        for (ConnectivitiesContainerType::iterator inode = aux_connectivities.begin(); inode != aux_connectivities.end(); inode++)
+        {
+            n++;
+            if (inode->size() == 0)
+            {
+                std::stringstream msg;
+                msg << "Nodes are not consecutively numbered. Node " << n << " was not found in mdpa file." << std::endl;
+                KRATOS_ERROR(std::runtime_error, msg.str(),"")
+            }
+        }
+
         // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
         SizeType num_entries = 0;
         for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); ++it)
@@ -448,6 +459,7 @@ namespace Kratos
         }
 
         // 4. Write connectivity data in CSR format
+        SizeType num_nodes = aux_connectivities.size();
         *NodeIndices = new int[num_nodes+1];
         (*NodeIndices)[0] = 0;
         *NodeConnectivities = new int[num_entries];
@@ -1766,7 +1778,9 @@ namespace Kratos
 
         SizeType id;
         SizeType node_id;
-        SizeType number_of_nodes = rNodalConnectivities.size();
+        SizeType position;
+        SizeType used_size = rNodalConnectivities.size();
+        SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
 
         std::string word;
         std::string element_name;
@@ -1803,13 +1817,22 @@ namespace Kratos
 
             for (SizeType i = 0; i < n_nodes_in_elem; i++)
             {
-                node_id = temp_element_nodes[i];
-                if (node_id > number_of_nodes) // Ids begin on 1
-                    KRATOS_ERROR(std::runtime_error,"Element connectivities contain undefined node with id ",node_id);
+                position = temp_element_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size)
+                {
+                    used_size = position+1;
+                    if (position >= reserved_size)
+                    {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
                 for (SizeType j = 0; j < i; j++)
-                    rNodalConnectivities[node_id-1].push_back(temp_element_nodes[j]);
+                    rNodalConnectivities[position].push_back(temp_element_nodes[j]);
                 for (SizeType j = i+1; j < n_nodes_in_elem; j++)
-                    rNodalConnectivities[node_id-1].push_back(temp_element_nodes[j]);
+                    rNodalConnectivities[position].push_back(temp_element_nodes[j]);
             }
         }
 
@@ -1822,7 +1845,9 @@ namespace Kratos
 
         SizeType id;
         SizeType node_id;
-        SizeType number_of_nodes = rNodalConnectivities.size();
+        SizeType position;
+        SizeType used_size = rNodalConnectivities.size();
+        SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
 
         std::string word;
         std::string condition_name;
@@ -1859,13 +1884,22 @@ namespace Kratos
 
             for (SizeType i = 0; i < n_nodes_in_cond; i++)
             {
-                node_id = temp_condition_nodes[i];
-                if (node_id > number_of_nodes) // Ids begin on 1
-                    KRATOS_ERROR(std::runtime_error,"Condition connectivities contain undefined node with id ",node_id);
+                position = temp_condition_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size)
+                {
+                    used_size = position+1;
+                    if (position >= reserved_size)
+                    {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
                 for (SizeType j = 0; j < i; j++)
-                    rNodalConnectivities[node_id-1].push_back(temp_condition_nodes[j]);
+                    rNodalConnectivities[position].push_back(temp_condition_nodes[j]);
                 for (SizeType j = i+1; j < n_nodes_in_cond; j++)
-                    rNodalConnectivities[node_id-1].push_back(temp_condition_nodes[j]);
+                    rNodalConnectivities[position].push_back(temp_condition_nodes[j]);
             }
         }
 
@@ -2440,7 +2474,7 @@ namespace Kratos
                     KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
                 }
 
-                *(OutputFiles[partition_id]) << node_data;
+                *(OutputFiles[partition_id]) << node_data.str();
             }
 
         }
@@ -2519,7 +2553,7 @@ namespace Kratos
                     KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
                 }
 
-                *(OutputFiles[partition_id]) << element_data;
+                *(OutputFiles[partition_id]) << element_data.str();
             }
 
         }
@@ -2599,7 +2633,7 @@ namespace Kratos
                     KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
                 }
 
-                *(OutputFiles[partition_id]) << condition_data;
+                *(OutputFiles[partition_id]) << condition_data.str();
             }
 
         }
@@ -2720,7 +2754,7 @@ namespace Kratos
                     KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
                 }
 
-                *(OutputFiles[partition_id]) << node_data;
+                *(OutputFiles[partition_id]) << node_data.str();
             }
         }
 
@@ -2771,7 +2805,7 @@ namespace Kratos
                     KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
                 }
 
-                *(OutputFiles[partition_id]) << entity_data << temp_vector << std::endl;
+                *(OutputFiles[partition_id]) << entity_data.str() << temp_vector << std::endl;
             }
         }
 
@@ -2863,7 +2897,7 @@ namespace Kratos
 			SizeType index = 0; 
 			if(BlockName == "ElementalData")
 				index = ReorderedElementId(id);
-			else if(BlockName == "ConditonalData")
+            else if(BlockName == "ConditionalData")
 				index = ReorderedConditionId(id);
 			else
 				KRATOS_ERROR(std::logic_error, "Invalid block name :", BlockName);
@@ -2892,7 +2926,7 @@ namespace Kratos
                     KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
                 }
 
-                *(OutputFiles[partition_id]) << entity_data;
+                *(OutputFiles[partition_id]) << entity_data.str();
             }
         }
 
