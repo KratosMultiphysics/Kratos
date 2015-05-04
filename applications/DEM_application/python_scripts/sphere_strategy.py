@@ -11,8 +11,44 @@ def Var_Translator(variable):
     else:
         variable = 1
 
-    return variable    
+    return variable
 
+def AddAdditionalVariables(balls_model_part, DEM_parameters):
+
+    if (hasattr(DEM_parameters, "arlequin")):
+      
+        balls_model_part.AddNodalSolutionStepVariable(DISTANCE)
+        balls_model_part.AddNodalSolutionStepVariable(BORDER)
+        balls_model_part.AddNodalSolutionStepVariable(SOLUTION)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_1)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_2)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_4)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_1)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_2)
+        balls_model_part.AddNodalSolutionStepVariable(DUMMY_3D_3)
+        balls_model_part.AddNodalSolutionStepVariable(ALPHA_ARLEQUIN)
+        balls_model_part.AddNodalSolutionStepVariable(LUMPED_PROJECTION_NODAL_MASS)
+        balls_model_part.AddNodalSolutionStepVariable(PROJECTED_DISPLACEMENT)
+        balls_model_part.AddNodalSolutionStepVariable(TRIAL_VELOCITY)
+        balls_model_part.AddNodalSolutionStepVariable(TEST_VARIABLE3D)
+        balls_model_part.AddNodalSolutionStepVariable(LAMBDA_LAGRANGE)
+
+        balls_model_part.ProcessInfo[ARLEQUIN] = 1.0
+            
+    
+def AddDofs(model_part):
+
+    for node in model_part.Nodes:
+        node.AddDof(VELOCITY_X, REACTION_X)
+        node.AddDof(VELOCITY_Y, REACTION_Y)
+        node.AddDof(VELOCITY_Z, REACTION_Z)
+        node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
+        node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
+        node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
+
+    print("DOFs for the DEM solution added correctly")
+    
 
 class ExplicitStrategy:
 
