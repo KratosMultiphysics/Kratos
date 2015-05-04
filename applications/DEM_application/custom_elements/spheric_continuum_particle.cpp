@@ -404,10 +404,8 @@ namespace Kratos {
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                //DisplacementDueToRotation(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
-                //DisplacementDueToRotation_2(DeltDisp, OldLocalCoordSystem, LocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
-                //DisplacementDueToRotationMatrix(DeltDisp, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
-                DisplacementDueToRotationMatrix_2(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                //DisplacementDueToRotation(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                DisplacementDueToRotationMatrix(DeltDisp, RelVel, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             }
 
             double LocalDeltDisp[3] = {0.0};
