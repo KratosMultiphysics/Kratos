@@ -81,13 +81,13 @@ public:
     // Calcula la funcion de abalandamiento o endurecimiento junto con su derivada respecto kp_punto (0 <= kp_punto <= 1.00)
     virtual void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result)
     {
-        KRATOS_ERROR(std::logic_error,  "FunctionSofteningHardeningBehavior" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "FunctionSofteningHardeningBehavior" , "");
     }
 
     /*
     virtual void Linear_Strain_Softening(Vector& Principal_Stress)
     {
-      KRATOS_ERROR(std::logic_error,  "Linear_Strain_Softening" , "");
+      KRATOS_THROW_ERROR(std::logic_error,  "Linear_Strain_Softening" , "");
     }
          */
 
@@ -99,28 +99,28 @@ public:
     virtual double FunctionBehavior(const Vector& Imput_Parameters)
     {
         KRATOS_WATCH("SOFTENING FUNCTION")
-        KRATOS_ERROR(std::logic_error,  "FunctionBehavior" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "FunctionBehavior" , "");
         return 0;
     }
 
     virtual double FirstDerivateFunctionBehavior(const Vector& Imput_Parameters)
     {
         KRATOS_WATCH("SOFTENING FUNCTION")
-        KRATOS_ERROR(std::logic_error,  "FirstDerivateFunctionBehavior" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "FirstDerivateFunctionBehavior" , "");
         return 0;
     }
 
     virtual double Calculate(const Vector& Imput_Parameters)
     {
         KRATOS_WATCH("SOFTENING FUNCTION")
-        KRATOS_ERROR(std::logic_error,  "Calculate" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Calculate" , "");
         return 0;
     }
 
     virtual double   EvolucionLaws(const Vector& Imput_Parameters, const array_1d<double,3>& Sigma)
     {
         KRATOS_WATCH("SOFTENING FUNCTION")
-        KRATOS_ERROR(std::logic_error,  "EvolucionLaws" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "EvolucionLaws" , "");
         return 0;
     }
 

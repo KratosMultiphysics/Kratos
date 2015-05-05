@@ -143,7 +143,7 @@ public:
             Msg << "Read " << NumElements << " elements, but element list has " << ElementConnectivities.size() << " entries." << std::endl;
             Msg << "Elements are most likely not correlatively numbered." << std::endl;
 
-            KRATOS_ERROR(std::runtime_error,Msg.str(),"");
+            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
         }
 
         std::vector<int> ElementPartition;
@@ -164,7 +164,7 @@ public:
             Msg << "Read " << NumConditions << " conditions, but condition list has " << ConditionConnectivities.size() << " entries." << std::endl;
             Msg << "Conditions are most likely not correlatively numbered." << std::endl;
 
-            KRATOS_ERROR(std::runtime_error,Msg.str(),"");
+            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"");
         }
 
         std::vector<int> ConditionPartition;

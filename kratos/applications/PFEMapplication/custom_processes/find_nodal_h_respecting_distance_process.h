@@ -188,7 +188,7 @@ public:
 
         //calculate average h
 // 			if(h_nodes == 0)
-// 				KRATOS_ERROR(std::logic_error,"no node has neighbours!!!!","");
+// 				KRATOS_THROW_ERROR(std::logic_error,"no node has neighbours!!!!","");
 // 			havg /= h_nodes;
 
         //set the h to the average to the nodes without neighours

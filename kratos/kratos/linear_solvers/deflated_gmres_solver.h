@@ -120,7 +120,7 @@ public:
     /// Copy constructor.
     DeflatedGMRESSolver (const DeflatedGMRESSolver& Other)
     {
-        KRATOS_ERROR (std::logic_error,"copy constructor not correctly implemented","");
+        KRATOS_THROW_ERROR (std::logic_error,"copy constructor not correctly implemented","");
     }
     /// Destructor.
     virtual ~DeflatedGMRESSolver() {}
@@ -304,7 +304,7 @@ public:
 		}
 
         if (tot_active_dofs != rA.size1() )
-            KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
+            KRATOS_THROW_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
 
         //resize arrays as needed
         mpressure_indices.resize (n_pressure_dofs,false);
@@ -365,7 +365,7 @@ public:
 	//KRATOS_WATCH(rA.size1())
 	//KRATOS_WATCH(tot_active_dofs)
 //         if (tot_active_dofs != rA.size1() )
-//             KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
+//             KRATOS_THROW_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
 
         //resize arrays as needed
         mpressure_indices.resize (n_pressure_dofs,false);
@@ -669,7 +669,7 @@ private:
     {
         const unsigned int dim = A.size1();
         if (m == 0)
-            KRATOS_ERROR (std::logic_error,"the dimension of the GMRES krylov space can not be set to zero. Please change the value of m","")
+            KRATOS_THROW_ERROR (std::logic_error,"the dimension of the GMRES krylov space can not be set to zero. Please change the value of m","")
             if (m > max_iter)
                 m = max_iter;
 	//KRATOS_WATCH("Krylov space size")
@@ -941,11 +941,11 @@ KRATOS_WATCH(norm_2(res))
             unsigned int row_end   = index1[i+1];
             if (row_end - row_begin == 0)
                 std::cout << "line " << i << " has no elements" << std::endl;
-            //KRATOS_ERROR(std::logic_error, "line found with no entries on line ",i)
+            //KRATOS_THROW_ERROR(std::logic_error, "line found with no entries on line ",i)
             for (unsigned int j=row_begin; j<row_end; j++)
             {
                 if (index2[j]>A.size2() )
-                    KRATOS_ERROR (std::logic_error, "array above size of A","")
+                    KRATOS_THROW_ERROR (std::logic_error, "array above size of A","")
                     norm += values[j]*values[j];
             }
         }

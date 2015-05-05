@@ -229,7 +229,7 @@ namespace Kratos
                                            ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY;
-            KRATOS_ERROR(std::logic_error,"FractionalStep::CalculateLeftHandSide not implemented","");
+            KRATOS_THROW_ERROR(std::logic_error,"FractionalStep::CalculateLeftHandSide not implemented","");
             KRATOS_CATCH("");
         }
 
@@ -237,7 +237,7 @@ namespace Kratos
                                             ProcessInfo& rCurrentProcessInfo)
         {
             KRATOS_TRY;
-            KRATOS_ERROR(std::logic_error,"FractionalStep::CalculateRightHandSide not implemented","");
+            KRATOS_THROW_ERROR(std::logic_error,"FractionalStep::CalculateRightHandSide not implemented","");
             KRATOS_CATCH("");
         }
 

@@ -428,13 +428,13 @@ public:
 					ModelPart::NodesContainerType::iterator it4 = (rNodes).find( t->vertexes[3]->getID());
 
 					if ( it1 == rModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
 					if ( it2 == rModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
 					if ( it3 == rModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
 					if ( it4 == rModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
 					Node<3>::Pointer pn1 =  *it1.base();
 					Node<3>::Pointer pn2 =  *it2.base();

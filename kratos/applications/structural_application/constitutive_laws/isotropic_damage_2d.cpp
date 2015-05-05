@@ -81,7 +81,7 @@ Isotropic_Damage_2D::Isotropic_Damage_2D()
     : ConstitutiveLaw()
 
 {
-    KRATOS_ERROR( std::logic_error, "Calling the empty constructor for Isotropic Damage", "" );
+    KRATOS_THROW_ERROR( std::logic_error, "Calling the empty constructor for Isotropic Damage", "" );
 }
 
 Isotropic_Damage_2D::Isotropic_Damage_2D( FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property )
@@ -617,21 +617,21 @@ int Isotropic_Damage_2D::Check(const Properties& props,
     KRATOS_TRY
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
     if(FC.Key() == 0 || props[FC]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
 
     if(FT.Key() == 0 || props[FT]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"FT has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"FT has Key zero or invalid value ","");
 
     const double& nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.999 && nu<1.01 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
     return 0;
 

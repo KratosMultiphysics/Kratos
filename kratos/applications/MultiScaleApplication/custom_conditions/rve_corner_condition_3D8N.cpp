@@ -233,15 +233,15 @@ int RveCornerCondition3D8N::Check(const ProcessInfo& rCurrentProcessInfo)
 	if(geom.size() != 8) {
 		std::stringstream ss;
 		ss << "RveCornerCondition3D8N - The Geometry should have 8 nodes. Condition with ID = " << this->GetId();
-		KRATOS_ERROR(std::logic_error, ss.str(), "");
+		KRATOS_THROW_ERROR(std::logic_error, ss.str(), "");
 	}
 	
 	//verify that the variables are correctly initialized
 	if(DISPLACEMENT.Key() == 0)
-		KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
+		KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
 
 	if(DISPLACEMENT_LAGRANGE.Key() == 0)
-		KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT_LAGRANGE has Key zero! (check if the application is correctly registered","");
+		KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT_LAGRANGE has Key zero! (check if the application is correctly registered","");
 
 	//verify that the dofs exist
 	for(unsigned int i = 0; i < geom.size(); i++)
@@ -249,16 +249,16 @@ int RveCornerCondition3D8N::Check(const ProcessInfo& rCurrentProcessInfo)
 		NodeType & iNode = geom[i];
 		
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT) == false)
-			KRATOS_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ", iNode.Id());
+			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ", iNode.Id());
 			
 		if(iNode.HasDofFor(DISPLACEMENT_X) == false || iNode.HasDofFor(DISPLACEMENT_Y) == false || iNode.HasDofFor(DISPLACEMENT_Z) == false)
-			KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", iNode.Id());
+			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", iNode.Id());
 			
 		if(iNode.SolutionStepsDataHas(DISPLACEMENT_LAGRANGE) == false)
-			KRATOS_ERROR(std::invalid_argument,"missing variable DISPLACEMENT_LAGRANGE on node ", iNode.Id());
+			KRATOS_THROW_ERROR(std::invalid_argument,"missing variable DISPLACEMENT_LAGRANGE on node ", iNode.Id());
 			
 		if(iNode.HasDofFor(DISPLACEMENT_LAGRANGE_X) == false || iNode.HasDofFor(DISPLACEMENT_LAGRANGE_Y) == false || iNode.HasDofFor(DISPLACEMENT_LAGRANGE_Z) == false)
-			KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT_LAGRANGE on node ", iNode.Id());
+			KRATOS_THROW_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT_LAGRANGE on node ", iNode.Id());
 	}
 
 	KRATOS_CATCH("")

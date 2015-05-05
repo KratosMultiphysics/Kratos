@@ -1226,7 +1226,7 @@ void ContactDomainCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSys
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
 	    }
 
 	}
@@ -1267,7 +1267,7 @@ void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSys
 	  
 	  if(calculated == false)
 	    {
-	      //KRATOS_ERROR(std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i])
+	      //KRATOS_THROW_ERROR(std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i])
 	    }
 
 	}
@@ -1544,31 +1544,31 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
     if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
 
     if ( ACCELERATION.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
     if ( THICKNESS.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
-        KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
+        KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
 
@@ -1576,15 +1576,15 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( dimension == 2 )
     {
         if ( this->GetProperties().Has( THICKNESS ) == false )
-            KRATOS_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+            KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-            KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() )
+            KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() )
     }
     else
     {
         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-            KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
+            KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
     }
 
     //check constitutive law

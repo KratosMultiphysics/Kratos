@@ -103,24 +103,24 @@ public:
         //************************************************************************************************
         //check that the variables needed are in the model part
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(DISTANCE)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", DISTANCE);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", DISTANCE);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", VELOCITY);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", VELOCITY);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(MOLECULAR_VISCOSITY)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", MOLECULAR_VISCOSITY);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", MOLECULAR_VISCOSITY);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(TURBULENT_VISCOSITY)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TURBULENT_VISCOSITY);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", TURBULENT_VISCOSITY);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", MESH_VELOCITY);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", MESH_VELOCITY);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(VISCOSITY)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", VISCOSITY);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", VISCOSITY);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_AREA)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", NODAL_AREA);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", NODAL_AREA);
         if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(TEMP_CONV_PROJ)))
-            KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TEMP_CONV_PROJ);
+            KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", TEMP_CONV_PROJ);
 
         if (mr_model_part.GetBufferSize() < 3)
-            KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", mr_model_part.GetBufferSize());
+            KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", mr_model_part.GetBufferSize());
 
         //************************************************************************************************
         //construct a new auxiliary model part
@@ -196,7 +196,7 @@ public:
         if(madapt_for_fractional_step == true)
         {
             if (!(mspalart_model_part.NodesBegin()->SolutionStepsDataHas(FRACT_VEL)))
-                KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", FRACT_VEL);
+                KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", FRACT_VEL);
 
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(mspalart_model_part.Nodes().size()); i++)
@@ -282,7 +282,7 @@ public:
             }
 
             if(h_max == 0.0)
-                KRATOS_ERROR(std::logic_error,"unexpected isolated node. Wrong node has Id ",i->Id());
+                KRATOS_THROW_ERROR(std::logic_error,"unexpected isolated node. Wrong node has Id ",i->Id());
 
             if(distance > h_max*CDES)
                 i->FastGetSolutionStepValue(DISTANCE) = h_max*CDES;

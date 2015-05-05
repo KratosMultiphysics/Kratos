@@ -104,7 +104,7 @@ bool VonMisesKinemVer3D::Has( const Variable<Matrix>& rThisVariable )
 
 double VonMisesKinemVer3D::GetValue( const Variable<double>& rThisVariable )
 {
-    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered" , "" );
+    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered" , "" );
 }
 
 Vector VonMisesKinemVer3D::GetValue( const Variable<Vector>& rThisVariable )
@@ -132,7 +132,7 @@ Vector VonMisesKinemVer3D::GetValue( const Variable<Vector>& rThisVariable )
 
 Matrix VonMisesKinemVer3D::GetValue( const Variable<Matrix>& rThisVariable )
 {
-    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
 }
 
 void VonMisesKinemVer3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -239,7 +239,7 @@ void VonMisesKinemVer3D::UpdateMaterial( const Vector& StrainVector,
 
     if ( geom.WorkingSpaceDimension() != 3 )
     {
-        KRATOS_ERROR( std::logic_error, "This constitutive law is defined for 3D only!" , "" );
+        KRATOS_THROW_ERROR( std::logic_error, "This constitutive law is defined for 3D only!" , "" );
     }
 
     //set up elastic matrix

@@ -417,7 +417,7 @@ namespace Kratos
 		}
 		
 		if (sound_vel==0.0)
-			KRATOS_ERROR(std::logic_error, "Sound velocity cannot be zero neither in water nor in air.. Something is wrong", "")
+			KRATOS_THROW_ERROR(std::logic_error, "Sound velocity cannot be zero neither in water nor in air.. Something is wrong", "")
 
 		base->FastGetSolutionStepValue(SOUND_VELOCITY)=sound_vel;
 		//KRATOS_WATCH(base->FastGetSolutionStepValue(SOUND_VELOCITY))
@@ -475,7 +475,7 @@ namespace Kratos
 	//************************************************************************************************
 	void CheckExtrapolate(ModelPart::NodesContainerType::iterator& base)
 		 {
-			KRATOS_ERROR(std::logic_error, "Extrapolate function not implemented for this scheme!!!", "")   			
+			KRATOS_THROW_ERROR(std::logic_error, "Extrapolate function not implemented for this scheme!!!", "")   			
 			/* 
 			double extrapolate_flag = 1.0;	
 		         double ngh_ngh_water_pr = 0.0;

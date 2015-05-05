@@ -230,7 +230,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 6 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 6, given " ,
                           this->PointsNumber() );
     }
@@ -551,7 +551,7 @@ public:
 
             if ( k>0 && norm_2( DeltaXi ) > 30 )
             {
-                KRATOS_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
+                KRATOS_THROW_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
             }
 
             if ( norm_2( DeltaXi ) < tol )
@@ -914,7 +914,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -945,7 +945,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -968,7 +968,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -1096,7 +1096,7 @@ public:
         case 5:
             return( rPoint[4] );
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
                           *this );
         }
@@ -1128,7 +1128,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo

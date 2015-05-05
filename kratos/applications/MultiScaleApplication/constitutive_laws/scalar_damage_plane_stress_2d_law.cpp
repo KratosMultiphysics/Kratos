@@ -351,31 +351,31 @@ namespace Kratos
         KRATOS_TRY
 
 		if( !rMaterialProperties.Has(YOUNG_MODULUS) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS", "");
 
 		if( !rMaterialProperties.Has(POISSON_RATIO) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: POISSON_RATIO", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO", "");
 
 		if( !rMaterialProperties.Has(YIELD_STRESS_T) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_T", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_T", "");
 
 		if( !rMaterialProperties.Has(YIELD_STRESS_C) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_C", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_C", "");
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_T) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_T", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_T", "");
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_C) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_C", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_C", "");
 		
 		mClen0 = rElementGeometry.Length();
 		CalculationData data;
 		InitializeCalculationData(rMaterialProperties, rElementGeometry, data);
 
 		if(data.Ft < 0.0)
-			KRATOS_ERROR(std::logic_error, "YIELD_STRESS_T should be a positive real number", "");
+			KRATOS_THROW_ERROR(std::logic_error, "YIELD_STRESS_T should be a positive real number", "");
 		if(data.Gt < 0.0)
-			KRATOS_ERROR(std::logic_error, "FRACTURE_ENERGY_T should be a positive real number", "");
+			KRATOS_THROW_ERROR(std::logic_error, "FRACTURE_ENERGY_T should be a positive real number", "");
 
 		if(data.Ft > 0.0 && data.Gt > 0.0)
 		{
@@ -385,7 +385,7 @@ namespace Kratos
 				std::stringstream ss;
 				ss << "FRACTURE_ENERGY_T is to low:  2*E*Gt/(Fy*Fy) = " << lt 
 				   << ",   Characteristic Length = " << data.CLen << std::endl;
-				KRATOS_ERROR(std::logic_error, ss.str(), "");
+				KRATOS_THROW_ERROR(std::logic_error, ss.str(), "");
 			}
 		}
 
@@ -397,7 +397,7 @@ namespace Kratos
 				std::stringstream ss;
 				ss << "FRACTURE_ENERGY_C is to low:  2*E*Gc/(Fy*Fy) = " << lc 
 				   << ",   Characteristic Length = " << data.CLen << std::endl;
-				KRATOS_ERROR(std::logic_error, ss.str(), "");
+				KRATOS_THROW_ERROR(std::logic_error, ss.str(), "");
 			}
 		}
 

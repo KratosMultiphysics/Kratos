@@ -325,7 +325,7 @@ bool Isotropic_Rankine_Yield_Function::One_Vector_Return_Mapping_To_Main_Plane(c
         KRATOS_WATCH(mcurrent_Ft)
 
         std::cout<<  "RETURN MAPPING TO MAIN PLANE RANKINE  NOT CONVERGED" << std::endl;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE RANKINE  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE RANKINE  NOT CONVERGED" , "");
     }
 
     ///* Updating Stress
@@ -495,7 +495,7 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
         KRATOS_WATCH(PrincipalStress[2])
         KRATOS_WATCH(delta_lamda)
         std::cout<< "RETURN MAPPING SIGMA 1 AND 2 RANKINE  NOT CONVERGED" << std::endl;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING SIGMA 1 AND 2 RANKINE  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING SIGMA 1 AND 2 RANKINE  NOT CONVERGED" , "");
     }
 
 
@@ -696,7 +696,7 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
         KRATOS_WATCH(PrincipalStress)
         KRATOS_WATCH(delta_lamda)
         std::cout<< "RETURN MAPPING APEX RANKINE  NOT CONVERGED" << std::endl;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING APEX RANKINE  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING APEX RANKINE  NOT CONVERGED" , "");
     }
 
     if(mcurrent_Ft <= 0.00)
@@ -773,7 +773,7 @@ void Isotropic_Rankine_Yield_Function::GetValue(Matrix& Result)
     {
     case Plane_Stress:
     {
-        KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
         break;
     }
     case Plane_Strain:

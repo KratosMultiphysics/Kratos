@@ -400,25 +400,25 @@ namespace Kratos
         KRATOS_TRY
 
 		if( !rMaterialProperties.Has(NORMAL_STIFFNESS) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: NORMAL_STIFFNESS", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: NORMAL_STIFFNESS", "");
 
 		if( !rMaterialProperties.Has(TANGENTIAL_STIFFNESS) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: TANGENTIAL_STIFFNESS", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: TANGENTIAL_STIFFNESS", "");
 
 		if( !rMaterialProperties.Has(YIELD_STRESS_T) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_T", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_T", "");
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_I) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_I", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_I", "");
 
 		if( !rMaterialProperties.Has(FRACTURE_ENERGY_MODE_II) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_II", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_MODE_II", "");
 		
 		if( !rMaterialProperties.Has(INITIAL_COHESION) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: INITIAL_COHESION", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INITIAL_COHESION", "");
 
 		if( !rMaterialProperties.Has(INTERNAL_FRICTION_ANGLE) )
-			KRATOS_ERROR(std::logic_error, "Missing variable: INTERNAL_FRICTION_ANGLE", "");
+			KRATOS_THROW_ERROR(std::logic_error, "Missing variable: INTERNAL_FRICTION_ANGLE", "");
 
         return 0;
 

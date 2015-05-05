@@ -251,7 +251,7 @@ public:
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         if ( ThisPoints.size() != 4 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
 
 		const typename PointType::Pointer& pFirstPoint  = ThisPoints(0);
@@ -813,7 +813,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -844,7 +844,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -867,7 +867,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+        KRATOS_THROW_ERROR( std::logic_error, "Jacobian is not square" , "" );
         return rResult;
     }
 
@@ -937,7 +937,7 @@ public:
         case 3:
             return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
                           *this );
         }
@@ -969,7 +969,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo

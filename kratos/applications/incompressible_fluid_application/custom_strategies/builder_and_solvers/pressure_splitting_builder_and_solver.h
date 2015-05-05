@@ -224,7 +224,7 @@ public:
     {
         KRATOS_TRY
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -381,7 +381,7 @@ public:
     {
         KRATOS_TRY;
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -456,7 +456,7 @@ public:
     {
         KRATOS_TRY;
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -735,7 +735,7 @@ public:
     {
         KRATOS_TRY;
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -869,7 +869,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size() == 0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
         mDofSetChanged = true;
@@ -941,7 +941,7 @@ public:
 //
 //            //throws an execption if there are no Degrees of freedom involved in the analysis
 //            if (BaseType::mDofSet.size() == 0)
-//                KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+//                KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 //
 //            BaseType::mDofSetIsInitialized = true;
 //            mDofSetChanged = true;

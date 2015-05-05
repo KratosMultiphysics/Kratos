@@ -1035,7 +1035,7 @@ public:
          KRATOS_WATCH(pNode->Id())
                  KRATOS_WATCH(j)
 
-         //KRATOS_ERROR(std::logic_error,  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" , "");
+         //KRATOS_THROW_ERROR(std::logic_error,  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" , "");
 
           }
 

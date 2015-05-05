@@ -86,7 +86,7 @@ double  Dilatancy_Softening::FunctionBehavior(const Vector& Imput_Parameters)
         result =  180.00 * result/PI;
 
     if(result!=result)
-        KRATOS_ERROR(std::logic_error,  "DILATANCY" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "DILATANCY" , "");
 
     if(result > (*mprops)[DILATANCY_ANGLE])
         result= (*mprops)[DILATANCY_ANGLE];

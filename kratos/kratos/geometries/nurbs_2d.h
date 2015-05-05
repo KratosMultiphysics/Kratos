@@ -520,7 +520,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
 
@@ -815,7 +815,7 @@ public:
     */
     virtual SizeType EdgesNumber() const
     {
-        KRATOS_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
+        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
         return 0;
     }
 
@@ -833,7 +833,7 @@ public:
     virtual GeometriesArrayType Edges( void )
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        KRATOS_ERROR( std::logic_error, "Nurbs_2d::Edges", "No Edges defined for NURBS-surfaces" );
+        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::Edges", "No Edges defined for NURBS-surfaces" );
         return edges;
 
     }
@@ -1082,7 +1082,7 @@ public:
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo
@@ -1276,7 +1276,7 @@ public:
                                                      Matrix *rResult,
                                                      double t ) const
     {
-        KRATOS_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" );
+        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" );
         return *rResult;
     }
 
@@ -1292,7 +1292,7 @@ public:
                                                    Matrix *rResult,
                                                    double t ) const
     {
-            KRATOS_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsThirdDerivatives", "Third order derivatives not yet implemented" );
+            KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsThirdDerivatives", "Third order derivatives not yet implemented" );
             return *rResult;
     }
 
@@ -1623,7 +1623,7 @@ public:
                 res[2] = 0.0;
                 std::cout << "detJ =" << det_j << "DeltaX = " << DeltaXi << " stopping calculation and assigning the baricenter" << std::endl;
                 break;
-                //KRATOS_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
+                //KRATOS_THROW_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
             }
 
             if ( norm_2( DeltaXi ) < tol )

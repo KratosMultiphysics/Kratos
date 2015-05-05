@@ -183,7 +183,7 @@ void Electrostatic3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vect
 //************************************************************************************
 void Electrostatic3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 //************************************************************************************

@@ -362,7 +362,7 @@ public:
 
     IndexType CreateSolutionStep()
     {
-        KRATOS_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
+        KRATOS_THROW_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
         IndexType new_index = Counter<GlobalIndex>::Increment();
         mCurrentIndex++;
 

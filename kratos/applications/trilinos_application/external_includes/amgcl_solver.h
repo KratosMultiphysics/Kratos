@@ -250,7 +250,7 @@ public:
             mrelaxation = amgcl::runtime::relaxation::chebyshev;
             break;
         default:
-            KRATOS_ERROR(std::logic_error,"default case is selected for amgcl_mpi smoother, while it should be prescribed explicitly" , "");
+            KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi smoother, while it should be prescribed explicitly" , "");
         };
 
         switch(solver)
@@ -269,11 +269,11 @@ public:
                 break;
             case TrilinosAmgclSettings::BICGSTAB_WITH_GMRES_FALLBACK:
             {
-                KRATOS_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
+                KRATOS_THROW_ERROR(std::logic_error,"sorry BICGSTAB_WITH_GMRES_FALLBACK not implemented","")
                 break;
             }
             default:
-                KRATOS_ERROR(std::logic_error,"default case is selected for amgcl_mpi solver, while it should be prescribed explicitly" , "");
+                KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi solver, while it should be prescribed explicitly" , "");
         };
 
         switch(coarsening)
@@ -291,7 +291,7 @@ public:
             mcoarsening = amgcl::runtime::coarsening::smoothed_aggr_emin;
             break;
         default:
-            KRATOS_ERROR(std::logic_error,"default case is selected for amgcl_mpi coarsening, while it should be prescribed explicitly" , "");
+            KRATOS_THROW_ERROR(std::logic_error,"default case is selected for amgcl_mpi coarsening, while it should be prescribed explicitly" , "");
         
         };
 

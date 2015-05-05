@@ -230,7 +230,7 @@ public:
 		if (norm_2(rNormal) == 0.0)
 		  {
 		    std::cout << "error on condition -> " << this->Id() << std::endl;
-		    KRATOS_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
+		    KRATOS_THROW_ERROR(std::logic_error, "NORMAL must be calculated before using this condition","");
 		  }
 
 		if (mInitializeWasPerformed)
@@ -306,7 +306,7 @@ public:
 		}
 
 		std::cout << "error in condition -> " << this->Id() << std::endl;
-		KRATOS_ERROR(std::logic_error, "Condition cannot find parent element","");
+		KRATOS_THROW_ERROR(std::logic_error, "Condition cannot find parent element","");
 		KRATOS_CATCH("");
 	}
 
@@ -405,39 +405,39 @@ public:
 		{
 			// Check that all required variables have been registered
 			if(VELOCITY.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
 			if(PRESSURE.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
 			if(MESH_VELOCITY.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
 			if(DENSITY.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
 			if(VISCOSITY.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
 			if(NORMAL.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","");
 			if(IS_STRUCTURE.Key() == 0)
-			KRATOS_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
+			KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
 
 			// Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
 			for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
 			{
 				if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
 				if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
 				if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
 				if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
 				if(this->GetGeometry()[i].SolutionStepsDataHas(NORMAL) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",this->GetGeometry()[i].Id());
 				if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
 						this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
 						this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
 				if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-				KRATOS_ERROR(std::invalid_argument,"missing PRESSURE degree of freedom on node ",this->GetGeometry()[i].Id());
+				KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE degree of freedom on node ",this->GetGeometry()[i].Id());
 			}
 
 			return Check;

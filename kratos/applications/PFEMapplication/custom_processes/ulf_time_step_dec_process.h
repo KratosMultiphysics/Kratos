@@ -144,7 +144,7 @@ public:
             GeometryUtils::CalculateGeometryData(i->GetGeometry(),DN_DX, N, Area);
 
             if (Area<=0)
-                KRATOS_ERROR(std::logic_error,"negative area at the moment of estimating the time step","");
+                KRATOS_THROW_ERROR(std::logic_error,"negative area at the moment of estimating the time step","");
             noalias(Dv_dx) = prod(aux,DN_DX);
             noalias(J) = I + deltatime*Dv_dx;
 

@@ -289,7 +289,7 @@ public:
         KRATOS_WATCH(search_radius)
 
         if (search_radius<=0.0)
-            KRATOS_ERROR(std::logic_error,"error: YOUR SEARCH RADIUS FOR FINDING INTERSECTIONS IS ZERO OR NEGATIVE!!!!!! CHECK IF NODAL H WAS COMPUTED","");
+            KRATOS_THROW_ERROR(std::logic_error,"error: YOUR SEARCH RADIUS FOR FINDING INTERSECTIONS IS ZERO OR NEGATIVE!!!!!! CHECK IF NODAL H WAS COMPUTED","");
         unsigned int TDim=3;
         void* hinput=GetGidInputHandleWithBoundaryMesh(TDim, n_skin_nodes, skin_nodes,n_skin_faces,skin_faces, 3);
         //void* hinput=GetGidInputHandleWithBoundaryMesh(3,8,coord,12,conec,3);

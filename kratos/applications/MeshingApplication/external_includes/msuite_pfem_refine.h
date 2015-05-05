@@ -121,13 +121,13 @@ public:
 
         KRATOS_TRY
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FREE_SURFACE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR", "");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_STRUCTURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----IS_STRUCTURE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----IS_STRUCTURE---- variable!!!!!! ERROR", "");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_BOUNDARY) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----IS_BOUNDARY---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----IS_BOUNDARY---- variable!!!!!! ERROR", "");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----IS_FLUID---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----IS_FLUID---- variable!!!!!! ERROR", "");
 
         KRATOS_WATCH("Msuite PFEM Refining Mesher")
         boost::timer auxiliary;

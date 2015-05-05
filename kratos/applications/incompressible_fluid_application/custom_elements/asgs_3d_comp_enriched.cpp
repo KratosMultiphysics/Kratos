@@ -612,7 +612,7 @@ void ASGS3D_COMP_ENR::CalculatePressureTerm(MatrixType& K, const boost::numeric:
 	 if (sound_vel<0.0000000000000000000000001)
 	{
 	KRATOS_WATCH(sound_vel)
-	KRATOS_ERROR(std::logic_error, "Sound velocity is zero.. you did not assign initial value or something went wrong!!!!", "")
+	KRATOS_THROW_ERROR(std::logic_error, "Sound velocity is zero.. you did not assign initial value or something went wrong!!!!", "")
 	}
 
     for (int ii = 0; ii < nodes_number; ii++)

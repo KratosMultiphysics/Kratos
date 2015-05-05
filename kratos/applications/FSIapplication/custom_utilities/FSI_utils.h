@@ -175,7 +175,7 @@ public:
         KRATOS_TRY
 
         if( order > structure_buffer_size-1)
-            KRATOS_ERROR(std::logic_error,"using a force prediction order higher than the buffer size ... increase the buffer size or reduce the prediction order","");
+            KRATOS_THROW_ERROR(std::logic_error,"using a force prediction order higher than the buffer size ... increase the buffer size or reduce the prediction order","");
 
         if(order == 1)
         {

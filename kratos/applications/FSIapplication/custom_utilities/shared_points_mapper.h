@@ -77,7 +77,7 @@ public:
         if( OriginNodes.size()!=0 && DestinationNodes.size()!=0)
         {
             if( OriginNodes.size() != DestinationNodes.size() )
-                KRATOS_ERROR(std::logic_error,"wrong number of nodes","");
+                KRATOS_THROW_ERROR(std::logic_error,"wrong number of nodes","");
 
             mOriginNodes.reserve( OriginNodes.size() );
             mDestinationNodes.reserve( DestinationNodes.size() );

@@ -128,10 +128,10 @@ public:
 
         if (refine_on_reference == true)
             if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)))
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true", "");
+                KRATOS_THROW_ERROR(std::logic_error, "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true", "");
 
         if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
-            KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part -- mpi not possible", "");
+            KRATOS_THROW_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part -- mpi not possible", "");
 
         boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids; //helper matrix to assign ids to the edges to be  refined
         boost::shared_ptr<Epetra_FECrsMatrix> p_partition_ids; //helper matrix to assign a partition to the edges
@@ -174,7 +174,7 @@ public:
             Erase_Old_Condition_And_Create_New_Triangle_Conditions(mr_model_part, p_edge_ids, New_Conditions, interpolate_internal_variables);
         }
         else
-            KRATOS_ERROR(std::logic_error, "domain size can be either 2 or 3!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "domain size can be either 2 or 3!", "");
 
 
         if (mrComm.MyPID() == 0) std::cout << "Erase_Old_Element_And_Create_New completed" << std::endl;
@@ -302,7 +302,7 @@ public:
                 aux_ids[i] = geom[i].Id() - 1;
 
             int ierr = mp_non_overlapping_graph->InsertGlobalIndices(geom.size(), aux_ids, geom.size(), aux_ids);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure ->ln174", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln174", "");
         }
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
         {
@@ -311,7 +311,7 @@ public:
                 aux_ids[i] = geom[i].Id() - 1;
 
             int ierr = mp_non_overlapping_graph->InsertGlobalIndices(geom.size(), aux_ids, geom.size(), aux_ids);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure ->ln 183", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln 183", "");
         }
         mp_non_overlapping_graph->GlobalAssemble();
 
@@ -346,7 +346,7 @@ public:
         p_nonoverlapping_partitions->PutScalar(-1.0);
 
         double this_partition_index = double(mrComm.MyPID());
-        //            KRATOS_ERROR(std::logic_error,"aaaaaaaaaaa","")
+        //            KRATOS_THROW_ERROR(std::logic_error,"aaaaaaaaaaa","")
 
         //first of all create a matrix with no overlap
         ElementsArrayType::iterator it_begin = rElements.ptr_begin(); //+element_partition[k];
@@ -367,9 +367,9 @@ public:
                         if (index_j > index_i)
                         {
                             int ierr = p_edge_ids->SumIntoGlobalValues(1, &index_i, 1, &index_j, &value);
-                            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 235", "");
+                            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 235", "");
                             ierr = p_nonoverlapping_partitions->ReplaceGlobalValues(1, &index_i, 1, &index_j, &this_partition_index);
-                            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 237", "");
+                            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 237", "");
                             //                        Coord(index_i, index_j) = -2;
                         }
                     }
@@ -378,10 +378,10 @@ public:
         }
         int ierr = -1;
         ierr = p_edge_ids->GlobalAssemble(true, Add);
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 246", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 246", "");
 
         ierr = p_nonoverlapping_partitions->GlobalAssemble(true, Insert);
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 249", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure --> ln 249", "");
 
         //import the non overlapping matrix into the overlapping one
         int MaxNumEntries = p_edge_ids->MaxNumEntries() + 5;
@@ -391,14 +391,14 @@ public:
         boost::shared_ptr<Epetra_FECrsMatrix> paux = boost::shared_ptr<Epetra_FECrsMatrix > (new Epetra_FECrsMatrix(Copy, *mp_overlapping_map, MaxNumEntries));
 
         ierr = pAoverlap->Import(*p_edge_ids, importer, Insert);
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
         ierr = pAoverlap->FillComplete();
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
 
         ierr = paux->Import(*p_nonoverlapping_partitions, importer, Insert);
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
         ierr = paux->FillComplete();
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
 
         //perform a pointer swap - after this we have overlapping matrices with the values syncronized
         pAoverlap.swap(p_edge_ids);
@@ -443,10 +443,10 @@ public:
         {
             GlobalRow = p_edge_ids->GRID(Row);
             int ierr = p_edge_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, id_values, Indices);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
 
             ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
 
             for (Col = 0; Col != NumEntries; Col++)
             {
@@ -465,7 +465,7 @@ public:
         mrComm.ScanSum(&n_owned_nonzeros, &nodes_before, 1);
         nodes_before = nodes_before - n_owned_nonzeros;
         if (nodes_before < 0)
-            KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "")
+            KRATOS_THROW_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "")
 
             //find our the total number of nodes
             int number_of_local_nodes = this_model_part.GetCommunicator().LocalMesh().Nodes().size();
@@ -478,13 +478,13 @@ public:
 //                    counter++;
 //
 //            if(counter!=number_of_local_nodes )
-//                KRATOS_ERROR(std::logic_error,"local mesh is not up to date!","");
+//                KRATOS_THROW_ERROR(std::logic_error,"local mesh is not up to date!","");
 
         mtotal_number_of_existing_nodes = total_number_of_nodes;
 
 //for(ModelPart::NodesContainerType::iterator iii=this_model_part.NodesBegin(); iii!=this_model_part.NodesEnd(); iii++)
 //    if(iii->Id() > mtotal_number_of_existing_nodes)
-//        KRATOS_ERROR(std::logic_error,"node ids are not contiguous","");
+//        KRATOS_THROW_ERROR(std::logic_error,"node ids are not contiguous","");
 
 
         //the ids of the new nodes we will create AND OWN will be between
@@ -504,10 +504,10 @@ public:
             GlobalRow = p_edge_ids->GRID(Row);
 
             int ierr = p_edge_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, id_values, Indices);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
 
             ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
 
             for (Col = 0; Col < NumEntries; ++Col)
             {
@@ -524,7 +524,7 @@ public:
         }
         plocal_ids->GlobalAssemble(true, Insert);
 
-        if (id != end_id) KRATOS_ERROR(std::logic_error, "the own node count is not verified...some error occurred", "");
+        if (id != end_id) KRATOS_THROW_ERROR(std::logic_error, "the own node count is not verified...some error occurred", "");
         //now import the non local elements
         Epetra_Import importer(*mp_overlapping_map, *mp_non_overlapping_map);
 
@@ -532,9 +532,9 @@ public:
 
 
         int ierr = p_edge_ids->Import(*plocal_ids, importer, Insert);
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
         p_edge_ids->FillComplete();
-        if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+        if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure", "");
         //            paux.swap(p_edge_ids);
 
 
@@ -551,12 +551,12 @@ public:
             GlobalRow = p_edge_ids->GRID(Row);
             int num_id_entries = -1;
             int ierr = p_edge_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, num_id_entries, id_values, Indices);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure ->ln420", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln420", "");
 
             ierr = p_partition_ids->ExtractGlobalRowCopy(GlobalRow, MaxNumEntries, NumEntries, partition_values, Indices);
-            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure ->ln423", "");
+            if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error, "epetra failure ->ln423", "");
 
-            if (NumEntries != num_id_entries) KRATOS_ERROR(std::logic_error, "we should have the same number of new_ids and of partition_values", "");
+            if (NumEntries != num_id_entries) KRATOS_THROW_ERROR(std::logic_error, "we should have the same number of new_ids and of partition_values", "");
             for (Col = 0; Col < NumEntries; ++Col)
             {
                 if (Indices[Col] > Row)
@@ -566,7 +566,7 @@ public:
                     if (id_values[Col] >= 0 && mp_overlapping_map->MyGID(Indices[Col]) == true)
                     {
 //if(this_model_part.Nodes().find(id_values[Col])!=this_model_part.Nodes().end())
-//    KRATOS_ERROR(std::logic_error,"node already existing","");
+//    KRATOS_THROW_ERROR(std::logic_error,"node already existing","");
 
                         List_New_Nodes[k] = id_values[Col];
                         partition_new_nodes[k] = partition_values[Col];
@@ -577,11 +577,11 @@ public:
                         k++;
                     }
                     if (id_values[Col] < -1.5) //at this point every edge to be refined should have an Id!!
-                        KRATOS_ERROR(std::logic_error, "edge to be refined without id assigned", "")
+                        KRATOS_THROW_ERROR(std::logic_error, "edge to be refined without id assigned", "")
                     }
             }
         }
-        if (k != int(n_new_nonzeros)) KRATOS_ERROR(std::logic_error, "number of new nodes check failed", "")
+        if (k != int(n_new_nonzeros)) KRATOS_THROW_ERROR(std::logic_error, "number of new nodes check failed", "")
 
 
             delete [] Indices;
@@ -615,7 +615,7 @@ public:
             {
 	      std::cout << "reference_dof_list" << *(this_model_part.NodesBegin()) << std::endl;
 	      std::cout << "inconsistent dof list found" << *it << std::endl;
-                KRATOS_ERROR(std::logic_error, "list of dofs is not the same on all of the nodes!", "")
+                KRATOS_THROW_ERROR(std::logic_error, "list of dofs is not the same on all of the nodes!", "")
             }
 
         PointerVector< Node < 3 > > new_nodes;
@@ -631,7 +631,7 @@ public:
             if (it_node1 == this_model_part.NodesEnd())
             {
 	      std::cout << "- father node 1 - looking for Id " << node_i << " " << node_j << std::endl;
-                KRATOS_ERROR(std::logic_error, "error inexisting node", "")
+                KRATOS_THROW_ERROR(std::logic_error, "error inexisting node", "")
             }
             std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
             noalias(Coord_Node_1) = it_node1->Coordinates();
@@ -641,7 +641,7 @@ public:
             if (it_node2 == this_model_part.NodesEnd())
             {
 	      std::cout << "- father node 2 - looking for Id " << node_i << " " << node_j << std::endl;
-                KRATOS_ERROR(std::logic_error, "error inexisting node", "")
+                KRATOS_THROW_ERROR(std::logic_error, "error inexisting node", "")
             }
             std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
             noalias(Coord_Node_2) = it_node2->Coordinates();
@@ -655,7 +655,7 @@ public:
 //                    cout << this_model_part.Nodes().find(List_New_Nodes[i])->Id() << " " << this_model_part.Nodes().find(List_New_Nodes[i])->Coordinates() << "new coords " << Coordinate_New_Node[i] ;
 //                    cout << "position_found = " << this_model_part.Nodes().find(List_New_Nodes[i]) - this_model_part.Nodes().begin() << " number of existing nodes " << this_model_part.Nodes().size();
 //                    cout << "last id in model_part = " << (this_model_part.Nodes().end()-1)->Id() << "problematic Id() = " << List_New_Nodes[i] << endl;
-//                    KRATOS_ERROR(std::logic_error,"attempting to create a duplicated node","")
+//                    KRATOS_THROW_ERROR(std::logic_error,"attempting to create a duplicated node","")
 //                }
 
 
@@ -734,7 +734,7 @@ public:
         this_model_part.Nodes().Unique();
 
         if(current_size != this_model_part.Nodes().size())
-            KRATOS_ERROR(std::logic_error,"some node was duplicated! error","");
+            KRATOS_THROW_ERROR(std::logic_error,"some node was duplicated! error","");
 
 
         KRATOS_CATCH("")
@@ -846,7 +846,7 @@ public:
         mrComm.ScanSum(&number_of_own_elements, &number_of_elements_before, 1);
         number_of_elements_before = number_of_elements_before - number_of_own_elements;
         if (number_of_elements_before < 0)
-            KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+            KRATOS_THROW_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
 
         int start_elem_id = number_of_elements_before + 1;
         //            int end_elem_id = number_of_elements_before + number_of_own_elements;
@@ -917,7 +917,7 @@ public:
         mrComm.ScanSum(&nel, &el_before, 1);
         //            int el_end_id = el_before + 1;
         int el_start_id = el_before - nel + 1;
-        if (el_start_id < 0) KRATOS_ERROR(std::logic_error, "wrong id in renumbering of the elements", "")
+        if (el_start_id < 0) KRATOS_THROW_ERROR(std::logic_error, "wrong id in renumbering of the elements", "")
 
             unsigned int id_elem = el_start_id;
         for (ModelPart::ElementsContainerType::iterator it = this_model_part.ElementsBegin();
@@ -938,7 +938,7 @@ public:
         mrComm.MaxAll(&local_max_id, &max_id, 1);
         mrComm.SumAll(&local_number_of_nodes, &tot_nnodes, 1);
         if (max_id != tot_nnodes)
-            KRATOS_ERROR(std::logic_error, "node ids are not consecutive", "");
+            KRATOS_THROW_ERROR(std::logic_error, "node ids are not consecutive", "");
 
         int tot_elements;
         int local_max_elem_id = (mr_model_part.Elements().end() - 1)->Id();
@@ -946,7 +946,7 @@ public:
         mrComm.MaxAll(&local_max_elem_id, &max_id, 1);
         mrComm.SumAll(&local_number_of_elem, &tot_elements, 1);
         if (max_id != tot_elements)
-            KRATOS_ERROR(std::logic_error, "element ids are not consecutive", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element ids are not consecutive", "");
 
         KRATOS_CATCH("")
 
@@ -970,7 +970,7 @@ public:
         mrComm.ScanSum(&nel, &el_before, 1);
         //            int el_end_id = el_before + 1;
         int el_start_id = el_before - nel + 1;
-        if (el_start_id <= 0) KRATOS_ERROR(std::logic_error, "wrong id in renumbering of the Conditions", "")
+        if (el_start_id <= 0) KRATOS_THROW_ERROR(std::logic_error, "wrong id in renumbering of the Conditions", "")
 
             unsigned int id_elem = el_start_id;
         for (ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin();
@@ -991,7 +991,7 @@ public:
         mrComm.MaxAll(&local_max_id, &max_id, 1);
         mrComm.SumAll(&local_number_of_nodes, &tot_nnodes, 1);
         if (max_id != tot_nnodes)
-            KRATOS_ERROR(std::logic_error, "node ids are not consecutive", "");
+            KRATOS_THROW_ERROR(std::logic_error, "node ids are not consecutive", "");
 
         int tot_Conditions;
 
@@ -1002,7 +1002,7 @@ public:
         mrComm.MaxAll(&local_max_elem_id, &max_id, 1);
         mrComm.SumAll(&local_number_of_elem, &tot_Conditions, 1);
         if (max_id != tot_Conditions)
-            KRATOS_ERROR(std::logic_error, "Condition ids are not consecutive", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Condition ids are not consecutive", "");
 
         KRATOS_CATCH("")
 
@@ -1051,7 +1051,7 @@ protected:
             }
         }
 
-        KRATOS_ERROR(std::logic_error, "expected index not found", "")
+        KRATOS_THROW_ERROR(std::logic_error, "expected index not found", "")
     }
 
     double GetUpperTriangularMatrixValue(const boost::shared_ptr<Epetra_FECrsMatrix>& p_edge_ids, int index_0, int index_1, int& MaxNumEntries, int& NumEntries, int* Indices, double* values)
@@ -1224,7 +1224,7 @@ protected:
             mrComm.ScanSum(&number_of_own_elements, &number_of_elements_before, 1);
             number_of_elements_before = number_of_elements_before - number_of_own_elements;
             if (number_of_elements_before < 0)
-                KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+                KRATOS_THROW_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
 
             int start_elem_id = number_of_elements_before + 1;
 
@@ -1253,7 +1253,7 @@ protected:
         unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
 
         if (model_part.Nodes().find(new_id) != model_part.NodesEnd())
-            KRATOS_ERROR(std::logic_error, "id is already being used", "");
+            KRATOS_THROW_ERROR(std::logic_error, "id is already being used", "");
 
 
         //determine the coordinates of the new node
@@ -1326,7 +1326,7 @@ protected:
         mrComm.ScanSum(&local_number_of_center_nodes, &number_of_nodes_before, 1);
         number_of_nodes_before = number_of_nodes_before - local_number_of_center_nodes;
         if (number_of_nodes_before < 0)
-            KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+            KRATOS_THROW_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
 
         //find our the total number of nodes (excluding center nodes)
         int number_of_own_nodes_nocenter = 0;
@@ -1454,7 +1454,7 @@ protected:
         mrComm.ScanSum(&number_of_own_Conditions, &number_of_Conditions_before, 1);
         number_of_Conditions_before = number_of_Conditions_before - number_of_own_Conditions;
         if (number_of_Conditions_before < 0)
-            KRATOS_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
+            KRATOS_THROW_ERROR(std::logic_error, "problem with scan sum ... giving a negative number of nodes before", "");
 
         if (this_model_part.Conditions().size() != 0)
         {

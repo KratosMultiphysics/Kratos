@@ -51,13 +51,13 @@ RigidBody3D::RigidBody3D(IndexType NewId,
     m_skin_nodes = rskin_nodes;
 
     if( Inertia.size1() != 3)
-        KRATOS_ERROR(std::logic_error,"wrong size of the INERTIA matrix .... should be 3*3","");
+        KRATOS_THROW_ERROR(std::logic_error,"wrong size of the INERTIA matrix .... should be 3*3","");
     mInertia.resize(3,3,false);
     noalias(mInertia) = Inertia;
 
     mmass = mass;
     if(mmass == 0.0)
-        KRATOS_ERROR(std::logic_error,"the mass of the center node should be different from 0","");
+        KRATOS_THROW_ERROR(std::logic_error,"the mass of the center node should be different from 0","");
 
 
 
@@ -65,7 +65,7 @@ RigidBody3D::RigidBody3D(IndexType NewId,
 
 Element::Pointer RigidBody3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    KRATOS_ERROR(std::logic_error,"this element does not allow the standard constuctor","");
+    KRATOS_THROW_ERROR(std::logic_error,"this element does not allow the standard constuctor","");
     //		return Element::Pointer(new RigidBody3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 

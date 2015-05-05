@@ -115,7 +115,7 @@ bool ContinuousDamage3D::Has( const Variable<Matrix>& rThisVariable )
 
 double ContinuousDamage3D::GetValue( const Variable<double>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 }
 
 Vector ContinuousDamage3D::GetValue( const Variable<Vector>& rThisVariable )
@@ -144,12 +144,12 @@ Vector ContinuousDamage3D::GetValue( const Variable<Vector>& rThisVariable )
 
 
 
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 }
 
 Matrix ContinuousDamage3D::GetValue( const Variable<Matrix>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 }
 
 void ContinuousDamage3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -247,7 +247,7 @@ void ContinuousDamage3D::UpdateMaterial( const Vector& StrainVector,
 
     if ( geom.WorkingSpaceDimension() != 3 )
     {
-        KRATOS_ERROR(std::logic_error,"This constitutive law is defined for 3D only!" , "");
+        KRATOS_THROW_ERROR(std::logic_error,"This constitutive law is defined for 3D only!" , "");
     }
 
     // calculate deviatoric elastic strains
@@ -467,18 +467,18 @@ void ContinuousDamage3D::CalculateStressAndTangentMatrix( Vector& StressVector,
 int ContinuousDamage3D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
 {
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
     const double& nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(MATERIAL_PARAMETERS.Key() == 0 || props[MATERIAL_PARAMETERS][0]<0.00 || props[MATERIAL_PARAMETERS][1]<0.00 )
-        KRATOS_ERROR(std::invalid_argument,"MATERIAL_PARAMETERS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MATERIAL_PARAMETERS has Key zero or invalid value ","");
 
     return 0;
 

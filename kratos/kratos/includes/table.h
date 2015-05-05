@@ -149,7 +149,7 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -171,7 +171,7 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -481,7 +481,7 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -504,7 +504,7 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -526,7 +526,7 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -548,7 +548,7 @@ public:
         std::size_t size = mData.size();
 
         if(size == 0)
-            KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];

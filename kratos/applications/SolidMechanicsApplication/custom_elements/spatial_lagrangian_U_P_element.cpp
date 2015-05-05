@@ -98,7 +98,7 @@ Element::Pointer SpatialLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -414,7 +414,7 @@ void SpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -479,7 +479,7 @@ void SpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 

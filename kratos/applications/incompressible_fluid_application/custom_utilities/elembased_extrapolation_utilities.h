@@ -300,7 +300,7 @@ public:
 //                     if (avg_number != 0.0) {
 //                         pavg /= avg_number;
 //                     } else {
-//                         KRATOS_ERROR(std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
+//                         KRATOS_THROW_ERROR(std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
 //                     }
 //
 //                iii->FastGetSolutionStepValue(PRESSURE, 0) = pavg;

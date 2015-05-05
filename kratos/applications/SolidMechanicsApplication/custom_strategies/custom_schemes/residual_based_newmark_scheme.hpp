@@ -362,7 +362,7 @@ public:
         KRATOS_TRY
 
         if(this->mElementsAreInitialized==false)
-            KRATOS_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" )
+            KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" )
 
             int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;
@@ -410,7 +410,7 @@ public:
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime == 0)
-            KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+            KRATOS_THROW_ERROR(std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
 
         //initializing Newmark constants
@@ -746,22 +746,22 @@ public:
         //check for variables keys
         //verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
-            KRATOS_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
         if(VELOCITY.Key() == 0)
-            KRATOS_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
         if(ACCELERATION.Key() == 0)
-            KRATOS_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
                 it!=r_model_part.NodesEnd(); it++)
         {
             if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if (it->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if (it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
         }
 
         //check that dofs exist
@@ -769,18 +769,18 @@ public:
                 it!=r_model_part.NodesEnd(); it++)
         {
             if(it->HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
             if(it->HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
             if(it->HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
         }
 
 
         //check for minimum value of the buffer index
         //verify buffer size
         if (r_model_part.GetBufferSize() < 2)
-            KRATOS_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
+            KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
 
 
         return 0;

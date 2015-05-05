@@ -726,13 +726,13 @@ namespace Kratos
 		KRATOS_TRY
 
 		if(this->mEditingStack)
-			KRATOS_ERROR(std::logic_error, "The Ply Stack of a ShellCrossSection is in Editing mode", "")
+			KRATOS_THROW_ERROR(std::logic_error, "The Ply Stack of a ShellCrossSection is in Editing mode", "")
 		
 		if(this->mStack.size() < 1)
-			KRATOS_ERROR(std::logic_error, "The Ply Stack of a ShellCrossSection cannot be empty", "")
+			KRATOS_THROW_ERROR(std::logic_error, "The Ply Stack of a ShellCrossSection cannot be empty", "")
 
 		if(this->mThickness <= 0.0)
-			KRATOS_ERROR(std::logic_error, "The Thickness of a ShellCrossSection should be a positive real number", this->mThickness)
+			KRATOS_THROW_ERROR(std::logic_error, "The Thickness of a ShellCrossSection should be a positive real number", this->mThickness)
 
 		for(PlyCollection::iterator ply_it = mStack.begin(); ply_it != mStack.end(); ++ply_it)
 		{
@@ -740,34 +740,34 @@ namespace Kratos
 			
 			Ply::IntegrationPointCollection::size_type numip( iPly.NumberOfIntegrationPoints() );
 			if(numip < 1)
-				KRATOS_ERROR(std::logic_error, "The number of integration points in a Ply is not set properly", numip);
+				KRATOS_THROW_ERROR(std::logic_error, "The number of integration points in a Ply is not set properly", numip);
 			
 			if(iPly.GetPropertiesPointer() == NULL)
-				KRATOS_ERROR(std::logic_error, "The Properties of a Ply cannot be NULL", "");
+				KRATOS_THROW_ERROR(std::logic_error, "The Properties of a Ply cannot be NULL", "");
 			
 			const Properties & iPlyProps = iPly.GetProperties();
 
 			if(!iPlyProps.Has(DENSITY))
-				KRATOS_ERROR(std::logic_error, "DENSITY not provided for a Ply object","");
+				KRATOS_THROW_ERROR(std::logic_error, "DENSITY not provided for a Ply object","");
 
 			for(Ply::IntegrationPointCollection::iterator intp_it = iPly.GetIntegrationPoints().begin(); intp_it != iPly.GetIntegrationPoints().end(); ++intp_it) 
 			{
 				IntegrationPoint& iPoint = *intp_it;
 				
 				if(iPoint.GetWeight() <= 0.0) 
-					KRATOS_ERROR(std::logic_error, "The Weight of a ShellCrossSection.IntegrationPoint should be a positive real number", iPoint.GetWeight());
+					KRATOS_THROW_ERROR(std::logic_error, "The Weight of a ShellCrossSection.IntegrationPoint should be a positive real number", iPoint.GetWeight());
 
 				const ConstitutiveLaw::Pointer& iPointLaw = iPoint.GetConstitutiveLaw();
 				
 				if(iPointLaw == NULL)
-					KRATOS_ERROR(std::logic_error, "The Constitutive law of a ShellCrossSection.IntegrationPoint is NULL", iPointLaw);
+					KRATOS_THROW_ERROR(std::logic_error, "The Constitutive law of a ShellCrossSection.IntegrationPoint is NULL", iPointLaw);
 
 				ConstitutiveLaw::Features iPointLawFeatures;
 				iPointLaw->GetLawFeatures(iPointLawFeatures);
 
 				int correct_strain_size = iPointLawFeatures.mStrainSize;
 				if(correct_strain_size != 3 && correct_strain_size != 6)
-					KRATOS_ERROR(std::logic_error, 
+					KRATOS_THROW_ERROR(std::logic_error, 
 						"The Constitutive law of a ShellCrossSection.IntegrationPoint needs a ConstitutiveLaw with 3 or 6 components, instead of ", correct_strain_size);
 				
 				//bool correct_strain_measure = false;
@@ -780,7 +780,7 @@ namespace Kratos
 				//}
 				//
 				//if( correct_strain_measure == false )
-				//	KRATOS_ERROR( std::logic_error, 
+				//	KRATOS_THROW_ERROR( std::logic_error, 
 				//		"The Constitutive law of a ShellCrossSection.IntegrationPoint is incompatible with the strain measure required by this cross section ", 
 				//		"Required strain measure: StrainMeasure_Infinitesimal" );
 				

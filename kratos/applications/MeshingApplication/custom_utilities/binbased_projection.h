@@ -121,7 +121,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR(std::logic_error,"not implemented yet","")
+        KRATOS_THROW_ERROR(std::logic_error,"not implemented yet","")
 
         KRATOS_CATCH("")
     }
@@ -210,9 +210,9 @@ public:
 
         KRATOS_WATCH("Transfer From Moving Mesh*************************************")
         if (rMoving_ModelPart.NodesBegin()->SolutionStepsDataHas(rMovingDomainVariable) == false)
-            KRATOS_ERROR(std::logic_error, "Add  MovingDomain VARIABLE!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  MovingDomain VARIABLE!!!!!! ERROR", "");
         if (rFixed_ModelPart.NodesBegin()->SolutionStepsDataHas(rFixedDomainVariable) == false)
-            KRATOS_ERROR(std::logic_error, "Add  FixedDomain VARIABLE!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  FixedDomain VARIABLE!!!!!! ERROR", "");
 
 
         //creating an auxiliary list for the new nodes
@@ -311,9 +311,9 @@ public:
 
         KRATOS_WATCH("Transfer From Moving Mesh*************************************")
         if (rMoving_ModelPart.NodesBegin()->SolutionStepsDataHas(rMovingDomainVariable) == false)
-            KRATOS_ERROR(std::logic_error, "Add  MovingDomain VARIABLE!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  MovingDomain VARIABLE!!!!!! ERROR", "");
         if (rFixed_ModelPart.NodesBegin()->SolutionStepsDataHas(rFixedDomainVariable) == false)
-            KRATOS_ERROR(std::logic_error, "Add  FixedDomain VARIABLE!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  FixedDomain VARIABLE!!!!!! ERROR", "");
 
 
         //creating an auxiliary list for the new nodes
@@ -551,7 +551,7 @@ private:
         if(area == 0.0)
         {
 
-// 				KRATOS_ERROR(std::logic_error,"element with zero area found","");
+// 				KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
             //The interpolated node will not be inside an elemente with zero area
             return false;
 
@@ -601,7 +601,7 @@ private:
         if(vol < 0.0000000000001)
         {
 
-// 				KRATOS_ERROR(std::logic_error,"element with zero vol found","");
+// 				KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
             //The interpolated node will not be inside an elemente with zero volume
             return false;
 // 				KRATOS_WATCH("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -636,7 +636,7 @@ private:
         int step_data_size,
         Node<3>::Pointer pnode)
     {
-// 		  KRATOS_ERROR(std::logic_error,"INTERPOLATE WHOLE MODEL 2D","")
+// 		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE WHOLE MODEL 2D","")
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
@@ -667,7 +667,7 @@ private:
         int step_data_size,
         Node<3>::Pointer pnode)//dimension or number of nodes???
     {
-// 		  		  KRATOS_ERROR(std::logic_error,"INTERPOLATE WHOLE MODEL 3D","")
+// 		  		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE WHOLE MODEL 3D","")
 
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -703,7 +703,7 @@ private:
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
     {
-// 		  		  KRATOS_ERROR(std::logic_error,"INTERPOLATE ARRAY 2D","")
+// 		  		  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 2D","")
 
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -738,7 +738,7 @@ private:
         Variable<array_1d<double,3> >& rDestinationVariable)
 
     {
-// 		  	KRATOS_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
+// 		  	KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
 
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -772,7 +772,7 @@ private:
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
     {
-// 		  	  KRATOS_ERROR(std::logic_error,"INTERPOLATE SCALAR 2D","")
+// 		  	  KRATOS_THROW_ERROR(std::logic_error,"INTERPOLATE SCALAR 2D","")
 
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();

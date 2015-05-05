@@ -1844,7 +1844,7 @@ void ShellAnisotropic::Initialize()
     if(norm_vcomposite > 1e-3)
         vcomposite /= norm_vcomposite;
     else
-        KRATOS_ERROR(std::logic_error,"the composite direction is (almost) orthogonal to the plane of the membrane","");
+        KRATOS_THROW_ERROR(std::logic_error,"the composite direction is (almost) orthogonal to the plane of the membrane","");
 
     //saving the angle
     double proj1 = inner_prod(v1,vcomposite);

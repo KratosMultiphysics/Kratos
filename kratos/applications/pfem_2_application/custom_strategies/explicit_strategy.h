@@ -215,7 +215,7 @@ void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 	}
 	KRATOS_CATCH("")
@@ -254,7 +254,7 @@ void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 		
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 	}
 	KRATOS_CATCH("")
@@ -718,7 +718,7 @@ void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 		
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 	}
 	KRATOS_CATCH("")
@@ -742,7 +742,7 @@ void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 		
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ", CurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 	}
 	KRATOS_CATCH("")

@@ -287,7 +287,7 @@ public:
 
     virtual LocalSystemComponents& GetLocalSystemComponents()
     {
-      KRATOS_ERROR(std::logic_error, "Asking for Local Components to the SCHEME base class which is not component wise and not contains this member variable","")
+      KRATOS_THROW_ERROR(std::logic_error, "Asking for Local Components to the SCHEME base class which is not component wise and not contains this member variable","")
     }
 
     /**
@@ -375,7 +375,7 @@ public:
         KRATOS_TRY
 
         if(mElementsAreInitialized==false)
-	    KRATOS_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
+	    KRATOS_THROW_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
 
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;

@@ -420,7 +420,7 @@ public:
     double CalculateFreeSurfaceArea(ModelPart& ThisModelPart, int domain_size)
     {
         if (domain_size!=3)
-            KRATOS_ERROR(std::logic_error,"error: This function is implemented for 3D only","");
+            KRATOS_THROW_ERROR(std::logic_error,"error: This function is implemented for 3D only","");
 
 
         std::vector<array_1d<double,3> > PointsOfFSTriangle;
@@ -726,7 +726,7 @@ public:
                         if(area_base >0.0000000001)
                             vol/= area_base;
                         else
-                            KRATOS_ERROR(std::logic_error,"error: BAse element has zero area","");
+                            KRATOS_THROW_ERROR(std::logic_error,"error: BAse element has zero area","");
 
                         //vol/=area_base;
                         double length_measure1 = norm_2(vec2);

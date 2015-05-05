@@ -285,7 +285,7 @@ public:
 		{
 		KRATOS_WATCH("Strange number of intersections")
 		KRATOS_WATCH(intersection_count)     
-		//KRATOS_ERROR(std::logic_error,  "Strange number of intersections - neither 3 nor 4 - check  CreateIntersectionConditions function" , "");                         
+		//KRATOS_THROW_ERROR(std::logic_error,  "Strange number of intersections - neither 3 nor 4 - check  CreateIntersectionConditions function" , "");                         
 
 		}
                    
@@ -306,7 +306,7 @@ public:
     void DisableSubdomain(ModelPart& full_model_part, ModelPart& reduced_model_part)
     {
         KRATOS_TRY
-  KRATOS_ERROR(std::logic_error,  "USE THE PROCESS INSTEAD.... " , "");
+  KRATOS_THROW_ERROR(std::logic_error,  "USE THE PROCESS INSTEAD.... " , "");
        /*
         reduced_model_part.Conditions().clear();
         reduced_model_part.Elements().clear();
@@ -349,7 +349,7 @@ public:
             }
 
             if (n_int>4)
-                KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
             
         }
         for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ;
@@ -370,7 +370,7 @@ public:
     void ApplyProjDirichlet(ModelPart& full_model_part)
     {
         KRATOS_TRY
-	KRATOS_ERROR(std::logic_error,  "USE THE PROCESS INSTEAD.... " , "");
+	KRATOS_THROW_ERROR(std::logic_error,  "USE THE PROCESS INSTEAD.... " , "");
 	/*
         unsigned int n_old_int;
 
@@ -484,7 +484,7 @@ inline void CalculateN_at_Point(Element::GeometryType& geom, const double xc, co
     double inv_vol = 0.0;
     if(vol < 0.000000000000001)
     {
-        KRATOS_ERROR(std::logic_error,"element with zero vol found","");
+        KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
     }
     else
     {
@@ -503,7 +503,7 @@ inline void CalculateN_at_Point(Element::GeometryType& geom, const double xc, co
             (N_at_c[2]<0.01 && N_at_c[1]<0.01 && N_at_c[3]<0.01) ||
             (N_at_c[0]<0.01 && N_at_c[1]<0.01 && N_at_c[3]<0.01)     )
         KRATOS_WATCH("Dangerous VERTICES!!! Intersection is very close to the node")
-        //KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
+        //KRATOS_THROW_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
 	*/
 
     }
@@ -583,7 +583,7 @@ inline void CalculateN_at_Point(Element::GeometryType& geom, const double xc, co
 	
         
         if (Tot_Vol<0.00000000000000000001)
-            KRATOS_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero volume!!!! " , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero volume!!!! " , "");
         //and now we fill in the array of shape functions values:
         // 1 0 2
         N_at_c[0]=fabs(Vol0/Tot_Vol);
@@ -592,7 +592,7 @@ inline void CalculateN_at_Point(Element::GeometryType& geom, const double xc, co
 	N_at_c[3]=fabs(Vol3/Tot_Vol);
         if (  (N_at_c[0]<0.05 && N_at_c[1]<0.05) || (N_at_c[0]<0.05 && N_at_c[2]<0.05) || (N_at_c[2]<0.05 && N_at_c[1]<0.05))
             KRATOS_WATCH("Dangerous VERTICES!!!")
-            //KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
+            //KRATOS_THROW_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
 	KRATOS_WATCH(N_at_c)
 	
         }

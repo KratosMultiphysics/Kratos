@@ -153,7 +153,7 @@ public:
         }
         mpBuffer = p_file;
         if(!(*mpBuffer))
-            KRATOS_ERROR(std::invalid_argument, "Error opening input file : ", std::string(Filename+".rest"));
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening input file : ", std::string(Filename+".rest"));
     }
 
     /// Destructor.
@@ -220,7 +220,7 @@ public:
                     typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
 
                     if(i_prototype == msRegisteredObjects.end())
-                        KRATOS_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
+                        KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
 
                         if(!pValue)
                             pValue = boost::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
@@ -262,7 +262,7 @@ public:
                     typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
 
                     if(i_prototype == msRegisteredObjects.end())
-                        KRATOS_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
+                        KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
 
                         if(!pValue)
                             pValue = static_cast<TDataType*>((i_prototype->second)());
@@ -283,7 +283,7 @@ public:
     void load(std::string const & rTag, boost::weak_ptr<TDataType>& pValue)
     {
         // This is for testing. I have to change it. Pooyan.
-        //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 //    read(*pValue);
     }
 
@@ -291,7 +291,7 @@ public:
     void load(std::string const & rTag, WeakPointerVector<TDataType>& pValue)
     {
         // This is for testing. I have to change it. Pooyan.
-        //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 //    read(*pValue);
     }
 
@@ -479,7 +479,7 @@ public:
     void save(std::string const & rTag, boost::weak_ptr<TDataType> pValue)
     {
         // This is for testing. I have to implement it. Pooyan.
-        //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 //    write(*pValue);
     }
 
@@ -487,7 +487,7 @@ public:
     void save(std::string const & rTag, Kratos::WeakPointerVector<TDataType> pValue)
     {
         // This is for testing. I have to implement it. Pooyan.
-        //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 //    write(*pValue);
     }
 
@@ -604,7 +604,7 @@ public:
                 buffer << " the trace tag is not the expected one:" << std::endl;
                 buffer << "    Tag found : " << read_tag << std::endl;
                 buffer << "    Tag given : " << rTag << std::endl;
-                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+                KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
             }
         }
         else if(mTrace == SERIALIZER_TRACE_ALL) // also reporting matched tags.
@@ -624,7 +624,7 @@ public:
                 buffer << " the trace tag is not the expected one:" << std::endl;
                 buffer << "    Tag found : " << read_tag << std::endl;
                 buffer << "    Tag given : " << rTag << std::endl;
-                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+                KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
             }
         }
         return false;
@@ -761,7 +761,7 @@ private:
                 typename RegisteredObjectsNameContainerType::iterator i_name = msRegisteredObjectsName.find(typeid (*pValue).name());
 
                 if (i_name == msRegisteredObjectsName.end())
-                    KRATOS_ERROR(std::runtime_error, "There is no object registered in Kratos with type id : ", typeid (*pValue).name())
+                    KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with type id : ", typeid (*pValue).name())
                     else
                         write(i_name->second);
 

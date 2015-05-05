@@ -1692,7 +1692,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
         double coeff = r_current_process_info[NODAL_MASS_COEFF];
 
         if (coeff > 1.0){
-            KRATOS_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is ", coeff);
+            KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one. Virtual_mass_coeff is ", coeff);
         }
 
         else if ((coeff == 1.0) && (r_current_process_info[VIRTUAL_MASS_OPTION])){

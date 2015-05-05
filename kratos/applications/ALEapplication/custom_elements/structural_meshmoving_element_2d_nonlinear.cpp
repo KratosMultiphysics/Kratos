@@ -104,7 +104,7 @@ Element::Pointer StructuralMeshMovingElem2DNonlin::Create(IndexType NewId, Nodes
 //************************************************************************************
 void StructuralMeshMovingElem2DNonlin::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 

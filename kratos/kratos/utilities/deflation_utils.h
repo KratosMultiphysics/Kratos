@@ -315,9 +315,9 @@ public:
         {
             //simple checks to verify blocks are effectively respected
             if(rA.size1()%block_size != 0 || rA.size2()%block_size != 0)
-                KRATOS_ERROR(std::logic_error,"the number of rows is not a multiple of block_size. Can not use the block deflation","")
+                KRATOS_THROW_ERROR(std::logic_error,"the number of rows is not a multiple of block_size. Can not use the block deflation","")
                 if(rA.nnz()%block_size != 0)
-                    KRATOS_ERROR(std::logic_error,"the number of non zeros is not a multiple of block_size. Can not use the block deflation","")
+                    KRATOS_THROW_ERROR(std::logic_error,"the number of non zeros is not a multiple of block_size. Can not use the block deflation","")
 
                     //construct Ascalar
                     SparseMatrixType Ascalar;

@@ -92,7 +92,7 @@ int RveConditionBase::Check(const ProcessInfo& rCurrentProcessInfo)
 {
 	KRATOS_TRY
 	if(mpMacroscaleStatus == NULL)
-		KRATOS_ERROR(std::logic_error, "RveConditionBase - Missing the mpMacroscaleStatus", "");
+		KRATOS_THROW_ERROR(std::logic_error, "RveConditionBase - Missing the mpMacroscaleStatus", "");
 	return 0;
 	KRATOS_CATCH("")
 }

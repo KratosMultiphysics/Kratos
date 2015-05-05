@@ -163,7 +163,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
  
         }
 
-        KRATOS_ERROR( std::logic_error, "finishing the constitutive test debug zone blah blah blah", "" );
+        KRATOS_THROW_ERROR( std::logic_error, "finishing the constitutive test debug zone blah blah blah", "" );
     }
 
 

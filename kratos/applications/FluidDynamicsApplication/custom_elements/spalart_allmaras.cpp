@@ -21,17 +21,17 @@ int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo)
 
     // Check that all required variables have been registered
     if(VELOCITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
     if(MESH_VELOCITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
     if(VISCOSITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
     if(MOLECULAR_VISCOSITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"MOLECULAR_VISCOSITY Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MOLECULAR_VISCOSITY Key is 0. Check if the application was correctly registered.","");
     if(TURBULENT_VISCOSITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"TURBULENT_VISCOSITY Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"TURBULENT_VISCOSITY Key is 0. Check if the application was correctly registered.","");
     if(TEMP_CONV_PROJ.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"TEMP_CONV_PROJ Key is 0. Check if the application was correctly registered.","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"TEMP_CONV_PROJ Key is 0. Check if the application was correctly registered.","");
 
     // Checks on nodes
 
@@ -39,21 +39,21 @@ int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo)
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
         if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(MOLECULAR_VISCOSITY) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing MOLECULAR_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing MOLECULAR_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(TURBULENT_VISCOSITY) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing TURBULENT_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing TURBULENT_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(TEMP_CONV_PROJ) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing TEMP_CONV_PROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing TEMP_CONV_PROJ variable on solution step data for node ",this->GetGeometry()[i].Id());
 
 
         if(this->GetGeometry()[i].HasDofFor(TURBULENT_VISCOSITY) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing TURBULENT_VISCOSITY degree of freedom on node ",this->GetGeometry()[i].Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing TURBULENT_VISCOSITY degree of freedom on node ",this->GetGeometry()[i].Id());
     }
 
     // If this is a 2D problem, check that nodes are in XY plane
@@ -62,7 +62,7 @@ int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo)
         for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
         }
     }
 

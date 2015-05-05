@@ -109,7 +109,7 @@ public:
             for (int i = 0; i < 3; ++i) {
 
                 if (high_point[i] < low_point[i]) {
-                    KRATOS_ERROR(std::logic_error, "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates.", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates.", "");
                 }
             }
 
@@ -225,7 +225,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
+            KRATOS_THROW_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
         }
   
         return adimensional_value;

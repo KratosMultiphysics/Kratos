@@ -1606,7 +1606,7 @@ void NoNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, double & app
 // 			gamma_dot_inv = 1.0/gamma_dot;
         if (app_mu < mu)
         {
-            KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+            KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
         }
     }
     else
@@ -1762,7 +1762,7 @@ void NoNewtonianASGS2D::CalculateNodalApparentViscosity(array_1d<double, 3 >& no
 // 	    aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 // 	    app_mu = mu + (yield[ii] / gamma_dot) * aux_1;
 // // 	    if (app_mu < mu) {
-// // 		KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+// // 		KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
 // // 	    }
 // 	} else {
 // 	    app_mu = mu + yield[ii] * m_coef ;
@@ -2025,7 +2025,7 @@ void NoNewtonianASGS2D::CalculateTau(const boost::numeric::ublas::bounded_matrix
 
 // 	//being lagrangian no advective velocity should be present!
 // 	if(advvel_norm> 1e-10)
-// 	  KRATOS_ERROR(std::logic_error,"LAGRANGIAN TEST: advective velocity is not zero!!!!!!","");
+// 	  KRATOS_THROW_ERROR(std::logic_error,"LAGRANGIAN TEST: advective velocity is not zero!!!!!!","");
 
     KRATOS_CATCH("")
 

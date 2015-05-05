@@ -103,7 +103,7 @@ double  Friction_Softening::FunctionBehavior(const Vector& Imput_Parameters)
         KRATOS_WATCH(Imput_Parameters )
         KRATOS_WATCH(frac)
         KRATOS_WATCH(result)
-        KRATOS_ERROR(std::logic_error,  "FRICTION" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "FRICTION" , "");
     }
 
     if(result<1.00)

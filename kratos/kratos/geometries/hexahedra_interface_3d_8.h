@@ -414,7 +414,7 @@ public:
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         if ( ThisPoints.size() != 8 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 8, given " ,
                           this->PointsNumber() );
 
@@ -1149,7 +1149,7 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
                                            IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -1178,7 +1178,7 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
                                           IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
         return 0.0;
     }
 
@@ -1203,7 +1203,7 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
         return 0.0;
     }
 
@@ -1229,7 +1229,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -1261,7 +1261,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -1283,7 +1283,7 @@ public:
      */
     virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "Quadrilateral3D4::DeterminantOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -1427,7 +1427,7 @@ public:
         case 7:
             return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" , *this );
         }
 
@@ -1445,7 +1445,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-		KRATOS_ERROR( std::logic_error, "This integration method is not supported" , *this );
+		KRATOS_THROW_ERROR( std::logic_error, "This integration method is not supported" , *this );
 		return rResult;
     }
 
@@ -1473,7 +1473,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo
@@ -1523,7 +1523,7 @@ public:
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,"This integration method is not supported" , *this );
+            KRATOS_THROW_ERROR( std::logic_error,"This integration method is not supported" , *this );
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )

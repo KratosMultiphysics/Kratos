@@ -165,7 +165,7 @@ public:
 
         int ierr = this->mrComm.ScanSum(&DofCount,&DofOffset,1);
         if (ierr != 0)
-            KRATOS_ERROR(std::runtime_error,"In TrilinosBuilderAndSolverMLPeriodic::SetUpSystem: Found Epetra_MpiComm::ScanSum failure with error code ",ierr);
+            KRATOS_THROW_ERROR(std::runtime_error,"In TrilinosBuilderAndSolverMLPeriodic::SetUpSystem: Found Epetra_MpiComm::ScanSum failure with error code ",ierr);
 
         DofOffset -= DofCount;
         this->mFirstMyId = DofOffset;
@@ -212,7 +212,7 @@ public:
         int TotalDofNum;
         ierr = this->mrComm.SumAll(&DofCount,&TotalDofNum,1);
         if (ierr != 0)
-            KRATOS_ERROR(std::runtime_error,"In TrilinosBuilderAndSolverMLPeriodic::SetUpSystem: Found Epetra_MpiComm::SumAll failure with error code ",ierr);
+            KRATOS_THROW_ERROR(std::runtime_error,"In TrilinosBuilderAndSolverMLPeriodic::SetUpSystem: Found Epetra_MpiComm::SumAll failure with error code ",ierr);
 
         this->mLocalSystemSize = DofCount;
         this->mEquationSystemSize = TotalDofNum;

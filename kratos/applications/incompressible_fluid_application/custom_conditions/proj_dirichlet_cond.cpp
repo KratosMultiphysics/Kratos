@@ -109,7 +109,7 @@ ProjDirichletCond::ProjDirichletCond(IndexType NewId, GeometryType::Pointer pGeo
     //check that intersections dont belong to the same point
     if (which_edge1==which_edge2)// || bad_vertex_index1<=2 || bad_vertex_index2<=2)
     {
-        KRATOS_ERROR(std::logic_error,  "Two INTERSECTIONs on one edge!!!!!!!", "")// Or the intersection is close to a vertex " , "")
+        KRATOS_THROW_ERROR(std::logic_error,  "Two INTERSECTIONs on one edge!!!!!!!", "")// Or the intersection is close to a vertex " , "")
     }
 
 
@@ -236,7 +236,7 @@ void ProjDirichletCond::CalculateRightHandSide(VectorType& rRightHandSideVector,
        		 rRightHandSideVector.resize(6,false);
     */
 
-    KRATOS_ERROR(std::logic_error,"Method not implemented!!!!","");
+    KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 
 }
@@ -282,7 +282,7 @@ void ProjDirichletCond::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
     interf_length=sqrt((mPoint1[0]-mPoint2[0])*(mPoint1[0]-mPoint2[0])+(mPoint1[1]-mPoint2[1])*(mPoint1[1]-mPoint2[1]));
     //KRATOS_WATCH(interf_length)
     if (interf_length<0.0000000001)
-        KRATOS_ERROR(std::logic_error,"ZERO intersection length!!!!","");
+        KRATOS_THROW_ERROR(std::logic_error,"ZERO intersection length!!!!","");
     //double Area=GeometryUtils::CalculateVolume2D(GetGeometry());
 
     //we add the mass matrix to the left-hand side (we are solving: Ingeral_over_Gamma (omega*(u-u_prescribed))dGamma=0, where gamma is the interface)
@@ -508,7 +508,7 @@ void ProjDirichletCond::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
     		//strange case if one is is_interface and another one - no.. then throw an error
     		else if ( GetGeometry()[bad_vertex_index1].FastGetSolutionStepValue(IS_INTERFACE)+GetGeometry()[bad_vertex_index2].FastGetSolutionStepValue(IS_INTERFACE)==1.0 )
     			{
-    			KRATOS_ERROR(std::logic_error,  "ONE BAD IN ONE BAD Out!!!!!!!1!!!! " , "")
+    			KRATOS_THROW_ERROR(std::logic_error,  "ONE BAD IN ONE BAD Out!!!!!!!1!!!! " , "")
     			}
 
     		}
@@ -555,7 +555,7 @@ void ProjDirichletCond::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
     			}
     		}
     	}
-    //KRATOS_ERROR(std::logic_error,  "CHEck, you just have one bad vertex!!! and it screws everything1!!!! " , "")
+    //KRATOS_THROW_ERROR(std::logic_error,  "CHEck, you just have one bad vertex!!! and it screws everything1!!!! " , "")
     }
 
 
@@ -663,7 +663,7 @@ void ProjDirichletCond::CalculateN_at_Point(Element::GeometryType& geom, const d
     double Area0 = 0.5*detJ;
 
     if (totArea<0.00000000000000001)
-        KRATOS_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero area!!!! " , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero area!!!! " , "");
     //and now we fill in the array of shape functions values:
     // 1 0 2
     N_at_c[0]=fabs(Area0/totArea);
@@ -671,7 +671,7 @@ void ProjDirichletCond::CalculateN_at_Point(Element::GeometryType& geom, const d
     N_at_c[2]=fabs(Area2/totArea);
     if (  (N_at_c[0]<0.05 && N_at_c[1]<0.05) || (N_at_c[0]<0.05 && N_at_c[2]<0.05) || (N_at_c[2]<0.05 && N_at_c[1]<0.05))
         KRATOS_WATCH("Dangerous VERTICES!!!")
-        //KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
+        //KRATOS_THROW_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
 
     }
 

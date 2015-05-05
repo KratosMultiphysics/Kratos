@@ -591,7 +591,7 @@ void ExplicitASGSCOMPPRDC3D::CalculateCharectristicLength(double& ch_length, con
         double denom = n_dir[0]*CC_n[0] + n_dir[1]*CC_n[1] + n_dir[2]*CC_n[2];
 
         if(denom <= 0.0)
-            KRATOS_ERROR(std::logic_error,"CalculateCharectristicLength zero or negative denominator ",denom)
+            KRATOS_THROW_ERROR(std::logic_error,"CalculateCharectristicLength zero or negative denominator ",denom)
             else
                 ch_length = 2.0/sqrt(denom);
     }

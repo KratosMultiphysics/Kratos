@@ -162,7 +162,7 @@ namespace Kratos
 	      R[i] = M(i,i);
 
 	  if(norm_2(R) == 0.00)
-		  KRATOS_ERROR(std::invalid_argument, "Invalid M matrix. The norm2 of its diagonal is Zero", "");
+		  KRATOS_THROW_ERROR(std::invalid_argument, "Invalid M matrix. The norm2 of its diagonal is Zero", "");
 
 	  R /= norm_2(R);
       }
@@ -245,7 +245,7 @@ namespace Kratos
 
 			beta = inner_prod(x, y);
 			if(beta == 0.00)
-				KRATOS_ERROR(std::invalid_argument, "Zero beta norm!", "");
+				KRATOS_THROW_ERROR(std::invalid_argument, "Zero beta norm!", "");
 
 			double delta_ro = (ro / beta);
 
@@ -255,7 +255,7 @@ namespace Kratos
 			//	ro = -ro;
 
 			if(ro == 0.00)
-				KRATOS_ERROR(std::runtime_error, "Perpendicular eigenvector to M", "");
+				KRATOS_THROW_ERROR(std::runtime_error, "Perpendicular eigenvector to M", "");
 
 
 			double convergence_norm = fabs((ro - old_ro) / ro);
@@ -325,7 +325,7 @@ namespace Kratos
 			if(beta < 0.00)
 				beta = -sqrt(-beta);
 			else
-				//KRATOS_ERROR(std::invalid_argument, "M is not Positive-definite", "");
+				//KRATOS_THROW_ERROR(std::invalid_argument, "M is not Positive-definite", "");
 			beta = sqrt(beta);
 
 			double inverse_of_beta = 1.00 / beta;

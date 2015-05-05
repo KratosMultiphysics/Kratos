@@ -391,7 +391,7 @@ namespace Kratos {
 			coordLocal[1] = node_it->Y();
 			if (mDUMMY_UNKNOWN[i_node]<(-0.01)){
 				KRATOS_WATCH(i_node);
-				KRATOS_ERROR(std::logic_error, "i stopped here!", "");
+				KRATOS_THROW_ERROR(std::logic_error, "i stopped here!", "");
 			}
 			
 			//double radius_2= pow((coordLocal[0]- 25.0),2)+pow((coordLocal[1]-25.0),2);
@@ -412,7 +412,7 @@ namespace Kratos {
 
 		if (merror<errorrr){
 			//KRATOS_WATCH(merror);
-			//KRATOS_ERROR(std::logic_error, "i stopped here!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "i stopped here!", "");
 			merror=errorrr;
 			merrortime=tiempo;
 		}
@@ -671,7 +671,7 @@ namespace Kratos {
 				 
 				 
 				    
-				if ((absolute_counter-1) >= full_vector_lenght) KRATOS_ERROR(std::logic_error, "oops, more neighbours than expected!", "");
+				if ((absolute_counter-1) >= full_vector_lenght) KRATOS_THROW_ERROR(std::logic_error, "oops, more neighbours than expected!", "");
 				if (temp_mass>mbiggest_mass) mbiggest_mass=temp_mass;
 				if (temp_mass<msmallest_mass ) msmallest_mass=temp_mass;
 				

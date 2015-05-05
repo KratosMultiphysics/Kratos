@@ -124,7 +124,7 @@ public:
 
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
 
         //reset particle position to the beginning of the step
@@ -260,7 +260,7 @@ public:
         Timer::Start("Actualizacion");
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         //should be done outside!!!
         //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
@@ -403,7 +403,7 @@ public:
     {
         KRATOS_TRY;
 
-        //KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+        //KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
         Timer time;
         Timer::Start("Puntos");
 
@@ -414,7 +414,7 @@ public:
 
         //unsigned int min_number_of_particles = 4  ;
 
-//	  KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+//	  KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
         int id;
         if (rLagrangianModelPart.Nodes().size() != 0)
             id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
@@ -520,7 +520,7 @@ public:
 
         int number_of_rows=rEulerianModelPart.Elements().size();
         KRATOS_WATCH(number_of_threads);
-        //KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+        //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 
         elem_partition.resize(number_of_threads + 1);
         int elem_partition_size = number_of_rows / number_of_threads;
@@ -557,7 +557,7 @@ public:
                 if (el_it->GetValue(YOUNG_MODULUS) < 4.0)
 //		if (el_it->GetValue(YOUNG_MODULUS) < 1.0)
                 {
-                    //KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+                    //KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
                     Geometry< Node<3> >& geom = el_it->GetGeometry();
 
                     //if(el_it->GetValue(DENSITY)==1.0 or el_it->GetValue(DENSITY)==1000.0 ){
@@ -631,7 +631,7 @@ public:
         KRATOS_TRY
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         //should be done outside!!!
         //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
@@ -749,7 +749,7 @@ public:
         KRATOS_TRY
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         //should be done outside!!!
         //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
@@ -877,7 +877,7 @@ public:
 
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
 
         //reset particle position to the beginning of the step
@@ -1084,7 +1084,7 @@ public:
                 KRATOS_WATCH("SIN PARTICULAS");
                 KRATOS_WATCH("SIN PARTICULAS");
                 KRATOS_WATCH(dens);
-                KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
             }
 
             //KRATOS_WATCH(dens);
@@ -1208,7 +1208,7 @@ public:
     void EstimateTime(ModelPart& rEulerianModelPart,const double max_dt)
     {
         KRATOS_TRY
-        // KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
+        // KRATOS_THROW_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
         //initializee dt with max dt
         //initialize dt with incredible value
         double /*dt, glob_min_dt,*/ dummy;
@@ -1352,7 +1352,7 @@ public:
 
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 
         double sigma = 0.0;
         if (TDim == 2)
@@ -1447,9 +1447,9 @@ public:
         Timer::Start("Interpolacion");
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----TEMPERATURE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----TEMPERATURE---- variable!!!!!! ERROR", "");
 
         //defintions for spatial search
         typedef Node < 3 > PointType;
@@ -1682,7 +1682,7 @@ private:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
         }
         else
         {
@@ -1728,7 +1728,7 @@ private:
         double inv_vol = 0.0;
         if (vol < 0.0000000000001)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
         }
         else
         {

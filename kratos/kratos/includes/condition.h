@@ -703,12 +703,12 @@ public:
      */
     virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+        KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
     
     virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
-         KRATOS_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+         KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }     
 
     /**
@@ -860,12 +860,12 @@ public:
         KRATOS_TRY
         if (this->Id() < 1)
         {
-            KRATOS_ERROR(std::logic_error, "Condition found with Id 0 or negative","")
+            KRATOS_THROW_ERROR(std::logic_error, "Condition found with Id 0 or negative","")
         }
         if (this->GetGeometry().Area() < 0)
         {
             std::cout << "error on condition -> " << this->Id() << std::endl;
-            KRATOS_ERROR(std::logic_error, "Area cannot be less than 0","")
+            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than 0","")
         }
         return 0;
 

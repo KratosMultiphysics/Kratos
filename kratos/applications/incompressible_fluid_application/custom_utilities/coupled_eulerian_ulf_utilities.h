@@ -130,7 +130,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR(std::logic_error,  "Use the ApplyProjDirichlet process instead .... " , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Use the ApplyProjDirichlet process instead .... " , "");
 
         KRATOS_CATCH("")
     }
@@ -938,7 +938,7 @@ public:
             if (IntersectionPoints.size()>5)
             {
                 KRATOS_WATCH(IntersectionPoints.size())
-                KRATOS_ERROR(std::logic_error,  "More than 5 intersection points with one interface element.. smtghng wrong " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "More than 5 intersection points with one interface element.. smtghng wrong " , "");
             }
 
 
@@ -993,7 +993,7 @@ public:
                 //reduced_model_part.AddNode(im->GetGeometry()[0]);
             }
             if (n_disabled>3)
-                KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
 
         }
 
@@ -1140,7 +1140,7 @@ public:
         double Area0 = 0.5*detJ;
 
         if (totArea<0.00000000000000001)
-            KRATOS_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero area!!!! " , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero area!!!! " , "");
         //and now we fill in the array of shape functions values:
         // 1 0 2
         N_at_c[0]=fabs(Area0/totArea);
@@ -1148,7 +1148,7 @@ public:
         N_at_c[2]=fabs(Area2/totArea);
         if (  (N_at_c[0]<0.05 && N_at_c[1]<0.05) || (N_at_c[0]<0.05 && N_at_c[2]<0.05) || (N_at_c[2]<0.05 && N_at_c[1]<0.05))
             KRATOS_WATCH("Dangerous VERTICES!!!")
-            //KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
+            //KRATOS_THROW_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
 
         }
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -1188,7 +1188,7 @@ public:
         double inv_area = 0.0;
         if(area < 0.000000000001)
         {
-            KRATOS_ERROR(std::logic_error,"element with zero area found","");
+            KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
         }
         else
         {
@@ -1225,7 +1225,7 @@ public:
         double inv_area = 0.0;
         if(area < 0.000000000001)
         {
-            KRATOS_ERROR(std::logic_error,"element with zero area found","");
+            KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
         }
         else
         {

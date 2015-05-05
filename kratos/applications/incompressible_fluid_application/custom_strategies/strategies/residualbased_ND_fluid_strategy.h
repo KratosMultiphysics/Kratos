@@ -510,7 +510,7 @@ public:
         if(time_order == 2 && step > time_order)
         {
             if(BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
+                KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
 
                 rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3,false);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -579,7 +579,7 @@ public:
         if(prediction_order == 2)
         {
             if(BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error,"insufficient buffer size for second order prediction","")
+                KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for second order prediction","")
             }
 
         if(prediction_order == 2 && step > 2)

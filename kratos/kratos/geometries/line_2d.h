@@ -205,7 +205,7 @@ public:
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( BaseType::PointsNumber() != 2)
-            KRATOS_ERROR(std::invalid_argument,
+            KRATOS_THROW_ERROR(std::invalid_argument,
                          "Invalid points number. Expected 2, given " , BaseType::PointsNumber());
     }
 
@@ -519,7 +519,7 @@ public:
     */
     virtual Vector& DeterminantOfJacobian(Vector& rResult, IntegrationMethod ThisMethod) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
     /** Determinant of jacobian in specific integration point of
@@ -542,7 +542,7 @@ public:
     */
     virtual double DeterminantOfJacobian(IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
     /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -559,7 +559,7 @@ public:
     */
     virtual double DeterminantOfJacobian(const CoordinatesArrayType& rPoint) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
 
@@ -579,7 +579,7 @@ public:
     */
     virtual JacobiansType& InverseOfJacobian(JacobiansType& rResult, IntegrationMethod ThisMethod) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
     /** Inverse of jacobian in specific integration point of given integration
@@ -601,7 +601,7 @@ public:
     */
     virtual Matrix& InverseOfJacobian(Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
     /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -617,7 +617,7 @@ public:
     */
     virtual Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rPoint) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
 
@@ -636,7 +636,7 @@ public:
     virtual double ShapeFunctionValue(IndexType ShapeFunctionIndex,
                                       const CoordinatesArrayType& rPoint) const
     {
-        KRATOS_ERROR(std::logic_error,
+        KRATOS_THROW_ERROR(std::logic_error,
                      "This method is not implemented yet!" , *this);
         return 0;
     }
@@ -645,7 +645,7 @@ public:
 
     virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
     {
-        KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+        KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     }
 
 

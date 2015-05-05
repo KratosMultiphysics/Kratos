@@ -103,7 +103,7 @@ public:
      */
     virtual ConstitutiveLaw::Pointer Clone() const
 	{
-		KRATOS_ERROR(std::logic_error, "ConstitutiveLawAdapter cannot be cloned. This method should be implemented by any derived class","");
+		KRATOS_THROW_ERROR(std::logic_error, "ConstitutiveLawAdapter cannot be cloned. This method should be implemented by any derived class","");
 	}
 
     /**
@@ -528,7 +528,7 @@ public:
 	{
 		KRATOS_TRY
 		if(mpAdaptee == NULL)
-			KRATOS_ERROR(std::logic_error, "ConstitutiveLawAdapter - missing the Adaptee", "");
+			KRATOS_THROW_ERROR(std::logic_error, "ConstitutiveLawAdapter - missing the Adaptee", "");
 		int retval = mpAdaptee->Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 		return retval;
 		KRATOS_CATCH("")

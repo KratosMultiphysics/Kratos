@@ -511,7 +511,7 @@ void DynamicVMS<TDim>::SetValueOnIntegrationPoints(const Variable<double> &rVari
     KRATOS_TRY;
     if (rValues.size() != NumGauss)
     {
-        KRATOS_ERROR(std::runtime_error,"Wrong number of input values for DynamicVMS::SetValueOnIntegrationPoints. Expected number of input values is ",NumGauss);
+        KRATOS_THROW_ERROR(std::runtime_error,"Wrong number of input values for DynamicVMS::SetValueOnIntegrationPoints. Expected number of input values is ",NumGauss);
     }
     KRATOS_CATCH("");
 

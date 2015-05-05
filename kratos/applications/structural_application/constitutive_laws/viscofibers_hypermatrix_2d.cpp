@@ -144,7 +144,7 @@ void Viscofibers_Hypermatrix2D::Calculate(const Variable<Matrix >& rVariable, Ma
 // NEW GET VALUE !!!!!!!!!
 double Viscofibers_Hypermatrix2D::GetValue( const Variable<double>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 }
 Vector& Viscofibers_Hypermatrix2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
@@ -155,12 +155,12 @@ Vector& Viscofibers_Hypermatrix2D::GetValue( const Variable<Vector>& rThisVariab
         rValue = ZeroVector(1);
         return( rValue );
     }
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 }
 
 Matrix Viscofibers_Hypermatrix2D::GetValue( const Variable<Matrix>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 }
 // NEW GET VALUE !!!!!!!!!
 

@@ -409,14 +409,14 @@ namespace Kratos {
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
             if (r_model_part.GetBufferSize() != 3)
-                KRATOS_ERROR(std::logic_error, "wrong buffer size. Expects 3, currently: ", r_model_part.GetBufferSize());
+                KRATOS_THROW_ERROR(std::logic_error, "wrong buffer size. Expects 3, currently: ", r_model_part.GetBufferSize());
                 
             //calculate the BDF coefficients
             double Dt = rCurrentProcessInfo[DELTA_TIME];
             double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
             if(OldDt == 0.0) 
-                KRATOS_ERROR(std::logic_error,"found an OldDt = 0.0 in InitializeSolutionStep","");
+                KRATOS_THROW_ERROR(std::logic_error,"found an OldDt = 0.0 in InitializeSolutionStep","");
             
             double Rho = OldDt / Dt;
             double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);

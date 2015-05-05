@@ -110,7 +110,7 @@ class YieldCriterion
         /// Default constructor.
         YieldCriterion()
 	{
-	  //KRATOS_ERROR( std::logic_error, "calling the default constructor in YieldCriterion ... illegal operation!!", "" )
+	  //KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor in YieldCriterion ... illegal operation!!", "" )
 	};
 
 
@@ -187,7 +187,7 @@ class YieldCriterion
  
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rStateFunction;
 	};
@@ -195,14 +195,14 @@ class YieldCriterion
 
         virtual double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rStateFunction;
 	};
 
         virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rDeltaStateFunction;
 	};
@@ -210,7 +210,7 @@ class YieldCriterion
 
         virtual double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rPlasticDissipation;
 	};
@@ -218,7 +218,7 @@ class YieldCriterion
 
         virtual double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rDeltaPlasticDissipation;
 	};
@@ -226,7 +226,7 @@ class YieldCriterion
 
         virtual double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rPlasticDissipation;
 	};
@@ -234,7 +234,7 @@ class YieldCriterion
 
         virtual double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
 		return rDeltaPlasticDissipation;
 	};
@@ -243,18 +243,18 @@ class YieldCriterion
 //Ll:
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
         };
    
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
         };
 
 	virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
 	{
-		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 
         };
 

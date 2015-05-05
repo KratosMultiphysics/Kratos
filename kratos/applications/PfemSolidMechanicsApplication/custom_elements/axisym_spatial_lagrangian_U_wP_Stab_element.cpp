@@ -98,7 +98,7 @@ namespace Kratos
          NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 
          if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-            KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+            KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
 
       for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)

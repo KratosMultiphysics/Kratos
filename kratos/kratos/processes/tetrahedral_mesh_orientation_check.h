@@ -75,10 +75,10 @@ public:
 
         // Check that required nodal variables are available
         if(NORMAL.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"NORMAL Key is 0. There is some issue with the registering of variables.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. There is some issue with the registering of variables.","");
 
         if ( (mrModelPart.NodesBegin() )->SolutionStepsDataHas(NORMAL) == false )
-            KRATOS_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",mrModelPart.NodesBegin()->Id());
+            KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",mrModelPart.NodesBegin()->Id());
 
 
         // Initialize normals as zero
@@ -165,7 +165,7 @@ public:
 
         if (mThrowErrors && (ElemSwitchCount+CondSwitchCount) > 0)
         {
-            KRATOS_ERROR(std::runtime_error, OutMsg.str(), "");
+            KRATOS_THROW_ERROR(std::runtime_error, OutMsg.str(), "");
         }
         else
         {

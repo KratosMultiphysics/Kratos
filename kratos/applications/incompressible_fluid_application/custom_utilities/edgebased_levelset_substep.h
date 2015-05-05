@@ -233,7 +233,7 @@ public:
                 if (inode->IsFixed (VELOCITY_Y) == false || inode->IsFixed (VELOCITY_Z) == false)
                 {
                     std::cout << "error found on the fixity of node " << inode->Id() << std::endl;
-                    KRATOS_ERROR (std::logic_error, "velocities can be either all fixed or none fixed", "")
+                    KRATOS_THROW_ERROR (std::logic_error, "velocities can be either all fixed or none fixed", "")
                 }
                 tempFixedVelocities.push_back (index);
                 tempFixedVelocitiesValues.push_back (mvel_n1[index]);
@@ -326,16 +326,16 @@ public:
         //verify that neither h_min nor havg are 0
         for (unsigned int i_node=0; i_node<mHmin.size(); i_node++)
 	{
-            if (mHmin[i_node] < 1e-20) KRATOS_ERROR ( std::logic_error,"hmin too small on node ",i_node+1)
-                if (mHavg[i_node] < 1e-20) KRATOS_ERROR ( std::logic_error,"havg too small on node ",i_node+1)
-                    if (mHmin[i_node] > 1e20) KRATOS_ERROR ( std::logic_error,"hmin too big on node ",i_node+1)
-                        if (mHavg[i_node] > 1e20) KRATOS_ERROR ( std::logic_error,"havg too big on node ",i_node+1)
+            if (mHmin[i_node] < 1e-20) KRATOS_THROW_ERROR ( std::logic_error,"hmin too small on node ",i_node+1)
+                if (mHavg[i_node] < 1e-20) KRATOS_THROW_ERROR ( std::logic_error,"havg too small on node ",i_node+1)
+                    if (mHmin[i_node] > 1e20) KRATOS_THROW_ERROR ( std::logic_error,"hmin too big on node ",i_node+1)
+                        if (mHavg[i_node] > 1e20) KRATOS_THROW_ERROR ( std::logic_error,"havg too big on node ",i_node+1)
 	}
         for (ModelPart::ElementsContainerType::iterator it=mr_model_part.ElementsBegin(); it!=mr_model_part.ElementsEnd(); it++)
 	{
 	  if (it->Id() < 1)
 	  {
-                KRATOS_ERROR (std::logic_error, "Element found with Id 0 or negative","")
+                KRATOS_THROW_ERROR (std::logic_error, "Element found with Id 0 or negative","")
 	  }
 	  double elem_vol = 0.0;
             if (TDim == 2)
@@ -345,7 +345,7 @@ public:
 	  if (elem_vol <= 0)
 	  {
 	      std::cout << "error on element -> " << it->Id() << std::endl;
-                KRATOS_ERROR (std::logic_error, "Area can not be lesser than 0","")
+                KRATOS_THROW_ERROR (std::logic_error, "Area can not be lesser than 0","")
 	  }
 	}
         KRATOS_CATCH ("")
@@ -530,7 +530,7 @@ public:
             if (TDim == 3)
                 ApplySmagorinsky3D (MolecularViscosity, Cs);
 	 else
-                KRATOS_ERROR (std::logic_error,"smagorinsky not yet implemented in 2D","");
+                KRATOS_THROW_ERROR (std::logic_error,"smagorinsky not yet implemented in 2D","");
       }
     }
 
@@ -1232,7 +1232,7 @@ public:
                     }
                 }
                 if (avg_number == 0)
-                    KRATOS_ERROR (std::logic_error,"can not happen that the extrapolation node has no neighbours","");
+                    KRATOS_THROW_ERROR (std::logic_error,"can not happen that the extrapolation node has no neighbours","");
                 mPn1[i_node] = pavg/avg_number;
             }
         }
@@ -2056,8 +2056,8 @@ public:
                 }
                 else
                 {
-                    KRATOS_ERROR (std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
-                    //                                                    KRATOS_ERROR(std:logic_error,"error in extrapolation:: no neighbours find on a extrapolation layer -- impossible","");
+                    KRATOS_THROW_ERROR (std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
+                    //                                                    KRATOS_THROW_ERROR(std:logic_error,"error in extrapolation:: no neighbours find on a extrapolation layer -- impossible","");
                 }
                 mvel_n1[i_node] = aux;
                 mvel_n[i_node] = aux;
@@ -2282,7 +2282,7 @@ public:
             unsigned int i_node = mSlipBoundaryList[i];
             double tmp = norm_2(mSlipNormal[i_node]);
             if(tmp < 1e-20)
-                KRATOS_ERROR(std::logic_error,"found a slip node with zero normal on node with id",i_node+1)
+                KRATOS_THROW_ERROR(std::logic_error,"found a slip node with zero normal on node with id",i_node+1)
             }
 
 
@@ -2316,7 +2316,7 @@ public:
         }
         
 //        KRATOS_WATCH( mInOutNormal[7-1] );
-//        KRATOS_ERROR(std::logic_error,"remove line 2318 " ,"");
+//        KRATOS_THROW_ERROR(std::logic_error,"remove line 2318 " ,"");
        
         std::vector< unsigned int> tempmInOutBoundaryList;
         for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -3211,7 +3211,7 @@ private:
         {
             mHmin[i_node] = aaa[i_node];
             if (aaa[i_node] == 0.0)
-                KRATOS_ERROR (std::logic_error,"found a 0 hmin on node",i_node);
+                KRATOS_THROW_ERROR (std::logic_error,"found a 0 hmin on node",i_node);
         }
         //take unstructured meshes into account
         if (TDim == 2)
@@ -3635,7 +3635,7 @@ private:
 //        double y_plus_incercept = 10.9931899;
 //        unsigned int itmax = 100;
         if (mViscosity[0] == 0)
-            KRATOS_ERROR (std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+            KRATOS_THROW_ERROR (std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
         /*        //slip condition
         int slip_size = mSlipBoundaryList.size();
         #pragma omp parallel for firstprivate(slip_size,B,toll,ym,y_plus_incercept,itmax)

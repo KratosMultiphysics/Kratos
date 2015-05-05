@@ -189,7 +189,7 @@ std::string RveBoundary2D::GetInfo()const
 	{ \
 		ModelPart::NodeIterator cloned_node_iter = modelPart.Nodes().find(prototypeNode->GetId()); \
 		if(cloned_node_iter == modelPart.Nodes().end()) \
-			KRATOS_ERROR(std::logic_error, "The input modelPart is NOT a valid clone of the protptype one", ""); \
+			KRATOS_THROW_ERROR(std::logic_error, "The input modelPart is NOT a valid clone of the protptype one", ""); \
 		nodesArray.push_back(*(cloned_node_iter.base())); \
 	}
 

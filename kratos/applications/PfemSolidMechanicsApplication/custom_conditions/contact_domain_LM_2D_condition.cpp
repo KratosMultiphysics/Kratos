@@ -159,7 +159,7 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
     }
     else
     {
-        KRATOS_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
 
     }
 

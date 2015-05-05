@@ -306,7 +306,7 @@ public:
 	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[2]);
 	    KRATOS_WATCH(((rCurrentElement)->GetGeometry())[3]);
 	    KRATOS_WATCH(LHS_Contribution);
-	    KRATOS_ERROR(std::logic_error,"!!!!ENRICHED ELEMENT MUST HAVE NON-ZERO DIAGONAL MEMBER!!!!","");
+	    KRATOS_THROW_ERROR(std::logic_error,"!!!!ENRICHED ELEMENT MUST HAVE NON-ZERO DIAGONAL MEMBER!!!!","");
 	    
 	  }
 	  

@@ -376,7 +376,7 @@ KRATOS_WATCH(n);*/
 	//KRATOS_WATCH(GetProperties()[DENSITY]);
 	
 	if(h<0.0)
-             KRATOS_ERROR(std::logic_error,"NEGATIVE HH","")
+             KRATOS_THROW_ERROR(std::logic_error,"NEGATIVE HH","")
              
 			if(h>l0) //in this case it is not in contact
 			{

@@ -145,7 +145,7 @@ void Viscoelastic2D::Calculate(const Variable<Matrix >& rVariable, Matrix& rResu
 // NEW GET VALUE !!!!!!!!!
 double Viscoelastic2D::GetValue( const Variable<double>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 }
 Vector& Viscoelastic2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
@@ -156,12 +156,12 @@ Vector& Viscoelastic2D::GetValue( const Variable<Vector>& rThisVariable, Vector&
         rValue = ZeroVector(1);
         return( rValue );
     }
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 }
 
 Matrix Viscoelastic2D::GetValue( const Variable<Matrix>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 }
 // NEW GET VALUE !!!!!!!!!
 

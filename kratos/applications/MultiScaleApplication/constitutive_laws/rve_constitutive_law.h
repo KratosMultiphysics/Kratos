@@ -99,7 +99,7 @@ public:
      */
     virtual ConstitutiveLaw::Pointer Clone() const
 	{
-		KRATOS_ERROR(std::logic_error, "RveConstitutiveLaw cannot be cloned. It should be created by the modeler and assigned to Elements","");
+		KRATOS_THROW_ERROR(std::logic_error, "RveConstitutiveLaw cannot be cloned. It should be created by the modeler and assigned to Elements","");
 	}
 
     /**
@@ -129,7 +129,7 @@ public:
                                              int CalculateTangent,
                                              bool SaveInternalVariables)
 	{
-		KRATOS_ERROR(std::logic_error, "RveConstitutiveLaw - Method not implemented","");
+		KRATOS_THROW_ERROR(std::logic_error, "RveConstitutiveLaw - Method not implemented","");
 	}
 
     /**
@@ -162,7 +162,7 @@ public:
                                              int CalculateTangent = true,
                                              bool SaveInternalVariables = true)
 	{
-		KRATOS_ERROR(std::logic_error, "RveConstitutiveLaw - Method not implemented","");
+		KRATOS_THROW_ERROR(std::logic_error, "RveConstitutiveLaw - Method not implemented","");
 	}
 
 
@@ -173,7 +173,7 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector)
 	{
-		KRATOS_ERROR(std::logic_error, "RveConstitutiveLaw - Method not implemented","");
+		KRATOS_THROW_ERROR(std::logic_error, "RveConstitutiveLaw - Method not implemented","");
 	}
 
 	// New methods of this class

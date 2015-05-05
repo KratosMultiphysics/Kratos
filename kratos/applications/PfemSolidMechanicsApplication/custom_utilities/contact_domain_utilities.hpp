@@ -133,7 +133,7 @@ public:
 	    
 		if(area < 1e-15)
 		{
-			//KRATOS_ERROR( std::logic_error,"element with zero area found", "" )
+			//KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" )
 			std::cout<<"element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 		}
 

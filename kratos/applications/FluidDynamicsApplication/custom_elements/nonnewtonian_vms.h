@@ -336,7 +336,7 @@ protected:
 		// 			gamma_dot_inv = 1.0/gamma_dot;
 		if (app_mu < mu)
 		{
-		    KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+		    KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
 		}
 	}
 	else

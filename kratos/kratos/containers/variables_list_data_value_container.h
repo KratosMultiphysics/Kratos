@@ -358,7 +358,7 @@ public:
     TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
         if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
         return *(TDataType*)Position(rThisVariable);
     }
 
@@ -366,7 +366,7 @@ public:
     TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
         if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -374,7 +374,7 @@ public:
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
     {
         if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
         return *(const TDataType*)Position(rThisVariable);
     }
 
@@ -382,7 +382,7 @@ public:
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
         if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -1026,7 +1026,7 @@ private:
 
 
         if(mpData == 0)
-            KRATOS_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
 
         SizeType size = mpVariablesList->DataSize();
         for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
@@ -1051,7 +1051,7 @@ private:
 
         // Setting the current position at the begining of data
         if(queue_index > mQueueSize)
-            KRATOS_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
+            KRATOS_THROW_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
             mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
 
         std::string name;

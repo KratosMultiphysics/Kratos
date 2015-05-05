@@ -171,7 +171,7 @@ public:
 
             //check if at least one material is created
             if(num_material == 0)
-                KRATOS_ERROR(std::logic_error,"NO MATERIAL IS ASSIGNED","");
+                KRATOS_THROW_ERROR(std::logic_error,"NO MATERIAL IS ASSIGNED","");
 
 
             //Create nodes and replace
@@ -415,7 +415,7 @@ public:
 // 					third = kk;
 // 				    }
 // 				    if(third == 4 || forth == 4)
-// 					  KRATOS_ERROR(std::logic_error,"one of the condition nodes are misssing","");
+// 					  KRATOS_THROW_ERROR(std::logic_error,"one of the condition nodes are misssing","");
 //
 // 				    temp.push_back(Belem_ngh_geom(forth));
 // 				    temp.push_back(Belem_ngh_geom(third));
@@ -441,7 +441,7 @@ public:
 // 					third = kk;
 // 				    }
 // 				    if(third == 4 || forth == 4)
-// 					  KRATOS_ERROR(std::logic_error,"one of the condition nodes are misssing","");
+// 					  KRATOS_THROW_ERROR(std::logic_error,"one of the condition nodes are misssing","");
 //
 // 				    temp.push_back(Belem_ngh_geom(forth));
 // 				    temp.push_back(Belem_ngh_geom(third));
@@ -467,7 +467,7 @@ public:
 // 					third = kk;
 // 				    }
 // 				    if(third == 4 || forth == 4)
-// 					  KRATOS_ERROR(std::logic_error,"one of the condition nodes are misssing","");
+// 					  KRATOS_THROW_ERROR(std::logic_error,"one of the condition nodes are misssing","");
 //
 // 				    temp.push_back(Belem_ngh_geom(forth));
 // 				    temp.push_back(Belem_ngh_geom(third));
@@ -498,7 +498,7 @@ public:
     void PairToId(unsigned int ii, unsigned int jj,unsigned int N_max, unsigned int& cond_prop_id)
     {
         if( ii > N_max || jj > N_max )
-            KRATOS_ERROR(std::logic_error," Beginning or end id is bigger than Max_Id","");
+            KRATOS_THROW_ERROR(std::logic_error," Beginning or end id is bigger than Max_Id","");
         if( ii== jj)
             KRATOS_WATCH("Nodes of the created condition have the same NODE_PROPERTY_ID");
 
@@ -508,7 +508,7 @@ public:
     void IdToPair(unsigned int cond_prop_id , unsigned int N_max, int& init_prop_id, int& end_prop_id)
     {
         if( N_max == 0 || cond_prop_id < N_max)
-            KRATOS_ERROR(std::logic_error,"Max_Id is zero or Condition_id is less than N_max","");
+            KRATOS_THROW_ERROR(std::logic_error,"Max_Id is zero or Condition_id is less than N_max","");
 
         init_prop_id = cond_prop_id / N_max ;
         end_prop_id = cond_prop_id % N_max;
@@ -565,7 +565,7 @@ private:
         for(int ii = 0; ii< contact_num; ++ii)
         {
             if(mr_contact_table(ii,0) == 0 || mr_contact_table(ii,1) == 0)
-                KRATOS_ERROR(std::logic_error,"inside duplicate _ WRONG CONTACT TABLE","");
+                KRATOS_THROW_ERROR(std::logic_error,"inside duplicate _ WRONG CONTACT TABLE","");
 
             int contact_int = mr_contact_table(ii,0)*mr_Nmax + mr_contact_table(ii,1) - 1;
             hash_list[contact_int] = 1.0;

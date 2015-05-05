@@ -388,7 +388,7 @@ void ProjDirichletCond3D::CalculateRightHandSide(VectorType& rRightHandSideVecto
        		 rRightHandSideVector.resize(12,false);
     */
 
-    KRATOS_ERROR(std::logic_error,"Method not implemented!!!!","");
+    KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 
 }
@@ -425,7 +425,7 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     inters_area=CalculateTriangleArea3D(mPoint1, mPoint2, mPoint3);
 
     if (inters_area<0.00000000000000000001)
-		KRATOS_ERROR(std::logic_error,"ZERO intersection AREA!!!!","");
+		KRATOS_THROW_ERROR(std::logic_error,"ZERO intersection AREA!!!!","");
 
     //this vector stores the "vertices" of the second triangle (in case there are 4 intersection points)
     //std::vector< array_1d<double,3> > PointsOfSecondTriangle(4, array_1d<double,3>(3,0));//Vector(3));
@@ -466,13 +466,13 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
             //VelsOfSecondTriangle.push_back(mVel2);
         }
         else
-            KRATOS_ERROR(std::logic_error,"Intersection has 4 points, but something is wrong!!!! Maybe the distance between the points is the same","");
+            KRATOS_THROW_ERROR(std::logic_error,"Intersection has 4 points, but something is wrong!!!! Maybe the distance between the points is the same","");
 
 
         inters_area2=CalculateTriangleArea3D(PointsOfSecondTriangle[0], PointsOfSecondTriangle[1], PointsOfSecondTriangle[2]);
 
         if (inters_area2<0.00000000000000000001)
-            KRATOS_ERROR(std::logic_error,"Intersection area of the second triangle is ZERO", "");
+            KRATOS_THROW_ERROR(std::logic_error,"Intersection area of the second triangle is ZERO", "");
 		//inters_area2=1.0;//0.00000000000001;
 
 
@@ -850,7 +850,7 @@ void ProjDirichletCond3D::CalculateN_at_Point(Element::GeometryType& geom, const
     double inv_vol = 0.0;
     if(vol < 0.000000000000001)
     {
-        KRATOS_ERROR(std::logic_error,"element with zero vol found","");
+        KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
     }
     else
     {
@@ -869,7 +869,7 @@ void ProjDirichletCond3D::CalculateN_at_Point(Element::GeometryType& geom, const
             (N_at_c[2]<0.01 && N_at_c[1]<0.01 && N_at_c[3]<0.01) ||
             (N_at_c[0]<0.01 && N_at_c[1]<0.01 && N_at_c[3]<0.01)     )
         KRATOS_WATCH("Dangerous VERTICES!!! Intersection is very close to the node")
-        //KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
+        //KRATOS_THROW_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
 	*/
 
     }

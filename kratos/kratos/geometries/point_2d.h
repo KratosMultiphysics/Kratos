@@ -202,7 +202,7 @@ public:
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( BaseType::PointsNumber() != 1)
-            KRATOS_ERROR(std::invalid_argument,
+            KRATOS_THROW_ERROR(std::invalid_argument,
                          "Invalid points number. Expected 2, given " , BaseType::PointsNumber());
     }
 
@@ -558,7 +558,7 @@ public:
     //  virtual double ShapeFunctionValue(IndexType ShapeFunctionIndex,
     //                                        const CoordinatesArrayType& rPoint) const
     // {
-    //	    KRATOS_ERROR(std::logic_error,
+    //	    KRATOS_THROW_ERROR(std::logic_error,
     //  "This method is not implemented yet!" , *this);
     //   return 0;
     //      }
@@ -567,7 +567,7 @@ public:
 
     //      virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod) const
     //	{
-    //		  KRATOS_ERROR(std::logic_error, "Jacobian is not square" , "");
+    //		  KRATOS_THROW_ERROR(std::logic_error, "Jacobian is not square" , "");
     //	}
 
 

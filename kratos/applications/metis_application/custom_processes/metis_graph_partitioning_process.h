@@ -203,7 +203,7 @@ public:
         for(unsigned int i=0; i<aux.size(); i++)
             if(aux[i] != true)
             {
-                KRATOS_ERROR(std::logic_error,"Isolated node found! The problematic node has Id  ",i+1);
+                KRATOS_THROW_ERROR(std::logic_error,"Isolated node found! The problematic node has Id  ",i+1);
             }
 // KRATOS_WATCH("sequential numbering of nodes verified")
 
@@ -315,7 +315,7 @@ protected:
         else if(number_of_element_nodes == 8) // hexahedra
             etype = 3;
         else
-            KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+            KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 
 
         int numflag = 0;

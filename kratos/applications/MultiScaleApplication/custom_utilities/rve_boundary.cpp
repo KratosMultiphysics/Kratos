@@ -69,7 +69,7 @@ std::string RveBoundary::GetInfo()const
 
 void RveBoundary::AddConditions(ModelPart& modelPart, Vector& strainVector)const
 {
-	KRATOS_ERROR(std::logic_error, "Calling AddConditions from RveBoundary which is a base class", "");
+	KRATOS_THROW_ERROR(std::logic_error, "Calling AddConditions from RveBoundary which is a base class", "");
 }
 
 void RveBoundary::SetMacroscaleStatusOnCondition(const RveConditionBase::Pointer& cond, const RveMacroscaleStatus::Pointer& status)const

@@ -114,11 +114,11 @@ public:
         Matrix F(2,2);
 
         if(strain.size()!=strain_size)
-            KRATOS_ERROR(std::logic_error,"wrong size of strain ... expected = ",strain_size)
+            KRATOS_THROW_ERROR(std::logic_error,"wrong size of strain ... expected = ",strain_size)
             if(stress.size()!=strain_size)
-                KRATOS_ERROR(std::logic_error,"wrong size of stress ... expected = ",strain_size)
+                KRATOS_THROW_ERROR(std::logic_error,"wrong size of stress ... expected = ",strain_size)
                 if(C.size2()!=strain_size)
-                    KRATOS_ERROR(std::logic_error,"wrong size of C ... expected = ",strain_size)
+                    KRATOS_THROW_ERROR(std::logic_error,"wrong size of C ... expected = ",strain_size)
 
                     //compute continuous stress
                     mp_constitutive_law->CalculateMaterialResponse(strain,F,stress,C,rCurrentProcessInfo,*mp_property,*mpgeom,N,CalculateStresses,CalculateTangent,SaveInternalVariables);

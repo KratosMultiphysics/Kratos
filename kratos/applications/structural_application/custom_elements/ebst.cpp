@@ -1045,7 +1045,7 @@ void Ebst::Initialize()
 
     //find the "nodal neighbours" given the elemental neighbours
     WeakPointerVector< Element >& elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-    if (elem_neigb.size() == 0) KRATOS_ERROR(std::logic_error, "the neighbour elements are not calculated", "")
+    if (elem_neigb.size() == 0) KRATOS_THROW_ERROR(std::logic_error, "the neighbour elements are not calculated", "")
         WeakPointerVector< Node < 3 > >& nodal_neigb = this->GetValue(NEIGHBOUR_NODES);
     nodal_neigb.resize(3);
     Geometry< Node < 3 > >& center_geom = GetGeometry();
@@ -1231,7 +1231,7 @@ void Ebst::Initialize()
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id())
+        KRATOS_THROW_ERROR(std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id())
 
 
         KRATOS_CATCH("");

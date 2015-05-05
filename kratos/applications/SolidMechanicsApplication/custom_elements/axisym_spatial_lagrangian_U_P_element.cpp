@@ -102,7 +102,7 @@ Element::Pointer AxisymSpatialLagrangianUPElement::Clone( IndexType NewId, Nodes
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
+	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -487,7 +487,7 @@ void AxisymSpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
@@ -538,7 +538,7 @@ void AxisymSpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -583,7 +583,7 @@ void AxisymSpatialLagrangianUPElement::CalculateGreenLagrangeStrain(const Matrix
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
@@ -632,7 +632,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 

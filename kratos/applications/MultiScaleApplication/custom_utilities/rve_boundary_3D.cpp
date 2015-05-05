@@ -193,7 +193,7 @@ std::string RveBoundary3D::GetInfo()const
 	{ \
 		ModelPart::NodeIterator cloned_node_iter = modelPart.Nodes().find(prototypeNode->GetId()); \
 		if(cloned_node_iter == modelPart.Nodes().end()) \
-			KRATOS_ERROR(std::logic_error, "The input modelPart is NOT a valid clone of the protptype one", ""); \
+			KRATOS_THROW_ERROR(std::logic_error, "The input modelPart is NOT a valid clone of the protptype one", ""); \
 		nodesArray.push_back(*(cloned_node_iter.base())); \
 	}
 
@@ -560,7 +560,7 @@ void RveBoundary3D::SetupMasterSlavePairsX(NodePointerContainerType& master, Nod
 		if(!slave_done)
 		{
 			KRATOS_TRY
-			KRATOS_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
+			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
 			KRATOS_CATCH("")
 		}
 	}
@@ -593,7 +593,7 @@ void RveBoundary3D::SetupMasterSlavePairsY(NodePointerContainerType& master, Nod
 		if(!slave_done)
 		{
 			KRATOS_TRY
-			KRATOS_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
+			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
 			KRATOS_CATCH("")
 		}
 	}
@@ -626,7 +626,7 @@ void RveBoundary3D::SetupMasterSlavePairsZ(NodePointerContainerType& master, Nod
 		if(!slave_done)
 		{
 			KRATOS_TRY
-			KRATOS_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
+			KRATOS_THROW_ERROR(std::logic_error, "THE MESH SEEMS TO BE NON-PERIODIC", "");
 			KRATOS_CATCH("")
 		}
 	}

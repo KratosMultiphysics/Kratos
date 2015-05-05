@@ -285,7 +285,7 @@ bool Standard_Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_
     {
         KRATOS_WATCH(res)
         std::cout<<"RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED"<< std::endl;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED" , "");
     }
 
     /// Check validity of 1-vector return (check sextant of converged stress)
@@ -463,7 +463,7 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
         KRATOS_WATCH(dgama)
         KRATOS_WATCH(iter)
         std::cout<< "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" << std::endl;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" , "");
     }
 
 
@@ -597,7 +597,7 @@ void Standard_Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<do
         KRATOS_WATCH(r)
         KRATOS_WATCH(PrincipalStress)
         std::cout<< "RETURN MAPPING TO APEX  NOT CONVERGED"<< std::endl;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
     }
 
 
@@ -732,7 +732,7 @@ void Standard_Morh_Coulomb_Yield_Function::GetValue(Matrix& Result)
     {
     case Plane_Stress:
     {
-        KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
         break;
     }
     case Plane_Strain:

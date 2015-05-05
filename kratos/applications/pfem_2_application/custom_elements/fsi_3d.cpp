@@ -73,7 +73,7 @@ namespace Kratos
 			
 			default:
 			{
-				KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+				KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 			}
 		}
 
@@ -1741,7 +1741,7 @@ namespace Kratos
 			for (int j=0 ; j!=(4); j++)
 								if (N[j]<0.0 && N[j]> -1e-5)
 									N[j]=1e-10;
-			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 		}
 		
 		double pressure_change = 0.0;
@@ -1788,7 +1788,7 @@ namespace Kratos
 			for (int j=0 ; j!=(3); j++)
 								if (N[j]<0.0 && N[j]> -1e-5)
 									N[j]=1e-10;
-			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 		}
 		
 		double mesh_distance = 0.0;
@@ -1937,7 +1937,7 @@ namespace Kratos
             {
 				KRATOS_WATCH(coordinates)
 				KRATOS_WATCH(vol)
-                KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
             } else
             {
                 inv_vol = 1.0 / vol;
@@ -1980,7 +1980,7 @@ namespace Kratos
             double inv_vol = 0.0;
             if (vol <= 0.0)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
             } else
             {
                 inv_vol = 1.0 / vol;

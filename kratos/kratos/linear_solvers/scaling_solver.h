@@ -220,7 +220,7 @@ public:
         //scale system
         if(msymmetric_scaling == false)
         {
-            KRATOS_ERROR(std::logic_error,"not yet implemented","")
+            KRATOS_THROW_ERROR(std::logic_error,"not yet implemented","")
         }
         else
         {

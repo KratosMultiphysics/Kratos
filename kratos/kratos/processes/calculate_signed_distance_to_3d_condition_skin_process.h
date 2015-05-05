@@ -224,7 +224,7 @@ class DistanceSpatialContainersConditionConfigure
              Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
              Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
-             KRATOS_ERROR(std::logic_error, "Not Implemented method", "")
+             KRATOS_THROW_ERROR(std::logic_error, "Not Implemented method", "")
              //return HasIntersection(rObject->GetGeometry(), low_point, high_point);
          }
 

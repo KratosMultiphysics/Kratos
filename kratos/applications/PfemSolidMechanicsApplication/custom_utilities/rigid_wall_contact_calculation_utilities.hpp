@@ -495,7 +495,7 @@ namespace Kratos
       mRigidWall.Center = mRigidWall.OriginalCenter +  mRigidWall.Velocity * Time;
 
       if (Time == 0)
-	KRATOS_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+	KRATOS_THROW_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
       NodesArrayType& NodesArray = r_model_part.Nodes();
       for (typename NodesArrayType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)

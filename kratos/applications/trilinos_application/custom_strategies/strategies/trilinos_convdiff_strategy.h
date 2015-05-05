@@ -218,11 +218,11 @@ public:
         if (mtime_order == 2)
         {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
+                KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
 
 
                 if (BaseType::GetModelPart().GetBufferSize() < 3)
-                    KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
 
                     double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
@@ -247,7 +247,7 @@ public:
         if (mprediction_order == 2)
         {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
+                KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
 
                 ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
             const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();

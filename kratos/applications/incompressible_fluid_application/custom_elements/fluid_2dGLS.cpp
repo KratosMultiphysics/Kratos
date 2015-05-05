@@ -338,7 +338,7 @@ void Fluid2DGLS::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandS
 
     //KRATOS_WATCH(Cs);
 
-    //KRATOS_ERROR(std::logic_error, "method not implemented", "");
+    //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
 
     mThisIntegrationMethod= GeometryData::GI_GAUSS_1;
 
@@ -736,10 +736,10 @@ void Fluid2DGLS::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     //getting data for the given geometry
     double Area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-    //KRATOS_ERROR(std::logic_error, "method not implemented", "");
+    //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
     if (FractionalStepNumber == 5) //calculation of stabilization terms
     {
-        //KRATOS_ERROR(std::logic_error, "method not implemented", "");
+        //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
         ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
         boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
         array_1d<double,6> GalerkinRHS = ZeroVector(6); //dimension = number of nodes
@@ -1000,7 +1000,7 @@ void Fluid2DGLS::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     }
     else if (FractionalStepNumber == 6) //calculation of velocities
     {
-        //KRATOS_ERROR(std::logic_error, "method not implemented", "");
+        //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
 
         ///////////////////////NECESSARY LOCALS///////////////////////////////////////////
         boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);

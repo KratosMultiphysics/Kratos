@@ -456,7 +456,7 @@ void IsotropicPlaneStressWrinkling::Calculate( const Variable<Matrix >& rVariabl
         Output(0,1) = mEw[1];
         Output(0,2) = mEw[2]*0.5;
     }
-    KRATOS_ERROR(std::logic_error,"Trying to Calculate an inexisting variable" , "")
+    KRATOS_THROW_ERROR(std::logic_error,"Trying to Calculate an inexisting variable" , "")
 }
 
 //**********************************************************************
@@ -543,15 +543,15 @@ int IsotropicPlaneStressWrinkling::Check(const Properties& props,
 
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
     const double& nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.999 && nu<1.01 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
     return 0;
 

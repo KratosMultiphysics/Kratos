@@ -396,7 +396,7 @@ public:
                                mMeshElements.begin()->GetGeometry().size() );
             }
             else
-                KRATOS_ERROR(std::logic_error,"check working space dimension of model","");
+                KRATOS_THROW_ERROR(std::logic_error,"check working space dimension of model","");
             //printing nodes
             GiD_fBeginCoordinates(MeshFile);
             for( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
@@ -475,7 +475,7 @@ public:
                 GiD_fBeginMesh( MeshFile, "Surface Structure Mesh", GiD_3D, GiD_Triangle,  3);
             }
             else
-                KRATOS_ERROR(std::logic_error,"Check your space dimensions","");
+                KRATOS_THROW_ERROR(std::logic_error,"Check your space dimensions","");
             //printing nodes
             GiD_fBeginCoordinates(MeshFile);
 
@@ -521,7 +521,7 @@ public:
                 GiD_fBeginMesh(MeshFile, "Surface Fluid Mesh", GiD_3D, GiD_Triangle,  3);
             }
             else
-                KRATOS_ERROR(std::logic_error,"Check your space dimensions","");
+                KRATOS_THROW_ERROR(std::logic_error,"Check your space dimensions","");
 
             //now writing the fluid surface mesh
             //printing nodes

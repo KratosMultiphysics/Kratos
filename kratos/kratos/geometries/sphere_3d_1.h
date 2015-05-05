@@ -205,7 +205,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( BaseType::PointsNumber() != 1 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 1, given " , BaseType::PointsNumber() );
     }
 

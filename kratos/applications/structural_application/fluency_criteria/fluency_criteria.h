@@ -101,32 +101,32 @@ public:
 
     virtual bool CheckPlasticAdmisibility(const Vector& Stress)
     {
-        KRATOS_ERROR(std::logic_error,  "CheckPlasticAdmisibility" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "CheckPlasticAdmisibility" , "");
     }
 
 
     virtual void InitializeMaterial(const Properties& props)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for InitializeMaterial" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for InitializeMaterial" , "");
     }
 
     virtual void CalculateEquivalentUniaxialStress(
         const Vector& StressVector, const Vector& StrainVector, double& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
     }
 
 
     virtual void CalculateEquivalentUniaxialStress(
         const Vector& StressVector,double& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStress" , "");
     }
 
     virtual void CalculateEquivalentUniaxialStressViaPrincipalStress(
         const Vector& StressVector,double& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaPrincipalStress" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaPrincipalStress" , "");
     }
 
 
@@ -134,42 +134,42 @@ public:
         const Vector& StressVector,double& Result)
 
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaInvariants", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaInvariants", "");
     }
 
     virtual void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
         const Vector& StressVector,double& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaCilindricalCoordinate", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressViaCilindricalCoordinate", "");
     }
 
 
     virtual void CalculateEquivalentUniaxialStressMultiSurface(
         const Vector& StressVector,Vector& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressMultiSurface" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateEquivalentUniaxialStressMultiSurface" , "");
     }
 
 
 
     virtual void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
     }
 
     virtual void CalculateDerivatePotencialFlowCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivatePotencialFlowCriteria", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivatePotencialFlowCriteria", "");
     }
 
     virtual void CalculateDerivateFluencyCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivateFluencyCriteria)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
     }
 
     virtual void CalculateDerivatePotencialFlowCriteriaMultiSurface(const Vector& StressVector, vector<Vector>& DerivatePotencialFlow)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for CalculateDerivateFluencyCriteria", "");
     }
 
 
@@ -179,7 +179,7 @@ public:
 
     virtual void UpdateVariables( const Vector& Variables)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for UpdateVariables", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for UpdateVariables", "");
     }
 
 
@@ -192,12 +192,12 @@ public:
 
     virtual void ReturnMapping(const Vector& StrainVector, Vector& StressVector)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
     }
 
     virtual void ReturnMapping(const Vector& StrainVector, const Vector& TrialStress, Vector& StressVector)
     {
-        KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
     }
 
     /*
@@ -206,81 +206,81 @@ public:
             Vector& delta_lamda,
             array_1d<double,3>& Result)
     {
-          KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
+          KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
     }
 
     virtual void ReturnMapping(Vector& StressVector,
     Vector& delta_lamda,
             const Vector& StrainVector)
     {
-          KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
+          KRATOS_THROW_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
     }
             */
 
     virtual void GetValue(const Variable<bool>& rVariable, bool& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue Double", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue Double", "");
     }
 
     virtual void GetValue(const Variable<double>& rVariable, double& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue Double", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue Double", "");
     }
 
 
     virtual void GetValue(const Variable<Vector>& rVariable, Vector& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue Vector", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue Vector", "");
     }
 
     virtual void GetValue(const Variable<Matrix>& rVariable, Matrix &Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue Vector", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue Vector", "");
     }
 
 
     virtual bool PlasticStep(Vector& Stress)
     {
         return false;
-        KRATOS_ERROR(std::logic_error,  "PlasticStep", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "PlasticStep", "");
     }
 
 
     virtual void GetValue(double& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue", "");
     }
 
     virtual  void GetValue(Vector& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue", "");
     }
 
     virtual  void GetValue(Matrix& Result)
     {
-        KRATOS_ERROR(std::logic_error,  "GetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "GetValue", "");
     }
 
     virtual void Finalize()
     {
-        KRATOS_ERROR(std::logic_error,  "Finalize", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "Finalize", "");
     }
 
     virtual void FinalizeSolutionStep()
     {
-        KRATOS_ERROR(std::logic_error,  " FinalizeSolutionStep", "");
+        KRATOS_THROW_ERROR(std::logic_error,  " FinalizeSolutionStep", "");
     }
 
 
     virtual void IniatializeSolutionStep()
     {
-        KRATOS_ERROR(std::logic_error,  "IniatializeSolutionStep", "");
+        KRATOS_THROW_ERROR(std::logic_error,  "IniatializeSolutionStep", "");
     }
 
 
     virtual void Initialize()
     {
-        KRATOS_ERROR(std::logic_error,  " Initialize", "");
+        KRATOS_THROW_ERROR(std::logic_error,  " Initialize", "");
     }
 
 
@@ -585,7 +585,7 @@ protected:
         {
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+            KRATOS_THROW_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
             break;
         }
         case Plane_Strain:
@@ -744,7 +744,7 @@ protected:
         {
             KRATOS_WATCH(PrincipalStress)
             KRATOS_WATCH(order)
-            KRATOS_ERROR(std::logic_error,  " ORDERRRRRRRRRRRRRRRRRRRRR", "");
+            KRATOS_THROW_ERROR(std::logic_error,  " ORDERRRRRRRRRRRRRRRRRRRRR", "");
         }
 
         noalias(PrincipalStress) = Aux;
@@ -774,7 +774,7 @@ protected:
 
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
             break;
         }
 
@@ -811,7 +811,7 @@ protected:
         {
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+            KRATOS_THROW_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
             break;
         }
 
@@ -855,7 +855,7 @@ protected:
         {
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+            KRATOS_THROW_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
             break;
         }
         case(Plane_Strain):
@@ -889,7 +889,7 @@ protected:
         {
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
             break;
         }
         case(Plane_Strain):
@@ -924,7 +924,7 @@ protected:
 
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+            KRATOS_THROW_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
             break;
         }
         case Plane_Strain:
@@ -987,7 +987,7 @@ protected:
         {
         case Plane_Stress:
         {
-            KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
             break;
         }
 

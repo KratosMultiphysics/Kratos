@@ -305,15 +305,15 @@ namespace Kratos
             {
                 // Check that all required variables have been registered
                 if(VELOCITY.Key() == 0)
-                    KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+                    KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
                 if(MESH_VELOCITY.Key() == 0)
-                    KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+                    KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
                 if(NORMAL.Key() == 0)
-                    KRATOS_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
+                    KRATOS_THROW_ERROR(std::invalid_argument,"NORMAL Key is 0. Check if the application was correctly registered.","")
                 if(IS_STRUCTURE.Key() == 0)
-                    KRATOS_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
+                    KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
                 if(Y_WALL.Key() == 0)
-                    KRATOS_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
+                    KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
 
                 // Checks on nodes
 
@@ -322,15 +322,15 @@ namespace Kratos
                 {
 
                     if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                        KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                        KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                        KRATOS_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                        KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].SolutionStepsDataHas(NORMAL) == false)
-                        KRATOS_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",this->GetGeometry()[i].Id());
+                        KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data for node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                        this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                        this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                        KRATOS_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                        KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
                 }
 
                 return Check;

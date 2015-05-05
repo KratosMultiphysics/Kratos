@@ -116,7 +116,7 @@ bool Orthotropic3D::Has( const Variable<Matrix>& rThisVariable )
 
 double& Orthotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 }
 
 Vector& Orthotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -129,14 +129,14 @@ Vector& Orthotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& 
 //                     dummy[0] = 0.0;
 //                     return( dummy );
 //                 }
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 }
 
 Matrix& Orthotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
     if( rThisVariable == MATERIAL_DIRECTION )
         return mMaterialDirection;
-    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 }
 
 void Orthotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -417,19 +417,19 @@ int Orthotropic3D::Check(const Properties& props, const GeometryType& geom, cons
 
 
     if(MATERIAL_DIRECTION.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"MATERIAL_DIRECTION has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MATERIAL_DIRECTION has Key zero or invalid value ","");
 
     if(ORTHOTROPIC_YOUNG_MODULUS .Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"ORTHOTROPIC_YOUNG_MODULUS has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"ORTHOTROPIC_YOUNG_MODULUS has Key zero invalid value ","");
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(ORTHOTROPIC_POISSON_RATIO .Key() == 0 )
-        KRATOS_ERROR(std::invalid_argument,"ORTHOTROPIC_POISSON_RATIO has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"ORTHOTROPIC_POISSON_RATIO has Key zero or invalid value ","");
 
     if(ORTHOTROPIC_SHEAR_MODULUS.Key() == 0 )
-        KRATOS_ERROR(std::invalid_argument,"ORTHOTROPIC_SHEAR_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"ORTHOTROPIC_SHEAR_MODULUS has Key zero or invalid value ","");
 
     return 0;
 

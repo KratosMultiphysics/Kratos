@@ -242,7 +242,7 @@ namespace Kratos
       //lumping factors for the calculation of the lumped mass matrix
       virtual void LumpingFactors(Vector& Result) 
 	{ 
-	  KRATOS_ERROR(std::logic_error, "Called the virtual function for LumpingFactors" , *this); 
+	  KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for LumpingFactors" , *this); 
 	}
 
       ///@}
@@ -368,7 +368,7 @@ namespace Kratos
       */
       virtual void Jacobian(JacobiansType& Result, IntegrationMethod ThisMethod)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -391,7 +391,7 @@ namespace Kratos
       */
       virtual void Jacobian(Matrix& Result, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -408,7 +408,7 @@ namespace Kratos
       */
       virtual void Jacobian(Matrix& Result, const PointType& rPoint)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -425,7 +425,7 @@ namespace Kratos
       */
       virtual Vector DeterminantOfJacobian(Vector& Result, IntegrationMethod ThisMethod)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -449,7 +449,7 @@ namespace Kratos
       */
       virtual double DeterminantOfJacobian(IndexType IntegrationPointIndex, IntegrationMethod ThisMethod)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 
 	  return 0;
@@ -470,7 +470,7 @@ namespace Kratos
       */
       virtual double DeterminantOfJacobian(const Point<3>& rPoint)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 
 	  return 0;
@@ -493,7 +493,7 @@ namespace Kratos
       */
       virtual void InverseOfJacobian(JacobiansType& Result, IntegrationMethod ThisMethod)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class InverseOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -516,7 +516,7 @@ namespace Kratos
       */
       virtual void InverseOfJacobian(Matrix Result, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class InverseOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -533,7 +533,7 @@ namespace Kratos
       */
       virtual void InverseOfJacobian(Matrix Result, const PointType& rPoint)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class InverseOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 	}
 
@@ -560,7 +560,7 @@ namespace Kratos
       */ 
       virtual double ShapeFunctionValue(IndexType ShapeFunctionIndex, const PointType& rPoint)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class DeterminantOfJacobian method instead of drived class one. Please check the definition of derived class." , *this);
 
 	  return 0;
@@ -575,7 +575,7 @@ namespace Kratos
 
       virtual void ShapeFunctionsIntegrationPointsGradients(IntegrationMethod ThisMethod, ShapeFunctionsGradientsType& rResult)
 	{
-	  KRATOS_ERROR(std::logic_error,
+	  KRATOS_THROW_ERROR(std::logic_error,
 		       "Calling base class ShapeFunctionsGaussPointsGradients method instead of derived class one. Please check the definition of derived class." , *this);
 	}
 

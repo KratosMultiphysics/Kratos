@@ -240,7 +240,7 @@ public:
         if (mtime_order == 2)
 	  {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
-	      KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
+	      KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
 		
                 double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 	    
@@ -398,25 +398,25 @@ public:
 
 
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rUnknownVar) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----UnknownVar---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----UnknownVar---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rDensityVar) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----rDensityVar---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----rDensityVar---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rDiffusionVar) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----rDiffusionVar---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----rDiffusionVar---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rSourceVar) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----rSourceVar---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----rSourceVar---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rMeshVelocityVar) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----rMeshVelocityVar---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----rMeshVelocityVar---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rProjectionVariable) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----rProjectionVariable---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----rProjectionVariable---- variable!!!!!! ERROR", "");
 
 
         //if(BaseType::GetModelPart().GetMesh().GetProperties(0)[EMISSIVITY] == false)
-        //    KRATOS_ERROR(std::logic_error, "Add  ----EMISSIVITY---- variable!!!!!! ERROR", "");
+        //    KRATOS_THROW_ERROR(std::logic_error, "Add  ----EMISSIVITY---- variable!!!!!! ERROR", "");
         //if(BaseType::GetModelPart().GetMesh().GetProperties(0)[CONVECTION_COEFFICIENT] == false)
-        //    KRATOS_ERROR(std::logic_error, "Add  ----CONVECTION_COEFFICIENT---- variable!!!!!! ERROR", "");
+        //    KRATOS_THROW_ERROR(std::logic_error, "Add  ----CONVECTION_COEFFICIENT---- variable!!!!!! ERROR", "");
         //if(BaseType::GetModelPart().GetMesh().GetProperties(0)[AMBIENT_TEMPERATURE] == false)
-        //    KRATOS_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");
+        //    KRATOS_THROW_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");
 
 
         return 0;

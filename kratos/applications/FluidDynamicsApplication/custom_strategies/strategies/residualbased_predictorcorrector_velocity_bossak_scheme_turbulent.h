@@ -593,7 +593,7 @@ namespace Kratos {
             double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
             if (DeltaTime == 0)
-                KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
+                KRATOS_THROW_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
 
             //initializing constants
             ma0 = 1.0 / (mGammaNewmark * DeltaTime);

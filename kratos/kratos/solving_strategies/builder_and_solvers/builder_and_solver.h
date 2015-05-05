@@ -279,7 +279,7 @@ public:
      */
     virtual GlobalSystemComponents& GetGlobalSystemComponents()
     {
-      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the BUIDER and SOlVER base class which is not component wise and not contains this member variable","")
+      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the BUIDER and SOlVER base class which is not component wise and not contains this member variable","")
     }
 
 

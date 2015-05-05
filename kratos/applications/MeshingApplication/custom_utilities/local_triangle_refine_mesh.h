@@ -87,7 +87,7 @@ public:
 
         if (refine_on_reference == true)
             if (!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)))
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true", "")
+                KRATOS_THROW_ERROR(std::logic_error, "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true", "")
 
                 compressed_matrix<int> Coord;
         boost::numeric::ublas::vector<int> List_New_Nodes; ///* the news nodes

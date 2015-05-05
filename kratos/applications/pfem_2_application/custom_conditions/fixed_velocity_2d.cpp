@@ -36,7 +36,7 @@ namespace Kratos
 		KRATOS_TRY
 		if(rCurrentProcessInfo[FRACTIONAL_STEP]==2)
 		{
-			KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+			KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 			/*
 			if(rRightHandSideVector.size() != 1)
 				rRightHandSideVector.resize(1,false);

@@ -181,7 +181,7 @@ private:
     iadd(TContainerType& ThisContainer, TOtherContainerType const& OtherContainer)
     {
         if(ThisContainer.size()!=OtherContainer.size())
-            KRATOS_ERROR(std::invalid_argument, "different size of vectors to sum", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "different size of vectors to sum", "");
         for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
             ThisContainer[i] += OtherContainer[i];
         return ThisContainer;
@@ -192,7 +192,7 @@ private:
     isub(TContainerType& ThisContainer, TOtherContainerType const& OtherContainer)
     {
         if(ThisContainer.size()!=OtherContainer.size())
-            KRATOS_ERROR(std::invalid_argument, "different size of vectors to subtract", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "different size of vectors to subtract", "");
         for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
             ThisContainer[i] -= OtherContainer[i];
         return ThisContainer;

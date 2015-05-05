@@ -282,13 +282,13 @@ int Hypoelastic2D::Check(const Properties& props, const GeometryType& geom, cons
 {
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(MIU.Key() == 0 || props[MIU]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"MIU has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MIU has Key zero or invalid value ","");
 
     if(LAMBDA.Key() == 0 || props[LAMBDA]< 0.00)
-        KRATOS_ERROR(std::invalid_argument,"LAMBDA has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"LAMBDA has Key zero or invalid value ","");
 
     return 0;
 }

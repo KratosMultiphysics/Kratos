@@ -302,7 +302,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 27 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 27, given " ,
                           this->PointsNumber() );
     }
@@ -1210,7 +1210,7 @@ public:
             return( fx3*fy3*fz3 );
 
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" , *this );
         }
 
@@ -1240,7 +1240,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo

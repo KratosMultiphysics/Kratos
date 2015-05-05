@@ -104,7 +104,7 @@ public:
 
     virtual typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer pGetStrategy(const std::string& strategy_name )
     {
-        KRATOS_ERROR(std::logic_error,"accessing to the SolverConfiguration base class","");
+        KRATOS_THROW_ERROR(std::logic_error,"accessing to the SolverConfiguration base class","");
     }
 
     /*@} */

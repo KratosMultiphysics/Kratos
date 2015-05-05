@@ -115,9 +115,9 @@ public:
         tetgenio in, out;
 
         if(mrModelPart.Conditions().size() == 0)
-            KRATOS_ERROR(std::logic_error,"model part does not have faces","")
+            KRATOS_THROW_ERROR(std::logic_error,"model part does not have faces","")
             if(mrModelPart.Elements().size() != 0)
-                KRATOS_ERROR(std::logic_error,"model part already has volume elements","")
+                KRATOS_THROW_ERROR(std::logic_error,"model part already has volume elements","")
 
                 //reorder node Ids consecutively
                 ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();

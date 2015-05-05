@@ -356,7 +356,7 @@ namespace Kratos
             double inv_area = 0.0;
             if (area == 0.0)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
             } else
             {
                 inv_area = 1.0 / area;
@@ -401,7 +401,7 @@ namespace Kratos
             double inv_vol = 0.0;
             if (vol < 0.0000000000001)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
             } else
             {
                 inv_vol = 1.0 / vol;

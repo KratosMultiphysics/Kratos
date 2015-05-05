@@ -254,7 +254,7 @@ public:
             Fluid2DGLS_expl_comp el(1, p_null_geom);
 
             if (typeid(ref_el) != typeid(el))
-                KRATOS_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid2DGLS_expl_comp elements " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid2DGLS_expl_comp elements " , "");
         }
 
         if (TDim==3)
@@ -262,7 +262,7 @@ public:
             Fluid3DGLS_expl_comp el(1, p_null_geom);
 
             if (typeid(ref_el) != typeid(el))
-                KRATOS_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid3DGLS_expl_comp elements " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "Compressible Runge Kutta Strategy requires utilization of Fluid3DGLS_expl_comp elements " , "");
         }
 
         KRATOS_CATCH("")
@@ -793,7 +793,7 @@ public:
             double length = sqrt(normal[0]*normal[0]+normal[1]*normal[1]);
             if (length==0)
             {
-                KRATOS_ERROR(std::logic_error,  "TO apply SLIP you should calculate normals first! Dont forget to assign Condition2D for that " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "TO apply SLIP you should calculate normals first! Dont forget to assign Condition2D for that " , "");
             }
             normal*=1.0/length;
             array_1d<double, 3> normal_comp_vec;

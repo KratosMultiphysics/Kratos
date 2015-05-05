@@ -105,7 +105,7 @@ public:
                                mMeshElements.begin()->GetGeometry().size() );
             }
             else
-                KRATOS_ERROR(std::logic_error,"check working space dimension of model","");
+                KRATOS_THROW_ERROR(std::logic_error,"check working space dimension of model","");
             //printing nodes
             GiD_fBeginCoordinates(MeshFile);
             for( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
@@ -172,7 +172,7 @@ public:
                                mMeshConditions.begin()->GetGeometry().size() );
             }
             else
-                KRATOS_ERROR(std::logic_error,"check working space dimension of model","");
+                KRATOS_THROW_ERROR(std::logic_error,"check working space dimension of model","");
             //printing nodes
             GiD_fBeginCoordinates(MeshFile);
             for( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();

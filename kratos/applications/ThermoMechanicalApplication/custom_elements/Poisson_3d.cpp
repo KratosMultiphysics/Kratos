@@ -197,7 +197,7 @@ void Poisson3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Process
 {
     KRATOS_TRY
 
-//     KRATOS_ERROR(std::logic_error, "method not implemented", "");
+//     KRATOS_THROW_ERROR(std::logic_error, "method not implemented", "");
 
     KRATOS_CATCH("")
 }

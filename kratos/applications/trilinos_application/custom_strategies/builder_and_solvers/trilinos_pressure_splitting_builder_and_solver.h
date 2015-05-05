@@ -185,7 +185,7 @@ public:
     {
         KRATOS_TRY
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -289,7 +289,7 @@ public:
     {
         KRATOS_TRY
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -614,7 +614,7 @@ public:
     {
         KRATOS_TRY
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         // Get elements and conditions
         ElementsArrayType& rElements = rModelPart.Elements();
@@ -714,7 +714,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size() == 0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
         mDofSetChanged = true;
@@ -971,7 +971,7 @@ public:
             GraphError += DGraph.GlobalAssemble(UMap, PMap, true);
             GraphError += LGraph.GlobalAssemble(true);
 
-            if (GraphError != 0) KRATOS_ERROR(std::logic_error, "Epetra failure during matrix inicialization", "");
+            if (GraphError != 0) KRATOS_THROW_ERROR(std::logic_error, "Epetra failure during matrix inicialization", "");
 
             // Create & store matrices
             TSystemMatrixPointerType pNewS = TSystemMatrixPointerType(new TSystemMatrixType(Copy, SGraph));
@@ -1002,7 +1002,7 @@ public:
         }
         else if (TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize ||
                  TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)
-            KRATOS_ERROR(std::logic_error, "ResizeAndInitialize Error: Unexpected change of matrix dimensions!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "ResizeAndInitialize Error: Unexpected change of matrix dimensions!", "");
 
 
         // System Vectors
@@ -1039,7 +1039,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
         {
-            KRATOS_ERROR(std::logic_error, "calculation of reactions not yet implemented with Trilinos", "");
+            KRATOS_THROW_ERROR(std::logic_error, "calculation of reactions not yet implemented with Trilinos", "");
         }
 
         KRATOS_CATCH("")
@@ -1067,14 +1067,14 @@ public:
                             TSystemVectorType& Dx,
                             TSystemVectorType& b)
     {
-        KRATOS_ERROR(std::logic_error, "method CalculateReactions not implemented in Trilinos Builder And Solver ", "")
+        KRATOS_THROW_ERROR(std::logic_error, "method CalculateReactions not implemented in Trilinos Builder And Solver ", "")
     }
 
     void BuildLHS_CompleteOnFreeRows(typename TSchemeType::Pointer pScheme,
                                      ModelPart& r_model_part,
                                      TSystemMatrixType& A)
     {
-        KRATOS_ERROR(std::logic_error, "method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ", "");
+        KRATOS_THROW_ERROR(std::logic_error, "method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ", "");
     }
 
     void ApplyDirichletConditions(typename TSchemeType::Pointer pScheme,
@@ -1260,7 +1260,7 @@ private:
                                         LocalSystemMatrixType& LHS_Contribution,
                                         Element::EquationIdVectorType& EquationId)
     {
-        KRATOS_ERROR(std::logic_error, "AssembleLHS_CompleteOnFreeRows() method is not implemented for Trilinos", "");
+        KRATOS_THROW_ERROR(std::logic_error, "AssembleLHS_CompleteOnFreeRows() method is not implemented for Trilinos", "");
     }
 
     /// Compute the Graph of A from the shapes of D, G and L

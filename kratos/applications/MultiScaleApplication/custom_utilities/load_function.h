@@ -256,19 +256,19 @@ private:
 		KRATOS_TRY
 		
 		if(mX.size() != mY.size())
-			KRATOS_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X and Y vectors should have the same size", "");
+			KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X and Y vectors should have the same size", "");
 			
 		if(mX.size() < 2)
-			KRATOS_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X vector should have at least 2 values", "");
+			KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X vector should have at least 2 values", "");
 			
 		if(mY.size() < 2)
-			KRATOS_ERROR(std::invalid_argument, "PieceWiseLoadFunction - Y vector should have at least 2 values", "");
+			KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - Y vector should have at least 2 values", "");
 
 		size_t n = mX.size();
 		TReal minStep = mX[n - 1] - mX[0];
 		for(size_t i = 1; i < mX.size(); i++) {
 			if(mX[i] < mX[i - 1])
-				KRATOS_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X vector should be strictly monotonically increasing", "");
+				KRATOS_THROW_ERROR(std::invalid_argument, "PieceWiseLoadFunction - X vector should be strictly monotonically increasing", "");
 			TReal iStep = mX[i] - mX[i - 1];
 			if(minStep > iStep)
 				minStep = iStep;

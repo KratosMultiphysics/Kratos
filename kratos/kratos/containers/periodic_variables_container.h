@@ -127,7 +127,7 @@ public:
     void Add(DoubleVariableType const& rThisVariable)
     {
         if(rThisVariable.Key()== 0)
-            KRATOS_ERROR(std::logic_error,
+            KRATOS_THROW_ERROR(std::logic_error,
                          "Adding uninitialized variable to a list of periodic variables: ",rThisVariable.Name());
 
         mPeriodicDoubleVars.push_back(&rThisVariable);
@@ -137,7 +137,7 @@ public:
     void Add(VariableComponentType const& rThisVariable)
     {
         if(rThisVariable.Key()== 0)
-            KRATOS_ERROR(std::logic_error,
+            KRATOS_THROW_ERROR(std::logic_error,
                          "Adding uninitialized variable to a list of periodic variables: ",rThisVariable.Name());
 
         mPeriodicVarComponents.push_back(&rThisVariable);

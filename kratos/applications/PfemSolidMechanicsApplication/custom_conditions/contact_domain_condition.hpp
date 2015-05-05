@@ -622,7 +622,7 @@ protected:
      */
     virtual void SetMasterGeometry()
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 
@@ -632,7 +632,7 @@ protected:
      */
     virtual void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 
@@ -641,7 +641,7 @@ protected:
      */
     virtual void CalculatePreviousGap()
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 
@@ -693,7 +693,7 @@ protected:
     virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
 					  ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
     /**
@@ -701,7 +701,7 @@ protected:
      */
     virtual void CalculateDomainShapeN(GeneralVariables& rVariables)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 
@@ -724,7 +724,7 @@ protected:
      */
     virtual LocalVectorType & CalculateCurrentTangent(LocalVectorType &rTangent)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 
@@ -779,7 +779,7 @@ protected:
 				       unsigned int& ndi,unsigned int& ndj,
 				       unsigned int& idir,unsigned int& jdir)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 
@@ -798,7 +798,7 @@ protected:
     virtual void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
     /**
@@ -807,7 +807,7 @@ protected:
     virtual void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
     /**
@@ -816,7 +816,7 @@ protected:
     virtual void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
 					     unsigned int& ndi,unsigned int& idir)
 	{
-		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
+		KRATOS_THROW_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
 	};
 

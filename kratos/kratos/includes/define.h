@@ -162,7 +162,7 @@ buffer << "\nwhile executing : " << BOOST_CURRENT_FUNCTION << " [ " << __FILE__ 
 throw ExceptionType(buffer.str());                             \
 }
 
-#define KRATOS_ERROR(ExceptionType, ErrorMessage, MoreInfo)    \
+#define KRATOS_THROW_ERROR(ExceptionType, ErrorMessage, MoreInfo)    \
 {                                                              \
 std::stringstream kratos_error_buffer_12345;                                      \
 kratos_error_buffer_12345 << "in " << BOOST_CURRENT_FUNCTION << " [ " << __FILE__ << " , Line " << __LINE__ << " ]" << std::endl; \
@@ -181,8 +181,8 @@ KRATOS_CATCH_AND_THROW(std::invalid_argument,MoreInfo,Block) \
 KRATOS_CATCH_AND_THROW(std::domain_error,MoreInfo,Block)     \
 KRATOS_CATCH_AND_THROW(std::logic_error,MoreInfo,Block)      \
 KRATOS_CATCH_AND_THROW(std::runtime_error,MoreInfo,Block)    \
-catch(std::exception& e) { Block KRATOS_ERROR(std::runtime_error, e.what(), MoreInfo) } \
-catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
+catch(std::exception& e) { Block KRATOS_THROW_ERROR(std::runtime_error, e.what(), MoreInfo) } \
+catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 
 #define KRATOS_CATCH_BLOCK_BEGIN class ExceptionBlock{public: void operator()(void){
 #define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block();

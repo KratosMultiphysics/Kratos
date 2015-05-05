@@ -54,57 +54,57 @@ public:
     //operators
     virtual bool Has ( const Variable<double>& rThisVariable )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::Has(double)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::Has(double)", "" );
     }
 
     virtual bool Has ( const Variable<Vector>& rThisVariable )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::Has(Vector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::Has(Vector)", "" );
     }
 
     virtual bool Has ( const Variable<Matrix>& rThisVariable )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::Has(Matrix)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::Has(Matrix)", "" );
     }
 
     virtual bool Has ( const Variable<PlaneArrayType>& rThisVariable )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::Has(2DVector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::Has(2DVector)", "" );
     }
 
     virtual bool Has ( const Variable<SpaceArrayType>& rThisVariable )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::Has(3DVector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::Has(3DVector)", "" );
     }
 
     virtual double& GetValue ( const Variable<double>& rThisVariable,
                                double& rValue )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::GetValue(double)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::GetValue(double)", "" );
     }
 
     virtual Vector& GetValue ( const Variable<Vector>& rThisVariable,
                                Vector& rValue )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::GetValue(Vector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::GetValue(Vector)", "" );
     }
 
     virtual Matrix& GetValue ( const Variable<Matrix>& rThisVariable,
                                Matrix& rValue )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::GetValue(Matrix)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::GetValue(Matrix)", "" );
     }
 
     virtual PlaneArrayType& GetValue ( const Variable<PlaneArrayType>& rVariable,
                                        PlaneArrayType& rValue )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::GetValue(2DVector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::GetValue(2DVector)", "" );
     }
 
     virtual SpaceArrayType & GetValue ( const Variable<SpaceArrayType>& rVariable,
                                         SpaceArrayType& rValue )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::GetValue(3DVector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::GetValue(3DVector)", "" );
     }
 
 
@@ -112,40 +112,40 @@ public:
                             const double& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::SetValue(Double)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::SetValue(Double)", "" );
     }
 
     virtual void SetValue ( const Variable<Vector>& rThisVariable,
                             const Vector& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::SetValue(Vector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::SetValue(Vector)", "" );
     }
 
     virtual void SetValue ( const Variable<Matrix>& rThisVariable,
                             const Matrix& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::SetValue(Matrix)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::SetValue(Matrix)", "" );
     }
 
     virtual void SetValue ( const Variable<PlaneArrayType>& rThisVariable,
                             const PlaneArrayType& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::SetValue(2DVector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::SetValue(2DVector)", "" );
     }
 
     virtual void SetValue ( const Variable<SpaceArrayType>& rVariable,
                             const SpaceArrayType& Value,
                             const ProcessInfo& rCurrentProcessInfo )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::SetValue(3DVector)", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::SetValue(3DVector)", "" );
     }
 
     virtual bool ValidateInput ( const Properties& props )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::ValidateInput called", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::ValidateInput called", "" );
     }
 
     StrainMeasure GetStrainMeasure()
@@ -186,7 +186,7 @@ public:
             const Vector& ShapeFunctionsValues,
             const ProcessInfo& CurrentProcessInfo )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::InitializeNonLinearIteration called", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::InitializeNonLinearIteration called", "" );
     }
 
     virtual void CalculateMaterialResponse ( const Vector& StrainVector,
@@ -214,7 +214,7 @@ public:
             int CalculateTangent = true,
             bool SaveInternalVariables = true )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::CalculateVolumetricResponse called", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::CalculateVolumetricResponse called", "" );
     }
 
     virtual void CalculateDeviatoricResponse ( const Vector& StrainVector,
@@ -229,14 +229,14 @@ public:
             int CalculateTangent = true,
             bool SaveInternalVariables = true )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::CalculateDeviatoricResponse called", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::CalculateDeviatoricResponse called", "" );
     }
 
     virtual void ResetMaterial ( const Properties& props,
                                  const GeometryType& geom,
                                  const Vector& ShapeFunctionsValues )
     {
-        KRATOS_ERROR ( std::logic_error, "virtual function Umat::ResetMaterial called", "" );
+        KRATOS_THROW_ERROR ( std::logic_error, "virtual function Umat::ResetMaterial called", "" );
     }
 
     virtual void CalculateCauchyStresses ( Vector& Cauchy_StressVector,

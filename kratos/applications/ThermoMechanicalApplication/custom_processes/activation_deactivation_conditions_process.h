@@ -152,7 +152,7 @@ namespace Kratos
 		     int second_nd = mr_active_deactive_table(ii,1);
 		     
 /*		    if(first_nd == second_nd)
-			  KRATOS_ERROR(std::logic_error,"inside activate_deactivate _ WRONG Activation TABLE","");*/			     
+			  KRATOS_THROW_ERROR(std::logic_error,"inside activate_deactivate _ WRONG Activation TABLE","");*/			     
 		     
 		     if(first_nd != 0 && second_nd != 0)
 		      {

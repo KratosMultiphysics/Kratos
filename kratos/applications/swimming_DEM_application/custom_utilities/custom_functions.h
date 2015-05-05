@@ -157,7 +157,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
         }
 
         else {
-            KRATOS_ERROR(std::runtime_error,"Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
+            KRATOS_THROW_ERROR(std::runtime_error,"Trying to calculate pressure variations between two coincident time steps! (null time variation since last recorded time)","");
         }
 
         std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
@@ -378,7 +378,7 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
     double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
     if (vol == 0.0){
-        KRATOS_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+        KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
     }
 
     return vol;
@@ -412,7 +412,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
     double inv_vol = 0.0;
 
     if (vol == 0.0){
-        KRATOS_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
+        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
     }
 
     else {
@@ -461,7 +461,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
     double inv_vol = 0.0;
 
     if (vol == 0.0){
-        KRATOS_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
+        KRATOS_THROW_ERROR(std::logic_error, "Element with zero area found. Its geometry is given by", geom);
     }
 
     else {

@@ -140,7 +140,7 @@ public:
 	    //KRATOS_WATCH(n_int)
 	    //KRATOS_WATCH(n_nodes)
             if (n_int>n_nodes)
-                KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+                KRATOS_THROW_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
 
         }
 

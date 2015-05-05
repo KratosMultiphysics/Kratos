@@ -104,7 +104,7 @@ public:
         mscaling_type = LeftScaling;
 
         /*			if(overlap_level == 0)
-        				KRATOS_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");*/
+        				KRATOS_THROW_ERROR(std::logic_error,"the overlap level for the Aztecsolver with IFPackshould be greater than 0","");*/
     }
 
     /**
@@ -137,7 +137,7 @@ public:
         //perform GS1 scaling if required
         if(mscaling_type == SymmetricScaling)
         {
-            KRATOS_ERROR(std::logic_error,"somethign wrong with the scaling to be further teststed","")
+            KRATOS_THROW_ERROR(std::logic_error,"somethign wrong with the scaling to be further teststed","")
             Epetra_Vector scaling_vect(rA.RowMap());
             rA.InvColSums(scaling_vect);
 

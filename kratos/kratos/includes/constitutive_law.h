@@ -329,10 +329,10 @@ public:
       bool CheckShapeFunctions ()
       {
 	if(!mpShapeFunctionsValues)
-	  KRATOS_ERROR(std::invalid_argument,"ShapeFunctionsValues NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"ShapeFunctionsValues NOT SET","");
 
 	if(!mpShapeFunctionsDerivatives)
-	  KRATOS_ERROR(std::invalid_argument,"ShapeFunctionsDerivatives NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"ShapeFunctionsDerivatives NOT SET","");
 
 	return 1;
       }
@@ -344,13 +344,13 @@ public:
       bool CheckInfoMaterialGeometry ()
       {
 	if(!mpCurrentProcessInfo)
-	  KRATOS_ERROR(std::invalid_argument,"CurrentProcessInfo NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"CurrentProcessInfo NOT SET","");
 
 	if(!mpMaterialProperties)
-	  KRATOS_ERROR(std::invalid_argument,"MaterialProperties NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"MaterialProperties NOT SET","");
 
 	if(!mpElementGeometry)
-	  KRATOS_ERROR(std::invalid_argument,"ElementGeometry NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"ElementGeometry NOT SET","");
      
 	return 1;
       }
@@ -363,25 +363,25 @@ public:
       bool CheckMechanicalVariables ()
       {
 	if(!mDeterminantF)
-	  KRATOS_ERROR(std::invalid_argument,"DeterminantF NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"DeterminantF NOT SET","");
 
 	if(!mDeterminantF0)
-	  KRATOS_ERROR(std::invalid_argument,"DeterminantF0 NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"DeterminantF0 NOT SET","");
 
 	if(!mpDeformationGradientF)
-	  KRATOS_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
 
 	if(!mpDeformationGradientF0)
-	  KRATOS_ERROR(std::invalid_argument,"DeformationGradientF0 NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF0 NOT SET","");
 
 	if(!mpStrainVector)
-	  KRATOS_ERROR(std::invalid_argument,"StrainVector NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"StrainVector NOT SET","");
 
 	if(!mpStressVector)
-	  KRATOS_ERROR(std::invalid_argument,"StressVector NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"StressVector NOT SET","");
      
 	if(!mpConstitutiveMatrix)
-	  KRATOS_ERROR(std::invalid_argument,"ConstitutiveMatrix NOT SET","");
+	  KRATOS_THROW_ERROR(std::invalid_argument,"ConstitutiveMatrix NOT SET","");
 
 	return 1;
       }

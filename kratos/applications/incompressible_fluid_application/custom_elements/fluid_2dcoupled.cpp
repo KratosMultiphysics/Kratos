@@ -135,7 +135,7 @@ void Fluid2DCoupled::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 //************************************************************************************
 void Fluid2DCoupled::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 //************************************************************************************

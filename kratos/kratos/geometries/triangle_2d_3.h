@@ -257,7 +257,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 3, given " , this->PointsNumber() );
     }
 
@@ -1006,7 +1006,7 @@ public:
         //checking for singularity
 
         if ( det_j == 0.00 )
-            KRATOS_ERROR( std::runtime_error,
+            KRATOS_THROW_ERROR( std::runtime_error,
                           "Zero determinant of jacobian during inversion of matrix!" ,
                           *this );
 
@@ -1053,7 +1053,7 @@ public:
         //checking for singularity
 
         if ( det_j == 0.00 )
-            KRATOS_ERROR( std::runtime_error,
+            KRATOS_THROW_ERROR( std::runtime_error,
                           "Zero determinant of jacobian during inversion of matrix!",
                           *this );
 
@@ -1179,7 +1179,7 @@ public:
         case 2:
             return( rPoint[1] );
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
                           *this );
         }

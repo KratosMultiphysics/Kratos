@@ -262,7 +262,7 @@ public:
         		  //now decide what to do
         		  if(n_conflictive_neighbours == 0)
         		  {
-        		      KRATOS_ERROR(std::logic_error, "it is impossible that a conflictive node does not have any conflictive neighbour","");
+        		      KRATOS_THROW_ERROR(std::logic_error, "it is impossible that a conflictive node does not have any conflictive neighbour","");
         		  }
         		  else if(n_conflictive_neighbours == 1)
         		  {

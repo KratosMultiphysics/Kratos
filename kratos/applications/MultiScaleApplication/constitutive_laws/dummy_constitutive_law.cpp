@@ -57,17 +57,17 @@ namespace Kratos
  
     ConstitutiveLaw::Pointer DummyConstitutiveLaw::Clone() const
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     DummyConstitutiveLaw::SizeType DummyConstitutiveLaw::WorkingSpaceDimension()
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     DummyConstitutiveLaw::SizeType DummyConstitutiveLaw::GetStrainSize()
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     bool DummyConstitutiveLaw::Has(const Variable<double>& rThisVariable)
@@ -124,33 +124,33 @@ namespace Kratos
                                          const double& rValue,
                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::SetValue(const Variable<Vector >& rVariable,
                                         const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::SetValue(const Variable<Matrix >& rVariable,
                                         const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::SetValue(const Variable<array_1d<double, 3 > >& rVariable,
                                          const array_1d<double, 3 > & rValue,
                                          const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
                                         const array_1d<double, 6 > & rValue,
                                         const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     bool DummyConstitutiveLaw::ValidateInput(const Properties& rMaterialProperties)
@@ -160,12 +160,12 @@ namespace Kratos
 
     DummyConstitutiveLaw::StrainMeasure DummyConstitutiveLaw::GetStrainMeasure()
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
     
     DummyConstitutiveLaw::StressMeasure DummyConstitutiveLaw::GetStressMeasure()
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     bool DummyConstitutiveLaw::IsIncremental()
@@ -198,7 +198,7 @@ namespace Kratos
                                                             const Vector& rShapeFunctionsValues,
                                                             const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::FinalizeNonLinearIteration(const Properties& rMaterialProperties,
@@ -206,59 +206,59 @@ namespace Kratos
                                                           const Vector& rShapeFunctionsValues,
                                                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::ResetMaterial(const Properties& rMaterialProperties,
                                              const GeometryType& rElementGeometry,
                                              const Vector& rShapeFunctionsValues)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::GetLawFeatures(Features& rFeatures)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     int DummyConstitutiveLaw::Check(const Properties& rMaterialProperties,
@@ -284,7 +284,7 @@ namespace Kratos
                                                          int CalculateTangent,
                                                          bool SaveInternalVariables)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateVolumetricResponse(const double VolumetricStrain,
@@ -299,7 +299,7 @@ namespace Kratos
                                                            int CalculateTangent,
                                                            bool SaveInternalVariables)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateDeviatoricResponse(const Vector& StrainVector,
@@ -314,7 +314,7 @@ namespace Kratos
                                                            int CalculateTangent,
                                                            bool SaveInternalVariables)
     {
-        KRATOS_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
+        KRATOS_THROW_ERROR(std::logic_error, "DUMMY C.LAW TEMPLATE!", "");
     }
 
     void DummyConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,

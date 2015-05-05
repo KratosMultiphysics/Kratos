@@ -518,7 +518,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
 //                 mdGamma = 0.0;
 //                 mAlpha = mOldAlpha;
 //                 break;
-//                 KRATOS_ERROR( std::logic_error, "return map did not converge", "" );
+//                 KRATOS_THROW_ERROR( std::logic_error, "return map did not converge", "" );
             }
 
             if ( fabs( yield_function ) < Tol )
@@ -535,7 +535,7 @@ void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressV
                 else {
 		  
 // 		              KRATOS_WATCH( " ############ ########## ######## Apex ########## ########## #  # # #  #" );
-//                     KRATOS_ERROR( std::logic_error, "Kratos was killed because a material point in DP-model reached the APEX region", "" );
+//                     KRATOS_THROW_ERROR( std::logic_error, "Kratos was killed because a material point in DP-model reached the APEX region", "" );
 
                     isApex = true;
                     dPlasticStrainVol = 0.0;

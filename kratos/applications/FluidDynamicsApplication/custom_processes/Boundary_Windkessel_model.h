@@ -107,7 +107,7 @@ public:
         double Flow_total=0.0;
         double Resistence = 5e9;
         if ((Resistence <=0.0)){
-             KRATOS_ERROR(std::logic_error, "Resistece must be higer than cero:", Resistence);
+             KRATOS_THROW_ERROR(std::logic_error, "Resistece must be higer than cero:", Resistence);
             }
         ModelPart::ConditionsContainerType rConditions = mr_model_part.Conditions();
         //1_Compute Flow in the outlew area
