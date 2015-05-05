@@ -480,7 +480,7 @@ namespace Kratos
 
     //Once all meshes are build, the main mesh Id=0 must be reassigned
     if(NumberOfMeshes>1){
-      mModelerUtilities.BuildTotalMesh(rModelPart);
+      mModelerUtilities.BuildTotalMesh(rModelPart, GetEchoLevel());
     }
     else{
       mModelerUtilities.CleanMeshFlags(rModelPart,0);

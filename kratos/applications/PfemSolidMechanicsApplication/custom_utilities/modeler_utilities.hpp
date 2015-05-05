@@ -89,7 +89,7 @@ public:
    
     void SetDomainLabels   (ModelPart& rModelPart);
 
-    void BuildTotalMesh    (ModelPart& rModelPart);
+    void BuildTotalMesh    (ModelPart& rModelPart, int EchoLevel);
     
     void CleanMeshFlags    (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
 
