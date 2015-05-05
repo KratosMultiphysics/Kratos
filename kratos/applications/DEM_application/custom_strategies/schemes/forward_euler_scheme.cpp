@@ -61,20 +61,19 @@ namespace Kratos {
 
                 double mass = i->FastGetSolutionStepValue(NODAL_MASS);
 
-//              double aux = delta_t / mass;
+                double force_reduction_factor = 1.0;
 
                 if (if_virtual_mass_option) {
-                    aux = (1 - virtual_mass_coeff)* (delta_t / mass);
-                    if (aux < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
-                    }
+                    force_reduction_factor = 1.0 - virtual_mass_coeff;                    
+                    if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+                }
 
                 if (i->IsNot(DEMFlags::FIXED_VEL_X)) {
                     delta_displ[0] = delta_t * vel[0];
                     displ[0] += delta_displ[0];
                     coor[0] = initial_coor[0] + displ[0];
                     vel[0] += delta_t * acc[0];
-                    acc[0] = force[0]/mass;
-
+                    acc[0] = force_reduction_factor * force[0] / mass;
                 } else {
                     delta_displ[0] = delta_t * vel[0];
                     displ[0] += delta_displ[0];
@@ -86,7 +85,7 @@ namespace Kratos {
                     displ[1] += delta_displ[1];
                     coor[1] = initial_coor[1] + displ[1];
                     vel[1] += delta_t * acc[1];
-                    acc[1] = force[1]/mass;
+                    acc[1] = force_reduction_factor * force[1] / mass;
                 } else {
                     delta_displ[1] = delta_t * vel[1];
                     displ[1] += delta_displ[1];
@@ -98,7 +97,7 @@ namespace Kratos {
                     displ[2] += delta_displ[2];
                     coor[2] = initial_coor[2] + displ[2];
                     vel[2] += delta_t * acc[2];
-                    acc[2] = force[2]/mass;
+                    acc[2] = force_reduction_factor * force[2] / mass;
                 } else {
                     delta_displ[2] = delta_t * vel[2];
                     displ[2] += delta_displ[2];
@@ -118,7 +117,7 @@ namespace Kratos {
         bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
         vector<unsigned int> node_partition;
         bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
-        double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+        double virtual_mass_coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
@@ -136,10 +135,20 @@ namespace Kratos {
                 array_1d<double, 3 >& AngularVel = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3 >& RotaMoment = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
                 array_1d<double, 3 >& Rota_Displace = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                array_1d<double, 3 > delta_rotation_displ;
+                array_1d<double, 3 >& delta_rotation = i->FastGetSolutionStepValue(DELTA_ROTATION);;
                 double Orientation_real;
                 array_1d<double, 3 > Orientation_imag;
                 array_1d<double, 3 >& AngularAcc = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+                
+                
+                double moment_reduction_factor = 1.0;
+
+                if (if_virtual_mass_option) {
+                    moment_reduction_factor = 1.0 - virtual_mass_coeff;                    
+                    if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
+                }
+                
+                
                 bool If_Fix_Rotation[3] = {false, false, false};
 
                 If_Fix_Rotation[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
@@ -148,24 +157,14 @@ namespace Kratos {
 
                 for (std::size_t iterator = 0; iterator < 3; iterator++) {
                     if (If_Fix_Rotation[iterator] == false) {
-
-
-                        if (if_virtual_mass_option) {
-                            AngularAcc[iterator] = AngularAcc[iterator] * (1 - coeff);
-                        }
-
-                        delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-                        Rota_Displace[iterator] += delta_rotation_displ[iterator];
+                        delta_rotation[iterator] = AngularVel[iterator] * delta_t;
+                        Rota_Displace[iterator] += delta_rotation[iterator];
                         AngularVel[iterator] += AngularAcc[iterator] * delta_t;
-                        AngularAcc[iterator] = RotaMoment[iterator]/PMomentOfInertia
-
+                        AngularAcc[iterator] = moment_reduction_factor * RotaMoment[iterator] / PMomentOfInertia;
                     }
-
                     else {
-
-                        delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-                        Rota_Displace[iterator] += delta_rotation_displ[iterator];
-
+                        delta_rotation[iterator] = AngularVel[iterator] * delta_t;
+                        Rota_Displace[iterator] += delta_rotation[iterator];
                     }
                 }
 
