@@ -80,52 +80,64 @@ public:
     {
         KRATOS_TRY
 
-        double tolerance  = 1e-10;
-        double zero       = 1e-10;
-        double NormStress = 0.00;
-
 
         Matrix StressTensor    = MathUtils<double>::StressVectorToTensor(StressVector);
 
-        CheckZeroDiagonalComponents (StressTensor);
+	//in general coordinates:
+        double SigmaEquivalent =  (0.5)*((StressTensor(0,0)-StressTensor(1,1))*((StressTensor(0,0)-StressTensor(1,1)))+
+					 (StressTensor(1,1)-StressTensor(2,2))*((StressTensor(1,1)-StressTensor(2,2)))+
+					 (StressTensor(2,2)-StressTensor(0,0))*((StressTensor(2,2)-StressTensor(0,0)))+
+					 6*(StressTensor(0,1)*StressTensor(0,1)+StressTensor(1,2)*StressTensor(1,2)+StressTensor(2,0)*StressTensor(0,0)));
 
-        Vector PrincipalStress = ZeroVector(3);
+	SigmaEquivalent = sqrt(SigmaEquivalent);
 
-        NormStress =SolidMechanicsMathUtilities<double>::NormTensor(StressTensor);
+	//in principal stresses:
 
-        Vector MainStresses;
+        // double tolerance  = 1e-10;
+        // double zero       = 1e-10;
+        // double NormStress = 0.00;
 
-        bool main_tensor = CheckPrincipalStresses( StressTensor );
+        // CheckZeroDiagonalComponents (StressTensor);
 
-        if(!main_tensor)
-        {
+        // Vector PrincipalStress = ZeroVector(3);
 
-            if(NormStress>1e-6)
-            {
-                MainStresses = SolidMechanicsMathUtilities<double>::EigenValues(StressTensor,tolerance,zero);
-            }
-            else
-            {
-                MainStresses = ZeroVector(3);
-            }
+        // NormStress =SolidMechanicsMathUtilities<double>::NormTensor(StressTensor);
 
-        }
-        else
-        {
-            MainStresses = ZeroVector(3);
-            for(unsigned int i=0; i<StressTensor.size1(); i++)
-                MainStresses[i]=StressTensor(i,i);
-        }
+        // Vector MainStresses = ZeroVector(3);
+
+        // bool main_tensor = CheckPrincipalStresses( StressTensor );
+
+        // if(!main_tensor)
+        // {
+
+        //     if(NormStress>1e-6)
+        //     {
+        //         MainStresses = SolidMechanicsMathUtilities<double>::EigenValues(StressTensor,tolerance,zero);
+        //     }
+        //     else
+        //     {
+        //         MainStresses = ZeroVector(3);
+        //     }
+
+        // }
+        // else
+        // {
+        //     MainStresses = ZeroVector(3);
+        //     for(unsigned int i=0; i<StressTensor.size1(); i++)
+        //         MainStresses[i]=StressTensor(i,i);
+        // }
 
 
-        for(unsigned int i=0; i<MainStresses.size(); i++)
-            PrincipalStress[i]=MainStresses[i];
+        // for(unsigned int i=0; i<MainStresses.size(); i++)
+        //     PrincipalStress[i]=MainStresses[i];
+	
 
-        double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
-                                         (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
-                                         (PrincipalStress[2]-PrincipalStress[0])*(PrincipalStress[2]-PrincipalStress[0]));
+        // double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
+        //                                  (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
+        //                                  (PrincipalStress[2]-PrincipalStress[0])*(PrincipalStress[2]-PrincipalStress[0]));
 
-        SigmaEquivalent = sqrt(SigmaEquivalent);
+
+        // SigmaEquivalent = sqrt(SigmaEquivalent);
 
         //std::cout<<" SigmaEquivalent "<<SigmaEquivalent<<" StressVector "<<StressVector<<std::endl;
 
