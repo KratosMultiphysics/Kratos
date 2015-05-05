@@ -207,13 +207,13 @@ public:
 
             if(i_variable == VariableDataComponents.end())
 
-                KRATOS_ERROR(std::logic_error, "This variable is not registered in Kernel : ",   *(i_variable->second));
+                KRATOS_THROW_ERROR(std::logic_error, "This variable is not registered in Kernel : ",   *(i_variable->second));
 
             unsigned int variable_key = i_variable->second->Key();
 
             if(variable_key == 0)
 
-                KRATOS_ERROR(std::logic_error, "This variable is not initialized in Kernel : ",   *(i_variable->second));
+                KRATOS_THROW_ERROR(std::logic_error, "This variable is not initialized in Kernel : ",   *(i_variable->second));
 
 
 

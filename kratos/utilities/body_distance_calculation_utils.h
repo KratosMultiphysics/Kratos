@@ -410,7 +410,7 @@ public:
                     KRATOS_WATCH(it->Id());
                     // 						KRATOS_WATCH("distance is set to zero:");
                     //it->FastGetSolutionStepValue(rDistanceVar) = 0.0;
-                    KRATOS_ERROR(std::logic_error, "no neighbour nodes was succesfully computed ... impossible to recover", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "no neighbour nodes was succesfully computed ... impossible to recover", "");
                 }
             }
         }

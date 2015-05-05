@@ -201,7 +201,7 @@ public:
 
             beta = inner_prod(x, y);
             if(beta <= 0.00)
-                KRATOS_ERROR(std::invalid_argument, "M is not Positive-definite", "");
+                KRATOS_THROW_ERROR(std::invalid_argument, "M is not Positive-definite", "");
 
             ro = ro / beta;
             beta = sqrt(beta);
@@ -211,7 +211,7 @@ public:
             y *= inverse_of_beta;
 
             if(ro == 0.00)
-                KRATOS_ERROR(std::runtime_error, "Perpendicular eigenvector to M", "");
+                KRATOS_THROW_ERROR(std::runtime_error, "Perpendicular eigenvector to M", "");
 
             double convergence_norm = fabs((ro - old_ro) / ro);
 

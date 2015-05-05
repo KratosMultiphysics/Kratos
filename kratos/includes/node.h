@@ -186,7 +186,7 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition()
     {
-        KRATOS_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
+        KRATOS_THROW_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
         CreateSolutionStepData();
 
 #ifdef _OPENMP
@@ -272,7 +272,7 @@ public:
         , mInitialPosition(rOtherNode.mInitialPosition)
     {
         //TODO ... this copy constructor should be removed sometimes as it is often source of error
-        //KRATOS_ERROR(std::logic_error, "copying Nodes is not allowed", "");
+        //KRATOS_THROW_ERROR(std::logic_error, "copying Nodes is not allowed", "");
 
         // Deep copying the dofs
         for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
@@ -610,7 +610,7 @@ public:
 // 	{
 // 	  SolutionStepsNodalDataContainerType::iterator i;
 // 	  if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 	    KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
+// 	    KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
 
 // 	  return (i.base()->second);
 // 	}
@@ -627,7 +627,7 @@ public:
 // 	{
 // 	  SolutionStepsNodalDataContainerType::iterator i;
 // 	  if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 	    KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
+// 	    KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
 
 // 	  return i->GetValue(rThisVariable);
 // 	}
@@ -807,7 +807,7 @@ public:
     	{
     	  typename SolutionStepsNeighboursContainerType::iterator i;
     	  if((i = mSolutionStepsNeighbours.find(SolutionStepIndex)) == mSolutionStepsNeighbours.end())
-    	    KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
+    	    KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
 
     	  return *(i.base());
     	}
@@ -956,7 +956,7 @@ public:
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+        KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
 
     }
 
@@ -976,7 +976,7 @@ public:
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+        KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
 
     }
 

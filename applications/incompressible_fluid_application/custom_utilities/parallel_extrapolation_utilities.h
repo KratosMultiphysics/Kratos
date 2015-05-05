@@ -99,15 +99,15 @@ public:
 
         //check that variables needed are in the model part
         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)))
-            KRATOS_ERROR(std::logic_error, "distance Variable is not in the model part", "")
+            KRATOS_THROW_ERROR(std::logic_error, "distance Variable is not in the model part", "")
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rVelocityVar)))
-                KRATOS_ERROR(std::logic_error, "velocity Variable is not in the model part", "")
+                KRATOS_THROW_ERROR(std::logic_error, "velocity Variable is not in the model part", "")
                 if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)))
-                    KRATOS_ERROR(std::logic_error, "Area Variable is not in the model part", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "Area Variable is not in the model part", "")
 
                     if (is_distributed == true)
                         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
-                            KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
+                            KRATOS_THROW_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
 
                             //set as active the internal nodes
                             int node_size = rmodel_part.Nodes().size();
@@ -230,15 +230,15 @@ public:
 
         //check that variables needed are in the model part
         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)))
-            KRATOS_ERROR(std::logic_error, "distance Variable is not in the model part", "")
+            KRATOS_THROW_ERROR(std::logic_error, "distance Variable is not in the model part", "")
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rTemperatureVar)))
-                KRATOS_ERROR(std::logic_error, "velocity Variable is not in the model part", "")
+                KRATOS_THROW_ERROR(std::logic_error, "velocity Variable is not in the model part", "")
                 if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)))
-                    KRATOS_ERROR(std::logic_error, "Area Variable is not in the model part", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "Area Variable is not in the model part", "")
 
                     if (is_distributed == true)
                         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
-                            KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
+                            KRATOS_THROW_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
 
                             //set as active the internal nodes
                             int node_size = rmodel_part.Nodes().size();
@@ -378,19 +378,19 @@ public:
 
         //check that variables needed are in the model part
         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)))
-            KRATOS_ERROR(std::logic_error, "distance Variable is not in the model part", "")
+            KRATOS_THROW_ERROR(std::logic_error, "distance Variable is not in the model part", "")
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rProjVar)))
-                KRATOS_ERROR(std::logic_error, "Pressure Projection Variable is not in the model part", "")
+                KRATOS_THROW_ERROR(std::logic_error, "Pressure Projection Variable is not in the model part", "")
                 if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(BODY_FORCE)))
-                    KRATOS_ERROR(std::logic_error, "BODY_FORCE Variable is not in the model part", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "BODY_FORCE Variable is not in the model part", "")
                     if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)))
-                        KRATOS_ERROR(std::logic_error, "Area Variable is not in the model part", "")
+                        KRATOS_THROW_ERROR(std::logic_error, "Area Variable is not in the model part", "")
                         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rPressureVar)))
-                            KRATOS_ERROR(std::logic_error, "rPressureVar Variable is not in the model part", "")
+                            KRATOS_THROW_ERROR(std::logic_error, "rPressureVar Variable is not in the model part", "")
 
                             if (is_distributed == true)
                                 if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
-                                    KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
+                                    KRATOS_THROW_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
 
                                     //set as active the internal nodes
                                     int node_size = rmodel_part.Nodes().size();
@@ -650,18 +650,18 @@ public:
 
         //check that variables needed are in the model part
         if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)))
-            KRATOS_ERROR(std::logic_error, "distance Variable is not in the model part", "")
+            KRATOS_THROW_ERROR(std::logic_error, "distance Variable is not in the model part", "")
             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rProjVar)))
-                KRATOS_ERROR(std::logic_error, "Pressure Projection Variable is not in the model part", "")
+                KRATOS_THROW_ERROR(std::logic_error, "Pressure Projection Variable is not in the model part", "")
                 if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rPressureVar)))
-                    KRATOS_ERROR(std::logic_error, "rPressureVar Variable is not in the model part", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "rPressureVar Variable is not in the model part", "")
                     if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)))
-                        KRATOS_ERROR(std::logic_error, "rAreaVar Variable is not in the model part", "")
+                        KRATOS_THROW_ERROR(std::logic_error, "rAreaVar Variable is not in the model part", "")
 
 
                         if (is_distributed == true)
                             if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
-                                KRATOS_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
+                                KRATOS_THROW_ERROR(std::logic_error, "PARTITION_INDEX Variable is not in the model part", "")
 
                                 //set as active the internal nodes
                                 int node_size = rmodel_part.Nodes().size();

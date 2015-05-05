@@ -260,13 +260,13 @@ public:
 		if(pNewModelPart == mpModelPart) return;
 
 		if(pNewModelPart == NULL)
-			KRATOS_ERROR(std::logic_error, "RveAdapter - The input ModelPart is NULL", "");
+			KRATOS_THROW_ERROR(std::logic_error, "RveAdapter - The input ModelPart is NULL", "");
 
 		if(pNewSolvingStrategy == NULL)
-			KRATOS_ERROR(std::logic_error, "RveAdapter - The input SolvingStrategy is NULL", "");
+			KRATOS_THROW_ERROR(std::logic_error, "RveAdapter - The input SolvingStrategy is NULL", "");
 
 		if(pNewMacroscaleStatus == NULL)
-			KRATOS_ERROR(std::logic_error, "RveAdapter - The input RveMacroscaleStatus is NULL", "");
+			KRATOS_THROW_ERROR(std::logic_error, "RveAdapter - The input RveMacroscaleStatus is NULL", "");
 
 		mpModelPart = pNewModelPart;
 		mpStrategy = pNewSolvingStrategy;
@@ -512,7 +512,7 @@ public:
     */
     virtual ConstitutiveLaw::StrainMeasure GetStrainMeasure()
 	{
-		//KRATOS_ERROR(std::logic_error, "RveAdapter - This method should be implemented by any derived class", "");
+		//KRATOS_THROW_ERROR(std::logic_error, "RveAdapter - This method should be implemented by any derived class", "");
 		return ConstitutiveLaw::StrainMeasure_Infinitesimal; // for testing...
 	}
 
@@ -522,7 +522,7 @@ public:
     */
     virtual ConstitutiveLaw::StressMeasure GetStressMeasure()
 	{
-		//KRATOS_ERROR(std::logic_error, "RveAdapter - This method should be implemented by any derived class", "");
+		//KRATOS_THROW_ERROR(std::logic_error, "RveAdapter - This method should be implemented by any derived class", "");
 		return ConstitutiveLaw::StressMeasure_Cauchy; // for testing...
 	}
 
@@ -745,7 +745,7 @@ public:
 		{
 			if(mpModelPart == NULL || mpStrategy == NULL || mpMacroscaleStatus == NULL)
 			{
-				KRATOS_ERROR(std::logic_error, "RveAdapter - RveGenerated flag set to TRUE, but some data is missing", "");
+				KRATOS_THROW_ERROR(std::logic_error, "RveAdapter - RveGenerated flag set to TRUE, but some data is missing", "");
 			}
 		}
 		return 0;

@@ -163,7 +163,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR(std::runtime_error,"Error in FractionalStepSettingsPeriodic: Unknown strategy label.","");
+            KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettingsPeriodic: Unknown strategy label.","");
         }
 
         BaseType::mTolerances[rStrategyLabel] = Tolerance;
@@ -196,7 +196,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR(std::runtime_error,"Error in FractionalStepSettingsPeriodic: Unknown turbulence model label.","");
+            KRATOS_THROW_ERROR(std::runtime_error,"Error in FractionalStepSettingsPeriodic: Unknown turbulence model label.","");
         }
 
         KRATOS_CATCH("");

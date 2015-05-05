@@ -330,7 +330,7 @@ public:
 //      {
 //        SolutionStepsDataContainerType::iterator i;
 //        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", "");
+//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
 
 
 //        return GetReference(*mpVariable, *i, mVariableType);
@@ -341,7 +341,7 @@ public:
 //      {
 //        SolutionStepsDataContainerType::iterator i;
 //        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", "");
+//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
 
 
 //        return GetReference(*mpVariable, *i, mVariableType);
@@ -353,7 +353,7 @@ public:
 //      {
 //        SolutionStepsDataContainerType::const_iterator i;
 //        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", "");
+//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
 
 
 //        return i->GetValue(rThisVariable);
@@ -365,7 +365,7 @@ public:
 //      {
 //        SolutionStepsDataContainerType::const_iterator i;
 //        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_ERROR(std::invalid_argument, "Solution step index out of range.", "");
+//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
 
 
 //        return i->GetValue(rThisVariable);
@@ -628,7 +628,7 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
     }
 
     TDataType const& GetReference(VariableData const& ThisVariable, VariablesListDataValueContainer const& rData, IndexType SolutionStepIndex, int ThisId) const
@@ -637,7 +637,7 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
     }
 
 

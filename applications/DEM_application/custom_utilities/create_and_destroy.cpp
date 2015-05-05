@@ -456,11 +456,11 @@ namespace Kratos {
             double ref_radius = 0.0;
 
             if (r_balls_model_part.NumberOfElements(0) == 0 && r_clusters_model_part.NumberOfElements(0) == 0 && r_rigid_faces_model_part.NumberOfElements(0) == 0) {
-                KRATOS_ERROR(std::logic_error, "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops.", "");
+                KRATOS_THROW_ERROR(std::logic_error, "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops.", "");
             }
 
             if (scale_factor < 0.0) {
-                KRATOS_ERROR(std::logic_error, "The enlargement factor for the automatic calculation of the bounding box must be a positive value.", "");
+                KRATOS_THROW_ERROR(std::logic_error, "The enlargement factor for the automatic calculation of the bounding box must be a positive value.", "");
             }
 
             if (scale_factor < 1.0) {
@@ -546,7 +546,7 @@ namespace Kratos {
             for (int i = 0; i < 3; ++i) {
 
                 if (mHighPoint[i] < mLowPoint[i]) {
-                    KRATOS_ERROR(std::logic_error, "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates.", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "Check limits of the Bounding Box, minimum coordinates exceed maximum coordinates.", "");
                 }
             }
 

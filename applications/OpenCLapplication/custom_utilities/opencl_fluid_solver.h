@@ -331,7 +331,7 @@ public:
                 if (inode -> IsFixed(VELOCITY_Y) == false || inode -> IsFixed(VELOCITY_Z) == false)
                 {
                     std::cout << "Error found on the fixity of node " << inode -> Id() << std::endl;
-                    KRATOS_ERROR(std::logic_error, "Velocities can be either all fixed or none fixed", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "Velocities can be either all fixed or none fixed", "")
                 }
 
                 mFixedVelocitiesList[mFixedVelocitiesListLength] = index;
@@ -1088,7 +1088,7 @@ public:
 
         if (mu == 0.00)
         {
-            KRATOS_ERROR(std::logic_error, "It is not possible to use the wall law with zero viscosity", "");
+            KRATOS_THROW_ERROR(std::logic_error, "It is not possible to use the wall law with zero viscosity", "");
         }
 
         // Slip condition

@@ -170,7 +170,7 @@ public:
 
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 //    {
-//        KRATOS_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
+//        KRATOS_THROW_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
 //    }
 
     /// Fill given array with containing the element's degrees of freedom
@@ -373,7 +373,7 @@ private:
             IntMethod = 5;
             break;
         default:
-            KRATOS_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer save for SpalartAllmaras element: ",mIntegrationMethod);
+            KRATOS_THROW_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer save for SpalartAllmaras element: ",mIntegrationMethod);
             break;
         }
         rSerializer.save("IntMethod",IntMethod);
@@ -406,7 +406,7 @@ private:
             mIntegrationMethod = GeometryData::GI_GAUSS_5;
             break;
         default:
-            KRATOS_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer load for SpalartAllmaras element: ",IntMethod);
+            KRATOS_THROW_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer load for SpalartAllmaras element: ",IntMethod);
             break;
         }
         rSerializer.load("mDN_DX",mDN_DX);

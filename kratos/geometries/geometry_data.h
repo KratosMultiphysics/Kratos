@@ -586,10 +586,10 @@ public:
     double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex ) const
     {
         if ( mShapeFunctionsValues[mDefaultMethod].size1() <= IntegrationPointIndex )
-            KRATOS_ERROR( std::invalid_argument, "No existing integration point", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing integration point", "" );
 
         if ( mShapeFunctionsValues[mDefaultMethod].size2() <= ShapeFunctionIndex )
-            KRATOS_ERROR( std::invalid_argument, "No existing shape function value", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing shape function value", "" );
 
         return mShapeFunctionsValues[mDefaultMethod]( IntegrationPointIndex, ShapeFunctionIndex );
     }
@@ -619,10 +619,10 @@ public:
     double ShapeFunctionValue( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, enum IntegrationMethod ThisMethod ) const
     {
         if ( mShapeFunctionsValues[ThisMethod].size1() <= IntegrationPointIndex )
-            KRATOS_ERROR( std::invalid_argument, "No existing integration point", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing integration point", "" );
 
         if ( mShapeFunctionsValues[ThisMethod].size2() <= ShapeFunctionIndex )
-            KRATOS_ERROR( std::invalid_argument, "No existing shape function value", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing shape function value", "" );
 
         return mShapeFunctionsValues[ThisMethod]( IntegrationPointIndex, ShapeFunctionIndex );
     }
@@ -702,7 +702,7 @@ public:
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex ) const
     {
         if ( mShapeFunctionsLocalGradients[mDefaultMethod].size() <= IntegrationPointIndex )
-            KRATOS_ERROR( std::invalid_argument, "No existing integration point", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing integration point", "" );
 
         return mShapeFunctionsLocalGradients[mDefaultMethod][IntegrationPointIndex];
     }
@@ -733,7 +733,7 @@ public:
     const Matrix& ShapeFunctionLocalGradient( IndexType IntegrationPointIndex, IndexType ShapeFunctionIndex, enum IntegrationMethod ThisMethod ) const
     {
         if ( mShapeFunctionsLocalGradients[ThisMethod].size() <= IntegrationPointIndex )
-            KRATOS_ERROR( std::invalid_argument, "No existing integration point", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "No existing integration point", "" );
 
         return mShapeFunctionsLocalGradients[ThisMethod][IntegrationPointIndex];
     }

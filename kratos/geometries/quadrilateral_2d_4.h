@@ -258,7 +258,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 4 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 4, given " , this->PointsNumber() );
     }
 
@@ -928,7 +928,7 @@ public:
         //checking for singularity
 
         if ( det_j == 0.00 )
-            KRATOS_ERROR( std::runtime_error,
+            KRATOS_THROW_ERROR( std::runtime_error,
                           "Zero determinant of jacobian during inversion of matrix!" ,
                           *this );
 
@@ -974,7 +974,7 @@ public:
         //checking for singularity
 
         if ( det_j == 0.00 )
-            KRATOS_ERROR( std::runtime_error,
+            KRATOS_THROW_ERROR( std::runtime_error,
                           "Zero determinant of jacobian during inversion of matrix!",
                           *this );
 
@@ -1059,7 +1059,7 @@ public:
         case 3:
             return( 0.25*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] ) );
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
                           *this );
         }
@@ -1091,7 +1091,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo

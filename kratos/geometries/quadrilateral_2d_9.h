@@ -256,7 +256,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 9 )
-            KRATOS_ERROR( std::invalid_argument,
+            KRATOS_THROW_ERROR( std::invalid_argument,
                           "Invalid points number. Expected 9, given " , this->PointsNumber() );
     }
 
@@ -855,7 +855,7 @@ public:
         //checking for singularity
 
         if ( det_j == 0.00 )
-            KRATOS_ERROR( std::runtime_error, "Zero determinant of jacobian." , *this );
+            KRATOS_THROW_ERROR( std::runtime_error, "Zero determinant of jacobian." , *this );
 
         //setting up result matrix
         rResult.resize( 2, 2 );
@@ -899,7 +899,7 @@ public:
         //checking for singularity
 
         if ( det_j == 0.00 )
-            KRATOS_ERROR( std::runtime_error, "Zero determinant of jacobian." , *this );
+            KRATOS_THROW_ERROR( std::runtime_error, "Zero determinant of jacobian." , *this );
 
         //setting up result matrix
         rResult.resize( 2, 2 );
@@ -999,7 +999,7 @@ public:
         case 8:
             return( fx3*fy3 );
         default:
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "Wrong index of shape function!" , *this );
         }
 
@@ -1031,7 +1031,7 @@ public:
         const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
         //workaround by riccardo

@@ -68,7 +68,7 @@ namespace Kratos
 			}			
 			default:
 			{
-				KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+				KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 			}
 		}
 
@@ -366,7 +366,7 @@ namespace Kratos
 			
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
-			//KRATOS_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
 			array_1d<double,(TDim-1)*3>  densities(0);
@@ -1115,7 +1115,7 @@ namespace Kratos
 		//KRATOS_WATCH(C_matrix)
 		//KRATOS_WATCH(B_matrix)
 		//KRATOS_WATCH(rDampMatrix)
-		//		KRATOS_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
+		//		KRATOS_THROW_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
 
 		
 	}

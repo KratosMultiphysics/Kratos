@@ -91,7 +91,7 @@ class PointSearch : public SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          KRATOS_ERROR(std::runtime_error,"Elemental search is not defined for point based structures","");
+          KRATOS_THROW_ERROR(std::runtime_error,"Elemental search is not defined for point based structures","");
       }
         
       ///@}

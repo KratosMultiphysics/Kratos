@@ -125,7 +125,7 @@ void BinghamNonNewtonianASGS3D::CalculateApparentViscosity(double & app_mu, doub
         app_mu = mu + (yield / gamma_dot) * aux_1;
         if (app_mu < mu)
         {
-            KRATOS_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
+            KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
         }
     }
     else

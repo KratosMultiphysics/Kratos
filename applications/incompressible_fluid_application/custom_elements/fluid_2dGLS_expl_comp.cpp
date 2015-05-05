@@ -179,7 +179,7 @@ Fluid2DGLS_expl_comp::~Fluid2DGLS_expl_comp()
 //************************************************************************************
 void Fluid2DGLS_expl_comp::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 //************************************************************************************
@@ -188,7 +188,7 @@ void Fluid2DGLS_expl_comp::CalculateRightHandSide(VectorType& rRightHandSideVect
 void Fluid2DGLS_expl_comp::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     //KRATOS_WATCH("Empty function for this element")
-    //KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+    //KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 void Fluid2DGLS_expl_comp::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
@@ -814,7 +814,7 @@ void Fluid2DGLS_expl_comp::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 void Fluid2DGLS_expl_comp::FinalFractionalStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    KRATOS_ERROR(std::logic_error,  "METHOD NOT IMPL inside the element Final Fractional Step is done within the low_mach strategy.. " , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "METHOD NOT IMPL inside the element Final Fractional Step is done within the low_mach strategy.. " , "");
 
     KRATOS_CATCH("")
 }
@@ -836,7 +836,7 @@ void Fluid2DGLS_expl_comp::Calculate(const Variable<double>& rVariable, double& 
         CalculateLumpedMass();
     }
     else
-        KRATOS_ERROR(std::logic_error,  "You are doing something wrong  FCT calculate... of nodal_mass with wring parameters.. " , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "You are doing something wrong  FCT calculate... of nodal_mass with wring parameters.. " , "");
 }
 //************************************************************************************
 //************************************************************************************
@@ -861,7 +861,7 @@ void Fluid2DGLS_expl_comp::Calculate(const Variable<array_1d<double,3> >& rVaria
     }
     else
     {
-        KRATOS_ERROR(std::logic_error,  "You are doing something wrong in ur fractional step.... " , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "You are doing something wrong in ur fractional step.... " , "");
     }
 
 

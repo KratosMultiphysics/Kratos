@@ -1036,7 +1036,7 @@ namespace Kratos {
             double mass = mRealMass;
 
             if (coeff > 1.0) {
-                KRATOS_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff)
+                KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff)
             }
             else if ((coeff == 1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])) {
                 Output = 9.0E09;

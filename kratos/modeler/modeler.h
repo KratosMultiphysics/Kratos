@@ -177,23 +177,23 @@ public:
 
 //	  virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement)
 //	  {
-//		  KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+//		  KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
 //	  }
 //
 
     virtual void GenerateModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
-        KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+        KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
     }
 
     virtual void GenerateMesh(ModelPart& ThisModelPart, Element const& rReferenceElement, Condition const& rReferenceBoundaryCondition)
     {
-        KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
+        KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for mesh generation.", "");
     }
 
     virtual void GenerateNodes(ModelPart& ThisModelPart)
     {
-        KRATOS_ERROR(std::logic_error, "This modeler CAN NOT be used for node generation.", "");
+        KRATOS_THROW_ERROR(std::logic_error, "This modeler CAN NOT be used for node generation.", "");
     }
 
     ///@}

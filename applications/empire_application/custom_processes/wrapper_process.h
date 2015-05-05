@@ -92,7 +92,7 @@ public:
     {
       KRATOS_TRY
 	if (m_dimension != 2 && m_dimension != 3)
-	    KRATOS_ERROR(std::logic_error, "invalid dimension", "");
+	    KRATOS_THROW_ERROR(std::logic_error, "invalid dimension", "");
 
       mr_interface_part.GetNodalSolutionStepVariablesList() = mr_model_part.GetNodalSolutionStepVariablesList();
       mr_interface_part.SetBufferSize(mr_model_part.GetBufferSize());
@@ -159,7 +159,7 @@ public:
 		    NodeType& Node2 = (*i_condition).GetGeometry()[1];
 		    // make sure the node was correctly set in the mDummyNodes2D map
 		    if (Node1.IsNot(INTERFACE) || Node2.IsNot(INTERFACE))
-		      KRATOS_ERROR(std::logic_error, "A condition node is not INTERFACE","");
+		      KRATOS_THROW_ERROR(std::logic_error, "A condition node is not INTERFACE","");
 	    
 		    NodeType& Node3 = *(mDummyNodes2D.find(Node2.Id()).base()->second);
 		    NodeType& Node4 = *(mDummyNodes2D.find(Node1.Id()).base()->second);
@@ -215,7 +215,7 @@ public:
         KRATOS_TRY
 
 	if (m_dimension == 2)
-	  KRATOS_ERROR(std::logic_error, "Not implemented for 2D","");
+	  KRATOS_THROW_ERROR(std::logic_error, "Not implemented for 2D","");
 
         for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
                                      i_node != mr_interface_part.NodesEnd() ;
@@ -307,7 +307,7 @@ public:
         KRATOS_TRY
 
 	if (m_dimension == 2)
-	  KRATOS_ERROR(std::logic_error, "Not implemented for 2D","");
+	  KRATOS_THROW_ERROR(std::logic_error, "Not implemented for 2D","");
         
         mr_interface_part.Nodes().erase(mr_interface_part.Nodes().begin(), mr_interface_part.Nodes().end());
         mr_interface_part.Elements().erase(mr_interface_part.Elements().begin(), mr_interface_part.Elements().end());
@@ -579,7 +579,7 @@ private:
 	  {
 	    NodesContainerType::iterator itNode = mr_interface_part.Nodes().find(itDummy.key());
 	    if (itNode == mr_interface_part.Nodes().end())
-	      KRATOS_ERROR(std::logic_error, "Cannot find parent node of dummy node","");
+	      KRATOS_THROW_ERROR(std::logic_error, "Cannot find parent node of dummy node","");
 	    itDummy.base()->second->FastGetSolutionStepValue(ThisVariable) = itNode->FastGetSolutionStepValue(ThisVariable);
 	  }
       KRATOS_CATCH("")

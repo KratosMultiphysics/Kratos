@@ -226,7 +226,7 @@ void PointPointJointCondition::CalculateAll( MatrixType& rLeftHandSideMatrix,
 //         if( rThisVariable == JOINT_STIFFNESS )
 //         {
 //             if( rValue.size1() != 6 || rValue.size2() != 6 )
-//                 KRATOS_ERROR( std::logic_error, "Stiffness of the joint must be 6x6", "" );
+//                 KRATOS_THROW_ERROR( std::logic_error, "Stiffness of the joint must be 6x6", "" );
 //             noalias(mStiffnessMatrix) = rValue;
 //         }
 //     }

@@ -528,7 +528,7 @@ SUCCEDED:
 
     void Error( int error_code )
     {
-        KRATOS_ERROR( std::logic_error, "The solver has returned the ERROR code ", error_code );
+        KRATOS_THROW_ERROR( std::logic_error, "The solver has returned the ERROR code ", error_code );
     }
 
     /**
@@ -541,7 +541,7 @@ SUCCEDED:
      */
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-        KRATOS_ERROR(std::logic_error,"ERROR: This solver can be used for single RHS only", "");
+        KRATOS_THROW_ERROR(std::logic_error,"ERROR: This solver can be used for single RHS only", "");
         return false;
     }
 

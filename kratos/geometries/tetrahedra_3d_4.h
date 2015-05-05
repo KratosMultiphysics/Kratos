@@ -228,7 +228,7 @@ public:
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
-            KRATOS_ERROR(std::invalid_argument,
+            KRATOS_THROW_ERROR(std::invalid_argument,
                          "Invalid points number. Expected 4, given " ,
                          this->PointsNumber());
     }
@@ -1032,7 +1032,7 @@ public:
         case 3:
             return( rPoint[2] );
         default:
-            KRATOS_ERROR(std::logic_error,
+            KRATOS_THROW_ERROR(std::logic_error,
                          "Wrong index of shape function!" , *this);
         }
         return 0;
@@ -1060,7 +1060,7 @@ public:
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
         if(integration_points_number == 0)
-            KRATOS_ERROR(std::logic_error,
+            KRATOS_THROW_ERROR(std::logic_error,
                          "This integration method is not supported" , *this);
 						 
 		boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
@@ -1120,7 +1120,7 @@ virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
         if(integration_points_number == 0)
-            KRATOS_ERROR(std::logic_error,
+            KRATOS_THROW_ERROR(std::logic_error,
                          "This integration method is not supported" , *this);
 						 
 		boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;

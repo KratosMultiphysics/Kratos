@@ -1175,13 +1175,13 @@ int KinematicLinear::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
 
     if ( this->Id() < 1 )
     {
-        KRATOS_ERROR( std::logic_error, "Element found with Id 0 or negative", "" )
+        KRATOS_THROW_ERROR( std::logic_error, "Element found with Id 0 or negative", "" )
     }
 
     if ( this->GetGeometry().Area() < 0 )
     {
         std::cout << "error on element -> " << this->Id() << std::endl;
-        KRATOS_ERROR( std::logic_error, "Area can not be less than 0", "" )
+        KRATOS_THROW_ERROR( std::logic_error, "Area can not be less than 0", "" )
     }
     int ok = 0;
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1189,11 +1189,11 @@ int KinematicLinear::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
         ok = mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
         if( ok != 0 ) break;
         if( mConstitutiveLawVector[i]->IsIncremental() )
-            KRATOS_ERROR( std::logic_error, "This element does not provide incremental strains!", "" );
+            KRATOS_THROW_ERROR( std::logic_error, "This element does not provide incremental strains!", "" );
         if( mConstitutiveLawVector[i]->GetStrainMeasure() != ConstitutiveLaw::StrainMeasure_Infinitesimal)
-            KRATOS_ERROR( std::logic_error, "This element formulated in linear strain measure", "" );
+            KRATOS_THROW_ERROR( std::logic_error, "This element formulated in linear strain measure", "" );
         if( mConstitutiveLawVector[i]->GetStressMeasure() != ConstitutiveLaw::StressMeasure_PK1 )
-            KRATOS_ERROR( std::logic_error, "This element is formulated in PK1 stresses", "" );
+            KRATOS_THROW_ERROR( std::logic_error, "This element is formulated in PK1 stresses", "" );
     }
     return ok;
 

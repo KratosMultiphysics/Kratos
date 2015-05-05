@@ -113,17 +113,17 @@ public:
 
         KRATOS_TRY
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FREE_SURFACE)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_STRUCTURE)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_STRUCTURE---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_STRUCTURE---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_BOUNDARY)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_WATER)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_WATER---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_WATER---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_INTERFACE)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH("Trigen PFEM Refining Segment Mesher")
         boost::timer auxiliary;
@@ -563,7 +563,7 @@ public:
 
             //first check that we are working with fluid elements, otherwise throw an error
             //if (nfluid!=3)
-            //	KRATOS_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
+            //	KRATOS_THROW_ERROR(std::logic_error,"THATS NOT FLUID or NOT TRIANGLE!!!!!! ERROR","");
             //otherwise perform alpha shape check
 
 
@@ -941,11 +941,11 @@ public:
 #ifdef _DEBUG
             ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
             if( *(ModelNodes).find( out2.trianglelist[base]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
             if( *(ModelNodes).find( out2.trianglelist[base+1]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
             if( *(ModelNodes).find( out2.trianglelist[base+2]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 
 #endif
 
@@ -1311,7 +1311,7 @@ private:
         double inv_area = 0.0;
         if(area < 0.0000000000000001)
         {
-            KRATOS_ERROR(std::logic_error,"element with zero area found","");
+            KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
         }
         else
         {
@@ -1367,10 +1367,10 @@ private:
             }
         }
         if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-            KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
 
         //if ( pnode->FastGetSolutionStepValue(BULK_MODULUS)==0.0)
-        //		KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
+        //		KRATOS_THROW_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
 
         //now we assure that the flag variables are set coorect!! since we add nodes inside of the fluid volume only
         //we manually reset the IS_BOUNDARY, IS_FLUID, IS_STRUCTURE, IS_FREE_SURFACE values in a right way

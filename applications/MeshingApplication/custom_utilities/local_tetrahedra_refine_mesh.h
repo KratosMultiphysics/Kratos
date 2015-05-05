@@ -96,7 +96,7 @@ public:
 
         if(refine_on_reference==true)
             if(!(mr_model_part.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT)) )
-                KRATOS_ERROR(std::logic_error,"DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true","")
+                KRATOS_THROW_ERROR(std::logic_error,"DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true","")
 
                 boost::numeric::ublas::vector<array_1d<int, 2 > > Position_Node;
         boost::numeric::ublas::vector<int> List_New_Nodes;
@@ -318,7 +318,7 @@ public:
 		{
 			KRATOS_WATCH(Position_Node.size())
 			KRATOS_WATCH(List_New_Nodes.size())
-			KRATOS_ERROR(std::logic_error,"mismatch in the number of nodes to be created","")
+			KRATOS_THROW_ERROR(std::logic_error,"mismatch in the number of nodes to be created","")
 		}
 
 
@@ -414,7 +414,7 @@ public:
 			KRATOS_WATCH((this_model_part.Nodes().end()-1)->Id())
 			KRATOS_WATCH(this_model_part.Nodes().size())
 			
-            KRATOS_ERROR(std::logic_error,"numeration of nodes is not consecutive!!!","")
+            KRATOS_THROW_ERROR(std::logic_error,"numeration of nodes is not consecutive!!!","")
 		}
 	
 		if(nlocal_nodes != nlocal_nodes_initially + List_New_Nodes.size())
@@ -423,10 +423,10 @@ public:
 			KRATOS_WATCH(nlocal_nodes_initially)
 			KRATOS_WATCH(List_New_Nodes.size())
 			
-            KRATOS_ERROR(std::logic_error,"something wrong, some of the new nodes was already existing!!","")
+            KRATOS_THROW_ERROR(std::logic_error,"something wrong, some of the new nodes was already existing!!","")
 		}
         if(nlocal_nodes != this_model_part.Nodes().size())
-            KRATOS_ERROR(std::logic_error,"nodes were created twice!!","")
+            KRATOS_THROW_ERROR(std::logic_error,"nodes were created twice!!","")
 
 
         }
@@ -643,12 +643,12 @@ public:
                         for(int iii=0; iii<nel*4; iii++)
                             std::cout << t[iii] << std::endl;
 
-                        KRATOS_ERROR(std::logic_error,"internal node is created but not used","");
+                        KRATOS_THROW_ERROR(std::logic_error,"internal node is created but not used","");
                     }
 
                 }
 
-                /*		KRATOS_ERROR(std::logic_error,"case not handled","");   */
+                /*		KRATOS_THROW_ERROR(std::logic_error,"case not handled","");   */
                 /*KRATOS_WATCH(splitted_edges);
                 KRATOS_WATCH(internal_node);*/
                 //           KRATOS_WATCH(aux)
@@ -740,7 +740,7 @@ public:
         unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
 
         if( model_part.Nodes().find(new_id) != model_part.NodesEnd() )
-            KRATOS_ERROR(std::logic_error, "adding a center node with an already existing id","")
+            KRATOS_THROW_ERROR(std::logic_error, "adding a center node with an already existing id","")
 
             //determine the coordinates of the new node
             double X = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X()) / 4.0;

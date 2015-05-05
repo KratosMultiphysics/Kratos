@@ -133,7 +133,7 @@ void Umat::InitializeMaterial( const Properties& props,
         //linearElastic material, mises umat, 2 matprops
 
         if ( NPROPS[0] != 2 )
-            KRATOS_ERROR( std::logic_error, "LinearElastic umat material number material properties failure must be 2 ", "" );
+            KRATOS_THROW_ERROR( std::logic_error, "LinearElastic umat material number material properties failure must be 2 ", "" );
 
         STATEV = new double[13]; //[0..5] epsilonElastic, [6..11] epsilonPlastic, [12] alpha
 
@@ -148,7 +148,7 @@ void Umat::InitializeMaterial( const Properties& props,
     case 1:
         //mises material, mises umat,>=4 matprops
         if ( NPROPS[0] < 4 )
-            KRATOS_ERROR( std::logic_error, "Mises umat material number material properties failure must be >=4, E,nu,Syield,EPlasticYield ", "" );
+            KRATOS_THROW_ERROR( std::logic_error, "Mises umat material number material properties failure must be >=4, E,nu,Syield,EPlasticYield ", "" );
 
         STATEV = new double[13]; //[0..5] epsilonElastic, [6..11] epsilonPlastic, [12] alpha
 
@@ -173,7 +173,7 @@ void Umat::InitializeMaterial( const Properties& props,
     default:
         std::cout << "No umat material with id: " << MaterialNumber[0] << " defined" << std::endl;
 
-        KRATOS_ERROR( std::logic_error, "switch umat material error", "" );
+        KRATOS_THROW_ERROR( std::logic_error, "switch umat material error", "" );
     }
 
 

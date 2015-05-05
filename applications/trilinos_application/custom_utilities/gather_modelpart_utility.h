@@ -100,7 +100,7 @@ public:
 	int temp = destination_model_part.Nodes().size();
 	destination_model_part.Nodes().Unique();
 	if(temp != static_cast<int>(destination_model_part.Nodes().size()))
-	  KRATOS_ERROR(std::logic_error,"the destination_model_part has repeated nodes","");
+	  KRATOS_THROW_ERROR(std::logic_error,"the destination_model_part has repeated nodes","");
         SendNodes.clear();
         RecvNodes.clear();
 

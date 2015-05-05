@@ -154,13 +154,13 @@ public:
 
         //check that variables needed are in the model part
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
-            KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","");
+            KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
-            KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","");
+            KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
             if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
-                KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","");
+                KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","");
 
                         array_1d<double,TDim+1> visited;
         const int elem_size = rModelPart.Elements().size();
@@ -183,7 +183,7 @@ public:
             else
                 area = 1.0;
 //            else if(dist < 0.0)
-//                    KRATOS_ERROR(std::logic_error,"ATTENTION: prescribed distance function set to a number smaller than 0!!","");
+//                    KRATOS_THROW_ERROR(std::logic_error,"ATTENTION: prescribed distance function set to a number smaller than 0!!","");
 
 
         }
@@ -713,14 +713,14 @@ private:
 
         //check that variables needed are in the model part
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
-            KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","");
+            KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
         
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
-            KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","");
+            KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
         if(is_distributed == true)
             if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
-                 KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
+                 KRATOS_THROW_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
 
 		KRATOS_CATCH("")
 	}
@@ -1030,7 +1030,7 @@ private:
             double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 
             if(dist < 0.0)
-                KRATOS_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
+                KRATOS_THROW_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
 
             if(dist > MaxDistance || area <1e-20)
             //if(dist > max_distance)

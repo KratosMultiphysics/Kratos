@@ -633,7 +633,7 @@ namespace Kratos
 			      
 	//calculate average h
 	if(h_nodes == 0)
-	  KRATOS_ERROR( std::logic_error,"no node has neighbours!!!!", "" )
+	  KRATOS_THROW_ERROR( std::logic_error,"no node has neighbours!!!!", "" )
 			      
 	havg /= h_nodes;
       }
@@ -769,7 +769,7 @@ namespace Kratos
     else{
 
       rRadius = 0;
-      KRATOS_ERROR(std::logic_error, "WorkingSpaceDimension not Correct in Radius AlphaShape calculation", "" )
+      KRATOS_THROW_ERROR(std::logic_error, "WorkingSpaceDimension not Correct in Radius AlphaShape calculation", "" )
       
     }
 
@@ -1086,7 +1086,7 @@ namespace Kratos
       }
 
     if(!condition_found) {
-      //   //KRATOS_ERROR(std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
+      //   //KRATOS_THROW_ERROR(std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
       std::cout<<" Boundary Condition NOT FOUND after CONTACT MESHING SEARCH "<<std::endl;
       //   std::cout<<" rGeometry "<<rGeometry<<std::endl;
 
@@ -1162,7 +1162,7 @@ namespace Kratos
       }
 
     // if(!found) 
-    //     KRATOS_ERROR( std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
+    //     KRATOS_THROW_ERROR( std::logic_error, "Boundary Condition NOT FOUND after CONTACT MESHING SEARCH", "" )
 
     return pMasterCondition;
 

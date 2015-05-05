@@ -862,33 +862,33 @@ public:
 
         // Check that all required variables have been registered
         if(VELOCITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
         if(MESH_VELOCITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
         if(ACCELERATION.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if the application was correctly registered.","");
         if(PRESSURE.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
         if(DENSITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
         if(VISCOSITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
         if(OSS_SWITCH.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if the application was correctly registered.","");
         if(DYNAMIC_TAU.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
         if(DELTA_TIME.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
         if(ADVPROJ.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"ADVPROJ Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"ADVPROJ Key is 0. Check if the application was correctly registered.","");
         if(DIVPROJ.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"DIVPROJ Key is 0. Check if the application was correctly registered.","");
         if(NODAL_AREA.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"NODAL_AREA Key is 0. Check if the application was correctly registered.","");
         if(C_SMAGORINSKY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"C_SMAGORINSKY Key is 0. Check if the application was correctly registered.","");
         if(ERROR_RATIO.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"ERROR_RATIO Key is 0. Check if the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"ERROR_RATIO Key is 0. Check if the application was correctly registered.","");
         // Additional variables, only required to print results:
         // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
 
@@ -898,19 +898,19 @@ public:
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
             if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                     this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                     this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing VELOCITY component degree of freedom on node ",this->GetGeometry()[i].Id());
             if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
+                KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
 
@@ -920,7 +920,7 @@ public:
             for (unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
                 if (this->GetGeometry()[i].Z() != 0.0)
-                    KRATOS_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
+                    KRATOS_THROW_ERROR(std::invalid_argument,"Node with non-zero Z coordinate found. Id: ",this->GetGeometry()[i].Id());
             }
         }
 

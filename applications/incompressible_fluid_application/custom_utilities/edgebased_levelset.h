@@ -257,7 +257,7 @@ public:
                 if (inode->IsFixed(VELOCITY_Y) == false || inode->IsFixed(VELOCITY_Z) == false)
                 {
                     std::cout << "error found on the fixity of node " << inode->Id() << std::endl;
-                    KRATOS_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
                 }
 
 
@@ -1056,7 +1056,7 @@ public:
                 }
 
                 if(avg_number == 0)
-                    KRATOS_ERROR(std::logic_error,"can not happen that the extrapolation node has no neighbours","");
+                    KRATOS_THROW_ERROR(std::logic_error,"can not happen that the extrapolation node has no neighbours","");
 
                 iii->FastGetSolutionStepValue(PRESSURE) = pavg/avg_number;
 
@@ -1759,8 +1759,8 @@ public:
                 }
                 else
                 {
-                    KRATOS_ERROR(std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
-                    //                                                    KRATOS_ERROR(std:logic_error,"error in extrapolation:: no neighbours find on a extrapolation layer -- impossible","");
+                    KRATOS_THROW_ERROR(std::runtime_error, "error in extrapolation:: no neighbours find on a extrapolation layer -- impossible", "");
+                    //                                                    KRATOS_THROW_ERROR(std:logic_error,"error in extrapolation:: no neighbours find on a extrapolation layer -- impossible","");
                 }
 
                 noalias(iii->FastGetSolutionStepValue(VELOCITY)) = aux;
@@ -1836,7 +1836,7 @@ public:
 //                             }
 //
 //                             if(avg_number == 0)
-//                                 KRATOS_ERROR(std::logic_error,"can not happen that the extrapolation node has no neighbours","");
+//                                 KRATOS_THROW_ERROR(std::logic_error,"can not happen that the extrapolation node has no neighbours","");
 //
 //                             iii->FastGetSolutionStepValue(PRESSURE) = pavg/avg_number;
 //
@@ -3534,7 +3534,7 @@ private:
         unsigned int itmax = 100;
 
         if (mViscosity[0] == 0)
-            KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+            KRATOS_THROW_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
 
         //slip condition
         int slip_size = mSlipBoundaryList.size();

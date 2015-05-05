@@ -563,7 +563,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponen
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
 	    }
 
 	}
@@ -603,7 +603,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponen
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
+	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
 	    }
 
 	}

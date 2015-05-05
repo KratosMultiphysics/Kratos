@@ -207,7 +207,7 @@ public:
 	    else if ( LHS_Element_Components_Set && !RHS_Element_Components_Set )
 	      {
 	
-		KRATOS_ERROR( std::logic_error, " scheme asks for a unusual Element LHS components not implemented ", "" )
+		KRATOS_THROW_ERROR( std::logic_error, " scheme asks for a unusual Element LHS components not implemented ", "" )
 
 		(rCurrentElement) -> CalculateLeftHandSide(rLHS_Components, rLHS_Variables, rCurrentProcessInfo);
 
@@ -416,7 +416,7 @@ public:
 	    else if ( LHS_Condition_Components_Set && !RHS_Condition_Components_Set )
 	      {
 		
-		KRATOS_ERROR( std::logic_error, " scheme asks for a unusual Condition LHS components not implemented ", "" )
+		KRATOS_THROW_ERROR( std::logic_error, " scheme asks for a unusual Condition LHS components not implemented ", "" )
 
 		(rCurrentCondition) -> CalculateLeftHandSide(rLHS_Components, rLHS_Variables, rCurrentProcessInfo);
 

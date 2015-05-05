@@ -356,9 +356,9 @@ public:
 #ifdef _DEBUG
         //KRATOS_WATCH("attention printing FastGetValue");
         if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR(std::logic_error,"","");
+            KRATOS_THROW_ERROR(std::logic_error,"","");
         if(index >= mSize)
-            KRATOS_ERROR(std::logic_error,"","");
+            KRATOS_THROW_ERROR(std::logic_error,"","");
 #endif
         return *(TDataType*)(mpData + index);
     }
@@ -368,9 +368,9 @@ public:
 #ifdef _DEBUG
         //KRATOS_WATCH("attention printing FastGetValue");
         if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_ERROR(std::logic_error,"","");
+            KRATOS_THROW_ERROR(std::logic_error,"","");
         if(index >= mSize)
-            KRATOS_ERROR(std::logic_error,"","");
+            KRATOS_THROW_ERROR(std::logic_error,"","");
 #endif
         return *(const TDataType*)(mpData + index);
     }

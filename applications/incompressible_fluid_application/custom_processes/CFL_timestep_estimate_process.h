@@ -173,7 +173,7 @@ public:
             }
         }
         if (dt<0.0)
-            KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
 
         KRATOS_WATCH (glob_min_dt)
         return  ( CFLnumber*glob_min_dt);

@@ -136,13 +136,13 @@ namespace Kratos
 					ModelPart::NodesContainerType::iterator it4 = (rNodes).find( out.tetrahedronlist[old_base+3]);
 
 					if ( it1 == ThisModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
 					if ( it2 == ThisModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
 					if ( it3 == ThisModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
 					if ( it4 == ThisModelPart.Nodes().end() )
-						KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
+						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
 					Node<3>::Pointer pn1 =  *it1.base();
 					Node<3>::Pointer pn2 =  *it2.base();
@@ -219,9 +219,9 @@ namespace Kratos
 			KRATOS_TRY
 
  		    if (apply_volume_constraints==true && ThisModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H)==false )
-					KRATOS_ERROR(std::logic_error,"Add  ----NODAL_H---- variable!!!!!! ERROR","");
+					KRATOS_THROW_ERROR(std::logic_error,"Add  ----NODAL_H---- variable!!!!!! ERROR","");
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_BOUNDARY)==false )
-				KRATOS_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
+				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
 
 			//mark as IS_BOUNDARY the nodes on the "skin". This nodes will be mantained even if they were marked for erase by the user
 			for (ModelPart::NodesContainerType::iterator inode = ThisModelPart.NodesBegin(); inode!=ThisModelPart.NodesEnd(); inode++)
@@ -477,13 +477,13 @@ namespace Kratos
 				ModelPart::NodesContainerType::iterator it4 = (ModelNodes).find( tet.tetrahedronlist[base+3]);
 
 				if ( it1 == rModelPart.Nodes().end() )
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
 				if ( it2 == rModelPart.Nodes().end() )
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
 				if ( it3 == rModelPart.Nodes().end() )
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
 				if ( it4 == rModelPart.Nodes().end() )
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
 				Node<3>::Pointer pn1 =  *it1.base();
 				Node<3>::Pointer pn2 =  *it2.base();

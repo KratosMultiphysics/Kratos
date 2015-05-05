@@ -169,32 +169,32 @@ public:
 
         // Check buffer size
         if (rModelPart.GetBufferSize() < 3)
-            KRATOS_ERROR(std::logic_error, "GearScheme error: Insufficient buffer size for BDF2, should be at least 3, got ",rModelPart.GetBufferSize());
+            KRATOS_THROW_ERROR(std::logic_error, "GearScheme error: Insufficient buffer size for BDF2, should be at least 3, got ",rModelPart.GetBufferSize());
 
         // Check that all required variables were registered
         if(DELTA_TIME.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"TIME_STEP Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"TIME_STEP Key is 0. Check if all applications were correctly registered.","");
         if(BDF_COEFFICIENTS.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"BDF_COEFFICIENTS Key is 0. Check if all applications were correctly registered.","");
         if(OSS_SWITCH.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"OSS_SWITCH Key is 0. Check if all applications were correctly registered.","");
 
         if(DISPLACEMENT.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"DISPLACEMENT Key is 0. Check if all applications were correctly registered.","");
         if(VELOCITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if all applications were correctly registered.","");
         if(MESH_VELOCITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if all applications were correctly registered.","");
         if(ACCELERATION.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
 
 //            // Check that the ModelPart's ProcessInfo contains the required variables
 //            if(rCurrentProcessInfo.Has(DELTA_TIME) != true)
-//                KRATOS_ERROR(std::invalid_argument,"No value of DELTA_TIME defined in ProcessInfo for a model part passed to GearScheme","");
+//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of DELTA_TIME defined in ProcessInfo for a model part passed to GearScheme","");
 //            if(rCurrentProcessInfo.Has(BDF_COEFFICIENTS) != true)
-//                KRATOS_ERROR(std::invalid_argument,"No value of BDF_COEFFICIENTS defined in ProcessInfo for a model part passed to GearScheme","");
+//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of BDF_COEFFICIENTS defined in ProcessInfo for a model part passed to GearScheme","");
 //            if(rCurrentProcessInfo.Has(OSS_SWITCH) != true)
-//                KRATOS_ERROR(std::invalid_argument,"No value of OSS_SWITCH defined in ProcessInfo for a model part passed to GearScheme","");
+//                KRATOS_THROW_ERROR(std::invalid_argument,"No value of OSS_SWITCH defined in ProcessInfo for a model part passed to GearScheme","");
 
         return 0;
         KRATOS_CATCH("");

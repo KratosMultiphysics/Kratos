@@ -386,7 +386,7 @@ public:
 
 
             if (nint != 0)
-                KRATOS_ERROR(std::logic_error, "requiring an internal node for splitting ... can not accept this", "");
+                KRATOS_THROW_ERROR(std::logic_error, "requiring an internal node for splitting ... can not accept this", "");
 
 
             //now obtain the tetras and compute their center coordinates and volume
@@ -514,7 +514,7 @@ public:
 // 	      KRATOS_WATCH(volume);
 // 	      KRATOS_WATCH(rVolumes);
 // 	      KRATOS_WATCH(sub_volumes_sum);
-// 	      KRATOS_ERROR(std::logic_error,"the elemental volume does not match the sum of the sub volumes","")
+// 	      KRATOS_THROW_ERROR(std::logic_error,"the elemental volume does not match the sum of the sub volumes","")
 // 	    }
 // KRATOS_WATCH(exact_distance);
 // KRATOS_WATCH(abs_distance);
@@ -1316,7 +1316,7 @@ private:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
         }
         else
         {

@@ -84,13 +84,13 @@ class SphericElementGlobalPhysicsCalculator
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         if (pElements.size() == 0){
-            KRATOS_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
           }
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
         if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
-            KRATOS_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing nodal variable ", r_variable);
           }
 
         Vector max_values;
@@ -134,13 +134,13 @@ class SphericElementGlobalPhysicsCalculator
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         if (pElements.size() == 0){
-            KRATOS_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Empty model part. Could not compute the maximum of the required variable ", r_variable);
           }
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
 
         if (!it_begin->GetGeometry()[0].SolutionStepsDataHas(r_variable)){
-            KRATOS_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", r_variable);
+            KRATOS_THROW_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", r_variable);
           }
 
         Vector min_values;

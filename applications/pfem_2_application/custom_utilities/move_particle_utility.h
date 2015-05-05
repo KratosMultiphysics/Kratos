@@ -487,7 +487,7 @@ namespace Kratos
 			KRATOS_TRY
 			
 			if(mintialized_transfer_tool==false)
-				KRATOS_ERROR(std::logic_error, "TRANSFER TOOL NOT INITIALIZED!", "");
+				KRATOS_THROW_ERROR(std::logic_error, "TRANSFER TOOL NOT INITIALIZED!", "");
 			const unsigned int max_results = 1000;
 			std::cout << "executing transfer tool" << std::endl;
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -953,7 +953,7 @@ namespace Kratos
 			
 			if (TDim==3)
 			{
-				KRATOS_ERROR(std::logic_error, "SURFACE NORMAL NOT IMPLEMENTED IN 3D", "");
+				KRATOS_THROW_ERROR(std::logic_error, "SURFACE NORMAL NOT IMPLEMENTED IN 3D", "");
 			}
 			
 			
@@ -2241,7 +2241,7 @@ namespace Kratos
 			
 			if (TDim==3)
 			{
-				KRATOS_ERROR(std::logic_error, "NOT IMPLEMENTED IN 3D", "");
+				KRATOS_THROW_ERROR(std::logic_error, "NOT IMPLEMENTED IN 3D", "");
 			}
 			
 			//array_1d<double,3> positive_particles_coordinates(3*mmaximum_number_of_particles);
@@ -2478,7 +2478,7 @@ namespace Kratos
 			KRATOS_WATCH("About to apply distance function correction(only pull)")
 			if (TDim==3)
 			{
-				KRATOS_ERROR(std::logic_error, "ApplyDistanceFunctionCorrection NOT IMPLEMENTED IN 3D", "");
+				KRATOS_THROW_ERROR(std::logic_error, "ApplyDistanceFunctionCorrection NOT IMPLEMENTED IN 3D", "");
 			}
 			
 			//array_1d<double,3> positive_particles_coordinates(3*mmaximum_number_of_particles);
@@ -2900,7 +2900,7 @@ namespace Kratos
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			//KRATOS_WATCH(number_of_threads);
-			//KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 			elem_partition.resize(number_of_threads + 1);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
@@ -3055,7 +3055,7 @@ namespace Kratos
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			//KRATOS_WATCH(number_of_threads);
-			//KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 			elem_partition.resize(number_of_threads + 1);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
@@ -3389,7 +3389,7 @@ namespace Kratos
 							//KRATOS_WATCH(number_of_particles_in_elem)
 							if (keep_looking)
 							{
-								KRATOS_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
+								KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
 							}
 						    else
 						    {
@@ -3490,7 +3490,7 @@ namespace Kratos
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			//KRATOS_WATCH(number_of_threads);
-			//KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 			elem_partition.resize(number_of_threads + 1);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
@@ -3826,7 +3826,7 @@ namespace Kratos
 								//KRATOS_WATCH(number_of_particles_in_elem)
 								if (keep_looking)
 								{
-									KRATOS_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
+									KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
 								}
 								else
 								{
@@ -3877,7 +3877,7 @@ namespace Kratos
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			//KRATOS_WATCH(number_of_threads);
-			//KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 			elem_partition.resize(number_of_threads + 1);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
@@ -4169,7 +4169,7 @@ namespace Kratos
 								//KRATOS_WATCH(number_of_particles_in_elem)
 								if (keep_looking)
 								{
-									KRATOS_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
+									KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
 								}
 								else
 								{
@@ -4653,7 +4653,7 @@ namespace Kratos
 						reduced_total_N +=N[j];
 					}
 					
-				KRATOS_ERROR(std::logic_error, "if there's a water particle in air, reduced_N is zero!!! fix!", "");
+				KRATOS_THROW_ERROR(std::logic_error, "if there's a water particle in air, reduced_N is zero!!! fix!", "");
 				}
 				vel *=1.0/reduced_total_N;
 				accel_value *= 1.0/reduced_total_N;
@@ -4889,7 +4889,7 @@ namespace Kratos
 			
 		}
 		else
-			KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 
 	}
 
@@ -4932,7 +4932,7 @@ namespace Kratos
 								if (N[j]<0.0 )
 									N[j]=1e-10;
 			
-			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 		}
 		
 			//double distance=0.0;
@@ -5057,7 +5057,7 @@ namespace Kratos
 			for (int j=0 ; j!=(TDim+1); j++)
 								if (N[j]<0.0 && N[j]> -1e-5)
 									N[j]=1e-10;
-			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 		}
 		
 		double pressure = 0.0;
@@ -5099,7 +5099,7 @@ namespace Kratos
 			for (int j=0 ; j!=(TDim+1); j++)
 								if (N[j]<0.0 && N[j]> -1e-5)
 									N[j]=1e-10;
-			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 		}
 		
 		double pressure_change = 0.0;
@@ -5141,7 +5141,7 @@ namespace Kratos
 			for (int j=0 ; j!=(TDim+1); j++)
 								if (N[j]<0.0 && N[j]> -1e-5)
 									N[j]=1e-10;
-			//KRATOS_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "PARTICLE IN WRONG ELEMENT!", "");
 		}
 		
 		double mesh_distance = 0.0;
@@ -5673,7 +5673,7 @@ namespace Kratos
             double inv_area = 0.0;
             if (area == 0.0)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
             } else
             {
                 inv_area = 1.0 / area;
@@ -5718,7 +5718,7 @@ namespace Kratos
             double inv_vol = 0.0;
             if (vol < 0.0000000000001)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
             } else
             {
                 inv_vol = 1.0 / vol;

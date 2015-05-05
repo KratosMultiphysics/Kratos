@@ -149,7 +149,7 @@ UnsaturatedSoilsElement_3phase_SmallStrain::UnsaturatedSoilsElement_3phase_Small
         }
     }
     else
-        KRATOS_ERROR( std::logic_error, "This element matches only with a quadratic hexaeder (20 or 27), tetraeder (10) or prism (15) geometry" , *this );
+        KRATOS_THROW_ERROR( std::logic_error, "This element matches only with a quadratic hexaeder (20 or 27), tetraeder (10) or prism (15) geometry" , *this );
 
 }
 
@@ -283,7 +283,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::CalculateAll( MatrixType& rLeft
     unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
-    if ( dim != 3 ) KRATOS_ERROR( std::logic_error, "UnsaturatedSoilsElement_3phase_SmallStrain cannot be used for other than 3D problems" , "" );
+    if ( dim != 3 ) KRATOS_THROW_ERROR( std::logic_error, "UnsaturatedSoilsElement_3phase_SmallStrain cannot be used for other than 3D problems" , "" );
 
     Matrix B( 6, 6 );
 
@@ -2460,12 +2460,12 @@ double UnsaturatedSoilsElement_3phase_SmallStrain::GetPorosity( const Matrix& DN
 //             if(porosity < 0)
 //             {
 //     std::cout<<"porosity PROBLEM"<<std::endl;
-//                 KRATOS_ERROR(std::logic_error, "Porosity is less than zero" , *this);
+//                 KRATOS_THROW_ERROR(std::logic_error, "Porosity is less than zero" , *this);
 //             }
 //             if(porosity > 1)
 //             {
 //     std::cout<<"porosity PROBLEM"<<std::endl;
-//              KRATOS_ERROR(std::logic_error, "Porosity is bigger than one" , *this);
+//              KRATOS_THROW_ERROR(std::logic_error, "Porosity is bigger than one" , *this);
 //             }
 
     return porosity;

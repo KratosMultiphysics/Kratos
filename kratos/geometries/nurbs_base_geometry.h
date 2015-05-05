@@ -311,14 +311,14 @@ public:
      */
     virtual void DefineGeometries(std::vector< Geometry< Node<3> >::Pointer>& GeometryContainer)
     {
-        KRATOS_ERROR( std::logic_error,
+        KRATOS_THROW_ERROR( std::logic_error,
                       "Calling base class DefineGeometries method instead of drived class one. Please check the definition of derived class." , *this );
     }
 
 
     virtual int GeometryNumber()
     {
-        KRATOS_ERROR( std::logic_error,
+        KRATOS_THROW_ERROR( std::logic_error,
                       "Calling base class GeometryNumber method instead of drived class one. Please check the definition of derived class." , *this );
     return 0;
     }

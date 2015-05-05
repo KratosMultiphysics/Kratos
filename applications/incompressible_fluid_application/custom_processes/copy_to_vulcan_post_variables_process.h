@@ -91,17 +91,17 @@ namespace Kratos
 		int Check()
 		{
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(MATERIAL) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add MATERIAL variable!!!!!! ", "");
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add MATERIAL variable!!!!!! ", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add DISTANCE variable!!!!!! ", "");
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add DISTANCE variable!!!!!! ", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(PRESSURE) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add PRESSURE variable!!!!!! ", "");
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add PRESSURE variable!!!!!! ", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITY variable!!!!!!", "");
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add VELOCITY variable!!!!!!", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITIES) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
+                KRATOS_THROW_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
 
 			return 0;
 		}

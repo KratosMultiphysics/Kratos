@@ -224,7 +224,7 @@ public:
 //                                    //generate list of virtual points on the free surface (for the element divided)
 //                                    //and compute the distance of all of the nodes in the element from such list
 //                                    if(TDim == 2)
-//                                        KRATOS_ERROR(std::logic_error,"2d not yet implemented","")
+//                                        KRATOS_THROW_ERROR(std::logic_error,"2d not yet implemented","")
 //                                    else
 //                                    {
 //                                        array_1d<double,3> N;

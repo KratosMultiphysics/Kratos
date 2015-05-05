@@ -86,7 +86,7 @@ namespace Kratos
 Isotropic_Damage_3D::Isotropic_Damage_3D()
     : ConstitutiveLaw()
 {
-    KRATOS_ERROR( std::logic_error, "Calling the empty constructor for Isotropic Damage", "" );
+    KRATOS_THROW_ERROR( std::logic_error, "Calling the empty constructor for Isotropic Damage", "" );
 }
 
 /**
@@ -130,7 +130,7 @@ double& Isotropic_Damage_3D::GetValue( const Variable<double>& rThisVariable, do
     else
     {
         return rValue;
-        //KRATOS_ERROR(std::logic_error, "double Variable case not considered", "");
+        //KRATOS_THROW_ERROR(std::logic_error, "double Variable case not considered", "");
     }
 }
 

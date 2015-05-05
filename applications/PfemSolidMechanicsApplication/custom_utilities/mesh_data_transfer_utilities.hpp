@@ -222,7 +222,7 @@ namespace Kratos
 
       if(area < 1e-20)
 	{
-	  KRATOS_ERROR( std::logic_error,"element with zero area found", "" )
+	  KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" )
 	    }
 
       N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;

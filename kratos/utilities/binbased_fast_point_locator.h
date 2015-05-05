@@ -238,7 +238,7 @@ public:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
         }
         else
         {
@@ -284,7 +284,7 @@ public:
         double inv_vol = 0.0;
         if (vol == 0.0)
         { 
-            KRATOS_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
         }
         else
         {

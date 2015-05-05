@@ -195,7 +195,7 @@ public:
         Vector BDFcoeffs(2);
         /*
         		if(model_part.GetBufferSize() < 3)
-        			KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")*/
+        			KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for BDF2","")*/
 
         BDFcoeffs[0] =	1.0 / dt;	//coefficient for step n+1
         BDFcoeffs[1] =	-1.0 / dt;	//coefficient for step n

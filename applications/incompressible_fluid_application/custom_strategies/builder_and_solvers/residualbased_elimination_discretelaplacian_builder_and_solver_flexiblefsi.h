@@ -275,7 +275,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
 
@@ -342,7 +342,7 @@ public:
         {
             if(A.size1() != this->mEquationSystemSize || A.size2() != 	this->mEquationSystemSize)
             {
-                KRATOS_ERROR(std::logic_error,"it should not resize the matrix!!","")
+                KRATOS_THROW_ERROR(std::logic_error,"it should not resize the matrix!!","")
             }
         }
         if(Dx.size() != this->mEquationSystemSize)

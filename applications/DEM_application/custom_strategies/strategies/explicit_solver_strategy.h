@@ -193,23 +193,23 @@ namespace Kratos
           
           mpDem_model_part = &(*(settings.r_model_part));
           if ( mpDem_model_part == NULL )
-            KRATOS_ERROR(std::runtime_error,"Undefined settings.r_model_part in ExplicitSolverStrategy constructor","")
+            KRATOS_THROW_ERROR(std::runtime_error,"Undefined settings.r_model_part in ExplicitSolverStrategy constructor","")
             
           mpContact_model_part            = &(*(settings.contact_model_part));
            if ( mpContact_model_part == NULL )
-            KRATOS_ERROR(std::runtime_error,"Undefined settings.contact_model_part in ExplicitSolverStrategy constructor","")
+            KRATOS_THROW_ERROR(std::runtime_error,"Undefined settings.contact_model_part in ExplicitSolverStrategy constructor","")
           
           mpFem_model_part                = &(*(settings.fem_model_part));
            if ( mpFem_model_part == NULL )
-            KRATOS_ERROR(std::runtime_error,"Undefined settings.fem_model_part in ExplicitSolverStrategy constructor","")
+            KRATOS_THROW_ERROR(std::runtime_error,"Undefined settings.fem_model_part in ExplicitSolverStrategy constructor","")
          
           mpCluster_model_part              = &(*(settings.cluster_model_part));
            if ( mpCluster_model_part == NULL )
-            KRATOS_ERROR(std::runtime_error,"Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor","")
+            KRATOS_THROW_ERROR(std::runtime_error,"Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor","")
             
           mpInlet_model_part              = &(*(settings.inlet_model_part));
            if ( mpInlet_model_part == NULL )
-            KRATOS_ERROR(std::runtime_error,"Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor","")
+            KRATOS_THROW_ERROR(std::runtime_error,"Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor","")
                    
       }
 
@@ -356,7 +356,7 @@ namespace Kratos
                   }                  
               }
               
-              if(!found) KRATOS_ERROR(std::logic_error, "This particle could not find its properties!!" , "");
+              if(!found) KRATOS_THROW_ERROR(std::logic_error, "This particle could not find its properties!!" , "");
           }                                                                   
       }
       
@@ -741,7 +741,7 @@ namespace Kratos
       std::cout<<"Setting up Coordination Number by increasing or decreasing the search radius... "<<std::endl;
  
       if(in_coordination_number <= 0.0) {
-        KRATOS_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
+        KRATOS_THROW_ERROR(std::runtime_error, "The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
       }
       
       while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 ) {              
@@ -756,7 +756,7 @@ namespace Kratos
       if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << mSearchTolerance <<". "<<"\n"<<std::endl;
       else {   
           std::cout << "Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
-          KRATOS_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
+          KRATOS_THROW_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
           //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
       }                  
       

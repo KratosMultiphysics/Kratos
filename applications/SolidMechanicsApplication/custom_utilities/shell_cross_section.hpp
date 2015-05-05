@@ -142,10 +142,10 @@ public:
 		bool CheckShapeFunctions ()
 		{
 			if(!mpShapeFunctionsValues)
-				KRATOS_ERROR(std::invalid_argument,"ShapeFunctionsValues NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"ShapeFunctionsValues NOT SET","");
 			
 			if(!mpShapeFunctionsDerivatives)
-				KRATOS_ERROR(std::invalid_argument,"ShapeFunctionsDerivatives NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"ShapeFunctionsDerivatives NOT SET","");
 			
 			return 1;
 		}
@@ -156,13 +156,13 @@ public:
 		bool CheckInfoMaterialGeometry ()
 		{
 			if(!mpCurrentProcessInfo)
-				KRATOS_ERROR(std::invalid_argument,"CurrentProcessInfo NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"CurrentProcessInfo NOT SET","");
 			
 			if(!mpMaterialProperties)
-				KRATOS_ERROR(std::invalid_argument,"MaterialProperties NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"MaterialProperties NOT SET","");
 			
 			if(!mpElementGeometry)
-				KRATOS_ERROR(std::invalid_argument,"ElementGeometry NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"ElementGeometry NOT SET","");
 			
 			return 1;
 		}
@@ -173,13 +173,13 @@ public:
 		bool CheckMechanicalVariables ()
 		{
 			if(!mpGeneralizedStrainVector)
-				KRATOS_ERROR(std::invalid_argument,"GenralizedStrainVector NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"GenralizedStrainVector NOT SET","");
 			
 			if(!mpGeneralizedStressVector)
-				KRATOS_ERROR(std::invalid_argument,"GenralizedStressVector NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"GenralizedStressVector NOT SET","");
 			
 			if(!mpConstitutiveMatrix)
-				KRATOS_ERROR(std::invalid_argument,"ConstitutiveMatrix NOT SET","");
+				KRATOS_THROW_ERROR(std::invalid_argument,"ConstitutiveMatrix NOT SET","");
 			
 			return 1;
 		}
@@ -392,7 +392,7 @@ public:
 			
 			const ConstitutiveLaw::Pointer & pMaterial = GetProperties()[CONSTITUTIVE_LAW];
 			if(pMaterial == NULL)
-				KRATOS_ERROR(std::logic_error, "A Ply needs a constitutive law to be set. Missing constitutive law in property : ", GetProperties().Id());
+				KRATOS_THROW_ERROR(std::logic_error, "A Ply needs a constitutive law to be set. Missing constitutive law in property : ", GetProperties().Id());
 			
 			// make sure the number is greater than 0 and odd
 			if(n < 0) n = -n;

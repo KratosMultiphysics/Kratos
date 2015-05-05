@@ -126,7 +126,7 @@ public:
                         it++)
                 {
                     if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
-                        KRATOS_ERROR(std::logic_error,"error partition index can not be = to rank for ghost nodes","")
+                        KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be = to rank for ghost nodes","")
                         std::cout << it->Id() << " " ;
                 }
                 std::cout << std::endl;
@@ -138,7 +138,7 @@ public:
                         it++)
                 {
                     if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
-                        KRATOS_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
+                        KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
                         std::cout << it->Id() << " " ;
                 }
                 std::cout << std::endl;
@@ -172,7 +172,7 @@ public:
                                 it++)
                         {
                             if(it->FastGetSolutionStepValue(PARTITION_INDEX)==rank)
-                                KRATOS_ERROR(std::logic_error,"error partition index can not be = to rank for ghost nodes","")
+                                KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be = to rank for ghost nodes","")
                                 std::cout << it->Id() << " " ;
                         }
 
@@ -184,7 +184,7 @@ public:
                                 it++)
                         {
                             if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
-                                KRATOS_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
+                                KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
                                 std::cout << it->Id() << " " ;
                         }
                         std::cout << "finished printing local mesh for color --> " << i_color<< std::endl;
@@ -203,7 +203,7 @@ public:
                         if(mrModelPart.GetCommunicator().GhostMesh(i_color).Nodes().size()!=0)
                         {
                             std::cout << "rank = " << rank << " color = " << i_color << std::endl;
-                            KRATOS_ERROR(std::logic_error,"nodes found in ghost mesh when communication is not expected","")
+                            KRATOS_THROW_ERROR(std::logic_error,"nodes found in ghost mesh when communication is not expected","")
                         }
                         if(mrModelPart.GetCommunicator().LocalMesh(i_color).Nodes().size()!=0)
                         {
@@ -213,15 +213,15 @@ public:
                                     it++)
                             {
                                 if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=rank)
-                                    KRATOS_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
+                                    KRATOS_THROW_ERROR(std::logic_error,"error partition index can not be != from rank for local nodes","")
                                     std::cout << it->Id() << " " << it->FastGetSolutionStepValue(PARTITION_INDEX) << std::endl ;
                             }
                             std::cout << "finished printing local mesh for color --> " << i_color<< std::endl;
                             std::cout << "nodes found in local mesh when communication is not expected" << std::endl;
-                            KRATOS_ERROR(std::logic_error,"nodes found in local mesh when communication is not expected","")
+                            KRATOS_THROW_ERROR(std::logic_error,"nodes found in local mesh when communication is not expected","")
                         }
                         if(mrModelPart.GetCommunicator().InterfaceMesh(i_color).Nodes().size()!=0)
-                            KRATOS_ERROR(std::logic_error,"nodes found in interface mesh when communication is not expected","")
+                            KRATOS_THROW_ERROR(std::logic_error,"nodes found in interface mesh when communication is not expected","")
                         }
                 }
 
@@ -327,7 +327,7 @@ protected:
             int index = it->FastGetSolutionStepValue(PARTITION_INDEX);
 
             if(index < 0)
-                KRATOS_ERROR(std::logic_error,"the partition index can not be lesser than one. something failed","");
+                KRATOS_THROW_ERROR(std::logic_error,"the partition index can not be lesser than one. something failed","");
 
             if(index != my_rank)
                 my_receive_list_full[index] = 1;
@@ -430,7 +430,7 @@ protected:
                     int index2 = neighbours[i][j];
 
                     if(index1 == index2)
-                        KRATOS_ERROR(std::logic_error,"trying to communicate with the node itself","");
+                        KRATOS_THROW_ERROR(std::logic_error,"trying to communicate with the node itself","");
 
                     if (index1 != index2)
                     {
@@ -466,13 +466,13 @@ protected:
 // 				if( ij_entry != -1)
 // 				{
 // 					if(dense_colored_graph(ij_entry,j) != i)
-// 						KRATOS_ERROR(std::logic_error,"communication is not symmetric - case A. Error!!","");
+// 						KRATOS_THROW_ERROR(std::logic_error,"communication is not symmetric - case A. Error!!","");
 // 				}
 // 				else
 // 				{
 // 					for(unsigned int k=0; k<num_processors;k++)
 // 						if(dense_colored_graph(k, j) == i)
-// 							KRATOS_ERROR(std::logic_error,"communication is not symmetric - case B. Error!!","");
+// 							KRATOS_THROW_ERROR(std::logic_error,"communication is not symmetric - case B. Error!!","");
 // 				}
 //
 //
@@ -565,7 +565,7 @@ protected:
         r_interface_nodes.clear();
 
         if(r_local_nodes.size() != 0)
-            KRATOS_ERROR(std::logic_error, "local size can not be zero","")
+            KRATOS_THROW_ERROR(std::logic_error, "local size can not be zero","")
 
             // filling all locals and all ghosts (independently of the color)
 //            for (int i = 0; i < max_color_found + 1; i++)
@@ -658,7 +658,7 @@ protected:
         KRATOS_TRY
 
         if(communicate_processor == my_rank)
-            KRATOS_ERROR(std::logic_error,"communicate_processor coincides with rank! this should not happen","");
+            KRATOS_THROW_ERROR(std::logic_error,"communicate_processor coincides with rank! this should not happen","");
 
         if (communicate_processor != -1)
         {
@@ -682,7 +682,7 @@ protected:
             int temp  = kratos_nodes_to_receive.size();
             kratos_nodes_to_receive.Unique();
             if(temp != static_cast<int>(kratos_nodes_to_receive.size()))
-                KRATOS_ERROR(std::logic_error,"the list of nodes to receive has repeated nodes","");
+                KRATOS_THROW_ERROR(std::logic_error,"the list of nodes to receive has repeated nodes","");
 
             nnodes_to_receive = kratos_nodes_to_receive.size();
             ids_to_receive = new int[ nnodes_to_receive ];
@@ -726,13 +726,13 @@ protected:
 
             for (ModelPart::NodesContainerType::iterator it = r_local_nodes.begin(); it != r_local_nodes.end(); it++)
                 if(it->FastGetSolutionStepValue(PARTITION_INDEX)!=my_rank)
-                    KRATOS_ERROR(std::logic_error,"a node in the local mesh is trying to communicate to the wrong partition","");
+                    KRATOS_THROW_ERROR(std::logic_error,"a node in the local mesh is trying to communicate to the wrong partition","");
 
 
 //                KRATOS_WATCH("ln222222");
             r_local_nodes.Unique();
             if(static_cast<int>(r_local_nodes.size()) != nnodes_to_send)
-                KRATOS_ERROR(std::logic_error,"impossible situation. Something wrong happend","");
+                KRATOS_THROW_ERROR(std::logic_error,"impossible situation. Something wrong happend","");
 
             //add local and ghost to the interface mesh
             ModelPart::NodesContainerType& r_interface_nodes = mrModelPart.GetCommunicator().InterfaceMesh(color).Nodes();
@@ -753,7 +753,7 @@ protected:
             int size = r_interface_nodes.size();
             r_interface_nodes.Unique();
             if(size != static_cast<int>(r_interface_nodes.size()))
-                KRATOS_ERROR(std::logic_error,"something went wrong in the interface nodes","");
+                KRATOS_THROW_ERROR(std::logic_error,"something went wrong in the interface nodes","");
 
 
             delete [] ids_to_receive;

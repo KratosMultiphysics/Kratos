@@ -509,7 +509,7 @@ public:
         KRATOS_TRY
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         //should be done outside!!!
         //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
@@ -684,7 +684,7 @@ public:
         KRATOS_TRY
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         double density_inverse = 1.0 / density;
 
@@ -1051,7 +1051,7 @@ public:
 
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_H) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 
         double sigma = 0.0;
         if (TDim == 2)
@@ -1148,9 +1148,9 @@ public:
         KRATOS_TRY
 
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
         if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----TEMPERATURE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----TEMPERATURE---- variable!!!!!! ERROR", "");
 
         //defintions for spatial search
         typedef Node < 3 > PointType;
@@ -1358,7 +1358,7 @@ private:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
         }
         else
         {
@@ -1404,7 +1404,7 @@ private:
         double inv_vol = 0.0;
         if (vol < 0.0000000000001)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
         }
         else
         {

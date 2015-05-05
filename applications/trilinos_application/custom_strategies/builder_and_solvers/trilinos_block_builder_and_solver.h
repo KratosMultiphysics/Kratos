@@ -236,7 +236,7 @@ public:
     {
         KRATOS_TRY
         if(!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -577,7 +577,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
 
@@ -792,7 +792,7 @@ public:
                 if(num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-                    if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 942","");
+                    if(ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 942","");
                 }
             }
 // KRATOS_WATCH("assemble conditions");
@@ -816,14 +816,14 @@ public:
                 if(num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,temp,num_active_indices, temp);
-                    if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 966","");
+                    if(ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 966","");
                 }
 
             }
 
             //finalizing graph construction
             int graph_assemble_ierr = Agraph.GlobalAssemble();
-            if(graph_assemble_ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.GlobalAssemble()","");
+            if(graph_assemble_ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.GlobalAssemble()","");
 
 // KRATOS_WATCH(Agraph);
 
@@ -862,7 +862,7 @@ public:
         {
             if(TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)
             {
-                KRATOS_ERROR(std::logic_error,"it should not come here resizing is not allowed this way!!!!!!!! ... ","");
+                KRATOS_THROW_ERROR(std::logic_error,"it should not come here resizing is not allowed this way!!!!!!!! ... ","");
             }
         }
 
@@ -873,7 +873,7 @@ public:
         if(BaseType::mCalculateReactionsFlag == true)
         {
 
-            KRATOS_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
+            KRATOS_THROW_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
         }
 
         std::cout << "finished ResizeAndInitializeVectors" << std::endl;
@@ -923,7 +923,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A)
     {
-        KRATOS_ERROR(std::logic_error,"method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ","");
+        KRATOS_THROW_ERROR(std::logic_error,"method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ","");
     }
 
     //**************************************************************************
@@ -1109,7 +1109,7 @@ private:
         Element::EquationIdVectorType& EquationId
     )
     {
-        KRATOS_ERROR(std::logic_error, "This method is not implemented for Trilinos", "");
+        KRATOS_THROW_ERROR(std::logic_error, "This method is not implemented for Trilinos", "");
     }
 
     /*@} */

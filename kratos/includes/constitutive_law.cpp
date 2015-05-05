@@ -67,7 +67,7 @@ namespace Kratos
      */
     ConstitutiveLaw::Pointer ConstitutiveLaw::Clone() const
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for Clone", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for Clone", "");
     }
 
     /**
@@ -76,7 +76,7 @@ namespace Kratos
      */
     ConstitutiveLaw::SizeType ConstitutiveLaw::WorkingSpaceDimension()
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for WorkingSpaceDimension", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for WorkingSpaceDimension", "");
     }
 
     /**
@@ -85,7 +85,7 @@ namespace Kratos
      */
     ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize()
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for GetStrainSize", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for GetStrainSize", "");
     }
 
     /**
@@ -206,7 +206,7 @@ namespace Kratos
                           const double& rValue,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
     }
 
     /**
@@ -218,7 +218,7 @@ namespace Kratos
      void ConstitutiveLaw::SetValue(const Variable<Vector >& rVariable,
                           const Vector& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
     }
 
     /**
@@ -230,7 +230,7 @@ namespace Kratos
      void ConstitutiveLaw::SetValue(const Variable<Matrix >& rVariable,
                           const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
     }
 
     /**
@@ -243,7 +243,7 @@ namespace Kratos
                           const array_1d<double, 3 > & rValue,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
     }
 
     /**
@@ -256,7 +256,7 @@ namespace Kratos
                           const array_1d<double, 6 > & rValue,
                           const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
     }
 
     /**
@@ -357,7 +357,7 @@ namespace Kratos
             const Vector& rShapeFunctionsValues,
             const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Calling virtual function for InitializeNonLinearIteration", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeNonLinearIteration", "");
     }
 
 
@@ -375,7 +375,7 @@ namespace Kratos
 					    const Vector& rShapeFunctionsValues,
 					    const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_ERROR(std::logic_error, "Calling virtual function for FinalizeNonLinearIteration", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for FinalizeNonLinearIteration", "");
     }
 
     /**
@@ -401,7 +401,7 @@ namespace Kratos
 	  break;
 	  
 	default:
-	  KRATOS_ERROR(std::logic_error, " Stress Measure not Defined ", "");
+	  KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
 	  break;
 
 	}
@@ -415,7 +415,7 @@ namespace Kratos
 
      void ConstitutiveLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponsePK1", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponsePK1", "");
     }
 
     /**
@@ -425,7 +425,7 @@ namespace Kratos
 
      void ConstitutiveLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponsePK2", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponsePK2", "");
     }
 
     /**
@@ -435,7 +435,7 @@ namespace Kratos
 
      void ConstitutiveLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponseKirchhoff", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponseKirchhoff", "");
     }
 
     /**
@@ -445,7 +445,7 @@ namespace Kratos
 
      void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponseCauchy", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponseCauchy", "");
     }
 
 
@@ -473,7 +473,7 @@ namespace Kratos
 	  break;
 	  
 	default:
-	  KRATOS_ERROR(std::logic_error, " Stress Measure not Defined ", "");
+	  KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
 	  break;
 
 	}
@@ -487,7 +487,7 @@ namespace Kratos
 
      void ConstitutiveLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponsePK1", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponsePK1", "");
     }
 
     /**
@@ -497,7 +497,7 @@ namespace Kratos
 
      void ConstitutiveLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponsePK2", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponsePK2", "");
     }
 
     /**
@@ -507,7 +507,7 @@ namespace Kratos
 
      void ConstitutiveLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponseKirchhoff", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponseKirchhoff", "");
     }
 
     /**
@@ -517,7 +517,7 @@ namespace Kratos
 
      void ConstitutiveLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     {
-      KRATOS_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponseCauchy", "");
+      KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for FinalizeMaterialResponseCauchy", "");
     }
 
 
@@ -534,7 +534,7 @@ namespace Kratos
                                const GeometryType& rElementGeometry,
                                const Vector& rShapeFunctionsValues)
     {
-        KRATOS_ERROR(std::logic_error, "Calling virtual function for ResetMaterial", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for ResetMaterial", "");
     }
 
 
@@ -574,15 +574,15 @@ namespace Kratos
 	      break;
 
 	    case StrainMeasure_Hencky_Material:
-    	      KRATOS_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
+    	      KRATOS_THROW_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
 	      break;
 
 	    case StrainMeasure_Hencky_Spatial:
-	      KRATOS_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
+	      KRATOS_THROW_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
 	      break;
 	      	      
 	    default:
-	      KRATOS_ERROR(std::logic_error,"FINAL STRAIN NOT DEFINED in StrainTransformation", "");
+	      KRATOS_THROW_ERROR(std::logic_error,"FINAL STRAIN NOT DEFINED in StrainTransformation", "");
 	      break;
 	    }
 	  
@@ -606,30 +606,30 @@ namespace Kratos
 	      break;
 	      
 	    case StrainMeasure_Hencky_Material:
-    	      KRATOS_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
+    	      KRATOS_THROW_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
 	      break;
 
 	    case StrainMeasure_Hencky_Spatial:
-	      KRATOS_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
+	      KRATOS_THROW_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
 	      break;
 
 	    default:
-	      KRATOS_ERROR(std::logic_error,"FINAL STRAIN NOT DEFINED in StrainTransformation", "");
+	      KRATOS_THROW_ERROR(std::logic_error,"FINAL STRAIN NOT DEFINED in StrainTransformation", "");
 	      break;
 	    }
 
 	  break;
 
 	case StrainMeasure_Hencky_Material:
-	  KRATOS_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
+	  KRATOS_THROW_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
 	  break;
 
 	case StrainMeasure_Hencky_Spatial:
-	  KRATOS_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
+	  KRATOS_THROW_ERROR(std::logic_error,"Hencky strain has no transformation coded", "");
 	  break;
 
 	default:
-	  KRATOS_ERROR(std::logic_error,"Measure of strain NOT DEFINED in Strains Transformation", "");
+	  KRATOS_THROW_ERROR(std::logic_error,"Measure of strain NOT DEFINED in Strains Transformation", "");
 	  break;
 	}
 
@@ -707,7 +707,7 @@ namespace Kratos
 	  break;
 	  
 	default:
-	  KRATOS_ERROR(std::logic_error,"INITIAL STRESS NOT DEFINED in StressTransformation", "");
+	  KRATOS_THROW_ERROR(std::logic_error,"INITIAL STRESS NOT DEFINED in StressTransformation", "");
 	  break;
 	}
 
@@ -782,7 +782,7 @@ namespace Kratos
 	   break;
 	      
 	 default:
-	   KRATOS_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
+	   KRATOS_THROW_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
 	   break;
 	 }
 
@@ -845,7 +845,7 @@ namespace Kratos
 	   break;
 	      
 	 default:
-	   KRATOS_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
+	   KRATOS_THROW_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
 	   break;
 	 }
 
@@ -901,7 +901,7 @@ namespace Kratos
 	    break;
 	      
 	  default:
-	    KRATOS_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
+	    KRATOS_THROW_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
 	    break;
 	  }
 
@@ -960,7 +960,7 @@ namespace Kratos
 	    break;
 	      
 	  default:
-	    KRATOS_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
+	    KRATOS_THROW_ERROR(std::logic_error,"FINAL STRESS NOT DEFINED in StressTransformation", "");
 	    break;
 	  }
 
@@ -976,7 +976,7 @@ namespace Kratos
     void ConstitutiveLaw::GetLawFeatures(Features& rFeatures)
     {
 
-	KRATOS_ERROR(std::logic_error, "Calling virtual function for GetConstitutiveLawFeatures", "");
+	KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for GetConstitutiveLawFeatures", "");
     }
 
     /**
@@ -1105,7 +1105,7 @@ namespace Kratos
                                            int CalculateTangent,
                                            bool SaveInternalVariables)
     {
-        KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponse", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateMaterialResponse", "");
     }
 
     /**
@@ -1135,7 +1135,7 @@ namespace Kratos
 					     int CalculateTangent,
 					     bool SaveInternalVariables)
     {
-        KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateVolumetricResponse", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateVolumetricResponse", "");
     }
 
     /**
@@ -1160,7 +1160,7 @@ namespace Kratos
 					     int CalculateTangent,
 					     bool SaveInternalVariables)
     {
-        KRATOS_ERROR(std::logic_error, "Calling virtual function for CalculateDeviatoricResponse", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for CalculateDeviatoricResponse", "");
     }
 
 

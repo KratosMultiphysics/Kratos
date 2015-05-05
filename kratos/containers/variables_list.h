@@ -316,7 +316,7 @@ public:
 // 	void Add(Variable<TDataType> const& ThisVariable)
 // 	{
 // 	  if(ThisVariable.Key()== 0)
-// 		  KRATOS_ERROR(std::logic_error,
+// 		  KRATOS_THROW_ERROR(std::logic_error,
 // 		  "Adding uninitialize variable to this variable list. Check if all variables are registered before kernel initialization","");
 //
 // 	  if(Has(ThisVariable))
@@ -334,7 +334,7 @@ public:
     void Add(VariableData const& ThisVariable)
     {
         if(ThisVariable.Key()== 0)
-            KRATOS_ERROR(std::logic_error,
+            KRATOS_THROW_ERROR(std::logic_error,
                          "Adding uninitialize variable to this variable list. Check if all variables are registered before kernel initialization","");
 
         if(Has(ThisVariable))

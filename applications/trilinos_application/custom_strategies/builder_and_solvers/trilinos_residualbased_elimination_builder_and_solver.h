@@ -234,7 +234,7 @@ public:
     {
         KRATOS_TRY
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -667,7 +667,7 @@ public:
                 if(it == r_model_part.NodesEnd())
                 {
                     std::cout << "rank = "<< rank << " while communicating with " << i_color << std::endl;
-                    KRATOS_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
+                    KRATOS_THROW_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
                 }
                 for (unsigned int idof=0; idof<remote_ndofs[i_color][i]; idof++) //loop over the dofs we received for node i
                 {
@@ -678,7 +678,7 @@ public:
                         if (i_dof->GetVariable().Key() == key)
                             break;
                     if(i_dof == it->GetDofs().end())
-                        KRATOS_ERROR(std::logic_error,"dof not found",*i_dof);
+                        KRATOS_THROW_ERROR(std::logic_error,"dof not found",*i_dof);
 
                     Doftemp.push_back(*i_dof.base());
 
@@ -777,7 +777,7 @@ public:
                 if(it == r_model_part.NodesEnd())
                 {
                     std::cout << "rank = "<< rank << " while communicating with " << i_color << std::endl;
-                    KRATOS_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
+                    KRATOS_THROW_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
                 }
                 for (unsigned int idof=0; idof<remote_ndofs[i_color][i]; idof++)
                 {
@@ -801,7 +801,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         // Fixing the ghost degrees of freedom
 // 			NodesArrayType& rNodes = r_model_part.Nodes(ModelPart::Kratos_Ghost);
@@ -1159,7 +1159,7 @@ public:
 //                                                        for(unsigned aaa=0; aaa<num_active_indices; aaa++)
 //                                                            std::cout << assembling_temp[aaa] << " ";
 //                                                        std::cout << std::endl;
-                    if (ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
+                    if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
                 }
             }
 // KRATOS_WATCH("assemble conditions");
@@ -1181,13 +1181,13 @@ public:
                 if (num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-                    if (ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
+                    if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
                 }
             }
 
             //finalizing graph construction
             int graph_assemble_ierr = Agraph.GlobalAssemble();
-            if (graph_assemble_ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+            if (graph_assemble_ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
 
             //generate a new matrix pointer according to this graph
@@ -1225,7 +1225,7 @@ public:
         {
             if (TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)
             {
-                KRATOS_ERROR(std::logic_error,"it should not come here resizing is not allowed this way!!!!!!!! ... ","");
+                KRATOS_THROW_ERROR(std::logic_error,"it should not come here resizing is not allowed this way!!!!!!!! ... ","");
             }
         }
 
@@ -1239,7 +1239,7 @@ public:
 
 // 					BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
 
-            KRATOS_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
+            KRATOS_THROW_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
         }
 
 
@@ -1309,7 +1309,7 @@ public:
         ModelPart& r_model_part,
         TSystemMatrixType& A)
     {
-        KRATOS_ERROR(std::logic_error,"method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ","");
+        KRATOS_THROW_ERROR(std::logic_error,"method BuildLHS_CompleteOnFreeRows not implemented in Trilinos Builder And Solver ","");
     }
 
     //**************************************************************************
@@ -1441,7 +1441,7 @@ private:
         Element::EquationIdVectorType& EquationId
     )
     {
-        KRATOS_ERROR(std::logic_error, "This method is not implemented for Trilinos", "");
+        KRATOS_THROW_ERROR(std::logic_error, "This method is not implemented for Trilinos", "");
     }
 
     /*@} */

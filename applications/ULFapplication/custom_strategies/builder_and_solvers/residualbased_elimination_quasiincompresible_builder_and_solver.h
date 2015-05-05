@@ -159,7 +159,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR(std::runtime_error, "For the quasi incompressible builder and solver this fct doesnt exist!", "");
+        KRATOS_THROW_ERROR(std::runtime_error, "For the quasi incompressible builder and solver this fct doesnt exist!", "");
 
         KRATOS_CATCH("")
     }
@@ -246,7 +246,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
 
@@ -332,7 +332,7 @@ public:
     {
         KRATOS_TRY
         if(!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_THROW_ERROR(std::runtime_error, "No scheme provided!", "");
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -428,7 +428,7 @@ public:
                 	if (TSparseSpace::TwoNorm(b) == aaaa + 1000000000000000000.0)
                 		{
                 		KRATOS_WATCH((*it)->Id())
-                		KRATOS_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");
+                		KRATOS_THROW_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");
 
                 		}
                 */
@@ -869,7 +869,7 @@ public:
                 	if (TSparseSpace::TwoNorm(b) == aaaa + 1000000000000000000.0)
                 		{
                 		KRATOS_WATCH((*it)->Id())
-                		KRATOS_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");
+                		KRATOS_THROW_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");
 
                 		}
                 */
@@ -1413,11 +1413,11 @@ public:
             {
 
                 //KRATOS_WATCH(mMdiagInv[i])
-                //KRATOS_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")
+                //KRATOS_THROW_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")
                 mMdiagInv[i] = 1000000000000.0;
 
                 //KRATOS_WATCH(mMdiagInv[i])
-                //KRATOS_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")
+                //KRATOS_THROW_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")
                 //mMdiagInv[i] = 0.0;
 
             }
@@ -1687,11 +1687,11 @@ public:
             {
 
                 //KRATOS_WATCH(mMdiagInv[i])
-                //KRATOS_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")
+                //KRATOS_THROW_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")
                 mMdiagInv[i] = 1000000000000.0;
 
                 //KRATOS_WATCH(mMdiagInv[i])
-                //KRATOS_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")
+                //KRATOS_THROW_ERROR(std::logic_error,"Zero ELEMENT VOLUMEE!!!!!!!!!!!!!!","")
                 //mMdiagInv[i] = 0.0;
 
             }
@@ -1787,9 +1787,9 @@ public:
         KRATOS_TRY
 
         if ( precond.size()!=vec.size() )
-            KRATOS_ERROR(std::logic_error,"preconditioner size is wrong","")
+            KRATOS_THROW_ERROR(std::logic_error,"preconditioner size is wrong","")
             if ( precond.size()!=result.size() )
-                KRATOS_ERROR(std::logic_error,"preconditioner size is wrong","")
+                KRATOS_THROW_ERROR(std::logic_error,"preconditioner size is wrong","")
                 TSparseSpace::SetToZero(result);
 
         //typedef  unsigned int size_type;
@@ -1851,7 +1851,7 @@ public:
         //TSparseSpace::SetToZero(Dx);
 
         if ( Dx.size()!=xi.size() )
-            KRATOS_ERROR(std::logic_error,"Dx and xi sizes mismatch","")
+            KRATOS_THROW_ERROR(std::logic_error,"Dx and xi sizes mismatch","")
 
             Dx=xi;
         KRATOS_CATCH("");
@@ -1878,7 +1878,7 @@ public:
 
 
         if ( preconditioner.size()!=A.size1() )
-            KRATOS_ERROR(std::logic_error,"preconditioner size is wrong","")
+            KRATOS_THROW_ERROR(std::logic_error,"preconditioner size is wrong","")
 
             //get diagonal of matrix A
             for(unsigned int i = 0; i<A.size1(); i++)
@@ -1927,7 +1927,7 @@ public:
             if (preconditioner[i]<0.0)
             {
             //preconditioner[i]=1.0;
-            	KRATOS_ERROR(std::logic_error,"NEGATIVE PRECONDITIONER","")
+            	KRATOS_THROW_ERROR(std::logic_error,"NEGATIVE PRECONDITIONER","")
             }
             */
 
@@ -1948,7 +1948,7 @@ public:
         //absolute tolerance = 1e-15
         //
         if (iter_number>max_iter_number)
-            KRATOS_ERROR(std::logic_error,"MAX NUMBER OF ITERATIONS EXCEEDED, UR CG DIDNT CONVERGE","")
+            KRATOS_THROW_ERROR(std::logic_error,"MAX NUMBER OF ITERATIONS EXCEEDED, UR CG DIDNT CONVERGE","")
 
             if (TSparseSpace::TwoNorm(residual)<1e-15)
                 return true;
@@ -2160,7 +2160,7 @@ public:
             {
                 //VELOCITY = VELOCITY + dt * Minv * VAUX
                 if (it->FastGetSolutionStepValue(NODAL_MASS)>0.0000000001)
-                    //KRATOS_ERROR(std::logic_error, "You have not computed the nodal mass!", "");
+                    //KRATOS_THROW_ERROR(std::logic_error, "You have not computed the nodal mass!", "");
                 {
 
                     double dt_sq_Minv =coef*dt*dt / it->FastGetSolutionStepValue(NODAL_MASS);

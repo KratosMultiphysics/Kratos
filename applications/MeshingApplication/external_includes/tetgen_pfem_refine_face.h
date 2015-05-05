@@ -111,17 +111,17 @@ public:
 //KRATOS_WATCH(ThisModelPart.NodesBegin()->Id());
 //KRATOS_WATCH(ThisModelPart.NodesBegin()->GetSolutionStepValue(IS_FREE_SURFACE));
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FREE_SURFACE)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_STRUCTURE)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_STRUCTURE---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_STRUCTURE---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_BOUNDARY)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_WATER)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_WATER---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_WATER---- variable!!!!!! ERROR","");
         if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_INTERFACE)==false )
-            KRATOS_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
+            KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_INTERFACE---- variable!!!!!! ERROR","");
 
         KRATOS_WATCH(" HELLO TETGEN PFEM REFINE FACE")
 
@@ -772,7 +772,7 @@ public:
         {
             KRATOS_WATCH(list_of_new_nodes.size());
             KRATOS_WATCH(fined_node_counter);
-            // KRATOS_ERROR(std::logic_error,"Definitly some nodes are not interpolated","");
+            // KRATOS_THROW_ERROR(std::logic_error,"Definitly some nodes are not interpolated","");
             KRATOS_WATCH("Definitly some nodes are not interpolated");
 
         }
@@ -819,13 +819,13 @@ public:
 #ifdef _DEBUG
             ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
             if( *(ModelNodes).find( outnew.tetrahedronlist[base]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
             if( *(ModelNodes).find( outnew.tetrahedronlist[base+1]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
             if( *(ModelNodes).find( outnew.tetrahedronlist[base+2]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
             if( *(ModelNodes).find( outnew.tetrahedronlist[base+3]).base() == *(ThisModelPart.Nodes().end()).base() )
-                KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 #endif
 
             Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
@@ -1239,7 +1239,7 @@ private:
         {
             KRATOS_WATCH(vol);
 
-            KRATOS_ERROR(std::logic_error,"element with zero vol found","");
+            KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
         }
         else
         {

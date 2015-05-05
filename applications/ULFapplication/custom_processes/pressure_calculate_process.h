@@ -198,7 +198,7 @@ public:
         		}
         		else
         		{
-        			KRATOS_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
+        			KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
         */
 
         //divide by nodal area

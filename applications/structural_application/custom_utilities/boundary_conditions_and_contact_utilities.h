@@ -249,7 +249,7 @@ public:
         KRATOS_TRY
 
         if(mrdimension!= int(space_dim))
-            KRATOS_ERROR(std::logic_error,  "The Dimension of Configure and ModelPart not iquals  "  , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "The Dimension of Configure and ModelPart not iquals  "  , "");
 
         IteratorType it_begin     =   mBoundaryElements.begin();
         IteratorType it_end       =   mBoundaryElements.end();
@@ -1237,7 +1237,7 @@ public:
         if(mPairContacts.size()!=0)
         {
             std::cout<< "     NUMBER OF CONTACT PAIRS                 = " <<mPairContacts.size()<<std::endl;
-            //KRATOS_ERROR(std::logic_error,  "GetValue", "");
+            //KRATOS_THROW_ERROR(std::logic_error,  "GetValue", "");
             return true;
         }
 
@@ -4241,8 +4241,8 @@ private:
 //               KRATOS_WATCH(i->GetValue(NEAR_NODE)->Id());
 //  	      KRATOS_WATCH(i->GetValue(CONTACT_LINK_MASTER)->Id());
 // // 	      const int& id = i->GetValue(CONTACT_LINK_MASTER)->Id();
-// //  	      if(id==58) { KRATOS_WATCH(id); KRATOS_ERROR(std::logic_error,  "" , "");}
-// //  	      if(id==46) { KRATOS_WATCH(id); KRATOS_ERROR(std::logic_error,  "" , "");}
+// //  	      if(id==58) { KRATOS_WATCH(id); KRATOS_THROW_ERROR(std::logic_error,  "" , "");}
+// //  	      if(id==46) { KRATOS_WATCH(id); KRATOS_THROW_ERROR(std::logic_error,  "" , "");}
 //  	      KRATOS_WATCH("---------------------")
 //  	    }
 

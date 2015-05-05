@@ -232,10 +232,10 @@ public:
             return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
 
         if(StepsBefore == 0)
-            KRATOS_ERROR(std::invalid_argument, "Steps before = 0", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
 
         if(!mpPreviousTimeStepInfo)
-            KRATOS_ERROR(std::invalid_argument, "No previous time step exist.", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
 
         return mpPreviousTimeStepInfo;
 
@@ -247,10 +247,10 @@ public:
             return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
 
         if(StepsBefore == 0)
-            KRATOS_ERROR(std::invalid_argument, "Steps before = 0", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
 
         if(!mpPreviousTimeStepInfo)
-            KRATOS_ERROR(std::invalid_argument, "No previous time step exist.", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
 
         return mpPreviousTimeStepInfo;
 
@@ -414,10 +414,10 @@ public:
             return mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo(--StepsBefore);
 
         if(StepsBefore == 0)
-            KRATOS_ERROR(std::invalid_argument, "Steps before = 0", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
 
         if(!mpPreviousSolutionStepInfo)
-            KRATOS_ERROR(std::invalid_argument, "No previous time step exist.", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
 
         return mpPreviousSolutionStepInfo;
 
@@ -429,10 +429,10 @@ public:
             return mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo(--StepsBefore);
 
         if(StepsBefore == 0)
-            KRATOS_ERROR(std::invalid_argument, "Steps before = 0", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
 
         if(!mpPreviousSolutionStepInfo)
-            KRATOS_ERROR(std::invalid_argument, "No previous time step exist.", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
 
         return mpPreviousSolutionStepInfo;
 

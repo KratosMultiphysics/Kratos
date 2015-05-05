@@ -645,21 +645,21 @@ Matrix DruckerPragerLaw::InverseC(Matrix& InvC)
 int DruckerPragerLaw::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
 {
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
     const double& nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
     if(DP_ALPHA1.Key() == 0 || props[DP_ALPHA1]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"DP_ALPHA1 has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DP_ALPHA1 has Key zero or invalid value ","");
 
     if(DP_K.Key() == 0 || props[DP_K]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"DP_K has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DP_K has Key zero or invalid value ","");
 
     return 0;
 }

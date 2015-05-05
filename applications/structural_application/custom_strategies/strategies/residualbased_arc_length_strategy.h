@@ -756,7 +756,7 @@ public:
 		    TSparseSpace::SetToZero(mA);
 		    SetDatabaseToValue(rDofSet, mX_old);
 		    pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
-		    //KRATOS_ERROR(std::logic_error,"Longitud de Arco Modificada","");
+		    //KRATOS_THROW_ERROR(std::logic_error,"Longitud de Arco Modificada","");
 		    std::cout<<"Longitud de Arco Modificada  = " << mdelta_l  <<std::endl;
                } 
 	     }   

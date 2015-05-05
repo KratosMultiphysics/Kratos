@@ -290,7 +290,7 @@ void Modified_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
     {
         KRATOS_WATCH(Stress)
         KRATOS_WATCH("AKIIIIIIIIIIII")
-        KRATOS_ERROR(std::logic_error,  "MODIFIEDDDDDD  " , " ");
+        KRATOS_THROW_ERROR(std::logic_error,  "MODIFIEDDDDDD  " , " ");
     }
 
     CalculateElasticStrain(Stress, mElastic_strain);
@@ -594,7 +594,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
             KRATOS_WATCH(Sigma)
             std::cout<< "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED"<< std::endl;
             break;
-            //KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , " ");
+            //KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , " ");
         }
     }
 
@@ -620,7 +620,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     //KRATOS_WATCH(Sigma)
     //KRATOS_WATCH(mRankine->mcurrent_Ft)
     //CheckPlasticAdmisibility(Sigma);
-    //KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , " ");
+    //KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 NOT CONVERGED" , " ");
 
     if(cond_a==true && cond_b==false && cond_c ==false)
     {
@@ -999,7 +999,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
             KRATOS_WATCH(iter)
             std::cout<< "RETURN MAPPING OF MAIN PLANE CORNER AND SIGMA 1 NOT CONVERGED" << std::endl;
             break;
-            //KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE CORNER AND SIGMA 1 NOT CONVERGED" , "");
+            //KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE CORNER AND SIGMA 1 NOT CONVERGED" , "");
         }
     }
 
@@ -1506,7 +1506,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
             KRATOS_WATCH(dgama)
             std::cout<< "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED" << std::endl;
             break;
-            //KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED" , "");
+            //KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 NOT CONVERGED" , "");
         }
     }
 
@@ -1548,7 +1548,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     {
         KRATOS_WATCH(PrincipalStress)
         KRATOS_WATCH(Sigma)
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 IS FALSE" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING OF MAIN PLANE AND SIGMA 1 AND SIGMA 2 IS FALSE" , "");
         return false;
     }
 
@@ -1651,7 +1651,7 @@ void Modified_Morh_Coulomb_Yield_Function::GetValue(Matrix& Result)
     {
     case Plane_Stress:
     {
-        KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
         break;
     }
     case Plane_Strain:

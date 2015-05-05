@@ -142,7 +142,7 @@ bool Hyperelastic3D::Has( const Variable<Matrix>& rThisVariable )
 
 // 	double Hyperelastic3D::GetValue( const Variable<double>& rThisVariable )
 // 	{
-// 	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+// 	    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 // 	}
 
 // 	Vector& Hyperelastic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -154,12 +154,12 @@ bool Hyperelastic3D::Has( const Variable<Matrix>& rThisVariable )
 // 		  rValue=ZeroVector(1);
 // 		  return(rValue);
 // 		}
-// 	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+// 	    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 // 	}
 
 // 	Matrix Hyperelastic3D::GetValue( const Variable<Matrix>& rThisVariable )
 // 	{
-// 	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+// 	    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 // 	}
 
 void Hyperelastic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
@@ -627,13 +627,13 @@ void Hyperelastic3D::CalculateCauchyStresses(
 int Hyperelastic3D::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
 {
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(MU.Key() == 0 || props[MU]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"MU has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MU has Key zero or invalid value ","");
 
     if(BULK_MODULUS.Key() == 0 || props[BULK_MODULUS]< 0.00)
-        KRATOS_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
 
     return 0;
 }

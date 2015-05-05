@@ -146,7 +146,7 @@ double Cohesion_Softening::EvolucionLaws(const Vector& Imput_Parameters, const a
             result = cn / fact;
 
         if(result>co)
-            KRATOS_ERROR(std::logic_error,  "ERROR COHESION" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "ERROR COHESION" , "");
 
     }
     else

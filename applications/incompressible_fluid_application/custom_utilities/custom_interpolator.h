@@ -89,7 +89,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR(std::logic_error,"empty virtual function called " , "");
+        KRATOS_THROW_ERROR(std::logic_error,"empty virtual function called " , "");
         KRATOS_CATCH("")
     }
 

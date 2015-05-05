@@ -303,25 +303,25 @@ int LinearElasticOrthotropic3DLaw::Check(const Properties& rMaterialProperties,
 {
 
     if(YOUNG_MODULUS_X.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_X))
-        KRATOS_ERROR( std::invalid_argument,"YOUNG_MODULUS_X has Key zero or invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS_X has Key zero or invalid value ", "" )
 
 	if(YOUNG_MODULUS_Y.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Y))
-        KRATOS_ERROR( std::invalid_argument,"YOUNG_MODULUS_Y has Key zero or invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS_Y has Key zero or invalid value ", "" )
 	
 	if(YOUNG_MODULUS_Z.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Z))
-        KRATOS_ERROR( std::invalid_argument,"YOUNG_MODULUS_Z has Key zero or invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS_Z has Key zero or invalid value ", "" )
 
     if(POISSON_RATIO_XY.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XY))
-        KRATOS_ERROR( std::invalid_argument,"POISSON_RATIO_XY has Key zero invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO_XY has Key zero invalid value ", "" )
 
 	if(POISSON_RATIO_YZ.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_YZ))
-        KRATOS_ERROR( std::invalid_argument,"POISSON_RATIO_YZ has Key zero invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO_YZ has Key zero invalid value ", "" )
 
 	if(POISSON_RATIO_XZ.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XZ))
-        KRATOS_ERROR( std::invalid_argument,"POISSON_RATIO_XZ has Key zero invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO_XZ has Key zero invalid value ", "" )
 
     if(DENSITY.Key() == 0 || !rMaterialProperties.Has(DENSITY))
-        KRATOS_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
 
 
     return 0;

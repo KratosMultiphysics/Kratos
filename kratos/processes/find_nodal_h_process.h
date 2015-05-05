@@ -185,7 +185,7 @@ public:
 
         //check the number of nodes
         if(h_nodes == 0)
-            KRATOS_ERROR(std::logic_error,"no node has neighbours!!!!","");
+            KRATOS_THROW_ERROR(std::logic_error,"no node has neighbours!!!!","");
 
 	//average h calculation
         havg /= h_nodes;

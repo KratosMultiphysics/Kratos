@@ -110,13 +110,13 @@ namespace Kratos
 
 			KRATOS_TRY
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FREE_SURFACE)==false )
-				KRATOS_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
+				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FREE_SURFACE---- variable!!!!!! ERROR","");
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_STRUCTURE)==false )
-				KRATOS_ERROR(std::logic_error,"Add  ----IS_STRUCTURE---- variable!!!!!! ERROR","");
+				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_STRUCTURE---- variable!!!!!! ERROR","");
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_BOUNDARY)==false )
-				KRATOS_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
+				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_BOUNDARY---- variable!!!!!! ERROR","");
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
-				KRATOS_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
+				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
 			KRATOS_WATCH(" ENTERED TETGENMESHSUITE PFEM of Meshing Application")
 			
@@ -773,13 +773,13 @@ namespace Kratos
 #ifdef _DEBUG
 ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base]).base() == *(ThisModelPart.Nodes().end()).base() ) 
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base+1]).base() == *(ThisModelPart.Nodes().end()).base() ) 
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base+2]).base() == *(ThisModelPart.Nodes().end()).base() ) 
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base+3]).base() == *(ThisModelPart.Nodes().end()).base() ) 
-					KRATOS_ERROR(std::logic_error,"trying to use an inexisting node","");
+					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 #endif
 
 				Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
@@ -1098,7 +1098,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			double inv_vol = 0.0;
 			if(vol < 1e-26)
 			  {
-				//KRATOS_ERROR(std::logic_error,"element with zero vol found","");
+				//KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
 				KRATOS_WATCH("WARNING!!!!!!!!!! YOU HAVE A SLIVER HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 				return false;
 			  }

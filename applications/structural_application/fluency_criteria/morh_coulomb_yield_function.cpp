@@ -257,7 +257,7 @@ void Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVector, cons
     {
     case Plane_Stress:
     {
-        KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
         break;
     }
     case Plane_Strain:
@@ -374,7 +374,7 @@ bool Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_1d<double
             KRATOS_WATCH(mpastic_damage_current)
             KRATOS_WATCH(mpastic_damage_old)
             std::cout<<"RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED"<< std::endl;
-            KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE MORH COULOMB  NOT CONVERGED" , "");
         }
 
         /*
@@ -444,7 +444,7 @@ bool Morh_Coulomb_Yield_Function::ReturnMappingToMainPlane(const array_1d<double
         {
             KRATOS_WATCH(mcohesion)
             KRATOS_WATCH(mcurrent_cohesion)
-            KRATOS_ERROR(std::logic_error,  "ONEEEEEEEEEEEEEEEEEEEEEEEE" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "ONEEEEEEEEEEEEEEEEEEEEEEEE" , "");
         }
 
 
@@ -637,7 +637,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
             KRATOS_WATCH(PrincipalStress)
             KRATOS_WATCH(Sigma)
             KRATOS_WATCH(norma)
-            KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO MAIN PLANE AND RIGTH O LEFT MORH COULOMB  NOT CONVERGED" , "");
         }
 
         // von mises acumulated plastic strain
@@ -695,7 +695,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
         {
             KRATOS_WATCH(mcohesion)
             KRATOS_WATCH(mcurrent_cohesion)
-            KRATOS_ERROR(std::logic_error,  "TWOOOOOOOOOOOOOOOOOOOOO" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "TWOOOOOOOOOOOOOOOOOOOOO" , "");
         }
 
 
@@ -926,7 +926,7 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
         {
             KRATOS_WATCH(mcohesion)
             KRATOS_WATCH(mcurrent_cohesion)
-            KRATOS_ERROR(std::logic_error,  "THREEEEEEEEEEEEEEEEEEEEE" , "");
+            KRATOS_THROW_ERROR(std::logic_error,  "THREEEEEEEEEEEEEEEEEEEEE" , "");
         }
 
         // Compute Internal Variables
@@ -971,7 +971,7 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
         KRATOS_WATCH(PrincipalStress)
         std::cout<< "RETURN MAPPING TO APEX  NOT CONVERGED"<< std::endl;
         p = (mcurrent_cohesion) * cotphi;
-        KRATOS_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "RETURN MAPPING TO APEX  NOT CONVERGED" , "");
     }
 
 
@@ -1115,7 +1115,7 @@ void Morh_Coulomb_Yield_Function::GetValue(Matrix& Result)
     {
     case Plane_Stress:
     {
-        KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
         break;
     }
     case Plane_Strain:

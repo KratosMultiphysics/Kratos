@@ -424,28 +424,28 @@ namespace Kratos
         KRATOS_TRY
         
 		if(!rMaterialProperties.Has(YOUNG_MODULUS)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YOUNG_MODULUS", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YOUNG_MODULUS", "");
 		}
 		if(!rMaterialProperties.Has(POISSON_RATIO)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing POISSON_RATIO", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing POISSON_RATIO", "");
 		}
 		if(!rMaterialProperties.Has(DENSITY)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing DENSITY", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing DENSITY", "");
 		}
 		if(!rMaterialProperties.Has(ISOTROPIC_HARDENING)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing ISOTROPIC_HARDENING", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing ISOTROPIC_HARDENING", "");
 		}
 		if(!rMaterialProperties.Has(KINEMATIC_HARDENING)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing KINEMATIC_HARDENING", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing KINEMATIC_HARDENING", "");
 		}
 		if(!rMaterialProperties.Has(ISOTROPIC_HARDENING_EXPONENT)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing ISOTROPIC_HARDENING_EXPONENT", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing ISOTROPIC_HARDENING_EXPONENT", "");
 		}
 		if(!rMaterialProperties.Has(YIELD_STRESS)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YIELD_STRESS", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YIELD_STRESS", "");
 		}
 		if(!rMaterialProperties.Has(YIELD_STRESS_INFINITY)) {
-			KRATOS_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YIELD_STRESS_INFINITY", "");
+			KRATOS_THROW_ERROR( std::logic_error, "J2ConstitutiveLaw3D - missing YIELD_STRESS_INFINITY", "");
 		}
 		return 0;
         KRATOS_CATCH("");

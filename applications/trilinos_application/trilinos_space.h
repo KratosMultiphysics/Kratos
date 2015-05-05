@@ -201,7 +201,7 @@ public:
 
     static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
     {
-        KRATOS_ERROR(std::logic_error, "GetColumn method is not currently implemented", "")
+        KRATOS_THROW_ERROR(std::logic_error, "GetColumn method is not currently implemented", "")
     }
 
 
@@ -321,13 +321,13 @@ public:
 
     static void Resize(MatrixType& rA, SizeType m, SizeType n)
     {
-        KRATOS_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Matrix", "")
+        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Matrix", "")
 
     }
 
     static void Resize(VectorType& rX, SizeType n)
     {
-        KRATOS_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Vector", "")
+        KRATOS_THROW_ERROR(std::logic_error, "Resize is not defined for Trilinos Sparse Vector", "")
     }
 
     // 	static void Clear(MatrixType& rA)
@@ -443,7 +443,7 @@ public:
             }
 
             int ierr = A.SumIntoGlobalValues(indices, values);
-            if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+            if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
 
 
@@ -493,7 +493,7 @@ public:
             KRATOS_WATCH(values);*/
 
             int ierr = b.SumIntoGlobalValues(indices, values);
-            if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+            if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
             //EPETRA_TEST_ERR( ierr );
         }
@@ -510,7 +510,7 @@ public:
 
     inline static double GetValue(const VectorType& x, std::size_t I)
     {
-        KRATOS_ERROR(std::logic_error, "GetValue is not defined for the trilinos space", "");
+        KRATOS_THROW_ERROR(std::logic_error, "GetValue is not defined for the trilinos space", "");
     }
 
     //***********************************************************************
@@ -531,7 +531,7 @@ public:
 
         //importing in the new temp vector the values
         int ierr = temp.Import(x, importer, Insert);
-        if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
 
         temp.ExtractView(&pValues);
@@ -581,7 +581,7 @@ public:
     static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
     {
         KRATOS_TRY;
-        KRATOS_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        KRATOS_THROW_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
         KRATOS_CATCH("");
     }
 
@@ -589,7 +589,7 @@ public:
     static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
     {
         KRATOS_TRY;
-        KRATOS_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        KRATOS_THROW_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
         KRATOS_CATCH("");
     }
 

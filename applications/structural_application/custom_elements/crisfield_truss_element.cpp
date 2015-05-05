@@ -602,28 +602,28 @@ double CrisfieldTrussElement::CalculateStrain(const Matrix& A, const Vector& X, 
         //verify that the variables are correctly initialized
 
         if ( VELOCITY.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
 
         if ( DISPLACEMENT.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
 
         if ( ACCELERATION.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
 
         if ( DENSITY.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
 
         if ( BODY_FORCE.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
         if ( AREA.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "AREA has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_THROW_ERROR( std::invalid_argument, "AREA has Key zero! (check if the application is correctly registered", "" );
 	
 	if ( this->GetProperties().Has( BODY_FORCE ) == false )
-            KRATOS_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id())
+            KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id())
             
 	if ( this->GetProperties().Has( CROSS_AREA ) == false )
-            KRATOS_ERROR( std::logic_error, "CROSS_AREA not provided for property ", this->GetProperties().Id())
+            KRATOS_THROW_ERROR( std::logic_error, "CROSS_AREA not provided for property ", this->GetProperties().Id())
          
         return 0; 
          

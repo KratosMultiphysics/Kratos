@@ -969,7 +969,7 @@ namespace Kratos {
             // to be added to configure
 
             configuration_type::GetBoundingBox(object, min_coord,  max_coord);
-            //KRATOS_ERROR(std::logic_error,"To be added to configure", "")
+            //KRATOS_THROW_ERROR(std::logic_error,"To be added to configure", "")
 
             key_type min_x_key = CalcKeyNormalized(min_coord[0]);
             key_type min_y_key = CalcKeyNormalized(min_coord[1]);
@@ -1076,7 +1076,7 @@ namespace Kratos {
             // to be added to configure
 
             configuration_type::GetBoundingBox(object, min_coord,  max_coord);
-            //KRATOS_ERROR(std::logic_error,"To be added to configure", "")
+            //KRATOS_THROW_ERROR(std::logic_error,"To be added to configure", "")
             NormalizeCoordinates(min_coord);
             NormalizeCoordinates(max_coord);
 
@@ -1196,7 +1196,7 @@ namespace Kratos {
             configuration_type::GetBoundingBox(object, min_coord,  max_coord);
             NormalizeCoordinates(min_coord);
             NormalizeCoordinates(max_coord);
-            //KRATOS_ERROR(std::logic_error,"To be added to configure", "")
+            //KRATOS_THROW_ERROR(std::logic_error,"To be added to configure", "")
 
             key_type min_x_key = CalcKeyNormalized(min_coord[0]);
             key_type min_y_key = CalcKeyNormalized(min_coord[1]);

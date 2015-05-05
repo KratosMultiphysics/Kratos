@@ -1103,7 +1103,7 @@ public:
                 if(mass==0.00)
                 {
                     KRATOS_WATCH(i-> Id())
-                    KRATOS_ERROR(std::logic_error,"Detected Nodal Mass with zero value. Please check if the model is created correctly for the current model part","");
+                    KRATOS_THROW_ERROR(std::logic_error,"Detected Nodal Mass with zero value. Please check if the model is created correctly for the current model part","");
                 }
                 Min_Mass_Nodal[k] =  (Min_Mass_Nodal[k] < mass) ? Min_Mass_Nodal[k] : mass;
             }
@@ -1128,7 +1128,7 @@ public:
         const double DeltaTime          = CurrentProcessInfo[DELTA_TIME];
 
         if(DeltaTime == 0)
-            KRATOS_ERROR(std::logic_error,"Detected delta_time = 0. Please check if the time step is created correctly for the current model part","");
+            KRATOS_THROW_ERROR(std::logic_error,"Detected delta_time = 0. Please check if the time step is created correctly for the current model part","");
 
 
 #ifdef _OPENMP
@@ -1309,7 +1309,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR(std::logic_error, "CalculateRHSusingGlobalLHS() in Central Differences ", "");
+            KRATOS_THROW_ERROR(std::logic_error, "CalculateRHSusingGlobalLHS() in Central Differences ", "");
             /*
             #pragma omp parallel for private(rResult) shared(mFint)
             for(int k=0; k<number_of_threads; k++)

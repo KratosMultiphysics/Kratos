@@ -263,7 +263,7 @@ protected:
         // Safety check, to be sure that we didn't move nodes along processors
         if (MyLength != mpPreviousDx->MyLength())
         {
-            KRATOS_ERROR(std::runtime_error,"Unexpected error in Trilinos Aitken iterations: the Dx vector has a different size than in previous iteration.","");
+            KRATOS_THROW_ERROR(std::runtime_error,"Unexpected error in Trilinos Aitken iterations: the Dx vector has a different size than in previous iteration.","");
         }
 
 //        int NumVectors = Dx.NumVectors();
@@ -319,7 +319,7 @@ protected:
 
         //importing in the new temp vector the values
         int ierr = temp.Import(Dx,*pImporter,Insert);
-        if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+        if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
         double* temp_values; //DO NOT make delete of this one!!
         temp.ExtractView( &temp_values );

@@ -112,7 +112,7 @@ namespace Kratos
 
     virtual void ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix)
     {
-	    KRATOS_ERROR( std::logic_error, "calling not the base class but another function in FlowRule ... illegal operation!!", "" )
+	    KRATOS_THROW_ERROR( std::logic_error, "calling not the base class but another function in FlowRule ... illegal operation!!", "" )
     };
 
     ///@}
@@ -177,12 +177,12 @@ namespace Kratos
 
     virtual void CalculateKirchhoffStressVector(const Vector& rElasticHenckyStrain, Vector& rNewStressVector)
     {
-	KRATOS_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
+	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     virtual void ComputePlasticHardeningParameter(const Vector& rStressVector, const double& rAlpha, double& rH)
     {
-	KRATOS_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
+	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     Matrix ConvertHenckyStrainToCauchyGreenTensor(const Vector& rElasticHenckyStrain);
@@ -193,7 +193,7 @@ namespace Kratos
 
     virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative)
     {
-	KRATOS_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
+	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     void ComputeSubstepIncrementalDeformationGradient(const Matrix& rDeformationGradient, const double& rReferenceConfiguration, const double& rFinalConfiguration, Matrix& rIncrementalDeformationGradient);

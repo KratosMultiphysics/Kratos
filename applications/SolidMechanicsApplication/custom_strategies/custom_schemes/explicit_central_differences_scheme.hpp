@@ -141,7 +141,7 @@ namespace Kratos
 
       if(r_model_part.GetBufferSize() < 2)
       {
-        KRATOS_ERROR(std::logic_error, "Insufficient buffer size for Central Difference Scheme. It has to be 2", "")
+        KRATOS_THROW_ERROR(std::logic_error, "Insufficient buffer size for Central Difference Scheme. It has to be 2", "")
 	    }
 
       return 0;

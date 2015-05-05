@@ -531,7 +531,7 @@ public:
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_ERROR( std::logic_error,
+            KRATOS_THROW_ERROR( std::logic_error,
                           "This integration method is not supported" , *this );
 
 
@@ -629,7 +629,7 @@ public:
     virtual Vector& DeterminantOfJacobian( Vector& rResult,
                                            IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::DeterminantOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -658,7 +658,7 @@ public:
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
                                           IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::DeterminantOfJacobian", "Jacobian is not square" );
         return 0.0;
     }
 
@@ -689,7 +689,7 @@ public:
      */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::DeterminantOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::DeterminantOfJacobian", "Jacobian is not square" );
         return 0.0;
     }
 
@@ -717,7 +717,7 @@ public:
     virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
             IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::InverseOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -748,7 +748,7 @@ public:
                                        IndexType IntegrationPointIndex,
                                        IntegrationMethod ThisMethod ) const
     {
-        KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::InverseOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -771,7 +771,7 @@ public:
     virtual Matrix& InverseOfJacobian( Matrix& rResult,
                                        const CoordinatesArrayType& rPoint ) const
     {
-        KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::InverseOfJacobian", "Jacobian is not square" );
         return rResult;
     }
 
@@ -787,7 +787,7 @@ public:
     */
     virtual SizeType EdgesNumber() const
     {
-        KRATOS_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
+        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
         return 0;
     }
 
@@ -804,7 +804,7 @@ public:
     */
     virtual GeometriesArrayType Edges( void )
     {
-        KRATOS_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
+        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::EdgesNumber", "No Edges defined for NURBS-surfaces" );
         return 0;
     }
 
@@ -1048,7 +1048,7 @@ public:
                                                                                    IntegrationMethod ThisMethod,
                                                                                    Matrix& ShapeFunctionValues) const
     {
-            KRATOS_ERROR( std::logic_error, "NurbsPatchGeometry3D::ShapeFunctionsIntegrationPointsGradients", "Jacobian is not square" );
+            KRATOS_THROW_ERROR( std::logic_error, "NurbsPatchGeometry3D::ShapeFunctionsIntegrationPointsGradients", "Jacobian is not square" );
         return rResult;
     }
 
@@ -1175,7 +1175,7 @@ public:
                                                      Matrix *rResult,
                                                      double t ) const
     {
-        KRATOS_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" );
+        KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsSecondDerivatives", "Second order derivatives not yet implemented" );
         return *rResult;
     }
 
@@ -1191,7 +1191,7 @@ public:
                                                    Matrix *rResult,
                                                    double t ) const
     {
-            KRATOS_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsThirdDerivatives", "Third order derivatives not yet implemented" );
+            KRATOS_THROW_ERROR( std::logic_error, "Nurbs_2d::ShapeFunctionsThirdDerivatives", "Third order derivatives not yet implemented" );
             return *rResult;
     }
 
@@ -1526,7 +1526,7 @@ public:
                 KRATOS_WATCH(rPoint);
                 std::cout << std::endl;
                 break;
-                //KRATOS_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
+                //KRATOS_THROW_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
             }
 
             if ( norm_2( DeltaXi ) < tol )

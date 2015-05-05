@@ -66,9 +66,9 @@ public:
 
         // Check that we actually found something
         if( NodesCounter == 0)
-            KRATOS_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"No interface nodes found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0.","");
         if( CondCounter == 0)
-            KRATOS_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"No interface conditions found. Please check that nodes on both sides of the interface have been assigned IS_INTERFACE=1.0 and that the contact surfaces have been assigned conditions.","");
 
         GenerateTriangularConditions(aux,InterfacePart.Conditions());
 

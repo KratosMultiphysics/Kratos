@@ -135,7 +135,7 @@ public:
         KRATOS_TRY
 
         if (!pScheme)
-            KRATOS_ERROR( std::runtime_error, "No scheme provided!", "" )
+            KRATOS_THROW_ERROR( std::runtime_error, "No scheme provided!", "" )
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();

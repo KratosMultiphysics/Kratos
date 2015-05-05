@@ -390,7 +390,7 @@ public:
         if(area == 0.0)
         {
 
-// 				KRATOS_ERROR(std::logic_error,"element with zero area found","");
+// 				KRATOS_THROW_ERROR(std::logic_error,"element with zero area found","");
             //The interpolated node will not be inside an elemente with zero area
             return false;
 
@@ -442,7 +442,7 @@ public:
         if(vol < 0.0000000000001)
         {
 
-// 				KRATOS_ERROR(std::logic_error,"element with zero vol found","");
+// 				KRATOS_THROW_ERROR(std::logic_error,"element with zero vol found","");
             //The interpolated node will not be inside an elemente with zero volume
             return false;
             KRATOS_WATCH("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")

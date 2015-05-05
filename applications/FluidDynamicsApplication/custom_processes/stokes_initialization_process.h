@@ -169,7 +169,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR(std::runtime_error,"Stokes initialization process was called twice","");
+            KRATOS_THROW_ERROR(std::runtime_error,"Stokes initialization process was called twice","");
         }
 
         KRATOS_CATCH("");

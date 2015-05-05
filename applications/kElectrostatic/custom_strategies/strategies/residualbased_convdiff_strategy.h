@@ -184,7 +184,7 @@ public:
         if(mtime_order == 2)
         {
             if(BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
+                KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
 
                 rCurrentProcessInfo[BDF_COEFFICIENTS].resize(3);
             Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];

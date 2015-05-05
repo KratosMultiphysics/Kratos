@@ -605,7 +605,7 @@ namespace Kratos
 
 	//     if(area < 1e-20)
 	//     {
-	// 	KRATOS_ERROR( std::logic_error,"element with zero area found", "" )
+	// 	KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" )
 	//     }
 
 	//     N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;
@@ -650,7 +650,7 @@ namespace Kratos
 	    }
 
 	    if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-		KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+		KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 
 	}
 
@@ -685,7 +685,7 @@ namespace Kratos
 	    }
 
 	  if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-	    KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
+	    KRATOS_THROW_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 
 	  return VariablesListData;
 	}

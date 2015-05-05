@@ -457,7 +457,7 @@ private:
                 //		k--;
                 //		continue;
                 //}
-                KRATOS_ERROR(std::runtime_error, "Zero pivot found in row ",k);
+                KRATOS_THROW_ERROR(std::runtime_error, "Zero pivot found in row ",k);
 
 
             // adding nonzeros of w to the L
@@ -669,7 +669,7 @@ private:
             double u_kk = z[k];
 
             if(u_kk == 0.00)
-                KRATOS_ERROR(std::runtime_error, "Zero pivot found in row ",k);
+                KRATOS_THROW_ERROR(std::runtime_error, "Zero pivot found in row ",k);
 
 
             // adding nonzeros of w to the L

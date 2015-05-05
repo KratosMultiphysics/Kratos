@@ -237,7 +237,7 @@ public:
         else if (strategy_name == std::string("pressure_strategy"))
             return mppressurestep;
         else
-            KRATOS_ERROR(std::invalid_argument, "trying to get an inexisting strategy", "");
+            KRATOS_THROW_ERROR(std::invalid_argument, "trying to get an inexisting strategy", "");
 
         KRATOS_CATCH("")
     }

@@ -381,7 +381,7 @@ void LinearElement::InitializeMaterial()
         }
     }
     else
-        KRATOS_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
+        KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
         KRATOS_CATCH( "" )
     }
 

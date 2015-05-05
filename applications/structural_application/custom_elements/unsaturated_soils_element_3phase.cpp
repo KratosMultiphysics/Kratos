@@ -135,7 +135,7 @@ UnsaturatedSoilsElement_3phase::UnsaturatedSoilsElement_3phase(IndexType NewId,
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "This element matches only with a quadratic hexaeder (20 or 27), tetraeder (10) or prism (15) geometry" , *this);
+        KRATOS_THROW_ERROR(std::logic_error, "This element matches only with a quadratic hexaeder (20 or 27), tetraeder (10) or prism (15) geometry" , *this);
 
 }
 
@@ -2844,12 +2844,12 @@ double UnsaturatedSoilsElement_3phase::GetPorosity(const Matrix& DN_DX_DISP)
     if(porosity < 0)
     {
         std::cout<<"porosity PROBLEM"<<std::endl;
-        KRATOS_ERROR(std::logic_error, "Porosity is less than zero" , *this);
+        KRATOS_THROW_ERROR(std::logic_error, "Porosity is less than zero" , *this);
     }
     if(porosity > 1)
     {
         std::cout<<"porosity PROBLEM"<<std::endl;
-        KRATOS_ERROR(std::logic_error, "Porosity is bigger than one" , *this);
+        KRATOS_THROW_ERROR(std::logic_error, "Porosity is bigger than one" , *this);
     }
 
     return porosity;

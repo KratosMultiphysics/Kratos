@@ -119,7 +119,7 @@ public:
       mpRigidWall->UpdatePosition( Time );
 
       if (Time == 0)
-	KRATOS_ERROR( std::logic_error, "detected time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+	KRATOS_THROW_ERROR( std::logic_error, "detected time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
       ModelPart::NodesContainerType& rNodes = mrModelPart.Nodes();
       

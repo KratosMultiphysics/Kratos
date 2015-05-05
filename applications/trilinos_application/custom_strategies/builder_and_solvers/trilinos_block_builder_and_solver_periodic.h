@@ -166,7 +166,7 @@ public:
 
         int ierr = this->mrComm.ScanSum(&DofCount,&DofOffset,1);
         if (ierr != 0)
-            KRATOS_ERROR(std::runtime_error,"In TrilinosBlockBuilderAndSolverPeriodic::SetUpSystem: Found Epetra_MpiComm::ScanSum failure with error code ",ierr);
+            KRATOS_THROW_ERROR(std::runtime_error,"In TrilinosBlockBuilderAndSolverPeriodic::SetUpSystem: Found Epetra_MpiComm::ScanSum failure with error code ",ierr);
 
         DofOffset -= DofCount;
         this->mFirstMyId = DofOffset;
@@ -195,7 +195,7 @@ public:
                 int Node1 = rGeom[1].Id();
                 int Node1Pair = rGeom[1].FastGetSolutionStepValue(mPeriodicIdVar);
                 if ( Node0Pair == 0 || Node1Pair == 0 )
-                    KRATOS_ERROR(std::runtime_error,"ERROR: a periodic condition has no periodic pair ids assigned. Condition Id is: ",itCond->Id());
+                    KRATOS_THROW_ERROR(std::runtime_error,"ERROR: a periodic condition has no periodic pair ids assigned. Condition Id is: ",itCond->Id());
 
                 // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
                 if ( ( Node0 == Node1Pair ) && ( Node1 == Node0Pair ) )
@@ -231,7 +231,7 @@ public:
         int TotalDofNum;
         ierr = this->mrComm.SumAll(&DofCount,&TotalDofNum,1);
         if (ierr != 0)
-            KRATOS_ERROR(std::runtime_error,"In TrilinosBlockBuilderAndSolverPeriodic::SetUpSystem: Found Epetra_MpiComm::SumAll failure with error code ",ierr);
+            KRATOS_THROW_ERROR(std::runtime_error,"In TrilinosBlockBuilderAndSolverPeriodic::SetUpSystem: Found Epetra_MpiComm::SumAll failure with error code ",ierr);
 
         this->mLocalSystemSize = DofCount;
         this->mEquationSystemSize = TotalDofNum;

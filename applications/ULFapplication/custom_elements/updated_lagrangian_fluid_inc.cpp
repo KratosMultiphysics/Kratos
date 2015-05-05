@@ -198,7 +198,7 @@ void UpdatedLagrangianFluidInc::CalculateRightHandSide(VectorType& rRightHandSid
                             GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS));
     K *= density;
 
-    //	KRATOS_ERROR(std::logic_error,"not goooood","");
+    //	KRATOS_THROW_ERROR(std::logic_error,"not goooood","");
     if(rRightHandSideVector.size() != 6)
         rRightHandSideVector.resize(6,false);
     unsigned int number_of_nodes = GetGeometry().size();

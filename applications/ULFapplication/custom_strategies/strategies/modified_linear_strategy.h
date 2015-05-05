@@ -973,7 +973,7 @@ private:
             else  //if (mMdiagInv[i]==0.0)
             {
                 //KRATOS_WATCH(mMdiagInv[i])
-                //KRATOS_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")
+                //KRATOS_THROW_ERROR(std::logic_error,"something is wrong with the mass matrix entry - ZERO!!!","")
                 mMdiagInv[i] = 10000000000000000.0;
             }
         }

@@ -483,7 +483,7 @@ protected:
             connectivity_size = ne*quadratic_type;
         }
         else
-            KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+            KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 
         int numflag = 0;
         int number_of_partitions = static_cast<int>(mNumberOfPartitions);
@@ -614,7 +614,7 @@ protected:
                         if(mesh_index > neighbours_indices.size()) // Means the neighbour domain is not registered!!
                         {
 //std::cout << rank << " : cannot find interface for element #" << i_element << " with rank " << EPart[i_element] << std::endl;
-                            KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+                            KRATOS_THROW_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
                         }
 
                         ModelPart::NodeType::Pointer p_node = AllNodes(*i_node);
@@ -625,7 +625,7 @@ protected:
 
 //              SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
 //              if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
-//                KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+//                KRATOS_THROW_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
 //                  mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index);
 // //             mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
 //              mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;

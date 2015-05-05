@@ -168,7 +168,7 @@ public:
         {
             Element::GeometryType& geometry = i_element->GetGeometry();
             if(geometry.size() != element_size)
-                KRATOS_ERROR(std::invalid_argument, "The given element is not compatible with the reference element", "");
+                KRATOS_THROW_ERROR(std::invalid_argument, "The given element is not compatible with the reference element", "");
 
             for(std::size_t i = 0 ; i < element_size ; i++)
                 element_nodes_array(i) = rThisModelPart.pGetNode(geometry[i].Id());
@@ -190,7 +190,7 @@ public:
         {
             Condition::GeometryType& geometry = i_condition->GetGeometry();
             if(geometry.size() != condition_size)
-                KRATOS_ERROR(std::invalid_argument, "The given condition is not compatible with the reference condition", "");
+                KRATOS_THROW_ERROR(std::invalid_argument, "The given condition is not compatible with the reference condition", "");
 
             for(std::size_t i = 0 ; i < condition_size ; i++)
                 condition_nodes_array(i) = rThisModelPart.pGetNode(geometry[i].Id());

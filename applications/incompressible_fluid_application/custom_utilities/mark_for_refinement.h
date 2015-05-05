@@ -313,7 +313,7 @@ public:
         avg_vel/=Atot;
 
         if(Atot < 1e-10)
-            KRATOS_ERROR(std::logic_error,"area can not be zero!!","")
+            KRATOS_THROW_ERROR(std::logic_error,"area can not be zero!!","")
 
             #pragma omp parallel
         {

@@ -79,13 +79,13 @@ namespace Kratos {
                 (inlet_velocity[1] == 0.0) &&
                 (inlet_velocity[2] == 0.0)) {
                 
-                KRATOS_ERROR(std::runtime_error, "The inlet velocity cannot be zero for group ", identifier);
+                KRATOS_THROW_ERROR(std::runtime_error, "The inlet velocity cannot be zero for group ", identifier);
             }
             
             double max_rand_dev_angle = mInletModelPart.GetProperties(mesh_number)[MAX_RAND_DEVIATION_ANGLE];
             if ( max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) {
                 
-                KRATOS_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ",identifier);
+                KRATOS_THROW_ERROR(std::runtime_error, "The velocity deviation angle must be between 0 and 90 degrees for group ",identifier);
             }
             
             

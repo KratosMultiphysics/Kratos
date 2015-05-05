@@ -117,7 +117,7 @@ double& TutorialDamageModel::GetValue( const Variable<double>& rThisVariable, do
     if( rThisVariable == DAMAGE_EF )
         return mE_f;
 
-    KRATOS_ERROR( std::logic_error, "this variable is not supported", "" );
+    KRATOS_THROW_ERROR( std::logic_error, "this variable is not supported", "" );
 }
 
 Vector& TutorialDamageModel::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -125,12 +125,12 @@ Vector& TutorialDamageModel::GetValue( const Variable<Vector>& rThisVariable, Ve
     if( rThisVariable == STRESSES )
         return mCurrentStress;
 
-    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
 }
 
 Matrix& TutorialDamageModel::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+    KRATOS_THROW_ERROR( std::logic_error, "Vector Variable case not considered", "" );
 }
 
 void TutorialDamageModel::SetValue( const Variable<double>& rThisVariable, const double& rValue,

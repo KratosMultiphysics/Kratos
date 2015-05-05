@@ -488,7 +488,7 @@ public:
         if (time_order == 2 && step > time_order)
         {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
+                KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for BDF2", "")
 
                 double dt_old = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
@@ -571,7 +571,7 @@ public:
         if (prediction_order == 2)
         {
             if (BaseType::GetModelPart().GetBufferSize() < 3)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size for second order prediction", "")
+                KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size for second order prediction", "")
             }
 
         if (prediction_order == 2 && step > 2)
@@ -869,7 +869,7 @@ public:
         }
         else
         {
-            KRATOS_ERROR(std::logic_error, "not yet implemented the 3D", "");
+            KRATOS_THROW_ERROR(std::logic_error, "not yet implemented the 3D", "");
 
         }
 
@@ -1096,41 +1096,41 @@ public:
 
         //veryfying that the model part has all the variables needed
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(FRACT_VEL) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FRACT_VEL---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FRACT_VEL---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----VELOCITY---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----VELOCITY---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----MESH_VELOCITY---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----MESH_VELOCITY---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(PRESSURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----PRESSURE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----PRESSURE---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(PRESSURE_OLD_IT) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----PRESSURE_OLD_IT---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----PRESSURE_OLD_IT---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(PRESS_PROJ) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----PRESS_PROJ---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----PRESS_PROJ---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(CONV_PROJ) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----CONV_PROJ---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----CONV_PROJ---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(NODAL_MASS) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----NODAL_MASS---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_MASS---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(BODY_FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----BODY_FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----BODY_FORCE---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DENSITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----DENSITY---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----DENSITY---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(VISCOSITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----VISCOSITY---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----VISCOSITY---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(IS_STRUCTURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----IS_STRUCTURE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----IS_STRUCTURE---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----EXTERNAL_PRESSURE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----EXTERNAL_PRESSURE---- variable!!!!!! ERROR", "");
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(IS_INTERFACE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----IS_INTERFACE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----IS_INTERFACE---- variable!!!!!! ERROR", "");
 
         //check that the domain size is correctly prescribed
         if (this->mdomain_size != msolver_config.GetDomainSize())
-            KRATOS_ERROR(std::logic_error, "domain size not coinciding", "")
+            KRATOS_THROW_ERROR(std::logic_error, "domain size not coinciding", "")
 
             //verify buffer size
             if (BaseType::GetModelPart().GetBufferSize() < mtime_order + 1)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size. Buffer size should be >= time_order+1", "");
+                KRATOS_THROW_ERROR(std::logic_error, "insufficient buffer size. Buffer size should be >= time_order+1", "");
 
         //check that, in the 2D case, the xy plane is used.
         if (this->mdomain_size == 2)
@@ -1144,7 +1144,7 @@ public:
                 else if (i->Z() > zmax) zmax = i->Z();
             }
             if (fabs(zmax - zmin) > 1e-20)
-                KRATOS_ERROR(std::logic_error, "2D model is not in the XY plane!", "")
+                KRATOS_THROW_ERROR(std::logic_error, "2D model is not in the XY plane!", "")
             }
 
         //verify element type, check that the Id is non zero, and calls the Check function for all of the elements
@@ -1160,11 +1160,11 @@ public:
                     it != BaseType::GetModelPart().ElementsEnd(); ++it)
             {
                 if (it->Id() < 1)
-                    KRATOS_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
                 if (typeid (ref_el) != typeid (*it) && typeid (ref_el2) != typeid (*it))
                 {
                     std::cout << "wrong element found --> " << it->Id() << std::endl;
-                    KRATOS_ERROR(std::logic_error, "Fractional step strategy requires Fluid2D element for the 2D case", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "Fractional step strategy requires Fluid2D element for the 2D case", "");
                 }
                 it->Check(BaseType::GetModelPart().GetProcessInfo());
             }
@@ -1178,11 +1178,11 @@ public:
                     it != BaseType::GetModelPart().ElementsEnd(); ++it)
             {
                 if (it->Id() < 1)
-                    KRATOS_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "Element Id can not be lesser than 1 (0 is not allowed as Id)", "");
                 if (typeid (ref_el) != typeid (*it))
                 {
                     std::cout << "wrong element found --> " << it->Id() << std::endl;
-                    KRATOS_ERROR(std::logic_error, "Fractional step strategy requires Fluid3D element for the 3D case", "");
+                    KRATOS_THROW_ERROR(std::logic_error, "Fractional step strategy requires Fluid3D element for the 3D case", "");
                 }
                 it->Check(BaseType::GetModelPart().GetProcessInfo());
             }
@@ -1208,7 +1208,7 @@ public:
 
         //check if the variable used is existing in the model part
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rReactionVar) == false)
-            KRATOS_ERROR(std::logic_error, "ReactionVar does not exist! please Add  ----rReactionVar---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "ReactionVar does not exist! please Add  ----rReactionVar---- variable!!!!!! ERROR", "");
 
         InitializeFractionalStep(this->m_step, this->mtime_order);
 

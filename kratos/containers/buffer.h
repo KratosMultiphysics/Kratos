@@ -279,7 +279,7 @@ public:
     template<class TDataType>
     void push_back(boost::shared_ptr<TDataType> const& rValue)
     {
-        KRATOS_ERROR(std::logic_error, "You cannot store a pointer in the buffer try the Serializer instead", "" );
+        KRATOS_THROW_ERROR(std::logic_error, "You cannot store a pointer in the buffer try the Serializer instead", "" );
     }
 
     /** A generic push back to cover all other type of data wich are not specified before.

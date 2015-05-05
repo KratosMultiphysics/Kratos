@@ -73,7 +73,7 @@ namespace Kratos
 			
 			default:
 			{
-				KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+				KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 			}
 		}
 
@@ -374,7 +374,7 @@ namespace Kratos
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+            KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
         }
         else
         {
@@ -410,7 +410,7 @@ namespace Kratos
             double inv_area = 0.0;
             if (area == 0.0)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
             } else
             {
                 inv_area = 1.0 / area;

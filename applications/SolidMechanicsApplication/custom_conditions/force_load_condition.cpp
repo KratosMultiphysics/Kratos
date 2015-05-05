@@ -380,7 +380,7 @@ void ForceLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
-    KRATOS_ERROR( std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!", "" )
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
@@ -393,7 +393,7 @@ Vector& ForceLoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVa
 {
     KRATOS_TRY
 
-    KRATOS_ERROR( std::logic_error, "calling the default CalculateVectorForce method for a force load condition ... illegal operation!!", "" )
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateVectorForce method for a force load condition ... illegal operation!!", "" )
 
 
     return rVectorForce;
@@ -481,7 +481,7 @@ void ForceLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rLeftHandSideVariables[i] )
+	      KRATOS_THROW_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rLeftHandSideVariables[i] )
 	    }
 
 	}
@@ -527,7 +527,7 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i] )
+	      KRATOS_THROW_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i] )
 	    }
 
 	}

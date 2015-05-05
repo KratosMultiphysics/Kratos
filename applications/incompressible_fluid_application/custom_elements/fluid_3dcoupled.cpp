@@ -128,7 +128,7 @@ void Fluid3DCoupled::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 //************************************************************************************
 void Fluid3DCoupled::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
 
 //************************************************************************************

@@ -164,7 +164,7 @@ public:
             if(diag_Aii != zero)
                 mDiagonal[i] = 1.00 / sqrt(fabs(diag_Aii));
             else
-                KRATOS_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
+                KRATOS_THROW_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
         }
 // 	      mDiagonal[i] = one;
 

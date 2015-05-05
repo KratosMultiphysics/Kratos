@@ -357,7 +357,7 @@ void HypoelasticElement::InitializeMaterial()
 
         mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW];
         if( mConstitutiveLawVector[i]->GetStressMeasure() != ConstitutiveLaw::StressMeasure_Cauchy )
-            KRATOS_ERROR( std::logic_error, "The specified constitutive law does not support Cauchy stresses, please choose a suitable constitutive model", "" );
+            KRATOS_THROW_ERROR( std::logic_error, "The specified constitutive law does not support Cauchy stresses, please choose a suitable constitutive model", "" );
         mConstitutiveLawVector[i]->InitializeMaterial( 	GetProperties(), GetGeometry(),	row(GetGeometry().ShapeFunctionsValues(), i) );
 
     }

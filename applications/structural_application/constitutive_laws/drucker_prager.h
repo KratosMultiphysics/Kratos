@@ -380,7 +380,7 @@ public:
             int CalculateTangent = true,
             bool SaveInternalVariables = true )
     {
-        KRATOS_ERROR(std::logic_error, "Volumetric response is not implemented in DruckerPrager", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Volumetric response is not implemented in DruckerPrager", "");
     }
 
     /**
@@ -405,7 +405,7 @@ public:
             int CalculateTangent = true,
             bool SaveInternalVariables = true )
     {
-        KRATOS_ERROR(std::logic_error, "Deviatoric response is not implemented in DruckerPrager", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Deviatoric response is not implemented in DruckerPrager", "");
     }
 
     /**
@@ -425,7 +425,7 @@ public:
                                           const Vector& PK2_StressVector,
                                           const Vector& GreenLagrangeStrainVector )
     {
-        KRATOS_ERROR(std::logic_error, "Cauchy stresses are not implemented in DruckerPrager", "");
+        KRATOS_THROW_ERROR(std::logic_error, "Cauchy stresses are not implemented in DruckerPrager", "");
     }
 
     /**

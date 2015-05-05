@@ -258,7 +258,7 @@ void Von_Mises_Yield_Function::ReturnMapping(const Vector& StrainVector, Vector&
             if(iter==max_iter)
             {
                 KRATOS_WATCH(ElasticDomain)
-                KRATOS_ERROR(std::logic_error, "WARNING = No Convergence Return Mapping Von Mises", " ") ;
+                KRATOS_THROW_ERROR(std::logic_error, "WARNING = No Convergence Return Mapping Von Mises", " ") ;
             }
 
         }

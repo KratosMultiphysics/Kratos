@@ -403,7 +403,7 @@ void IsotropicLinearElastic::Calculate(const Variable<Matrix >& rVariable, Matri
         output(0,4) = mEw[4]*0.5;
         output(0,5) = mEw[5]*0.5;
     }
-    KRATOS_ERROR(std::logic_error,"Trying to Calculate an inexisting variable" , "");
+    KRATOS_THROW_ERROR(std::logic_error,"Trying to Calculate an inexisting variable" , "");
 }
 
 //**********************************************************************

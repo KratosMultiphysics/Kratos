@@ -128,7 +128,7 @@ public:
     {
         typename ComponentsContainerType::iterator i =  msComponents.find(Name);
         /* 	if(i == msComponents.end()) */
-        /* 	   KRATOS_ERROR(std::invalid_argument, "The component is not registered!", Name); */
+        /* 	   KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name); */
         return *(i->second);
     }
 

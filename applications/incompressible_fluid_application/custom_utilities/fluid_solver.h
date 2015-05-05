@@ -221,7 +221,7 @@ public:
                 if (inode->IsFixed(VELOCITY_Y) == false || inode->IsFixed(VELOCITY_Z) == false)
                 {
                     std::cout << "error found on the fixity of node " << inode->Id() << std::endl;
-                    KRATOS_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
+                    KRATOS_THROW_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
                 }
 
 
@@ -1313,7 +1313,7 @@ public:
         KRATOS_TRY
 
         if (mr_model_part.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         int n_nodes = mvel_n1.size();
         ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
@@ -1380,7 +1380,7 @@ public:
         KRATOS_TRY
 
         if (mr_model_part.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
         int n_nodes = mvel_n1.size();
         ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
@@ -1877,7 +1877,7 @@ private:
         unsigned int itmax = 100;
 
         if (mu == 0)
-            KRATOS_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
+            KRATOS_THROW_ERROR(std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
 
         //slip condition
         int slip_size = mSlipBoundaryList.size();

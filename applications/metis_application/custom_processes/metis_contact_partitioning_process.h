@@ -471,7 +471,7 @@ protected:
             connectivity_size = ne*quadratic_type;
         }
         else
-            KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
+            KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 
         int numflag = 0;
         int number_of_partitions = static_cast<int>(mNumberOfPartitions) - 1; // we reserve one partition for contact
@@ -584,7 +584,7 @@ protected:
      			  {
     			    SizeType mesh_index = interface_indices[EPart[i_element]];
     			    if(mesh_index > mNumberOfPartitions) // Means the neighbour domain is not registered!!
-    			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+    			      KRATOS_THROW_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
 
     			    mrModelPart.GetCommunicator().LocalMesh().AddNode(AllNodes((*i_node)));
     			    mrModelPart.GetCommunicator().LocalMesh(mesh_index).AddNode(AllNodes((*i_node)));
@@ -593,7 +593,7 @@ protected:
 
     // 			    SizeType mesh_index = interface_indices[EPart[i_element]] +  ModelPart::Kratos_Ownership_Size;
     // 			    if(mesh_index > mNumberOfPartitions  +  ModelPart::Kratos_Ownership_Size) // Means the neighbour domain is not registered!!
-    // 			      KRATOS_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
+    // 			      KRATOS_THROW_ERROR(std::logic_error, "Cannot find the neighbour domain : ", EPart[i_element]);
     //  			    mrModelPart.AssignNode(AllNodes((*i_node)), mesh_index);
     // // 		      mLogFile << rank << " : Adding interface node # " << *i_node << std::endl;
     // 			    mLogFile << rank << " : Adding interface node # " << *i_node << " to mesh: " << mesh_index  << std::endl;

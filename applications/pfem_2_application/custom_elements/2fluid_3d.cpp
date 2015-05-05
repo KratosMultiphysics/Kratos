@@ -81,7 +81,7 @@ namespace Kratos
 		
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 		}
 
@@ -112,7 +112,7 @@ namespace Kratos
 			this->CalculateLocalFinalVelocitySystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 			break;
 			///CAMBIAR ESTO DESPUÉS!!!!!!!!!!!!!
-			//KRATOS_ERROR(std::logic_error,"Full solution of end of step velocity is not implemented, see Calculate(VELOCITY)","");
+			//KRATOS_THROW_ERROR(std::logic_error,"Full solution of end of step velocity is not implemented, see Calculate(VELOCITY)","");
 			//break;
 		}
 		
@@ -121,12 +121,12 @@ namespace Kratos
 			this->CalculateLocalThermalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
 			break;
 			///CAMBIAR ESTO DESPUÉS!!!!!!!!!!!!!
-			//KRATOS_ERROR(std::logic_error,"Full solution of end of step velocity is not implemented, see Calculate(VELOCITY)","");
+			//KRATOS_THROW_ERROR(std::logic_error,"Full solution of end of step velocity is not implemented, see Calculate(VELOCITY)","");
 			//break;
 		}
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 		}
 
@@ -165,7 +165,7 @@ namespace Kratos
 		}
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 		}
 
@@ -205,7 +205,7 @@ namespace Kratos
 		}
 		default:
 		{
-			KRATOS_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+			KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
 		}
 		}
 
@@ -224,7 +224,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 	
-		KRATOS_ERROR(std::logic_error, "USE LOCALFINALVELOCITY. SAME PROCEDURE, ONLY ADDING THE VISCOUS TERM", "");
+		KRATOS_THROW_ERROR(std::logic_error, "USE LOCALFINALVELOCITY. SAME PROCEDURE, ONLY ADDING THE VISCOUS TERM", "");
 		
 		KRATOS_CATCH("");
 	}
@@ -529,7 +529,7 @@ namespace Kratos
 			//Laplacian_matrix -= inv_Laplacian_enrich_weighted * prod(trans(mixed_Laplacian),mixed_Laplacian);
 			
 			if((this->GetValue(ENRICH_LHS_ROW_3D)).size()!=4)
-				KRATOS_ERROR(std::logic_error, "WRONG SIZE in LOCALSYSTEM", "");
+				KRATOS_THROW_ERROR(std::logic_error, "WRONG SIZE in LOCALSYSTEM", "");
 				//(this->GetValue(ENRICH_LHS_ROW_3D)).resize(4);
 			for (unsigned int i = 0; i < 4; i++)
 			{
@@ -747,7 +747,7 @@ namespace Kratos
 		{
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
-			//KRATOS_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
 			//TOOLS NEEDED TO FIND THE ENRICHMENT SHAPE FUNCTIONS
 			//get position of the cut surface
 			array_1d<double,6>  densities(6);
@@ -1673,7 +1673,7 @@ namespace Kratos
 							
 							if((this->GetValue(ENRICH_LHS_ROW_3D)).size()!=4)
 							{
-								KRATOS_ERROR(std::logic_error, "WRONG SIZE in PRESSPROJ", "");
+								KRATOS_THROW_ERROR(std::logic_error, "WRONG SIZE in PRESSPROJ", "");
 								(this->GetValue(ENRICH_LHS_ROW_3D)).resize(4);
 								(this->GetValue(ENRICH_LHS_ROW_3D))=ZeroVector(4);
 							}
@@ -2422,7 +2422,7 @@ namespace Kratos
 		//KRATOS_WATCH(C_matrix)
 		//KRATOS_WATCH(B_matrix)
 		//KRATOS_WATCH(rDampMatrix)
-		//		KRATOS_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
+		//		KRATOS_THROW_ERROR(std::logic_error, "IMPLICIT STEP FIRST STEP NOT YET IMPLEMENTED IN 3D.. USE LOCALFINALVELOCITY", "");
 
 		
 	}

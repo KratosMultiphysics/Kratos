@@ -116,27 +116,27 @@ public:
     {
         //veryfying that the model part has all the variables needed
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(DENSITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add DENSITY variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add DENSITY variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
-            KRATOS_ERROR(std::logic_error, "Add TEMPERATURE variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add TEMPERATURE variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(CONDUCTIVITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add CONDUCTIVITY variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add CONDUCTIVITY variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(HEAT_FLUX) == false)
-            KRATOS_ERROR(std::logic_error, "Add HEAT_FLUX variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add HEAT_FLUX variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(FACE_HEAT_FLUX) == false)
-            KRATOS_ERROR(std::logic_error, "Add FACE_HEAT_FLUX variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add FACE_HEAT_FLUX variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add MESH_VELOCITY variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add MESH_VELOCITY variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add VELOCITY variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add VELOCITY variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(CONVECTION_COEFFICIENT) == false)
-            KRATOS_ERROR(std::logic_error, "Add CONVECTION_COEFFICIENT variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add CONVECTION_COEFFICIENT variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(DISTANCE) == false)
-            KRATOS_ERROR(std::logic_error, "Add DISTANCE variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add DISTANCE variable!!!!!! ERROR", "");
         if (mrThermalModelPart.NodesBegin()->SolutionStepsDataHas(VISCOSITY) == false)
-            KRATOS_ERROR(std::logic_error, "Add VISCOSITY variable!!!!!! ERROR", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Add VISCOSITY variable!!!!!! ERROR", "");
         if(mrThermalModelPart.ElementsBegin()->GetGeometry().Dimension() != 3)
-            KRATOS_ERROR(std::invalid_argument, "This algorithm only works with 3D geometries", "")
+            KRATOS_THROW_ERROR(std::invalid_argument, "This algorithm only works with 3D geometries", "")
 
             return 0;
 

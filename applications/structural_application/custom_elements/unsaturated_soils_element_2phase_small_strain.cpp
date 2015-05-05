@@ -147,7 +147,7 @@ UnsaturatedSoilsElement_2phase_SmallStrain::UnsaturatedSoilsElement_2phase_Small
         }
     }
     else
-        KRATOS_ERROR( std::logic_error, "This element matches only with a quadratic hexaeder (20 or 27), tetraeder (10) or prism (15) geometry" , *this );
+        KRATOS_THROW_ERROR( std::logic_error, "This element matches only with a quadratic hexaeder (20 or 27), tetraeder (10) or prism (15) geometry" , *this );
 
 }
 

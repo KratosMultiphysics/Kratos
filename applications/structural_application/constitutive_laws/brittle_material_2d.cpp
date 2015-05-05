@@ -68,7 +68,7 @@ BrittleMaterial2D::BrittleMaterial2D ()
     : ConstitutiveLaw()
 
 {
-    KRATOS_ERROR(std::logic_error,"Calling the empty constructor.","");
+    KRATOS_THROW_ERROR(std::logic_error,"Calling the empty constructor.","");
 }
 
 BrittleMaterial2D::BrittleMaterial2D(
@@ -182,7 +182,7 @@ void BrittleMaterial2D::InitializeMaterial( const Properties& props,
     //mfailurefactor           = 0.00;
     //double Gc           = (*mpProperties)[CRUSHING_ENERGY]/mlength;
     //double length_limit = 2.00*mE*Gc/((*mpProperties)[FC]*(*mpProperties)[FC]);
-    //if (length_limit<mlength) {KRATOS_ERROR(std::logic_error, "Element length greater than permitted" , ""); }
+    //if (length_limit<mlength) {KRATOS_THROW_ERROR(std::logic_error, "Element length greater than permitted" , ""); }
 
     m_invF_old.resize(2,2, false);
     mF.resize(2,2, false);
@@ -754,36 +754,36 @@ int BrittleMaterial2D::Check(const Properties& props,
 
 
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
     const double& nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
     if(FRACTURE_ENERGY.Key() == 0 || props[FRACTURE_ENERGY]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"FRACTURE_ENERGY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"FRACTURE_ENERGY has Key zero or invalid value ","");
 
     if(CRUSHING_ENERGY.Key() == 0 || props[CRUSHING_ENERGY]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"CRUSHING_ENERGY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"CRUSHING_ENERGY has Key zero or invalid value ","");
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(INTERNAL_FRICTION_ANGLE.Key() == 0 || props[INTERNAL_FRICTION_ANGLE]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"INTERNAL_FRICTION_ANGLE has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"INTERNAL_FRICTION_ANGLE has Key zero or invalid value ","");
 
     if(DILATANCY_ANGLE.Key() == 0 || props[DILATANCY_ANGLE]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DILATANCY_ANGLE has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DILATANCY_ANGLE has Key zero or invalid value ","");
 
     if(COHESION.Key() == 0 || props[COHESION]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"COHESION has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"COHESION has Key zero or invalid value ","");
 
     if(FT.Key() == 0 || props[FT]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
 
     if(FC.Key() == 0 || props[FC]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"FC has Key zero or invalid value ","");
 
     return 0;
 

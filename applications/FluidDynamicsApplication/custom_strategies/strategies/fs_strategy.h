@@ -225,16 +225,16 @@ public:
         if (ierr != 0) return ierr;
 
         if(DELTA_TIME.Key() == 0)
-            KRATOS_ERROR(std::runtime_error,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::runtime_error,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
         if(BDF_COEFFICIENTS.Key() == 0)
-            KRATOS_ERROR(std::runtime_error,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
+            KRATOS_THROW_ERROR(std::runtime_error,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
 
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         if ( mTimeOrder == 2 && rModelPart.GetBufferSize() < 3 )
-            KRATOS_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (BDF2), needed 3, got ",rModelPart.GetBufferSize());
+            KRATOS_THROW_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (BDF2), needed 3, got ",rModelPart.GetBufferSize());
         if ( mTimeOrder == 1 && rModelPart.GetBufferSize() < 2 )
-            KRATOS_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ",rModelPart.GetBufferSize());
+            KRATOS_THROW_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ",rModelPart.GetBufferSize());
 
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -1084,7 +1084,7 @@ private:
         }
         else
         {
-            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
+            KRATOS_THROW_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
         }
 
         bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
@@ -1096,7 +1096,7 @@ private:
         }
         else
         {
-            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Pressure strategy defined in FractionalStepSettings","");
+            KRATOS_THROW_ERROR(std::runtime_error,"FS_Strategy error: No Pressure strategy defined in FractionalStepSettings","");
         }
 
         Process::Pointer pTurbulenceProcess;

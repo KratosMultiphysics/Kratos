@@ -194,7 +194,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -273,7 +273,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -345,7 +345,7 @@ class SpatialSearch
           VectorResultElementsContainerType& rResults )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -416,7 +416,7 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -495,7 +495,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -574,7 +574,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -614,7 +614,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -654,7 +654,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -721,7 +721,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -782,7 +782,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -843,7 +843,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
       
       //************************************************************************
@@ -904,7 +904,7 @@ class SpatialSearch
           VectorDistanceType& rResultsDistance )
       {     
           /* Abstract */
-          KRATOS_ERROR(std::runtime_error,"Direct call of an abstract method","")
+          KRATOS_THROW_ERROR(std::runtime_error,"Direct call of an abstract method","")
       }
     
         

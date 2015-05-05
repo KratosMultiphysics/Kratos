@@ -360,7 +360,7 @@ void SmallDisplacementBeamElement3D2N::CalculateSectionProperties()
     mLength = GetGeometry().Length();
 
     if(mLength == 0.00)
-        KRATOS_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
+        KRATOS_THROW_ERROR(std::invalid_argument, "Zero length found in elemnet #", this->Id());
 
 
     KRATOS_CATCH( "" )
@@ -1467,48 +1467,48 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
 
     if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size()!=2 )
     {
-      KRATOS_ERROR( std::invalid_argument, "This element works only in 3D and with 2 noded linear elements", "")
+      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only in 3D and with 2 noded linear elements", "")
     }
 
     //verify that the variables are correctly initialized
     if(VELOCITY.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
     if(DISPLACEMENT.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
     if(ACCELERATION.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(DENSITY.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
      if(VOLUME_ACCELERATION.Key() == 0)
-        // KRATOS_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+        // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(CROSS_AREA.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered", "" )
     if(LOCAL_INERTIA.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered", "" )
     if(ROTATION.Key() == 0)
-        KRATOS_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
     for(unsigned int i=0; i<this->GetGeometry().size(); i++)
     {
         if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
+            KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
         if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+            KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the area is given by properties
     if (this->GetProperties().Has(CROSS_AREA)==false)
     {
         if( GetValue(AREA) == 0.0 )
-            KRATOS_ERROR( std::logic_error,"CROSS_AREA not provided for this element", this->Id() )
+            KRATOS_THROW_ERROR( std::logic_error,"CROSS_AREA not provided for this element", this->Id() )
     }
 
     //verify that the inertia is given by properties
     if (this->GetProperties().Has(LOCAL_INERTIA)==false)
     {
         if( GetValue(INERTIA)(0,0) == 0.0 )
-	  KRATOS_ERROR( std::logic_error,"INERTIA not provided for this element ", this->Id() )
+	  KRATOS_THROW_ERROR( std::logic_error,"INERTIA not provided for this element ", this->Id() )
     }
 
 

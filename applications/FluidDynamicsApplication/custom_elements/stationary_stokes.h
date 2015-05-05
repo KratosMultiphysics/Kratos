@@ -336,7 +336,7 @@ private:
             IntMethod = 5;
             break;
         default:
-            KRATOS_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer save for StationaryStokes element: ",mIntegrationMethod);
+            KRATOS_THROW_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer save for StationaryStokes element: ",mIntegrationMethod);
             break;
         }
         rSerializer.save("IntMethod",IntMethod);
@@ -370,7 +370,7 @@ private:
             mIntegrationMethod = GeometryData::GI_GAUSS_5;
             break;
         default:
-            KRATOS_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer load for StationaryStokes element: ",IntMethod);
+            KRATOS_THROW_ERROR(std::invalid_argument,"Unknown integration method encountered on serializer load for StationaryStokes element: ",IntMethod);
             break;
         }
         rSerializer.load("mDN_DX",mDN_DX);

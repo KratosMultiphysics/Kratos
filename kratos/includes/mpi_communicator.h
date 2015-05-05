@@ -1479,7 +1479,7 @@ private:
         int err = MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
 
         if(err != MPI_SUCCESS) 
-            KRATOS_ERROR(std::runtime_error,"Error in mpi_communicator","")
+            KRATOS_THROW_ERROR(std::runtime_error,"Error in mpi_communicator","")
 
         MPI_Barrier(MPI_COMM_WORLD);
 

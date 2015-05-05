@@ -164,7 +164,7 @@ public:
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
     { 
-      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
     } 
 
     /**
@@ -172,7 +172,7 @@ public:
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
     { 
-      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
     } 
 
     /**
@@ -180,7 +180,7 @@ public:
      */
     virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
     { 
-      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
     } 
 
     /**
@@ -188,7 +188,7 @@ public:
      */
     virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
     { 
-      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
     } 
 
 

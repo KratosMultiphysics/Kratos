@@ -165,7 +165,7 @@ void Hyperelastic2D::Calculate(const Variable<Matrix >& rVariable, Matrix& rResu
 // NEW GET VALUE !!!!!!!!!
 double Hyperelastic2D::GetValue( const Variable<double>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 }
 Vector& Hyperelastic2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
@@ -176,12 +176,12 @@ Vector& Hyperelastic2D::GetValue( const Variable<Vector>& rThisVariable, Vector&
         rValue = ZeroVector(1);
         return( rValue );
     }
-    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 }
 
 Matrix Hyperelastic2D::GetValue( const Variable<Matrix>& rThisVariable )
 {
-    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 }
 // NEW GET VALUE !!!!!!!!!
 
@@ -204,7 +204,7 @@ Matrix Hyperelastic2D::GetValue( const Variable<Matrix>& rThisVariable )
 //
 // 	double Hyperelastic2D::GetValue( const Variable<double>& rThisVariable )
 // 	{
-// 	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered" , "");
+// 	    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered" , "");
 // 	}
 //
 // 	Vector& Hyperelastic2D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -216,12 +216,12 @@ Matrix Hyperelastic2D::GetValue( const Variable<Matrix>& rThisVariable )
 // 		    rValue=ZeroVector(1);
 // 		    return (rValue);
 // 		  }
-// 	    KRATOS_ERROR(std::logic_error, "Vector Variable case not considered", "");
+// 	    KRATOS_THROW_ERROR(std::logic_error, "Vector Variable case not considered", "");
 // 	}
 //
 // 	Matrix Hyperelastic2D::GetValue( const Variable<Matrix>& rThisVariable )
 // 	{
-// 	    KRATOS_ERROR(std::logic_error,"Vector Variable case not considered", "");
+// 	    KRATOS_THROW_ERROR(std::logic_error,"Vector Variable case not considered", "");
 // 	}
 //
 // 	void Hyperelastic2D::SetValue( const Variable<double>& rThisVariable, const double rValue,
@@ -761,24 +761,24 @@ int Hyperelastic2D::Check(const Properties& props, const GeometryType& geom, con
 
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
     if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
     const double& nu = props[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
     if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
     if(MU.Key() == 0 || props[MU]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"MU has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"MU has Key zero or invalid value ","");
 
     if(BULK_MODULUS.Key() == 0 || props[BULK_MODULUS]< 0.00)
-        KRATOS_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"BULK_MODULUS has Key zero or invalid value ","");
 
     if(RETRACTION_TIME.Key() == 0 || props[RETRACTION_TIME]< 0.00)
-        KRATOS_ERROR(std::invalid_argument,"RETRACTION_TIME has Key zero or invalid value ","");
+        KRATOS_THROW_ERROR(std::invalid_argument,"RETRACTION_TIME has Key zero or invalid value ","");
 
     return 0;
 }

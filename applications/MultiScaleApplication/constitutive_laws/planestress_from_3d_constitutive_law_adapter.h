@@ -270,7 +270,7 @@ public:
 		MyBase::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 		
         if(MyBase::mpAdaptee->GetStrainSize() != 6)
-			KRATOS_ERROR( std::logic_error, "PlaneStressFrom3DConstitutiveLawAdapter - the strain size of the Adaptee material should be 6", "");
+			KRATOS_THROW_ERROR( std::logic_error, "PlaneStressFrom3DConstitutiveLawAdapter - the strain size of the Adaptee material should be 6", "");
 		
 		return 0;
 		KRATOS_CATCH("")

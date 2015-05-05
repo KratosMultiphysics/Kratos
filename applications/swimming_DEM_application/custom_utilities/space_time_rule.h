@@ -235,7 +235,7 @@ void Check()
     KRATOS_TRY
 
     if (mHighTime < mLowTime ||  mHighX < mLowX || mHighY < mLowY || mHighZ < mLowZ){
-        KRATOS_ERROR(std::runtime_error, "Entered low bounds greater than corresponding bounds", "");
+        KRATOS_THROW_ERROR(std::runtime_error, "Entered low bounds greater than corresponding bounds", "");
     }
 
     KRATOS_CATCH("")
@@ -366,7 +366,7 @@ void Check()
     KRATOS_TRY
 
     if (mTol < 0.0){
-        KRATOS_ERROR(std::runtime_error, "Entered tolerance must be a positive number", "");
+        KRATOS_THROW_ERROR(std::runtime_error, "Entered tolerance must be a positive number", "");
     }
 
     KRATOS_CATCH("")

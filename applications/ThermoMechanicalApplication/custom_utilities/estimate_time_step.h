@@ -288,7 +288,7 @@ namespace Kratos
 	    ThisModelPart.GetCommunicator().SumAll(tot_vol);
 
 	    if(tot_vol == 0.0) 
-                KRATOS_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
+                KRATOS_THROW_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
 	      
 	    if(current_solidified_volume == tot_vol){
 	      ThisModelPart.GetProcessInfo()[IS_SOLIDIFIED] = 1;
@@ -396,7 +396,7 @@ namespace Kratos
 		
 	    
 		if ( tot_area == 0.0 || tot_vol == 0.0)
-	      KRATOS_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
+	      KRATOS_THROW_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
 	    	    
 	    solidification_time = density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * (TT_solid-ambient_temperature));
 		solidification_time *= pow(tot_vol/tot_area , 0.8);

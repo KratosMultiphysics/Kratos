@@ -174,7 +174,7 @@ void IsotropicRankineDamage2D::CalculateCauchyStresses(
     const Vector& rPK2_StressVector,
     const Vector& rGreenLagrangeStrainVector)
 {
-    KRATOS_ERROR(std::logic_error,"method not yet implemented","")
+    KRATOS_THROW_ERROR(std::logic_error,"method not yet implemented","")
 }
 
 //**********************************************************************

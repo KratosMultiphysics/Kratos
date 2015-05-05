@@ -189,7 +189,7 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-KRATOS_ERROR(std::logic_error,"Method not implemented!!!!","");
+KRATOS_THROW_ERROR(std::logic_error,"Method not implemented!!!!","");
 
 		KRATOS_CATCH("")
 	}

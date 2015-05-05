@@ -99,7 +99,7 @@ public:
         KRATOS_TRY
 
         if (NEIGHBOUR_NODES.Key() == 0)
-            KRATOS_ERROR(std::logic_error, "Metis Application not registered correctly. NEIGBHBOUR NODES has 0 key!", "");
+            KRATOS_THROW_ERROR(std::logic_error, "Metis Application not registered correctly. NEIGBHBOUR NODES has 0 key!", "");
 
         //first of all compute the size of the graph, and ensure that the nodes are ordered consecutively 1...N (with no gaps)
         //we should verify here that the neighbours are calculated
@@ -112,7 +112,7 @@ public:
             WeakPointerVector<Node < 3 > >& nodal_neighb = it->GetValue(NEIGHBOUR_NODES);
             int nn = (nodal_neighb).size();
             if (nn == 0)
-                KRATOS_ERROR(std::logic_error, "isolated node found, or neighbours not calculated, ID= ", it->Id());
+                KRATOS_THROW_ERROR(std::logic_error, "isolated node found, or neighbours not calculated, ID= ", it->Id());
             //                    std::cout << "isolated node found, or neighbours not calculated, ID= " << it->Id() << std::endl;
             total_neighbs += nn ;
 

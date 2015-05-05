@@ -408,7 +408,7 @@ public:
 
         for (i=0; i<n; i++) if (BaseType::U[BaseType::iU[i]]==0.00)
             {
-                KRATOS_ERROR(std::runtime_error, "Zero in BaseType::U diagonal found!!", "")
+                KRATOS_THROW_ERROR(std::runtime_error, "Zero in BaseType::U diagonal found!!", "")
             }
     }
 

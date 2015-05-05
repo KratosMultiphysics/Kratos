@@ -108,7 +108,7 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
       }
     
        
@@ -310,7 +310,7 @@ void SmallDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
             mConstitutiveLawVector.resize(rValues.size());
 
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
-                KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() )
+                KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() )
         }
 
         for(unsigned int i=0; i<rValues.size(); i++)
@@ -326,7 +326,7 @@ void SmallDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
             mConstitutiveLawVector.resize(rValues.size());
 
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
-                KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
+                KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
         }
 
         for(unsigned int i=0; i<rValues.size(); i++)
@@ -522,7 +522,7 @@ void SmallDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetShapeFunctionsValues(rVariables.N);
 
     if(rVariables.detJ<0){
-        KRATOS_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", rVariables.detJ )
+        KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", rVariables.detJ )
     }
 
     rValues.SetDeterminantF0(rVariables.detF0);
@@ -719,7 +719,7 @@ void SmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalS
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rLeftHandSideVariables[i] )
+	      KRATOS_THROW_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rLeftHandSideVariables[i] )
 	    }
 
 	}
@@ -765,7 +765,7 @@ void SmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rRightHandSideVariables[i] )
+	      KRATOS_THROW_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rRightHandSideVariables[i] )
 	    }
 
 	}
@@ -1087,7 +1087,7 @@ void SmallDisplacementElement::InitializeMaterial()
     }
     else
 	{
-        KRATOS_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
+        KRATOS_THROW_ERROR( std::logic_error, "a constitutive law needs to be specified for the element with ID ", this->Id() )
 	}
 	KRATOS_CATCH( "" )
 }
@@ -1423,7 +1423,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -1476,7 +1476,7 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
@@ -1574,7 +1574,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -2026,34 +2026,34 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
     if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
 
     if ( ACCELERATION.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
     if ( DENSITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
+        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
     // if ( BODY_FORCE.Key() == 0 )
-    //     KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+    //     KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
-        KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
+        KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
 	//verify compatibility with the constitutive law
@@ -2068,33 +2068,33 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     if( correct_strain_measure == false )
-	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
+	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Small Displacements " );
 
     //Verify that the body force is defined
     // if ( this->GetProperties().Has( BODY_FORCE ) == false )
     // {
-    //     KRATOS_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
+    //     KRATOS_THROW_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
     // }
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
     {
         // if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-        //   KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
+        //   KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
 
 
         if ( THICKNESS.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
+            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
 
         if ( this->GetProperties().Has( THICKNESS ) == false )
-            KRATOS_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
+            KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
 
 
     }
     else
     {
         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-            KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
+            KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
     }
 
     //check constitutive law

@@ -670,7 +670,7 @@ void UlfFrac2D::PressureStep(MatrixType& rLeftHandSideMatrix, VectorType& rRight
     //this is just to try
     //double dens_str=1000.0;
     //if (n_interf>=3)
-    //	KRATOS_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");
+    //	KRATOS_THROW_ERROR(std::logic_error,  "Something is wrong: fluid element cannot have all 3 nodes at the FSI boundary " , "");
 
     //3 is the total number of nodes
     //so we add the inverse of the fluid density for the non-interface nodes (fluid only)
@@ -746,7 +746,7 @@ void  UlfFrac2D::Calculate(const Variable<double >& rVariable, double& Output, c
     }
 
     else
-        KRATOS_ERROR(std::logic_error,  "You are doing something wrong  FCT calculate... of nodal_mass with wring parameters.. " , "");
+        KRATOS_THROW_ERROR(std::logic_error,  "You are doing something wrong  FCT calculate... of nodal_mass with wring parameters.. " , "");
 
 }
 

@@ -203,7 +203,7 @@ public:
                 mCandidateNodes.push_back(*itNode);
         }
 
-        if(mCandidateNodes.size() == 0) KRATOS_ERROR(std::invalid_argument,"No nodes found for periodic conditions generation","");
+        if(mCandidateNodes.size() == 0) KRATOS_THROW_ERROR(std::invalid_argument,"No nodes found for periodic conditions generation","");
 
         // Initialize Search Strategy
         SizeType BucketSize = 20;
@@ -235,7 +235,7 @@ public:
 
         // check that the spatial seach structure was initialized
         if(mpSearchStrategy == 0)
-            KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: GenerateConditions() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
+            KRATOS_THROW_ERROR(std::logic_error,"PeriodicConditionUtilities error: GenerateConditions() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
         // Get reference condition
 	const Condition& rCondition = KratosComponents<Condition>::Get(rConditionLabel);
@@ -304,7 +304,7 @@ public:
 
         // check that the spatial seach structure was initialized
         if(mpSearchStrategy == 0)
-            KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundary() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
+            KRATOS_THROW_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundary() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
 
 
             const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
