@@ -47,11 +47,12 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void ModelerUtilities::BuildTotalMesh (ModelPart& rModelPart)
+  void ModelerUtilities::BuildTotalMesh (ModelPart& rModelPart, int EchoLevel)
   {
     //Mesh Id=0
 
-    std::cout<<"   [ START MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+    if( EchoLevel > 0 )
+      std::cout<<"   [ START MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
 
     rModelPart.Nodes().clear();
     rModelPart.Elements().clear();
@@ -74,7 +75,8 @@ namespace Kratos
 
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
-	std::cout<<"    [ CHILD MESH [Id:"<<MeshId<<"] [Elems="<<rModelPart.NumberOfElements(MeshId)<<"|Nodes="<<rModelPart.NumberOfNodes(MeshId)<<"|Conds="<<rModelPart.NumberOfConditions(MeshId)<<"] ] "<<std::endl;
+	if( EchoLevel > 0 )
+	  std::cout<<"    [ CHILD MESH [Id:"<<MeshId<<"] [Elems="<<rModelPart.NumberOfElements(MeshId)<<"|Nodes="<<rModelPart.NumberOfNodes(MeshId)<<"|Conds="<<rModelPart.NumberOfConditions(MeshId)<<"] ] "<<std::endl;
 
 
 	for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(MeshId) ; i_elem != rModelPart.ElementsEnd(MeshId) ; i_elem++)
@@ -173,8 +175,8 @@ namespace Kratos
     for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(0) ; in != rModelPart.NodesEnd(0) ; in++)
       in->SetId(consecutive_index++);
       
-
-    std::cout<<"   [ END MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+    if( EchoLevel > 0 )
+      std::cout<<"   [ END MESH [Id=0] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
  
   }
   
