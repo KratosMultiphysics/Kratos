@@ -214,25 +214,25 @@ public:
     BOOST_UBLAS_INLINE
     array_1d &operator = (const boost::numeric::ublas::vector_expression<AE>	&ae)
     {
-        // return assign (self_type	(ae));
-        self_type temporary	(ae);
-        return assign_temporary	(temporary);
+        return assign (self_type	(ae));
+        //self_type temporary	(ae);
+        //return assign_temporary	(temporary);
     }
     template<class AE>
     BOOST_UBLAS_INLINE
     array_1d &operator +=	(const boost::numeric::ublas::vector_expression<AE> &ae)
     {
-        // return assign (self_type	(*this + ae));
-        self_type temporary	(*this + ae);
-        return assign_temporary	(temporary);
+        return assign (self_type	(*this + ae));
+        //self_type temporary	(*this + ae);
+        //return assign_temporary	(temporary);
     }
     template<class AE>
     BOOST_UBLAS_INLINE
     array_1d &operator -=	(const boost::numeric::ublas::vector_expression<AE> &ae)
     {
-        // return assign (self_type	(*this - ae));
-        self_type temporary	(*this - ae);
-        return assign_temporary	(temporary);
+        return assign (self_type	(*this - ae));
+        //self_type temporary	(*this - ae);
+        //return assign_temporary	(temporary);
     }
     template<class AT>
     BOOST_UBLAS_INLINE
