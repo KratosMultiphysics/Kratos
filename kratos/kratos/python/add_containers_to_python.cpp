@@ -55,10 +55,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
+//#include "containers/hash_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/fix_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
+//#include "containers/all_variables_data_value_container.h"
 #include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
@@ -70,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
+#include "utilities/timer.h"
 
 
 
@@ -124,7 +127,112 @@ void FlagsSet2(Flags& ThisFlag, const Flags& OtherFlag, bool Value )
 {
     ThisFlag.Set(OtherFlag, Value);
 }
+/*
+void TestContainers(int repeat_number)
+{
+	Timer::Start("Properties SetValue Test");
+	Properties properties(0);
+	for(int i = 0 ; i < repeat_number ; i++)
+	{
+		double d = i/2.;
+		properties.SetValue(DISPLACEMENT_X, d);
+		properties.SetValue(TEMPERATURE, d);
+		properties.SetValue(VELOCITY_Y, d);
+		//properties.SetValue(CAUCHY_STRESS_TENSOR, ScalarMatrix(3,3,d));
+		properties.SetValue(DENSITY, d);
+		properties.SetValue(VISCOSITY, d);
+		properties.SetValue(PRESSURE, d);
+		properties.SetValue(DELTA_TIME, d);
+		properties.SetValue(TIME, d);
+		properties.SetValue(ACCELERATION_X, d);
+	}
+	Timer::Stop("Properties SetValue Test");
+	Timer::Start("Properties GetValue Test");
+	double d = 0.;
+	for(int i = 0 ; i < repeat_number ; i++)
+	{
+		d += properties.GetValue(DISPLACEMENT_X);
+		d += properties.GetValue(TEMPERATURE);
+		d += properties.GetValue(VELOCITY_Y);
+		d += properties.GetValue(DENSITY);
+		d += properties.GetValue(VISCOSITY);
+		d += properties.GetValue(PRESSURE);
+		d += properties.GetValue(DELTA_TIME);
+		d += properties.GetValue(TIME);
+		d += properties.GetValue(ACCELERATION_X);
+	}
+	Timer::Stop("Properties GetValue Test");
+	KRATOS_WATCH(d);
+	//Timer::Start("AllVariables SetValue Test");
+	//AllVariablesDataValueContainer all_variables_container;
+	//for(int i = 0 ; i < repeat_number ; i++)
+	//{
+	//	double d = i/2.;
+	//	all_variables_container.SetValue(DISPLACEMENT_X, d);
+	//	all_variables_container.SetValue(TEMPERATURE, d);
+	//	all_variables_container.SetValue(VELOCITY_Y, d);
+	//	//all_variables_container.SetValue(CAUCHY_STRESS_TENSOR, ScalarMatrix(3,3,d));
+	//	all_variables_container.SetValue(DENSITY, d);
+	//	all_variables_container.SetValue(VISCOSITY, d);
+	//	all_variables_container.SetValue(PRESSURE, d);
+	//	all_variables_container.SetValue(DELTA_TIME, d);
+	//	all_variables_container.SetValue(TIME, d);
+	//	all_variables_container.SetValue(ACCELERATION_X, d);
+	//}
+	//Timer::Stop("AllVariables SetValue Test");
+	//Timer::Start("AllVariables GetValue Test");
+	//for(int i = 0 ; i < repeat_number ; i++)
+	//{
+	//	d += all_variables_container.GetValue(DISPLACEMENT_X);
+	//	d += all_variables_container.GetValue(TEMPERATURE);
+	//	d += all_variables_container.GetValue(VELOCITY_Y);
+	//	d += all_variables_container.GetValue(DENSITY);
+	//	d += all_variables_container.GetValue(VISCOSITY);
+	//	d += all_variables_container.GetValue(PRESSURE);
+	//	d += all_variables_container.GetValue(DELTA_TIME);
+	//	d += all_variables_container.GetValue(TIME);
+	//	d += all_variables_container.GetValue(ACCELERATION_X);
+	//}
+	//Timer::Stop("AllVariables GetValue Test");
+	KRATOS_WATCH(d);
 
+	KRATOS_WATCH(properties);
+	std::cout << Timer() << std::endl;
+	Table<double> test_table;
+	test_table.insert(3.14,25.);
+
+	properties.SetTable(TEMPERATURE, DENSITY, test_table);
+
+	test_table.insert(1., 2.);
+
+	properties.SetTable(DISPLACEMENT_X, TIME, test_table);
+
+	test_table.insert(2., 3.);
+
+	properties.SetTable(TIME, DISPLACEMENT_X, test_table);
+
+	test_table.insert(3., 4.);
+
+	properties.SetTable(TIME, DISPLACEMENT_Y, test_table);
+
+	test_table.insert(4., 5.);
+
+	properties.SetTable(TIME, DENSITY, test_table);
+
+	Table<double>& retrieved_table = properties.GetTable(TEMPERATURE, DENSITY);
+
+	KRATOS_WATCH(retrieved_table);
+	KRATOS_WATCH(properties.GetTable(TEMPERATURE, DENSITY));
+	KRATOS_WATCH(properties.GetTable(DISPLACEMENT_X, TIME));
+	KRATOS_WATCH(properties.GetTable(TIME, DISPLACEMENT_X));
+	KRATOS_WATCH(properties.GetTable(TIME, DISPLACEMENT_Y));
+	KRATOS_WATCH(properties.GetTable(TIME, DENSITY));
+
+
+	
+
+}
+*/
 template<class TContainerType>
 struct Array1DModifier
 {
@@ -139,6 +247,8 @@ struct Array1DModifier
 
 void  AddContainersToPython()
 {
+	//def("TestContainers", TestContainers);
+
     BoundedVectorPythonInterface<array_1d<double, 3>, 3>::CreateInterface( "Array3" )
     .def( init<vector_expression<array_1d<double, 3> > >() )
     .def( VectorScalarOperatorPython<array_1d<double, 3>, double, array_1d<double, 3> >() )
@@ -207,6 +317,20 @@ void  AddContainersToPython()
     .def( self_ns::str( self ) )
     ;
 
+
+    //class_<AllVariablesDataValueContainer, AllVariablesDataValueContainer::Pointer>( "DataValueContainer" )
+    //.def( "__len__", &AllVariablesDataValueContainer::Size )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<std::string> >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<int> >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<double> >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<array_1d<double, 3> > >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<vector<double> > >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<matrix<double> > >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<ConvectionDiffusionSettings::Pointer > >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, Variable<RadiationSettings::Pointer > >() )
+    //.def( VariableIndexingPython<AllVariablesDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
+    //.def( self_ns::str( self ) )
+    //;
 
     class_<DataValueContainer, DataValueContainer::Pointer>( "DataValueContainer" )
     .def( "__len__", &DataValueContainer::Size )
@@ -489,7 +613,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ROTATION_CENTER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( VELOCITY_PERIOD )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ANGULAR_VELOCITY_PERIOD )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IDENTIFIER )        
+//    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IDENTIFIER )        
             
 
     //for xfem application
