@@ -118,19 +118,19 @@ class DEM_FEM_Search : public SpatialSearch
           int MaxNumberOfElements = rConditions.size();
 
           ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rElements.GetContainer());
-          ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rConditions.GetContainer());
+          ConditionsContainerType::ContainerType& conditions_bins = const_cast<ConditionsContainerType::ContainerType&>(rConditions.GetContainer());
 
           GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
-          GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
+          GeometricalObjectType::ContainerType BinsConditionPointerToGeometricalObjecPointerTemporalVector;
 
           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
-          BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
+          BinsConditionPointerToGeometricalObjecPointerTemporalVector.reserve(conditions_bins.size());
               
           for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
               SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
           
-          for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
-              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          for(ConditionsContainerType::ContainerType::iterator it = conditions_bins.begin(); it != conditions_bins.end(); it++)
+              BinsConditionPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
                  
           // This is used to generate the bins with all the particles. This does not need to be enabled unless you have
           //  a really good reason for it
@@ -138,7 +138,7 @@ class DEM_FEM_Search : public SpatialSearch
           //for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
           //    BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it); 
 
-          GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          GeometricalBinsType bins(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());
           
 //           bins.PrintData(std::cout);
           
