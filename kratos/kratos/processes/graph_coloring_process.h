@@ -139,6 +139,13 @@ public:
 
     virtual void Execute()
     {
+		//// Applying the Misra and Gries edge coloring algorithm.
+  //      // Start coloring...
+  //      for(SizeType i = 0 ; i < mrDomainsGraph.size1() ; i++) // for each domain
+  //          for(SizeType j = i + 1 ; j < mrDomainsGraph.size2() ; j++) // finding neighbor domains
+  //              if(mrDomainsGraph(i,j) != 0.00) // domain i has interface with domain j
+  // I should continue the implementation. Pooyan.
+
         mrMaxColor = 0;
         // Initializing the coloered graph. -1 means no connection
         // TODO: I have to change this part and create this matrix using max color number
