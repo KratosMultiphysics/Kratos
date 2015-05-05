@@ -383,7 +383,7 @@ namespace Kratos
 	    
 	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];	
 	    double tot_vol = 0.0;
-            double tot_area = 0.0;	    
+        double tot_area = 0.0;	    
 	    int node_size = ThisModelPart.Nodes().size();	    
 	    for (int ii = 0; ii < node_size; ii++)
 	    {
@@ -516,18 +516,14 @@ namespace Kratos
 		double DENOM=0.0;
 		
 		// Environment and part variables
-		const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
 		const double ambient_temperature=ThisModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];	       
-	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
-	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];
 	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];
 		const double density = ThisModelPart.GetProcessInfo()[DENSITY];
 	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
 		const double initial_temperature= ThisModelPart.GetProcessInfo()[AVERAGE_TEMPERATURE];
 
 		// Loop Over the nodes - Compute E1 term
-	    double tot_vol = 0.0;
-        double tot_area = 0.0;	    
+	    double tot_vol = 0.0;	    
 	    int node_size = ThisModelPart.Nodes().size();	    
 	    for (int ii = 0; ii < node_size; ii++)
 	    {
