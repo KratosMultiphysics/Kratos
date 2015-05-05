@@ -57,9 +57,11 @@ namespace Kratos {
                 array_1d<double, 3 >& coor = i->Coordinates();
                 array_1d<double, 3 >& initial_coor = i->GetInitialPosition();
                 array_1d<double, 3 >& force = i->FastGetSolutionStepValue(TOTAL_FORCES);
+                array_1d<double, 3 >& acc = i->FastGetSolutionStepValue(ACCELERATION);
+
                 double mass = i->FastGetSolutionStepValue(NODAL_MASS);
 
-                double aux = delta_t / mass;
+//              double aux = delta_t / mass;
 
                 if (if_virtual_mass_option) {
                     aux = (1 - virtual_mass_coeff)* (delta_t / mass);
@@ -67,35 +69,39 @@ namespace Kratos {
                     }
 
                 if (i->IsNot(DEMFlags::FIXED_VEL_X)) {
-                    vel[0] += aux * force[0];
-                    displ[0] += delta_displ[0];
                     delta_displ[0] = delta_t * vel[0];
+                    displ[0] += delta_displ[0];
                     coor[0] = initial_coor[0] + displ[0];
+                    vel[0] += delta_t * acc[0];
+                    acc[0] = force[0]/mass;
+
                 } else {
-                    displ[0] += delta_displ[0];
                     delta_displ[0] = delta_t * vel[0];
+                    displ[0] += delta_displ[0];
                     coor[0] = initial_coor[0] + displ[0];
                 }
 
                 if (i->IsNot(DEMFlags::FIXED_VEL_Y)) {
-                    vel[1] += aux * force[1];
-                    displ[1] += delta_displ[1];
                     delta_displ[1] = delta_t * vel[1];
+                    displ[1] += delta_displ[1];
                     coor[1] = initial_coor[1] + displ[1];
+                    vel[1] += delta_t * acc[1];
+                    acc[1] = force[1]/mass;
                 } else {
-                    displ[1] += delta_displ[1];
                     delta_displ[1] = delta_t * vel[1];
+                    displ[1] += delta_displ[1];
                     coor[1] = initial_coor[1] + displ[1];
                 }
 
                 if (i->IsNot(DEMFlags::FIXED_VEL_Z)) {
-                    vel[2] += aux * force[2];
-                    displ[2] += delta_displ[2];
                     delta_displ[2] = delta_t * vel[2];
+                    displ[2] += delta_displ[2];
                     coor[2] = initial_coor[2] + displ[2];
+                    vel[2] += delta_t * acc[2];
+                    acc[2] = force[2]/mass;
                 } else {
-                    displ[2] += delta_displ[2];
                     delta_displ[2] = delta_t * vel[2];
+                    displ[2] += delta_displ[2];
                     coor[2] = initial_coor[2] + displ[2];
                 }
             }
@@ -133,6 +139,7 @@ namespace Kratos {
                 array_1d<double, 3 > delta_rotation_displ;
                 double Orientation_real;
                 array_1d<double, 3 > Orientation_imag;
+                array_1d<double, 3 >& AngularAcc = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
                 bool If_Fix_Rotation[3] = {false, false, false};
 
                 If_Fix_Rotation[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
@@ -141,21 +148,24 @@ namespace Kratos {
 
                 for (std::size_t iterator = 0; iterator < 3; iterator++) {
                     if (If_Fix_Rotation[iterator] == false) {
-                        double RotaAcc = 0.0;
-                        RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia);
+
 
                         if (if_virtual_mass_option) {
-                            RotaAcc = RotaAcc * (1 - coeff);
+                            AngularAcc[iterator] = AngularAcc[iterator] * (1 - coeff);
                         }
 
                         delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-                        AngularVel[iterator] += RotaAcc * delta_t;
                         Rota_Displace[iterator] += delta_rotation_displ[iterator];
+                        AngularVel[iterator] += AngularAcc[iterator] * delta_t;
+                        AngularAcc[iterator] = RotaMoment[iterator]/PMomentOfInertia
+
                     }
 
                     else {
-                        AngularVel[iterator] = 0.0;
-                        delta_rotation_displ[iterator] = 0.0;
+
+                        delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
+                        Rota_Displace[iterator] += delta_rotation_displ[iterator];
+
                     }
                 }
 
