@@ -107,7 +107,7 @@ public:
 
     /// Copy constructor
     VariableData(const VariableData& rOtherVariable)
-        : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize) {}
+        : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize), mIsComponent(rOtherVariable.mIsComponent) {}
 
     /// Destructor.
     virtual ~VariableData() {}
@@ -187,6 +187,16 @@ public:
         return mSize;
     }
 
+	bool IsComponent()
+	{
+		return mIsComponent;
+	}
+
+	bool IsNotComponent()
+	{
+		return !mIsComponent;
+	}
+
 
     ///@}
     ///@name Inquiry
@@ -248,6 +258,7 @@ protected:
         mName = rOtherVariable.mName;
         mKey = rOtherVariable.mKey;
         mSize = rOtherVariable.mSize;
+		mIsComponent = rOtherVariable.mIsComponent;
 
         return *this;
     }
@@ -274,7 +285,7 @@ protected:
     /// Constructor.
     /*       VariableData(const std::string& NewName) : mName(NewName), mKey(gCounter++){} */
     //VariableData(const std::string& NewName) : mName(NewName), mKey(Counter<VariableData>::Increment()){}
-    VariableData(const std::string& NewName, std::size_t NewSize) : mName(NewName), mKey(0), mSize(NewSize) {}
+	VariableData(const std::string& NewName, std::size_t NewSize, bool Iscomponent = false) : mName(NewName), mKey(0), mSize(NewSize), mIsComponent(Iscomponent) {}
 
 
     /** default constructor is to be used only with serialization due to the fact that
@@ -299,6 +310,8 @@ private:
 
     std::size_t mSize;
 
+	bool mIsComponent;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -314,12 +327,14 @@ private:
     {
         rSerializer.save("Name",mName);
         rSerializer.save("Key",mKey);
+		rSerializer.save("IsComponent", mIsComponent);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         rSerializer.load("Name",mName);
         rSerializer.load("Key",mKey);
+		rSerializer.load("IsComponent", mIsComponent);
     }
 
     ///@}

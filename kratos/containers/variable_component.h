@@ -124,7 +124,7 @@ public:
     ///@{
 
     VariableComponent(const std::string& NewName, const AdaptorType& NewAdaptor)
-        : BaseType(NewName, sizeof(DataType)), mAdaptor(NewAdaptor)
+        : BaseType(NewName, sizeof(DataType), true), mAdaptor(NewAdaptor)
     {
     }
 
@@ -175,6 +175,10 @@ public:
         return msStaticObject;
     }
 
+    void Print(const void* pSource, std::ostream& rOStream) const
+    {
+        rOStream << Name() << " component of " <<  mAdaptor.GetSourceVariable().Name() << " variable : " <<  *static_cast<const DataType* >(pSource) ;
+    }
 
     ///@}
     ///@name Inquiry
