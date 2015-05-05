@@ -767,11 +767,12 @@ public:
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
+				KRATOS_WATCH(file_name.str())
 				mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
                     std::stringstream buffer;
-                    buffer << "error opening results file:" << "/" <<  mResultFileName   << "/";
+                    buffer << "error opening results file:" << "/" <<  file_name.str()   << "/";
                     KRATOS_ERROR(std::runtime_error, buffer.str(), "");
                 }
                 mResultFileOpen = true;
