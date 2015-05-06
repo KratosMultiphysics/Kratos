@@ -61,8 +61,8 @@ namespace Kratos {
         
         double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         
-        // 1.0122 (in meters) was the medium diameter of the rock in GiD (Rock1_01.gid file)
-        // so we should multiply every size that follow by the inverse of that number, 0.9879,
+        // 2.5900227 (in meters) was the medium diameter of the rock in GiD (Rock1_01.gid file)
+        // so we should multiply every size that follow by the inverse of that number, 0.386097,
         // to obtain a 'unity' rock.
         // We then have to multiply again everything by 'cl' to obtain the desired dimensions
         // to adjust to the characteristic length given
@@ -150,10 +150,10 @@ namespace Kratos {
                 
         array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         
-        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.059503047;
-        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.181064606;
-        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.145589529; 
-  
+        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.059488566;
+        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.145587554;
+        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.181080732;
+
     }     
     
       
