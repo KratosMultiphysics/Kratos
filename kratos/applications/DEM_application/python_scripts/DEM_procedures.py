@@ -185,10 +185,11 @@ class Procedures(object):
 
         # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-	model_part.AddNodalSolutionStepVariable(ACCELERATION)
-	model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
 
         
         # FORCES
@@ -247,13 +248,12 @@ class Procedures(object):
     def AddMappingVariables(self, model_part, Param): 
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
-        model_part.AddNodalSolutionStepVariable(DUMMY_1)
-        model_part.AddNodalSolutionStepVariable(DUMMY_1)
-        model_part.AddNodalSolutionStepVariable(DUMMY_2)
-        model_part.AddNodalSolutionStepVariable(DUMMY_3)
-        model_part.AddNodalSolutionStepVariable(DUMMY_3D_1)
-        model_part.AddNodalSolutionStepVariable(DUMMY_3D_2)
-        model_part.AddNodalSolutionStepVariable(DUMMY_3D_3)
+        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_1)
+        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_2)
+        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3)
+        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_1)
+        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_2)
+        model_part.AddNodalSolutionStepVariable(ARLEQUIN_DUMMY_3D_3)
      
     def AddClusterVariables(self, model_part, DEM_parameters):
         # KINEMATIC
@@ -1039,7 +1039,7 @@ class DEMIo(object):
             self.PushPrintVar(1,                             IMPACT_WEAR,                 self.fem_boundary_variables)
         
     def AddMappingVariables(self):
-        self.PushPrintVar( 1,                                               DUMMY_1, self.mapping_variables)
+        self.PushPrintVar( 1,                                               ARLEQUIN_DUMMY_1, self.mapping_variables)
 
     def AddClusterVariables(self):
         pass
