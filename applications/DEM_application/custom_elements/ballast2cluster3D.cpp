@@ -137,9 +137,9 @@ namespace Kratos {
                 
         array_1d<double, 3>& base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
         
-        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.130002031;
-        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.108529343;
-        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.157003505; 
+        base_principal_moments_of_inertia[0] = cluster_mass * cl * cl * 0.096309691;
+        base_principal_moments_of_inertia[1] = cluster_mass * cl * cl * 0.133694924;
+        base_principal_moments_of_inertia[2] = cluster_mass * cl * cl * 0.165530265; 
   
     }     
     
