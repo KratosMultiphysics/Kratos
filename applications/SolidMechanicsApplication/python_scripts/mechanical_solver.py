@@ -7,6 +7,7 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part, config=None):
+  
     # add displacements
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     # add dynamic variables
@@ -29,7 +30,6 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(POINT_TORQUE)
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION)
 
-
     if config is not None:
         if hasattr(config, "RotationDofs"):
             if config.RotationDofs:
@@ -48,7 +48,8 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(NODAL_MASS)
                 model_part.AddNodalSolutionStepVariable(FORCE_RESIDUAL)
                 model_part.AddNodalSolutionStepVariable(MIDDLE_VELOCITY)
-                
+
+                        
     print("::[Mechanical Solver]:: Variables ADDED")
 
 
@@ -132,7 +133,7 @@ class MechanicalSolver:
         self.max_delta_time = 1e-5
         self.fraction_delta_time = 0.9
         self.time_step_prediction_level = 0
-        self.rayleigh_damping = True
+        self.rayleigh_damping = False
 
         print("::[Mechanical Solver]:: -START-")
 
@@ -376,6 +377,10 @@ def CreateSolver(model_part, config):
         structural_solver.time_integration_method = config.time_integration_method
     if(hasattr(config, "explicit_integration_scheme")):
         structural_solver.explicit_integration_scheme = config.explicit_integration_scheme
+        if(hasattr(config, "rayleigh_damping")):
+            structural_solver.rayleigh_damping = config.rayleigh_damping
+    if(hasattr(config, "arlequin")):
+        structural_solver.arlequin = config.arlequin
 
     structural_solver.DefineBufferSize()
     
