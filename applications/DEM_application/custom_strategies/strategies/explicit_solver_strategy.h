@@ -530,11 +530,10 @@ namespace Kratos
               SearchRigidFaceNeighbours();
               ComputeNewRigidFaceNeighboursHistoricalData();
               mSearchControl = 2; // Search is active and search has been performed during this timestep
-              
+
           }
 
           else {
-              
               mSearchControl = 1; // Search is active but no search has been done this timestep;
           }
            
@@ -618,7 +617,7 @@ namespace Kratos
             
             for (int i = 0; i < number_of_particles; i++){
                               
-                mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity);  
+                mListOfSphericParticles[i]->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo, dt, gravity, mSearchControl);  
             }
           }
 
@@ -638,7 +637,7 @@ namespace Kratos
           {
               #pragma omp for
               for(int i=0; i<number_of_particles; i++){ 
-                  mListOfSphericParticles[i]->FirstCalculateRightHandSide(rCurrentProcessInfo, dt); 
+                  mListOfSphericParticles[i]->FirstCalculateRightHandSide(rCurrentProcessInfo, dt, mSearchControl); 
               }
               #pragma omp for
               for(int i=0; i<number_of_particles; i++){ 
@@ -828,7 +827,6 @@ namespace Kratos
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
         const int number_of_particles = (int)mListOfSphericParticles.size();
-
         #pragma omp parallel for
         for(int i=0; i<number_of_particles; i++){
             mListOfSphericParticles[i]->FullInitialize(rCurrentProcessInfo);
