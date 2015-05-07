@@ -804,7 +804,7 @@ namespace Kratos
         {
            
             int j=(i+1)%size;
-            
+            base_sq = 0.0;
             for (int k=0;k<3;k++)
             {
                 base[i][k] = (Coord[j][k] - Coord[i][k]); 
