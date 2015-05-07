@@ -97,8 +97,8 @@ virtual ~SphericParticle();
 ///@{
 virtual void Initialize();
 virtual void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
-virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
-virtual void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt);
+virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity, int search_control);
+virtual void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, int search_control);
 virtual void CollectCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);
 virtual void FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
 void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
@@ -205,7 +205,8 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
                                           array_1d<double, 3>& InitialRotaMoment,
                                           array_1d<double, 3>& rigid_element_force,
                                           ProcessInfo& rCurrentProcessInfo,
-                                          double mTimeStep);
+                                          double mTimeStep,
+                                          int search_control);
 
 virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], array_1d<double, 3 > &other_to_me_vel, int & ContactType);
 
@@ -322,7 +323,7 @@ virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Outp
 int mDimension;
 int mDampType;
 int mElasticityType;
-int mSearchControl;
+const double* mSearchControl;
 
 array_1d<double, 3> mContactForce;
 array_1d<double, 3> mContactMoment;
