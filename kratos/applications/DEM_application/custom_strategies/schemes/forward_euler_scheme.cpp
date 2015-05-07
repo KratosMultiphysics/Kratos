@@ -57,7 +57,6 @@ namespace Kratos {
                 array_1d<double, 3 >& coor = i->Coordinates();
                 array_1d<double, 3 >& initial_coor = i->GetInitialPosition();
                 array_1d<double, 3 >& force = i->FastGetSolutionStepValue(TOTAL_FORCES);
-                array_1d<double, 3 >& acc = i->FastGetSolutionStepValue(ACCELERATION);
 
                 double mass = i->FastGetSolutionStepValue(NODAL_MASS);
 
@@ -67,44 +66,30 @@ namespace Kratos {
                     force_reduction_factor = 1.0 - virtual_mass_coeff;                    
                     if (virtual_mass_coeff < 0.0) KRATOS_THROW_ERROR(std::runtime_error, "The coefficient assigned for virtual mass is larger than one, virtual_mass_coeff= ", virtual_mass_coeff)
                 }
+                
+                bool Fix_vel[3] = {false, false, false};
 
-                if (i->IsNot(DEMFlags::FIXED_VEL_X)) {
-                    delta_displ[0] = delta_t * vel[0];
-                    displ[0] += delta_displ[0];
-                    coor[0] = initial_coor[0] + displ[0];
-                    vel[0] += delta_t * acc[0];
-                    acc[0] = force_reduction_factor * force[0] / mass;
-                } else {
-                    delta_displ[0] = delta_t * vel[0];
-                    displ[0] += delta_displ[0];
-                    coor[0] = initial_coor[0] + displ[0];
-                }
-
-                if (i->IsNot(DEMFlags::FIXED_VEL_Y)) {
-                    delta_displ[1] = delta_t * vel[1];
-                    displ[1] += delta_displ[1];
-                    coor[1] = initial_coor[1] + displ[1];
-                    vel[1] += delta_t * acc[1];
-                    acc[1] = force_reduction_factor * force[1] / mass;
-                } else {
-                    delta_displ[1] = delta_t * vel[1];
-                    displ[1] += delta_displ[1];
-                    coor[1] = initial_coor[1] + displ[1];
-                }
-
-                if (i->IsNot(DEMFlags::FIXED_VEL_Z)) {
-                    delta_displ[2] = delta_t * vel[2];
-                    displ[2] += delta_displ[2];
-                    coor[2] = initial_coor[2] + displ[2];
-                    vel[2] += delta_t * acc[2];
-                    acc[2] = force_reduction_factor * force[2] / mass;
-                } else {
-                    delta_displ[2] = delta_t * vel[2];
-                    displ[2] += delta_displ[2];
-                    coor[2] = initial_coor[2] + displ[2];
-                }
-            }
-        }
+                Fix_vel[0] = i->Is(DEMFlags::FIXED_VEL_X);
+                Fix_vel[1] = i->Is(DEMFlags::FIXED_VEL_Y);
+                Fix_vel[2] = i->Is(DEMFlags::FIXED_VEL_Z);
+                
+                 for (int k = 0; k < 3; k++) {
+                    if (Fix_vel[k] == false) {
+                        delta_displ[k] = delta_t * vel[k];
+                        displ[k] += delta_displ[k];
+                        coor[k] = initial_coor[k] + displ[k];
+                        vel[k] += delta_t * force_reduction_factor * force[k] / mass;                          
+                    }
+                    else {
+                        delta_displ[k] = delta_t * vel[k];
+                        displ[k] += delta_displ[k];
+                        coor[k] = initial_coor[k] + displ[k];
+                    }
+                } // dimensions  
+                
+            } //nodes in the thread
+        } //threads
+        
         KRATOS_CATCH(" ")
     }
 
@@ -137,9 +122,7 @@ namespace Kratos {
                 array_1d<double, 3 >& Rota_Displace = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
                 array_1d<double, 3 >& delta_rotation = i->FastGetSolutionStepValue(DELTA_ROTATION);;
                 double Orientation_real;
-                array_1d<double, 3 > Orientation_imag;
-                array_1d<double, 3 >& AngularAcc = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-                
+                array_1d<double, 3 > Orientation_imag;                
                 
                 double moment_reduction_factor = 1.0;
 
@@ -149,22 +132,21 @@ namespace Kratos {
                 }
                 
                 
-                bool If_Fix_Rotation[3] = {false, false, false};
+                bool Fix_Ang_vel[3] = {false, false, false};
 
-                If_Fix_Rotation[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
-                If_Fix_Rotation[1] = i->Is(DEMFlags::FIXED_ANG_VEL_Y);
-                If_Fix_Rotation[2] = i->Is(DEMFlags::FIXED_ANG_VEL_Z);
+                Fix_Ang_vel[0] = i->Is(DEMFlags::FIXED_ANG_VEL_X);
+                Fix_Ang_vel[1] = i->Is(DEMFlags::FIXED_ANG_VEL_Y);
+                Fix_Ang_vel[2] = i->Is(DEMFlags::FIXED_ANG_VEL_Z);
 
-                for (std::size_t iterator = 0; iterator < 3; iterator++) {
-                    if (If_Fix_Rotation[iterator] == false) {
-                        delta_rotation[iterator] = AngularVel[iterator] * delta_t;
-                        Rota_Displace[iterator] += delta_rotation[iterator];
-                        AngularVel[iterator] += AngularAcc[iterator] * delta_t;
-                        AngularAcc[iterator] = moment_reduction_factor * RotaMoment[iterator] / PMomentOfInertia;
+                for (int k = 0; k < 3; k++) {
+                    if (Fix_Ang_vel[k] == false) {
+                        delta_rotation[k] = AngularVel[k] * delta_t;
+                        Rota_Displace[k] += delta_rotation[k];
+                        AngularVel[k] += delta_t * moment_reduction_factor * RotaMoment[k] / PMomentOfInertia;                        
                     }
                     else {
-                        delta_rotation[iterator] = AngularVel[iterator] * delta_t;
-                        Rota_Displace[iterator] += delta_rotation[iterator];
+                        delta_rotation[k] = AngularVel[k] * delta_t;
+                        Rota_Displace[k] += delta_rotation[k];
                     }
                 }
 
@@ -248,7 +230,7 @@ namespace Kratos {
                 array_1d<double, 3 > & RotaMoment = i.FastGetSolutionStepValue(PARTICLE_MOMENT);
                 array_1d<double, 3 > & Rota_Displace = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
                 array_1d<double, 3 > & EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);
-                array_1d<double, 3 > delta_rotation_displ;
+                array_1d<double, 3 > & delta_rotation = i.FastGetSolutionStepValue(DELTA_ROTATION);
 
                 GeometryFunctions::GetRotationMatrix(EulerAngles, rotation_matrix);
 
@@ -280,16 +262,16 @@ namespace Kratos {
 
                 for (int j = 0; j < 3; j++) {
                     if (If_Fix_Rotation[j] == false) {
-                        delta_rotation_displ[j] = AngularVel[j] * delta_t;
+                        delta_rotation[j] = AngularVel[j] * delta_t;
                         AngularVel[j] += GlobalRotaAcc[j] * delta_t;                         
-                        Rota_Displace[j] += delta_rotation_displ[j];
+                        Rota_Displace[j] += delta_rotation[j];
                     } else {
                         AngularVel[j] = 0.0;
-                        delta_rotation_displ[j] = 0.0;
+                        delta_rotation[j] = 0.0;
                     }
                 }
 
-                double ang = sqrt(delta_rotation_displ[0] * delta_rotation_displ[0] + delta_rotation_displ[1] * delta_rotation_displ[1] + delta_rotation_displ[2] * delta_rotation_displ[2]);
+                double ang = sqrt(delta_rotation[0] * delta_rotation[0] + delta_rotation[1] * delta_rotation[1] + delta_rotation[2] * delta_rotation[2]);
                 if (ang) {
 
                     array_1d<double, 3 > e1;
@@ -308,9 +290,9 @@ namespace Kratos {
                     array_1d<double, 3 > new_axes3;
                     array_1d<double, 3 > axis;
 
-                    axis[0] = delta_rotation_displ[0] / ang;
-                    axis[1] = delta_rotation_displ[1] / ang;
-                    axis[2] = delta_rotation_displ[2] / ang;
+                    axis[0] = delta_rotation[0] / ang;
+                    axis[1] = delta_rotation[1] / ang;
+                    axis[2] = delta_rotation[2] / ang;
 
                     double cang = cos(ang);
                     double sang = sin(ang);
