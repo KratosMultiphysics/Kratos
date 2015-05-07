@@ -14,7 +14,6 @@
 #error Please change the author fullname and if your license is different please state it above
 #error Please change the KRATOS_FILENAME_H_INCLUDED and ClassName and remove these error pragmas
 
-
 #if !defined(KRATOS_FILENAME_H_INCLUDED )
 #define  KRATOS_FILENAME_H_INCLUDED
 
