@@ -188,9 +188,6 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
-
         
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
@@ -259,10 +256,9 @@ class Procedures(object):
         # KINEMATIC
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
-        model_part.AddNodalSolutionStepVariable(ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
         
         # FORCES
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
