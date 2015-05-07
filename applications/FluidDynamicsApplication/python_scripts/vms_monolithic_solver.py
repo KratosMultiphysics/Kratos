@@ -271,14 +271,33 @@ class MonolithicSolver:
         self.neighbour_search.Execute()
 
         non_linear_tol = 0.001
-        max_it = 10
+        max_it = 5 #10
         reform_dofset = self.ReformDofSetAtEachStep
         time_order = 2
 
         if self.spalart_allmaras_linear_solver is None:
-            pPrecond = DiagonalPreconditioner()
-            self.spalart_allmaras_linear_solver = BICGSTABSolver(
-                1e-9, 5000, pPrecond)
+            #pPrecond = DiagonalPreconditioner()
+            #self.spalart_allmaras_linear_solver = BICGSTABSolver(
+                #1e-9, 300, pPrecond)
+            
+            import KratosMultiphysics.ExternalSolversApplication as kes
+            smoother_type = kes.AMGCLSmoother.ILU0
+            solver_type = kes.AMGCLIterativeSolverType.GMRES
+            gmres_size = 200
+            max_iter = 200
+            tol = 1e-9
+            verbosity = 1
+            linear_solver = kes.AMGCLSolver(
+                    smoother_type,
+                    solver_type,
+                    tol,
+                    max_iter,
+                    verbosity,
+                    gmres_size)
+            self.spalart_allmaras_linear_solver =  ScalingSolver(linear_solver, True)
+            
+            #self.spalart_allmaras_linear_solver = kes.SuperLUSolver()
+            self.spalart_allmaras_linear_solver = kes.PastixSolver(0,False)
 
         self.turbulence_model = SpalartAllmarasTurbulenceModel(
             self.model_part,
