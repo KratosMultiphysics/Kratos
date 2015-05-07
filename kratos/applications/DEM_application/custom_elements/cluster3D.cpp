@@ -147,10 +147,11 @@ namespace Kratos {
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
         array_1d<double, 3> global_relative_coordinates;      
         array_1d<double, 3> linear_vel_due_to_rotation;
-        //array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3>& cluster_angular_velocity = central_node.FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3> previous_position;
-        double dt_inv = 1.0 / dt;
+        array_1d<double, 3>& cluster_delta_rotation = central_node.FastGetSolutionStepValue(DELTA_ROTATION);
+        
+        array_1d<double, 3> previous_position;        
         
         for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
             
@@ -165,12 +166,13 @@ namespace Kratos {
             GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
             
             array_1d<double, 3>& velocity = sphere_node.FastGetSolutionStepValue(VELOCITY);
-            velocity[0] = delta_displacement[0] * dt_inv;
-            velocity[1] = delta_displacement[1] * dt_inv;
-            velocity[2] = delta_displacement[2] * dt_inv;
+//            velocity[0] = delta_displacement[0] * dt_inv;
+//            velocity[1] = delta_displacement[1] * dt_inv;
+//            velocity[2] = delta_displacement[2] * dt_inv;
             
-            //mListOfSphericParticles[i]->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY) = cluster_velocity + linear_vel_due_to_rotation;                                    
-            sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY) = cluster_angular_velocity;
+            noalias(velocity) = cluster_velocity + linear_vel_due_to_rotation;                                    
+            noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY) ) = cluster_angular_velocity;
+            noalias(sphere_node.FastGetSolutionStepValue(DELTA_ROTATION) ) = cluster_delta_rotation;
             
         }                        
     }
