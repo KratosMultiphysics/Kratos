@@ -45,33 +45,53 @@ namespace Kratos
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             
-            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.0;
+            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
             Vector[2] = Vector[2] * inv_distance;
     }
     
-    static inline void normalize(array_1d<double,3>& Vector, double& distance)
+    static inline void normalize( array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             
-            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.0;
+            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
+            Vector[0] = Vector[0] * inv_distance;
+            Vector[1] = Vector[1] * inv_distance;
+            Vector[2] = Vector[2] * inv_distance;       
+    }
+    
+    static inline void normalize( double Vector[3], double& distance)
+    {
+            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            
+            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
             Vector[2] = Vector[2] * inv_distance;       
     }
      
-    static inline void normalize(array_1d<double,3>& Vector)
+    static inline void normalize( array_1d<double,3>& Vector)
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             
-            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.0;
+            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
             Vector[2] = Vector[2] * inv_distance;
     }     
       
     static inline void module( const array_1d<double,3>& Vector, double& distance)
+    {
+            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+    }
+    
+     static inline double module( const double Vector[3])
+    {
+            return sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+    }
+    
+     static inline void module( const double Vector[3], double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
     }
@@ -171,10 +191,10 @@ namespace Kratos
     static inline void ComputeContactLocalCoordSystem(array_1d<double,3>& NormalDirection, const double& distance, double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
     {
            
-      double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.0; //TODO: Try code without this line
-      NormalDirection[0] *= inv_distance;
-      NormalDirection[1] *= inv_distance;
-      NormalDirection[2] *= inv_distance;                      
+        double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
+        NormalDirection[0] *= inv_distance;
+        NormalDirection[1] *= inv_distance;
+        NormalDirection[2] *= inv_distance;                      
        
       if(fabs(NormalDirection[0])>=0.577)
         {
