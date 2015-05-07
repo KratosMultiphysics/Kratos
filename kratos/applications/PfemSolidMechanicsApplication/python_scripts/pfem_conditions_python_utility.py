@@ -32,6 +32,7 @@ class ConditionsUtility:
         if(self.rotation_dofs):
             self.SetIncrementalRotation(time_step)
 
+    #
     def SetWeight(self):
         for node in self.model_part.Nodes:
             gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
@@ -43,6 +44,7 @@ class ConditionsUtility:
         setWeight = SetMechanicalInitialStateProcess(self.model_part, True, s1, s2)
         setWeight.ExecuteInitialize() ;
 
+    #
     def SetConstantWeight(self, s1, s2):
          for node in self.model_part.Nodes:
             gravetat = node.GetSolutionStepValue(VOLUME_ACCELERATION);
@@ -50,6 +52,7 @@ class ConditionsUtility:
          #setWeight = SetMechanicalInitialState()
          setWeight = SetMechanicalInitialStateProcess(self.model_part, False, s1, s2)
          setWeight.ExecuteInitialize();
+
     #
     def SetIncrementalDisp(self, time_step):
 
@@ -57,7 +60,7 @@ class ConditionsUtility:
             ImposedDisp = node.GetSolutionStepValue(IMPOSED_DISPLACEMENT)
             Displacement = node.GetSolutionStepValue(DISPLACEMENT)
             Velocity = node.GetSolutionStepValue(VELOCITY)
-            #WaterPressure = node.GetSolutionStepValue(WATER_PRESSURE)
+            # WaterPressure = node.GetSolutionStepValue(WATER_PRESSURE)
             # For displacement imposition:
             if(node.IsFixed(DISPLACEMENT_X) == 1):
                 ImposedDisp[0] = Displacement[0]
