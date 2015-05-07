@@ -73,7 +73,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void CylinderParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity)
+      void CylinderParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity, int search_control)
       {
           KRATOS_TRY
 
@@ -101,7 +101,7 @@ namespace Kratos
           
           if (mFemOldNeighbourIds.size() > 0)
           {
-            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, contact_force, initial_rotation_moment, rigid_element_force, rCurrentProcessInfo, dt);
+            ComputeBallToRigidFaceContactForce(/*contact_force, contact_moment,*/ elastic_force, contact_force, initial_rotation_moment, rigid_element_force, rCurrentProcessInfo, dt, search_control);
           }
               
           ComputeAdditionalForces(additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo, gravity);

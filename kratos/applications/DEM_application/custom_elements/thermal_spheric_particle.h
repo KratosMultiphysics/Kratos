@@ -60,7 +60,8 @@ namespace Kratos
       void CalculateRightHandSide(VectorType& r_right_hand_side_vector, 
                                   ProcessInfo& r_current_process_info,
                                   double dt, 
-                                  const array_1d<double,3>& gravity);  
+                                  const array_1d<double,3>& gravity,
+                                  int search_control);  
       void ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
       void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo); 
       void UpdateTemperature(const ProcessInfo& rCurrentProcessInfo); 
