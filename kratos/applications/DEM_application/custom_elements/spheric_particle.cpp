@@ -126,7 +126,7 @@ void SphericParticle::FullInitialize(const ProcessInfo& r_process_info)
 //**************************************************************************************************************************************************
 
 void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vector, ProcessInfo& r_current_process_info,
-                                             double dt, const array_1d<double,3>& gravity)
+                                             double dt, const array_1d<double,3>& gravity, int search_control)
 {
     KRATOS_TRY
     
@@ -153,7 +153,7 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
     ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_current_process_info, dt, multi_stage_RHS);
 
     if (mFemOldNeighbourIds.size() > 0){  //MSI: needed??
-        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt);
+        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt, search_control);
     }
     
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
@@ -181,7 +181,7 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process_info, double dt)
+void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process_info, double dt, int search_control)
 {
     KRATOS_TRY
 
@@ -205,7 +205,7 @@ void SphericParticle::FirstCalculateRightHandSide(ProcessInfo& r_current_process
     std::fill(neighbour_rigid_faces_total_contact_force.begin(), neighbour_rigid_faces_total_contact_force.end(), 0.0);
 
     if (mFemOldNeighbourIds.size() > 0){
-        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt);
+        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_current_process_info, dt, search_control);
     }
 
     KRATOS_CATCH( "" )
@@ -933,7 +933,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
     Weight[2]              = RF_Pram[ino1 + 12];
     Weight[3]              = RF_Pram[ino1 + 13];
     ContactType            = RF_Pram[ino1 + 15];
-
+    
     for (std::size_t inode = 0; inode < rObj_2->GetGeometry().size(); inode++){
         noalias(other_to_me_vel) += rObj_2->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY) * Weight[inode];
     }
@@ -983,7 +983,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                                                          array_1d<double, 3>& rInitialRotaMoment,
                                                          array_1d<double, 3>& rigid_element_force,
                                                          ProcessInfo& r_current_process_info,
-                                                         double mTimeStep)
+                                                         double mTimeStep,
+                                                         int search_control)
 {
     KRATOS_TRY
 
@@ -1046,8 +1047,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
         //MSI: Renew Distance for steps in between searches.
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
-            
-            if (mSearchControl==1) { //Search active but not performed in this timestep
+        
+            if (search_control == 1) { //Search active but not performed in this timestep
                 
                 double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
                 double total_weight = 0.0;
@@ -1093,7 +1094,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         }
         
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
-            
             double indentation = -(DistPToB - mRadius) - ini_delta;
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
@@ -1598,8 +1598,8 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     }
 
     mDampType                                    = r_process_info[DAMP_TYPE];
-    mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];
-    mSearchControl                               = r_process_info[SEARCH_CONTROL];
+    mElasticityType                              = r_process_info[FORCE_CALCULATION_TYPE];        
+        
     if (r_process_info[ROTATION_OPTION])         this->Set(DEMFlags::HAS_ROTATION, true);
     else                                         this->Set(DEMFlags::HAS_ROTATION, false);
     if (r_process_info[ROLLING_FRICTION_OPTION]) this->Set(DEMFlags::HAS_ROLLING_FRICTION, true);
