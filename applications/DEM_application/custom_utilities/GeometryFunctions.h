@@ -838,10 +838,10 @@ namespace Kratos
             
             double a2  =  dist_sq[i];
             double b2  =  base_sq;
-            double c2  =  dist_sq[i];
+            double c2  =  dist_sq[j];
             
             
-            if ( (a2 <= b2 + c2) || (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
+            if ( (a2 <= b2 + c2) && (c2 <= a2 + b2) ){  //neglecting obtuse triangles.
                 
                 TauSqCalculation(tau_sq,base_leng,diag_back,diag_front);
                 
