@@ -57,7 +57,7 @@ class ProjectionModule:
 
     def ProjectFromParticles(self, recalculate_neigh = True):
 
-        if (self.coupling_type < 3):
+        if (self.coupling_type != 3):
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:
