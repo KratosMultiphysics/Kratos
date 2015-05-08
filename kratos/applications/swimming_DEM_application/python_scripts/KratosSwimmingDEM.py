@@ -165,7 +165,7 @@ vars_man.AddNodalVariables(fluid_model_part, pp.fluid_vars)  #     MOD.
 input_file_name = pp.problem_name
 
 # reading the fluid part
-model_part_io_fluid = ModelPartIO(input_file_name, True)
+model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #_____________________________________________________________________________________________________________________________________
@@ -206,7 +206,7 @@ vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
 mixed_model_part = ModelPart("MixedPart")
 
 # reading the balls model part
-model_part_io_solid = ModelPartIO(pp.dem.problem_name + "DEM",True)
+model_part_io_solid = ModelPartIO(pp.dem.problem_name + "DEM")
 model_part_io_solid.ReadModelPart(balls_model_part)
 
 # reading the cluster model part
