@@ -512,7 +512,7 @@ namespace Kratos {
             
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 //ComputeMoments(LocalElasticContactForce[2], mOldNeighbourElasticContactForces[i_neighbour_count], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator);
-                ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator);
+                ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
             }
 
             if (mContactMeshOption == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
