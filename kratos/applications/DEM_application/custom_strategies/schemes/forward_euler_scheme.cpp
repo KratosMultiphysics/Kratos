@@ -23,7 +23,11 @@ namespace Kratos {
                 CalculateRotationalMotion(model_part, pGhostNodes);
             }
         } else {
-            if (rCurrentProcessInfo[ROTATION_OPTION] != 0) {
+            
+            if (rCurrentProcessInfo[ROTATION_OPTION] == 0){
+                UpdateLinearDisplacementAndVelocityOfSpheres(model_part);
+            }
+            else {
                 CalculateRotationalMotionOfClusters(model_part);
             }
         }
@@ -329,7 +333,33 @@ namespace Kratos {
         } //End of parallel region
 
         KRATOS_CATCH(" ")
-    }//rotational_motion   
+    }//rotational_motion  
+    
+    
+    void ForwardEulerScheme::UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart& rcluster_model_part) { //must be done AFTER the translational motion!
+
+        KRATOS_TRY
+
+        typedef ModelPart::ElementsContainerType ElementsArrayType;
+        typedef ElementsArrayType::iterator ElementIterator;
+        
+        vector<unsigned int> element_partition;
+        ElementsArrayType& pElements = rcluster_model_part.GetCommunicator().LocalMesh().Elements();
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), element_partition);
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int) OpenMPUtils::GetNumThreads(); k++) {
+            ElementIterator i_begin = pElements.ptr_begin() + element_partition[k];
+            ElementIterator i_end = pElements.ptr_begin() + element_partition[k + 1];
+
+            for (ElementsArrayType::iterator it = i_begin; it != i_end; ++it) {
+                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
+                cluster_element.UpdateLinearDisplacementAndVelocityOfSpheres();
+            }
+        }                
+        
+        KRATOS_CATCH(" ")
+    }
 
 
 }
