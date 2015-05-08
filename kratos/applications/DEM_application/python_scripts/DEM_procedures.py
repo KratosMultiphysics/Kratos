@@ -23,7 +23,7 @@ class MdpaCreator(object):
 
     def __init__(self, path, DEM_parameters):
         
-        self.problem_parameters = param
+        self.problem_parameters = DEM_parameters
         self.current_path = path
 
         # Creating necessary directories
@@ -34,7 +34,6 @@ class MdpaCreator(object):
             os.makedirs(str(self.post_mdpas))
 
     def WriteMdpa(self, model_part):
-        
         os.chdir(self.post_mdpas)
         time = model_part.ProcessInfo.GetValue(TIME)
         mdpa = open(str(self.problem_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w')
@@ -67,7 +66,6 @@ class MdpaCreator(object):
 
         mdpa.write('End NodalData')
         mdpa.write('\n')
-
 
 class GranulometryUtils(object):
 
