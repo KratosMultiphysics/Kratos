@@ -120,7 +120,7 @@ namespace Kratos {
                 array_1d<double, 3 >& AngularVel = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3 >& RotaMoment = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
                 array_1d<double, 3 >& Rota_Displace = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                array_1d<double, 3 >& delta_rotation = i->FastGetSolutionStepValue(DELTA_ROTATION);;
+                array_1d<double, 3 >& delta_rotation = i->FastGetSolutionStepValue(DELTA_ROTATION);
                 double Orientation_real;
                 array_1d<double, 3 > Orientation_imag;                
                 
