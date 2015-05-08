@@ -74,26 +74,27 @@ namespace Kratos {
 //         a = 0.572749; // this is the original semi-axis (1.1455/2)
 //         b = a; c = b;
         
-        mListOfCoordinates[ 0][0] = 0.109377;mListOfCoordinates[ 0][1] =-0.009710;mListOfCoordinates[ 0][2] =-0.281412;
-        mListOfCoordinates[ 1][0] =-0.142170;mListOfCoordinates[ 1][1] =-0.054794;mListOfCoordinates[ 1][2] = 0.352726;
-        mListOfCoordinates[ 2][0] = 0.184175;mListOfCoordinates[ 2][1] = 0.239158;mListOfCoordinates[ 2][2] =-0.031211;
-        mListOfCoordinates[ 3][0] = 0.097582;mListOfCoordinates[ 3][1] = 0.104613;mListOfCoordinates[ 3][2] =-0.131214;
-        mListOfCoordinates[ 4][0] =-0.230406;mListOfCoordinates[ 4][1] =-0.230793;mListOfCoordinates[ 4][2] = 0.226359;
-        mListOfCoordinates[ 5][0] = 0.232129;mListOfCoordinates[ 5][1] = 0.217145;mListOfCoordinates[ 5][2] =-0.245093;
-        mListOfCoordinates[ 6][0] = 0.046670;mListOfCoordinates[ 6][1] = 0.273874;mListOfCoordinates[ 6][2] =-0.054866;
-        mListOfCoordinates[ 7][0] =-0.102738;mListOfCoordinates[ 7][1] =-0.131159;mListOfCoordinates[ 7][2] =-0.246952;
-        mListOfCoordinates[ 8][0] =-0.056793;mListOfCoordinates[ 8][1] = 0.005332;mListOfCoordinates[ 8][2] = 0.371649;
-        mListOfCoordinates[ 9][0] = 0.053185;mListOfCoordinates[ 9][1] =-0.049706;mListOfCoordinates[ 9][2] =-0.183108;
-        mListOfCoordinates[10][0] =-0.325390;mListOfCoordinates[10][1] =-0.417720;mListOfCoordinates[10][2] =-0.263742;
-        mListOfCoordinates[11][0] = 0.177439;mListOfCoordinates[11][1] =-0.185131;mListOfCoordinates[11][2] =-0.130760;
-        mListOfCoordinates[12][0] =-0.216448;mListOfCoordinates[12][1] =-0.248704;mListOfCoordinates[12][2] =-0.185033;
-        mListOfCoordinates[13][0] =-0.059379;mListOfCoordinates[13][1] =-0.244949;mListOfCoordinates[13][2] =-0.118607;
-        mListOfCoordinates[14][0] = 0.277810;mListOfCoordinates[14][1] = 0.130129;mListOfCoordinates[14][2] =-0.021583;
-        mListOfCoordinates[15][0] = 0.077362;mListOfCoordinates[15][1] =-0.041935;mListOfCoordinates[15][2] =-0.233118;
-        mListOfCoordinates[16][0] = 0.131849;mListOfCoordinates[16][1] = 0.041977;mListOfCoordinates[16][2] =-0.257780;
-        mListOfCoordinates[17][0] =-0.079260;mListOfCoordinates[17][1] =-0.050416;mListOfCoordinates[17][2] = 0.005213;
-        mListOfCoordinates[18][0] =-0.044223;mListOfCoordinates[18][1] =-0.001916;mListOfCoordinates[18][2] =-0.024154;
-        mListOfCoordinates[19][0] = 0.058239;mListOfCoordinates[19][1] = 0.145923;mListOfCoordinates[19][2] =-0.076332;
+        mListOfCoordinates[ 0][0]= 0.231256; mListOfCoordinates[ 0][1]=-0.074296; mListOfCoordinates[ 0][2]=-0.068691;
+        mListOfCoordinates[ 1][0]=-0.419411; mListOfCoordinates[ 1][1]= 0.135353; mListOfCoordinates[ 1][2]=-0.408928;
+        mListOfCoordinates[ 2][0]= 0.146031; mListOfCoordinates[ 2][1]= 0.275717; mListOfCoordinates[ 2][2]=-0.179708;
+        mListOfCoordinates[ 3][0]= 0.139874; mListOfCoordinates[ 3][1]= 0.087744; mListOfCoordinates[ 3][2]=-0.112625;
+        mListOfCoordinates[ 4][0]=-0.417929; mListOfCoordinates[ 4][1]=-0.098586; mListOfCoordinates[ 4][2]=-0.343806;
+        mListOfCoordinates[ 5][0]= 0.334970; mListOfCoordinates[ 5][1]= 0.162886; mListOfCoordinates[ 5][2]=-0.058594;
+        mListOfCoordinates[ 6][0]= 0.103533; mListOfCoordinates[ 6][1]= 0.236640; mListOfCoordinates[ 6][2]=-0.035744;
+        mListOfCoordinates[ 7][0]= 0.056260; mListOfCoordinates[ 7][1]=-0.228340; mListOfCoordinates[ 7][2]=-0.005488;
+        mListOfCoordinates[ 8][0]=-0.371725; mListOfCoordinates[ 8][1]= 0.223389; mListOfCoordinates[ 8][2]=-0.453942;
+        mListOfCoordinates[ 9][0]= 0.111432; mListOfCoordinates[ 9][1]=-0.073221; mListOfCoordinates[ 9][2]=-0.127622;
+        mListOfCoordinates[10][0]=-0.133260; mListOfCoordinates[10][1]=-0.538192; mListOfCoordinates[10][2]= 0.010085;
+        mListOfCoordinates[11][0]= 0.093703; mListOfCoordinates[11][1]=-0.099668; mListOfCoordinates[11][2]=-0.343238;
+        mListOfCoordinates[12][0]=-0.088034; mListOfCoordinates[12][1]=-0.327130; mListOfCoordinates[12][2]=-0.036903;
+        mListOfCoordinates[13][0]=-0.057795; mListOfCoordinates[13][1]=-0.228695; mListOfCoordinates[13][2]=-0.207391;
+        mListOfCoordinates[14][0]= 0.154340; mListOfCoordinates[14][1]= 0.234559; mListOfCoordinates[14][2]=-0.322492;
+        mListOfCoordinates[15][0]= 0.166286; mListOfCoordinates[15][1]=-0.084923; mListOfCoordinates[15][2]=-0.101633;
+        mListOfCoordinates[16][0]= 0.239770; mListOfCoordinates[16][1]=-0.014129; mListOfCoordinates[16][2]=-0.074446;
+        mListOfCoordinates[17][0]=-0.108138; mListOfCoordinates[17][1]=-0.023480; mListOfCoordinates[17][2]=-0.177239;
+        mListOfCoordinates[18][0]=-0.051764; mListOfCoordinates[18][1]= 0.010696; mListOfCoordinates[18][2]=-0.152177;
+        mListOfCoordinates[19][0]= 0.088039; mListOfCoordinates[19][1]= 0.133217; mListOfCoordinates[19][2]=-0.102246;
+
 
         for (int i = 0; i < number_of_spheres; i++) { 
             mListOfCoordinates[i][0] *= cl;  mListOfCoordinates[i][1] *= cl;  mListOfCoordinates[i][2] *= cl;
