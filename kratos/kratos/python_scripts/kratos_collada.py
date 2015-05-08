@@ -1,57 +1,60 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # importing the Kratos Library
-#from KratosMultiphysics import *
-#from KratosMultiphysics.IncompressibleFluidApplication import *
-#from KratosMultiphysics.FluidDynamicsApplication import *
-#CheckForPreviousImport()
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+#from KratosMultiphysics.MeshingApplication import *
+CheckForPreviousImport()
 
 #importing the collada library
 import collada
 import numpy
 
 class ColladaImporter:
-    def __init__(self,model_part, collada_filename):
+    def __init__(self,model_part, collada_filename, import_normals=False):
         self.model_part = model_part
         self.collada_filename = str(collada_filename)
+        self.import_normals = import_normals
         
         #open and import the collada collada_file
         print("attempting to open ", self.collada_filename)
         f = open(self.collada_filename,'rb')
-        print("line 21")
+
         self.collada_mesh = collada.Collada(f)
         f.close()
     
-    def GenerateModelPartConditions(self, condition_name):
+    def GenerateModelPartElements(self, element_name):
         #kratos auxiliaries
         nodeid = 1
         elid = 1
         prop = self.model_part.Properties[0]
 
-        #loop over all the triangles and create new nodes assigning an Id in the order in which they appear
-        #at the same time also generate the Conditions
-        print("  inside collada_mesh ", self.collada_mesh)
-        
+        ###here loop over the skins in needed
+        print("controller = ",self.collada_mesh.controllers)
+        for skin in self.collada_mesh.controllers:
+            print("skin joint_matrices",skin.joint_matrices)
+            print(" ")
+                
+        ##following block reads in a collada static file and generates the kratos database
         scene = self.collada_mesh.scene
-        
-        #for itmesh in range(0, len(self.collada_mesh.geometries)):
-            #mesh = self.collada_mesh.geometries[itmesh]
-            
         for mesh in scene.objects('geometry'):
-            print("mesh = ",mesh)
+            #print("mesh = ",mesh)
             #first of all generate all of the kratos nodes for this mesh
             primitives_list = list(mesh.primitives())
-            print(primitives_list)
+            #print(primitives_list)
             for triset in primitives_list:
-                print("triset = ", type(triset) )
+                #print("triset = ", type(triset) )
                 if( type(triset) == collada.triangleset.BoundTriangleSet): 
                     
                 
                     #here we loop over all of the triangles
-                    for tri_indices in triset.vertex_index:
+                    for tri_indices,normal_indices in zip(triset.vertex_index,triset.normal_index):
                         node0_coords = triset.vertex[tri_indices][0]
                         node1_coords = triset.vertex[tri_indices][1]
                         node2_coords = triset.vertex[tri_indices][2]
+                        
+                        
                         #print("node0", node0_coords)
                         #print("node1", node1_coords)
                         #print("node2", node2_coords)
@@ -71,15 +74,34 @@ class ColladaImporter:
                         nodeid += 1
                         
                         ##here generate the conditions
-                        self.model_part.CreateNewCondition(condition_name, elid,  elemental_ids, prop)
+                        #print("just before creating the element")
+                        self.model_part.CreateNewElement(element_name, elid,  elemental_ids, prop)
                         elid += 1
                         
-                        ##we shall also keep this in a tuple for future use, maintaining the order of creation
-                    
-                    
+                        if self.import_normals == True:
+                            ##here we assign the normals
+                            n0a = triset.normal[normal_indices][0]
+                            n0 = Vector(3)
+                            n0[0] = float(n0a[0])
+                            n0[1] = float(n0a[1])
+                            n0[2] = float(n0a[2])
+                            
+                            n1a = triset.normal[normal_indices][1]
+                            n1 = Vector(3)
+                            n1[0] = float(n1a[0]); n1[1] = float(n1a[1]); n1[2] = float(n1a[2]);
+                            n2a = triset.normal[normal_indices][2]
+                            n2 = Vector(3)
+                            n2[0] = float(n2a[0]); n2[1] = float(n2a[1]); n2[2] = float(n2a[2]);
+                            
+                            kratos_node0.SetSolutionStepValue(NORMAL,0,n0)
+                            kratos_node1.SetSolutionStepValue(NORMAL,0,n1)
+                            kratos_node2.SetSolutionStepValue(NORMAL,0,n2)
+                        
+                        
             
             
-            #then generate all of the triangles
+
+                
             
             
         
