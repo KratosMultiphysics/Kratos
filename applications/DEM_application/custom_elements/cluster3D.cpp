@@ -141,7 +141,30 @@ namespace Kratos {
                 
         KRATOS_CATCH("")
     }
-      
+    
+    
+    void Cluster3D::UpdateLinearDisplacementAndVelocityOfSpheres(){
+        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
+        array_1d<double, 3>& cluster_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3> global_relative_coordinates;
+        array_1d<double, 3 > & EulerAngles = central_node.FastGetSolutionStepValue(EULER_ANGLES);
+        double rotation_matrix[3][3];
+        
+        GeometryFunctions::GetRotationMatrix(EulerAngles, rotation_matrix);
+        
+        for (unsigned int i=0; i<mListOfCoordinates.size(); i++) {
+            GeometryFunctions::VectorLocal2Global(rotation_matrix, mListOfCoordinates[i], global_relative_coordinates);
+            Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
+            array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
+            array_1d<double, 3>& delta_displacement = sphere_node.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+            array_1d<double, 3> previous_position; 
+            noalias(previous_position) = sphere_position;
+            noalias(sphere_position)= central_node.Coordinates() + global_relative_coordinates;
+            noalias(delta_displacement) = sphere_position - previous_position;
+            noalias(sphere_node.FastGetSolutionStepValue(VELOCITY) ) = cluster_velocity;
+        }        
+    }
+    
     void Cluster3D::UpdatePositionOfSpheres(double RotationMatrix[3][3], const double dt) {
         
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE CLUSTER
@@ -159,16 +182,13 @@ namespace Kratos {
             Node<3>& sphere_node = mListOfSphericParticles[i]->GetGeometry()[0]; 
             array_1d<double, 3>& sphere_position = sphere_node.Coordinates();
             array_1d<double, 3>& delta_displacement = sphere_node.FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-            previous_position = sphere_position;
-            sphere_position= central_node.Coordinates() + global_relative_coordinates;
-            delta_displacement = sphere_position - previous_position;
+            noalias(previous_position) = sphere_position;
+            noalias(sphere_position)= central_node.Coordinates() + global_relative_coordinates;
+            noalias(delta_displacement) = sphere_position - previous_position;
             
             GeometryFunctions::CrossProduct( cluster_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
             
             array_1d<double, 3>& velocity = sphere_node.FastGetSolutionStepValue(VELOCITY);
-//            velocity[0] = delta_displacement[0] * dt_inv;
-//            velocity[1] = delta_displacement[1] * dt_inv;
-//            velocity[2] = delta_displacement[2] * dt_inv;
             
             noalias(velocity) = cluster_velocity + linear_vel_due_to_rotation;                                    
             noalias(sphere_node.FastGetSolutionStepValue(ANGULAR_VELOCITY) ) = cluster_angular_velocity;

@@ -54,6 +54,7 @@ namespace Kratos {
         void CalculateTranslationalMotion(ModelPart& model_part, NodesArrayType& pNodes);
         void CalculateRotationalMotion(ModelPart& model_part, NodesArrayType& pNodes);
         void CalculateRotationalMotionOfClusters(ModelPart& rcluster_model_part);
+        void UpdateLinearDisplacementAndVelocityOfSpheres(ModelPart& rcluster_model_part);
 
         /// Turn back information as a string.
 
