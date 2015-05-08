@@ -271,7 +271,9 @@ virtual void ComputeMoments(double normalLocalElasticContactForce,
                       array_1d<double, 3>& GlobalElasticContactForces,
                       array_1d<double, 3>& rInitialRotaMoment,
                       double LocalCoordSystem_2[3],
-                      SphericParticle* neighbour_iterator);
+                      SphericParticle* neighbour_iterator,
+                      double indentation,
+                      bool wall=false);
 
 virtual void CustomInitialize();
 

@@ -250,7 +250,7 @@ void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& r_current_process
 {
     KRATOS_TRY
 
-    if (this->Is(DEMFlags::HAS_ROTATION)){
+    /*if (this->Is(DEMFlags::HAS_ROTATION)){
         const array_1d<double, 3> ang_vel = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
         const double coeff_acc            = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) / dt;
         array_1d<double, 3> initial_rotation_moment;
@@ -268,7 +268,7 @@ void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& r_current_process
             double projection_to_local_axis2     = DEM_INNER_PRODUCT_3(mOldNeighbourElasticContactForces[i], other_to_me_vect_unitary);
 
             if (this->Is(DEMFlags::HAS_ROTATION)){
-                ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, ineighbour);
+                ComputeMoments(projection_to_local_axis2, mOldNeighbourElasticContactForces[i], initial_rotation_moment, other_to_me_vect_unitary, ineighbour, indentation);
             }
         }
 
@@ -286,7 +286,7 @@ void SphericParticle::FinalCalculateRightHandSide(ProcessInfo& r_current_process
 
     noalias(total_forces) = mContactForce  + additional_forces;
     noalias(total_moment) = mContactMoment + additionally_applied_moment;
-
+*/
     KRATOS_CATCH( "" )
 }
 
@@ -719,20 +719,21 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                                      array_1d<double, 3>& GlobalElasticContactForce,
                                      array_1d<double, 3>& rInitialRotaMoment,
                                      double LocalCoordSystem2[3],
-                                     SphericParticle* p_neighbour)
+                                     SphericParticle* p_neighbour,
+                                     double indentation,
+                                     bool wall)
 {
     double MA[3] = {0.0};
 
     GeometryFunctions::CrossProduct(LocalCoordSystem2, GlobalElasticContactForce, MA);
     
-    const double& other_radius = p_neighbour->GetRadius();
-    array_1d<double, 3> other_to_me_vect;
-    noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
-    double distance            = DEM_MODULUS_3(other_to_me_vect);
-    double radius_sum          = mRadius + other_radius;
-    double indentation         = radius_sum - distance;
+    double arm = mRadius - indentation;
     
-    double arm = mRadius - indentation * mRadius / radius_sum;
+    if(!wall) {
+        const double other_radius = p_neighbour->GetRadius();
+        double radius_sum          = mRadius + other_radius;
+        arm = mRadius - indentation * mRadius / radius_sum;
+    }
    
     mContactMoment[0] -= MA[0] * arm;
     mContactMoment[1] -= MA[1] * arm;
@@ -895,7 +896,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
 //            ComputeMoments(normal_force, mOldNeighbourElasticContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
-            ComputeMoments(normal_force, temp_force, rInitialRotaMoment, LocalCoordSystem[2], ineighbour);
+            ComputeMoments(normal_force, temp_force, rInitialRotaMoment, LocalCoordSystem[2], ineighbour, indentation);
 
         }
     }// for each neighbor
@@ -1216,7 +1217,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             rigid_element_force[2] -= GlobalElasticContactForce[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this); //WARNING: sending itself as the neighbor!!
+                ComputeMoments(LocalElasticContactForce[2], mFemOldNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
         
             //WEAR
