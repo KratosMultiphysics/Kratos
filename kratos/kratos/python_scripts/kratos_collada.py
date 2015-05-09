@@ -39,15 +39,22 @@ class ColladaImporter:
         ##following block reads in a collada static file and generates the kratos database
         scene = self.collada_mesh.scene
         for mesh in scene.objects('geometry'):
-            #print("mesh = ",mesh)
+            print("mesh = ",mesh)
             #first of all generate all of the kratos nodes for this mesh
             primitives_list = list(mesh.primitives())
             #print(primitives_list)
-            for triset in primitives_list:
-                #print("triset = ", type(triset) )
-                if( type(triset) == collada.triangleset.BoundTriangleSet): 
+            for primitive in primitives_list:
+                print("primitive type = ", type(primitive) )
+                if( type(primitive) == collada.triangleset.BoundTriangleSet): 
+                    triset = primitive
+                elif( type(primitive) == collada.polylist.BoundPolylist): 
+                    triset = primitive.triangleset()
+                else:
+                    triset = None
                     
-                
+                    
+                if triset != None:
+                    
                     #here we loop over all of the triangles
                     for tri_indices,normal_indices in zip(triset.vertex_index,triset.normal_index):
                         node0_coords = triset.vertex[tri_indices][0]
