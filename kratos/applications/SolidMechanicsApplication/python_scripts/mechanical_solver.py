@@ -6,8 +6,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part, config=None):
-  
+def AddVariables(model_part, config=None):  
     # add displacements
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     # add dynamic variables
@@ -48,7 +47,6 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(NODAL_MASS)
                 model_part.AddNodalSolutionStepVariable(FORCE_RESIDUAL)
                 model_part.AddNodalSolutionStepVariable(MIDDLE_VELOCITY)
-
                         
     print("::[Mechanical Solver]:: Variables ADDED")
 
