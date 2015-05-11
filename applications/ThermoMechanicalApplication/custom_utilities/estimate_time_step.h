@@ -549,7 +549,7 @@ namespace Kratos
 			const double mould_vfact= itCond->GetProperties()[MOULD_VFACT];
 			const double mould_sfact= itCond->GetProperties()[MOULD_SFACT];
 			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT]; 
-			const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
+			//const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
 			const double mould_temperature = itCond->GetProperties()[MOULD_TEMPERATURE];
 			const double condition_area=rGeom.DomainSize();
 			// dE2 - Second Term
