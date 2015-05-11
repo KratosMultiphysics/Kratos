@@ -274,7 +274,16 @@ void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
-
+    //stabilization factor
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
+    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
+    }
+    GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
+    
 }
 
 ////************************************************************************************
@@ -726,8 +735,9 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
     //use of this variable for the complete parameter: (deffault: 4)
-    double AlphaStabilization = 4.0; //4.0; //GetProperties()[STABILIZATION];
-    
+    double AlphaStabilization  = 4.0; 
+    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    AlphaStabilization *= StabilizationFactor;
     
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
@@ -1025,9 +1035,11 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
 
-    //use of this variable for the complete parameter: (deffault: 4)
-    double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
-    
+    //use of this variable for the complete parameter: (deffault: 4)    
+    double AlphaStabilization  = 4.0; 
+    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    AlphaStabilization *= StabilizationFactor;
+
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
         AlphaStabilization = 1.0/4.5;

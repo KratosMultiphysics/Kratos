@@ -129,8 +129,28 @@ namespace Kratos
    {
    }
 
+   //************************************************************************************
+   //************************************************************************************
 
+   void AxisymSpatialLagrangianUwPStabElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
+									   const ProcessInfo& rCurrentProcessInfo)
+   {
+     KRATOS_TRY
 
+     AxisymSpatialLagrangianUwPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+
+     //stabilization factor
+     double StabilizationFactor = 1.0;
+     if( GetProperties().Has(STABILIZATION_FACTOR) ){
+       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+     }
+     else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) ){
+       StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
+     }
+     GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
+
+     KRATOS_CATCH( "" )
+   }
 
    //************************************************************************************
    //************************************************************************************
@@ -157,9 +177,8 @@ namespace Kratos
       he = sqrt( rIntegrationWeight / 6.14 / rVariables.CurrentRadius);
       StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
 
-      double Factor = GetProperties()[STABILIZATION];
-      StabilizationAlpha *= Factor;
-
+      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
       {
@@ -255,9 +274,8 @@ namespace Kratos
 
       StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
 
-      double Factor = GetProperties()[STABILIZATION];
-      StabilizationAlpha *= Factor;
-
+      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+      StabilizationAlpha *= StabilizationFactor;
 
       if (StabilizationAlpha < 0.0)
          return;

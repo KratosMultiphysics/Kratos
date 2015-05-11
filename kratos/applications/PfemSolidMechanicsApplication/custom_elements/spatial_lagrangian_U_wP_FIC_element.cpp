@@ -188,12 +188,13 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
       Vector he = ZeroVector(dimension);
-      double Factor = GetProperties()[STABILIZATION];
+
+      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+
       for (unsigned int i = 0; i < dimension; i++)
       {
-         he(i) = Factor*sqrt( 4.0*rIntegrationWeight/ sqrt(3.0) ); 
+         he(i) = StabilizationFactor*sqrt( 4.0*rIntegrationWeight/ sqrt(3.0) ); 
       }
-
 
       double Caux; 
       ProcessInfo CurrentProcessInfo;
@@ -243,10 +244,12 @@ namespace Kratos
 
 
       Vector he = ZeroVector(dimension);
-      double Factor = GetProperties()[STABILIZATION];
+
+      double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+
       for (unsigned int i = 0; i < dimension; i++)
       {
-         he(i) = Factor*sqrt( 4.0*rIntegrationWeight/ sqrt(3.0) ); 
+         he(i) = StabilizationFactor*sqrt( 4.0*rIntegrationWeight/ sqrt(3.0) ); 
       }
 
       double Caux; 

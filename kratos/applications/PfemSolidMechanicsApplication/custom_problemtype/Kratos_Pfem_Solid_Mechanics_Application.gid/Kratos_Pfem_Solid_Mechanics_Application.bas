@@ -60,7 +60,7 @@ Begin Properties *MatNum
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
- STABILIZATION *MatProp(STABILIZATION,real)
+ STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
 *format "%10.5e"
  CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
 *format "%10.5e"
@@ -81,7 +81,7 @@ Begin Properties *MatNum
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
- STABILIZATION *MatProp(STABILIZATION,real)
+ STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
 *format "%10.5e"
  CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
 *format "%10.5e"
@@ -126,7 +126,7 @@ Begin Properties *MatNum
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
- STABILIZATION *MatProp(STABILIZATION,real)
+ STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
 *format "%10.5e"
  CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
 *format "%10.5e"

@@ -232,7 +232,7 @@ void SpatialLagrangianUPElement::Initialize()
 
 void SpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementUPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -241,7 +241,6 @@ void SpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & 
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
-
 
 }
 
