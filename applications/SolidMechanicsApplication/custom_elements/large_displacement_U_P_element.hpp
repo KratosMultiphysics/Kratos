@@ -316,6 +316,12 @@ protected:
                                   Flags& rCalculationFlags);
 
 
+    /**
+     * Initialize Element General Variables
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+
     ///@}
     ///@name Protected  Access
     ///@{

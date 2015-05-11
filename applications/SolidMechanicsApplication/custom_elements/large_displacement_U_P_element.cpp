@@ -269,6 +269,27 @@ void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
+void LargeDisplacementUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    LargeDisplacementElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+
+    //stabilization factor
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
+    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
+    }
+    GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
 
 void LargeDisplacementUPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -506,7 +527,9 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     // VectorType Fh=rRightHandSideVector;
     // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
-    double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
+    double AlphaStabilization  = 4.0; 
+    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    AlphaStabilization *= StabilizationFactor;
 
     const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
     const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -799,7 +822,9 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
     unsigned int indexpi = dimension;
     double consistent = 1.0;
 
-    double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
+    double AlphaStabilization  = 4.0; 
+    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    AlphaStabilization *= StabilizationFactor;
 
     const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
     const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];

@@ -117,7 +117,6 @@ namespace Kratos
 
   KRATOS_CREATE_VARIABLE(double, M_MODULUS )
   KRATOS_CREATE_VARIABLE(double, SIMILAR_YOUNG_MODULUS)
-  KRATOS_CREATE_VARIABLE(double, STABILIZATION )
 
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
     mSpatialLagrangianUwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -297,7 +296,6 @@ namespace Kratos
 
     KRATOS_REGISTER_VARIABLE( M_MODULUS )
     KRATOS_REGISTER_VARIABLE( SIMILAR_YOUNG_MODULUS )
-    KRATOS_REGISTER_VARIABLE( STABILIZATION )
 
   }
   

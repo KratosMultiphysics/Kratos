@@ -150,6 +150,10 @@ protected:
                                         GeneralVariables & rVariables,
                                         double& rIntegrationWeight
                                        );
+    /**
+     * Initialize Element General Variables
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance

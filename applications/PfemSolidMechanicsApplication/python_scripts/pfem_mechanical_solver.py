@@ -104,6 +104,7 @@ class PfemMechanicalSolver:
         self.pressure_dofs = False
         self.water_pressure_dofs = False
         self.rotation_dofs = False
+        self.stabilization_factor = 1.0
 
         # definition of the solvers
         self.scheme_type = "Dynamic"
@@ -181,6 +182,8 @@ class PfemMechanicalSolver:
 
           self.mechanical_solver = ExplicitStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
      
+        self.SetStabilizationFactor(self.stabilization_factor)
+
         (self.mechanical_solver).SetEchoLevel(self.echo_level)
 
         # check if everything is assigned correctly
@@ -196,6 +199,10 @@ class PfemMechanicalSolver:
     def SetEchoLevel(self, level):
         self.echo_level = level
         (self.mechanical_solver).SetEchoLevel(level)
+
+    #
+    def SetStabilizationFactor(self, factor):
+        self.model_part.ProcessInfo[STABILIZATION_FACTOR] = factor
 
     #
     def SetRestart(self, load_restart):
@@ -399,6 +406,8 @@ def CreateSolver(model_part, config):
         structural_solver.implex = config.Implex  # bool
     if(hasattr(config, "ComponentWise")):
         structural_solver.component_wise = config.ComponentWise  # bool
+    if(hasattr(config, "StabilizationFactor")):
+        structural_solver.stabilization_factor = config.StabilizationFactor #double
 
     # definition of the echo level
     if(hasattr(config, "echo_level")):

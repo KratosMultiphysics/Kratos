@@ -40,11 +40,13 @@ class SolverSettings:
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
     PressureDofs = True
+    StabilizationFactor = *GenData(Stabilization_Factor)
 *else
     PressureDofs = False
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0)
     WaterPressureDofs = True
+    StabilizationFactor = *GenData(Stabilization_Factor)
 *else
     WaterPressureDofs = False
 *endif

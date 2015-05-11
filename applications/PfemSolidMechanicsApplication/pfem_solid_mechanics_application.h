@@ -182,7 +182,7 @@ namespace Kratos
 
   KRATOS_DEFINE_VARIABLE(double, M_MODULUS )
   KRATOS_DEFINE_VARIABLE(double, SIMILAR_YOUNG_MODULUS )
-  KRATOS_DEFINE_VARIABLE(double, STABILIZATION)
+
   ///@} 
   ///@name Type Definitions
   ///@{ 

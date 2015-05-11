@@ -163,6 +163,10 @@ namespace Kratos
                double& rIntegrationWeight
                );
 
+         /**
+	  * Initialize Element General Variables
+	  */
+        virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
          ///@}
