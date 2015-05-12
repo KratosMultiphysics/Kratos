@@ -1,8 +1,8 @@
 /* *********************************************************
 *
 *   Last Modified by:    $Author: AMini $
-*   Date:                $Date: Dez 2013 $
-*   Revision:            $Revision: 1.0 $
+*   Date:                $Date: Mai 2015 $
+*   Revision:            $Revision: 1.3 $
 *
 * ***********************************************************/
 
@@ -24,8 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_elements/structural_meshmoving_element_2d_nonlinear.h"
-#include "custom_elements/structural_meshmoving_element_3d_nonlinear.h"
+#include "custom_elements/structural_meshmoving_element_nonlinear.h"
 #include "ale_application.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
@@ -84,31 +83,12 @@ Calculation of the reactions involves a cost very similiar to the calculation of
 
 The non-linear system of equations is solved by a Newton-Raphson iteration.
 
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
  */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class StructuralMeshMovingStrategyNonlin
+class StructuralMeshMovingStrategyNonlinear
     : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
@@ -116,7 +96,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    KRATOS_CLASS_POINTER_DEFINITION( StructuralMeshMovingStrategyNonlin );
+    KRATOS_CLASS_POINTER_DEFINITION( StructuralMeshMovingStrategyNonlinear );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
@@ -143,7 +123,7 @@ public:
 
     /** Constructor.
     */
-    StructuralMeshMovingStrategyNonlin(
+    StructuralMeshMovingStrategyNonlinear(
         ModelPart& model_part,
         typename TLinearSolver::Pointer pNewLinearSolver,
         int dimension = 3,
@@ -201,7 +181,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~StructuralMeshMovingStrategyNonlin() {}
+    virtual ~StructuralMeshMovingStrategyNonlinear() {}
 
     /** Destructor.
     */
@@ -211,21 +191,28 @@ public:
     //*********************************************************************************
     double Solve()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // Mesh has to be regenerated in each solving step
-        ReGenerateMeshPart();
+       // ReGenerateMeshPart();
 
-        ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
+        //ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
         // Updating the time
-        rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
-        rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+        //rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
+        //rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-        //copy step
+        // Setting mesh to initial configuration
+//        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd() ; ++i)
+//          {
+//            (i)->X() = (i)->X0();
+//            (i)->Y() = (i)->Y0();
+//            (i)->Z() = (i)->Z0();
+//          }
 
         // Solve for the mesh movement
         mstrategy->Solve();
+
 
 
         //copy back
@@ -253,7 +240,7 @@ public:
         double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 	
 	if (DeltaTime <= 0.0)
-	  KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
+      KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
 
         double coeff = 1/DeltaTime;
         if( mvel_order == 1) //mesh velocity calculated as (x(n+1)-x(n))/Dt
@@ -413,7 +400,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2DNonlin(
+                pElem = Element::Pointer(new StructuralMeshMovingElementNonlinear<2>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -423,7 +410,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3DNonlin(
+                pElem = Element::Pointer(new StructuralMeshMovingElementNonlinear<3>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -431,49 +418,49 @@ private:
             }
     }
 
-    void ReGenerateMeshPart()
-    {
-        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
+//    void ReGenerateMeshPart()
+//    {
+//        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
 
-        mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
-        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
-        mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
+//        mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
+//        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
+//        mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
 
-        // Initializing mesh nodes
-        mpMeshModelPart->Nodes().clear();
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+//        // Initializing mesh nodes
+//        mpMeshModelPart->Nodes().clear();
+//        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
 
-        //creating mesh elements
-        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-        Element::Pointer pElem;
+//        //creating mesh elements
+//        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
+//        Element::Pointer pElem;
 
-        MeshElems.clear();
-        MeshElems.reserve( MeshElems.size() );
+//        MeshElems.clear();
+//        MeshElems.reserve( MeshElems.size() );
 
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
+//        // Removing existing mesh conditions
+//        mpMeshModelPart->Conditions().clear();
 
-        if(mdimension == 2)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2DNonlin(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-        else if(mdimension == 3)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3DNonlin(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-    }
+//        if(mdimension == 2)
+//            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
+//                    it != BaseType::GetModelPart().ElementsEnd(); it++)
+//            {
+//                pElem = Element::Pointer(new StructuralMeshMovingElementNonlinear<2>(
+//                                             (*it).Id(),
+//                                             (*it).pGetGeometry(),
+//                                             (*it).pGetProperties() ) );
+//                MeshElems.push_back(pElem);
+//            }
+//        else if(mdimension == 3)
+//            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
+//                    it != BaseType::GetModelPart().ElementsEnd(); it++)
+//            {
+//                pElem = Element::Pointer(new StructuralMeshMovingElementNonlinear<3>(
+//                                             (*it).Id(),
+//                                             (*it).pGetGeometry(),
+//                                             (*it).pGetProperties() ) );
+//                MeshElems.push_back(pElem);
+//            }
+//    }
 
     /*@} */
     /**@name Private  Access */
@@ -491,7 +478,7 @@ private:
 
     /** Copy constructor.
     */
-    StructuralMeshMovingStrategyNonlin(const StructuralMeshMovingStrategyNonlin& Other);
+    StructuralMeshMovingStrategyNonlinear(const StructuralMeshMovingStrategyNonlinear& Other);
 
 
     /*@} */

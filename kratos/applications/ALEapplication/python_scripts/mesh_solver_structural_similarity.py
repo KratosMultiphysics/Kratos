@@ -8,6 +8,7 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(ELEMENTSHAPE)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
 

@@ -1,0 +1,397 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 4.0.11030
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+Initializing KratosFluidDynamicsApplication... 
+Initializing KratosExternalSolversApplication... 
+Initializing Kratos MeshingApplication... 
+  [Reading Nodes    : 2456 nodes read]
+  [Reading Elements : 4224 elements read] [Type: FractionalStep2D]
+  [Total Lines Read : 22374]
+No inverted elements found
+Mesh orientation check found 688 inverted conditions.
+setting up AMGCL for iterative solve 
+setting up AMGCL for iterative solve 
+[ "Cylinder_2DFluid" ] 
+[ Opened for IO: .node, .prop, .elem, .cond, .init  ]
+Fractional velocity relative error: 0.721191
+Fractional velocity relative error: 0.722328
+Fractional velocity relative error: 0.632672
+Fractional velocity relative error: 0.63045
+Fractional velocity relative error: 0.637642
+Fractional velocity relative error: 0.420647
+Fractional velocity relative error: 0.395627
+Fractional velocity relative error: 0.271318
+Fractional velocity relative error: 0.189684
+Fractional velocity relative error: 0.134423
+Fractional velocity relative error: 0.0784219
+Fractional velocity relative error: 0.0369059
+Fractional velocity relative error: 0.0359749
+Fractional velocity relative error: 0.0618937
+Fractional velocity relative error: 0.0614118
+Fractional velocity relative error: 0.0195898
+Fractional velocity relative error: 0.0282761
+Fractional velocity relative error: 0.0294228
+Fractional velocity relative error: 0.0212656
+Fractional velocity relative error: 0.0143083
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.529739
+Fractional velocity relative error: 0.366468
+Fractional velocity relative error: 0.0903502
+Fractional velocity relative error: 0.0583442
+Fractional velocity relative error: 0.0398274
+Fractional velocity relative error: 0.0612549
+Fractional velocity relative error: 0.0752674
+Fractional velocity relative error: 0.0756379
+Fractional velocity relative error: 0.0853554
+Fractional velocity relative error: 0.114476
+Fractional velocity relative error: 0.0832725
+Fractional velocity relative error: 0.0654361
+Fractional velocity relative error: 0.0665499
+Fractional velocity relative error: 0.105721
+Fractional velocity relative error: 0.104101
+Fractional velocity relative error: 0.0752967
+Fractional velocity relative error: 0.0540148
+Fractional velocity relative error: 0.0782339
+Fractional velocity relative error: 0.10071
+Fractional velocity relative error: 0.104329
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.490093
+Fractional velocity relative error: 0.44127
+Fractional velocity relative error: 0.0996122
+Fractional velocity relative error: 0.0986092
+Fractional velocity relative error: 0.141476
+Fractional velocity relative error: 0.130822
+Fractional velocity relative error: 0.150095
+Fractional velocity relative error: 0.116101
+Fractional velocity relative error: 0.110371
+Fractional velocity relative error: 0.0907731
+Fractional velocity relative error: 0.0769316
+Fractional velocity relative error: 0.135095
+Fractional velocity relative error: 0.133922
+Fractional velocity relative error: 0.0674995
+Fractional velocity relative error: 0.0553499
+Fractional velocity relative error: 0.113509
+Fractional velocity relative error: 0.0755927
+Fractional velocity relative error: 0.0461952
+Fractional velocity relative error: 0.0610392
+Fractional velocity relative error: 0.0613352
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.379994
+Fractional velocity relative error: 0.315639
+Fractional velocity relative error: 0.114574
+Fractional velocity relative error: 0.123214
+Fractional velocity relative error: 0.0953744
+Fractional velocity relative error: 0.107663
+Fractional velocity relative error: 0.099909
+Fractional velocity relative error: 0.0973834
+Fractional velocity relative error: 0.0882722
+Fractional velocity relative error: 0.0806373
+Fractional velocity relative error: 0.0730038
+Fractional velocity relative error: 0.0708798
+Fractional velocity relative error: 0.0636886
+Fractional velocity relative error: 0.0656345
+Fractional velocity relative error: 0.0643482
+Fractional velocity relative error: 0.0670362
+Fractional velocity relative error: 0.0588617
+Fractional velocity relative error: 0.065187
+Fractional velocity relative error: 0.0636001
+Fractional velocity relative error: 0.0627091
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.134221
+Fractional velocity relative error: 0.130008
+Fractional velocity relative error: 0.0944519
+Fractional velocity relative error: 0.0767764
+Fractional velocity relative error: 0.0657615
+Fractional velocity relative error: 0.0622035
+Fractional velocity relative error: 0.0484741
+Fractional velocity relative error: 0.036723
+Fractional velocity relative error: 0.0417241
+Fractional velocity relative error: 0.0351158
+Fractional velocity relative error: 0.0235872
+Fractional velocity relative error: 0.0256545
+Fractional velocity relative error: 0.0215066
+Fractional velocity relative error: 0.0142332
+Fractional velocity relative error: 0.0133157
+Fractional velocity relative error: 0.00869439
+Fractional velocity relative error: 0.00673854
+Fractional velocity relative error: 0.0043555
+Fractional velocity relative error: 0.0045343
+Fractional velocity relative error: 0.00427269
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.121115
+Fractional velocity relative error: 0.12219
+Fractional velocity relative error: 0.115814
+Fractional velocity relative error: 0.115381
+Fractional velocity relative error: 0.115158
+Fractional velocity relative error: 0.0988645
+Fractional velocity relative error: 0.102826
+Fractional velocity relative error: 0.0964203
+Fractional velocity relative error: 0.100055
+Fractional velocity relative error: 0.0915466
+Fractional velocity relative error: 0.0914696
+Fractional velocity relative error: 0.0893098
+Fractional velocity relative error: 0.0831565
+Fractional velocity relative error: 0.0747946
+Fractional velocity relative error: 0.0727745
+Fractional velocity relative error: 0.0732963
+Fractional velocity relative error: 0.0722181
+Fractional velocity relative error: 0.064584
+Fractional velocity relative error: 0.0659271
+Fractional velocity relative error: 0.0679027
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.137349
+Fractional velocity relative error: 0.127831
+Fractional velocity relative error: 0.121098
+Fractional velocity relative error: 0.1619
+Fractional velocity relative error: 0.166084
+Fractional velocity relative error: 0.137301
+Fractional velocity relative error: 0.133972
+Fractional velocity relative error: 0.0902914
+Fractional velocity relative error: 0.0934921
+Fractional velocity relative error: 0.121875
+Fractional velocity relative error: 0.113977
+Fractional velocity relative error: 0.0860537
+Fractional velocity relative error: 0.0914439
+Fractional velocity relative error: 0.11937
+Fractional velocity relative error: 0.112893
+Fractional velocity relative error: 0.0773403
+Fractional velocity relative error: 0.0818869
+Fractional velocity relative error: 0.118795
+Fractional velocity relative error: 0.110933
+Fractional velocity relative error: 0.0711325
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.141302
+Fractional velocity relative error: 0.107089
+Fractional velocity relative error: 0.105764
+Fractional velocity relative error: 0.104941
+Fractional velocity relative error: 0.100796
+Fractional velocity relative error: 0.163136
+Fractional velocity relative error: 0.160523
+Fractional velocity relative error: 0.14104
+Fractional velocity relative error: 0.148917
+Fractional velocity relative error: 0.128415
+Fractional velocity relative error: 0.11984
+Fractional velocity relative error: 0.0731638
+Fractional velocity relative error: 0.0570945
+Fractional velocity relative error: 0.0928347
+Fractional velocity relative error: 0.0968807
+Fractional velocity relative error: 0.0783724
+Fractional velocity relative error: 0.0832441
+Fractional velocity relative error: 0.0966674
+Fractional velocity relative error: 0.0877355
+Fractional velocity relative error: 0.0817808
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.142591
+Fractional velocity relative error: 0.158829
+Fractional velocity relative error: 0.214417
+Fractional velocity relative error: 0.173625
+Fractional velocity relative error: 0.154932
+Fractional velocity relative error: 0.110098
+Fractional velocity relative error: 0.12278
+Fractional velocity relative error: 0.163421
+Fractional velocity relative error: 0.148563
+Fractional velocity relative error: 0.141763
+Fractional velocity relative error: 0.14218
+Fractional velocity relative error: 0.138763
+Fractional velocity relative error: 0.150664
+Fractional velocity relative error: 0.153397
+Fractional velocity relative error: 0.18449
+Fractional velocity relative error: 0.139587
+Fractional velocity relative error: 0.0928729
+Fractional velocity relative error: 0.0983643
+Fractional velocity relative error: 0.103648
+Fractional velocity relative error: 0.114141
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.178395
+Fractional velocity relative error: 0.187372
+Fractional velocity relative error: 0.184728
+Fractional velocity relative error: 0.153169
+Fractional velocity relative error: 0.151875
+Fractional velocity relative error: 0.101303
+Fractional velocity relative error: 0.105145
+Fractional velocity relative error: 0.253375
+Fractional velocity relative error: 0.273716
+Fractional velocity relative error: 0.0874781
+Fractional velocity relative error: 0.0830157
+Fractional velocity relative error: 0.0779736
+Fractional velocity relative error: 0.0881041
+Fractional velocity relative error: 0.15744
+Fractional velocity relative error: 0.170533
+Fractional velocity relative error: 0.0819557
+Fractional velocity relative error: 0.0787873
+Fractional velocity relative error: 0.194471
+Fractional velocity relative error: 0.205395
+Fractional velocity relative error: 0.0694613
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.162136
+Fractional velocity relative error: 0.566755
+Fractional velocity relative error: 0.682675
+Fractional velocity relative error: 0.114078
+Fractional velocity relative error: 0.0980686
+Fractional velocity relative error: 0.413421
+Fractional velocity relative error: 0.452012
+Fractional velocity relative error: 0.310186
+Fractional velocity relative error: 0.336619
+Fractional velocity relative error: 0.0871185
+Fractional velocity relative error: 0.0966777
+Fractional velocity relative error: 0.248881
+Fractional velocity relative error: 0.234362
+Fractional velocity relative error: 0.177959
+Fractional velocity relative error: 0.238926
+Fractional velocity relative error: 0.154812
+Fractional velocity relative error: 0.282838
+Fractional velocity relative error: 0.301204
+Fractional velocity relative error: 0.082404
+Fractional velocity relative error: 0.136279
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.195872
+Fractional velocity relative error: 0.468986
+Fractional velocity relative error: 0.544344
+Fractional velocity relative error: 0.252729
+Fractional velocity relative error: 0.2485
+Fractional velocity relative error: 0.182724
+Fractional velocity relative error: 0.184387
+Fractional velocity relative error: 0.138709
+Fractional velocity relative error: 0.160299
+Fractional velocity relative error: 0.185109
+Fractional velocity relative error: 0.180747
+Fractional velocity relative error: 0.168863
+Fractional velocity relative error: 0.166228
+Fractional velocity relative error: 0.239187
+Fractional velocity relative error: 0.247349
+Fractional velocity relative error: 0.173234
+Fractional velocity relative error: 0.27608
+Fractional velocity relative error: 0.254218
+Fractional velocity relative error: 0.330767
+Fractional velocity relative error: 0.341246
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.200278
+Fractional velocity relative error: 0.52158
+Fractional velocity relative error: 0.622786
+Fractional velocity relative error: 0.176117
+Fractional velocity relative error: 0.20773
+Fractional velocity relative error: 0.143362
+Fractional velocity relative error: 0.26154
+Fractional velocity relative error: 0.276009
+Fractional velocity relative error: 0.0705926
+Fractional velocity relative error: 0.0672514
+Fractional velocity relative error: 0.118808
+Fractional velocity relative error: 0.110598
+Fractional velocity relative error: 0.180766
+Fractional velocity relative error: 0.226262
+Fractional velocity relative error: 0.0759603
+Fractional velocity relative error: 0.106963
+Fractional velocity relative error: 0.102141
+Fractional velocity relative error: 0.0812823
+Fractional velocity relative error: 0.0960798
+Fractional velocity relative error: 0.147475
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.207318
+Fractional velocity relative error: 0.634856
+Fractional velocity relative error: 0.831698
+Fractional velocity relative error: 0.366996
+Fractional velocity relative error: 0.438986
+Fractional velocity relative error: 0.148878
+Fractional velocity relative error: 0.433245
+Fractional velocity relative error: 0.483146
+Fractional velocity relative error: 0.716045
+Fractional velocity relative error: 1.02784
+Fractional velocity relative error: 0.245441
+Fractional velocity relative error: 0.411937
+Fractional velocity relative error: 0.240654
+Fractional velocity relative error: 0.701636
+Fractional velocity relative error: 0.983149
+Fractional velocity relative error: 0.824174
+Fractional velocity relative error: 1.4599
+Fractional velocity relative error: 0.177528
+Fractional velocity relative error: 0.191531
+Fractional velocity relative error: 0.110282
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.169602
+Fractional velocity relative error: 0.152822
+Fractional velocity relative error: 0.142692
+Fractional velocity relative error: 0.120955
+Fractional velocity relative error: 0.12993
+Fractional velocity relative error: 0.137354
+Fractional velocity relative error: 0.13267
+Fractional velocity relative error: 0.14114
+Fractional velocity relative error: 0.136988
+Fractional velocity relative error: 0.138364
+Fractional velocity relative error: 0.138421
+Fractional velocity relative error: 0.152976
+Fractional velocity relative error: 0.157405
+Fractional velocity relative error: 0.134967
+Fractional velocity relative error: 0.13773
+Fractional velocity relative error: 0.132458
+Fractional velocity relative error: 0.134025
+Fractional velocity relative error: 0.153286
+Fractional velocity relative error: 0.155765
+Fractional velocity relative error: 0.151234
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.234469
+Fractional velocity relative error: 0.46407
+Fractional velocity relative error: 0.524522
+Fractional velocity relative error: 0.374441
+Fractional velocity relative error: 0.408889
+Fractional velocity relative error: 0.163951
+Fractional velocity relative error: 0.350535
+Fractional velocity relative error: 0.792074
+Fractional velocity relative error: 1.14562
+Fractional velocity relative error: 0.369006
+Fractional velocity relative error: 0.236981
+Fractional velocity relative error: 0.286861
+Fractional velocity relative error: 0.481329
+Fractional velocity relative error: 0.583952
+Fractional velocity relative error: 0.437341
+Fractional velocity relative error: 0.33709
+Fractional velocity relative error: 0.349945
+Fractional velocity relative error: 0.365675
+Fractional velocity relative error: 0.197172
+Fractional velocity relative error: 0.223022
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
+Fractional velocity relative error: 0.202626
+Fractional velocity relative error: 0.224931
+Fractional velocity relative error: 0.21405
+Fractional velocity relative error: 0.0812132
+Fractional velocity relative error: 0.105706
+Fractional velocity relative error: 0.0975825
+Fractional velocity relative error: 0.0687415
+Fractional velocity relative error: 0.0661136

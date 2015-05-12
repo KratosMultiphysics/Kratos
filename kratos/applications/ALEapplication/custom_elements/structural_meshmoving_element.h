@@ -40,16 +40,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: AMini $
-//   Date:                $Date: Oct 13 $
-//   Revision:            $Revision: 1.3 $
-//
-//
+/* *********************************************************
+*
+*   Last Modified by:    $Author: AMini $
+*   Date:                $Date: Mai 2015 $
+*   Revision:            $Revision: 1.3 $
+*
+* ***********************************************************/
 
 
-#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED )
+#if !defined( KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED )
 #define  KRATOS_STRUCTURAL_MESHMOVING_ELEMENT_INCLUDED
 
 
@@ -66,179 +66,172 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+/// This class implements a structural similarity mesh-updating scheme
+/**
+* This mesh-updating scheme treats the mesh as a solid and therefore
+* solves the equations of solid mechanics using linear kinematics
+* and a linear elastic consitutive law. The stiffness of the elements
+* depends on their size and can be controlled by the Jacobian Determinant
+* weightened by an exponent.
+*/
 
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{
-  
-  ///@}
-  ///@name Type Definitions
-  ///@{
-  
-  ///@}
-  ///@name  Enum's
-  ///@{
-  
-  ///@}
-  ///@name  Functions
-  ///@{
-  
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// A mesh motion solver using a linear-elastic structural model
-  /**
-   */
-  template< unsigned int TDim >
-    class StructuralMeshMovingElement : public Element
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
+
+
+template< unsigned int TDim >
+class StructuralMeshMovingElement : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
+    /// Pointer definition of StructuralMeshMovingElement
+    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
+
+    typedef Element BaseType;
+    typedef BaseType::GeometryType GeometryType;
+    typedef BaseType::NodesArrayType NodesArrayType;
+    typedef BaseType::PropertiesType PropertiesType;
+    typedef BaseType::IndexType IndexType;
+    typedef BaseType::SizeType SizeType;
+    typedef BaseType::MatrixType MatrixType;
+    typedef BaseType::VectorType VectorType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef BaseType::DofsVectorType DofsVectorType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    StructuralMeshMovingElement(IndexType NewId,
+                                GeometryType::Pointer pGeometry) :
+        Element(NewId, pGeometry)
+    {}
+
+    /// Default constructor.
+    StructuralMeshMovingElement(IndexType NewId,
+                                GeometryType::Pointer pGeometry,
+                                PropertiesType::Pointer pProperties) :
+        Element(NewId, pGeometry, pProperties)
+    {}
+
+    /// Destructor.
+    virtual ~StructuralMeshMovingElement()
+    {}
+
+    ///@}
+    ///@name Operators
+    ///@{
+    ///@}
+
+    ///@name Operations
+    ///@{
+
+    /**
+    * creates a new total lagrangian updated element pointer
+    * @param NewId: the ID of the new element
+    * @param ThisNodes: the nodes of the new element
+    * @param pProperties: the properties assigned to the new element
+    * @return a Pointer to the new element
+    */
+    BaseType::Pointer Create(IndexType NewId,
+                             NodesArrayType const& rThisNodes,
+                             PropertiesType::Pointer pProperties) const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of StructuralMeshMovingElement
-      KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
+        const GeometryType& rGeom = this->GetGeometry();
+        return BaseType::Pointer(new StructuralMeshMovingElement(NewId, rGeom.Create(rThisNodes), pProperties));
+    }
 
-      typedef Element BaseType;
+    ///Bulid up system matrices
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo);
 
-      typedef BaseType::GeometryType GeometryType;
+    ///Equation id Vector
+    void EquationIdVector(EquationIdVectorType& rResult,
+                          ProcessInfo& rCurrentProcessInfo);
 
-      typedef BaseType::NodesArrayType NodesArrayType;
-
-      typedef BaseType::PropertiesType PropertiesType;
-
-      typedef BaseType::IndexType IndexType;
-
-      typedef BaseType::SizeType SizeType;
-
-      typedef BaseType::MatrixType MatrixType;
-
-      typedef BaseType::VectorType VectorType;
-
-      typedef BaseType::EquationIdVectorType EquationIdVectorType;
-
-      typedef BaseType::DofsVectorType DofsVectorType;
-
-      ///@}
-      ///@name Life Cycle
-      ///@{
-      
-      /// Constructor.
-      StructuralMeshMovingElement(IndexType NewId, 
-				  GeometryType::Pointer pGeometry) :
-      Element(NewId, pGeometry)
-	{}
-      
-      StructuralMeshMovingElement(IndexType NewId, 
-				  GeometryType::Pointer pGeometry,  
-				  PropertiesType::Pointer pProperties) :
-      Element(NewId, pGeometry, pProperties)
-	{}
-
-      /// Destructor.
-      virtual ~StructuralMeshMovingElement() 
-	{}
-
-
-      ///@}
-      ///@name Operators
-      ///@{
-      
-
-      ///@}
-      ///@name Operations
-      ///@{
-
-      BaseType::Pointer Create(IndexType NewId, 
-			      NodesArrayType const& rThisNodes,  
-			      PropertiesType::Pointer pProperties) const
-	{
-	  const GeometryType& rGeom = this->GetGeometry();
-	  return BaseType::Pointer(new StructuralMeshMovingElement(NewId, rGeom.Create(rThisNodes), pProperties));
-	}
-
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-				VectorType& rRightHandSideVector, 
-				ProcessInfo& rCurrentProcessInfo);
-
-      void EquationIdVector(EquationIdVectorType& rResult, 
-			    ProcessInfo& rCurrentProcessInfo);
-
-      void GetDofList(DofsVectorType& rElementalDofList, 
-		      ProcessInfo& rCurrentProcessInfo);
+    ///Get the degrees of freedom
+    void GetDofList(DofsVectorType& rElementalDofList,
+                    ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
+
     ///@name Inquiry
     ///@{
-
-
     ///@}
+
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-//      virtual String Info() const;
+    /// Turn back information as a string.(Deactivated)
+    //      virtual String Info() const;
 
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
+    /// Print information about this object. (Deactivated)
+    //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
+    /// Print object's data.(Deactivated)
+    //      virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-
     ///@}
+
     ///@name Protected member Variables
     ///@{
-
-
     ///@}
+
     ///@name Protected Operators
     ///@{
-
-
     ///@}
+
     ///@name Protected Operations
     ///@{
 
+    /**
+     * Gets displacement values at nodes
+     * @param rValues: reference to vector of nodal displacements
+     */
     void GetDisplacementValues(VectorType& rValues,
-			       const int Step = 0);
-
+                               const int Step = 0);
 
     ///@}
     ///@name Protected  Access
     ///@{
-
-
     ///@}
+
     ///@name Protected Inquiry
     ///@{
-
-
     ///@}
+
     ///@name Protected LifeCycle
     ///@{
-
-
     ///@}
 
 private:
@@ -247,39 +240,33 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
     ///@}
+
     ///@name Serialization
     ///@{
 
     friend class Serializer;
-
     StructuralMeshMovingElement() {}
 
     ///@}
     ///@name Private Operators
     ///@{
-
     ///@}
+
     ///@name Private Operations
     ///@{
-
-
     ///@}
+
     ///@name Private  Access
     ///@{
-
-
     ///@}
+
     ///@name Private Inquiry
     ///@{
-
-
     ///@}
+
     ///@name Un accessible methods
     ///@{
-
-
     ///@}
 
 }; // Class StructuralMeshMovingElement
@@ -288,14 +275,22 @@ private:
 
 ///@name Type Definitions
 ///@{
-
-
 ///@}
-///@name Input and output
-///@{
 
+/// input stream function (Deactivated)
+/*  inline std::istream& operator >> (std::istream& rIStream,
+                    LaplacianMeshMovingElement& rThis);
+*/
+/// output stream function (Deactivated)
+/*  inline std::ostream& operator << (std::ostream& rOStream,
+                    const LaplacianMeshMovingElement& rThis)
+    {
+      rThis.PrintInfo(rOStream);
+      rOStream << std::endl;
+      rThis.PrintData(rOStream);
 
-///@}
+      return rOStream;
+    }*/
 
 }  // namespace Kratos.
 
