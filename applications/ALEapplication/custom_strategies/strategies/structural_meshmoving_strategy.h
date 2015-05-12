@@ -1,8 +1,8 @@
 /* *********************************************************
 *
-*   Last Modified by:    $Author: dbaumgaertner $
-*   Date:                $Date: 2013-08-30 16:07:50 $
-*   Revision:            $Revision: 1.1.1.1 $
+*   Last Modified by:    $Author: AMini $
+*   Date:                $Date: Mai 2015 $
+*   Revision:            $Revision: 1.3 $
 *
 * ***********************************************************/
 
@@ -193,7 +193,7 @@ public:
         double DeltaTime = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 	
 	if (DeltaTime <= 0.0)
-	  KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
+      KRATOS_THROW_ERROR(std::logic_error, "Invalid DELTA_TIME.","");
 
         double coeff = 1/DeltaTime;
         if( mvel_order == 1) //mesh velocity calculated as (x(n+1)-x(n))/Dt

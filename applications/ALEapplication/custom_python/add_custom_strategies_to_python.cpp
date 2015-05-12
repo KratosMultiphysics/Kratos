@@ -42,14 +42,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:31 $
-//   Revision:            $Revision: 1.2 $
-//
-//
-
+/* *********************************************************
+*
+*   Last Modified by:    $Author: AMini $
+*   Date:                $Date: Mai 2015 $
+*   Revision:            $Revision: 1.3 $
+*
+* ***********************************************************/
 
 // System includes
 
@@ -71,8 +70,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/structural_meshmoving_strategy.h"
-#include "custom_strategies/strategies/laplacian_componentwise_meshmoving_strategy.h"
-#include "custom_strategies/strategies/laplacian_componentwise_meshmoving_strategy_strainbased.h"
 #include "custom_strategies/strategies/structural_meshmoving_strategy_nonlinear.h"
 
 //linear solvers
@@ -112,25 +109,11 @@ void  AddCustomStrategiesToPython()
             .def("MoveNodes",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
             ;
 
-    class_< LaplacianComponentwiseMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    class_< StructuralMeshMovingStrategyNonlinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("LaplacianComponentwiseMeshMovingStrategy",
-             init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-            .def("MoveNodes",&LaplacianComponentwiseMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-            ;
-
-    class_< LaplacianComponentwiseMeshMovingStrategyStrainbased< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("LaplacianComponentwiseMeshMovingStrategyStrainbased",
-             init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-            .def("MoveNodes",&LaplacianComponentwiseMeshMovingStrategyStrainbased< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-            ;
-
-    class_< StructuralMeshMovingStrategyNonlin< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-            bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ("StructuralMeshMovingStrategyNonlin",
+            ("StructuralMeshMovingStrategyNonlinear",
              init<ModelPart&, LinearSolverType::Pointer, int, int, bool, double, int>() )
-            .def("MoveNodes",&StructuralMeshMovingStrategyNonlin< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+            .def("MoveNodes",&StructuralMeshMovingStrategyNonlinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
             ;
 
 

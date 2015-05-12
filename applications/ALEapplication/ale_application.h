@@ -1,10 +1,10 @@
-//
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: AMini $
-//   Date:                $Date: Oct 2014 $
-//   Revision:            $Revision: 1.3 $
-//
-//
+/* *********************************************************
+*
+*   Last Modified by:    $Author: AMini $
+*   Date:                $Date: Mai 2015 $
+*   Revision:            $Revision: 1.3 $
+*
+* ***********************************************************/
 
 
 #if !defined(KRATOS_ALE_APPLICATION_H_INCLUDED )
@@ -24,17 +24,12 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "custom_elements/laplacian_meshmoving_element_2d.h"
-#include "custom_elements/laplacian_meshmoving_element_3d.h"
-#include "custom_elements/laplacian_componentwise_meshmoving_element_2d.h"
-#include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
+#include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_elements/structural_meshmoving_element.h"
-#include "custom_elements/laplacian_componentwise_meshmoving_element_2d_strainbased.h"
+#include "custom_elements/structural_meshmoving_element_nonlinear.h"
 
-//#include "custom_elements/laplacian_componentwise_meshmoving_element_3d_strainbased.h"
 
-#include "custom_elements/structural_meshmoving_element_2d_nonlinear.h"
-#include "custom_elements/structural_meshmoving_element_3d_nonlinear.h"
+
 
 
 #include "includes/variables.h"
@@ -200,16 +195,13 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const LaplacianMeshMovingElem2D   mLaplacianMeshMovingElem2D;
-    const LaplacianMeshMovingElem3D   mLaplacianMeshMovingElem3D;
-    const LaplacianMeshMovingElem2D   mLaplacianComponentwiseMeshMovingElem2D;
-    const LaplacianMeshMovingElem3D   mLaplacianComponentwiseMeshMovingElem3D;
+    const LaplacianMeshMovingElement<2>   mLaplacianMeshMovingElement2D;
+    const LaplacianMeshMovingElement<3>   mLaplacianMeshMovingElement3D;
     const StructuralMeshMovingElement<2> mStructuralMeshMovingElement2D;
     const StructuralMeshMovingElement<3> mStructuralMeshMovingElement3D;
-    const LaplacianComponentwiseMeshMovingElem2DStrainbased mLaplacianComponentwiseMeshMovingElem2DStrainbased;
-    //const LaplacianComponentwiseMeshMovingElem3DStrainbased mLaplacianComponentwiseMeshMovingElem3DStrainbased;
-    const StructuralMeshMovingElem2DNonlin  mStructuralMeshMovingElem2DNonlin;
-    const StructuralMeshMovingElem3DNonlin  mStructuralMeshMovingElem3DNonlin;
+    const StructuralMeshMovingElementNonlinear<2>  mStructuralMeshMovingElement2DNonlinear;
+    const StructuralMeshMovingElementNonlinear<3>  mStructuralMeshMovingElement3DNonlinear;
+
 
 
     ///@}

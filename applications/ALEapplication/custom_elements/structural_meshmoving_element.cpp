@@ -40,14 +40,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//
-//   Project Name:        Kratos
-//   Last modified by:    $Author: AMini $
-//   Date:                $Date: Oct 14 $
-//   Revision:            $Revision: 1.3 $
-//
-//
-
+/* *********************************************************
+*
+*   Last Modified by:    $Author: AMini $
+*   Date:                $Date: Mai 2015 $
+*   Revision:            $Revision: 1.3 $
+*
+* ***********************************************************/
 
 // System includes
 #include <cmath>
@@ -65,63 +64,69 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  template<>
-  void StructuralMeshMovingElement<2>::GetDisplacementValues(VectorType& rValues,
-							     const int Step)
-  {
+//======================================================================
+//Get displacement values
+//======================================================================
+template<>
+void StructuralMeshMovingElement<2>::GetDisplacementValues(VectorType& rValues,
+                                                           const int Step)
+{
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*2;
     
-    if (rValues.size() != LocalSize) 
-      rValues.resize(LocalSize,false);
+    if (rValues.size() != LocalSize)
+        rValues.resize(LocalSize,false);
     
     SizeType Index = 0;
     
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-      {
-	rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_X,Step);
-	rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_Y,Step);
-      }
-  }
+    for (SizeType iNode = 0; iNode < NumNodes; ++iNode){
 
-  template<>
-  void StructuralMeshMovingElement<3>::GetDisplacementValues(VectorType& rValues,
-							     const int Step)
-  {
+        rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_X,Step);
+        rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_Y,Step);
+    }
+}
+
+template<>
+void StructuralMeshMovingElement<3>::GetDisplacementValues(VectorType& rValues,
+                                                           const int Step)
+{
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*3;
     
-    if (rValues.size() != LocalSize) 
-      rValues.resize(LocalSize,false);
+    if (rValues.size() != LocalSize)
+        rValues.resize(LocalSize,false);
     
     SizeType Index = 0;
     
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-      {
-	rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_X,Step);
-	rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_Y,Step);
-	rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_Z,Step);
-      }
-  }
+    for (SizeType iNode = 0; iNode < NumNodes; ++iNode){
 
-  template<>
-  void StructuralMeshMovingElement<2>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-							    VectorType& rRightHandSideVector, 
-							    ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
+        rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_X,Step);
+        rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_Y,Step);
+        rValues[Index++] = rGeom[iNode].FastGetSolutionStepValue(DISPLACEMENT_Z,Step);
+    }
+}
+
+//======================================================================
+//Build up System Matrices
+//======================================================================
+template<>
+void StructuralMeshMovingElement<2>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                                          VectorType& rRightHandSideVector,
+                                                          ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
 
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const SizeType LocalSize = NumNodes * 2;
 
     // Check sizes and initialize
     if(rLeftHandSideMatrix.size1() != LocalSize)
-      rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
     
     if(rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize,false);
+        rRightHandSideVector.resize(LocalSize,false);
 
     // Get the element's geometric parameters
     double Area;
@@ -138,7 +143,7 @@ namespace Kratos
 
     // Stiffening of elements using Jacobian determinants and exponent between 0.0 and 2.0
     double J0 = 100;          // Factor influences how far the displacement spreads into the fluid mesh
-    double Xi = 1.0;          // 1.5 Exponent influences stiffening of smaller elements; 0 = no stiffening
+    double Xi = 1.5;          // 1.5 Exponent influences stiffening of smaller elements; 0 = no stiffening
     double DetJMag = std::abs(DetJ[0]);
     double Quotient = J0 / DetJMag;
     YoungsModulus *= (DetJMag *  pow(Quotient, Xi));
@@ -155,13 +160,13 @@ namespace Kratos
     // B-matrix
     MatrixType B = ZeroMatrix(3,6);
     SizeType Index = 0;
-    for(SizeType iNode=0; iNode<NumNodes; iNode++)
-    {
+    for(SizeType iNode=0; iNode<NumNodes; iNode++){
+
         B( 0, Index + 0 ) = DN_DX( iNode, 0 );
         B( 1, Index + 1 ) = DN_DX( iNode, 1 );
         B( 2, Index + 0 ) = DN_DX( iNode, 1 );
         B( 2, Index + 1 ) = DN_DX( iNode, 0 );
-	Index += 2;
+        Index += 2;
     }
 
     // Compute LHS
@@ -174,24 +179,25 @@ namespace Kratos
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,LastValues);
     
     KRATOS_CATCH("");
-  }
+}
 
-  template<>
-  void StructuralMeshMovingElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-							    VectorType& rRightHandSideVector, 
-							    ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-      
+
+template<>
+void StructuralMeshMovingElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                                          VectorType& rRightHandSideVector,
+                                                          ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const SizeType LocalSize = NumNodes * 3;
 
     // Check sizes and initialize
     if(rLeftHandSideMatrix.size1() != LocalSize)
-      rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
+        rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
     
     if(rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize,false);
+        rRightHandSideVector.resize(LocalSize,false);
 
     // Get the element's geometric parameters
     double Area;
@@ -208,7 +214,7 @@ namespace Kratos
 
     //Stiffening of elements using Jacobian determinants and exponent between 0.0 and 2.0
     double J0 = 100;          // Factor influences how far the displacement spreads into the fluid mesh
-    double Xi = 1.0;          // 1.5 Exponent influences stiffening of smaller elements; 0 = no stiffening
+    double Xi = 1.5;          // 1.5 Exponent influences stiffening of smaller elements; 0 = no stiffening
     double DetJMag = std::abs(DetJ[0]);
     double Quotient = J0 / DetJMag;
     YoungsModulus *= (DetJMag *  pow(Quotient, Xi));
@@ -234,23 +240,19 @@ namespace Kratos
     // B-matrix
     MatrixType B = ZeroMatrix(6,12);
     SizeType Index = 0;
-    for(SizeType iNode=0; iNode<NumNodes; iNode++)
-    {
-        double D_X = DN_DX( iNode, 0 );
-        double D_Y = DN_DX( iNode, 1 );
-        double D_Z = DN_DX( iNode, 2 );
+    for(SizeType iNode=0; iNode<NumNodes; iNode++){
 
-        B ( 0 , Index + 0 ) = D_X;
-        B ( 1 , Index + 1 ) = D_Y;
-        B ( 2 , Index + 2 ) = D_Z;
-        B ( 3 , Index + 0 ) = D_Y;
-        B ( 3 , Index + 1 ) = D_X;
-        B ( 4 , Index + 1 ) = D_Z;
-        B ( 4 , Index + 2 ) = D_Y;
-        B ( 5 , Index + 0 ) = D_Z;
-        B ( 5 , Index + 2 ) = D_X;
+        B ( 0 , Index + 0 ) = DN_DX( iNode, 0 );
+        B ( 1 , Index + 1 ) = DN_DX( iNode, 1 );
+        B ( 2 , Index + 2 ) = DN_DX( iNode, 2 );
+        B ( 3 , Index + 0 ) = DN_DX( iNode, 1 );
+        B ( 3 , Index + 1 ) = DN_DX( iNode, 0 );
+        B ( 4 , Index + 1 ) = DN_DX( iNode, 2 );
+        B ( 4 , Index + 2 ) = DN_DX( iNode, 1 );
+        B ( 5 , Index + 0 ) = DN_DX( iNode, 2 );
+        B ( 5 , Index + 2 ) = DN_DX( iNode, 0 );
 
-	Index += 3;
+        Index += 3;
     }
 
     // Compute LHS
@@ -266,88 +268,95 @@ namespace Kratos
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,LastValues);
 
     KRATOS_CATCH("");
-  }
+}
 
-  template<>
-  void StructuralMeshMovingElement<2>::EquationIdVector(EquationIdVectorType& rResult, 
-							ProcessInfo& rCurrentProcessInfo)
-  {
+//======================================================================
+//Generate Equation Id Vector
+//======================================================================
+template<>
+void StructuralMeshMovingElement<2>::EquationIdVector(EquationIdVectorType& rResult,
+                                                      ProcessInfo& rCurrentProcessInfo)
+{
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*2;
     
-    if(rResult.size() != LocalSize) 
-      rResult.resize(LocalSize,false);
+    if(rResult.size() != LocalSize)
+        rResult.resize(LocalSize,false);
     
     SizeType Index = 0;
     
-    for (SizeType iNode = 0; iNode < NumNodes; iNode++)
-      {
-	rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_X).EquationId();
-	rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_Y).EquationId();
-      }
-  }
+    for (SizeType iNode = 0; iNode < NumNodes; iNode++){
 
-  template<>
-  void StructuralMeshMovingElement<3>::EquationIdVector(EquationIdVectorType& rResult, 
-							ProcessInfo& rCurrentProcessInfo)
-  {
+        rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_Y).EquationId();
+    }
+}
+
+template<>
+void StructuralMeshMovingElement<3>::EquationIdVector(EquationIdVectorType& rResult,
+                                                      ProcessInfo& rCurrentProcessInfo)
+{
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*3;
     
-    if(rResult.size() != LocalSize) 
-      rResult.resize(LocalSize,false);
+    if(rResult.size() != LocalSize)
+        rResult.resize(LocalSize,false);
     
     SizeType Index = 0;
     
-    for (SizeType iNode = 0; iNode < NumNodes; iNode++)
-      {
-	rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_X).EquationId();
-	rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_Y).EquationId();
-	rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_Z).EquationId();
-      }
-  }
+    for (SizeType iNode = 0; iNode < NumNodes; iNode++){
 
-  template<>
-  void StructuralMeshMovingElement<2>::GetDofList(DofsVectorType& rElementalDofList, 
-						  ProcessInfo& rCurrentProcessInfo)
-  {
+        rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_Y).EquationId();
+        rResult[Index++] = rGeom[iNode].GetDof(DISPLACEMENT_Z).EquationId();
+    }
+}
+
+//======================================================================
+//Get dof List
+//======================================================================
+template<>
+void StructuralMeshMovingElement<2>::GetDofList(DofsVectorType& rElementalDofList,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*2;
     
-    if(rElementalDofList.size() != LocalSize) 
-      rElementalDofList.resize(LocalSize);
+    if(rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
 
     SizeType LocalIndex = 0;
     
-    for (SizeType iNode = 0; iNode < NumNodes; iNode++)
-      {
-	rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_X);
-	rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_Y);
-      }
-  }
+    for (SizeType iNode = 0; iNode < NumNodes; iNode++){
 
-  template<>
-  void StructuralMeshMovingElement<3>::GetDofList(DofsVectorType& rElementalDofList, 
-						  ProcessInfo& rCurrentProcessInfo)
-  {
+        rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_Y);
+    }
+}
+
+
+template<>
+void StructuralMeshMovingElement<3>::GetDofList(DofsVectorType& rElementalDofList,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
     const SizeType LocalSize = NumNodes*3;
     
-    if(rElementalDofList.size() != LocalSize) 
-      rElementalDofList.resize(LocalSize);
+    if(rElementalDofList.size() != LocalSize)
+        rElementalDofList.resize(LocalSize);
 
     SizeType LocalIndex = 0;
     
-    for (SizeType iNode = 0; iNode < NumNodes; iNode++)
-      {
-	rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_X);
-	rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_Y);
-	rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_Z);
-      }
-  }
-  
+    for (SizeType iNode = 0; iNode < NumNodes; iNode++){
+
+        rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_Y);
+        rElementalDofList[LocalIndex++] = rGeom[iNode].pGetDof(DISPLACEMENT_Z);
+    }
+}
+
 } // Namespace Kratos

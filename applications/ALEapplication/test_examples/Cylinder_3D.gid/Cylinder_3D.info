@@ -1,0 +1,27 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 4.0.11030
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+Initializing KratosFluidDynamicsApplication... 
+Initializing KratosExternalSolversApplication... 
+Initializing Kratos MeshingApplication... 
+  [Reading Nodes    : 10668 nodes read]
+  [Reading Elements : 48289 elements read] [Type: FractionalStep3D]
+  [Total Lines Read : 176910]
+No inverted elements found
+No inverted conditions found
+setting up AMGCL for iterative solve 
+[ "Cylinder_3DFluid" ] 
+[ Opened for IO: .node, .prop, .elem, .cond, .init  ]
+Fractional velocity relative error: 0.998986
+Fractional velocity relative error: 13.5844
+Fractional velocity relative error: 0.895235
+Fractional velocity relative error: 3.14961
+Fractional velocity iterations did not converge.
+Calculating Pressure.
+Updating Velocity.
