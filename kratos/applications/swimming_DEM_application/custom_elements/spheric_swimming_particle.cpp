@@ -106,7 +106,7 @@ void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& addit
 
     UpdateNodalValues(additionally_applied_force, additionally_applied_moment, buoyancy, drag_force, virtual_mass_force, saffman_lift_force, magnus_lift_force);
 
-    additionally_applied_force += buoyancy + mass * gravity;
+    additionally_applied_force += buoyancy + mass * gravity;    
 
     KRATOS_CATCH( "" )
 }

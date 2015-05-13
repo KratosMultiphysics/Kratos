@@ -384,14 +384,14 @@ void ComputePostProcessResults(
         }
     }
 
-    if (IsFluidVariable(MESH_VELOCITY1)){
+    if (IsFluidVariable(AVERAGED_FLUID_VELOCITY)){
 
         #pragma omp parallel for
         for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); i++){
             NodeIteratorType i_node = r_fluid_model_part.NodesBegin() + i;
             double fluid_fraction                         = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
             const array_1d<double, 3>& darcy_vel          = i_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& space_averaged_fluid_vel = i_node->FastGetSolutionStepValue(MESH_VELOCITY1);
+            array_1d<double, 3>& space_averaged_fluid_vel = i_node->FastGetSolutionStepValue(AVERAGED_FLUID_VELOCITY);
             space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
         }
     }
