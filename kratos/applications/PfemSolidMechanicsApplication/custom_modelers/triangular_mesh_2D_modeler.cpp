@@ -1267,7 +1267,6 @@ namespace Kratos
 		
 	    //std::cout<<" neigbours ["<<id<<"]: ("<<neighbours[0]<<", "<<neighbours[1]<<", "<<neighbours[2]<<") "<<std::endl;
 		
-	    //Pooyan: hacer transfer aqui: Tengo elementos antiguos, tengo nodos antiguos y nuevos creados: passar el out.numberoftriangles y el out.neighborlist;
 
 	    //*******************************************************************
 	    //1) Store Preserved elements in an array of vertices (Geometry<Node<3> > vertices;)
