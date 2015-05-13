@@ -263,6 +263,33 @@ public:
         KRATOS_CATCH("")
     }
 
+    void UpdateErrorRatio(ModelPart& rModelPart)
+    {
+        // Partitioning
+        const int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ElementPartition;
+        OpenMPUtils::DivideInPartitions(rModelPart.Elements().size(),NumThreads,ElementPartition);
+
+#pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+
+            // Initialize the iterator boundaries for this thread
+            ModelPart::ElementsContainerType::iterator ElemBegin = rModelPart.ElementsBegin() + ElementPartition[k];
+            ModelPart::ElementsContainerType::iterator ElemEnd = rModelPart.ElementsBegin() + ElementPartition[k+1];
+
+            ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+            double Error;
+
+            // Ask each element to calculate its Error ratio
+            for( ModelPart::ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+            {
+                itElem->Calculate(ERROR_RATIO,Error,rProcessInfo);
+            }
+        }
+
+    }
+
     /// Calculate the subscale velocity on the model's mesh and use it to mark elements for refinement.
     /**
      This function is intended to work with VMS elements (and derived classes). It will call the element's
