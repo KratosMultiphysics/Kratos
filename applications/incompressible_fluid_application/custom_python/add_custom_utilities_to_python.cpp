@@ -123,8 +123,9 @@ void AddCustomUtilitiesToPython()
     ;
 
     class_<RefinementUtilities > ("RefinementUtilities", init<>())
-    .def("MarkForRefinement", &RefinementUtilities::MarkForRefinement)
-    .def("SubscaleErrorEstimate", &RefinementUtilities::SubscaleErrorEstimate)
+            .def("MarkForRefinement", &RefinementUtilities::MarkForRefinement)
+            .def("UpdateErrorRatio", &RefinementUtilities::UpdateErrorRatio)
+            .def("RelativeSubscaleErrorEstimate", &RefinementUtilities::SubscaleErrorEstimate)
     ;
 
 
