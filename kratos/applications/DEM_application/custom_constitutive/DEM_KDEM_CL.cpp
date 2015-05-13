@@ -7,75 +7,83 @@
 
 // Project includes
 #include "DEM_application.h"
-#include "DEM_Dempack1_CL.h"
+#include "DEM_KDEM_CL.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
-    void DEM_Dempack1::Initialize(const ProcessInfo& rCurrentProcessInfo) {
-        
-        KRATOS_TRY  
-    mHistoryMaxInd              = 0.0; //maximum indentation achieved
-    mHistoryMaxForce            = 0.0; //maximum force achieved
-    mHistoryDamage              = 0.0; //cumulated_damage
-    mHistoryDegradation         = 1.0; //degradation factor for G reducing in Dempack;
-    mHistoryDisp                = 0.0; //displacement;
-    mHistoryShearFlag           = 0.0; //superado el limite de cortante;  
+    void DEM_KDEM::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+
+        KRATOS_TRY
+        mHistoryMaxInd = 0.0; //maximum indentation achieved
+        mHistoryMaxForce = 0.0; //maximum force achieved
+        mHistoryDamage = 0.0; //cumulated_damage
+        mHistoryDegradation = 1.0; //degradation factor for G reducing in Dempack;
+        mHistoryDisp = 0.0; //displacement;
+        mHistoryShearFlag = 0.0; //superado el limite de cortante;  
         KRATOS_CATCH("")  
     }
 
-    DEMContinuumConstitutiveLaw::Pointer DEM_Dempack1::Clone() const {
-        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_Dempack1(*this));
+    DEMContinuumConstitutiveLaw::Pointer DEM_KDEM::Clone() const {
+        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM(*this));
         return p_clone;
     }
 
-    void DEM_Dempack1::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << " Assigning DEM_Dempack1 to properties " << pProp->Id() << std::endl;
+    void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
+        std::cout << " Assigning DEM_KDEM to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_Dempack1::CalculateContactArea(double mRadius, double other_radius, double &calculation_area) {
-        
+    void DEM_KDEM::CalculateContactArea(double mRadius, double other_radius, double &calculation_area) {
+
         KRATOS_TRY
-        double rmin = mRadius;
-        if (other_radius < mRadius) rmin = other_radius;
-        calculation_area = KRATOS_M_PI * rmin*rmin;
+        double radius_sum = mRadius + other_radius;
+        double equiv_radius = 2.0 * mRadius * other_radius / radius_sum;
+        calculation_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius;
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateElasticConstants(double &kn_el,
+    void DEM_KDEM::CalculateElasticConstants(double &kn_el,
             double &kt_el,
             double initial_dist,
             double equiv_young,
             double equiv_poisson,
             double calculation_area) {
         
-        KRATOS_TRY 
+        KRATOS_TRY
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
         kt_el = equiv_shear * calculation_area / initial_dist;
         KRATOS_CATCH("")  
     }
 
-    void DEM_Dempack1::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+    void DEM_KDEM::CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
             double &equiv_visco_damp_coeff_tangential,
             SphericContinuumParticle* element1,
             SphericContinuumParticle* element2,
             double kn_el,
             double kt_el) {
-        
+
         KRATOS_TRY 
-        double aux_norm_to_tang = 0.0;
         const double mRealMass = element1->GetMass();
         const double &other_real_mass = element2->GetMass();
-        const double mDempack_local_damping = element1->GetProperties()[DEMPACK_LOCAL_DAMPING];
+        double aux_norm_to_tang = sqrt(kt_el / kn_el);
+        double myLnOfRestitCoeff = element1 ->GetLnOfRestitCoeff();
+        double other_ln_of_restit_coeff = element2->GetLnOfRestitCoeff();
+        double equiv_ln_of_restit_coeff = 0.5 * (myLnOfRestitCoeff + other_ln_of_restit_coeff);
+        const double equiv_mass = sqrt(mRealMass * other_real_mass);
 
-        equiv_visco_damp_coeff_normal = mDempack_local_damping * 2.0 * sqrt(kn_el / (mRealMass + other_real_mass)) * (sqrt(mRealMass * other_real_mass)); // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
-        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // Dempack no ho fa servir...
-        KRATOS_CATCH("")  
+        if (myLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0) {
+            equiv_visco_damp_coeff_normal = 2 * sqrt(kn_el * equiv_mass);
+            equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+        } else {
+            equiv_visco_damp_coeff_normal = -2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn_el / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + KRATOS_M_PI * KRATOS_M_PI));
+            equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+        }
+    KRATOS_CATCH("")      
     }
 
-    void DEM_Dempack1::CalculateForces(double LocalElasticContactForce[3],
+    void DEM_KDEM::CalculateForces(double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             const double kn_el,
             double kt_el,
@@ -94,8 +102,8 @@ namespace Kratos {
             int search_control,
             vector<int>& search_control_vector,
             double mapping_new_cont) {
-
-        KRATOS_TRY 
+        
+        KRATOS_TRY
         CalculateNormalForces(LocalElasticContactForce,
                 kn_el,
                 equiv_young,
@@ -123,10 +131,10 @@ namespace Kratos {
                 search_control,
                 search_control_vector,
                 mapping_new_cont);
-        KRATOS_CATCH("")  
+    KRATOS_CATCH("")      
     }
 
-    void DEM_Dempack1::CalculateNormalForces(double LocalElasticContactForce[3],
+    void DEM_KDEM::CalculateNormalForces(double LocalElasticContactForce[3],
             const double kn_el,
             double equiv_young,
             double indentation,
@@ -138,8 +146,8 @@ namespace Kratos {
             int &mIniNeighbourFailureId_mapping,
             double &mNeighbourDelta_count,
             int time_steps) {
-        
-        KRATOS_TRY 
+
+        KRATOS_TRY
         const double mN1 = element1->GetProperties()[SLOPE_FRACTION_N1];
         const double mN2 = element1->GetProperties()[SLOPE_FRACTION_N2];
         const double mN3 = element1->GetProperties()[SLOPE_FRACTION_N3];
@@ -246,11 +254,11 @@ namespace Kratos {
                     //fn = indentation * kn_el*(1.0 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
                 }
             }
-        } //Tension   
-    KRATOS_CATCH("")  
+        } //Tension  
+    KRATOS_CATCH("")      
     }
 
-    void DEM_Dempack1::CalculateTangentialForces(double LocalElasticContactForce[3],
+    void DEM_KDEM::CalculateTangentialForces(double LocalElasticContactForce[3],
             double LocalDeltDisp[3],
             double kt_el,
             double indentation,
@@ -264,14 +272,16 @@ namespace Kratos {
             int search_control,
             vector<int>& search_control_vector,
             double mapping_new_cont) {
-        
+
         KRATOS_TRY
+        const double other_tg_of_fri_angle = element2->GetTgOfFrictionAngle();
+        const double myTgOfFrictionAngle = element1->GetTgOfFrictionAngle();
         double contact_tau = 0.0;
         double contact_sigma = 0.0;
-        const double mTensionLimit = element1-> GetProperties()[CONTACT_SIGMA_MIN]*1e6;
+        const double mTensionLimit = element1-> GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2    revisar header
         const double mTauZero = element1-> GetProperties()[CONTACT_TAU_ZERO]*1e6;
         const double mInternalFriccion = element1-> GetProperties()[CONTACT_INTERNAL_FRICC];
-        const double mShearEnergyCoef = element1-> GetProperties()[SHEAR_ENERGY_COEF]; 
+        const double mShearEnergyCoef = element1-> GetProperties()[SHEAR_ENERGY_COEF]; // *************
 
         double degradation = 1.0; //Tangential. With degradation:
 
@@ -282,6 +292,8 @@ namespace Kratos {
                 degradation = (1.0 - mHistoryDamage);
             }
         }
+
+        //        degradation = 1.0; // revisar degradation = 1.0 hardcoded   ////////////////
 
         if (mNeighbourFailureId_count == 0) {
             if (mHistoryShearFlag == 0.0) {
@@ -340,13 +352,42 @@ namespace Kratos {
                 } else failure_criterion_state = contact_tau / tau_strength;
                 if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
             }
+
+            /*mContinuumConstitutiveLawArray[mapping_new_cont]-> EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
+                                          mFailureCriterionOption, mTauZero, mInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
+                                          mNeighbourFailureId_count, mIniNeighbourFailureId_mapping, mTensionLimit);      
+             */
         }
         if (search_control == 0) {
             if (mNeighbourFailureId_count != 0) {
                 search_control_vector[OpenMPUtils::ThisThread()] = 1;
             }
         }
-    KRATOS_CATCH("")     
+
+        /* Tangential Friction for broken bonds */ //dempack and kdem do the same.
+
+        if (mNeighbourFailureId_count != 0) //*   //degut als canvis de DEMPACK hi ha hagut una modificació, ara despres de trencar es fa akest maping de maxima tangencial que és correcte!
+        {
+
+            LocalElasticContactForce[0] += -degradation * kt_el * LocalDeltDisp[0]; // 0: first tangential
+            LocalElasticContactForce[1] += -degradation * kt_el * LocalDeltDisp[1]; // 1: second tangential  
+
+            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                    + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+            double Frictional_ShearForceMax = (0.5 * (myTgOfFrictionAngle + other_tg_of_fri_angle)) * LocalElasticContactForce[2];
+            if (Frictional_ShearForceMax < 0.0) {
+                Frictional_ShearForceMax = 0.0;
+            }
+
+            failure_criterion_state = 1.0;
+            if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)) {
+                LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
+                LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[1];
+                sliding = true;
+            }
+        }
+    KRATOS_CATCH("")      
     }
 
 } /* namespace Kratos.*/

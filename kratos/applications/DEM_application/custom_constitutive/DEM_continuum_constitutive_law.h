@@ -26,9 +26,9 @@ namespace Kratos {
     /**
      * Base class of constitutive laws.
      */
-    
-    class SphericContinuumParticle;  // forward declaration of spheric cont particle
-    
+
+    class SphericContinuumParticle; // forward declaration of spheric cont particle
+
     class /*__declspec( dllexport )*/ DEMContinuumConstitutiveLaw : public Flags {
     public:
 
@@ -54,56 +54,80 @@ namespace Kratos {
                 double equiv_visco_damp_coeff_tangential,
                 bool sliding,
                 int mDampType);
-        
-                     
-        virtual void CalculateContactArea(double mRadius, 
-                                            double other_radius, 
-                                            double &calculation_area){};
-                                            
-        virtual void CalculateElasticConstants(double &kn_el, 
-                                                double &kt_el, 
-                                                double initial_dist, 
-                                                double equiv_young, 
-                                                double equiv_poisson, 
-                                                double calculation_area ){};
-        
+
+        virtual void CalculateContactArea(double mRadius,
+                double other_radius,
+                double &calculation_area) {
+        };
+
+        virtual void CalculateElasticConstants(double &kn_el,
+                double &kt_el,
+                double initial_dist,
+                double equiv_young,
+                double equiv_poisson,
+                double calculation_area) {
+        };
+
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                                                double &equiv_visco_damp_coeff_tangential,
-                                                SphericContinuumParticle* element1,
-                                                SphericContinuumParticle* element2,
-                                                double kn_el){};
-               
+                double &equiv_visco_damp_coeff_tangential,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                double kn_el,
+                double kt_el) {
+        };
+
+        virtual void CalculateForces(double LocalElasticContactForce[3],
+                double LocalDeltDisp[3],
+                const double kn_el,
+                double kt_el,
+                double& failure_criterion_state,
+                double equiv_young,
+                double indentation,
+                double calculation_area,
+                double& acumulated_damage,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int &mNeighbourFailureId_count,
+                int &mIniNeighbourFailureId_mapping,
+                double &mNeighbourDelta_count,
+                int time_steps,
+                bool& sliding,
+                int search_control,
+                vector<int>& search_control_vector,
+                double mapping_new_cont) {
+        };
+
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
-                                            const double kn_el,
-                                            double equiv_young,
-                                            double indentation,
-                                            double calculation_area,
-                                            double& acumulated_damage,
-                                            SphericContinuumParticle* element1,
-                                            SphericContinuumParticle* element2,
-                                            int &mNeighbourFailureId_count,
-                                            int &mIniNeighbourFailureId_mapping,
-                                            int time_steps) {std::cout<<"error this base class should be overloaded"<<std::endl;}
-        
-        
-        
+                const double kn_el,
+                double equiv_young,
+                double indentation,
+                double calculation_area,
+                double& acumulated_damage,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int &mNeighbourFailureId_count,
+                int &mIniNeighbourFailureId_mapping,
+                double &mNeighbourDelta_count,
+                int time_steps) {
+            std::cout << "error this base class should be overloaded" << std::endl;
+        }
+
         virtual void CalculateTangentialForces(double LocalElasticContactForce[3],
-                                                double LocalDeltDisp[3],
-                                                double kt_el,
-                                                double indentation,
-                                                double calculation_area,
-                                                double& failure_criterion_state,
-                                                SphericContinuumParticle* element1,
-                                                SphericContinuumParticle* element2,
-                                                int &mNeighbourFailureId_count,
-                                                int &mIniNeighbourFailureId_mapping,
-                                                bool& sliding,
-                                                int search_control,
-                                                vector<int>& search_control_vector,
-                                                double mapping_new_cont){};
-        
-        
-        
+                double LocalDeltDisp[3],
+                double kt_el,
+                double indentation,
+                double calculation_area,
+                double& failure_criterion_state,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int &mNeighbourFailureId_count,
+                int &mIniNeighbourFailureId_mapping,
+                bool& sliding,
+                int search_control,
+                vector<int>& search_control_vector,
+                double mapping_new_cont) {
+        };
+
 
 
     private:
@@ -119,7 +143,6 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags)
                     //rSerializer.load("MyMemberName",myMember);
         }
-
     };
 
     KRATOS_DEFINE_VARIABLE(DEMContinuumConstitutiveLaw::Pointer, DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER)

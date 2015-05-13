@@ -10,83 +10,107 @@
 #include "includes/properties.h"
 #include "containers/flags.h"
 
-namespace Kratos
-{
+#include "custom_utilities/GeometryFunctions.h"
+#include "../custom_elements/discrete_element.h"
+#include "../custom_elements/Particle_Contact_Element.h"
+#include "containers/vector_component_adaptor.h"
+#include "containers/array_1d.h"
 
-/**
- * Base class of constitutive laws.
- */
-  class /*__declspec( dllexport )*/ DEMDiscontinuumConstitutiveLaw : public Flags
-  {
+namespace Kratos {
+    /**
+     * Base class of constitutive laws.
+     */
 
-  public:
-    
-    KRATOS_CLASS_POINTER_DEFINITION( DEMDiscontinuumConstitutiveLaw );
+    class SphericParticle; // forward declaration of spheric cont particle
 
-      DEMDiscontinuumConstitutiveLaw();
-      
-      DEMDiscontinuumConstitutiveLaw( const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
-      
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
-      
-    virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
-      
-      virtual ~DEMDiscontinuumConstitutiveLaw();
-      
-    virtual DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
-
-    virtual void CalculateContactForces(double LocalElasticContactForce[3],
-                                        double indentation,
-                                        double kn_el,
-                                        double LocalDeltDisp[3],
-                                        double kt_el,
-                                        int& neighbour_failure_id,
-                                        double equiv_tg_of_fri_ang);
-
-    virtual void PlasticityAndDamage(double LocalElasticContactForce[3],
-                                     double kn_el,
-                                     double equiv_young,
-                                     double indentation,
-                                     double calculation_area,
-                                     double radius_sum_i,
-                                     double& failure_criterion_state,
-                                     double& acumulated_damage,
-                                     int i_neighbour_count,
-                                     int mapping_new_cont,
-                                     int mapping_new_ini,
-                                     int time_steps);
-
-    virtual void CalculateViscoDamping(double LocalRelVel[3],
-                                       double ViscoDampingLocalContactForce[3],
-                                       double indentation,
-                                       double equiv_visco_damp_coeff_normal,
-                                       double equiv_visco_damp_coeff_tangential,
-                                       bool sliding,
-                                       int mDampType);
-    
-   
-  private:
-    
-      friend class Serializer;
-
-      virtual void save(Serializer& rSerializer) const
-      {
-          KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Flags )
-          //rSerializer.save("MyMemberName",myMember);
-
-      }
-
-      virtual void load(Serializer& rSerializer)
-      {
-          KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Flags )
-          //rSerializer.load("MyMemberName",myMember);
-
-    }
-
-};
+    class /*__declspec( dllexport )*/ DEMDiscontinuumConstitutiveLaw : public Flags {
+    public:
 
 
-KRATOS_DEFINE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
+
+        KRATOS_CLASS_POINTER_DEFINITION(DEMDiscontinuumConstitutiveLaw);
+
+        DEMDiscontinuumConstitutiveLaw();
+
+        DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
+
+        virtual void Initialize(const ProcessInfo& rCurrentProcessInfo);
+
+        virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+
+        virtual ~DEMDiscontinuumConstitutiveLaw();
+
+        virtual DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
+        
+        
+        
+        virtual void CalculateContactArea(double mRadius, double other_radius, double &calculation_area);
+
+        virtual void CalculateElasticConstants(double &kn_el,
+                double &kt_el,
+                double initial_dist,
+                double equiv_young,
+                double equiv_poisson,
+                double calculation_area);
+
+
+        virtual void CalculateForces(double LocalElasticContactForce[3],
+                double LocalDeltDisp[3],
+                double kn_el,
+                double kt_el,
+                double indentation,
+                double& failure_criterion_state,
+                bool& sliding,
+                SphericParticle* element1,
+                SphericParticle* element2,
+                int &mNeighbourFailureId_count,
+                double mapping_new_cont);
+
+
+        virtual void CalculateNormalForceLinear(double LocalElasticContactForce[3], const double kn_el, const double indentation);
+        virtual void CalculateTangentialForceLinear(double LocalElasticContactForce[3],
+                double LocalDeltDisp[3],
+                const double kt_el,
+                const double indentation,
+                double& failure_criterion_state,
+                bool& sliding,
+                SphericParticle* element1,
+                SphericParticle* element2,
+                int &mNeighbourFailureId_count,
+                double mapping_new_cont);
+        virtual void CalculateNormalForceHertz(double LocalElasticContactForce[3], const double kn_el, const double indentation);
+        virtual void CalculateViscoDamping(double LocalRelVel[3],
+                double ViscoDampingLocalContactForce[3],
+                double indentation,
+                double equiv_visco_damp_coeff_normal,
+                double equiv_visco_damp_coeff_tangential,
+                bool sliding,
+                int mDampType);
+
+        virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+                double &equiv_visco_damp_coeff_tangential,
+                SphericParticle* element1,
+                SphericParticle* element2,
+                double kn_el,
+                double kt_el);
+
+    private:
+
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer) const {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags)
+                    //rSerializer.save("MyMemberName",myMember);
+
+        }
+
+        virtual void load(Serializer& rSerializer) {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags)
+                    //rSerializer.load("MyMemberName",myMember);
+        }
+    };
+
+    KRATOS_DEFINE_VARIABLE(DEMDiscontinuumConstitutiveLaw::Pointer, DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER)
 
 } /* namespace Kratos.*/
 #endif /* DEM_CONSTITUTIVE_LAW_H_INCLUDED  defined */
