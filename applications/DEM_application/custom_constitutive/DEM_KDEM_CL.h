@@ -1,23 +1,21 @@
 
-#if !defined(DEM_EXPONENTIALHC_CL_H_INCLUDED)
-#define  DEM_EXPONENTIALHC_CL_H_INCLUDED
+#if !defined(DEM_KDEM_CL_H_INCLUDED)
+#define  DEM_KDEM_CL_H_INCLUDED
 
 /* Project includes */
 #include "DEM_continuum_constitutive_law.h"
 
 
+
 namespace Kratos {
 
-    class DEM_ExponentialHC : public DEMContinuumConstitutiveLaw {
+    class DEM_KDEM : public DEMContinuumConstitutiveLaw {
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_ExponentialHC);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);
 
-        DEM_ExponentialHC() {
+        DEM_KDEM() {
         }
-
-
-        //    virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist);            
 
         double mHistoryMaxInd;
         double mHistoryMaxForce;
@@ -25,16 +23,13 @@ namespace Kratos {
         double mHistoryDegradation;
         double mHistoryDisp;
         double mHistoryShearFlag;
-        double mGamma1;
-        double mGamma2;
-        double mGamma3;
-        double mMaxDef;
+
 
         void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
-        ~DEM_ExponentialHC() {
+        ~DEM_KDEM() {
         }
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const;
@@ -117,5 +112,4 @@ namespace Kratos {
     };
 
 } /* namespace Kratos.*/
-#endif /* DEM_EXPONENTIALHC_H_INCLUDED  defined */
-
+#endif /* DEM_KDEM_H_INCLUDED  defined */

@@ -8,91 +8,110 @@
 
 
 
-namespace Kratos
-{
+namespace Kratos {
 
-    
-class DEM_Dempack1:public DEMContinuumConstitutiveLaw
-{
-public:
+    class DEM_Dempack1 : public DEMContinuumConstitutiveLaw {
+    public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( DEM_Dempack1 );
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack1);
 
-    DEM_Dempack1(){}
+        DEM_Dempack1() {
+        }
 
-    //DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
+        //DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
 
-    double mHistoryMaxInd;
-    double mHistoryMaxForce;          
-    double mHistoryDamage;            
-    double mHistoryDegradation;       
-    double mHistoryDisp;             
-    double mHistoryShearFlag; 
-    
-  
-    void Initialize(const ProcessInfo& rCurrentProcessInfo);
-
-    void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
-
-    ~DEM_Dempack1(){}
-
-    DEMContinuumConstitutiveLaw::Pointer Clone() const;
-
-    void CalculateContactArea(double mRadius, double other_radius, double &calculation_area);
-    void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area );
-    
-    void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                                    double &equiv_visco_damp_coeff_tangential,
-                                    SphericContinuumParticle* element1,
-                                    SphericContinuumParticle* element2,
-                                    double kn_el);
-    
-    void CalculateNormalForces(double LocalElasticContactForce[3],
-                                const double kn_el,
-                                double equiv_young,
-                                double indentation,
-                                double calculation_area,
-                                double& acumulated_damage,
-                                SphericContinuumParticle* element1,
-                                SphericContinuumParticle* element2,
-                                int &mNeighbourFailureId_count,
-                                int &mIniNeighbourFailureId_mapping,
-                                int time_steps);
-    
-    
-    void CalculateTangentialForces(double LocalElasticContactForce[3],
-                                    double LocalDeltDisp[3],
-                                    double kt_el,
-                                    double indentation,
-                                    double calculation_area,
-                                    double& failure_criterion_state,
-                                    SphericContinuumParticle* element1,
-                                    SphericContinuumParticle* element2,
-                                    int &mNeighbourFailureId_count,
-                                    int &mIniNeighbourFailureId_mapping,
-                                    bool& sliding,
-                                    int search_control,
-                                    vector<int>& search_control_vector,
-                                    double mapping_new_cont);
+        double mHistoryMaxInd;
+        double mHistoryMaxForce;
+        double mHistoryDamage;
+        double mHistoryDegradation;
+        double mHistoryDisp;
+        double mHistoryShearFlag;
 
 
-private:
+        void Initialize(const ProcessInfo& rCurrentProcessInfo);
 
-    friend class Serializer;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DEMContinuumConstitutiveLaw )
-                //rSerializer.save("MyMemberName",myMember);
-    }
+        ~DEM_Dempack1() {
+        }
 
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DEMContinuumConstitutiveLaw )
-                //rSerializer.load("MyMemberName",myMember);
-    }
+        DEMContinuumConstitutiveLaw::Pointer Clone() const;
 
-};
+        void CalculateContactArea(double mRadius, double other_radius, double &calculation_area);
+        void CalculateElasticConstants(double &kn_el, double &kt_el, double initial_dist, double equiv_young, double equiv_poisson, double calculation_area);
+
+        void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+                double &equiv_visco_damp_coeff_tangential,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                double kn_el,
+                double kt_el);
+
+        void CalculateForces(double LocalElasticContactForce[3],
+                double LocalDeltDisp[3],
+                const double kn_el,
+                double kt_el,
+                double& failure_criterion_state,
+                double equiv_young,
+                double indentation,
+                double calculation_area,
+                double& acumulated_damage,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int &mNeighbourFailureId_count,
+                int &mIniNeighbourFailureId_mapping,
+                double &mNeighbourDelta_count,
+                int time_steps,
+                bool& sliding,
+                int search_control,
+                vector<int>& search_control_vector,
+                double mapping_new_cont);
+
+        void CalculateNormalForces(double LocalElasticContactForce[3],
+                const double kn_el,
+                double equiv_young,
+                double indentation,
+                double calculation_area,
+                double& acumulated_damage,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int &mNeighbourFailureId_count,
+                int &mIniNeighbourFailureId_mapping,
+                double &mNeighbourDelta_count,
+                int time_steps);
+
+
+        void CalculateTangentialForces(double LocalElasticContactForce[3],
+                double LocalDeltDisp[3],
+                double kt_el,
+                double indentation,
+                double calculation_area,
+                double& failure_criterion_state,
+                SphericContinuumParticle* element1,
+                SphericContinuumParticle* element2,
+                int &mNeighbourFailureId_count,
+                int &mIniNeighbourFailureId_mapping,
+                bool& sliding,
+                int search_control,
+                vector<int>& search_control_vector,
+                double mapping_new_cont);
+
+
+    private:
+
+        friend class Serializer;
+
+        virtual void save(Serializer& rSerializer) const {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+                    //rSerializer.save("MyMemberName",myMember);
+        }
+
+        virtual void load(Serializer& rSerializer) {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
+                    //rSerializer.load("MyMemberName",myMember);
+        }
+
+    };
 
 } /* namespace Kratos.*/
 #endif /* DEM_DEMPACK1_H_INCLUDED  defined */

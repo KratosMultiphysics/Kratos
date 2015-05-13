@@ -27,7 +27,7 @@ namespace Kratos {
 
     DEMContinuumConstitutiveLaw::~DEMContinuumConstitutiveLaw() { //std::cout << "Law destructor..." ;
     }
-    
+
     void DEMContinuumConstitutiveLaw::CalculateViscoDamping(double LocalRelVel[3],
             double ViscoDampingLocalContactForce[3],
             double indentation,
@@ -36,10 +36,11 @@ namespace Kratos {
             bool sliding,
             int mDampType) {
 
-        // The comprovation is component-wise since localContactForce and RelVel have in principle no relationship.
+        //*** component-wise since localContactForce and RelVel have in principle no relationship.
         // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
         // But in oposite direction the visco damping can't overpass the force...
 
+        KRATOS_TRY  
         if (mDampType > 0) {
 
             if (mDampType == 11 || mDampType == 10) {
@@ -51,6 +52,7 @@ namespace Kratos {
                 ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
             }
         }
-    }    
+    KRATOS_CATCH("")      
+    }
 
 } //kratos
