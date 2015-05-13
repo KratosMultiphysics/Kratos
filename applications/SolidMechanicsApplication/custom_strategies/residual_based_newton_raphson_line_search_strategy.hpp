@@ -625,7 +625,6 @@ public:
         // The following part will be commented because it is time consuming
         // and there is no obvious reason to be here. If someone need this
         // part please notify the community via mailing list before uncommenting it.
-        // Pooyan.
         //if (ResidualIsUpdated == false)
         //{
         //    TSparseSpace::SetToZero(mb);

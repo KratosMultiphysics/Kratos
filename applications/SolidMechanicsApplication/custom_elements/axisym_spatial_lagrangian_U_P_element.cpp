@@ -722,8 +722,16 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     unsigned int indexp = dimension;
+    double consistent = 1;
 
-    VectorType Fh=rRightHandSideVector;
+    // VectorType Fh=rRightHandSideVector;
+    // if( this->Id() <= 4)
+    //   std::cout<<" Element "<<this->Id()<<" "<<std::endl;
+
+    //use of this variable for the complete parameter: (deffault: 4)
+    double AlphaStabilization  = 4.0; 
+    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    AlphaStabilization *= StabilizationFactor;
 
     const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
     const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -734,19 +742,13 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
-    //use of this variable for the complete parameter: (deffault: 4)
-    double AlphaStabilization  = 4.0; 
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-    AlphaStabilization *= StabilizationFactor;
     
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
-        AlphaStabilization = 1.0/4.5;
+        AlphaStabilization *= 1.0/18.0;
 
+    //use of this variable for the complete parameter:
     AlphaStabilization=(AlphaStabilization/LameMu);
-
-
-    double consistent = 1;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -785,8 +787,10 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
     }
 
 
-    // std::cout<<std::endl;
-    // std::cout<<" FpStab "<<rRightHandSideVector-Fh<<std::endl;
+    // if( this->Id() <= 4 ){
+    //   std::cout<<std::endl;
+    //   std::cout<<" FpStab "<<rRightHandSideVector-Fh<<" Stab "<<AlphaStabilization<<" LameMu "<<LameMu<<std::endl;
+    // }
 
     KRATOS_CATCH( "" )
 }
@@ -974,7 +978,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
 
     double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
-    MatrixType Kh=rK;
+    //MatrixType Kh=rK;
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
@@ -1019,11 +1023,16 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rK;
+    // MatrixType Kh=rK;
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
     double consistent = 1.0;
+
+    //use of this variable for the complete parameter: (deffault: 4)    
+    double AlphaStabilization  = 4.0; 
+    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    AlphaStabilization *= StabilizationFactor;
 
     const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
     const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -1034,16 +1043,11 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
     // if(LameMu < rVariables.ConstitutiveMatrix(2,2))
     //   LameMu = rVariables.ConstitutiveMatrix(2,2);
 
-
-    //use of this variable for the complete parameter: (deffault: 4)    
-    double AlphaStabilization  = 4.0; 
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-    AlphaStabilization *= StabilizationFactor;
-
     unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
-        AlphaStabilization = 1.0/4.5;
+        AlphaStabilization *= 1.0/18.0;
 
+    //use of this variable for the complete parameter:
     AlphaStabilization=(AlphaStabilization/LameMu);
     
 
@@ -1084,7 +1088,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
     }
 
     // std::cout<<std::endl;
-    // std::cout<<" KppStab "<<rK-Kh<<std::endl;
+    // std::cout<<" KppStab "<<rK-Kh<<" alha stab "<<GetProperties()[STABILIZATION_FACTOR]<<std::endl;
 
     KRATOS_CATCH( "" )
 }

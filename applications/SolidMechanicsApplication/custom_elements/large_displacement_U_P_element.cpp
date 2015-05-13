@@ -527,6 +527,7 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     // VectorType Fh=rRightHandSideVector;
     // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
+    //use of this variable for the complete parameter: (deffault: 4)
     double AlphaStabilization  = 4.0; 
     double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
     AlphaStabilization *= StabilizationFactor;
