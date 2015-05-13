@@ -76,7 +76,7 @@ pp.print_SOLID_FRACTION_option            = 1
 pp.print_FLUID_FRACTION_option            = 1
 pp.print_FLUID_VISCOSITY_PROJECTED_option = 1
 pp.print_FLUID_FRACTION_PROJECTED_option  = 1
-pp.print_MESH_VELOCITY1_option            = 1
+pp.print_AVERAGED_FLUID_VELOCITY_option   = 1
 pp.print_FLUID_FRACTION_GRADIENT_option   = 1
 pp.print_BODY_FORCE_option                = 1
 pp.print_HYDRODYNAMIC_REACTION_option     = 1
@@ -597,7 +597,7 @@ while time <= final_time:
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), "elements )")
         sys.stdout.flush()
 
-        fluid_solver.Solve()
+        #fluid_solver.Solve()
 
     # assessing stationarity
 

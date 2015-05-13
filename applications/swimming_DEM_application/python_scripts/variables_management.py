@@ -205,7 +205,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     pp.coupling_fluid_vars += [BODY_FORCE]
 
     if (pp.fluid_model_type == 0):
-        pp.coupling_fluid_vars += [MESH_VELOCITY1]
+        pp.coupling_fluid_vars += [MESH_AVERAGED_FLUID_VELOCITY]
 
     if (pp.fluid_model_type == 0 or pp.coupling_level_type == 1 or pp.drag_force_type == 4):
         pp.coupling_fluid_vars += [FLUID_FRACTION]
@@ -267,8 +267,8 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if (pp.print_SOLID_FRACTION_option):
         pp.nodal_results += ["SOLID_FRACTION"]
 
-    if (pp.fluid_model_type == 0 and pp.print_MESH_VELOCITY1_option):
-        pp.nodal_results += ["MESH_VELOCITY1"]
+    if (pp.fluid_model_type == 0 and pp.print_AVERAGED_FLUID_VELOCITY_option):
+        pp.nodal_results += ["AVERAGED_FLUID_VELOCITY"]
 
     if (pp.fluid_model_type == 1 and pp.print_FLUID_FRACTION_GRADIENT_option):
         pp.nodal_results += ["FLUID_FRACTION_GRADIENT"]
