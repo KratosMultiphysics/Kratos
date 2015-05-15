@@ -224,7 +224,7 @@ void WallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatr
 {
     if (this->GetValue(IS_STRUCTURE) == 0.0)
     {
-        const unsigned int LocalSize = TNumNodes;
+        const unsigned int LocalSize = TDim;
         const GeometryType& rGeom = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
