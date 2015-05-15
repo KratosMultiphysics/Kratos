@@ -283,21 +283,7 @@ public:
       */
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
-    {
-        // Initialize local contributions
-        const SizeType LocalSize = (TDim + 1) * TNumNodes;
-
-        if (rDampingMatrix.size1() != LocalSize)
-            rDampingMatrix.resize(LocalSize,LocalSize);
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize);
-
-        noalias(rDampingMatrix) = ZeroMatrix(LocalSize,LocalSize);
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-
-	this->ApplyWallLaw(rDampingMatrix,rRightHandSideVector,rCurrentProcessInfo);
-    }
+            ProcessInfo& rCurrentProcessInfo);
 
 
     /// Check that all data required by this condition is available and reasonable
@@ -330,6 +316,9 @@ public:
                 KRATOS_THROW_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
             if(Y_WALL.Key() == 0)
                 KRATOS_THROW_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","");
+            if(EXTERNAL_PRESSURE.Key() == 0)
+                KRATOS_THROW_ERROR(std::invalid_argument,"EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.","");
+
 
                 // Checks on nodes
 
@@ -344,6 +333,8 @@ public:
                         KRATOS_THROW_ERROR(std::invalid_argument,"missing MESH_VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
                         KRATOS_THROW_ERROR(std::invalid_argument,"missing ACCELERATION variable on solution step data for node ",this->GetGeometry()[i].Id());
+                    if(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
+                        KRATOS_THROW_ERROR(std::invalid_argument,"missing EXTERNAL_PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                             this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                             this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -423,6 +414,31 @@ public:
             Values[LocalIndex++] = 0.0; // No value on pressure positions
         }
     }
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                             std::vector<array_1d<double, 3 > >& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                             std::vector<double>& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                                             std::vector<array_1d<double, 6 > >& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                             std::vector<Vector>& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                             std::vector<Matrix>& rValues,
+                                             const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -572,6 +588,12 @@ protected:
             }
         }
     }
+
+
+    void CalculateNormal(array_1d<double,3>& An );
+
+
+    void ApplyNeumannCondition(MatrixType &rLocalMatrix, VectorType &rLocalVector);
 
 
     ///@}
