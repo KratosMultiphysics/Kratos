@@ -218,6 +218,7 @@ class MonolithicSolver:
         self.OldNetInletVolume=0.0
         self.OldWetVolume=0.0
 
+        self.distance_utilities=DistanceUtilities()
     #
 
     def ApplyFluidProperties(self):
@@ -348,6 +349,9 @@ class MonolithicSolver:
 
         # recompute distance function as needed
         Timer.Start("DoRedistance")
+        # Time to compute the Element Distance Gradient
+        self.distance_utilities.ComputeElementalGradient(self.model_part)
+
         if(self.internal_step_counter >= self.next_redistance):
             #net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             #BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
