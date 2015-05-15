@@ -6,6 +6,7 @@ from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.Click2CastApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -81,7 +82,7 @@ def AddDofs(model_part):
 class MonolithicSolver:
     #
 
-    def __init__(self, model_part, domain_size,linear_solver_iterations=300, linear_solver_tolerance=1e-5):
+    def __init__(self, model_part, domain_size,linear_solver_iterations=300, linear_solver_tolerance=1e-5,dynamic_tau_levelset=0.01):
 
         self.model_part = model_part
         self.domain_size = domain_size
@@ -134,7 +135,7 @@ class MonolithicSolver:
         self.rel_pres_tol = 1e-5
         self.abs_pres_tol = 1e-7
 
-        self.dynamic_tau_levelset = 0.01
+        self.dynamic_tau_levelset = dynamic_tau_levelset
         self.dynamic_tau_fluid = 0.01
         self.oss_switch = 0
 
@@ -196,7 +197,7 @@ class MonolithicSolver:
         self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(
             self.level_set_model_part)
-        self.max_distance = self.max_edge_size * 5.0
+        self.max_distance = self.max_edge_size * 10.0 #Ojo antes 5.0
         self.max_levels = 25  # self.max_distance/self.min_edge_size
 
         self.max_ns_iterations = 8
@@ -213,6 +214,9 @@ class MonolithicSolver:
         self.maxmin = []
         ParticleLevelSetUtils3D().FindMaxMinEdgeSize(
             self.level_set_model_part, self.maxmin)
+        # Variables needed for computing the Efficiency of the Injection
+        self.OldNetInletVolume=0.0
+        self.OldWetVolume=0.0
 
     #
 
@@ -328,6 +332,11 @@ class MonolithicSolver:
                 node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
             self.divergence_clearance_performed = True
 
+        # Now we store the Old Values
+        self.OldNetInletVolume=self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
+        self.OldWetVolume=self.model_part.ProcessInfo[WET_VOLUME]
+
+
         if(step > 3):
             (self.solver).Predict()
 
@@ -335,6 +344,7 @@ class MonolithicSolver:
         # convect distance function
 
         self.ConvectDistance()
+
 
         # recompute distance function as needed
         Timer.Start("DoRedistance")
@@ -347,11 +357,40 @@ class MonolithicSolver:
                 if( node.GetSolutionStepValue(DISTANCE) > 0.0):
                     node.SetSolutionStepValue(DISTANCE,0,  -0.01*self.max_edge_size)
             self.DoRedistance()
+            self.next_redistance = self.internal_step_counter + self.redistance_frequency
+        
         Timer.Stop("DoRedistance")
+
+        # Now we compute the volume before the correction
+        WetVolumeBeforeCorrection = BiphasicFillingUtilities().ComputeWetVolume(self.model_part)
+        # Here The Net InleVolume is computed and saved into ProcessInfo[NET_INPUT_MATERIAL]
+        BiphasicFillingUtilities().ComputeNetInletVolume(self.model_part)
+        # Now we compute the efficiency
+        Efficiency=(WetVolumeBeforeCorrection-self.OldWetVolume)/(self.model_part.ProcessInfo[NET_INPUT_MATERIAL]-self.OldNetInletVolume)
+        Efficiency=max(0,min(Efficiency,1.0))
+        self.model_part.ProcessInfo[INJECTION_EFFICIENCY]=Efficiency
+        print("......")
+        print("Efficiency :" + str(Efficiency))
+        print("New_NET_INPUT_MATERIAL :" + str(self.model_part.ProcessInfo[NET_INPUT_MATERIAL]))
+        print("OLD_NET_INPUT_MATERIAL :" + str(self.OldNetInletVolume))
+        print("OLD_OldWetVolume :" + str(self.OldWetVolume))
+        print("WetVolumeBeforeCorrection :" + str(WetVolumeBeforeCorrection))
+        print("......")
+        print("......")
+
 
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size,self.negative_volume_correction)
+            print("Performed Volume Correction")
+        else: # Ojo que lo acabo de
+            self.model_part.ProcessInfo[WET_VOLUME] = BiphasicFillingUtilities().ComputeWetVolume(self.model_part) #fluid_model_part.ProcessInfo[WET_VOLUME]
+        
+        print("self.model_part.ProcessInfo[WET_VOLUME] :" + str(self.model_part.ProcessInfo[WET_VOLUME]))
+        print("......")
+        print("......")
+
+        
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
         BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,100.0)
@@ -366,11 +405,8 @@ class MonolithicSolver:
 
         if(step > 3):
             (self.solver).Predict()
-            
             #self.velocity_prediction.PredictVelocity()
-            
-           
-           
+
         #ActivationUtilities().ActivateElementsAndConditions( self.model_part, DISTANCE, self.max_distance, True) 
         (self.solver).Solve()
         self.internal_step_counter += 1

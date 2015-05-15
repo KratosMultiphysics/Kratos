@@ -334,7 +334,7 @@ public:
 	}
     //**********************************************************************************************
     //**********************************************************************************************
-    void VolumeCorrection(ModelPart& ThisModelPart, const double Net_volume, const double max_correction, const bool CorrectNegativeVolume=true)
+    void VolumeCorrection(ModelPart& ThisModelPart, const double Net_volume, const double max_correction, const bool CorrectNegativeVolume=false)
     {
         KRATOS_TRY
 
@@ -485,6 +485,7 @@ public:
 
         ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
+		std::cout << "Correction : " << correction << std::endl;
 
         //std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
@@ -955,6 +956,19 @@ public:
 
         KRATOS_CATCH("")
     }
+	//**********************************************************************************************
+	//**********************************************************************************************	
+	/* THIS FUNCTION COMPUTES THE WET VOLUME */
+	double ComputeWetVolume(ModelPart& ThisModelPart)
+	{
+		double wet_volume = 0.0;
+        double cutted_area = 0.0;
+		// First we compute the Total Volume of the Fluid
+		// First we compute the Total Volume of the Fluid
+        ComputeWetVolumeAndCuttedArea(ThisModelPart, wet_volume, cutted_area);
+		return wet_volume;
+	}
+
 	//**********************************************************************************************
 	//**********************************************************************************************	
 private:

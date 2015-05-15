@@ -135,6 +135,7 @@ void  AddCustomUtilitiesToPython()
 	.def("PosetiveVolumeCorrection", &BiphasicFillingUtilities::PosetiveVolumeCorrection)
 	.def("ApplyTemperatureLimitation", &BiphasicFillingUtilities::ApplyTemperatureLimitation) 
 	.def("CheckIfAllNodesAreWet", &BiphasicFillingUtilities::CheckIfAllNodesAreWet) 
+	.def("ComputeWetVolume", &BiphasicFillingUtilities::ComputeWetVolume)
 	
     ; 
 
