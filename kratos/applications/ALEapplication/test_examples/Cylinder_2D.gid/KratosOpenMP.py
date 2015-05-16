@@ -329,14 +329,14 @@ while(time <= final_time):
     print ("TIME = ", round(time,6))
 
     if(step >= 3 and step < 50):
-      #fluid_solver.Solve()
+      fluid_solver.Solve()
       graph_printer.PrintGraphs(time)
       PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
     if (step >= 50):
       MoveNodes(fluid_model_part,time)
       mesh_sol.Solve()
       mesh_sol.MoveNodes()
-      #fluid_solver.Solve()
+      fluid_solver.Solve()
       graph_printer.PrintGraphs(time)
       PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
       

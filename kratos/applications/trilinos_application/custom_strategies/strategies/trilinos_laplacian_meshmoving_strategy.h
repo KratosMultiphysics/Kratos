@@ -24,8 +24,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "../ALEapplication/ale_application.h"
-#include "../ALEapplication/custom_elements/laplacian_meshmoving_element_2d.h"
-#include "../ALEapplication/custom_elements/laplacian_meshmoving_element_3d.h"
+#include "../ALEapplication/custom_elements/laplacian_meshmoving_element.h"
+
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
@@ -170,7 +170,7 @@ public:
                 (i)->GetSolutionStepValue(DISPLACEMENT_Z) = 0.00;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
 
@@ -187,10 +187,10 @@ public:
     //*********************************************************************************
     double Solve()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // Mesh has to be regenerated in each solving step
-        ReGenerateMeshPart();
+
 
         ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
@@ -455,7 +455,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianMeshMovingElem2D(
+                pElem = Element::Pointer(new LaplacianMeshMovingElement<2>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -465,7 +465,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new LaplacianMeshMovingElem3D(
+                pElem = Element::Pointer(new LaplacianMeshMovingElement<3>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -477,65 +477,6 @@ private:
         CommunicatorGeneration.Execute();
     }
 
-    void ReGenerateMeshPart()
-    {
-        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
-
-        // Reinitializing new auxiliary model part
-        mpMeshModelPart->Nodes().clear();
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        // Create a communicator for the new model part and copy the partition information about nodes.
-        Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
-        typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
-        pMeshMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
-        pMeshMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-        pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
-        pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
-        pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
-
-        // Setup communication plan
-        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
-        {
-            pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
-            pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
-            pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
-        }
-        mpMeshModelPart->SetCommunicator( pMeshMPIComm );
-
-        // Creating mesh elements
-        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-        Element::Pointer pElem;
-
-        MeshElems.clear();
-        MeshElems.reserve( MeshElems.size() );
-
-        if(mdimension == 2)
-
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new LaplacianMeshMovingElem2D(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-        else if(mdimension == 3)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new LaplacianMeshMovingElem3D(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-
-        // Optimize communicaton plan
-        ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
-        CommunicatorGeneration.Execute();
-    }
 
     /*@} */
     /**@name Private  Access */

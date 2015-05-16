@@ -235,6 +235,10 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, LAGRANGE_TEMPERATURE )
     KRATOS_DEFINE_VARIABLE( double, IS_INLET )
 
+    //ALEApplication
+    KRATOS_DEFINE_VARIABLE( double, AUX_MESH_VAR )
+
+
 
     //for Electric application
     KRATOS_DEFINE_VARIABLE( double, ELECTRIC_POTENTIAL )
