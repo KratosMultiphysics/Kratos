@@ -139,7 +139,7 @@ public:
     //*********************************************************************************
     double Solve()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
 	// Setting mesh to initial configuration
 	for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd() ; ++i)

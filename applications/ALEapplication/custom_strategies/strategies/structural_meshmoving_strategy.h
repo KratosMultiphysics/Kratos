@@ -157,7 +157,7 @@ public:
     //*********************************************************************************
     double Solve()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
 	// Setting mesh to initial configuration                                                                               
 	for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin(); i != (*mpMeshModelPart).NodesEnd() ; ++i)
@@ -180,7 +180,7 @@ public:
 
         return 0.0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
 
@@ -224,7 +224,7 @@ public:
             }
         }
 	
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     virtual void SetEchoLevel(int Level)

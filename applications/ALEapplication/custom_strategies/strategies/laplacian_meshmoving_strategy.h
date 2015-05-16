@@ -182,9 +182,7 @@ public:
     //*********************************************************************************
     double Solve()
     {
-        KRATOS_TRY
-
-       // ReGenerateMeshPart();
+        KRATOS_TRY;
 
         unsigned int num_of_points = (*mpMeshModelPart).Nodes().size();
         std::vector< double > disp_x;
@@ -263,7 +261,7 @@ public:
 
         return 0.0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
 
@@ -307,7 +305,7 @@ public:
             }
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     virtual void SetEchoLevel(int Level)
@@ -446,49 +444,8 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-//KRATOS_WATCH((mpMeshModelPart->Elements()).size());
-//KRATOS_WATCH((mpMeshModelPart->Nodes()).size());
-//KRATOS_WATCH(mpMeshModelPart->GetMesh());
     }
 
-    void ReGenerateMeshPart()
-    {
-        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
-
-        //initializing mesh nodes
-        mpMeshModelPart->Nodes().clear();
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        //creating mesh elements
-        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-        Element::Pointer pElem;
-
-        MeshElems.clear();
-        MeshElems.reserve( MeshElems.size() );
-
-        if(mdimension == 2)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new LaplacianMeshMovingElement<2>(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-        else
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new LaplacianMeshMovingElement<3>(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-
-        KRATOS_WATCH(MeshElems.size());
-    }
 
     /*@} */
     /**@name Private  Access */

@@ -25,8 +25,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "../ALEapplication/ale_application.h"
-#include "../ALEapplication/custom_elements/structural_meshmoving_element_2d_nonlinear.h"
-#include "../ALEapplication/custom_elements/structural_meshmoving_element_3d_nonlinear.h"
+#include "../ALEapplication/custom_elements/structural_meshmoving_element_nonlinear.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 
@@ -117,7 +116,7 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class TrilinosStructuralMeshMovingStrategyNonlin
+class TrilinosStructuralMeshMovingStrategyNonlinear
     : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
@@ -125,7 +124,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    KRATOS_CLASS_POINTER_DEFINITION( TrilinosStructuralMeshMovingStrategyNonlin );
+    KRATOS_CLASS_POINTER_DEFINITION( TrilinosStructuralMeshMovingStrategyNonlinear );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
@@ -152,7 +151,7 @@ public:
 
     /** Constructor.
     */
-    TrilinosStructuralMeshMovingStrategyNonlin(
+    TrilinosStructuralMeshMovingStrategyNonlinear(
 		Epetra_MpiComm& Comm,
         ModelPart& model_part,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -217,7 +216,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~TrilinosStructuralMeshMovingStrategyNonlin() {}
+    virtual ~TrilinosStructuralMeshMovingStrategyNonlinear() {}
 
     /** Destructor.
     */
@@ -227,10 +226,9 @@ public:
     //*********************************************************************************
     double Solve()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         // Mesh has to be regenerated in each solving step
-        ReGenerateMeshPart();
 
         ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
@@ -449,7 +447,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2DNonlin(
+                pElem = Element::Pointer(new StructuralMeshMovingElementNonlinear<2>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -459,7 +457,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3DNonlin(
+                pElem = Element::Pointer(new StructuralMeshMovingElementNonlinear<3>(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -471,71 +469,6 @@ private:
         CommunicatorGeneration.Execute();
     }
 
-    void ReGenerateMeshPart()
-    {
-        std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
-
-       // mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
-       // mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
-       // mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
-
-        // Initializing mesh nodes
-        mpMeshModelPart->Nodes().clear();
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        // Create a communicator for the new model part and copy the partition information about nodes.
-        Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
-        typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
-        pMeshMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
-        pMeshMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
-        pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
-        pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
-        pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
-
-        // Setup communication plan
-        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
-        {
-            pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
-            pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
-            pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
-        }
-        mpMeshModelPart->SetCommunicator( pMeshMPIComm );
-
-        // Creating mesh elements
-        ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
-        Element::Pointer pElem;
-
-        MeshElems.clear();
-        MeshElems.reserve( MeshElems.size() );
-
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
-
-        if(mdimension == 2)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2DNonlin(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-        else if(mdimension == 3)
-            for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
-                    it != BaseType::GetModelPart().ElementsEnd(); it++)
-            {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3DNonlin(
-                                             (*it).Id(),
-                                             (*it).pGetGeometry(),
-                                             (*it).pGetProperties() ) );
-                MeshElems.push_back(pElem);
-            }
-
-            // Optimize communicaton plan
-            ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
-            CommunicatorGeneration.Execute();
-    }
 
     /*@} */
     /**@name Private  Access */
@@ -553,12 +486,12 @@ private:
 
     /** Copy constructor.
     */
-    TrilinosStructuralMeshMovingStrategyNonlin(const TrilinosStructuralMeshMovingStrategyNonlin& Other);
+    TrilinosStructuralMeshMovingStrategyNonlinear(const TrilinosStructuralMeshMovingStrategyNonlinear& Other);
 
 
     /*@} */
 
-}; /* Class TrilinosStructuralMeshMovingStrategyNonlin */
+}; /* Class TrilinosStructuralMeshMovingStrategyNonlinear */
 
 /*@} */
 

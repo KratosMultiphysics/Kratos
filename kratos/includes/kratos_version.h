@@ -3,6 +3,6 @@
 #define KRATOS_MINOR_VERSION  3
 
 //svn version at configure time
-#define KRATOS_SVN_REVISION  11892 
+#define KRATOS_SVN_REVISION  11906 
 
-#define KRATOS_VERSION  "3.3.11892"
+#define KRATOS_VERSION  "3.3.11906"
