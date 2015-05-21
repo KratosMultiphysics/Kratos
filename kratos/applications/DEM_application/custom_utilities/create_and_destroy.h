@@ -60,6 +60,7 @@ public:
     virtual ~ParticleCreatorDestructor();
 
     int FindMaxNodeIdInModelPart(ModelPart& r_modelpart);
+    void FindAndSaveMaxNodeIdInModelPart(ModelPart& r_modelpart);
     
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node < 3 > ::Pointer& pnew_node,
@@ -164,6 +165,7 @@ public:
     void SetLowNode(array_1d<double, 3> node);
 
     unsigned int GetCurrentMaxNodeId();
+    unsigned int* pGetCurrentMaxNodeId();
 
     void SetMaxNodeId(unsigned int id);
 

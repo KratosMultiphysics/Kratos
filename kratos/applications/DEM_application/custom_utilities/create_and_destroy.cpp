@@ -129,6 +129,10 @@ namespace Kratos {
         r_modelpart.GetCommunicator().MaxAll(max_Id);
         return max_Id;
     }
+    
+    void ParticleCreatorDestructor::FindAndSaveMaxNodeIdInModelPart(ModelPart& r_modelpart) {
+        mMaxNodeId = FindMaxNodeIdInModelPart(r_modelpart);
+    }
 
     void ParticleCreatorDestructor::NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                     Node < 3 > ::Pointer& pnew_node,
@@ -351,7 +355,11 @@ namespace Kratos {
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
         spheric_p_particle->SetClusterId(cluster_id);
 
+        #pragma omp critical
+        {        
         r_modelpart.Elements().push_back(p_particle);
+        }
+        
         return spheric_p_particle;
     }    
     
@@ -833,6 +841,10 @@ namespace Kratos {
 
     unsigned int ParticleCreatorDestructor::GetCurrentMaxNodeId() {
         return mMaxNodeId;
+    }
+    
+    unsigned int* ParticleCreatorDestructor::pGetCurrentMaxNodeId() {
+        return &mMaxNodeId;
     }
 
     void ParticleCreatorDestructor::SetMaxNodeId(unsigned int id) {
