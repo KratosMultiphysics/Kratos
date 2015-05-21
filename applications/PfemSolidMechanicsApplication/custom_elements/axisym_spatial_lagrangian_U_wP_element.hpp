@@ -299,7 +299,6 @@ protected:
                                        double& rIntegrationWeight
                                       );
 
-
     ///@}
     ///@name Protected  Access
     ///@{

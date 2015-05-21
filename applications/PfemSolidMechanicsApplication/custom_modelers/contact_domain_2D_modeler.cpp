@@ -282,10 +282,12 @@ namespace Kratos
       }
 
     double hnodal_offset_conversion = 0.35;
-    if( rContactVariables.OffsetFactor > nodal_h_min*hnodal_offset_conversion || rContactVariables.OffsetFactor < nodal_h_min*0.01)
+    if( rContactVariables.OffsetFactor > nodal_h_min*hnodal_offset_conversion || rContactVariables.OffsetFactor < nodal_h_min*0.01){
       rContactVariables.OffsetFactor = nodal_h_min*hnodal_offset_conversion;
+      rMeshingVariables.OffsetFactor = rContactVariables.OffsetFactor;
+    }
 
-    //std::cout<<" nodal_h_min "<<nodal_h_min<<" OffsetFactor "<<rContactVariables.OffsetFactor<<std::endl;
+    std::cout<<" nodal_h_min "<<nodal_h_min<<" OffsetFactor "<<rContactVariables.OffsetFactor<<std::endl;
 
     //*********************************************************************
 
@@ -336,8 +338,8 @@ namespace Kratos
 	    std::cout<<" Boundary NORMAL is Zero in node ["<<(boundary_nodes_begin + i)->Id()<<"] : something is wrong with the normals search "<<std::endl;
 	  };
 
-	  Offset[0] = ((-1)*Normal[0]*Shrink*rContactVariables.OffsetFactor);
-	  Offset[1] = ((-1)*Normal[1]*Shrink*rContactVariables.OffsetFactor);
+	  Offset[0] = ( (-1) * Normal[0] * Shrink * rContactVariables.OffsetFactor );
+	  Offset[1] = ( (-1) * Normal[1] * Shrink * rContactVariables.OffsetFactor );
 
 	  //std::cout<<" Id "<<rMeshingVariables.NodalPreIds[i+1]<<" real ID "<<(boundary_nodes_begin + i)->Id()<<" Shrink "<<Shrink<<" Normal "<<Normal<<" Offset "<<Offset<<std::endl;
 
@@ -444,8 +446,8 @@ namespace Kratos
 	  array_1d<double, 3>& Offset = (boundary_nodes_begin + i)->FastGetSolutionStepValue(OFFSET);
 
 	  Normal /= norm_2(Normal);
-	  Offset[0] = ((-1)*Normal[0]*Shrink*rContactVariables.OffsetFactor);
-	  Offset[1] = ((-1)*Normal[1]*Shrink*rContactVariables.OffsetFactor);
+	  Offset[0] = ( (-1) * Normal[0] * Shrink * rContactVariables.OffsetFactor );
+	  Offset[1] = ( (-1) * Normal[1] * Shrink * rContactVariables.OffsetFactor );
 
 	  //std::cout<<" Id "<<rMeshingVariables.NodalPreIds[i+1]<<" real ID "<<(boundary_nodes_begin + i)->Id()<<" Shrink "<<Shrink<<" Normal "<<Normal<<" Offset "<<Offset<<std::endl;
 

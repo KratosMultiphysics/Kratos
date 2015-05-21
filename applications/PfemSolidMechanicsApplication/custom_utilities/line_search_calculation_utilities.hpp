@@ -95,7 +95,10 @@ public:
 
     /** Constructor.
      */
-    LineSearchCalculationUtilities(){};
+    LineSearchCalculationUtilities(int EchoLevel = 1)
+    {
+      SetEchoLevel(EchoLevel);
+    };
   
     /** Destructor.
      */
@@ -467,7 +470,7 @@ public:
 
    	TSystemVectorType  ReferenceDx = Dx;
 
-   	Timer::Start("LineSearch");
+   	//Timer::Start("LineSearch");
 	     
    	//s0  (alpha=0)
    	double R0= inner_prod(Dx,b);
@@ -487,11 +490,11 @@ public:
    	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
-	std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
+	//std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
 
    	if(R0*R1<0){
 
-   	  std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
+   	  //std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
 
 	  double R2 = R1;
 	  if(fabs(R1)<fabs(R0))
@@ -508,7 +511,7 @@ public:
 
 	  int iterations=0;
 	  int max_iterations = 5;
-	  std::cout<<" [fabs(R1): "<<fabs(R1)<<", fabs(R0): "<<fabs(R0)<<"]"<<std::endl;
+	  //std::cout<<" [fabs(R1): "<<fabs(R1)<<", fabs(R0): "<<fabs(R0)<<"]"<<std::endl;
 
 	  while(fabs(R2/R0start)>0.3 && iterations<max_iterations && (R1*R0)<0 && fabs(R1)>1e-7 && fabs(R0)>1e-7) {
 	  
@@ -516,8 +519,8 @@ public:
 	    alpha = 0.5*(nabla+delta);
 
 
-	     std::cout<<" R2 = "<<R2<<" > "<<0.5*R0start<<" =  0.5 * R0_start; R1 "<<R1<<" / ; R0 "<<R0<<std::endl;
-	     std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
+	    //std::cout<<" R2 = "<<R2<<" > "<<0.5*R0start<<" =  0.5 * R0_start; R1 "<<R1<<" / ; R0 "<<R0<<std::endl;
+	    //std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
 
 
 	     //alpha_k-1 = alpha_k
@@ -563,8 +566,9 @@ public:
    	     iterations++;
    	   }
 
-	   std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<" Alpha "<<CurrentAlpha<<") ] "<<std::endl;
-	   std::cout<<" CurrentSlope = "<<fabs(R2)<<" > "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope; PreviousSlope "<<R1<<std::endl;
+	  if( GetEchoLevel() > 0 )
+	    std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<" Alpha "<<CurrentAlpha<<") ] "<<std::endl;
+	   //std::cout<<" CurrentSlope = "<<fabs(R2)<<" > "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope; PreviousSlope "<<R1<<std::endl;
 	   
 	   
 	   rPreviousAlpha = rCurrentAlpha;
@@ -661,10 +665,21 @@ private:
     /**@name Member Variables */
     /*@{ */
 
+    int  mEchoLevel;
+
     /*@} */
     /**@name Private Operators*/
     /*@{ */
 
+    void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
+
+    int GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
 
     /*@} */
     /**@name Private Operations*/

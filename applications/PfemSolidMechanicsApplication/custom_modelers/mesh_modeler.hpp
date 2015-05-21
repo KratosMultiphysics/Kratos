@@ -170,10 +170,10 @@ protected:
       
       void CheckGeometricalSmoothing(){
 
-	if( InsertedNodes * 100 > NumberOfNodes || RemovedNodes * 100 > NumberOfNodes ){
+	if( InsertedNodes > NumberOfNodes * 0.002 || RemovedNodes > NumberOfNodes * 0.002 ){
 	  GeometricalSmoothingRequired = true;
 	}
-	else if( (InsertedNodes + RemovedNodes) * 200> NumberOfNodes ){
+	else if( (InsertedNodes + RemovedNodes) > NumberOfNodes * 0.004 ){
 	  GeometricalSmoothingRequired = true;
 	}
 	else{

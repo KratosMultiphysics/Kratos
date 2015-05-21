@@ -171,7 +171,8 @@ public:
 	    	
 	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);
 	    
-	    this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
+	    if( rConditions.size() > 0 )
+	      this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
 	    
 	  }
 	  else if ( dimension == 3 ){
@@ -208,7 +209,8 @@ public:
 	    	
 	    ConditionsContainerType& rConditions = rModelPart.Conditions(MeshId);
 	    
-	    this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
+	    if( rConditions.size() > 0 )
+	      this->CalculateMeshBoundaryNormals(rConditions, EchoLevel);
 	    
 	  }
 	  else if ( dimension == 3 ){
@@ -222,7 +224,8 @@ public:
 	    else{
 	      //std::cout<<" Surface Elements Boundary Calculation "<<std::endl;
 	      ElementsContainerType& rElements = rModelPart.Elements(MeshId);
-	      this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
+	      if( rElements.size() > 0 )
+		this->CalculateMeshBoundaryNormals(rElements, EchoLevel);
 	    }
 	  }
 	  
@@ -380,7 +383,7 @@ private:
 				      
 	{
 		KRATOS_TRY
-
+		  
 	        //resetting the normals
 		for(ConditionsContainerType::iterator it =  rConditions.begin();
 		    it != rConditions.end(); it++)
@@ -402,6 +405,7 @@ private:
 			  if(it->IsNot(CONTACT) && it->Is(BOUNDARY) )
 			    CalculateUnityNormal2D(it,An);
 			}
+		
 		}
 		else if(dimension == 3)
 		{
