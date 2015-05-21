@@ -1,48 +1,12 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
 /* *********************************************************
 *
-*   Last Modified by:    $Author: Nelson $
-*   Date:                $Date: 2009-29-06$
-*   Revision:            $Revision: 1.2 $
+*   Last Modified by:    $Author: JMCarbonell $
+*   Date:                $Date:      May 2015 $
+*   Revision:            $Revision:       1.8 $
 *
 * ***********************************************************/
+
+// The name of this object must be changed to a:  BothCriteria.hpp
 
 
 #if !defined(KRATOS_AND_CRITERIA_H)
@@ -58,8 +22,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-//#include "solving_strategies/convergencecriterias/displacement_criteria.h"
-//#include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 namespace Kratos
@@ -148,13 +110,22 @@ public:
     */
     And_Criteria
     (
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer first_criteria,
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer second_criteria)
+        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer first_criterion,
+        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer second_criterion)
         :ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
-        mpfirst_criteria   =  first_criteria;
-        mpsecond_criteria  =  second_criteria;
+        mpfirst_criterion   =  first_criterion;
+        mpsecond_criterion  =  second_criterion;
     }
+
+    /** Copy constructor.
+    */
+    And_Criteria(And_Criteria const& rOther)
+      :BaseType(rOther)
+     {
+       mpfirst_criterion   =  rOther.mpfirst_criterion;
+       mpsecond_criterion  =  rOther.mpsecond_criterion;      
+     }
 
     /** Destructor.
     */
@@ -166,7 +137,21 @@ public:
     */
     /*@{ */
 
-    /*Criterias that need to be called after getting the solution */
+
+    /**level of echo for the convergence criterion
+    0 -> mute... no echo at all
+    1 -> print basic informations
+    2 -> print extra informations
+     */
+    void SetEchoLevel(int Level)
+    {
+      BaseType::SetEchoLevel(Level);
+      mpfirst_criterion->SetEchoLevel(Level);
+      mpsecond_criterion->SetEchoLevel(Level);
+    }
+
+
+    /*Criteria that need to be called after getting the solution */
     bool PostCriteria(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -175,18 +160,18 @@ public:
         const TSystemVectorType& b
     )
     {
-        bool first_criteria_result  = mpfirst_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
-        bool second_criteria_result = mpsecond_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
+        bool first_criterion_result  = mpfirst_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
+        bool second_criterion_result = mpsecond_criterion ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
 
-        return (first_criteria_result && second_criteria_result);
+        return (first_criterion_result && second_criterion_result);
 
     }
 
 
     void Initialize(ModelPart& r_model_part)
     {
-        mpfirst_criteria->Initialize(r_model_part);
-        mpsecond_criteria->Initialize(r_model_part);
+        mpfirst_criterion->Initialize(r_model_part);
+        mpsecond_criterion->Initialize(r_model_part);
     }
 
     void InitializeSolutionStep(
@@ -197,8 +182,8 @@ public:
         const TSystemVectorType& b
     )
     {
-        mpfirst_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-        mpsecond_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpfirst_criterion->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpsecond_criterion->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
     }
 
     void FinalizeSolutionStep(
@@ -209,8 +194,8 @@ public:
         const TSystemVectorType& b
     )
     {
-        mpfirst_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-        mpsecond_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpfirst_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpsecond_criterion->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
     }
 
 
@@ -284,8 +269,8 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpfirst_criteria;
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpsecond_criteria;
+    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpfirst_criterion;
+    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpsecond_criterion;
 
 
     /*@} */
