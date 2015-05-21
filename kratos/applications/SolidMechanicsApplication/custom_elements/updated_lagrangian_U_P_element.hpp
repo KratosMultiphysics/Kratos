@@ -204,6 +204,12 @@ protected:
     void GetHistoricalVariables( GeneralVariables& rVariables, 
 				 const double& rPointNumber );
 
+
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+
     /**
      * Calculation of the DN_DX in the updated configuration
      */

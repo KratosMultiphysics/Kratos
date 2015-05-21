@@ -143,7 +143,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix, 
-		    ProcessInfo& rCurrentProcessInfo);
+			     ProcessInfo& rCurrentProcessInfo);
     //************************************************************************************
     //************************************************************************************
     /**
@@ -220,7 +220,7 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    double& CalculateTotalMass( double& rTotalMass, const int & rPointNumber );
+    double& CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo );
 
 
     /**
@@ -238,7 +238,7 @@ protected:
     virtual void CalculateAndAddKup (MatrixType& rK,
                                      GeneralVariables & rVariables,
                                      double& rIntegrationWeight
-                                    );
+				     );
 
     /**
      * Calculation of the Kpu matrix
@@ -269,18 +269,18 @@ protected:
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                              );
+					       GeneralVariables & rVariables,
+					       double& rIntegrationWeight
+					       );
 
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
+						   GeneralVariables & rVariables,
+						   double& rIntegrationWeight
+						   );
 
     /**
      * Initialize Element General Variables
@@ -352,6 +352,10 @@ protected:
                                 Vector& rStrainVector);
 
 
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

@@ -250,6 +250,11 @@ protected:
     void GetHistoricalVariables( GeneralVariables& rVariables, 
 				 const double& rPointNumber );
 
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+
     ///@}
     ///@name Protected  Access
     ///@{

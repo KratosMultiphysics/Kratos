@@ -306,9 +306,6 @@ void SpatialLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
-
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
@@ -471,6 +468,21 @@ void SpatialLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariab
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 }
+
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& SpatialLagrangianElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+      
+    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************

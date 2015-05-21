@@ -103,7 +103,6 @@ protected:
         double  detF;
         double  detF0;
         double  detJ;
-        double  DomainSize;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
@@ -739,13 +738,18 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    virtual double& CalculateTotalMass(double& rTotalMass);
+    virtual double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
 
+
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
 
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

@@ -397,14 +397,12 @@ void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRigh
 
     // VectorType Fh=rRightHandSideVector;
 
-    double DomainSize = (rVariables.DomainSize / rVariables.detJ );
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int indexup = dimension * i + i;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  rRightHandSideVector[indexup + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
+	  rRightHandSideVector[indexup + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
         }
 
     }
@@ -888,7 +886,7 @@ void LargeDisplacementUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, P
     rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
     double TotalMass = 0;
-    this->CalculateTotalMass( TotalMass );
+    this->CalculateTotalMass( TotalMass, rCurrentProcessInfo );
 
     if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 

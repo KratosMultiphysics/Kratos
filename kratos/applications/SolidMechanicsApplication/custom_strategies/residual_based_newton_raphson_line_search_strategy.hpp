@@ -378,7 +378,7 @@ public:
     TSystemVectorType& mDx = *mpDx;
     TSystemVectorType& mb  = *mpb;
 
-    LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch;
+    LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch(this->GetEchoLevel());
 
     double ComputedAlpha = LineSearch.ExecuteLineSearch(mpBuilderAndSolver, mpScheme, this->GetModelPart(), mA, mDx, mb, rCurrentAlpha, rPreviousAlpha); 
     

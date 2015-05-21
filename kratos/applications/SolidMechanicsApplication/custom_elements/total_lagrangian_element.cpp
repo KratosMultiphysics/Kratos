@@ -222,11 +222,8 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
     //Jacobian Determinant for the isoparametric and numerical integration
-	//
+    //
     rVariables.detJ = mDetJ0[rPointNumber];
-
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
 
     //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
@@ -330,7 +327,7 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
+double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

@@ -241,8 +241,6 @@ void AxisymSpatialLagrangianElement::InitializeGeneralVariables (GeneralVariable
 
     rVariables.detF0 = 1;
 
-    rVariables.DomainSize = 1;
-
     rVariables.B.resize( 4 , number_of_nodes * 2 );
 
     rVariables.F.resize( 3, 3 );
@@ -325,19 +323,35 @@ void AxisymSpatialLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& r
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& AxisymSpatialLagrangianElement::CalculateTotalMass( double& rTotalMass )
+double& AxisymSpatialLagrangianElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_1 );
-    const unsigned int PointNumber = 0;
-    Vector N = row(Ncontainer , PointNumber);
+    //Compute the Volume Change acumulated:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 
-    double CurrentRadius = 0;
-    double ReferenceRadius = 0;
-    CalculateRadius (CurrentRadius, ReferenceRadius, N);
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * 2.0 * 3.141592654 * CurrentRadius;
+    rTotalMass = 0;
+    //reading integration points
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+	//compute element kinematics
+	this->CalculateKinematics(Variables,PointNumber);
+	
+	//getting informations for integration
+        double IntegrationWeight = integration_points[PointNumber].Weight();
+
+	//compute point volume change
+	double PointVolumeChange = 0;
+	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
+	
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
+
+      }
+
+    rTotalMass *=  GetGeometry().DomainSize();
 
     return rTotalMass;
 
@@ -381,9 +395,6 @@ void AxisymSpatialLagrangianElement::CalculateKinematics(GeneralVariables& rVari
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
-
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
 
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -714,6 +725,21 @@ void AxisymSpatialLagrangianElement::GetHistoricalVariables( GeneralVariables& r
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
     rVariables.CurrentRadius = rVariables.ReferenceRadius;
+}
+
+
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& AxisymSpatialLagrangianElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+      
+    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************

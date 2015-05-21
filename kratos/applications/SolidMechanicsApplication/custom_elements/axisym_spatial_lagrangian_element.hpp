@@ -205,7 +205,7 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    double& CalculateTotalMass(double& rTotalMass);
+    double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -287,6 +287,10 @@ protected:
                                 Vector& rStrainVector);
 
 
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
 
     ///@}
     ///@name Protected  Access
