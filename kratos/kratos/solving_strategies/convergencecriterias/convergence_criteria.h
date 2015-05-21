@@ -36,13 +36,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
+
 /* *********************************************************
- *
- *   Last Modified by:    $Author: pooyan $
- *   Date:                $Date: 2008-02-27 13:54:45 $
- *   Revision:            $Revision: 1.3 $
- *
- * ***********************************************************/
+*
+*   Last Modified by:    $Author: JMCarbonell $
+*   Date:                $Date:      May 2015 $
+*   Revision:            $Revision:       1.8 $
+*
+* ***********************************************************/
+
+// The name of this object must be changed to a:  ConvergenceCriterion.hpp
 
 
 #if !defined(KRATOS_NEW_CONVERGENCE_CRITERIA )
@@ -144,6 +147,16 @@ public:
         mActualizeRHSIsNeeded = false;
         mConvergenceCriteriaIsInitialized = false;
 	SetEchoLevel(1);
+    }
+
+
+    /** Copy constructor.
+     */
+    ConvergenceCriteria( ConvergenceCriteria const& rOther)
+      :mActualizeRHSIsNeeded(rOther.mActualizeRHSIsNeeded)
+      ,mConvergenceCriteriaIsInitialized(rOther.mConvergenceCriteriaIsInitialized)
+      ,mEchoLevel(rOther.mEchoLevel)
+    {
     }
 
     /** Destructor.

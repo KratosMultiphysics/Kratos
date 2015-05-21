@@ -93,6 +93,7 @@ namespace Kratos
     //ints
 
     //for General kratos application: 
+    KRATOS_DEFINE_VARIABLE( int, LOAD_RESTART )
     KRATOS_DEFINE_VARIABLE( int, TIME_STEPS )
     KRATOS_DEFINE_VARIABLE( int, RIGID_BODY_ID )
 
@@ -514,6 +515,7 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
 
     KRATOS_DEFINE_VARIABLE( Vector, CONSTRAINT_LABELS )
+    KRATOS_DEFINE_VARIABLE( Vector, CONSTRAINT_MESHES )
 
     //for Structural application: 
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( MOMENTUM )

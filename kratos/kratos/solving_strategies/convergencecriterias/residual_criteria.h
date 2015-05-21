@@ -1,49 +1,12 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
 /* *********************************************************
 *
-*   Last Modified by:    $Author: antonia $
-*   Date:                $Date: 2008-06-20 18:20:16 $
-*   Revision:            $Revision: 1.7 $
+*   Last Modified by:    $Author: JMCarbonell $
+*   Date:                $Date:      May 2015 $
+*   Revision:            $Revision:       1.8 $
 *
 * ***********************************************************/
 
+// The name of this object must be changed to a:  ResidualCriterion.hpp
 
 #if !defined(KRATOS_NEW_RESIDUAL_CRITERIA )
 #define  KRATOS_NEW_RESIDUAL_CRITERIA
@@ -148,8 +111,19 @@ public:
         mRatioTolerance       = NewRatioTolerance;
         mAlwaysConvergedNorm  = AlwaysConvergedNorm;
         mInitialResidualIsSet = false;
+    }
 
-	//mActualizeRHSIsNeeded = false;
+    /** Copy constructor.
+    */
+    ResidualCriteria( ResidualCriteria const& rOther )
+      :BaseType(rOther) 
+      ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
+      ,mRatioTolerance(rOther.mRatioTolerance)
+      ,mInitialResidualNorm(rOther.mInitialResidualNorm)
+      ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
+      ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
+      ,mReferenceDispNorm(rOther.mReferenceDispNorm)
+    {
     }
 
     /** Destructor.
@@ -192,7 +166,7 @@ public:
 
             if (r_model_part.GetCommunicator().MyPID() == 0)
 	      if (this->GetEchoLevel() == 1)
-                std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+                std::cout << "RESIDUAL CRITERION :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
 
 	    r_model_part.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
 	    r_model_part.GetProcessInfo()[RESIDUAL_NORM] = mCurrentResidualNorm/b_size;
@@ -205,7 +179,7 @@ public:
             {
                 if (r_model_part.GetCommunicator().MyPID() == 0)
 		  if (this->GetEchoLevel() == 1)
-                    std::cout << "Convergence is achieved." << std::endl;
+                    std::cout << "Convergence is achieved" << std::endl;
                 return true;
             }
             else
@@ -327,8 +301,6 @@ private:
     TDataType mInitialResidualNorm;
 
     TDataType mCurrentResidualNorm;
-
-    TDataType mGuaranteedNormValue;
 
     TDataType mAlwaysConvergedNorm;
 
