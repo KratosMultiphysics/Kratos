@@ -436,7 +436,9 @@ namespace Kratos
 
             ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
             const int number_of_clusters = pElements.size();
-
+            
+            mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part);
+            
             #pragma omp parallel for schedule(guided)
             for (int k = 0; k < number_of_clusters; k++) {
 
