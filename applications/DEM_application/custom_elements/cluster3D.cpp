@@ -95,8 +95,9 @@ namespace Kratos {
         KRATOS_TRY 
         
         int cluster_id = (int) this->Id();
-                
-        unsigned int max_Id=p_creator_destructor->GetCurrentMaxNodeId();  //must have been found
+        
+        unsigned int max_Id = 0;        
+        unsigned int* p_max_Id=p_creator_destructor->pGetCurrentMaxNodeId();  //must have been found
           
         std::string ElementNameString = "SphericParticle3D";
             
@@ -123,7 +124,11 @@ namespace Kratos {
             coordinates_of_sphere[2]= central_node.Coordinates()[2] + global_relative_coordinates[2];    
             
             radius_of_sphere = mListOfRadii[i];   
-            max_Id++;
+#pragma omp critical
+            {
+            (*p_max_Id)++;
+            max_Id = *p_max_Id;
+            }
              
             Kratos::SphericParticle* new_sphere = p_creator_destructor->ElementCreatorForClusters  (dem_model_part, 
                                                                                                     max_Id, 
