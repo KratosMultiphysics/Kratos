@@ -72,6 +72,35 @@ public:
     //**************************************************************************
 
 
+    //**************************************************************************
+    //**************************************************************************
+
+    double CalculateStressNorm(const Vector& StressVector)
+    {
+        KRATOS_TRY
+
+        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+
+	Matrix StressTensor = ZeroMatrix(3); //3D stress tensor
+	for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
+	  {
+	    for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
+	      {
+		StressTensor(i,j) = LocalStressTensor(i,j);
+	      }
+	  }
+
+        double StressNorm =  ((StressTensor(0,0)*StressTensor(0,0))+(StressTensor(1,1)*StressTensor(1,1))+(StressTensor(2,2)*StressTensor(2,2))+
+			      (StressTensor(0,1)*StressTensor(0,1))+(StressTensor(0,2)*StressTensor(0,2))+(StressTensor(1,2)*StressTensor(1,2))+
+			      (StressTensor(1,0)*StressTensor(1,0))+(StressTensor(2,0)*StressTensor(2,0))+(StressTensor(2,1)*StressTensor(2,1)));
+
+	StressNorm = sqrt(StressNorm);
+
+        return StressNorm;
+
+        KRATOS_CATCH( "" )
+
+    };
 
     //**************************************************************************
     //**************************************************************************
@@ -80,14 +109,26 @@ public:
     {
         KRATOS_TRY
 
+	  
+        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-        Matrix StressTensor    = MathUtils<double>::StressVectorToTensor(StressVector);
+	Matrix StressTensor = ZeroMatrix(3); //3D stress tensor
+	for(unsigned int i=0; i<LocalStressTensor.size1(); i++)
+	  {
+	    for(unsigned int j=0; j<LocalStressTensor.size2(); j++)
+	      {
+		StressTensor(i,j) = LocalStressTensor(i,j);
+	      }
+	  }
 
 	//in general coordinates:
         double SigmaEquivalent =  (0.5)*((StressTensor(0,0)-StressTensor(1,1))*((StressTensor(0,0)-StressTensor(1,1)))+
 					 (StressTensor(1,1)-StressTensor(2,2))*((StressTensor(1,1)-StressTensor(2,2)))+
 					 (StressTensor(2,2)-StressTensor(0,0))*((StressTensor(2,2)-StressTensor(0,0)))+
 					 6*(StressTensor(0,1)*StressTensor(0,1)+StressTensor(1,2)*StressTensor(1,2)+StressTensor(2,0)*StressTensor(0,0)));
+
+	if( SigmaEquivalent < 0 )
+	  SigmaEquivalent = 0;
 
 	SigmaEquivalent = sqrt(SigmaEquivalent);
 

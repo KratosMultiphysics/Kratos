@@ -480,7 +480,7 @@ public:
         else
         {
             TSparseSpace::SetToZero(Dx);
-            std::cout << "ATTENTION! setting the RHS to zero!" << std::endl;
+            std::cout << "  -[WARNING: system RHS is zero]-" << std::endl;
         }
 
         //prints informations about the current time

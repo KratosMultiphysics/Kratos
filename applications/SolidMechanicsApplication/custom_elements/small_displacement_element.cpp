@@ -681,7 +681,7 @@ void SmallDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
-            VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
+            VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
 
             this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
 
@@ -1122,14 +1122,12 @@ void SmallDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double DomainSize = (rVariables.DomainSize / rVariables.detJ );
-
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
+            rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
 
         }
     }
@@ -1303,10 +1301,7 @@ void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
-
-   //Compute cartesian derivatives  [dN/dx_n]
+    //Compute cartesian derivatives  [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Displacement Gradient H  [dU/dx_n]
@@ -1605,7 +1600,7 @@ double& SmallDisplacementElement::CalculateTotalMass( double& rTotalMass )
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
 
-Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, const Vector &rN)
+Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, GeneralVariables& rVariables )
 {
     KRATOS_TRY
 
@@ -1616,7 +1611,7 @@ Vector& SmallDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, co
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
         if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
-            rVolumeForce += rN[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            rVolumeForce += rVariables.N[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
     rVolumeForce *= GetProperties()[DENSITY];

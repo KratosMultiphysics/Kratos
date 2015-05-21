@@ -41,7 +41,7 @@ class RestartUtility:
 
         serializer.Load("ModelPart", self.model_part)
 
-        print(" ::[Restart Utility]:: RESTART LOADED : [STEP: ", restart_step, "]")
+        print(" ::[Restart Utility]:: RESTART STEP",restart_step,"LOADED]" )
 
     #
     def CleanPreviousFileType(self, file_ending_type):

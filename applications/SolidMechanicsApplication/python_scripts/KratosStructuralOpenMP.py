@@ -171,6 +171,8 @@ if(load_restart == False):
 
     print("::[KSM Simulation]:: Reading -END- ")
 
+    model_part.ProcessInfo[LOAD_RESTART] = 0
+
     # set the degrees of freedom
     solver_constructor.AddDofs(model_part, SolverSettings)
 
@@ -189,6 +191,8 @@ else:
     problem_restart.Load(restart_step);
 
     print("::[KSM Simulation]:: Reading -END- ")
+
+    model_part.ProcessInfo[LOAD_RESTART] = 1
 
     # remove results, restart, graph and list posterior files
     problem_restart.CleanPosteriorFiles(restart_step)

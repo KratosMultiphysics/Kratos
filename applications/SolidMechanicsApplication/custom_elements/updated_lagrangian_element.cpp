@@ -179,9 +179,6 @@ void UpdatedLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
-
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
@@ -293,10 +290,22 @@ void UpdatedLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariab
 
 }
 
-//************************************************************************************
+//************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
+double& UpdatedLagrangianElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+      
+    rVolumeChange = 1.0 / (rVariables.detF0);
 
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
 
 void UpdatedLagrangianElement::save( Serializer& rSerializer ) const
 {

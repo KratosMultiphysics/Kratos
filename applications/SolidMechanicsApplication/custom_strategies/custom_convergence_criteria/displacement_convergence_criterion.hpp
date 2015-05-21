@@ -86,8 +86,15 @@ public:
     {
         mRatioTolerance = NewRatioTolerance;
         mAlwaysConvergedNorm = AlwaysConvergedNorm;
+    }
 
-        //mActualizeRHSIsNeeded = false;
+    /** Copy constructor.	
+    */
+    DisplacementConvergenceCriterion( DisplacementConvergenceCriterion const& rOther )
+      :BaseType(rOther) 
+      ,mRatioTolerance(rOther.mRatioTolerance)
+      ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
+    {
     }
 
     /** Destructor.
@@ -145,7 +152,7 @@ public:
             if ( ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm )
             {
 	      if (this->GetEchoLevel() == 1)
-                KRATOS_WATCH( "convergence is achieved" )
+		std::cout << "Convergence is achieved" << std::endl;
 		  
   	        // if(r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] == 1)
 		//   return false;
@@ -270,7 +277,9 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+
     TDataType mRatioTolerance;
+
     TDataType mAlwaysConvergedNorm;
 
     /*@} */

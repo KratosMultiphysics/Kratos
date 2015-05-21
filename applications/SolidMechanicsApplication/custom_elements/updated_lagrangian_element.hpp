@@ -178,6 +178,10 @@ protected:
                                     Matrix& rF,
                                     Matrix& rDN_DX);
 
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

@@ -109,8 +109,6 @@ void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariable
 
     rVariables.detF0 = 1;
 
-    rVariables.DomainSize = 1;
-
     rVariables.B.resize( 4 , number_of_nodes * 2 );
 
     rVariables.F.resize( 3, 3 );
@@ -225,9 +223,6 @@ void AxisymSmallDisplacementElement::CalculateKinematics(GeneralVariables& rVari
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
-
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
 
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );

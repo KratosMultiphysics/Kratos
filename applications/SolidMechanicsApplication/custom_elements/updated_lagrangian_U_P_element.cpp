@@ -211,9 +211,6 @@ void UpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariable
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Step domain size
-    rVariables.DomainSize = rVariables.detJ;
-
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
@@ -354,6 +351,19 @@ void UpdatedLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVari
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 }
 
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& UpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+      
+    rVolumeChange = 1.0 / (rVariables.detF0);
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************

@@ -91,7 +91,10 @@ public:
 
     /** Constructor.
      */
-    LineSearchCalculationUtilities(){};
+    LineSearchCalculationUtilities(int EchoLevel = 1)
+    {
+      SetEchoLevel(EchoLevel);
+    };
   
     /** Destructor.
      */
@@ -101,10 +104,8 @@ public:
      */
 
 
-
     //**************************************************************************
     //**************************************************************************
-
 
    double ExecuteLineSearch( TBuilderAndSolverPointerType pBuilderAndSolver,
 			     TSchemePointerType pScheme,
@@ -545,8 +546,9 @@ public:
 	       
 	    iterations++;
 	  }
-
-	  std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+	  
+	  if( GetEchoLevel() > 0 )
+	    std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
 	  //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
 	   
 	   
@@ -644,10 +646,21 @@ private:
     /**@name Member Variables */
     /*@{ */
 
+    int  mEchoLevel;
+
     /*@} */
     /**@name Private Operators*/
     /*@{ */
 
+    void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
+
+    int GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
 
     /*@} */
     /**@name Private Operations*/

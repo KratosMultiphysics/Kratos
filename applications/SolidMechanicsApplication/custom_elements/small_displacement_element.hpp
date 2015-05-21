@@ -101,7 +101,6 @@ protected:
         double  detF;
         double  detF0;
         double  detJ;
-        double  DomainSize;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
@@ -692,7 +691,7 @@ protected:
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, GeneralVariables& rVariables );
 
 
     ///@}

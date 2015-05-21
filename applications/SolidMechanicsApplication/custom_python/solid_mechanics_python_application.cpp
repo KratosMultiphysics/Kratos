@@ -49,6 +49,9 @@ BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
     
     //registering variables in python ( if must to be seen from python )
 
+    //For process information
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOAD_RESTART )
+
     //For explicit schemes
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
     

@@ -362,7 +362,7 @@ void LargeDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rVariable == VON_MISES_STRESS ){
+    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS ){
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
     else{
@@ -578,7 +578,7 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
 
     rVariables.detF0 = 1;
 
-    rVariables.DomainSize = 1;
+    rVariables.detJ = 1;
 
     rVariables.B.resize( voigtsize , number_of_nodes * dimension );
 
@@ -698,7 +698,7 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
-            VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
+            VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
 	 
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
         }
@@ -1166,14 +1166,14 @@ void LargeDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double DomainSize = (rVariables.DomainSize / rVariables.detJ );
+    double DomainChange = (1.0/rVariables.detF0); //density_n+1 = density_0 * ( 1.0 / detF0 )
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
+	  rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainChange;
         }
     }
 
@@ -1567,7 +1567,7 @@ void LargeDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass )
+double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo  )
 {
     KRATOS_TRY
 
@@ -1578,17 +1578,54 @@ double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass )
     if( dimension == 2 )
         rTotalMass *= GetProperties()[THICKNESS];
 
+    
+    //Compute the Volume Change acumulated:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+    double VolumeChange = 0;
+    //reading integration points
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+      {
+	//compute element kinematics
+	this->CalculateKinematics(Variables,PointNumber);
+	
+	//getting informations for integration
+        double IntegrationWeight = integration_points[PointNumber].Weight();
+
+	//compute point volume change
+	double PointVolumeChange = 0;
+	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
+	
+	VolumeChange += PointVolumeChange * IntegrationWeight;
+      }
+
+    rTotalMass *= VolumeChange;
+
     return rTotalMass;
 
     KRATOS_CATCH( "" )
 }
 
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& LargeDisplacementElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
+}
 
 
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
 
-Vector& LargeDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, const Vector &rN)
+Vector& LargeDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, GeneralVariables& rVariables )
 {
     KRATOS_TRY
 
@@ -1599,10 +1636,13 @@ Vector& LargeDisplacementElement::CalculateVolumeForce( Vector& rVolumeForce, co
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
         if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
-            rVolumeForce += rN[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            rVolumeForce += rVariables.N[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
-    rVolumeForce *= GetProperties()[DENSITY];
+    double VolumeChange = 0;
+    VolumeChange = this->CalculateVolumeChange( VolumeChange, rVariables );
+
+    rVolumeForce *= VolumeChange * GetProperties()[DENSITY];
 
     return rVolumeForce;
 
@@ -1627,7 +1667,8 @@ void LargeDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
     rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
     double TotalMass = 0;
-    TotalMass = this->CalculateTotalMass(TotalMass);
+
+    TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
 
     Vector LumpFact = ZeroVector(number_of_nodes);
 
@@ -1770,6 +1811,44 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             ComparisonUtilities EquivalentStress;
             rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
         }
+    }
+    else if ( rVariable == NORM_ISOCHORIC_STRESS )
+    {
+        //create and initialize element variables:
+        GeneralVariables Variables;
+        this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+	ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY);
+
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematics B, F, DN_DX ...
+            this->CalculateKinematics(Variables,PointNumber);
+
+	    //to take in account previous step writing
+	    if( mFinalized ){
+	      this->GetHistoricalVariables(Variables,PointNumber);
+	    }		
+
+            //set general variables to constitutivelaw parameters
+            this->SetGeneralVariables(Variables,Values,PointNumber);
+
+            //call the constitutive law to update material variables
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
+
+	    ComparisonUtilities EquivalentStress;
+            rOutput[PointNumber] =  EquivalentStress.CalculateStressNorm(Variables.StressVector);
+        }
+
     }
     else
     {

@@ -202,7 +202,7 @@ protected:
     /**
      * Calculation of the Total Mass of the Element
      */
-    double& CalculateTotalMass(double& rTotalMass);
+    double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access
