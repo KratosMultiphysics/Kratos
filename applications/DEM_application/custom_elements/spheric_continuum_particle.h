@@ -122,7 +122,7 @@ namespace Kratos
         void ContactAreaWeighting3D( ProcessInfo& rCurrentProcessInfo );
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );        
         virtual void CustomInitialize();	
-        virtual double GetInitialDelta(int index);      
+        virtual double GetInitialDeltaWithFEM(int index);      
         void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
         void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce, 
                                            array_1d<double, 3>& rContactForce, 

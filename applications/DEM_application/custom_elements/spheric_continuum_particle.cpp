@@ -1170,10 +1170,8 @@ namespace Kratos {
 
     }
 
-    double SphericContinuumParticle::GetInitialDelta(int index) {
-        double delta = mFemNeighbourDelta[index];
-
-        return delta;
+    double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {
+        return mFemNeighbourDelta[index];
     }
 
     void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id,

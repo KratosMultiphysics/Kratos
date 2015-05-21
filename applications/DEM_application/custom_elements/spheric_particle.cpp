@@ -871,11 +871,11 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         bool sliding = false;
 
         if (indentation > 0.0) {
-            NormalForceCalculation(normal_force, kn, indentation);  //ERROR here! The normal force should be added to the local NEW axis!!
+            NormalForceCalculation(normal_force, kn, indentation);  
 
             CohesionCalculation(cohesion_force, cohesion, cohesion_area);
                        
-            // TANGENTIAL FORCE. Incremental calculation. An "absolute method" could also be used (YADE?)
+            // TANGENTIAL FORCE. 
             LocalElasticContactForce[2] = 0.0;
             TangentialForceCalculation(normal_force, LocalElasticContactForce, LocalDeltDisp, kt, equiv_tg_of_fri_ang, sliding);
 
@@ -1018,7 +1018,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
         DEM_COPY_SECOND_TO_FIRST_3(node_coor, node_coor_array) //MSIMSI 1 can be optimized.
 
-        double ini_delta = GetInitialDelta(i);
+        double ini_delta = GetInitialDeltaWithFEM(i);
         double kn_el;
 
         switch (mElasticityType) { // 0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
@@ -1673,7 +1673,7 @@ void SphericParticle::TangentialForceCalculation(const double normal_force, doub
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-double SphericParticle::GetInitialDelta(int index) //only available in continuum_particle
+double SphericParticle::GetInitialDeltaWithFEM(int index) //only available in continuum_particle
 {
     return 0.0;
 }
