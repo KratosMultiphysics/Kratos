@@ -277,7 +277,7 @@ virtual void ComputeMoments(double normalLocalElasticContactForce,
 
 virtual void CustomInitialize();
 
-virtual double GetInitialDelta(int index);
+virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double LocalCoordSystem[3][3],

@@ -106,9 +106,7 @@ namespace Kratos
        ThermalSphericParticle();
        
        virtual void CustomInitialize();	
-       
-       //virtual double GetInitialDelta(int index);  
-       
+              
        //thermal sphere neighbor information
         
         double mTemperature;
