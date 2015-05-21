@@ -10,7 +10,7 @@ class ModelerUtility:
 
     def __init__(self, model_part, domain_size, remesh_domains, contact_search, rigid_wall_contact_search):
 
-        self.echo_level = 1
+        self.echo_level = 1        
         self.model_part = model_part
         self.domain_size = domain_size
 
@@ -22,6 +22,7 @@ class ModelerUtility:
         self.neighbours_set = False
 
         # set mesh modeler
+        self.counter = 1
         if(domain_size >= 2):
             self.mesh_modeler = TriangularMesh2DModeler()
         # else:
@@ -84,7 +85,7 @@ class ModelerUtility:
                 # find neighbours
                 self.SearchNeighbours()
                 # find skin and boundary normals
-                if (ReloadFile == False):
+                if(ReloadFile == False):
                     self.BuildBoundarySkin()
                 self.neighbours_set = True
 
@@ -142,6 +143,7 @@ class ModelerUtility:
     #
     def BuildBoundarySkin(self):
 
+        print("::[Modeler_Utility]:: Build Boundary Skin ")
         # set building options:
         mesh_id = 0
 
@@ -185,9 +187,13 @@ class ModelerUtility:
         # if(configuration.number_domains != self.model_part.NumberOfMeshes):
             # print("::[Modeler_Utility]:: Number of Domain Meshing Conditions and Meshes in model_part do not match " )
 
-        # set the domains number to mesh modeler
-        
+        # set the domains number to mesh modeler   
         number_of_domains = self.model_part.NumberOfMeshes();
+        if( number_of_domains > configuration.number_domains ): # mesh and constraint meshes
+            number_of_domains = configuration.number_domains
+            if( number_of_domains == 1 ): # mesh 0 and mesh 1
+                number_of_domains += 1
+            
 
         self.mesh_modeler.SetInitialMeshData(number_of_domains)
 
@@ -327,10 +333,12 @@ class ModelerUtility:
             if(self.contact_search):
                 self.ContactTransfer()
 
-            print("::[Modeler_Utility]:: MESH DOMAIN...")
+            if( self.echo_level > 0 ):
+                print("::[Modeler_Utility]:: MESH DOMAIN...", self.counter)
+
             self.mesh_modeler.GenerateMesh(self.model_part);
             self.remesh_executed = True
- 
+            self.counter += 1 
 
     #
     def SetRigidWall(self, rigid_wall):

@@ -386,6 +386,17 @@ protected:
 
     virtual double GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l);
 
+    /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    virtual void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+  
 
     ///@}
     ///@name Protected  Access

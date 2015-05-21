@@ -166,17 +166,17 @@ namespace Kratos
 	  elems_ids[ie->Id()] = id;
 	  ElementVariable[id] = Value[0];
 
-	  //std::cout<<" ELEMENT ["<<ie->Id()<<"] : "<<ElementVariable[id]<<std::endl;
-
 	  if(ElementVariable[id]>VariableMax)
 	    VariableMax = ElementVariable[id];
 	 
 	  if(ElementVariable[id]<VariableMin)
 	    VariableMin = ElementVariable[id];
+
+	  // if( ElementVariable[id] == 0 )
+	  //   std::cout<<" ELEMENT ["<<ie->Id()<<"] : "<<ElementVariable[id]<<std::endl;
 	   
 	  id++;
 	}
-
 
 
       std::vector<double>  NodalError(rModelPart.NumberOfNodes(MeshId)+1);
@@ -222,7 +222,7 @@ namespace Kratos
 	      //std::cout<<" Node ["<<in->Id()<<"] : ( NodalError: "<<NodalError[id]<<", PatchError: "<<" PatchArea:"<<PatchArea<<std::endl;
 	    }
 	    else{
-	      std::cout<<" WARNING ME: Area surrounding node: "<<in->Id()<<" is null "<<std::endl;
+	      std::cout<<" WARNING : Area surrounding node: "<<in->Id()<<" is null "<<std::endl;
 	    }
 
 	  }
@@ -249,7 +249,7 @@ namespace Kratos
 	
       if(VariableVariation == 0){
 	VariableVariation = 1;
-	std::cout<<"   WARNING: Variable errors the same ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
+	std::cout<<"   WARNING: "<<rVariable<<" min-max errors are the same ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
       }
       else{
 	  

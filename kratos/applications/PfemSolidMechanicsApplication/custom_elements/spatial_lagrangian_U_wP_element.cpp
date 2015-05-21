@@ -784,9 +784,6 @@ namespace Kratos
       Matrix InvJ;
       MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-      //Step domain size
-      rVariables.DomainSize = rVariables.detJ;
-
       //Compute cartesian derivatives [dN/dx_n]
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
@@ -919,14 +916,14 @@ namespace Kratos
 
       // VectorType Fh=rRightHandSideVector;
 
-      double DomainSize = (rVariables.DomainSize / rVariables.detJ );
+      double DomainChange = (1.0/rVariables.detF0); //density_n+1 = density_0 * ( 1.0 / detF0 )
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
          int indexup = dimension * i + i;
          for ( unsigned int j = 0; j < dimension; j++ )
          {
-            rRightHandSideVector[indexup + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
+            rRightHandSideVector[indexup + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainChange;
          }
 
       }
@@ -1448,6 +1445,33 @@ namespace Kratos
       return LDTerm;
 
    }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void SpatialLagrangianUwPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+  {
+    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+    
+    //Deformation Gradient F0
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+  }
+
+  //************************************CALCULATE VOLUME CHANGE*************************
+  //************************************************************************************
+
+  double& SpatialLagrangianUwPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+  {
+    KRATOS_TRY
+      
+      rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
+    
+    return rVolumeChange;
+    
+    KRATOS_CATCH( "" )
+   }
+
    //************************************************************************************
    //************************************************************************************
 

@@ -69,7 +69,7 @@ def StopTimeMeasuring(time_ip, process, report):
 def SetParallelSize(num_threads):
     parallel = OpenMPUtils()
     parallel.SetNumThreads(int(num_threads))
-    print("::[KPFEM Simulation]:: OMP USING",num_threads,"THREADS ]")
+    print("::[KPFEM Simulation]:: [OMP USING",num_threads,"THREADS ]")
     #parallel.PrintOMPInfo()
     print(" ")
 
@@ -164,6 +164,9 @@ SetParallelSize(num_threads)
 
 # --DEFINE MAIN SOLVER START--################
 
+print(" ")
+print("::[KPFEM Simulation]:: [Time Step:", general_variables.time_step," echo:", echo_level,"]")
+
 # import solver file
 solver_constructor = __import__(SolverSettings.solver_type)
 
@@ -213,44 +216,48 @@ model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
 #--- READ MODEL ------#
 if(load_restart == False):
   
-  print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
+    print("::[KPFEM Simulation]:: Reading -START- (MDPA FILE) ")
+    
+    #remove results, restart, graph and list previous files
+    problem_restart.CleanPreviousFiles()
+    list_files.RemoveListFiles()
+    
+    #reading the model
+    model_part_io = ModelPartIO(problem_name)
+    model_part_io.ReadModelPart(model_part)
+    
+    #set the buffer size
+    model_part.SetBufferSize(buffer_size)
+    #Note: the buffer size should be set once the mesh is read for the first time
+    
+    print("::[KPFEM Simulation]:: Reading -END- ")
 
-  #remove results, restart, graph and list previous files
-  problem_restart.CleanPreviousFiles()
-  list_files.RemoveListFiles()
+    model_part.ProcessInfo[LOAD_RESTART] = 0
+    
+    #set the degrees of freedom
+    solver_constructor.AddDofs(model_part, SolverSettings)
+    
+    #set the constitutive law
+    import constitutive_law_python_utility as constitutive_law_utils
 
-  #reading the model
-  model_part_io = ModelPartIO(problem_name)
-  model_part_io.ReadModelPart(model_part)
- 
-  #set the buffer size
-  model_part.SetBufferSize(buffer_size)
-  #Note: the buffer size should be set once the mesh is read for the first time
-
-  print("::[KPFEM Simulation]:: Reading -END- ")
-
-  #set the degrees of freedom
-  solver_constructor.AddDofs(model_part, SolverSettings)
-
-  #set the constitutive law
-  import constitutive_law_python_utility as constitutive_law_utils
-
-  constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size)
-  constitutive_law.Initialize()
-
+    constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size)
+    constitutive_law.Initialize()
+    
 else:
+    
+    print("::[KPFEM Simulation]:: Reading -RESTART- [FILE",restart_step,"]")
+    
+    #reading the model from the restart file
+    problem_restart.Load(restart_step);
+    
+    print("::[KPFEM Simulation]:: Reading -END- ")
 
-  print("::[KPFEM Simulation]:: Reading -RESTART- (RESTART FILE ",restart_step,")- ")
-
-  #reading the model from the restart file
-  problem_restart.Load(restart_step);
-
-  print("::[KPFEM Simulation]:: Reading -END- ")
-
-  #remove results, restart, graph and list posterior files
-  problem_restart.CleanPosteriorFiles(restart_step)
-  list_files.ReBuildListFiles()
-
+    model_part.ProcessInfo[LOAD_RESTART] = 1
+    
+    #remove results, restart, graph and list posterior files
+    problem_restart.CleanPosteriorFiles(restart_step)
+    list_files.ReBuildListFiles()
+    
 
 # --RIGID WALL OPTIONS START--################
 # set rigid wall contact if it is active:
@@ -283,7 +290,6 @@ modeler.BuildContactModeler(general_variables.contact_modeler_config)
 #--- MODELER INITIALIZATION---#
 
 #set mesh searches and modeler
-##modeler.InitializeDomains();
 modeler.InitializeDomains( load_restart ); ## due to the skin conditions at reloading
 
 # mesh size nodal h search

@@ -1132,6 +1132,8 @@ namespace Kratos
 	}
     }
     
+   
+
     if(MeshingOptions.IsNot(MeshModeler::REFINE_MESH) && in.numberofpoints<out.numberofpoints){
       fail=3;
       std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
@@ -2048,9 +2050,9 @@ namespace Kratos
 
 	
 	// if(plastic_power>0)
-	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" CriticalDissipation "<<rMeshingVariables.Refine.CriticalDissipation<<" Area "<<iii->GetGeometry().Area()<<std::endl;
+	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" CriticalDissipation "<<rMeshingVariables.Refine.CriticalDissipation * iii->GetGeometry().Area()<<" Area "<<iii->GetGeometry().Area()<<std::endl;
 
-	if( plastic_power > rMeshingVariables.Refine.CriticalDissipation)
+	if( plastic_power > rMeshingVariables.Refine.CriticalDissipation * iii->GetGeometry().Area() )
 	  {
 	    //std::cout<<" Refine element "<<std::endl;
 	    Geometry< Node<3> >& rGeom = iii->GetGeometry();
@@ -2601,7 +2603,7 @@ namespace Kratos
                     //condition_radius = mModelerUtilities.CalculateTriangleRadius (pGeom);
 
                     //if( plastic_power > rMeshingVariables.Refine.CriticalDissipation && condition_radius > rMeshingVariables.Refine.CriticalRadius )
-                    if( plastic_power > rMeshingVariables.Refine.CriticalDissipation && side_length > size_for_energy_side )
+                    if( plastic_power > rMeshingVariables.Refine.CriticalDissipation * pGeom.Area() && side_length > size_for_energy_side )
                     {
                        energy_insert = true;		      
                     }
