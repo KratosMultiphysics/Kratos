@@ -243,6 +243,7 @@ namespace Kratos
 	    double Jacobian = 0;	  
             std::vector<double> ComputedValues(1);
 	    double computed_value=0;
+	    double critical_value=0;
 	    int counter = 0;
 
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -253,8 +254,9 @@ namespace Kratos
 		ie->GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
 	    
 		computed_value = ComputedValues[0] * ie->GetGeometry().Area();
-	
-		if( computed_value > rCriticalValue)
+		critical_value = 2 * rCriticalValue * ie->GetGeometry().Area();
+
+		if( computed_value > critical_value )
 		  {
 		    for(unsigned int i = 0; i<ie->GetGeometry().size(); i++)
 		      {
@@ -469,7 +471,7 @@ namespace Kratos
 		//std::cout<<" id pre elems "<<list_of_pre_centers.back()->Id()<<std::endl;
 	    }
 
-
+	    //std::cout<<" list of pre centers "<<list_of_pre_centers.size()<<" list of new centers "<<list_of_new_centers.size()<<std::endl;
 
 	    //creating an auxiliary list for the pre integration points
 	    unsigned int   bucket_size = 20;
@@ -506,7 +508,7 @@ namespace Kratos
 
 
 
-	      if(ResultDistance>1e-20){
+	      if(ResultDistance>1e-20 || ResultDistance == 0){
 		// std::cout<<"Id: "<<(*i_center)->Id()<<" Connectivities : ["<<list_of_new_vertices[(*i_center)->Id()-1][0].Coordinates()<<", "<<list_of_new_vertices[(*i_center)->Id()-1][1].Coordinates()<<", "<<list_of_new_vertices[(*i_center)->Id()-1][2].Coordinates()<<"] "<<std::endl;
 
 		
@@ -515,8 +517,11 @@ namespace Kratos
 		// std::cout<<"New Center :"<<work_point<<", Old Center :"<<*result_point<<"[Distance: "<<ResultDistance<<"]"<<std::endl;
 
 		 moved_transfers ++;
-	      }			
+	      }
 	      
+	      // std::cout<<" Result distance "<<ResultDistance<<" point Id "<<result_point->Id()<<" center Id "<<(*i_center)->Id()<<std::endl;
+
+
 	      //get transfer variables
 
 	      
