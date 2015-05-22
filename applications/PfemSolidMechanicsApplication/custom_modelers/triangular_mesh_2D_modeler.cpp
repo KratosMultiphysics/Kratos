@@ -202,11 +202,11 @@ namespace Kratos
  	  
       ////////////////////////////////////////////////////////////
       //PERFORM ADAPTIVE REMESHING:
+      //i.e. insert and remove nodes based upon mesh quality and prescribed sizes	
       struct triangulateio mid_out;
 
-      rMeshingVariables.NodalIdsSetFlag=false;
-	  
-      //i.e. insert and remove nodes based upon mesh quality and prescribed sizes	     ////////////////////////////////////////////////////////////
+      rMeshingVariables.NodalIdsSetFlag=true; //second set must be true	  
+      ////////////////////////////////////////////////////////////
       SetTriangulationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
       ////////////////////////////////////////////////////////////
 	  
@@ -531,7 +531,7 @@ namespace Kratos
     //1.- Select Triangles to Refine via changing the nodal_h
     struct triangulateio mid_out;
 
-    rMeshingVariables.NodalIdsSetFlag=true;
+    rMeshingVariables.NodalIdsSetFlag=true;  //second set must be true
     ////////////////////////////////////////////////////////////
     SetTriangulationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
     ////////////////////////////////////////////////////////////
@@ -623,6 +623,13 @@ namespace Kratos
     SetDissipativeElements (rModelPart,rMeshingVariables,MeshId);  
     ////////////////////////////////////////////////////////////
 
+    //check initial mesh:
+    // for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(MeshId);
+    // 	iii != rModelPart.ElementsEnd(MeshId); iii++)
+    //   {
+    // 	std::cout<<" START TRIANGLE ["<<iii->Id()<<"] ["<<iii->GetGeometry()[0].Id()<<", "<<iii->GetGeometry()[1].Id()<<", "<<iii->GetGeometry()[2].Id()<<"] "<<std::endl;
+    // 	std::cout<<" START PRESSURE ["<<iii->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)<<", "<<iii->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)<<",  "<<iii->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)<<"] "<<std::endl;
+    //   }
 
     rMeshingVariables.MeshingOptions.Set(MeshModeler::CONSTRAINED_MESH);
 
@@ -726,7 +733,7 @@ namespace Kratos
     //1.- Select Triangles to Refine via changing the nodal_h
     struct triangulateio mid_out;
 
-    rMeshingVariables.NodalIdsSetFlag=false;
+    rMeshingVariables.NodalIdsSetFlag=true; //second set must be true
     ////////////////////////////////////////////////////////////
     SetTriangulationNodes (rModelPart,rMeshingVariables,in,mid_out,MeshId);
     ////////////////////////////////////////////////////////////
@@ -772,6 +779,15 @@ namespace Kratos
 
     if( rMeshingVariables.MeshingOptions.Is(MeshModeler::CONSTRAINED_MESH) )
       RecoverBoundaryPosition(rModelPart,rMeshingVariables,in,out,MeshId);
+
+
+    //check if something changes:
+    // for(ModelPart::ElementsContainerType::const_iterator iii = rModelPart.ElementsBegin(MeshId);
+    // 	iii != rModelPart.ElementsEnd(MeshId); iii++)
+    //   {
+    // 	std::cout<<" SET TRIANGLE ["<<iii->Id()<<"] ["<<rMeshingVariables.NodalPreIds[iii->GetGeometry()[0].Id()]<<", "<<rMeshingVariables.NodalPreIds[iii->GetGeometry()[1].Id()]<<", "<<rMeshingVariables.NodalPreIds[iii->GetGeometry()[2].Id()]<<"] "<<std::endl;
+    // 	std::cout<<" SET PRESSURE ["<<iii->GetGeometry()[0].FastGetSolutionStepValue(PRESSURE)<<", "<<iii->GetGeometry()[1].FastGetSolutionStepValue(PRESSURE)<<",  "<<iii->GetGeometry()[2].FastGetSolutionStepValue(PRESSURE)<<"] "<<std::endl;
+    //   }
 
     ////////////////////////////////////////////////////////////
 
@@ -873,8 +889,8 @@ namespace Kratos
 
 	    //std::cout<<" Shrink "<<Shrink<<" offset "<<rMeshingVariables.OffsetFactor<<std::endl;
 	    Normal /= norm_2(Normal);
-	    Offset[0] = ((-1)*Normal[0]*Shrink*rMeshingVariables.OffsetFactor*0.25);
-	    Offset[1] = ((-1)*Normal[1]*Shrink*rMeshingVariables.OffsetFactor*0.25);
+	    Offset[0] = ( (-1) * Normal[0] * Shrink * rMeshingVariables.OffsetFactor * 0.25 );
+	    Offset[1] = ( (-1) * Normal[1] * Shrink * rMeshingVariables.OffsetFactor * 0.25 );
 
 	    //std::cout<<" off[0] "<<Offset[0]<<" off[1] "<<Offset[1]<<std::endl;
 
@@ -4087,6 +4103,9 @@ namespace Kratos
     double z = 0.0;
 
     unsigned int initial_node_size = rModelPart.Nodes().size()+1; //total model part node size
+
+    //std::cout<<" LAST ID "<<(*( (rModelPart.NodesBegin(MeshId) +  in.numberofpoints-1).base()))->Id()<<" "<<rMeshingVariables.NodalPreIds[(*( (rModelPart.NodesBegin(MeshId) +  in.numberofpoints-1).base()))->Id()]<<std::endl;
+
     //if points were added, new nodes must be added to ModelPart
     int j = 0;
     if (out.numberofpoints > in.numberofpoints)
@@ -4222,7 +4241,15 @@ namespace Kratos
 
 		if(is_inside == true)
 		  {
+		    // check:
+		    // std::cout<<" REFINE TRIANGLE ["<<rMeshingVariables.NodalPreIds[(*( (nodes_begin +  in.trianglelist[base]-1).base()))->Id()]<<", "<<rMeshingVariables.NodalPreIds[(*( (nodes_begin +  in.trianglelist[base+1]-1).base()))->Id()]<<", "<<rMeshingVariables.NodalPreIds[(*( (nodes_begin +  in.trianglelist[base+2]-1).base()))->Id()]<<"] "<<std::endl;
+		    // std::cout<<" REFINE PRESSURE ["<<(*( (nodes_begin +  in.trianglelist[base]-1).base()))->FastGetSolutionStepValue(PRESSURE)<<", "<<(*( (nodes_begin +  in.trianglelist[base+1]-1).base()))->FastGetSolutionStepValue(PRESSURE)<<", "<<(*( (nodes_begin +  in.trianglelist[base+2]-1).base()))->FastGetSolutionStepValue(PRESSURE)<<"] "<<std::endl;
+
+		    // std::cout<<" PRESSURE Prev "<<(*it_found)->FastGetSolutionStepValue(PRESSURE)<<std::endl;
+
 		    this->mDataTransferUtilities.Interpolate( geom, N, step_data_size, *(it_found ) );
+
+		    // std::cout<<" PRESSURE Prev "<<(*it_found)->FastGetSolutionStepValue(PRESSURE)<<std::endl;
 		  }
 		//}
 	      }
