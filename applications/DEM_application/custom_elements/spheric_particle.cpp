@@ -1028,7 +1028,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 break;
 
             case 1:
-                kn_el = 0.6666666666 * myYoung * (1.0 - myPoisson * myPoisson) * sqrt(mRadius - ini_delta);
+                kn_el = (1.33333333 * myYoung / (1.0 - myPoisson * myPoisson)) * sqrt(mRadius - ini_delta);
                 break;
 
             default:
@@ -1141,7 +1141,20 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
             if (indentation > 0.0) {
                 //LocalElasticContactForce[2] = kn_el * indentation;
-                LocalElasticContactForce[2] = kn_el * indentation - area * total_cohesion;
+                switch (mElasticityType) { //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+                    case 0:
+                        LocalElasticContactForce[2] = kn_el * indentation - area * total_cohesion;
+                        break;
+
+                    case 1:
+                        LocalElasticContactForce[2] = kn_el * pow(indentation, 1.5) - area * total_cohesion;
+                        break;
+
+                    default:
+                        LocalElasticContactForce[2] = kn_el * indentation - area * total_cohesion;
+                        break;
+
+                }
             }
                
             else { LocalElasticContactForce[2] = 0.0;}
