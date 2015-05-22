@@ -336,14 +336,13 @@ namespace Kratos
 	for(ElementsContainerType::iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
 	  {
 
-	    PointsArrayType& vertices=ie->GetGeometry().Points();
+	    PointsArrayType& vertices = ie->GetGeometry().Points();
 		    
 	    //Idea, guardar coordenadas iniciales y desplazamiento total *** y corregir las coordenadas de los vertices a sus originales !! ---- eso: La corrección mediante variable auxiliar MESH_DISPLACEMENT.
 
 	    array_1d<double,3>& V1 = initial_nodes_position[nodes_ids[vertices[0].Id()]];
 	    array_1d<double,3>& V2 = initial_nodes_position[nodes_ids[vertices[1].Id()]];
 	    array_1d<double,3>& V3 = initial_nodes_position[nodes_ids[vertices[2].Id()]];
-
 
 	    // std::cout<<" V1 "<<V1<<" =  ("<<vertices[0].X()<<", "<<vertices[0].Y()<<",0 )"<<std::endl;
 	    // std::cout<<" V2 "<<V2<<" =  ("<<vertices[1].X()<<", "<<vertices[1].Y()<<",0 )"<<std::endl;
@@ -380,7 +379,10 @@ namespace Kratos
 		  {
 		    if(UniquePosition [nodes_ids[(*it_found)->Id()]] == 0){
 		      UniquePosition [nodes_ids[(*it_found)->Id()]] = 1;
+
 		      VariablesList  [nodes_ids[(*it_found)->Id()]] = InterpolateVariables( ie->GetGeometry(), N, step_data_size, (*it_found) );
+
+
 		    }
 		    else{
 		      std::cout<<" WARNING LS: The node is relocated in a new element:: Something is Wrong "<<std::endl;
@@ -617,8 +619,6 @@ namespace Kratos
 	 
       //SetInsideProjection (rModelPart, out, list_of_neighbor_nodes, MeshId);
 
-
-
       //*******************************************************************
       //TRANSFER VARIABLES TO NEW NODES POSITION:
 
@@ -730,8 +730,9 @@ namespace Kratos
 			  //std::cout<<" node interpolate "<<(*it_found)->Id()<<std::endl;
 			  if(UniquePosition [(*it_found)->Id()] == 0){
 			    UniquePosition [(*it_found)->Id()] = 1;
+			    
 			    VariablesList  [(*it_found)->Id()] = InterpolateVariables( Geometry, N, step_data_size, (*it_found) );
-			      
+			    
 			  }
 			  // else{
 			  //   std::cout<<" The node is relocated in a new element:: Something is Wrong "<<std::endl;
@@ -757,10 +758,16 @@ namespace Kratos
 	    if(i_node->IsNot(BOUNDARY) && i_node->IsNot(TO_ERASE)){
 	      //recover the original position of the node
 	      id = i_node->Id();
-		  
+
+	      // double PressurePrev = (i_node)->FastGetSolutionStepValue(PRESSURE); 
+
 	      i_node->SolutionStepData() = VariablesList[id];
-		  
+ 		  
+	      // double PressurePost = (i_node)->FastGetSolutionStepValue(PRESSURE);
+	      // std::cout<<" PRESSURE PREV "<<PressurePrev<<" PRESSURE POST "<<PressurePost<<std::endl;
+
 	      const array_1d<double,3>& disp = i_node->FastGetSolutionStepValue(DISPLACEMENT);
+
 	      i_node->X0() = i_node->X() - disp[0];
 	      i_node->Y0() = i_node->Y() - disp[1];
 	      i_node->Z0() = i_node->Z() - disp[2];
@@ -1365,8 +1372,13 @@ namespace Kratos
 	  //copying this data in the position of the vector we are interested in
 	  for(unsigned int j= 0; j<step_data_size; j++)
 	    {
-	      step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+	      //deffault interpolation value:
+	      //step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+
+	      //test intermediate value:
+	      step_data[j] = 0.5 * step_data[j] + 0.5 * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]);
 	    }
+
 	}
 
       if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
@@ -1397,8 +1409,13 @@ namespace Kratos
 	  //copying this data in the position of the vector we are interested in
 	  for(unsigned int j= 0; j<step_data_size; j++)
 	    {
-	      step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+	      //deffault interpolation value:
+	      //step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
+
+	      //test intermediate value:
+	      step_data[j] = 0.5 * step_data[j] + 0.5 * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]);
 	    }
+
 	}
 	     
       if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
