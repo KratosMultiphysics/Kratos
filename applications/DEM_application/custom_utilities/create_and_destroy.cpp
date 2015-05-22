@@ -294,8 +294,11 @@ namespace Kratos {
         double cy = reference_coordinates[1];
         double dz = reference_coordinates[2];
 
+        #pragma omp critical
+        {
         pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz); //ACTUAL node creation and addition to model part
-
+        }
+        
         pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
         array_1d<double, 3 > null_vector(3, 0.0);
         pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
