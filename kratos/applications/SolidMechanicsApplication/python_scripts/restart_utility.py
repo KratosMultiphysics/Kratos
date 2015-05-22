@@ -73,7 +73,7 @@ class RestartUtility:
                     end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                     print_id   = end_parts[0] # you get "145"
 
-                    if( int(print_id)>=restart_step ):
+                    if( int(print_id)>restart_step ):
                         filelist.append(f)
 
             for f in filelist:
