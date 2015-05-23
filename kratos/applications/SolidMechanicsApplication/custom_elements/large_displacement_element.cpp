@@ -55,7 +55,7 @@ LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryTyp
 LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
 {
-    mFinalized = false;
+    mFinalizedStep = true; // the creation is out of the time step, it must be true
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 
     //DO NOT ADD DOFS HERE!!!
@@ -69,7 +69,7 @@ LargeDisplacementElement::LargeDisplacementElement( LargeDisplacementElement con
     :Element(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
-    ,mFinalized(rOther.mFinalized)
+    ,mFinalizedStep(rOther.mFinalizedStep)
 {
 }
 
@@ -1037,7 +1037,7 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
                 row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
                 rCurrentProcessInfo );
 
-    mFinalized = false;
+    mFinalizedStep = false;
 
 }
 
@@ -1100,7 +1100,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 	this->FinalizeStepVariables(Variables,PointNumber);
     }
 
-    mFinalized = true;
+    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
@@ -1798,7 +1798,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
-	    if( mFinalized ){
+	    if( mFinalizedStep ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	    }		
 
@@ -1835,7 +1835,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
-	    if( mFinalized ){
+	    if( mFinalizedStep ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	    }		
 
@@ -1897,7 +1897,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
-	    if( mFinalized ){
+	    if( mFinalizedStep ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	    }		
 
@@ -1933,7 +1933,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
-	    if( mFinalized ){
+	    if( mFinalizedStep ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	      Variables.F = prod(Variables.F,Variables.F0);
 	    }	
