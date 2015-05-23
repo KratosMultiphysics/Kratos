@@ -559,7 +559,7 @@ protected:
     /**
      * Finalize and Initialize label
      */
-    bool mFinalized;
+    bool mFinalizedStep;
 
 	
     ///@}
