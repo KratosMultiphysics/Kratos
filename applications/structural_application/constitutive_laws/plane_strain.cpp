@@ -205,6 +205,7 @@ void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVec
     double c2 = mE * mNU / (( 1.00 + mNU ) * ( 1.00 - 2 * mNU ) );
     double c3 = 0.5 * mE / ( 1 + mNU );
 
+    // compute the stress based on strain
     StressVector[0] = c1 * StrainVector[0] + c2 * ( StrainVector[1] ) ;
     StressVector[1] = c1 * StrainVector[1] + c2 * ( StrainVector[0] ) ;
     StressVector[2] = c3 * StrainVector[2];
