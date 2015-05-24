@@ -494,6 +494,13 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
+    virtual bool Has(const Variable<int>& rThisVariable);
+
+    /**
+     * returns whether this constitutive Law has specified variable
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     virtual bool Has(const Variable<double>& rThisVariable);
 
     /**
@@ -525,6 +532,14 @@ public:
      * NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
      */
     virtual bool Has(const Variable<array_1d<double, 6 > >& rThisVariable);
+
+    /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue);
 
     /**
      * returns the value of a specified variable
@@ -566,6 +581,16 @@ public:
      */
     virtual array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rVariable,
                                             array_1d<double, 6 > & rValue);
+
+    /**
+     * sets the value of a specified variable
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(const Variable<int>& rVariable,
+                          const int& Value,
+                          const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * sets the value of a specified variable
