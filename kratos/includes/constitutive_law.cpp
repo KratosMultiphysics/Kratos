@@ -93,6 +93,16 @@ namespace Kratos
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
+     bool ConstitutiveLaw::Has(const Variable<int>& rThisVariable)
+    {
+        return false;
+    }
+
+    /**
+     * returns whether this constitutive Law has specified variable
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
      bool ConstitutiveLaw::Has(const Variable<double>& rThisVariable)
     {
         return false;
@@ -138,6 +148,17 @@ namespace Kratos
      bool ConstitutiveLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
     {
         return false;
+    }
+
+    /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+     int& ConstitutiveLaw::GetValue(const Variable<int>& rThisVariable, int& rValue)
+    {
+        return rValue;
     }
 
     /**
@@ -194,6 +215,19 @@ namespace Kratos
                                             array_1d<double, 6 > & rValue)
     {
         return rValue;
+    }
+
+    /**
+     * sets the value of a specified variable
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+     void ConstitutiveLaw::SetValue(const Variable<int>& rVariable,
+                          const int& Value,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for SetValue", "");
     }
 
     /**
