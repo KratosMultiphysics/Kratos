@@ -82,6 +82,46 @@ namespace Kratos
       Matrix  Dev_Normal;
     };
 
+    struct ThermalVariables
+    {
+      double PlasticDissipation;
+      double DeltaPlasticDissipation;
+
+    public:
+
+        void clear()
+        {
+	  PlasticDissipation = 0;
+	  DeltaPlasticDissipation = 0;
+	}
+
+        void print()
+        {
+	  std::cout<<" Internal Thermal Variables "<<std::endl;
+	  std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
+	  std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
+	}
+
+    private:
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      
+      void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("PlasticDissipation",PlasticDissipation);
+	rSerializer.save("DeltaPlasticDissipation",DeltaPlasticDissipation);
+      };
+
+      void load(Serializer& rSerializer)
+      {
+	rSerializer.load("PlasticDissipation",PlasticDissipation);
+	rSerializer.load("DeltaPlasticDissipation",DeltaPlasticDissipation);
+      };
+
+    };
+
 
     struct RadialReturnVariables
     {
@@ -102,7 +142,8 @@ namespace Kratos
 
       Matrix TrialIsoStressMatrix;
 	    
-	    
+      ThermalVariables Thermal;
+
     public:
       
       void clear()
@@ -179,45 +220,6 @@ namespace Kratos
       };
     };
 
-    struct ThermalVariables
-    {
-      double PlasticDissipation;
-      double DeltaPlasticDissipation;
-
-    public:
-
-        void clear()
-        {
-	  PlasticDissipation = 0;
-	  DeltaPlasticDissipation = 0;
-	}
-
-        void print()
-        {
-	  std::cout<<" Internal Thermal Variables "<<std::endl;
-	  std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
-	  std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
-	}
-
-    private:
-
-      friend class Serializer;
-
-      // A private default constructor necessary for serialization
-      
-      void save(Serializer& rSerializer) const
-      {
-	rSerializer.save("PlasticDissipation",PlasticDissipation);
-	rSerializer.save("DeltaPlasticDissipation",DeltaPlasticDissipation);
-      };
-
-      void load(Serializer& rSerializer)
-      {
-	rSerializer.load("PlasticDissipation",PlasticDissipation);
-	rSerializer.load("DeltaPlasticDissipation",DeltaPlasticDissipation);
-      };
-
-    };
 
     /// Pointer definition of FlowRule
     KRATOS_CLASS_POINTER_DEFINITION(FlowRule);

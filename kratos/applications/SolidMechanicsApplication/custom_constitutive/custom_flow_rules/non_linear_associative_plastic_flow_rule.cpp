@@ -117,7 +117,8 @@ void NonLinearAssociativePlasticFlowRule::SetCriterionParameters( RadialReturnVa
 
 	rCriterionParameters.SetRateFactor(0);
 
-	mThermalVariables.clear();
+	// changing thermal variables during the return mapping
+	rReturnMappingVariables.Thermal.clear();
 
 }
 
@@ -174,7 +175,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	    
 
 	      //5.- Calculate thermal dissipation and delta thermal dissipation
-	      this->CalculateThermalDissipation( CriterionParameters );   
+	      this->CalculateThermalDissipation( CriterionParameters, rReturnMappingVariables.Thermal );   
 
 	      PlasticityActive = true;
 	      rReturnMappingVariables.Options.Set(PLASTIC_REGION,true);	    
@@ -271,19 +272,19 @@ void NonLinearAssociativePlasticFlowRule::CalculateImplexReturnMapping( RadialRe
 //***************************CALCULATE THERMAL DISSIPATION****************************
 //************************************************************************************
 
-void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters )
+void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables )
 {
 
       //1.- Thermal Dissipation:
  
-      mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( mThermalVariables.PlasticDissipation, rCriterionParameters);
+      rThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( rThermalVariables.PlasticDissipation, rCriterionParameters);
   
 
       //std::cout<<" PlasticDissipation "<<mThermalVariables.PlasticDissipation<<std::endl;
 
       //2.- Thermal Dissipation Increment:
 
-      mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
+      rThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( rThermalVariables.DeltaPlasticDissipation, rCriterionParameters );
 		    		    
       //std::cout<<" DeltaPlasticDissipation "<<mThermalVariables.DeltaPlasticDissipation<<std::endl;
 }
@@ -346,6 +347,9 @@ bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnV
 
 	mInternalVariables.DeltaPlasticStrain         *= ( 1.0/rReturnMappingVariables.DeltaTime );
  	
+	//update thermal variables
+	mThermalVariables = rReturnMappingVariables.Thermal;
+
 	// mInternalVariables.print();
 
 	// mThermalVariables.print();
