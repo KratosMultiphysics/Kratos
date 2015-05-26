@@ -157,7 +157,7 @@ namespace Kratos
     void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
 
 
-    void CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters );
+    void CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters, ThermalVariables& rThermalVariables );
 
 
     //implex protected methods
