@@ -448,6 +448,8 @@ public:
 	    CurrentDisplacement[1] = mpRigidWall->Velocity()[1] * Time;
 	    CurrentDisplacement[2] = mpRigidWall->Velocity()[2] * Time;
 
+	    (*nd)->Coordinates() = (*nd)->GetInitialPosition() + CurrentDisplacement;
+
 	    counter++;
 	  }
 	}

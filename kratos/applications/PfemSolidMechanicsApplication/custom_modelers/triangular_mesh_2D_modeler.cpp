@@ -2064,11 +2064,12 @@ namespace Kratos
 	    
 	plastic_power = Value[0] * iii->GetGeometry().Area();
 
+	double critical_dissipation = rMeshingVariables.Refine.CriticalDissipation; // * iii->GetGeometry().Area();
 	
-	// if(plastic_power>0)
-	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" CriticalDissipation "<<rMeshingVariables.Refine.CriticalDissipation * iii->GetGeometry().Area()<<" Area "<<iii->GetGeometry().Area()<<std::endl;
+        // if(plastic_power>0)
+	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" CriticalDissipation "<<critical_dissipation<<" Area "<<iii->GetGeometry().Area()<<std::endl;
 
-	if( plastic_power > rMeshingVariables.Refine.CriticalDissipation * iii->GetGeometry().Area() )
+	if( plastic_power > critical_dissipation )
 	  {
 	    //std::cout<<" Refine element "<<std::endl;
 	    Geometry< Node<3> >& rGeom = iii->GetGeometry();
