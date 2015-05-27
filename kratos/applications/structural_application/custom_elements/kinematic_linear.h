@@ -96,10 +96,12 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
+
+KinematicLinear is designed to be a general linear strutural element support for both 2D and 3D.
+
  */
 
-class KinematicLinear
-    : public Element
+class KinematicLinear : public Element
 {
 
 public:
@@ -120,7 +122,7 @@ public:
 
     /// Default constructor.
     KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry );
-    KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    KinematicLinear( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Destructor.
     virtual ~KinematicLinear();
@@ -136,7 +138,9 @@ public:
     ///@{
     IntegrationMethod GetIntegrationMethod() const;
 
-    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    virtual Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    
+    virtual Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const;
 
     void Initialize();
 
@@ -150,19 +154,26 @@ public:
 
     void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
 
-    void CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+    void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo );
+    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
 
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
     void InitializeSolutionStep( ProcessInfo& CurrentProcessInfo );
+    
+    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    
+    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
     void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
     void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+
+    void SetValueOnIntegrationPoints( const Variable<int>& rVariable,
+                                      std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
     void SetValueOnIntegrationPoints( const Variable<double>& rVariable,
                                       std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
@@ -173,7 +184,7 @@ public:
 
     void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateOnIntegrationPoints( const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
 
@@ -226,16 +237,24 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mIsInitialized;
+    Matrix mInitialDisp;
+    IntegrationMethod mThisIntegrationMethod;
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector< Matrix > mInvJ0;
+    Vector mDetJ0;
+    double mTotalDomainInitialSize;
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
 
+    void InitializeMaterial();
+    
     ///@}
     ///@name Serialization
     ///@{
@@ -289,21 +308,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    IntegrationMethod mThisIntegrationMethod;
-
-    double mTotalDomainInitialSize;
-
-
-    std::vector< Matrix > mInvJ0;
-    Vector mDetJ0;
-
-    bool mfirst_time_step;
-
-    bool mIsInitialized;
-
-    Matrix mInitialDisp;
     ///@}
     ///@name Private Operators
     ///@{
@@ -319,8 +324,6 @@ private:
     );
 
     void InitializeVariables();
-
-    void InitializeMaterial();
 
     void InitializeMaterial( std::vector<std::vector<Matrix> >& C );
 
@@ -339,6 +342,9 @@ private:
     //CALCULATE FORCEVECTORS DISPLACEMENT
 
     void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ );
+    
+    void CalculateAndAdd_ExtForceContribution(const Vector& N, const ProcessInfo& CurrentProcessInfo,
+        Vector& BodyForce, VectorType& rRightHandSideVector, double weight, double detJ);
 
     void AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ );
 
@@ -413,6 +419,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_UNSATURATED_SOILS_ELEMENT_INCLUDED defined 
+#endif // KRATOS_KINEMATIC_LINEAR2_INCLUDED defined 
 
 
