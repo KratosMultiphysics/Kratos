@@ -408,9 +408,9 @@ namespace Kratos {
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double GlobalElasticContactForce[3] = {0.0};
 
-            GlobalElasticContactForce[0] = mOldNeighbourElasticContactForces[i_neighbour_count][0];
-            GlobalElasticContactForce[1] = mOldNeighbourElasticContactForces[i_neighbour_count][1];
-            GlobalElasticContactForce[2] = mOldNeighbourElasticContactForces[i_neighbour_count][2];
+            GlobalElasticContactForce[0] = mNeighbourElasticContactForces[i_neighbour_count][0];
+            GlobalElasticContactForce[1] = mNeighbourElasticContactForces[i_neighbour_count][1];
+            GlobalElasticContactForce[2] = mNeighbourElasticContactForces[i_neighbour_count][2];
 
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
             //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
@@ -502,7 +502,6 @@ namespace Kratos {
 
             // Transforming to global forces and adding up
             double LocalContactForce[3] = {0.0};
-            double CohesionForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
 
             if (mStressStrainOption && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson, 
@@ -510,7 +509,7 @@ namespace Kratos {
                                                                                         LocalElasticContactForce[2], 
                                                                                         calculation_area);}
 
-            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce[2], CohesionForce[2], LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+            AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                     GlobalElasticContactForce, ViscoDampingLocalContactForce, rElasticForce, rContactForce, i_neighbour_count);
 
             array_1d<double, 3> temp_force = ZeroVector(3);
@@ -520,7 +519,6 @@ namespace Kratos {
             temp_force[2] = GlobalContactForce[2];
             
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                //ComputeMoments(LocalElasticContactForce[2], mOldNeighbourElasticContactForces[i_neighbour_count], rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator);
                 ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
             }
 
@@ -694,8 +692,8 @@ namespace Kratos {
             //Loop Over Last time-step Neighbors
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((i_neighbour)->Id()) == mOldNeighbourIds[j]) {
-                    neigh_elastic_forces = mOldNeighbourElasticContactForces[j];
-                    neigh_total_forces = mOldNeighbourTotalContactForces[j];
+                    neigh_elastic_forces = mNeighbourElasticContactForces[j];
+                    neigh_total_forces = mNeighbourTotalContactForces[j];
                     break;
                 }
             }
@@ -739,8 +737,8 @@ namespace Kratos {
         mOldNeighbourIds.swap(mTempNeighboursIds);
         mNeighbourDelta.swap(mTempNeighboursDelta);
         mNeighbourFailureId.swap(mTempNeighboursFailureId);
-        mOldNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
-        mOldNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
+        mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
+        mNeighbourTotalContactForces.swap(mTempNeighbourTotalContactForces);
 
         KRATOS_CATCH("")
     } //ComputeNewNeighboursHistoricalData
@@ -826,7 +824,7 @@ namespace Kratos {
                {
                  if (static_cast<int>(i->Id()) == mOldNeighbourIds[j])
                  {
-                   neigh_forces = mOldNeighbourElasticContactForces[j];
+                   neigh_forces = mNeighbourElasticContactForces[j];
                    break;
                  }
 
@@ -863,7 +861,7 @@ namespace Kratos {
                mOldNeighbourIds.resize(neighbour_counter);
                mNeighbourDelta.resize(neighbour_counter);
                mNeighbourFailureId.resize(neighbour_counter);
-               mOldNeighbourElasticContactForces.resize(neighbour_counter);
+               mNeighbourElasticContactForces.resize(neighbour_counter);
            }   
         
            for(unsigned int w=0; w<neighbour_counter; w++)
@@ -873,7 +871,7 @@ namespace Kratos {
              mOldNeighbourIds[w]           = temp_neighbours_ids[w];
              mNeighbourDelta[w]            = temp_neighbours_delta[w];
              mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];
-             mOldNeighbourElasticContactForces[w] = temp_neighbours_contact_forces[w];
+             mNeighbourElasticContactForces[w] = temp_neighbours_contact_forces[w];
            }
         
         
@@ -934,7 +932,7 @@ namespace Kratos {
 
             for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
-                    neigh_forces = mFemOldNeighbourContactForces[j];
+                    neigh_forces = mFemNeighbourContactForces[j];
                     break;
                 }
             }
@@ -964,7 +962,7 @@ namespace Kratos {
         mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
         mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
         mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
-        mFemOldNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
+        mFemNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
 
         KRATOS_CATCH("")
     }

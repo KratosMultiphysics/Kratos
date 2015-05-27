@@ -33,27 +33,6 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
-///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
 
 /// Short class definition.
 /** Detail class definition.
@@ -77,9 +56,6 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-///@}
-///@name Life Cycle
-///@{
 
 /// Default constructor.
 
@@ -97,13 +73,14 @@ virtual ~SphericParticle();
 ///@{
 virtual void Initialize();
 virtual void FullInitialize(const ProcessInfo& rCurrentProcessInfo);
+virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& rCurrentProcessInfo);
 virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity, int search_control);
 virtual void FirstCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, int search_control);
 virtual void CollectCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo);
 virtual void FinalCalculateRightHandSide(ProcessInfo& rCurrentProcessInfo, double dt, const array_1d<double,3>& gravity);
-void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
 virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
 virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
@@ -111,8 +88,8 @@ virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1
 virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
 
-void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
-void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
+virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation);
+virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
 
 int   GetClusterId();
 void  SetClusterId(const int Id);
@@ -150,20 +127,6 @@ double SlowGetLnOfRestitCoeff();
 double SlowGetDensity();
 double SlowGetParticleCohesion();
 int    SlowGetParticleMaterial();
-
-///@}
-///@name Access
-///@{
-
-
-///@}
-///@name Inquiry
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 /// Turn back information as a string.
 virtual std::string Info() const
@@ -213,10 +176,10 @@ virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, doub
 virtual void UpdateRF_Pram(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], int & ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-void CalculateKineticEnergy(double& rKineticEnergy);
-void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
-void CalculateMomentum(array_1d<double, 3>& rMomentum);
-void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
+virtual void CalculateKineticEnergy(double& rKineticEnergy);
+virtual void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
+virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
+virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                      array_1d<double, 3>& rContactForce,
                                      array_1d<double, 3>& InitialRotaMoment,
@@ -229,7 +192,6 @@ virtual void CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& othe
                                                  const double& radius_sum,
                                                  double& kn,
                                                  double& kt,
-                                                 double& cohesion_area,
                                                  double& equiv_visco_damp_coeff_normal,
                                                  double& equiv_visco_damp_coeff_tangential,
                                                  double& equiv_tg_of_fri_ang,
@@ -244,12 +206,6 @@ virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                     const array_1d<double, 3> &delta_displ,
                     SphericParticle* neighbour_iterator,
                     double& distance);
-
-virtual void NormalForceCalculation(double& normal_force, double kn, double indentation);
-
-virtual void CohesionCalculation(double& cohesion_force, double cohesion, double equiv_area);
-
-virtual void TangentialForceCalculation(const double normal_force, double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
 virtual void DisplacementDueToRotation(double DeltDesp[3],
                     double RelVel[3],
@@ -281,8 +237,6 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                     double LocalCoordSystem[3][3],
-                    double normal_force,
-                    double cohesion_force,
                     double LocalContactForce[3],
                     double LocalElasticContactForce[3],
                     double GlobalContactForce[3],
@@ -301,8 +255,6 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                     array_1d<double, 3>& rElasticForce,
                     array_1d<double, 3>& rContactForce,
                     const unsigned int iRigidFaceNeighbour);
-
-virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& rCurrentProcessInfo);
 
 virtual void CalculateViscoDamping(double LocalRelVel[3],
                                       double ViscoDampingLocalContactForce[3],
@@ -336,90 +288,15 @@ double mRealMass;
 PropertiesProxy* mFastProperties;
 
 std::vector<int> mOldNeighbourIds;
-std::vector< array_1d<double, 3> > mOldNeighbourElasticContactForces;
-std::vector< array_1d<double, 3> > mOldNeighbourTotalContactForces;
+std::vector< array_1d<double, 3> > mNeighbourElasticContactForces;
+std::vector< array_1d<double, 3> > mNeighbourTotalContactForces;
 
 std::vector<int> mFemOldNeighbourIds;
-std::vector< array_1d<double, 3> >  mFemOldNeighbourContactForces;
+std::vector< array_1d<double, 3> >  mFemNeighbourContactForces;
 
 int mClusterId;
 
-///@name Protected static Member Variables
-///@{
-
-
-///@}
-///@name Protected member Variables
-///@{
-
-
-///@}
-///@name Protected Operators
-///@{
-
-
-///@}
-///@name Protected Operations
-///@{
-
-
-///@}
-///@name Protected  Access
-///@{
-
-
-///@}
-///@name Protected Inquiry
-///@{
-
-
-///@}
-///@name Protected LifeCycle
-///@{
-
-
-///@}
-
 private:
-
-
-///@name Static Member Variables
-///@{
-
-
-///@}
-///@name Member Variables
-///@{
-
-
-///@}
-///@name Private Operators
-///@{
-
-
-///@}
-///@name Private Operations
-///@{
-
-
-///@}
-///@name Private  Access
-///@{
-
-
-///@}
-///@name Private Inquiry
-///@{
-
-
-///@}
-///@name Un accessible methods
-///@{
-
-
-///@}
-///@name Serialization
-///@{
 
 friend class Serializer;
 
@@ -451,33 +328,8 @@ rSerializer.load("mTgOfFrictionAngle",mTgOfFrictionAngle);
 rSerializer.load("mLnOfRestitCoeff",mLnOfRestitCoeff);  */
 }
 
-/*
-/// Assignment operator.
-SphericParticle& operator=(SphericParticle const& rOther)
-{
-return *this;
-}
-
-/// Copy constructor.
-SphericParticle(SphericParticle const& rOther)
-{
-*this = rOther;
-}
-*/
-
-///@}
 
 }; // Class SphericParticle
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
 
 
 /// input stream function

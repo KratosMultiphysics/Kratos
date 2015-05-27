@@ -65,6 +65,7 @@ namespace Kratos {
 
         KRATOS_TRY      
         CalculateNormalForceLinear(LocalElasticContactForce, kn_el, indentation);
+        //CalculateCohesiveForce(cohesion_force, cohesion, cohesion_area);
         CalculateTangentialForceLinear(LocalElasticContactForce,
                 LocalDeltDisp,
                 kt_el,
@@ -151,6 +152,108 @@ namespace Kratos {
             }
         }
     KRATOS_CATCH("")      
+    }
+    
+    
+    
+    //////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    ///////////NEW IMPLEMENTATION/////////////////////
+    //////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    
+    void DEM_D_Linear_viscous_Coulomb::InitializeContact(SphericParticle* const element1,
+                                                 SphericParticle* const element2) {
+        //Get equivalent Radius
+        const double my_radius     = element1->GetRadius();
+        const double other_radius  = element2->GetRadius();
+        const double radius_sum    = my_radius + other_radius;
+        const double radius_sum_i  = 1 / radius_sum;
+        const double equiv_radius  = 2 * my_radius * other_radius * radius_sum_i;
+        
+        //Get equivalent Young's Modulus
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young = 2.0 * my_young * other_young / (my_young + other_young);
+        
+        //Get equivalent Poisson's Modulus
+        double equiv_poisson;
+        if ((my_poisson + other_poisson)!= 0.0) {
+            equiv_poisson            = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
+        } else {
+            equiv_poisson            = 0.0;
+        }                  
+        
+        double equiv_area = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.        
+        
+        //Normal and Tangent elastic constants
+        mKn              = equiv_young * equiv_area * radius_sum_i; //KRATOS_M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+        mKt              = mKn / (2.0 + equiv_poisson + equiv_poisson);                               
+        
+    }
+    
+    void DEM_D_Linear_viscous_Coulomb::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta) {
+        //Get equivalent Radius
+        const double my_radius     = element->GetRadius();
+        
+        //Get equivalent Young's Modulus
+        const double my_young        = element->GetYoung();
+        const double my_poisson      = element->GetPoisson();
+        const double area            = KRATOS_M_PI * my_radius * my_radius;                       
+                
+        //Normal and Tangent elastic constants
+        mKn = my_young * area / (2.0 * my_radius - ini_delta);        
+        mKt = mKn / (2.0 * (1.0 + my_poisson));                                
+    }    
+    
+    double DEM_D_Linear_viscous_Coulomb::CalculateNormalForce(const double indentation, SphericParticle* const element1, SphericParticle* const element2){        
+        return mKn* indentation;
+    }
+    double DEM_D_Linear_viscous_Coulomb::CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall){
+        return mKn* indentation;
+    }
+
+    double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2){        
+        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForce( element1, element2);                
+    }
+    double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall){
+        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM( element, wall);
+    }
+    
+    void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForce(const double normal_force,
+                                                    double LocalElasticContactForce[3],
+                                                    const double LocalDeltDisp[3],            
+                                                    bool& sliding,
+                                                    SphericParticle* const element1,
+                                                    SphericParticle* const element2) {        
+                
+        DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForce(  normal_force, LocalElasticContactForce, LocalDeltDisp,  sliding, element1, element2);                        
+    }
+    void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForceWithFEM(const double normal_force,
+                                                                    double LocalElasticContactForce[3],
+                                                                    const double LocalDeltDisp[3],            
+                                                                    bool& sliding,
+                                                                    SphericParticle* const element,
+                                                                    DEMWall* const wall) {                                
+        DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForceWithFEM(normal_force, LocalElasticContactForce, LocalDeltDisp,  sliding, element, wall);        
+    }
+    void DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
+                                                                double ViscoDampingLocalContactForce[3],
+                                                                bool sliding,
+                                                                SphericParticle* const element1,
+                                                                SphericParticle* const element2){                                        
+        
+        DEMDiscontinuumConstitutiveLaw::CalculateStandardViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);          
+    }
+    void DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
+                                                                double ViscoDampingLocalContactForce[3],
+                                                                bool sliding,
+                                                                SphericParticle* const element,
+                                                                DEMWall* const wall){                                        
+        
+        DEMDiscontinuumConstitutiveLaw::CalculateStandardViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall);  
     }
     
 

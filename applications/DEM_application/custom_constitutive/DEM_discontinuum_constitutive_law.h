@@ -15,6 +15,7 @@
 #include "../custom_elements/Particle_Contact_Element.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
+#include "../custom_conditions/dem_wall.h"
 
 namespace Kratos {
     /**
@@ -26,7 +27,8 @@ namespace Kratos {
     class /*__declspec( dllexport )*/ DEMDiscontinuumConstitutiveLaw : public Flags {
     public:
 
-
+        double mKn;
+        double mKt;
 
         KRATOS_CLASS_POINTER_DEFINITION(DEMDiscontinuumConstitutiveLaw);
 
@@ -41,9 +43,7 @@ namespace Kratos {
         virtual ~DEMDiscontinuumConstitutiveLaw();
 
         virtual DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
-        
-        
-        
+
         virtual void CalculateContactArea(double mRadius, double other_radius, double &calculation_area);
 
         virtual void CalculateElasticConstants(double &kn_el,
@@ -93,6 +93,74 @@ namespace Kratos {
                 SphericParticle* element2,
                 double kn_el,
                 double kt_el);
+
+        virtual void InitializeContact(SphericParticle * const element1, SphericParticle * const element2);
+        virtual void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
+
+        virtual void CalculateForces(double LocalElasticContactForce[3],
+                double LocalDeltDisp[3],
+                const double indentation,
+                bool& sliding,
+                SphericParticle * const element1,
+                SphericParticle * const element2);
+        
+        virtual double CalculateNormalForce(double indentation, SphericParticle * const element1, SphericParticle * const element2);
+        virtual double CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall);
+        
+        virtual void CalculateTangentialForce(const double normal_force,
+                                            double LocalElasticContactForce[3],
+                                            const double LocalDeltDisp[3],
+                                            bool& sliding,
+                                            SphericParticle * const element1,
+                                            SphericParticle * const element2);
+        virtual void CalculateTangentialForceWithFEM(const double normal_force,
+                                                    double LocalElasticContactForce[3],
+                                                    const double LocalDeltDisp[3],            
+                                                    bool& sliding,
+                                                    SphericParticle* const element,
+                                                    DEMWall* const wall);
+        
+        virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2);
+        virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall);
+
+        virtual void CalculateViscoDampingForce(double LocalRelVel[3],
+                                                double ViscoDampingLocalContactForce[3],
+                                                bool sliding,
+                                                SphericParticle * const element1,
+                                                SphericParticle * const element2);                                                
+        virtual void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
+                                                    double ViscoDampingLocalContactForce[3],
+                                                    bool sliding,
+                                                    SphericParticle* const element,
+                                                    DEMWall* const wall);
+
+
+        double CalculateStandardCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2);
+        double CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall);
+
+        void CalculateStandardTangentialForce(const double normal_force,
+                                            double LocalElasticContactForce[3],
+                                            const double LocalDeltDisp[3],
+                                            bool& sliding,
+                                            SphericParticle * const element1,
+                                            SphericParticle * const element2);
+        void CalculateStandardTangentialForceWithFEM(const double normal_force,
+                                                    double LocalElasticContactForce[3],
+                                                    const double LocalDeltDisp[3],            
+                                                    bool& sliding,
+                                                    SphericParticle* const element,
+                                                    DEMWall* const wall);
+
+        void CalculateStandardViscoDampingForce(double LocalRelVel[3],
+                                                double ViscoDampingLocalContactForce[3],
+                                                bool sliding,
+                                                SphericParticle * const element1,
+                                                SphericParticle * const element2);
+        void CalculateStandardViscoDampingForceWithFEM(double LocalRelVel[3],
+                                                        double ViscoDampingLocalContactForce[3],
+                                                        bool sliding,
+                                                        SphericParticle* const element,
+                                                        DEMWall* const wall);
 
     private:
 
