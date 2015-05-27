@@ -110,15 +110,20 @@ public:
     /**
      * Operations
      */
+    bool Has( const Variable<int>& rThisVariable );
     bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
     bool Has( const Variable<Matrix>& rThisVariable );
 
+    int& GetValue( const Variable<int>& rThisVariable, int& rValue );
     double& GetValue( const Variable<double>& rThisVariable, double& rValue );
     Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
     Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
     std::size_t GetStrainSize();
 
+    void SetValue( const Variable<int>& rVariable,
+                   const int& Value,
+                   const ProcessInfo& rCurrentProcessInfo );
     void SetValue( const Variable<double>& rVariable,
                    const double& Value,
                    const ProcessInfo& rCurrentProcessInfo );
