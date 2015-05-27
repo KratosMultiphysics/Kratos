@@ -1,0 +1,209 @@
+PROBLEM DATA
+TITLE: Simulation
+QUESTION: time_step_length
+VALUE: 1
+QUESTION: time_steps
+VALUE: 1 
+QUESTION: small_time_steps
+VALUE: 1
+QUESTION: Echo_Level#CB#(0,1,2,3)
+VALUE: 0 
+QUESTION: show_small_time#CB#(0,1)
+VALUE: 0
+QUESTION: Assign_Prestress#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,stable_time_step_length,#CURRENT#,HIDE,stable_time_steps,#CURRENT#,HIDE,stable_small_time_steps,#CURRENT#,HIDE,show_stable_small_time,#CURRENT#)(1,RESTORE,stable_time_step_length,#CURRENT#,RESTORE,stable_time_steps,#CURRENT#,RESTORE,stable_small_time_steps,#CURRENT#,RESTORE,show_stable_small_time,#CURRENT#)
+QUESTION: stable_time_step_length
+VALUE: 1
+QUESTION: stable_time_steps
+VALUE: 1 
+QUESTION: stable_small_time_steps
+VALUE: 1
+QUESTION: show_stable_small_time#CB#(0,1)
+VALUE: 0
+QUESTION: Enable_Kratos_Watch#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Watch_Element_Number,#CURRENT#)(1,RESTORE,Watch_Element_Number,#CURRENT#)
+QUESTION: Watch_Element_Number
+VALUE: 1
+QUESTION: Plastic_Analysis#CB#(0,1)
+VALUE: 0
+QUESTION: Enable_Gravity#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Gravity_X,#CURRENT#,HIDE,Gravity_Y,#CURRENT#,HIDE,Gravity_Z,#CURRENT#)(1,RESTORE,Gravity_X,#CURRENT#,RESTORE,Gravity_Y,#CURRENT#,RESTORE,Gravity_Z,#CURRENT#)
+QUESTION: Gravity_X
+VALUE: 0.0
+QUESTION: Gravity_Y
+VALUE: 0.0
+QUESTION: Gravity_Z
+VALUE: 0.0
+HELP: Gravity direction
+image: images/Data.gif
+VALUE: -9.81e+3
+TITLE: Numerics
+QUESTION: Solver#CB#(BiCGStabLinearSolver,CGLinearSolver,GMRESSolver,SuperLU,SkylineLUFactorizationSolver,Pardiso)
+DEPENDENCIES:(BiCGStabLinearSolver,RESTORE,Max_Solver_Iterations,#CURRENT#,RESTORE,Solver_Tolerance,#CURRENT#)(CGLinearSolver,RESTORE,Max_Solver_Iterations,#CURRENT#,RESTORE,Solver_Tolerance,#CURRENT#)(GMRESSolver,RESTORE,Max_Solver_Iterations,#CURRENT#,RESTORE,Solver_Tolerance,#CURRENT#)(SuperLU,HIDE,Max_Solver_Iterations,#CURRENT#,HIDE,Solver_Tolerance,#CURRENT#)(SkylineLUFactorizationSolver,HIDE,Max_Solver_Iterations,#CURRENT#,HIDE,Solver_Tolerance,#CURRENT#)(Pardiso,HIDE,Max_Solver_Iterations,#CURRENT#,HIDE,Solver_Tolerance,#CURRENT#)
+VALUE: SuperLU
+HELP: Solver method
+image: images/Data.gif
+QUESTION: Solver_Tolerance
+Value: 1.0e-10
+QUESTION: Max_Solver_Iterations
+Value: 15000
+QUESTION: Relative_Tolerance#CB#(0.0001,1.0e-6,1.0e-8,1.0e-10,1.0e-12,custom)
+VALUE: 1.0e-10
+DEPENDENCIES: (0.0001,HIDE,Custom_Relative_Tolerance,#CURRENT#)(1.0e-6,HIDE,Custom_Relative_Tolerance,#CURRENT#)(1.0e-8,HIDE,Custom_Relative_Tolerance,#CURRENT#)(1.0e-10,HIDE,Custom_Relative_Tolerance,#CURRENT#)(1.0e-12,HIDE,Custom_Relative_Tolerance,#CURRENT#)(custom,RESTORE,Custom_Relative_Tolerance,#CURRENT#)
+QUESTION: Custom_Relative_Tolerance
+VALUE: 1.0e-12
+HELP: tolerance of relative residual
+QUESTION: Absolute_Tolerance#CB#(0.0001,1.0e-6,1.0e-8,1.0e-10,1.0e-12,custom)
+VALUE: 1.0e-10
+DEPENDENCIES: (0.0001,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(1.0e-6,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(1.0e-8,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(1.0e-10,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(1.0e-12,HIDE,Custom_Absolute_Tolerance,#CURRENT#)(custom,RESTORE,Custom_Absolute_Tolerance,#CURRENT#)
+QUESTION: Custom_Absolute_Tolerance
+VALUE: 1.0e-12
+HELP: tolerance of absolute residual
+image: images/Data.gif  
+QUESTION: Parallel_Execution#CB#(serial,shared,mpi)
+VALUE: serial
+HELP: Run the simulation using parallelization techniques
+QUESTION: Simulation_Script#CB#(standard,custom,restart)
+HELP: Standard simulation (only time steps) or custom program
+VALUE: custom
+QUESTION: Calculate_Insitu_Stress#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Max_Number_Of_Iterations,#CURRENT#)(1,RESTORE,Max_Number_Of_Iterations,#CURRENT#)
+HELP: Switch on/off the preliminary calculation of insitu stress
+QUESTION: Max_Number_Of_Iterations
+VALUE: 20
+QUESTION: Prescribed_Water_Pressure#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Water_Level,#CURRENT#)(1,RESTORE,Water_Level,#CURRENT#)
+QUESTION: Water_Level#UNITS#
+VALUE: 0m
+HELP: z-Coordinate of Ground water level
+TITLE: Output
+QUESTION: Output_Format#CB#(ASCII,Binary)
+VALUE: Binary
+HELP: Use ASCII or binary output format
+QUESTION: New_mesh_for_each_step#CB#(0,1)
+VALUE: 1
+HELP: Write a new mesh file for each simulation step
+IMAGE: images/Data.gif
+QUESTION: Displacements#CB#(0,1)
+VALUE: 0
+QUESTION: Water_Pressure#CB#(0,1)
+VALUE: 1
+QUESTION: Temperature#CB#(0,1)
+VALUE: 1
+QUESTION: Strain_Vol#CB#(0,1)
+VALUE: 0
+QUESTION: Strain_Dev#CB#(0,1)
+VALUE: 0
+QUESTION: Stress_Vol#CB#(0,1)
+VALUE: 0
+QUESTION: Stress_Dev#CB#(0,1)
+VALUE: 0
+QUESTION: Preconsolidation#CB#(0,1)
+VALUE: 0
+QUESTION: Temperature_Dt#CB#(0,1)
+VALUE: 0
+QUESTION: Linear_Strain#CB#(0,1)
+VALUE: 0
+QUESTION: Prestress#CB#(0,1)
+VALUE: 0
+QUESTION: Total_Stress#CB#(0,1)
+VALUE: 0
+QUESTION: Effective_Stress#CB#(0,1)
+VALUE: 0
+QUESTION: Ice_Saturation#CB#(0,1)
+VALUE: 1
+QUESTION: Porosity#CB#(0,1)
+VALUE: 1
+QUESTION: Water_Flow#CB#(0,1)
+VALUE: 1
+QUESTION: Heat_Flow#CB#(0,1)
+VALUE: 1
+QUESTION: Water_Density#CB#(0,1)
+VALUE: 1
+QUESTION: Ice_Density#CB#(0,1)
+VALUE: 1
+QUESTION: Water_Mass#CB#(0,1)
+VALUE: 1
+QUESTION: Ice_Mass#CB#(0,1)
+VALUE: 1
+QUESTION: Ice_Volume_Fraction#CB#(0,1)
+VALUE: 1
+QUESTION: Reactions#CB#(0,1)
+VALUE: 0
+HELP: Write reactions results
+QUESTION: Stresses#CB#(0,1)
+VALUE: 0
+HELP: Write stress results
+QUESTION: Plastic_strains#CB#(0,1)
+VALUE: 0
+HELP: Write plastic strain results
+QUESTION: PK2_Stresses#CB#(0,1)
+VALUE: 0
+HELP: Write PK2 stresses
+QUESTION: Green_Lagrange_Strains#CB#(0,1)
+VALUE: 0
+HELP: Write Green-Lagrange strains
+QUESTION: Insitu_Stress#CB#(0,1)
+VALUE: 0
+HELP: Write In-situ Stress
+QUESTION: Internal_Variables#CB#(0,1)
+VALUE: 0
+HELP: Write internal variables on integration points
+QUESTION: Bulk_Modulus#CB#(0,1)
+VALUE: 0
+QUESTION: Biot_Coefficient#CB#(0,1)
+VALUE: 0
+QUESTION: Ice_Pressure#CB#(0,1)
+VALUE: 1
+QUESTION: Saturation#CB#(0,1)
+VALUE: 0
+QUESTION: Plot_Matrix_Structure#CB#(0,1)
+VALUE: 0 
+TITLE: Contact
+QUESTION: Perform_Contact_Analysis#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Penalty_Value,#CURRENT#,HIDE,Max_Uzawa_Iterations,#CURRENT#,HIDE,Friction_Coefficient,#CURRENT#,HIDE,Friction_Penalty_Value,#CURRENT#,HIDE,Bilateral_Contact,#CURRENT#,HIDE,Ramp_Penalties,#CURRENT#)(1,RESTORE,Penalty_Value,#CURRENT#,RESTORE,Max_Uzawa_Iterations,#CURRENT#,RESTORE,Friction_Coefficient,#CURRENT#,RESTORE,Friction_Penalty_Value,#CURRENT#,RESTORE,Bilateral_Contact,#CURRENT#,RESTORE,Ramp_Penalties,#CURRENT#)
+QUESTION: Penalty_Value
+VALUE: 1.0e+10
+HELP: Choose penalty value for contact problems.
+QUESTION: Max_Uzawa_Iterations
+VALUE: 25
+HELP: Choose maximum number of iterations for contact solution
+QUESTION: Friction_Coefficient
+VALUE: 0.0
+HELP: Enter friction coefficient > 0.0 for frictional contact
+QUESTION: Friction_Penalty_Value
+VALUE: 1.0e+05
+HELP: Choose penalty value for frictional contact problems.
+QUESTION: Bilateral_Contact#CB#(0,1)
+VALUE: 0
+HELP: Select to enable additionally reverse contact formulation
+QUESTION: Ramp_Penalties#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Ramp_Criterion,#CURRENT#,HIDE,Ramp_Factor,#CURRENT#,HIDE,Maximum_Penalty,#CURRENT#,HIDE,Friction_Ramp_Criterion,#CURRENT#,HIDE,Friction_Ramp_Factor,#CURRENT#,HIDE,Friction_Maximum_Penalty,#CURRENT#)(1,RESTORE,Ramp_Criterion,#CURRENT#,RESTORE,Ramp_Factor,#CURRENT#,RESTORE,Maximum_Penalty,#CURRENT#,RESTORE,Friction_Ramp_Criterion,#CURRENT#,RESTORE,Friction_Ramp_Factor,#CURRENT#,RESTORE,Friction_Maximum_Penalty,#CURRENT#)
+QUESTION: Ramp_Criterion
+VALUE: 1.0
+QUESTION: Ramp_Factor
+VALUE: 1.0
+QUESTION: Maximum_Penalty
+VALUE: 1.0e+10
+QUESTION: Friction_Ramp_Criterion
+VALUE: 1.0
+QUESTION: Friction_Ramp_Factor
+VALUE: 1.0
+QUESTION: Friction_Maximum_Penalty
+VALUE: 1.0e+05 
+TITLE: MultiFlowAnalysis
+QUESTION: Perform_MultiFlow_Analysis#CB#(0,1)
+VALUE: 0
+DEPENDENCIES:(0,HIDE,Scale_Factor,#CURRENT#,HIDE,Perform_ThreePhase_Analysis,#CURRENT#)(1,RESTORE,Scale_Factor,#CURRENT#,RESTORE,Perform_ThreePhase_Analysis,#CURRENT#)
+QUESTION: Scale_Factor
+VALUE: 1.0
+QUESTION: Perform_ThreePhase_Analysis#CB#(0,1)
+VALUE: 0
+END GENERAL DATA 
