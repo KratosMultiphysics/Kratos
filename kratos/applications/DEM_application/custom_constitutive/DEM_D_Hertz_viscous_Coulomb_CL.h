@@ -16,7 +16,7 @@ namespace Kratos {
         DEM_D_Hertz_viscous_Coulomb() {
         }
       
-        void Initialize(const ProcessInfo& rCurrentProcessInfo);        
+        void Initialize(const ProcessInfo& rCurrentProcessInfo);         
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
 
@@ -57,6 +57,47 @@ namespace Kratos {
                 double equiv_visco_damp_coeff_tangential,
                 bool sliding,
                 int mDampType);
+        
+        
+        
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2);  
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
+        
+        double CalculateNormalForce(const double indentation,
+                                    SphericParticle* const element1,
+                                    SphericParticle* const element2);
+        double CalculateNormalForceWithFEM(const double indentation,
+                                    SphericParticle* const element,
+                                    DEMWall* const wall);
+        
+        double CalculateCohesiveNormalForce(SphericParticle* const element1,
+                                            SphericParticle* const element2);
+        double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
+                                            DEMWall* const wall);
+        
+        void CalculateTangentialForce(const double normal_force,
+                                      double LocalElasticContactForce[3],
+                                      const double LocalDeltDisp[3],            
+                                      bool& sliding,
+                                      SphericParticle* const element1,
+                                      SphericParticle* const element2);
+        void CalculateTangentialForceWithFEM(const double normal_force,
+                                      double LocalElasticContactForce[3],
+                                      const double LocalDeltDisp[3],            
+                                      bool& sliding,
+                                      SphericParticle* const element,
+                                      DEMWall* const wall);
+        
+        void CalculateViscoDampingForce(double LocalRelVel[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        bool sliding,
+                                        SphericParticle* const element,
+                                        SphericParticle* const element2);                                        
+        void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
+                                        double ViscoDampingLocalContactForce[3],
+                                        bool sliding,
+                                        SphericParticle* const element,
+                                        DEMWall* const wall);
                             
     private:
 

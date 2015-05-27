@@ -353,6 +353,7 @@ namespace Kratos {
         spheric_p_particle->SetRadius(radius);
         spheric_p_particle->SetMass(cluster_mass);
         spheric_p_particle->MemberDeclarationFirstStep(r_modelpart.GetProcessInfo());
+        spheric_p_particle->CreateDiscontinuumConstitutiveLaws(r_modelpart.GetProcessInfo());
 
         spheric_p_particle->Set(DEMFlags::HAS_ROLLING_FRICTION, false);
         spheric_p_particle->Set(DEMFlags::BELONGS_TO_A_CLUSTER, true);
