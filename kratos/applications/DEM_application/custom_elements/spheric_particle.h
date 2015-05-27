@@ -173,7 +173,19 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
 
 virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], array_1d<double, 3 > &other_to_me_vel, int & ContactType);
 
-virtual void UpdateRF_Pram(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], int & ContactType);
+virtual void UpdateDistanceToWall(DEMWall* const wall, 
+                                    const int neighbour_index, 
+                                    double LocalCoordSystem[3][3], 
+                                    double& DistPToB, 
+                                    double Weight[4], 
+                                    int& ContactType);
+
+virtual void UpdateRF_Pram(DEMWall* rObj_2, 
+                            const std::size_t ino,
+                            const double LocalCoordSystem[3][3], 
+                            const double DistPToB,
+                            const double Weight[4], 
+                            const int ContactType);
 
 virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 virtual void CalculateKineticEnergy(double& rKineticEnergy);
@@ -265,7 +277,7 @@ virtual void CalculateViscoDamping(double LocalRelVel[3],
 
 virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
                          double mTimeStep, double density, bool sliding, double inverse_of_volume,
-                         double LocalElasticContactForce, DEMWall* cast_neighbour, array_1d<double, 3>& node_coor_array);
+                         double LocalElasticContactForce, DEMWall* cast_neighbour);
 
 virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);

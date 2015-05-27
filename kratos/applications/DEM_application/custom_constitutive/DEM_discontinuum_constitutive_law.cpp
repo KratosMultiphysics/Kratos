@@ -64,11 +64,39 @@ namespace Kratos {
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateForces(double LocalElasticContactForce[3],
-                                                        double LocalDeltDisp[3],            
+                                                        double LocalDeltDisp[3],
+                                                        double LocalRelVel[3],            
                                                         double indentation,
-                                                        bool& sliding,
+                                                        double ViscoDampingLocalContactForce[3],
                                                         SphericParticle* element1,
-                                                        SphericParticle* element2) {        
+                                                        SphericParticle* element2) {  
+        
+        bool sliding = false;
+        InitializeContact(element1, element2);   
+            
+        LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);   
+        LocalElasticContactForce[2] -= CalculateCohesiveNormalForce(element1, element2);
+
+        CalculateTangentialForce(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element1, element2);        
+        CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);   
+    }
+    
+    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(double LocalElasticContactForce[3],
+                                                                double LocalDeltDisp[3],
+                                                                double LocalRelVel[3],            
+                                                                double indentation,
+                                                                double ViscoDampingLocalContactForce[3],
+                                                                SphericParticle* const element,
+                                                                DEMWall* const wall) {
+        
+        bool sliding = false;
+        InitializeContactWithFEM(element, wall);
+                
+        LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
+        LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                       
+
+        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall);               
+        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall);
     }
     
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2) {        

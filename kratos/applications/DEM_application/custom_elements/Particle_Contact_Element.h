@@ -174,77 +174,12 @@ public:
     double mLocalContactAreaLow;
     double mLocalContactAreaHigh;
 
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    //      virtual String Info() const;
-
-    /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    
-    //double mshearstress;
-    //double mnormalstress;
-    
-    //std::array_1d<double,3> mlocalcontactforcehigh;
-    //std::array_1d<double,3> mlocalcontactforcelow;
-    //std::array_1d<double,3> mlocalcontactforcemean;
-    
-    ///@}
-    ///@name Protected Operators
-    ///@{
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-    /*  static Matrix msB;
-    static Matrix msF;
-    static Matrix msD;
-    static Matrix msC;
-    static Vector msStrainVector;
-    static Vector msStressVector;
-    static Matrix msDN_DX;
-    */
-    ///@}
-    ///@name Member Variables
-    ///@{
-    /**
-     * Currently selected integration methods
-     */
+  
     IntegrationMethod mThisIntegrationMethod;
     /**
      * Container for constitutive law instances on each integration point
