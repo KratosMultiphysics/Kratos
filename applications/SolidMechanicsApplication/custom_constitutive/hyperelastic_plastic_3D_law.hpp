@@ -40,6 +40,10 @@ protected:
         double LameMu;
         double LameLambda;
 
+        //general thermal properties
+        double ThermalExpansionCoefficient;
+        double ReferenceTemperature;
+
         //kinematic properties
         double J_pow13;
         double DeterminantF0;

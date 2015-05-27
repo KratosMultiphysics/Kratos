@@ -231,6 +231,17 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     ElasticVariables.LameLambda      = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
     ElasticVariables.LameMu          =  YoungModulus/(2*(1+PoissonCoefficient));
 
+    //1.1- Thermal constants
+    if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+      ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+    else
+      ElasticVariables.ThermalExpansionCoefficient = 0;
+
+    if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+      ElasticVariables.ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+    else
+      ElasticVariables.ReferenceTemperature = 0;
+
     //-----------------------------//
     //OPTION 1: ( initial configuration )
     if( Options.Is( ConstitutiveLaw::INITIAL_CONFIGURATION ) )
@@ -390,6 +401,17 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 
     ElasticVariables.LameLambda      = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
     ElasticVariables.LameMu          =  YoungModulus/(2*(1+PoissonCoefficient));
+
+    //1.1- Thermal constants
+    if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+      ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+    else
+      ElasticVariables.ThermalExpansionCoefficient = 0;
+
+    if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+      ElasticVariables.ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+    else
+      ElasticVariables.ReferenceTemperature = 0;
 
     //2.-Determinant of the Total Deformation Gradient
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;

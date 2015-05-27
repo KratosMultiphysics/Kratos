@@ -663,8 +663,8 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddPressureForces(VectorType&
 
     //double consistent=1;
 
-    //double auxiliar = 0.5*(rVariables.detF0*rVariables.detF0-1)/rVariables.detF0); //(J²-1)
-    double auxiliar = (std::log(rVariables.detF0)/rVariables.detF0);  //(ln(J))
+    double Coefficient = 0;
+    Coefficient = this->CalculatePUCoefficient( Coefficient, rVariables ); 
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -684,9 +684,9 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddPressureForces(VectorType&
 
         }
 
-        //rRightHandSideVector[indexp] -=  auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF;
+        //rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF;
 
-        rRightHandSideVector[indexp] -=  auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF0;
+        rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF0;
 
         //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
 
@@ -926,9 +926,8 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexp = dimension;
 
-    //double auxiliar = (rVariables.detF0*rVariables.detF0 + 1)/(rVariables.detF0*rVariables.detF0); //(J²-1)
-    double auxiliar = (1.0-std::log(rVariables.detF0))/(rVariables.detF0*rVariables.detF0);   //(ln(J))
-
+    double DeltaCoefficient = 0;
+    DeltaCoefficient = this->CalculatePUDeltaCoefficient( DeltaCoefficient, rVariables ); 
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -937,11 +936,11 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
             int indexup= dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rK(indexp,indexup+k) +=  auxiliar  * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight;
+                rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight;
 
                 //std::cout<<" value ("<<indexp<<","<<indexup+k<<") "<<(2*detF) * rN[i] * rDN_DX ( j , k ) * rIntegrationWeight<<std::endl;
                 if(k==0) //axysimmetric term
-                    rK(indexp,indexup+k) +=  auxiliar  * rVariables.N[i] * rVariables.N[j] * (1.0/rVariables.CurrentRadius) * rIntegrationWeight;
+                    rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.N[j] * (1.0/rVariables.CurrentRadius) * rIntegrationWeight;
 
             }
         }

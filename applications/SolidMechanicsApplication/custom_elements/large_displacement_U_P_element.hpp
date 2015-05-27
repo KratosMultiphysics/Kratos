@@ -322,6 +322,16 @@ protected:
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
+    /**
+     * Calculation of the constitutive coefficient for pressure of the Element
+     */
+    virtual double& CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+
+    /**
+     * Calculation of the constitutive coefficient derivative for pressure  of the Element
+     */
+    virtual double& CalculatePUDeltaCoefficient(double& rCoefficient, GeneralVariables & rVariables);
+
     ///@}
     ///@name Protected  Access
     ///@{

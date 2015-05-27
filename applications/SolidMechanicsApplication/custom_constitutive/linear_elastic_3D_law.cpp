@@ -85,6 +85,16 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
+    // //1.1- Thermal constants
+    // double ThermalExpansionCoefficient = 0;
+    // if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+    //   ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+
+    // double ReferenceTemperature = 0;
+    // if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+    //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+
+
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
 
@@ -187,6 +197,16 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
     //1.- Lame constants
     const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
+
+    // //1.1- Thermal constants
+    // double ThermalExpansionCoefficient = 0;
+    // if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+    //   ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+
+    // double ReferenceTemperature = 0;
+    // if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+    //   ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {

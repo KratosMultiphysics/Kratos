@@ -450,6 +450,121 @@ void LargeDisplacementUPElement::CalculateAndAddInternalForces(VectorType& rRigh
 }
 
 
+
+//************************************************************************************
+//************************************************************************************
+
+double& LargeDisplacementUPElement::CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables)
+{
+  KRATOS_TRY
+   
+    //Mechanical volumetric:
+    
+    //Constitutive A:
+    //rCoefficient = 0.5*(rVariables.detF0*rVariables.detF0-1)/rVariables.detF0); //(J²-1)/2
+    
+    //Constitutive B:
+    rCoefficient = (std::log(rVariables.detF0)/rVariables.detF0);  //(ln(J))
+  
+    //Thermal volumetric:
+
+    double ThermalExpansionCoefficient = 0;
+    if( GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) ){
+      ThermalExpansionCoefficient = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    }
+    
+    double DeltaTemperature     = 0;
+    double ReferenceTemperature = 0;
+    double CurrentTemperature   = 0;
+
+    if( GetProperties().Has(REFERENCE_TEMPERATURE) )
+      ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+
+    
+    int count = 0;
+    for ( unsigned int j = 0; j < GetGeometry().size(); j++ )
+      {
+	if(this->GetGeometry()[j].SolutionStepsDataHas( TEMPERATURE ) == true)
+	  {
+	    CurrentTemperature += rVariables.N[j] * GetGeometry()[j].FastGetSolutionStepValue(TEMPERATURE);
+	    count++;
+	  }	
+      }
+
+    if( count == 0 ){
+      CurrentTemperature = ReferenceTemperature;
+      DeltaTemperature  = 0;
+    }
+    else{
+      DeltaTemperature = CurrentTemperature - ReferenceTemperature;
+    }
+    
+    rCoefficient += 3.0 * ThermalExpansionCoefficient * ( (1.0 - std::log(rVariables.detF0)) / (rVariables.detF0 * rVariables.detF0) ) * DeltaTemperature;
+    
+    return rCoefficient;
+
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+double& LargeDisplacementUPElement::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, GeneralVariables & rVariables)
+{
+
+  KRATOS_TRY
+
+    //Mechanical volumetric:
+
+    //Constitutive A:
+    //rDeltaCoefficient = (rVariables.detF0*rVariables.detF0 + 1)/(rVariables.detF0*rVariables.detF0); //(J²-1)/2
+
+    //Constitutive B:
+    rDeltaCoefficient = (1.0-std::log(rVariables.detF0))/(rVariables.detF0*rVariables.detF0);   //(ln(J))
+
+    //Thermal volumetric:
+
+    double ThermalExpansionCoefficient = 0;
+    if( GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) ){
+      ThermalExpansionCoefficient = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    }
+    
+    double DeltaTemperature     = 0;
+    double ReferenceTemperature = 0;
+    double CurrentTemperature   = 0;
+
+    if( GetProperties().Has(REFERENCE_TEMPERATURE) )
+      ReferenceTemperature = GetProperties()[REFERENCE_TEMPERATURE];
+    
+    int count = 0;
+    for ( unsigned int j = 0; j < GetGeometry().size(); j++ )
+      {
+	if(this->GetGeometry()[j].SolutionStepsDataHas( TEMPERATURE ) == true)
+	  {
+	    CurrentTemperature += rVariables.N[j] * GetGeometry()[j].FastGetSolutionStepValue(TEMPERATURE);
+	    count++;
+	  }	
+      }
+
+    if( count == 0 ){
+      CurrentTemperature = ReferenceTemperature;
+      DeltaTemperature  = 0;
+    }
+    else{
+      DeltaTemperature = CurrentTemperature - ReferenceTemperature;
+    }
+    
+    rDeltaCoefficient += 3 * ThermalExpansionCoefficient * ( (2 * std::log(rVariables.detF0) - 3.0) / (rVariables.detF0 * rVariables.detF0 * rVariables.detF0) ) * DeltaTemperature;
+    
+    return rDeltaCoefficient;
+
+
+  KRATOS_CATCH( "" )
+
+}
+
+
 //************************************************************************************
 //************************************************************************************
 
@@ -470,8 +585,8 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
 
     double consistent=1;
 
-    //double auxiliar = 0.5*(rVariables.detF0*rVariables.detF0-1)/rVariables.detF0); //(J²-1)
-    double auxiliar = (std::log(rVariables.detF0)/rVariables.detF0);  //(ln(J))
+    double Coefficient = 0;
+    Coefficient = this->CalculatePUCoefficient( Coefficient, rVariables ); 
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -489,18 +604,18 @@ void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRigh
 
         }
 
-        //rRightHandSideVector[indexp] -=  auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF;
+        //rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF;
 
-        rRightHandSideVector[indexp] -=  auxiliar * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+        rRightHandSideVector[indexp] -=  Coefficient * rVariables.N[i] * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
-        //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<auxiliar * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
+        //std::cout<< " Mpres "<<rRightHandSideVector[indexp]<<" Ppres "<<Coefficient * rVariables.N[i] * rIntegrationWeight / rVariables.detF <<std::endl;
 
         indexp += (dimension + 1);
     }
 
 
     // std::cout<<std::endl;
-    // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
+    // std::cout<<" Coefficient " <<Coefficient<<" F0 "<<rVariables.detF0<<std::endl;
     // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
 
     KRATOS_CATCH( "" )
@@ -726,8 +841,8 @@ void LargeDisplacementUPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMa
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexp = dimension;
 
-    //double auxiliar = (rVariables.detF0*rVariables.detF0 + 1)/(rVariables.detF0*rVariables.detF0); //(J²-1)
-    double auxiliar = (1.0-std::log(rVariables.detF0))/(rVariables.detF0*rVariables.detF0);   //(ln(J))
+    double DeltaCoefficient = 0;
+    DeltaCoefficient = this->CalculatePUDeltaCoefficient( DeltaCoefficient, rVariables ); 
 
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -737,7 +852,7 @@ void LargeDisplacementUPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMa
             int indexup= dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                rLeftHandSideMatrix(indexp,indexup+k) +=  auxiliar  * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight * rVariables.detF;
+                rLeftHandSideMatrix(indexp,indexup+k) +=  DeltaCoefficient  * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight * rVariables.detF;
 
                 //std::cout<<" value ("<<indexp<<","<<indexup+k<<") "<<(2*detF) * rN[i] * rDN_DX ( j , k ) * rIntegrationWeight<<std::endl;
             }

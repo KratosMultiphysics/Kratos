@@ -107,7 +107,7 @@ class GraphPlotUtility:
             kratos_variable = globals()[variable]
             nodal_value = node.GetSolutionStepValue(kratos_variable);
             variable_value = variable_value + nodal_value
-
+ 
         return variable_value
 
     #
@@ -125,7 +125,7 @@ class GraphPlotUtility:
         time = self.GetStepTime()
 
         X_value = self.GetStepVariable(self.x_var)
-        Y_value = self.GetStepVariable(self.x_var)
+        Y_value = self.GetStepVariable(self.y_var)
 
         X_value_norm = self.Get3DArrayModulus(X_value)
         Y_value_norm = self.Get3DArrayModulus(Y_value)
