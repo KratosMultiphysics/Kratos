@@ -155,7 +155,7 @@ public:
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
     //************************************************************************************
-    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
 
     void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
                                        std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
@@ -163,24 +163,27 @@ public:
 
     void GetValuesVector( Vector& values, int Step );
 
-    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    virtual void SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
 //                void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 //
 //                void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
+    // hbui add MassMatrix for consistency with Element
+    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    
     ///@}
     ///@name Access
     ///@{
@@ -270,7 +273,8 @@ private:
     unsigned int mNodesDispMax;
     Matrix mInitialDisp;
     std::vector<double> mReferencePressures;
-
+    bool mIsStabilised;
+    bool mIsInitialized;
 
     std::vector< Matrix > mInvJ0;
     Vector mDetJ0;
@@ -284,7 +288,7 @@ private:
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
 
-    void CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo );
+    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
 
     void CalculateBodyForces(
         Vector& BodyForce,
@@ -371,7 +375,9 @@ private:
 
     //CALCULATE FORCEVECTORS WATER
 
-    void AddInternalForcesToRHSW( Vector& Help_R_U, const Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double  DetJ );
+    void AddInternalForcesToRHSW( Vector& Help_R_U, const Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ );
+    
+    void AddInternalForcesToRHSWs(Vector& Help_R_W, Vector& N_PRESS, Vector& N_PRESS_averaged, double capillaryPressure_dt, double averageCapillaryPressure_dt, double Weight, double DetJ );
 
     //************************************************************************************
     //************************************************************************************
@@ -383,6 +389,8 @@ private:
     void CalculateStiffnesMatrixWU( Matrix& Help_K_WU, const Matrix& DN_DX, const Matrix& DN_DX_PRESS, Vector& N, double capillaryPressure, double Weight, double DetJ );
 
     void CalculateStiffnesMatrixWW( Matrix& Help_K_WW, const Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ );
+    
+    void CalculateStiffnesMatrixWWs( Matrix& Help_K_WW, Vector& N_PRESS, Vector& N_PRESS_averaged, double Weight, double DetJ );
 
     //************************************************************************************
     //************************************************************************************
@@ -395,7 +403,8 @@ private:
 
     void CalculateDampingMatrixWW( Matrix& Help_D_WW, const Matrix& DN_DX_DISP, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ );
 
-
+    void CalculateDampingMatrixWWs( Matrix& Help_D_WW, const Matrix& DN_DX_DISP, Vector& N_PRESS, Vector& N_PRESS_averaged, double Weight, double DetJ );
+        
     //************************************************************************************
     //************************************************************************************
     //************************************************************************************
@@ -491,6 +500,7 @@ private:
     //************************************************************************************
 //   double Determinant_DeformationTensor(const Matrix& DN_DX_DISP);
     void CalculateBoperator( Matrix& B_Operator, const Matrix& DN_DX );
+    void CalculateBBaroperator( Matrix& B_Operator, const Matrix& DN_DX, const Matrix& Bdil_bar );
 
     void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
 
