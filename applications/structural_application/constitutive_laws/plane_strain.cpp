@@ -86,7 +86,11 @@ PlaneStrain::~PlaneStrain()
 {
 }
 
-
+bool PlaneStrain::Has(const Variable<int>& rThisVariable)
+{
+    return false;
+}
+    
 bool PlaneStrain::Has( const Variable<double>& rThisVariable )
 {
     return false;
@@ -102,10 +106,20 @@ bool PlaneStrain::Has( const Variable<Matrix>& rThisVariable )
     return false;
 }
 
+int& PlaneStrain::GetValue( const Variable<int>& rThisVariable, int& rValue )
+{
+}
+
 double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if(rThisVariable==DELTA_TIME)
         rValue = sqrt(mE/mDE);
+
+    if(rThisVariable == YOUNG_MODULUS)
+        rValue = mE;
+
+    if(rThisVariable == POISSON_RATIO)
+        rValue = mNU;
 
     return rValue;
 }
@@ -124,6 +138,11 @@ Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rV
     }
 
     return( rValue );
+}
+
+void PlaneStrain::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                            const ProcessInfo& rCurrentProcessInfo )
+{
 }
 
 void PlaneStrain::SetValue( const Variable<double>& rThisVariable, const double& rValue,
