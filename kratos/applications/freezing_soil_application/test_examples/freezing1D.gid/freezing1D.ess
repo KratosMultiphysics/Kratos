@@ -1,0 +1,84 @@
+
+time= 0.0 
+
+Ti= 2.0
+Tx= -8.0  
+
+print ("############## Initial condition: Ti= "+str(Ti)+" ############## ")
+for i in range(1, len(model.model_part.Nodes)+1):     
+	#model.model_part.Nodes[i].SetSolutionStepValue(DISPLACEMENT_X, 0.0)   
+	#model.model_part.Nodes[i].SetSolutionStepValue(DISPLACEMENT_Y, 0.0)   
+	#model.model_part.Nodes[i].SetSolutionStepValue(DISPLACEMENT_Z, 0.0)   
+	#model.model_part.Nodes[i].Fix(DISPLACEMENT_X)   
+	#model.model_part.Nodes[i].Fix(DISPLACEMENT_Y)   
+	#model.model_part.Nodes[i].Fix(DISPLACEMENT_Z)     
+	model.model_part.Nodes[i].SetSolutionStepValue(WATER_PRESSURE, 0)    
+	#model.model_part.Nodes[i].Fix(WATER_PRESSURE)    
+	model.model_part.Nodes[i].SetSolutionStepValue(TEMPERATURE, Ti)   
+
+for i in range(0, len(model.layer_nodes_sets['topSurface'])):
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].SetSolutionStepValue(CONVECTION_COEFFICIENT, 100)  
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].Fix(CONVECTION_COEFFICIENT)    
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].SetSolutionStepValue(AMBIENT_TEMPERATURE, Tx)  
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].Fix(AMBIENT_TEMPERATURE)   
+	#model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].SetSolutionStepValue(TEMPERATURE, Tx)  
+	#model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].Fix(TEMPERATURE)      
+for i in range(0, len(model.layer_nodes_sets['bottomSurface'])): 
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].Fix(WATER_PRESSURE)   
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].Fix(TEMPERATURE)   	
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].SetSolutionStepValue(DISPLACEMENT_X, 0.0)   
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].SetSolutionStepValue(DISPLACEMENT_Y, 0.0)   
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].SetSolutionStepValue(DISPLACEMENT_Z, 0.0)   
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].Fix(DISPLACEMENT_X)   
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].Fix(DISPLACEMENT_Y)   
+	model.model_part.Nodes[model.layer_nodes_sets['bottomSurface'][i]].Fix(DISPLACEMENT_Z)     
+ 
+
+print ("############## Transient Phase: Set topSurface Tx= "+str(Tx)+" ############## ")
+listSteps= [30,6,2, 360,3,3, 1200,3,5, 3600,3,6]  # 1h + 5h +  18h = 1d  
+print "############## >> 1st Hour:" 
+## [Dt, n, inner_n];  
+listSteps= [1200,3,6, 3600,7,6]  # 1h + 5h +  18h = 1d  
+listSteps= [10,20,2,20,10,1]  # 1h   
+listSteps= [10,20,2, 50,10,1]  
+listSteps= [10,10,1, 50,10,1, 100,10,1]  
+listSteps= [10,10,2, 50,10,1, 100,10,1]  
+listSteps= [30,6,3, 60,6,3, 120,6,3, 360,6,3, 1200,3,5, 3600,7,6 ]  # 1h + 5h +  18h = 2d  
+ 
+listSteps= [5,10,1, 30,6,3]  # 1h + 5h +  18h = 2d  
+listSteps= [20,20,1]  # 1h + 5h +  18h = 2d  
+listSteps= [30,6,3, 60,6,3, 120,6,3, 600,6,3, 1200,6,3, 3600,6,3]   
+listSteps= [30,6,2, 60,6,3, 360,3,2, 1200,3,5, 3600,7,6]  # 1h + 5h +  18h = 2d  
+
+for step in range(0, len(listSteps)/3):
+	Dt= listSteps[step*3]
+	n= listSteps[step*3+1]
+	inner_n= listSteps[step*3+2]
+	for step in range(1,n+1):
+		for inner_step in range(1,inner_n+1):
+			time = time + Dt
+			model.Solve( time )
+		model.WriteOutput(time) 
+		print("~~~~~~~~~~~~~~ ( Dt= "+str(Dt)+", step= "+str(step)+", time= "+str(time)+" s = "+str(time/60.0)+" m ) ~~~~~~~~~~~~~~") 
+ 
+for i in range(0, len(model.layer_nodes_sets['topSurface'])):
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].SetSolutionStepValue(TEMPERATURE, Tx)  
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].SetSolutionStepValue(TEMPERATURE_NULL, Tx)  
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].SetSolutionStepValue(TEMPERATURE_EINS, Tx)  
+	model.model_part.Nodes[model.layer_nodes_sets['topSurface'][i]].Fix(TEMPERATURE)  
+  
+#print "############## >> 2st Day: " 
+listSteps= [3600,8,6, 7200,12,6, 14400,10,6, 43200,10,6, 86400,30,6 ]
+
+for step in range(0, len(listSteps)/3):
+	Dt= listSteps[step*3]
+	n= listSteps[step*3+1]
+	inner_n= listSteps[step*3+2]
+	for step in range(1,n+1):
+		for inner_step in range(1,inner_n+1):
+			time = time + Dt
+			model.Solve( time )
+		model.WriteOutput(time)  
+		print("~~~~~~~~~~~~~~ ( Dt= "+str(Dt)+", step= "+str(step)+", time= "+str(time)+" s = "+str(time/3600.0/24)+" d ) ~~~~~~~~~~~~~~") 
+sys.exit(0) 
+  
