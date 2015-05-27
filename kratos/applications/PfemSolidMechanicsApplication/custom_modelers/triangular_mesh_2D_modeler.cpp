@@ -2066,7 +2066,7 @@ namespace Kratos
 
 	double critical_dissipation = rMeshingVariables.Refine.CriticalDissipation; // * iii->GetGeometry().Area();
 	
-        // if(plastic_power>0)
+	// if(plastic_power>0)
 	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" CriticalDissipation "<<critical_dissipation<<" Area "<<iii->GetGeometry().Area()<<std::endl;
 
 	if( plastic_power > critical_dissipation )

@@ -357,6 +357,18 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     ElasticVariables.LameLambda      = (YoungModulus*PoissonCoefficient)/((1+PoissonCoefficient)*(1-2*PoissonCoefficient));
     ElasticVariables.LameMu          =  YoungModulus/(2*(1+PoissonCoefficient));
 
+    //1.1- Thermal constants
+    if( MaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT) )
+      ElasticVariables.ThermalExpansionCoefficient = MaterialProperties[THERMAL_EXPANSION_COEFFICIENT];
+    else
+      ElasticVariables.ThermalExpansionCoefficient = 0;
+
+    if( MaterialProperties.Has(REFERENCE_TEMPERATURE) )
+      ElasticVariables.ReferenceTemperature = MaterialProperties[REFERENCE_TEMPERATURE];
+    else
+      ElasticVariables.ReferenceTemperature = 0;
+
+
     //2.-Determinant of the Total Deformation Gradient
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
 
@@ -751,20 +763,34 @@ double &  HyperElasticPlastic3DLaw::CalculateDomainTemperature (const MaterialRe
 
 
 double &  HyperElasticPlastic3DLaw::CalculateDomainPressure (const MaterialResponseVariables & rElasticVariables,
-							double & rPressure)
+							     double & rPressure)
 {
 
     double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
 
-    double auxiliar = 0;
-    
-    //(J²-1)/2
-    //auxiliar =  0.5*(rElasticVariables.DeterminantF0*rElasticVariables.DeterminantF0-1);
-    
-    //(ln(J))
-    auxiliar =  std::log(rElasticVariables.DeterminantF0);
+    //Mechanical volumetric:
 
-    rPressure = BulkModulus *  auxiliar;
+    double Coefficient = 0;
+    
+    //Constitutive A:
+    //Coefficient = 0.5*(rElasticVariables.DeterminantF0*rElasticVariables.DeterminantF0-1); //(J²-1)/2
+    
+    //Constitutive B:
+    Coefficient = std::log(rElasticVariables.DeterminantF0); //(ln(J))
+
+    
+    //Thermal volumetric:
+    double DeltaTemperature     = 0;
+    double CurrentTemperature   = 0;  
+    
+    CurrentTemperature = this->CalculateDomainTemperature(rElasticVariables, CurrentTemperature);
+
+    DeltaTemperature = CurrentTemperature - rElasticVariables.ReferenceTemperature;
+        
+    Coefficient += 3.0 * rElasticVariables.ThermalExpansionCoefficient * ( (1.0 - std::log(rElasticVariables.DeterminantF0)) / (rElasticVariables.DeterminantF0) ) * DeltaTemperature;
+    
+
+    rPressure = BulkModulus *  Coefficient;
 
     return rPressure;
 }
@@ -800,7 +826,7 @@ Vector&  HyperElasticPlastic3DLaw::CalculateDomainPressureFactors (const Materia
 //************************************************************************************
 
 void HyperElasticPlastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariables & rElasticVariables,
-       Vector& rVolStressVector )
+							 Vector& rVolStressVector )
 {
 
     //1.- Declaration
@@ -813,7 +839,7 @@ void HyperElasticPlastic3DLaw::CalculateVolumetricStress(const MaterialResponseV
     //2.- Volumetric part of the Kirchhoff StressMatrix from nodal pressures
     VolStressMatrix = rElasticVariables.DeterminantF0 * Pressure * rElasticVariables.CauchyGreenMatrix;
 
-
+    
     rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
 
 }

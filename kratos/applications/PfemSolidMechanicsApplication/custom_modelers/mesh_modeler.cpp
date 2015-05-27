@@ -153,7 +153,7 @@ namespace Kratos
       std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
 
     //other reference variables
-    double SideTolerance = 2; //6;
+    double SideTolerance = 3; //6;
 
     mMeshingVariables[MeshId].RefineFlag                 = RefineFlag;
 
