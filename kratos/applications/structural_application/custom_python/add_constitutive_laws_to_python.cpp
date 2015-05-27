@@ -79,6 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/von_mises_3d.h"
 #include "constitutive_laws/hypoelastic_2d.h"
 #include "constitutive_laws/plane_strain.h"
+#include "constitutive_laws/plane_stress.h"
 #include "constitutive_laws/fluid_2d.h"
 #include "constitutive_laws/external_isotropic_3d.h"
 #include "constitutive_laws/drucker_prager.h"
@@ -89,6 +90,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/isotropic_rankine_damage_2d.h"
 #include "constitutive_laws/isotropic_rankine_damage_3d.h"
 #include "constitutive_laws/isotropic_damage_3d.h"
+#include "constitutive_laws/isotropic_damage_implex.h"
 #include "constitutive_laws/plasticity_2d.h"
 #include "constitutive_laws/plane_stress_J2.h"
 #include "constitutive_laws/brittle_material_2d.h"
@@ -158,6 +160,11 @@ void  AddConstitutiveLawsToPython()
       init<>() )
     ;
 
+    class_< PlaneStress, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "PlaneStress",
+      init<>() )
+    ;
+
     class_< MohrCoulombPlaneStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "MohrCoulombPlaneStrain",
       init<>() )
@@ -188,6 +195,12 @@ void  AddConstitutiveLawsToPython()
     ( "IsotropicDamage3D",
       init<>() )
     .def( init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
+    ;
+
+    class_< IsotropicDamageIMPLEX, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicDamageIMPLEX",
+      init<>() )
+    .def( init<>() )
     ;
 
 
