@@ -1394,6 +1394,8 @@ namespace Kratos
     {
       unsigned int buffer_size = pnode->GetBufferSize();
 	     
+      double alpha = 0.25; //[0,1] //smoothing level of the interpolation 
+
       //Copy Variables List
       VariablesListDataValueContainer VariablesListData = (pnode)->SolutionStepData();
 	     
@@ -1409,11 +1411,8 @@ namespace Kratos
 	  //copying this data in the position of the vector we are interested in
 	  for(unsigned int j= 0; j<step_data_size; j++)
 	    {
-	      //deffault interpolation value:
-	      //step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j];
-
 	      //test intermediate value:
-	      step_data[j] = 0.5 * step_data[j] + 0.5 * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]);
+	      step_data[j] = (alpha) * (N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j]) + (1-alpha) * step_data[j];
 	    }
 
 	}

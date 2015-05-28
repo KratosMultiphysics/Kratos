@@ -236,7 +236,7 @@ namespace Kratos
 	    if( GetEchoLevel() > 0 )
 	      std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<" based on critical values of "<<rCriticalVariable<<std::endl;
 
-	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
+	    double alpha = 0.5; //[0,1] //smoothing level of the Jacobian	      
 
             std::vector<double> Jacobians(1);
 	    std::vector<double> InitialJacobians(1);
@@ -254,7 +254,7 @@ namespace Kratos
 		ie->GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
 	    
 		computed_value = ComputedValues[0] * ie->GetGeometry().Area();
-		critical_value = 2 * rCriticalValue * ie->GetGeometry().Area();
+		critical_value = rCriticalValue;
 
 		if( computed_value > critical_value )
 		  {

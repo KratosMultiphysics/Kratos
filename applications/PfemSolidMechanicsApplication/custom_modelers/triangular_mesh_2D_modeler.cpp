@@ -3439,9 +3439,9 @@ namespace Kratos
                 RemoveConditions.push_back(*(ic.base()));
                 //RemoveConditions.back().SetId(id);
              }
-             // else{
-             // 	std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
-             // }
+	     else{
+	       std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
+	     }
           }
 
           rModelPart.Conditions(MeshId).swap(RemoveConditions);
@@ -3677,9 +3677,11 @@ namespace Kratos
 
 		    in->Set(TO_ERASE);    //release Node1*
 		    Node2.Set(TO_ERASE);  //release Node2
-		    
-		    // std::cout<<"     Node Release i "<<in->Id()<<std::endl;
-		    // std::cout<<"     Node Release j "<<Node2.Id()<<std::endl;
+
+		    if( this->GetEchoLevel() > 0 ){
+		      std::cout<<"     Node Release/Modify  i "<<in->Id()<<std::endl;
+		      std::cout<<"     Node Release/Modify  j "<<Node2.Id()<<std::endl;
+		    }
 
 		    //set Node0 to a new position (between 0 and 2)
 		    Node0.X() = 0.5 * ( Node0.X() + Node2.X() );
@@ -3757,7 +3759,13 @@ namespace Kratos
 
 		    pcond->Set(NEW_ENTITY);
 
-		    //std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom3[1].Id()<<"] "<<std::endl;
+		    if( this->GetEchoLevel() > 0 ){
+		      std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom3[1].Id()<<"] "<<std::endl;
+		    }
+
+		    rConditionGeom1[0].Set(TO_ERASE,false);  // do not release Node1
+		    rConditionGeom3[1].Set(TO_ERASE,false);  // do not release Node2
+
 
 		    pcond->SetValue(NORMAL, NewCond->GetValue(NORMAL) );
 
@@ -3767,7 +3775,7 @@ namespace Kratos
 
 		    (rModelPart.Conditions(MeshId)).push_back(pcond);
 
-		    RemovedNodes += 2;
+		    RemovedNodes += 1;
 		    id +=1;
 		
 		  }
