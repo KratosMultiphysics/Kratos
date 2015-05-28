@@ -547,11 +547,19 @@ namespace Kratos
 	    //recover DETERMINANT_F FOR VARIABLES SMOOTHING from nodes
 	    if( mMeshingVariables[MeshId].RemeshInfo.CriticalElements > 0 ){
 	      
-	      double critical_value = mMeshingVariables[MeshId].Refine.CriticalDissipation;
+	      double critical_value = 0;
+
+	      //Smoothing performed only in critical elements (based on Plastic Strain)	      
+	      mDataTransferUtilities.TransferNodalValuesToElements(DETERMINANT_F,PLASTIC_STRAIN,critical_value,rModelPart,MeshId);
+
+	      //Smoothing performed only in critical elements (based on Set Dissipation Variable)	      
+	      //critical_value = mMeshingVariables[MeshId].Refine.CriticalDissipation;
+	      //mDataTransferUtilities.TransferNodalValuesToElements(DETERMINANT_F,mMeshingVariables[MeshId].Refine.GetDissipationVariable(),critical_value,rModelPart,MeshId);
 
 	      //Smoothing performed only in critical elements (based on Plastic Energy Dissipation)
-	      mDataTransferUtilities.TransferNodalValuesToElements(DETERMINANT_F,mMeshingVariables[MeshId].Refine.GetDissipationVariable(),critical_value,rModelPart,MeshId);
+	      //critical_value = mMeshingVariables[MeshId].Refine.CriticalDissipation;
 	      //mDataTransferUtilities.TransferNodalValuesToElements(DETERMINANT_F,PLASTIC_DISSIPATION,critical_value,rModelPart,MeshId);
+
 	    }
 	    else{
 
