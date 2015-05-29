@@ -1,7 +1,0 @@
-escape escape escape escape Files Read two_balls_no_damp.gid escape
-escape escape escape escape data defaults TransfProblem DEM_explicit_solver escape
-Mescape Meshing Generate Yes 0.05 MeshingParametersFrom=Preferences
-Mescape Meshing EditMesh DelLonelyNods Yes
-Mescape Files Save
-Mescape Utilities Calculate
-escape escape escape escape escape Quit No
