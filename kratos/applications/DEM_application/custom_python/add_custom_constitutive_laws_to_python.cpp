@@ -16,6 +16,7 @@
 #include "custom_constitutive/DEM_discontinuum_constitutive_law.h" 
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
+#include "custom_constitutive/DEM_D_Tsuji_viscous_Coulomb_CL.h"
 
 #include "custom_constitutive/DEM_continuum_constitutive_law.h" 
 #include "custom_constitutive/DEM_Dempack1_CL.h"
@@ -51,7 +52,10 @@ namespace Kratos {
                     ;          
             
             class_<DEM_D_Hertz_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb",init<>())
-                    ;   
+                    ;
+            
+            class_<DEM_D_Tsuji_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Tsuji_viscous_Coulomb",init<>())
+                    ;
 
             
             
