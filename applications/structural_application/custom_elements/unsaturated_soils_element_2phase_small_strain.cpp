@@ -1443,7 +1443,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::AddInternalForcesToRHSWs(
     double averageCapillaryPressure_dt,
     double Weight, double DetJ )
 {
-    unsigned int dim = GetGeometry().WorkingSpaceDimension();
+  //unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
     unsigned int pressure_size = mNodesPressMax - mNodesPressMin + 1;
 
@@ -1615,7 +1615,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateDampingMatrixWW( Matri
 void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateDampingMatrixWWs( Matrix& Help_D_WW, const Matrix&
         DN_DX_DISP, Vector& N_PRESS, Vector& N_PRESS_averaged, double Weight, double DetJ )
 {
-    unsigned int dim = GetGeometry().WorkingSpaceDimension();
+  //unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
     unsigned int pressure_size = mNodesPressMax - mNodesPressMin + 1;
 

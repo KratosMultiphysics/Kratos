@@ -147,7 +147,7 @@ public:
         if ( rValues.size() != integration_points.size() )
 			rValues.resize( integration_points.size() );
 	    
-	    int StrainSize = 3;
+	    unsigned int StrainSize = 3;
 
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 		{

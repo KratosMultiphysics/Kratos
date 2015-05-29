@@ -108,6 +108,7 @@ bool PlaneStrain::Has( const Variable<Matrix>& rThisVariable )
 
 int& PlaneStrain::GetValue( const Variable<int>& rThisVariable, int& rValue )
 {
+    return rValue;
 }
 
 double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rValue )

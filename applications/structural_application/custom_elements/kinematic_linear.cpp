@@ -1159,7 +1159,7 @@ namespace Kratos
      * @param rVariable Global name of the variable to be calculated
      * @param rValues Vector to store the values on the qudrature points, output of the method
      * @param rCurrentProcessInfo
-    /**
+     *
      * Calculate Vector Variables at each integration point, used for postprocessing etc.
      * @param rVariable Global name of the variable to be calculated
      * @param rValues Vector to store the values on the qudrature points, output of the method
@@ -1411,7 +1411,7 @@ namespace Kratos
         if(rVariable == INTEGRATION_POINT_INDEX)
         {
             rValues.resize(mConstitutiveLawVector.size());
-            for(int i = 0; i < mConstitutiveLawVector.size(); ++i)
+            for(unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
             {
                 rValues[i] = i;
             }
@@ -1434,7 +1434,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+	  //unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
         if ( this->Id() < 1 )
         {
