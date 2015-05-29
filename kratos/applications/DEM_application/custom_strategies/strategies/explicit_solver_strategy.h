@@ -543,7 +543,9 @@ namespace Kratos
           RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);        
           
           // 3. Get and Calculate the forces
-          GetForce();
+          
+          GetForce(); // Basically only calls CalculateRightHandSide( )
+          
           //FastGetForce();
           
           GetClustersForce();
@@ -1000,72 +1002,148 @@ namespace Kratos
     }
     
     
-    void ApplyPrescribedBoundaryConditions()
-    {
+//    void ApplyPrescribedBoundaryConditions() {
+//      
+//        KRATOS_TRY
+//
+//        ModelPart& r_model_part = BaseType::GetModelPart();
+//
+//        for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
+//
+//            bool fix_x = bool((*mesh_it)[IMPOSED_VELOCITY_X]);
+//            bool fix_y = bool((*mesh_it)[IMPOSED_VELOCITY_Y]);
+//            bool fix_z = bool((*mesh_it)[IMPOSED_VELOCITY_Z]);
+//            
+//            double vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
+//            double vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];  
+//            double vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];
+//          
+//            if (fix_x || fix_y || fix_z) {
+//         
+//                NodesArrayType& pNodes = mesh_it->Nodes();
+//        
+//                vector<unsigned int> node_partition;
+//                OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
+//
+//                #pragma omp parallel for
+//          
+//                for (int k=0; k<mNumberOfThreads; k++) {
+//                    
+//                    typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+//                    typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+//
+//                    for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
+//                        array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
+//                
+//                        if (fix_x) {
+//                            velocity[0] = vel_x;
+//                            i->Set(DEMFlags::FIXED_VEL_X,true);
+//                        }
+//                
+//                        if (fix_y) {
+//                            velocity[1] = vel_y;
+//                            i->Set(DEMFlags::FIXED_VEL_Y,true);
+//                        }
+//                
+//                        if (fix_z) {
+//                            velocity[2] = vel_z;
+//                            i->Set(DEMFlags::FIXED_VEL_Z,true);                
+//                        }
+//                    } //loop over particles
+//                }// loop threads OpenMP
+//            } //if(fix_x || fix_y || fix_z)
+//            else {
+//                
+//                NodesArrayType& pNodes = mesh_it->Nodes();
+//        
+//                vector<unsigned int> node_partition;
+//                OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
+//
+//                #pragma omp parallel for
+//          
+//                for (int k=0; k<mNumberOfThreads; k++) {
+//                    
+//                    typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+//                    typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+//
+//                    for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
+//                    
+//                        array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
+//                        velocity[0] = vel_x;
+//                        velocity[1] = vel_y;
+//                        velocity[2] = vel_z;
+//                    } //loop over particles
+//                }// loop threads OpenMP
+//            }
+//        } //for each mesh
+//      
+//        KRATOS_CATCH("")
+//    }
+    
+    void ApplyPrescribedBoundaryConditions() {
       
-      KRATOS_TRY
+        KRATOS_TRY
 
-      ModelPart& r_model_part           = BaseType::GetModelPart();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
-      for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it)
-      {
+        for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it) {
 
-          bool fix_x = bool((*mesh_it)[IMPOSED_VELOCITY_X]);
-          bool fix_y = bool((*mesh_it)[IMPOSED_VELOCITY_Y]);
-          bool fix_z = bool((*mesh_it)[IMPOSED_VELOCITY_Z]);
-          
-         if( fix_x || fix_y || fix_z )
-         {
-         
-          double vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
-          double vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];  
-          double vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];  
-
-          NodesArrayType& pNodes = mesh_it->Nodes();
-        
-          vector<unsigned int> node_partition;
-          OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
-
-          #pragma omp parallel for
-          
-          for(int k=0; k<mNumberOfThreads; k++)
-          {
-              typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-              typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-
-              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-              {
-                array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
-                
-                if(fix_x)
-                {
-                  velocity[0] = vel_x;
-                  i->Set(DEMFlags::FIXED_VEL_X,true);
-                }
-                
-                if(fix_y)
-                {
-                  velocity[1] = vel_y;
-                  i->Set(DEMFlags::FIXED_VEL_Y,true);
-                }
-                
-                if(fix_z)
-                {
-                  velocity[2] = vel_z;
-                  i->Set(DEMFlags::FIXED_VEL_Z,true);                
-                }
-     
-              } //loop over particles
-
-            }// loop threads OpenMP
+            bool fix_vel_x = bool((*mesh_it)[IMPOSED_VELOCITY_X]);
+            bool fix_vel_y = bool((*mesh_it)[IMPOSED_VELOCITY_Y]);
+            bool fix_vel_z = bool((*mesh_it)[IMPOSED_VELOCITY_Z]);
             
-          } //if(fix_x || fix_y || fix_z)
+            double vel_x = (*mesh_it)[IMPOSED_VELOCITY_X_VALUE];
+            double vel_y = (*mesh_it)[IMPOSED_VELOCITY_Y_VALUE];  
+            double vel_z = (*mesh_it)[IMPOSED_VELOCITY_Z_VALUE];
+            
+            bool fix_ang_vel_x = bool((*mesh_it)[IMPOSED_ANGULAR_VELOCITY_X]);
+            bool fix_ang_vel_y = bool((*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Y]);
+            bool fix_ang_vel_z = bool((*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Z]);
+            
+            double ang_vel_x = (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+            double ang_vel_y = (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];  
+            double ang_vel_z = (*mesh_it)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+          
+            NodesArrayType& pNodes = mesh_it->Nodes();
         
-      } //for each mesh
+            vector<unsigned int> node_partition;
+            OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
+
+            #pragma omp parallel for
+          
+            for (int k=0; k<mNumberOfThreads; k++) {
+                    
+                typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+                typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+                for (ModelPart::NodeIterator i=i_begin; i!= i_end; ++i) {
+                    
+                    array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
+                    array_1d<double, 3>& angular_velocity = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    
+                    velocity[0] = vel_x;
+                    angular_velocity[0] = ang_vel_x;
+                    if (fix_vel_x) i->Set(DEMFlags::FIXED_VEL_X, true);
+                    if (fix_ang_vel_x) i->Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                    
+                    velocity[1] = vel_y;
+                    angular_velocity[1] = ang_vel_y;
+                    if (fix_vel_y) i->Set(DEMFlags::FIXED_VEL_Y, true);
+                    if (fix_ang_vel_y) i->Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                    
+                    velocity[2] = vel_z;
+                    angular_velocity[2] = ang_vel_z;
+                    if (fix_vel_z) i->Set(DEMFlags::FIXED_VEL_Z, true);
+                    if (fix_ang_vel_z) i->Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                    
+                } // loop over particles
+                
+            } // loop threads OpenMP
+            
+        } // for each mesh
       
-      KRATOS_CATCH("")
+        KRATOS_CATCH("")
     }
-     
     
     void SetSearchRadius(ModelPart& r_model_part, double amplification)
     {
