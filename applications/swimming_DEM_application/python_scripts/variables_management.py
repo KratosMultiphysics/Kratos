@@ -205,7 +205,7 @@ def ConstructListsOfVariablesForCoupling(pp):
     pp.coupling_fluid_vars += [BODY_FORCE]
 
     if (pp.fluid_model_type == 0):
-        pp.coupling_fluid_vars += [MESH_AVERAGED_FLUID_VELOCITY]
+        pp.coupling_fluid_vars += [AVERAGED_FLUID_VELOCITY]
 
     if (pp.fluid_model_type == 0 or pp.coupling_level_type == 1 or pp.drag_force_type == 4):
         pp.coupling_fluid_vars += [FLUID_FRACTION]
