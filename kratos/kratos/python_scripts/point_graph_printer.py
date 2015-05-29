@@ -88,6 +88,18 @@ class PrintGraphPrinter:
 
             outfile.flush()
 
+    #
     def Close():
         for item in self.outfile_list:
             item.close()
+
+    #
+    def identity(item):
+    return item
+
+    #
+    def first(iterable, predicate=identity):
+    for item in iterable:
+        if predicate(item):
+            return item
+        raise ValueError('No satisfactory value found')
