@@ -97,7 +97,8 @@ namespace Kratos {
                                         double ViscoDampingLocalContactForce[3],
                                         bool sliding,
                                         SphericParticle* const element,
-                                        DEMWall* const wall);
+                                        DEMWall* const wall,
+                                        double indentation);
                             
     private:
 
