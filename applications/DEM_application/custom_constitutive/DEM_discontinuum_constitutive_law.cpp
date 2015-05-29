@@ -96,7 +96,7 @@ namespace Kratos {
         LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                       
 
         CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall);               
-        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall);
+        CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
     
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2) {        
@@ -144,7 +144,8 @@ namespace Kratos {
                                                     double ViscoDampingLocalContactForce[3],
                                                     bool sliding,
                                                     SphericParticle* const element,
-                                                    DEMWall* const wall){
+                                                    DEMWall* const wall,
+                                                    double indentation){
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM) should not be called."<<std::endl<<std::flush;        
     }
     
@@ -260,6 +261,9 @@ namespace Kratos {
         const double aux_norm_to_tang = sqrt(mKt / mKn);
         const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;                
         
+        //double RCTS = 2.0 * sqrt(my_mass / mKn);
+        //std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl;
+        //std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
         
         //DAMPING FORCE
         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
@@ -288,10 +292,15 @@ namespace Kratos {
         }
 
         const double aux_norm_to_tang = sqrt(mKt / mKn);
-        const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;                
+        const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+        
+        //double RCTS = 2.0 * sqrt(my_mass / mKn);
+        //std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl;
+        //std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
                 
         //DAMPING FORCE
         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
+        //KRATOS_WATCH(ViscoDampingLocalContactForce[2])
         
         if ( !sliding ) { 
             ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
@@ -336,6 +345,7 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::CalculateNormalForceHertz(double LocalElasticContactForce[3], double kn_el, double indentation) {
         KRATOS_TRY
         LocalElasticContactForce[2] = kn_el * pow(indentation, 1.5); //  1 --- Hertzian (non-linear compression, linear tension)
+        KRATOS_WATCH(LocalElasticContactForce[2])
         KRATOS_CATCH("")  
     }
 
