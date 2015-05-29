@@ -45,7 +45,8 @@ set( KRATOS_DEM_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_ExponentialHC_CL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp    
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Tsuji_viscous_Coulomb_CL.cpp    
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_proxies.cpp
