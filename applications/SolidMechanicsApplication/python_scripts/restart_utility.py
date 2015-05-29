@@ -101,6 +101,10 @@ class RestartUtility:
         file_ending_type = ".graph.png"
         self.CleanPreviousFileType(file_ending_type)
 
+        # remove previous data files:
+        file_ending_type = ".post.cvs"
+        self.CleanPreviousFileType(file_ending_type)
+
         # remove previous restart files:
         file_ending_type = ".rest"
         self.CleanPreviousFileType(file_ending_type)

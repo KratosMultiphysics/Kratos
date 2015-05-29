@@ -51,7 +51,7 @@ class GraphPlotUtility:
 
         self.SetPlotVariables(x_variable, y_variable, mesh_id)
 
-        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".cvs")
+        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.cvs")
 
         if(os.path.exists(figure_path) == False):
             # print file headers
@@ -142,7 +142,7 @@ class GraphPlotUtility:
         self.Y_y.append(Y_value[1])
         self.Y_z.append(Y_value[2])
 
-        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".cvs")
+        figure_path = os.path.join(self.problem_path, str(self.x_var) + "_vs_" + str(self.y_var) + ".post.cvs")
         figure_file = open(figure_path, "a")
         line_value = str(time) + " " + str(X_value_norm) + " " + str(Y_value_norm) + " " + str(X_value[0]) + " " + str(X_value[1]) + " " + str(X_value[2]) + " " + str(Y_value[0]) + " " + str(Y_value[1]) + " " + str(Y_value[2]) + "\n"
         figure_file.write(line_value)
