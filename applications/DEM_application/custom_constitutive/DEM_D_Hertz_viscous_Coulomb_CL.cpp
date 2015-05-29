@@ -178,10 +178,12 @@ namespace Kratos {
     }
     
     
-    double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation, SphericParticle* const element1, SphericParticle* const element2){        
+    double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation, SphericParticle* const element1, SphericParticle* const element2){
+        //KRATOS_WATCH(mKn* pow(indentation, 1.5))
         return mKn* pow(indentation, 1.5);
     }
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall){
+        //KRATOS_WATCH(mKn* pow(indentation, 1.5))
         return mKn* pow(indentation, 1.5);
     }
 
@@ -221,9 +223,31 @@ namespace Kratos {
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 bool sliding,
                                                                 SphericParticle* const element,
-                                                                DEMWall* const wall){                                        
+                                                                DEMWall* const wall,
+                                                                double indentation) {                                        
         
-        DEMDiscontinuumConstitutiveLaw::CalculateStandardViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall);  
+        //DEMDiscontinuumConstitutiveLaw::CalculateStandardViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall);
+        
+        const double my_mass               = element->GetMass();
+        const double my_ln_of_restit_coeff = element->GetLnOfRestitCoeff();
+        const double my_radius             = element->GetRadius();
+        const double my_young              = element->GetYoung();
+        const double my_poisson            = element->GetPoisson();
+        
+        const double gamma = -1.0 * my_ln_of_restit_coeff / (KRATOS_M_PI * KRATOS_M_PI + my_ln_of_restit_coeff * my_ln_of_restit_coeff);
+        
+        const double Kn = my_young * sqrt(my_radius * indentation) / (1.0 - my_poisson * my_poisson);
+        
+        // NORMAL FORCE
+        
+        ViscoDampingLocalContactForce[2] = -2.0 * sqrt(my_mass * Kn) * gamma * LocalRelVel[2];
+               
+        // TANGENTIAL FORCE
+        
+//        if (!sliding ) { 
+//            ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+//            ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+//        }
     }
     
 } /* namespace Kratos.*/
