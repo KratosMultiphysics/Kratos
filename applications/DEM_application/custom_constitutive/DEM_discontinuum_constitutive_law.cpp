@@ -95,7 +95,7 @@ namespace Kratos {
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
         LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                       
 
-        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall);               
+        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation);               
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
     
@@ -120,7 +120,8 @@ namespace Kratos {
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
                                                     SphericParticle* const element,
-                                                    DEMWall* const wall){
+                                                    DEMWall* const wall,
+                                                    double indentation){
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM) should not be called."<<std::endl<<std::flush;        
     }
 
