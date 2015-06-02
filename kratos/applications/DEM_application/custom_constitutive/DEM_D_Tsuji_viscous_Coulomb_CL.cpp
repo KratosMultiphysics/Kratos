@@ -173,7 +173,7 @@ namespace Kratos {
                 
         //Normal and Tangent elastic constants
         mKn = (1.33333333 * my_young / (1.0 - my_poisson * my_poisson)) * sqrt(my_radius - ini_delta); //TODO: CHECK THIS 
-        mKt = mKn / (2.0 * (1.0 + my_poisson));                         
+        mKt = 8.0 * sqrt(my_radius) * my_young * 0.5 / ((1.0 + my_poisson) * (2.0 - my_poisson)); //LATER ON THIS VALUE WILL BE MULTIPLIED BY SQRT(INDENTATION)                       
         
     }
     
@@ -207,8 +207,23 @@ namespace Kratos {
                                                                     const double LocalDeltDisp[3],            
                                                                     bool& sliding,
                                                                     SphericParticle* const element,
-                                                                    DEMWall* const wall) {                                
-        DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForceWithFEM(normal_force, LocalElasticContactForce, LocalDeltDisp,  sliding, element, wall);        
+                                                                    DEMWall* const wall,
+                                                                    double indentation) {
+                                                                        
+        const double WallBallFriction = wall->mTgOfFrictionAngle; //TODO: CHECK THIS (SHOULD IT BE AN AVERAGE?)      
+        
+        LocalElasticContactForce[0] += - mKt * sqrt(indentation) * LocalDeltDisp[0];
+        LocalElasticContactForce[1] += - mKt * sqrt(indentation) * LocalDeltDisp[1];
+
+        const double ShearForceMax = normal_force * WallBallFriction;
+        const double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+        if (ShearForceNow > ShearForceMax) {
+            double inv_ShearForceNow = 1.0 / ShearForceNow;
+            LocalElasticContactForce[0] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[0];
+            LocalElasticContactForce[1] = ShearForceMax * inv_ShearForceNow * LocalElasticContactForce[1];
+            sliding = true;
+        }                                                                                                
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
@@ -229,26 +244,24 @@ namespace Kratos {
         
         const double my_mass               = element->GetMass();
         const double my_ln_of_restit_coeff = element->GetLnOfRestitCoeff();
-        //const double my_radius             = element->GetRadius();
-        //const double my_young              = element->GetYoung();
-        //const double my_poisson            = element->GetPoisson();
-        
-        //const double gamma = -1.0 * my_ln_of_restit_coeff / (KRATOS_M_PI * KRATOS_M_PI + my_ln_of_restit_coeff * my_ln_of_restit_coeff);
-        
-        //const double Kn = my_young * sqrt(my_radius * indentation) / (1.0 - my_poisson * my_poisson);
-        
+                
         double e = exp(my_ln_of_restit_coeff);
         
         // NORMAL FORCE
         
-        ViscoDampingLocalContactForce[2] = -1.0 * (0.833333333333 * e * e - 2.25 * e + 1.41666666666666) * sqrt(my_mass * mKn) * sqrt(sqrt(indentation)) * LocalRelVel[2];
+        double nu_normal = 1.0 * (0.833333333333 * e * e - 2.25 * e + 1.41666666666666) * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
+        
+        ViscoDampingLocalContactForce[2] = - nu_normal * LocalRelVel[2];
         
         // TANGENTIAL FORCE
         
-//        if (!sliding ) { 
-//            ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-//            ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-//        }
+        double nu_tangential = nu_normal;
+               
+        // if (!sliding) {
+        if (sliding) {     
+            ViscoDampingLocalContactForce[0] = - nu_tangential * LocalRelVel[0];
+            ViscoDampingLocalContactForce[1] = - nu_tangential * LocalRelVel[1];
+        }
     }
     
 } /* namespace Kratos.*/
