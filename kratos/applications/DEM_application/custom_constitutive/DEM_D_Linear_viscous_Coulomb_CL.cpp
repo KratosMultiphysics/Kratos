@@ -232,11 +232,12 @@ namespace Kratos {
         DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForce(  normal_force, LocalElasticContactForce, LocalDeltDisp,  sliding, element1, element2);                        
     }
     void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForceWithFEM(const double normal_force,
-                                                                    double LocalElasticContactForce[3],
-                                                                    const double LocalDeltDisp[3],            
-                                                                    bool& sliding,
-                                                                    SphericParticle* const element,
-                                                                    DEMWall* const wall) {                                
+                                                    double LocalElasticContactForce[3],
+                                                    const double LocalDeltDisp[3],            
+                                                    bool& sliding,
+                                                    SphericParticle* const element,
+                                                    DEMWall* const wall,
+                                                    double indentation) {                                
         DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForceWithFEM(normal_force, LocalElasticContactForce, LocalDeltDisp,  sliding, element, wall);        
     }
     void DEM_D_Linear_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
