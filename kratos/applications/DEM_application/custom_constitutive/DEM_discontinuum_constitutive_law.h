@@ -127,7 +127,8 @@ namespace Kratos {
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
                                                     SphericParticle* const element,
-                                                    DEMWall* const wall);
+                                                    DEMWall* const wall,
+                                                    double indentation);
         
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2);
         virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall);
