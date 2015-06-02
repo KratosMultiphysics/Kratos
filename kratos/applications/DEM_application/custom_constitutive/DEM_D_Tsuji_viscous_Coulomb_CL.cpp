@@ -257,8 +257,7 @@ namespace Kratos {
         
         double nu_tangential = nu_normal;
                
-        // if (!sliding) {
-        if (sliding) {     
+        if (!sliding) {
             ViscoDampingLocalContactForce[0] = - nu_tangential * LocalRelVel[0];
             ViscoDampingLocalContactForce[1] = - nu_tangential * LocalRelVel[1];
         }
