@@ -160,12 +160,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
 
         // Evaluate required variables at the integration point
         double Density;
+        double pgauss;
         //        array_1d<double,3> Velocity(3,0.0);
         //        array_1d<double,3> MeshVelocity(3,0.0);
         array_1d<double, 3 > BodyForce(3, 0.0);
         array_1d<double, 3 > MomentumProjection(3, 0.0);
 
         this->EvaluateInPoint(Density, DENSITY, N);
+        this->EvaluateInPoint(pgauss, PRESSURE, N);
         //        this->EvaluateInPoint(Velocity,VELOCITY,N);
         //        this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
         this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
@@ -237,6 +239,17 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
             }
 
             rRightHandSideVector[i] += GaussWeight * RHSi;
+        }
+        
+        //adding a penalization term to ask for the pressure to be zero in average
+        const double epsilon = 1.0e-6/Viscosity;
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+            for (SizeType j = 0; j < NumNodes; ++j)
+            {
+                rLeftHandSideMatrix(i,i) += GaussWeight*epsilon*N[i]*N[j];
+            }
+            rRightHandSideVector[i] -= GaussWeight*epsilon*N[i]*pgauss;
         }
     }
 
