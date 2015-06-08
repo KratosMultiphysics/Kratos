@@ -105,10 +105,12 @@ namespace Kratos {
                                     SphericParticle * const element1,
                                     SphericParticle * const element2);
         
-        virtual void CalculateForcesWithFEM(double LocalElasticContactForce[3],
+        virtual void CalculateForcesWithFEM(double OldLocalContactForce[3],
+                                            double LocalElasticContactForce[3],
                                             double LocalDeltDisp[3],
                                             double LocalRelVel[3],            
                                             double indentation,
+                                            double previous_indentation,
                                             double ViscoDampingLocalContactForce[3],
                                             SphericParticle* const element,
                                             DEMWall* const wall);
@@ -128,7 +130,8 @@ namespace Kratos {
                                                     bool& sliding,
                                                     SphericParticle* const element,
                                                     DEMWall* const wall,
-                                                    double indentation);
+                                                    double indentation,
+                                                    double previous_indentation);
         
         virtual double CalculateCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2);
         virtual double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall);
