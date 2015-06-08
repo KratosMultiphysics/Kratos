@@ -252,7 +252,8 @@ namespace Kratos {
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 bool sliding,
                                                                 SphericParticle* const element,
-                                                                DEMWall* const wall){                                        
+                                                                DEMWall* const wall,
+                                                                double indentation){                                        
         
         DEMDiscontinuumConstitutiveLaw::CalculateStandardViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall);  
     }
