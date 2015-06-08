@@ -59,6 +59,7 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* element1, SphericParticle* element2) {        
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called."<<std::endl<<std::flush;
     }
+    
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta){
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called."<<std::endl<<std::flush;
     }
@@ -81,10 +82,12 @@ namespace Kratos {
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);   
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(double LocalElasticContactForce[3],
+    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(double OldLocalContactForce[3],
+                                                                double LocalElasticContactForce[3],
                                                                 double LocalDeltDisp[3],
                                                                 double LocalRelVel[3],            
                                                                 double indentation,
+                                                                double previous_indentation,
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 SphericParticle* const element,
                                                                 DEMWall* const wall) {
@@ -93,9 +96,9 @@ namespace Kratos {
         InitializeContactWithFEM(element, wall);
                 
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
-        LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                       
+        LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
 
-        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation);               
+        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
     
@@ -103,10 +106,12 @@ namespace Kratos {
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called."<<std::endl<<std::flush;
         return 0.0;
     }
+    
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall){
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM) should not be called."<<std::endl<<std::flush;
         return 0.0;
     }
+    
     void DEMDiscontinuumConstitutiveLaw::CalculateTangentialForce(const double normal_force,
                                                                     double LocalElasticContactForce[3],
                                                                     const double LocalDeltDisp[3],            
@@ -115,13 +120,15 @@ namespace Kratos {
                                                                     SphericParticle* const element2) {        
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForce) should not be called."<<std::endl<<std::flush;        
     }
+    
     void DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM(const double normal_force,
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
                                                     SphericParticle* const element,
                                                     DEMWall* const wall,
-                                                    double indentation){
+                                                    double indentation,
+                                                    double previous_indentation) {
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM) should not be called."<<std::endl<<std::flush;        
     }
 
@@ -129,6 +136,7 @@ namespace Kratos {
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called."<<std::endl<<std::flush;
         return 0.0;        
     }
+    
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall){
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called."<<std::endl<<std::flush;
         return 0.0;
@@ -141,6 +149,7 @@ namespace Kratos {
                                                                     SphericParticle* element2) {
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForce) should not be called."<<std::endl<<std::flush;        
     }
+    
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                     double ViscoDampingLocalContactForce[3],
                                                     bool sliding,
@@ -281,7 +290,6 @@ namespace Kratos {
                                                                 SphericParticle* const element,
                                                                 DEMWall* const wall){                                        
         
-
         double equiv_visco_damp_coeff_normal     = 0.0;
         const double my_mass    = element->GetMass();
         const double my_ln_of_restit_coeff = element->GetLnOfRestitCoeff();
