@@ -91,7 +91,7 @@ namespace Kratos {
                                                     bool& sliding,
                                                     SphericParticle* const element,
                                                     DEMWall* const wall,
-                                                    double indentation);;
+                                                    double indentation);
         void CalculateViscoDampingForce(double LocalRelVel[3],
                 double ViscoDampingLocalContactForce[3],
                 bool sliding,
@@ -101,7 +101,8 @@ namespace Kratos {
                                         double ViscoDampingLocalContactForce[3],
                                         bool sliding,
                                         SphericParticle* const element,
-                                        DEMWall* const wall);
+                                        DEMWall* const wall,
+                                        double indentation);
 
 
     private:
