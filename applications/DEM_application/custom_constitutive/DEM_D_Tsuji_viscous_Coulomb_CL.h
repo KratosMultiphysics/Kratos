@@ -58,14 +58,19 @@ namespace Kratos {
                 bool sliding,
                 int mDampType);
         
-        
-        
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2);  
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
+        
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta = 0.0);
+        
+        void CalculateForcesWithFEM(double OldLocalContactForce[3], double LocalElasticContactForce[3],
+                                    double LocalDeltDisp[3], double LocalRelVel[3], double indentation,
+                                    double previous_indentation, double ViscoDampingLocalContactForce[3],
+                                    SphericParticle* const element, DEMWall* const wall);
         
         double CalculateNormalForce(const double indentation,
                                     SphericParticle* const element1,
                                     SphericParticle* const element2);
+        
         double CalculateNormalForceWithFEM(const double indentation,
                                     SphericParticle* const element,
                                     DEMWall* const wall);
@@ -87,7 +92,8 @@ namespace Kratos {
                                       bool& sliding,
                                       SphericParticle* const element,
                                       DEMWall* const wall,
-                                      double indentation);
+                                      double indentation,
+                                      double previous_indentation);
         
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
