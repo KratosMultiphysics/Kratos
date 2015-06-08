@@ -972,7 +972,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
 
         int ContactType = -1;
         double Weight[4] = {0.0};
-
+        
+        double previous_indentation = 0.0;
+        
         ComputeRigidFaceToMeVelocity(rNeighbours[i], i, LocalCoordSystem, DistPToB, Weight, wall_velocity_at_contact_point, ContactType);
         
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
@@ -1016,23 +1018,30 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 DeltDisp[2] += tangential_vel[2] * mTimeStep;
             }
 
-            double LocalDeltDisp[3] = {0.0};    
+            double LocalDeltDisp[3] = {0.0};
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
             DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mFemNeighbourContactForces[i])
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);                    
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce);
+            
+            double OldGlobalContactForce[3] = {0.0}; //SLS
+            double OldLocalContactForce[3] = {0.0}; //SLS
+            DEM_COPY_SECOND_TO_FIRST_3(OldGlobalContactForce, mContactForce) //SLS
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, OldGlobalContactForce, OldLocalContactForce); //SLS
 
+            previous_indentation = indentation + LocalDeltDisp[2];
+            
             if (indentation > 0.0) {
                 // operations for viscous damping:
                 double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);            
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, ViscoDampingLocalContactForce, this, wall);         
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, this, wall);         
             }
 
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
 
-            AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                     GlobalElasticContactForce,ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
+            AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
+                                     GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
 
             rigid_element_force[0] -= GlobalElasticContactForce[0];
             rigid_element_force[1] -= GlobalElasticContactForce[1];
@@ -1423,6 +1432,9 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
 {
     for (unsigned int index = 0; index < 3; index++) {
         LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
+        //if (LocalContactForce[2] < 0.0) {
+        //    LocalContactForce[2] = 0.0;
+        //}
     }
 
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
