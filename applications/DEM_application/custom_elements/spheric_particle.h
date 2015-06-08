@@ -159,6 +159,9 @@ std::vector<double>           mNeighbourRigidFacesElasticContactForce;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 
+array_1d<double, 3> mContactForce; //SLS
+array_1d<double, 3> mContactMoment; //SLS
+
 protected:
 
 SphericParticle();
@@ -291,8 +294,7 @@ int mDampType;
 int mElasticityType;
 const double* mSearchControl;
 
-array_1d<double, 3> mContactForce;
-array_1d<double, 3> mContactMoment;
+//array_1d<double, 3> mContactForce; //SLS
 
 double mRadius;
 double mRealMass;
