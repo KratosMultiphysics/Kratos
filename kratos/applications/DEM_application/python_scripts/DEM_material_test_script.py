@@ -404,7 +404,7 @@ class MaterialTest(object):
                         self.mesh_nodes = self.RigidFace_model_part.GetMesh(mesh_number).Nodes
 
                         for node in self.mesh_nodes:
-                            if (node.Id == 1):
+                            if ((node.Id == 1) or (node.Id == 42146)):
                                 coordinateY = node.Y
     
     if(self.graph_counter == self.graph_frequency):
