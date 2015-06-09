@@ -102,6 +102,7 @@ namespace Kratos {
                                     double LocalRelVel[3],            
                                     double indentation,
                                     double ViscoDampingLocalContactForce[3],
+                                    double& cohesive_force,
                                     SphericParticle * const element1,
                                     SphericParticle * const element2);
         
@@ -112,6 +113,7 @@ namespace Kratos {
                                             double indentation,
                                             double previous_indentation,
                                             double ViscoDampingLocalContactForce[3],
+                                            double& cohesive_force,
                                             SphericParticle* const element,
                                             DEMWall* const wall);
         

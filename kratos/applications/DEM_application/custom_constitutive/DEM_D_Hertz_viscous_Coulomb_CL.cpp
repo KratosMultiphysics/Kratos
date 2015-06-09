@@ -56,7 +56,7 @@ namespace Kratos {
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateNormalForceHertz(double LocalElasticContactForce[3], double kn_el, double indentation) {
-        LocalElasticContactForce[2] = kn_el * pow(indentation, 1.5); //  1 --- Hertzian (non-linear compression, linear tension)
+        LocalElasticContactForce[2] = kn_el * pow(indentation, 1.5); 
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateTangentialForceLinear(double LocalElasticContactForce[3],
@@ -192,6 +192,7 @@ namespace Kratos {
                                                              double indentation,
                                                              double previous_indentation,
                                                              double ViscoDampingLocalContactForce[3],
+                                                             double& cohesive_force,
                                                              SphericParticle* const element,
                                                              DEMWall* const wall) {
         bool sliding = false;
@@ -201,7 +202,7 @@ namespace Kratos {
         double delta_force_normal = 0.0;
         
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
-        LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
+        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
         
         const double my_mass               = element->GetMass();
         const double my_ln_of_restit_coeff = element->GetLnOfRestitCoeff();

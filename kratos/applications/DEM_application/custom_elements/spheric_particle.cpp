@@ -844,6 +844,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         double LocalElasticContactForce[3]      = {0.0};
         double GlobalElasticContactForce[3]     = {0.0};
         double ViscoDampingLocalContactForce[3] = {0.0};
+        double cohesive_force                   =  0.0;
 
         DEM_COPY_SECOND_TO_FIRST_3(GlobalElasticContactForce, mNeighbourElasticContactForces[i])
 
@@ -854,11 +855,11 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
             // operations for viscous damping:
             double LocalRelVel[3]            = {0.0};
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);            
-            mDiscontinuumConstitutiveLaw->CalculateForces(LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, ViscoDampingLocalContactForce, this, ineighbour);
+            mDiscontinuumConstitutiveLaw->CalculateForces(LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, ViscoDampingLocalContactForce, cohesive_force, this, ineighbour);
         }
 
         // Transforming to global forces and adding up
-        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
+        AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
         
         // ROTATION FORCES
         if (this->Is(DEMFlags::HAS_ROTATION) && !multi_stage_RHS) {
@@ -959,12 +960,13 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
         
         DEMWall* wall = rNeighbours[i];        
-        double LocalElasticContactForce[3]  = {0.0};
-        double GlobalElasticContactForce[3] = {0.0};
-        bool sliding = false;
-        double ViscoDampingLocalContactForce[3] = {0.0};
-        double LocalCoordSystem[3][3]       = {{0.0}, {0.0}, {0.0}};
+        double LocalElasticContactForce[3]       = {0.0};
+        double GlobalElasticContactForce[3]      = {0.0};        
+        double ViscoDampingLocalContactForce[3]  = {0.0};
+        double cohesive_force                    =  0.0;
+        double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
         array_1d<double, 3> wall_velocity_at_contact_point = ZeroVector(3);
+        bool sliding = false;
         
 
         double ini_delta = GetInitialDeltaWithFEM(i);              
@@ -1034,14 +1036,14 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 // operations for viscous damping:
                 double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);            
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, this, wall);         
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall);         
             }
 
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
 
             AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                                     GlobalElasticContactForce, ViscoDampingLocalContactForce, r_elastic_force, r_contact_force, i);
+                                     GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
 
             rigid_element_force[0] -= GlobalElasticContactForce[0];
             rigid_element_force[1] -= GlobalElasticContactForce[1];
@@ -1398,6 +1400,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
                                             double GlobalContactForce[3],
                                             double GlobalElasticContactForce[3],
                                             double ViscoDampingLocalContactForce[3],
+                                            const double cohesive_force,
                                             array_1d<double, 3> &r_elastic_force,
                                             array_1d<double, 3> &r_contact_force,
                                             const unsigned int i_neighbour_count)
@@ -1405,6 +1408,7 @@ void SphericParticle::AddUpForcesAndProject(double OldCoordSystem[3][3],
     for (unsigned int index = 0; index < 3; index++) {
         LocalContactForce[index] = LocalElasticContactForce[index] + ViscoDampingLocalContactForce[index];
     }
+    LocalContactForce[2] -= cohesive_force;
 
     GeometryFunctions::VectorLocal2Global(OldCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
     GeometryFunctions::VectorLocal2Global(OldCoordSystem, LocalContactForce, GlobalContactForce);
@@ -1426,6 +1430,7 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                                double GlobalContactForce[3],
                                                double GlobalElasticContactForce[3],
                                                double ViscoDampingLocalContactForce[3],
+                                               const double cohesive_force,
                                                array_1d<double, 3>& r_elastic_force,
                                                array_1d<double, 3>& r_contact_force,
                                                const unsigned int iRigidFaceNeighbour)
@@ -1436,6 +1441,7 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
         //    LocalContactForce[2] = 0.0;
         //}
     }
+    LocalContactForce[2] -= cohesive_force;
 
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);

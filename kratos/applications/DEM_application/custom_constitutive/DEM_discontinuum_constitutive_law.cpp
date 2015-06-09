@@ -69,6 +69,7 @@ namespace Kratos {
                                                         double LocalRelVel[3],            
                                                         double indentation,
                                                         double ViscoDampingLocalContactForce[3],
+                                                        double& cohesive_force,
                                                         SphericParticle* element1,
                                                         SphericParticle* element2) {  
         
@@ -76,7 +77,7 @@ namespace Kratos {
         InitializeContact(element1, element2);   
             
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);   
-        LocalElasticContactForce[2] -= CalculateCohesiveNormalForce(element1, element2);
+        cohesive_force               = CalculateCohesiveNormalForce(element1, element2);
 
         CalculateTangentialForce(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element1, element2);        
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);   
@@ -89,6 +90,7 @@ namespace Kratos {
                                                                 double indentation,
                                                                 double previous_indentation,
                                                                 double ViscoDampingLocalContactForce[3],
+                                                                double& cohesive_force,
                                                                 SphericParticle* const element,
                                                                 DEMWall* const wall) {
         
@@ -96,7 +98,7 @@ namespace Kratos {
         InitializeContactWithFEM(element, wall);
                 
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
-        LocalElasticContactForce[2] -= CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
+        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
 
         CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);

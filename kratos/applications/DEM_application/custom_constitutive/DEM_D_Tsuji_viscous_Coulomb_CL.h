@@ -23,40 +23,7 @@ namespace Kratos {
         ~DEM_D_Tsuji_viscous_Coulomb() {
         }
 
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;
-
-        void CalculateForces(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                double kn_el,
-                double kt_el,
-                double indentation,
-                double& failure_criterion_state,
-                bool& sliding,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                int &mNeighbourFailureId_count,
-                double mapping_new_cont);
-              
-        void CalculateNormalForceTsuji(double LocalElasticContactForce[3], const double kn_el, const double indentation);
-        
-        void CalculateTangentialForceLinear(double LocalElasticContactForce[3],
-                double LocalDeltDisp[3],
-                const double kt_el,
-                const double indentation,
-                double& failure_criterion_state,
-                bool& sliding,
-                SphericParticle* element1,
-                SphericParticle* element2,
-                int &mNeighbourFailureId_count,
-                double mapping_new_cont);
-
-        void CalculateViscoDamping(double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3],
-                double indentation,
-                double equiv_visco_damp_coeff_normal,
-                double equiv_visco_damp_coeff_tangential,
-                bool sliding,
-                int mDampType);
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;      
         
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2);  
         
@@ -64,7 +31,7 @@ namespace Kratos {
         
         void CalculateForcesWithFEM(double OldLocalContactForce[3], double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3], double LocalRelVel[3], double indentation,
-                                    double previous_indentation, double ViscoDampingLocalContactForce[3],
+                                    double previous_indentation, double ViscoDampingLocalContactForce[3], double& cohesive_force,
                                     SphericParticle* const element, DEMWall* const wall);
         
         double CalculateNormalForce(const double indentation,
