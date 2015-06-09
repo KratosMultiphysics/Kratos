@@ -65,10 +65,10 @@ DensityFunctionPolynomial(const double range, const double shape_factor)
     : mR(range),
       mHeightOverR(shape_factor)
 {
-    m6 = 315 / (32 * KRATOS_M_PI * pow(mR, 9)) - 3 * mHeightOverR / pow(mR, 5);
-    m4 = 7 * mHeightOverR / pow(mR, 3) - 315 / (16 * KRATOS_M_PI * pow(mR, 7));
-    m2 = 315 / (32 * KRATOS_M_PI * pow(mR, 5)) - 5 * mHeightOverR / mR;
-    m0 = mR * mHeightOverR;
+    m6 = 315 / (32 * KRATOS_M_PI * pow(mR, 9)) - 3 / pow(mR, 5);
+    m4 = 7 / pow(mR, 3) - 315 / (16 * KRATOS_M_PI * pow(mR, 7));
+    m2 = 315 / (32 * KRATOS_M_PI * pow(mR, 5)) - 5 / mR;
+    m0 = mR;
 }
 
 virtual ~DensityFunctionPolynomial(){}
