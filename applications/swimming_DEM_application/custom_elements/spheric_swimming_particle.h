@@ -178,7 +178,7 @@ namespace Kratos
     private:
 
         void UpdateNodalValues(const array_1d<double, 3>& hydrodynamic_force, const array_1d<double, 3>& hydrodynamic_moment, const array_1d<double, 3>& buoyancy, const array_1d<double, 3>& drag_force, const array_1d<double, 3>& virtual_mass_force, const array_1d<double, 3>& saffman_lift_force, const array_1d<double, 3>& magnus_lift_force);
-        double ComputeStokesDragCoefficient(ProcessInfo& r_current_process_info);
+        double ComputeStokesDragCoefficient();
         double ComputeWeatherfordDragCoefficient(ProcessInfo& r_current_process_info);
         void CalculateNewtonianDragCoefficient(int non_newtonian_option, const double reynolds, const double sphericity, double& r_drag_coeff, int drag_modifier_type);
         double CalculateDragCoeffFromSphericity(const double reynolds, double sphericity, int drag_modifier_type);
@@ -188,6 +188,7 @@ namespace Kratos
         double ComputeNewtonRegimeDragCoefficient();
         double ComputeIntermediateRegimeDragCoefficient();
         double ComputeHaiderDragCoefficient();
+        double ComputeBeetstraDragCoefficient();
         void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
         void ApplyDragPorosityModification(double& drag_coeff);
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& r_current_process_info);
