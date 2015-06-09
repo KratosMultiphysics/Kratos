@@ -707,7 +707,7 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
 //**************************************************************************************************************************************************
 
 void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
-                                     array_1d<double, 3>& GlobalElasticContactForce,
+                                     array_1d<double, 3>& Force,
                                      array_1d<double, 3>& rInitialRotaMoment,
                                      double LocalCoordSystem2[3],
                                      SphericParticle* p_neighbour,
@@ -716,7 +716,7 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
 {
     double MA[3] = {0.0};
 
-    GeometryFunctions::CrossProduct(LocalCoordSystem2, GlobalElasticContactForce, MA);
+    GeometryFunctions::CrossProduct(LocalCoordSystem2, Force, MA);
     
     double arm = mRadius - indentation;
     
@@ -1045,12 +1045,14 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             AddUpFEMForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
                                      GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force, r_contact_force, i);
 
-            rigid_element_force[0] -= GlobalElasticContactForce[0];
-            rigid_element_force[1] -= GlobalElasticContactForce[1];
-            rigid_element_force[2] -= GlobalElasticContactForce[2];
+            rigid_element_force[0] -= GlobalContactForce[0];
+            rigid_element_force[1] -= GlobalContactForce[1];
+            rigid_element_force[2] -= GlobalContactForce[2];
+            array_1d<double, 3> GlobalContactForce_array;
+            DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForce_array,GlobalContactForce)
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                ComputeMoments(LocalElasticContactForce[2], mFemNeighbourContactForces[i], rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
+                ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
         
             //WEAR        
@@ -1453,12 +1455,9 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
     DEM_ADD_SECOND_TO_FIRST(r_contact_force, GlobalContactForce)
 
     // Global stored contact force between rigid face and particle, used by FEM elements
-    std::vector<double>& neighbour_rigid_faces_elastic_contact_force = this->mNeighbourRigidFacesElasticContactForce;
-    std::vector<double>& neighbour_rigid_faces_total_contact_force = this->mNeighbourRigidFacesTotalContactForce;
-
     for (unsigned int i = 0; i < 3; ++i) {
-        neighbour_rigid_faces_elastic_contact_force[3 * iRigidFaceNeighbour + i] = GlobalElasticContactForce[i];
-        neighbour_rigid_faces_total_contact_force[3 * iRigidFaceNeighbour + i]   = GlobalContactForce[i];
+        mNeighbourRigidFacesElasticContactForce[3 * iRigidFaceNeighbour + i] = GlobalElasticContactForce[i];
+        mNeighbourRigidFacesTotalContactForce[3 * iRigidFaceNeighbour + i]   = GlobalContactForce[i];
     }
 }
 
