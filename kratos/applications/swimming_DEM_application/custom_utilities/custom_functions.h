@@ -303,9 +303,8 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
             double element_volume;
             double element_fluid_volume;
 
-            if (geom[0].SolutionStepsDataHas(SOLID_FRACTION)){
-                element_fluid_volume = CalculateScalarIntegralOfLinearInterpolation(geom, SOLID_FRACTION, element_volume);
-                element_fluid_volume = element_volume - element_fluid_volume;
+            if (geom[0].SolutionStepsDataHas(FLUID_FRACTION)){
+                element_fluid_volume = CalculateScalarIntegralOfLinearInterpolation(geom, FLUID_FRACTION, element_volume);
             }
 
             else {
