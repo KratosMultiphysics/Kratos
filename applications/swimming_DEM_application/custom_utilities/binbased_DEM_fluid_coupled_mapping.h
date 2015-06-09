@@ -22,6 +22,7 @@
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 #include "density_function_polynomial.h"
+#include "custom_functions.h"
 
 //Database includes
 #include "spatial_containers/spatial_containers.h"
@@ -337,9 +338,10 @@ void HomogenizeFromDEMMesh(
 
     for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
         NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-
         CalculateNodalFluidFractionByAveraging(*(i_particle.base()), mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i]);
     }
+
+    //NormalizeToConserveTotalMass(r_dem_model_part, r_fluid_model_part);
 
     #pragma omp parallel for
     for (int i = 0; i < (int)r_fluid_model_part.Nodes().size(); ++i){
@@ -897,6 +899,10 @@ void DistributeDimensionalContributionToFluidFraction(
     else if (mCouplingType == 2){
         CalculateNodalFluidFractionWithLinearWeighing(p_elem, N, p_node);
     }
+
+    else if (mCouplingType == 4){
+        CalculateNodalFluidFractionByLumpedL2Projection(p_elem, N, p_node);
+    }
 }
 
 //***************************************************************************************************************
@@ -962,8 +968,15 @@ void  CalculateFluidFraction(ModelPart& r_fluid_model_part)
     for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
         for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_fluid_model_part, k); i_node != this->GetNodePartitionEnd(r_fluid_model_part, k); ++i_node){
-            double& fluid_fraction          = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
-            fluid_fraction                  = 1.0 - fluid_fraction / i_node->FastGetSolutionStepValue(NODAL_AREA);
+            double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
+
+            if (mCouplingType != 4){
+                fluid_fraction = 1.0 - fluid_fraction / i_node->FastGetSolutionStepValue(NODAL_AREA);
+            }
+
+            else {
+                fluid_fraction = 1.0 - fluid_fraction;
+            }
 
             if (fluid_fraction < mMinFluidFraction){
                 fluid_fraction = mMinFluidFraction;
@@ -1239,6 +1252,28 @@ void CalculateNodalFluidFractionWithLinearWeighing(
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+void CalculateNodalFluidFractionByLumpedL2Projection(
+        Element::Pointer p_elem,
+        const array_1d<double, TDim + 1>& N,
+        Node<3>::Pointer p_node)
+    {
+        // Geometry of the element of the origin model part
+        Geometry<Node<3> >& geom = p_elem->GetGeometry();
+        array_1d <double, TDim + 1> Ng;
+        boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+        double elemental_volume;
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, Ng, elemental_volume);
+        const double& radius         = p_node->FastGetSolutionStepValue(RADIUS);
+        const double particle_volume = 1.33333333333333333333 * KRATOS_M_PI * mParticlesPerDepthDistance * radius * radius * radius;
+
+        for (unsigned int i = 0; i < TDim + 1; i++){
+            geom[i].FastGetSolutionStepValue(FLUID_FRACTION) += (TDim + 1) * N[i] * particle_volume / elemental_volume;
+        }
+    }
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
 void CalculateFluidFractionGradient(ModelPart& r_model_part)
 {
     for (NodeIteratorType i_node = r_model_part.NodesBegin(); i_node != r_model_part.NodesEnd(); i_node++){
@@ -1333,6 +1368,38 @@ void CalculateNodalFluidFractionByAveraging( // it is actually calculating its c
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+void NormalizeToConserveTotalMass(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part)
+{
+    double target_solid_volume = 0.0;
+
+    for (int i = 0; i < (int)r_dem_model_part.Nodes().size(); i++){
+        NodeIteratorType i_node = r_dem_model_part.NodesBegin() + i;
+        Node <3> ::Pointer p_node = *(i_node.base());
+        double radius = p_node->FastGetSolutionStepValue(RADIUS);
+        target_solid_volume += 4.0 / 3 * KRATOS_M_PI * radius * radius * radius;
+    }
+
+    CustomFunctionsCalculator<TDim> calculator;
+    double solid_volume = calculator.CalculateGlobalFluidVolume(r_fluid_model_part);
+
+    if (solid_volume == 0.0 && target_solid_volume != 0.0){
+        KRATOS_THROW_ERROR(std::invalid_argument, "Something is wrong: the total computed solid volume is 0.0, while target value is target_solid_volume = ", target_solid_volume);
+    }
+
+    else {
+        MultiplyNodalVariableBy(r_fluid_model_part, FLUID_FRACTION, target_solid_volume / solid_volume);
+        KRATOS_WATCH("antes")
+        KRATOS_WATCH(target_solid_volume / solid_volume)
+        solid_volume = calculator.CalculateGlobalFluidVolume(r_fluid_model_part);
+        KRATOS_WATCH("tras")
+        KRATOS_WATCH(target_solid_volume / solid_volume)
+    }
+
+}
+
+//***************************************************************************************************************
+//***************************************************************************************************************
+
 void MultiplyNodalVariableBy(ModelPart& r_model_part, Variable<double>& r_variable, const double& factor)
 {
     #pragma omp parallel for
@@ -1380,7 +1447,10 @@ void ResetFluidVariables(ModelPart& r_fluid_model_part)
 
         array_1d<double, 3>& body_force                = node_it->FastGetSolutionStepValue(BODY_FORCE);
         array_1d<double, 3>& old_hydrodynamic_reaction = node_it->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
-        body_force -= old_hydrodynamic_reaction;
+        //body_force -= old_hydrodynamic_reaction;
+        body_force[0] = 0.0;
+        body_force[1] = 0.0;
+        body_force[2] = -9.81;
 
         noalias(old_hydrodynamic_reaction) = ZeroVector(3);
     }
