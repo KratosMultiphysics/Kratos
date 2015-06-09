@@ -66,7 +66,7 @@ namespace Kratos {
         
         void CalculateForcesWithFEM(double OldLocalContactForce[3], double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3], double LocalRelVel[3], double indentation,
-                                    double previous_indentation, double ViscoDampingLocalContactForce[3],
+                                    double previous_indentation, double ViscoDampingLocalContactForce[3], double& cohesive_force,
                                     SphericParticle* const element, DEMWall* const wall);
         
         double CalculateNormalForce(const double indentation,

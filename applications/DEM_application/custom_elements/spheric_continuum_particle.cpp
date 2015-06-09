@@ -510,7 +510,7 @@ namespace Kratos {
                                                                                         calculation_area);}
 
             AddUpForcesAndProject(OldLocalCoordSystem, LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce,
-                    GlobalElasticContactForce, ViscoDampingLocalContactForce, rElasticForce, rContactForce, i_neighbour_count);
+                    GlobalElasticContactForce, ViscoDampingLocalContactForce, 0.0, rElasticForce, rContactForce, i_neighbour_count);
 
             array_1d<double, 3> temp_force = ZeroVector(3);
         
