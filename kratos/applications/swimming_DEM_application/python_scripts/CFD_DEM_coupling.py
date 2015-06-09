@@ -14,11 +14,11 @@ class ProjectionModule:
         self.particles_model_part = balls_model_part
         self.FEM_DEM_model_part   = FEM_DEM_model_part
         self.dimension            = dimension
-        self.min_fluid_fraction   = pp.min_fluid_fraction
-        self.coupling_type        = pp.coupling_weighing_type
-        self.n_particles_in_depth = pp.n_particles_in_depth
-        self.meso_scale_length    = pp.meso_scale_length
-        self.shape_factor         = pp.shape_factor
+        self.min_fluid_fraction   = pp.swim.min_fluid_fraction
+        self.coupling_type        = pp.swim.coupling_weighing_type
+        self.n_particles_in_depth = pp.swim.n_particles_in_depth
+        self.meso_scale_length    = pp.swim.meso_scale_length
+        self.shape_factor         = pp.swim.shape_factor
 
         if (self.dimension == 3):
             self.projector = BinBasedDEMFluidCoupledMapping3D(self.min_fluid_fraction, self.coupling_type)
