@@ -546,9 +546,9 @@ public:
         {
             stopTimers();
         }
-		std::cout <<"...Trying to allocate memmory\n";
+		std::cout <<"...Trying to allocate memory\n";
 		preparePool();
-		std::cout <<"...Allocate memmory OK\n";
+		std::cout <<"...Allocate memory OK\n";
 
         for (int iter = 0 ; iter< iterations ; iter ++)
         {
@@ -677,9 +677,9 @@ public:
         innerConvertToKratos(refMP , m , removeFreeVertexes);
         delete m;
         m = NULL;		
-		std::cout <<"...Trying to release memmory\n";
+		std::cout <<"...Trying to release memory\n";
 		clearPool();
-		std::cout <<"...Release memmory OK\n";
+		std::cout <<"...Release memory OK\n";
 		
     }
 
