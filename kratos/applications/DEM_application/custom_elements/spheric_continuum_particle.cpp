@@ -932,7 +932,7 @@ namespace Kratos {
 
             for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
-                    neigh_forces = mFemNeighbourContactForces[j];
+                    neigh_forces = mNeighbourRigidFacesElasticContactForce[j]; //TODO: should this be elastic or total??
                     break;
                 }
             }
@@ -962,7 +962,7 @@ namespace Kratos {
         mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
         mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
         mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
-        mFemNeighbourContactForces.swap(fem_temp_neighbours_contact_forces);
+        mNeighbourRigidFacesElasticContactForce.swap(fem_temp_neighbours_contact_forces);
 
         KRATOS_CATCH("")
     }

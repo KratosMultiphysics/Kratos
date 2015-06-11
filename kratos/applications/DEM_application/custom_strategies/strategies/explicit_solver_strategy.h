@@ -1338,9 +1338,9 @@ namespace Kratos
                 this->GetRigidFaceResults()[i].clear();
                 this->GetRigidFaceResultsDistances()[i].clear();   
 
-                std::size_t totalno = mListOfSphericParticles[i]->mNeighbourRigidFaces.size() * 3;
-                mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce.resize(totalno);
-                mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce.resize(totalno);
+                std::size_t size = mListOfSphericParticles[i]->mNeighbourRigidFaces.size();
+                mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce.resize(size);
+                mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce.resize(size);
             }
                                      
             //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;

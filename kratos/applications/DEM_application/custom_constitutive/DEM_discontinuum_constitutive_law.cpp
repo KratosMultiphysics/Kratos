@@ -83,7 +83,7 @@ namespace Kratos {
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);   
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(double OldLocalContactForce[3],
+    void DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(const double OldLocalContactForce[3],
                                                                 double LocalElasticContactForce[3],
                                                                 double LocalDeltDisp[3],
                                                                 double LocalRelVel[3],            
@@ -100,7 +100,7 @@ namespace Kratos {
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
         cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
 
-        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
+        CalculateTangentialForceWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp, sliding, element, wall, indentation, previous_indentation);               
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
     }
     
@@ -123,7 +123,7 @@ namespace Kratos {
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForce) should not be called."<<std::endl<<std::flush;        
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM(const double normal_force,
+    void DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
@@ -222,7 +222,7 @@ namespace Kratos {
         }        
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForceWithFEM(const double normal_force,
+    void DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
@@ -231,10 +231,10 @@ namespace Kratos {
         
         const double WallBallFriction = wall->mTgOfFrictionAngle;         //TODO: CHECK THIS (SHOULD IT BE AN AVERAGE?)      
         
-        LocalElasticContactForce[0] += - mKt * LocalDeltDisp[0];
-        LocalElasticContactForce[1] += - mKt * LocalDeltDisp[1];
+        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
 
-        const double ShearForceMax = normal_force * WallBallFriction;
+        const double ShearForceMax = LocalElasticContactForce[2] * WallBallFriction;
         const double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
         if (ShearForceNow > ShearForceMax) {

@@ -74,7 +74,7 @@ namespace Kratos {
         mKt = 8.0 * sqrt(my_radius) * my_young * 0.5 / ((1.0 + my_poisson) * (2.0 - my_poisson)); //LATER ON THIS VALUE WILL BE MULTIPLIED BY SQRT(INDENTATION)                       
     }
     
-    void DEM_D_Tsuji_viscous_Coulomb::CalculateForcesWithFEM(double OldLocalContactForce[3],
+    void DEM_D_Tsuji_viscous_Coulomb::CalculateForcesWithFEM(const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
                                                              double LocalRelVel[3],            
@@ -91,7 +91,7 @@ namespace Kratos {
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
         cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
         
-        CalculateTangentialForceWithFEM(LocalElasticContactForce[2], LocalElasticContactForce, LocalDeltDisp,
+        CalculateTangentialForceWithFEM(OldLocalContactForce, LocalElasticContactForce, LocalDeltDisp,
                                         sliding, element, wall, indentation, previous_indentation);
         
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
@@ -116,7 +116,7 @@ namespace Kratos {
         }
     }
     
-    void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForceWithFEM(const double normal_force,
+    void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                                       double LocalElasticContactForce[3],
                                                                       const double LocalDeltDisp[3],            
                                                                       bool& sliding,
@@ -125,8 +125,8 @@ namespace Kratos {
                                                                       double indentation,
                                                                       double previous_indentation) {
                                                                         
-        LocalElasticContactForce[0] += - mKt * sqrt(indentation) * LocalDeltDisp[0];
-        LocalElasticContactForce[1] += - mKt * sqrt(indentation) * LocalDeltDisp[1];
+        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * sqrt(indentation) * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * sqrt(indentation) * LocalDeltDisp[1];
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],

@@ -222,6 +222,9 @@ class DEMFEMUtilities
                                 noalias(relative_position) = new_axes1 * local_coordinates[0] + new_axes2 * local_coordinates[1] + new_axes3 * local_coordinates[2];
 
                                 array_1d<double, 3 > displacement;
+                                array_1d<double, 3 > old_coordinates;
+                                noalias(old_coordinates) = node->Coordinates();
+                                
                                 if (!fixed_mesh) {
                                     // NEW POSITION
                                     noalias(node->Coordinates()) = center_position + relative_position;
@@ -239,6 +242,7 @@ class DEMFEMUtilities
                                
                                 noalias( node->FastGetSolutionStepValue(VELOCITY) ) = linear_velocity_changed + velocity_due_to_rotation; 
                                 noalias( node->FastGetSolutionStepValue(DISPLACEMENT) ) = displacement;
+                                noalias( node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) ) = node->Coordinates() - old_coordinates;
                             }
                         }
                     }

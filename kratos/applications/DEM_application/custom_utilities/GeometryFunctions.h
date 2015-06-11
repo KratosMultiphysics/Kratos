@@ -102,7 +102,7 @@ namespace Kratos
             return distance;
     }
 
-    static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3])
+    static inline void VectorGlobal2Local(const double LocalCoordSystem[3][3], const double GlobalVector[3], double LocalVector[3])
     {
         for (int i=0; i<3; i++) {
             LocalVector[i] = 0.0;
@@ -111,7 +111,17 @@ namespace Kratos
             }
         }
     }
-    static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], const array_1d<double, 3 > & GlobalVector, array_1d<double, 3 > & LocalVector)
+    static inline void VectorGlobal2Local(const double LocalCoordSystem[3][3], const array_1d<double, 3 > & GlobalVector, array_1d<double, 3 > & LocalVector)
+    {
+        for (int i=0; i<3; i++) {
+            LocalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                LocalVector[i]+=LocalCoordSystem[i][j]*GlobalVector[j];
+            }
+        }
+    }
+    
+    static inline void VectorGlobal2Local(const double LocalCoordSystem[3][3], const array_1d<double, 3 > & GlobalVector, double LocalVector[3])
     {
         for (int i=0; i<3; i++) {
             LocalVector[i] = 0.0;
@@ -121,7 +131,7 @@ namespace Kratos
         }
     }
         
-    static inline void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3])
+    static inline void VectorLocal2Global(const double LocalCoordSystem[3][3], const double LocalVector[3], double GlobalVector[3])
     {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
@@ -131,7 +141,17 @@ namespace Kratos
         }                
     }
     
-    static inline void VectorLocal2Global(double LocalCoordSystem[3][3], const array_1d<double, 3 > & LocalVector, array_1d<double, 3 > & GlobalVector)
+    static inline void VectorLocal2Global(const double LocalCoordSystem[3][3], const array_1d<double, 3 > & LocalVector, array_1d<double, 3 > & GlobalVector)
+    {
+        for (int i=0; i<3; i++) {
+            GlobalVector[i] = 0.0;
+            for (int j=0; j<3; j++) {
+                GlobalVector[i]+=LocalCoordSystem[j][i]*LocalVector[j];
+            }
+        }                
+    }
+    
+    static inline void VectorLocal2Global(const double LocalCoordSystem[3][3], const array_1d<double, 3 > & LocalVector, double GlobalVector[3])
     {
         for (int i=0; i<3; i++) {
             GlobalVector[i] = 0.0;
@@ -152,7 +172,7 @@ namespace Kratos
         return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
     }
 
-    static inline void CrossProduct(double u[3], double v[3], double ReturnVector[3])
+    static inline void CrossProduct(const double u[3], const double v[3], double ReturnVector[3])
     {
         ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
         ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
@@ -166,21 +186,28 @@ namespace Kratos
         ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
     
-    static inline void CrossProduct( double u[3], const array_1d<double,3>& v, double ReturnVector[3])
+    static inline void CrossProduct( const double u[3], const array_1d<double,3>& v, double ReturnVector[3])
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
         ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
         ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
     
-    static inline void CrossProduct( const array_1d<double,3>& u, double v[3], double ReturnVector[3])
+    static inline void CrossProduct( const array_1d<double,3>& u, const double v[3], double ReturnVector[3])
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
         ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
         ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
     
-    static inline void CrossProduct( const array_1d<double,3>& u, double v[3], array_1d<double,3>& ReturnVector)
+    static inline void CrossProduct( const array_1d<double,3>& u, const double v[3], array_1d<double,3>& ReturnVector)
+    {
+    	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
+        ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+        ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+    }
+    
+    static inline void CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v,  double ReturnVector[3])
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
         ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
