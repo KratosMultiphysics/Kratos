@@ -85,7 +85,7 @@ namespace Kratos {
                 bool& sliding,
                 SphericParticle * const element1,
                 SphericParticle * const element2);
-        void CalculateTangentialForceWithFEM(const double normal_force,
+        void CalculateTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,

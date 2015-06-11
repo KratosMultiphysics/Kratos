@@ -106,7 +106,7 @@ namespace Kratos {
                                     SphericParticle * const element1,
                                     SphericParticle * const element2);
         
-        virtual void CalculateForcesWithFEM(double OldLocalContactForce[3],
+        virtual void CalculateForcesWithFEM(const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
                                             double LocalDeltDisp[3],
                                             double LocalRelVel[3],            
@@ -126,7 +126,7 @@ namespace Kratos {
                                             bool& sliding,
                                             SphericParticle * const element1,
                                             SphericParticle * const element2);
-        virtual void CalculateTangentialForceWithFEM(const double normal_force,
+        virtual void CalculateTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
@@ -160,7 +160,7 @@ namespace Kratos {
                                             bool& sliding,
                                             SphericParticle * const element1,
                                             SphericParticle * const element2);
-        void CalculateStandardTangentialForceWithFEM(const double normal_force,
+        void CalculateStandardTangentialForceWithFEM(const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,

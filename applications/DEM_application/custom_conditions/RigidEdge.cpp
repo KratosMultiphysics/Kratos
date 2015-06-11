@@ -156,12 +156,11 @@ void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
                 weight[2] = neighbour_rigid_faces_pram[ino + 12];
                 weight[3] = neighbour_rigid_faces_pram[ino + 13];
 
-                ino = 3 * i_nei;
-
-                std::vector<double>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce;
-                ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
-                ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
-                ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
+                array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
+                ContactForce[0] = neighbour_rigid_faces_contact_force[0];
+                ContactForce[1] = neighbour_rigid_faces_contact_force[1];
+                ContactForce[2] = neighbour_rigid_faces_contact_force[2];
+                                
 
                 for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
                 {
@@ -209,13 +208,11 @@ void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo
                 weight[1] = neighbour_rigid_faces_pram[ino + 11];
                 weight[2] = neighbour_rigid_faces_pram[ino + 12];
                 weight[3] = neighbour_rigid_faces_pram[ino + 13];
-
-                ino = 3 * i_nei;
-
-                std::vector<double>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce;                    
-                ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[ino + 0];
-                ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[ino + 1];
-                ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[ino + 2];
+                
+                array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
+                ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
+                ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
+                ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];
 
                 for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
                 {

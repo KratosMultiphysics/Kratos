@@ -185,7 +185,7 @@ namespace Kratos {
         
     }
     
-    void DEM_D_Hertz_viscous_Coulomb::CalculateForcesWithFEM(double OldLocalContactForce[3],
+    void DEM_D_Hertz_viscous_Coulomb::CalculateForcesWithFEM(const double OldLocalContactForce[3],
                                                              double LocalElasticContactForce[3],
                                                              double LocalDeltDisp[3],
                                                              double LocalRelVel[3],            
@@ -218,7 +218,7 @@ namespace Kratos {
         
         const double Kn = 2.0 * equiv_young * sqrt(my_radius * indentation);
         
-        double RCTS = 2.0 * sqrt(my_mass / mKn);
+        //double RCTS = 2.0 * sqrt(my_mass / mKn);
         
         //std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
         
@@ -226,7 +226,7 @@ namespace Kratos {
         
         delta_force_normal = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2] - OldLocalContactForce[2];
         
-        CalculateTangentialForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, LocalElasticContactForce[2], LocalElasticContactForce,
+        CalculateTangentialForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, OldLocalContactForce, LocalElasticContactForce,
                                         LocalDeltDisp, sliding, element, wall, indentation, previous_indentation, delta_force_normal);
         
     }
@@ -258,7 +258,7 @@ namespace Kratos {
     
     void DEM_D_Hertz_viscous_Coulomb::CalculateTangentialForceWithFEM(double LocalRelVel[3],
                                                     double ViscoDampingLocalContactForce[3],
-                                                    const double normal_force,
+                                                    const double OldLocalContactForce[3],
                                                     double LocalElasticContactForce[3],
                                                     const double LocalDeltDisp[3],            
                                                     bool& sliding,
@@ -277,11 +277,11 @@ namespace Kratos {
         }
         
         else {
-            LocalElasticContactForce[0] -= mKt * LocalDeltDisp[0];
-            LocalElasticContactForce[1] -= mKt * LocalDeltDisp[1];
+            LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
         }
 
-        const double ShearForceMax = (normal_force + ViscoDampingLocalContactForce[2])* WallBallFriction;
+        const double ShearForceMax = (LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2])* WallBallFriction;
         
         const double my_mass               = element->GetMass();
         const double my_ln_of_restit_coeff = element->GetLnOfRestitCoeff();
@@ -307,9 +307,6 @@ namespace Kratos {
         //    ViscoDampingLocalContactForce[0] = - 2.0 * gamma * sqrt(my_mass * mKt) * LocalRelVel[0];
         //    ViscoDampingLocalContactForce[1] = - 2.0 * gamma * sqrt(my_mass * mKt) * LocalRelVel[1];
         //}
-        
-        //KRATOS_WATCH(sliding)
-        
     }
     
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],

@@ -150,8 +150,8 @@ virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 std::vector<SphericParticle*> mNeighbourElements;
 std::vector<DEMWall*>         mNeighbourRigidFaces;
 std::vector<double>           mNeighbourRigidFacesPram;
-std::vector<double>           mNeighbourRigidFacesTotalContactForce;
-std::vector<double>           mNeighbourRigidFacesElasticContactForce;
+std::vector<array_1d<double, 3> >           mNeighbourRigidFacesTotalContactForce;
+std::vector<array_1d<double, 3> >           mNeighbourRigidFacesElasticContactForce;
 
 ///@}
 ///@name Friends
@@ -174,7 +174,14 @@ virtual void ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rElasticFor
                                           double mTimeStep,
                                           int search_control);
 
-virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t ino, double LocalCoordSystem[3][3],double & DistPToB, double Weight[4], array_1d<double, 3 > &other_to_me_vel, int & ContactType);
+virtual void ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, 
+                                        std::size_t ino, 
+                                        double LocalCoordSystem[3][3],
+                                        double & DistPToB, 
+                                        double Weight[4], 
+                                        array_1d<double,3>& wall_delta_disp_at_contact_point,
+                                        array_1d<double, 3 > &wall_velocity_at_contact_point, 
+                                        int & ContactType);
 
 virtual void UpdateDistanceToWall(DEMWall* const wall, 
                                     const int neighbour_index, 
@@ -222,7 +229,8 @@ virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                     SphericParticle* neighbour_iterator,
                     double& distance);
 
-virtual void DisplacementDueToRotation(double DeltDesp[3],
+virtual void DisplacementDueToRotation(const double indentation,
+                    double DeltDesp[3],
                     double RelVel[3],
                     double OldLocalCoordSystem[3][3],
                     const double &other_radius,
@@ -308,7 +316,6 @@ std::vector< array_1d<double, 3> > mNeighbourElasticContactForces;
 std::vector< array_1d<double, 3> > mNeighbourTotalContactForces;
 
 std::vector<int> mFemOldNeighbourIds;
-std::vector< array_1d<double, 3> >  mFemNeighbourContactForces;
 
 int mClusterId;
 

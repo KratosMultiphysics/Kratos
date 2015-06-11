@@ -175,14 +175,14 @@ class Procedures(object):
     def AddCommonVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
         if(DEM_parameters.PostGroupId):
             model_part.AddNodalSolutionStepVariable(GROUP_ID)   
             
     def AddSpheresVariables(self, model_part, Param):
 
-        # KINEMATIC
-        model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
+        # KINEMATIC        
         model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
