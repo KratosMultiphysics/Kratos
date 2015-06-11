@@ -455,12 +455,13 @@ public:
      */
     virtual double Area() const
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+         return Volume(); 
+         
     }
 
 
 
-    virtual double Volume() const
+    virtual double Volume() const //Not a closed formula for a hexahedra
     {
 
         Vector temp;
@@ -495,8 +496,9 @@ public:
      */
     virtual double DomainSize() const
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume(); 
     }
+   
 
     /**
      * Returns whether given arbitrary point is inside the Geometry
