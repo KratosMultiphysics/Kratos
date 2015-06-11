@@ -409,25 +409,36 @@ public:
      * :TODO: might be necessary to reimplement
      */
 
-    virtual double Volume() const
+    virtual double Volume() const //closed formula for the linear triangle
     {
+        const double onesixth = 1.0/6.0;
 
-        Vector temp;
-        DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-        double Volume=0.00;
-        for(unsigned int i=0; i<integration_points.size(); i++)
-        {
-            Volume+= temp[i]*integration_points[i].Weight();
-        }
-        //KRATOS_WATCH(temp)
-        return Volume;
+        const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
+        const CoordinatesArrayType& rP1 = this->Points()[1].Coordinates();
+        const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
+        const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
+        
+        double x10 = rP1[0] - rP0[0];
+        double y10 = rP1[1] - rP0[1];
+        double z10 = rP1[2] - rP0[2];
+        
+        double x20 = rP2[0] - rP0[0];
+        double y20 = rP2[1] - rP0[1];
+        double z20 = rP2[2] - rP0[2];
+        
+        double x30 = rP3[0] - rP0[0];
+        double y30 = rP3[1] - rP0[1];
+        double z30 = rP3[2] - rP0[2];
+
+        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        return  detJ*onesixth;
     }
 
 
-    virtual double DomainSize() const
+    virtual double DomainSize() const  
     {
-        return fabs(DeterminantOfJacobian(PointType())) * 0.5;
+       
+        return Volume();
     }
 
 
