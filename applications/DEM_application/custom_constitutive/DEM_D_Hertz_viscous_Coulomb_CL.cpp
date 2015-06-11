@@ -220,7 +220,7 @@ namespace Kratos {
         
         double RCTS = 2.0 * sqrt(my_mass / mKn);
         
-        std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
+        //std::cout << "Rayleigh's critical time step is = " << RCTS << std::endl << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
         
         ViscoDampingLocalContactForce[2] = -2.0 * sqrt(my_mass * Kn) * gamma * LocalRelVel[2]; ///////////////////////////// vel or 2*vel??????
         
