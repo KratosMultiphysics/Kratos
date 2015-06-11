@@ -22,7 +22,7 @@ namespace Kratos {
     }
 
     void DEM_D_Hertz_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << " Assigning DEM_D_Hertz_viscous_Coulomb to properties " << pProp->Id() << std::endl;
+        //std::cout << " Assigning DEM_D_Hertz_viscous_Coulomb to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -308,7 +308,7 @@ namespace Kratos {
         //    ViscoDampingLocalContactForce[1] = - 2.0 * gamma * sqrt(my_mass * mKt) * LocalRelVel[1];
         //}
         
-        KRATOS_WATCH(sliding)
+        //KRATOS_WATCH(sliding)
         
     }
     
