@@ -143,7 +143,7 @@ namespace Kratos {
         
         double RCTS = 2.0 * sqrt(my_mass / mKn);
         
-        std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
+        //std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
         
         // NORMAL FORCE
         
