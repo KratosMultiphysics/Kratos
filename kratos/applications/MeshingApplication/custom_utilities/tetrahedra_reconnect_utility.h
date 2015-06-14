@@ -121,12 +121,12 @@ public:
     void innerConvertFromKratos(ModelPart& r_model_part, TVolumeMesh *m)
     {
         if (debugMode) std::cout << "Reading nodes"<< "\n";
-  		//reorder node Ids consecutively
-		unsigned int id=1;
-		for (ModelPart::NodesContainerType::iterator i_node = r_model_part.NodesBegin() ; i_node != r_model_part.NodesEnd() ; i_node++)
-				i_node->SetId(id++);
+        //reorder node Ids consecutively
+        unsigned int id=1;
+        for (ModelPart::NodesContainerType::iterator i_node = r_model_part.NodesBegin() ; i_node != r_model_part.NodesEnd() ; i_node++)
+            i_node->SetId(id++);
 
-		//loop on nodes
+        //loop on nodes
         for (ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
         {
             float4 fPos ;
@@ -135,7 +135,7 @@ public:
             fPos.z = it->Z();
             TVertex *v = new TVertex(fPos);
             v->setID( it->Id() );
-			v->blockID = true;
+            v->blockID = true;
             m->vertexes->Add(v);
         }
         if (debugMode) std::cout << "Reading elements"<< "\n";
@@ -181,7 +181,7 @@ public:
         if (debugMode) std::cout << " Number of elements read :"<< m->elements->Count() << "\n";
         m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
         if (debugMode) std::cout << " Number of faces read :"<< m->fFaces->Count() << "\n";
-		
+
     }
 
     ///@brief function innerConvertToKratos
@@ -192,14 +192,14 @@ public:
     void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
     {
         if (debugMode) std::cout << "-------------Generating for Kratos----------------" << "\n";
-		m->vertexes->Sort(sortByID);
+        m->vertexes->Sort(sortByID);
         Element::Pointer pReferenceElement = *(mrModelPart.Elements().begin()).base();
 
         // Mark elements to delete
         // 0 Not remove
         // 1 Remove
         for (int i=0; i< m->vertexes->Count(); i++)
-        {			
+        {
             if (m->vertexes->structure[i]->elementsList->Count() == 0)
                 m->vertexes->elementAt(i)->flag = 1;
             else
@@ -207,22 +207,22 @@ public:
         }
         if (debugMode) std::cout << " Nodes : Mark elements to remove : " << "\n";
         bool shownMessage = false;
-		/* Control de Indices
-		int indexv = 0;
-		TMeshLoader* ml2 = new TVMWLoader();
+        /* Control de Indices
+        int indexv = 0;
+        TMeshLoader* ml2 = new TVMWLoader();
         std::string s("d:/MeshKratos_innerConvertion.vwm");
         ml2->save( s, m);
         delete ml2;
-		*/
-		// Create new Nodes
+        */
+        // Create new Nodes
         for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
         {
-			TVertex* v = m->findVertexById(i_node->Id());			
+            TVertex* v = m->findVertexById(i_node->Id());
             if (v == NULL)
             {
                 if (!shownMessage)
-				  std::cout << "Error at id "<<i_node->Id() << "\n";
-				shownMessage = true;
+                    std::cout << "Error at id "<<i_node->Id() << "\n";
+                shownMessage = true;
                 continue;
             }
             i_node->SetValue(ERASE_FLAG ,v->flag == 1);
@@ -233,7 +233,7 @@ public:
         //add preserved elements to the kratos
         Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(1);
         (mrModelPart.Elements()).reserve(m->elements->Count());
-		bool messageShown = false;
+        bool messageShown = false;
 
         for (int i=0; i< m->elements->Count() ; i++)
         {
@@ -246,8 +246,8 @@ public:
             if ((v0 == NULL) || (v1==NULL) || (v2 == NULL) || (v3 == NULL))
             {
                 if (!messageShown)
-					std::cout << "Invalid vertex access " << t->getID() <<"\n";
-				messageShown = true;
+                    std::cout << "Invalid vertex access " << t->getID() <<"\n";
+                messageShown = true;
                 continue ;
             }
             Tetrahedra3D4<Node<3> > geom(
@@ -346,149 +346,149 @@ public:
         return numNegElements == 0;
     }
 
-	void InterpolateAndAddNewNodes(ModelPart& rModelPart, TVolumeMesh* m, BinBasedFastPointLocator<3>& element_finder)
-		{
-			unsigned int n_points_before_refinement = rModelPart.Nodes().size();
+    void InterpolateAndAddNewNodes(ModelPart& rModelPart, TVolumeMesh* m, BinBasedFastPointLocator<3>& element_finder)
+    {
+        unsigned int n_points_before_refinement = rModelPart.Nodes().size();
 
-			//if the refinement was performed, we need to add it to the model part.
-			if (m->vertexes->Count()>(int)n_points_before_refinement)
-			{				
-				//defintions for spatial search
-				typedef Node < 3 > PointType;
-				typedef Node < 3 > ::Pointer PointTypePointer;
-				array_1d<double, 4 > N;
-				const int max_results = 10000;
-				BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
+        //if the refinement was performed, we need to add it to the model part.
+        if (m->vertexes->Count()>(int)n_points_before_refinement)
+        {
+            //defintions for spatial search
+            typedef Node < 3 > PointType;
+            typedef Node < 3 > ::Pointer PointTypePointer;
+            array_1d<double, 4 > N;
+            const int max_results = 10000;
+            BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
 
-				Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
+            Node<3>::DofsContainerType& reference_dofs = (rModelPart.NodesBegin())->GetDofs();
 
-				int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
-				std::cout <<"...Adding Nodes :"<<  m->vertexes->Count() -  n_points_before_refinement<<"\n";
-				//TODO: parallelize this loop
-				for (int i = n_points_before_refinement; i<m->vertexes->Count(); i++)
-				{
-					int id=i+1;
-					
-					TVertex *v = m->vertexes->elementAt(i);
-					double x= (float)(v->fPos.x);
-					double y= (float)(v->fPos.y);
-					double z= (float)(v->fPos.z);
+            int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
+            std::cout <<"...Adding Nodes :"<<  m->vertexes->Count() -  n_points_before_refinement<<"\n";
+            //TODO: parallelize this loop
+            for (int i = n_points_before_refinement; i<m->vertexes->Count(); i++)
+            {
+                int id=i+1;
 
-					Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
+                TVertex *v = m->vertexes->elementAt(i);
+                double x= (float)(v->fPos.x);
+                double y= (float)(v->fPos.y);
+                double z= (float)(v->fPos.z);
 
-					//putting the new node also in an auxiliary list
-					//KRATOS_WATCH("adding nodes to list")
-					//list_of_new_nodes.push_back( pnode );
+                Node<3>::Pointer pnode = rModelPart.CreateNewNode(id,x,y,z);
 
-					//std::cout << "new node id = " << pnode->Id() << std::endl;
-					//generating the dofs
-					for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
-					{
-						Node<3>::DofType& rDof = *iii;
-						Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+                //putting the new node also in an auxiliary list
+                //KRATOS_WATCH("adding nodes to list")
+                //list_of_new_nodes.push_back( pnode );
 
-						(p_new_dof)->FreeDof();
-					}
+                //std::cout << "new node id = " << pnode->Id() << std::endl;
+                //generating the dofs
+                for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+                {
+                    Node<3>::DofType& rDof = *iii;
+                    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
-					//do interpolation
-					BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
-					Element::Pointer pelement;
+                    (p_new_dof)->FreeDof();
+                }
 
-					bool is_found = element_finder.FindPointOnMesh(pnode->Coordinates(), N, pelement, result_begin, max_results);
+                //do interpolation
+                BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+                Element::Pointer pelement;
 
-					if (is_found == true)
-					{
-						Geometry<Node<3> >& geom = pelement->GetGeometry();
+                bool is_found = element_finder.FindPointOnMesh(pnode->Coordinates(), N, pelement, result_begin, max_results);
 
-						Interpolate( geom, N, step_data_size, pnode);
-					}
+                if (is_found == true)
+                {
+                    Geometry<Node<3> >& geom = pelement->GetGeometry();
+
+                    Interpolate( geom, N, step_data_size, pnode);
+                }
 
 
-				}
-			}
-		//	std::cout << "During refinement we added " << tet.numberofpoints-n_points_before_refinement<< "nodes " <<std::endl;
-		}
+            }
+        }
+        //	std::cout << "During refinement we added " << tet.numberofpoints-n_points_before_refinement<< "nodes " <<std::endl;
+    }
 
-	void setVertexExpectedSize(ModelPart& rModelPart, TVolumeMesh* m )
-	{		
-				for (int el = 0; el< m->elements->Count(); el++)
-				{
-					
-					//calculate the prescribed h
-					/*                double prescribed_h = (nodes_begin + out.tetrahedronlist[old_base]-1)->FastGetSolutionStepValue(NODAL_H);
-					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+1]-1)->FastGetSolutionStepValue(NODAL_H);
-					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+2]-1)->FastGetSolutionStepValue(NODAL_H);
-					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+3]-1)->FastGetSolutionStepValue(NODAL_H);
-					prescribed_h *= 0.25;*/
-					TTetra *t = (TTetra*)(m->elements->elementAt(el));
-					ModelPart::NodesContainerType& rNodes  = rModelPart.Nodes();
-					ModelPart::NodesContainerType::iterator it1 = (rNodes).find( t->vertexes[0]->getID());
-					ModelPart::NodesContainerType::iterator it2 = (rNodes).find( t->vertexes[1]->getID());
-					ModelPart::NodesContainerType::iterator it3 = (rNodes).find( t->vertexes[2]->getID());
-					ModelPart::NodesContainerType::iterator it4 = (rNodes).find( t->vertexes[3]->getID());
+    void setVertexExpectedSize(ModelPart& rModelPart, TVolumeMesh* m )
+    {
+        for (int el = 0; el< m->elements->Count(); el++)
+        {
 
-					if ( it1 == rModelPart.Nodes().end() )
-						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
-					if ( it2 == rModelPart.Nodes().end() )
-						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
-					if ( it3 == rModelPart.Nodes().end() )
-						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
-					if ( it4 == rModelPart.Nodes().end() )
-						KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
+            //calculate the prescribed h
+            /*                double prescribed_h = (nodes_begin + out.tetrahedronlist[old_base]-1)->FastGetSolutionStepValue(NODAL_H);
+            prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+1]-1)->FastGetSolutionStepValue(NODAL_H);
+            prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+2]-1)->FastGetSolutionStepValue(NODAL_H);
+            prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+3]-1)->FastGetSolutionStepValue(NODAL_H);
+            prescribed_h *= 0.25;*/
+            TTetra *t = (TTetra*)(m->elements->elementAt(el));
+            ModelPart::NodesContainerType& rNodes  = rModelPart.Nodes();
+            ModelPart::NodesContainerType::iterator it1 = (rNodes).find( t->vertexes[0]->getID());
+            ModelPart::NodesContainerType::iterator it2 = (rNodes).find( t->vertexes[1]->getID());
+            ModelPart::NodesContainerType::iterator it3 = (rNodes).find( t->vertexes[2]->getID());
+            ModelPart::NodesContainerType::iterator it4 = (rNodes).find( t->vertexes[3]->getID());
 
-					Node<3>::Pointer pn1 =  *it1.base();
-					Node<3>::Pointer pn2 =  *it2.base();
-					Node<3>::Pointer pn3 =  *it3.base();
-					Node<3>::Pointer pn4 =  *it4.base();
+            if ( it1 == rModelPart.Nodes().end() )
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it1->Id());
+            if ( it2 == rModelPart.Nodes().end() )
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it2->Id());
+            if ( it3 == rModelPart.Nodes().end() )
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it3->Id());
+            if ( it4 == rModelPart.Nodes().end() )
+                KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node with id ",it4->Id());
 
-					t->vertexes[0]->expectedSize = (pn1)->FastGetSolutionStepValue(NODAL_H);
-					t->vertexes[1]->expectedSize = (pn2)->FastGetSolutionStepValue(NODAL_H);
-					t->vertexes[2]->expectedSize = (pn3)->FastGetSolutionStepValue(NODAL_H);
-					t->vertexes[3]->expectedSize = (pn4)->FastGetSolutionStepValue(NODAL_H);
+            Node<3>::Pointer pn1 =  *it1.base();
+            Node<3>::Pointer pn2 =  *it2.base();
+            Node<3>::Pointer pn3 =  *it3.base();
+            Node<3>::Pointer pn4 =  *it4.base();
 
-					//if h is the height of a perfect tetrahedra, the edge size is edge = sqrt(3/2) h
-					//filling in the list of "IDEAL" tetrahedron volumes=1/12 * (edge)^3 * sqrt(2)~0.11785* h^3=
-					//0.2165063509*h^3
-//					double prescribed_h = (t->vertexes[0]->expectedSize + t->vertexes[1]->expectedSize + 
+            t->vertexes[0]->expectedSize = (pn1)->FastGetSolutionStepValue(NODAL_H);
+            t->vertexes[1]->expectedSize = (pn2)->FastGetSolutionStepValue(NODAL_H);
+            t->vertexes[2]->expectedSize = (pn3)->FastGetSolutionStepValue(NODAL_H);
+            t->vertexes[3]->expectedSize = (pn4)->FastGetSolutionStepValue(NODAL_H);
+
+            //if h is the height of a perfect tetrahedra, the edge size is edge = sqrt(3/2) h
+            //filling in the list of "IDEAL" tetrahedron volumes=1/12 * (edge)^3 * sqrt(2)~0.11785* h^3=
+            //0.2165063509*h^3
+//					double prescribed_h = (t->vertexes[0]->expectedSize + t->vertexes[1]->expectedSize +
 //										  t->vertexes[2]->expectedSize  +t->vertexes[3]->expectedSize) * 0.25;
-//					
-					//out.tetrahedronvolumelist[counter] = 0.217*prescribed_h*prescribed_h*prescribed_h;
-
-					
-				}
-	}
-		//////////////////////////////////////////////////////////////////////////////////////
-		//////////////////////////////////////////////////////////////////////////////////////
-		void Interpolate( Geometry<Node<3> >& geom, const array_1d<double,4>& N,
-			unsigned int step_data_size,
-			Node<3>::Pointer pnode)
-		{
-			unsigned int buffer_size = pnode->GetBufferSize();
+//
+            //out.tetrahedronvolumelist[counter] = 0.217*prescribed_h*prescribed_h*prescribed_h;
 
 
-			for (unsigned int step = 0; step<buffer_size; step++)
-			{
-
-				//getting the data of the solution step
-				double* step_data = (pnode)->SolutionStepData().Data(step);
-
-
-				double* node0_data = geom[0].SolutionStepData().Data(step);
-				double* node1_data = geom[1].SolutionStepData().Data(step);
-				double* node2_data = geom[2].SolutionStepData().Data(step);
-				double* node3_data = geom[3].SolutionStepData().Data(step);
-
-				//copying this data in the position of the vector we are interested in
-				for (unsigned int j= 0; j<step_data_size; j++)
-				{
-
-					step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
+        }
+    }
+    //////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
+    void Interpolate( Geometry<Node<3> >& geom, const array_1d<double,4>& N,
+                      unsigned int step_data_size,
+                      Node<3>::Pointer pnode)
+    {
+        unsigned int buffer_size = pnode->GetBufferSize();
 
 
-				}
-			}
-			pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
-		}
+        for (unsigned int step = 0; step<buffer_size; step++)
+        {
+
+            //getting the data of the solution step
+            double* step_data = (pnode)->SolutionStepData().Data(step);
+
+
+            double* node0_data = geom[0].SolutionStepData().Data(step);
+            double* node1_data = geom[1].SolutionStepData().Data(step);
+            double* node2_data = geom[2].SolutionStepData().Data(step);
+            double* node3_data = geom[3].SolutionStepData().Data(step);
+
+            //copying this data in the position of the vector we are interested in
+            for (unsigned int j= 0; j<step_data_size; j++)
+            {
+
+                step_data[j] = N[0]*node0_data[j] + N[1]*node1_data[j] + N[2]*node2_data[j] + N[3]*node3_data[j];
+
+
+            }
+        }
+        pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
+    }
 
     void OptimizeQuality(ModelPart& r_model_part,int simIter, int iterations ,
                          bool processByNode, bool processByFace, bool processByEdge,
@@ -497,8 +497,8 @@ public:
     {
         this->debugMode = debugMode;
         m->vertexes->Sort(sortByID);
-		
-		
+
+
         // Save the mesh as generated from Kratos
         if (saveToFile)
         {
@@ -508,33 +508,33 @@ public:
             delete ml2;
         }
         if (debugMode && saveToFile)
-		{
+        {
             EvaluateQuality();
-			setVertexExpectedSize(r_model_part , m);
-			std::cout <<"...Start Optimization..." <<"\n";
-			TVMWLoader* ml2 = new TVMWLoader();
-			std::string s("");
+            setVertexExpectedSize(r_model_part , m);
+            std::cout <<"...Start Optimization..." <<"\n";
+            TVMWLoader* ml2 = new TVMWLoader();
+            std::string s("");
             s = "../out_MeshFromKratos" + intToString(simIter)+".vwm";
-            
+
             ml2->save( s.data(), m);
             delete ml2;
 
-			return ; 
-		}
+            return ;
+        }
 
         if (debugMode) std::cout <<"...Start Optimization..." <<"\n";
-		// maxNumThreads works as a FLAG
-		//    when equals to 0, take "max available threads"
-		//    in other case, take "set num threads"
+        // maxNumThreads works as a FLAG
+        //    when equals to 0, take "max available threads"
+        //    in other case, take "set num threads"
 
         if ( maxNumThreads == 0)
-		{
-			#ifdef _OPENMP
-			OpenMPUtils::SetNumThreads(omp_get_max_threads());			
-			#endif
-		}
-		else
-			OpenMPUtils::SetNumThreads(maxNumThreads);
+        {
+#ifdef _OPENMP
+            OpenMPUtils::SetNumThreads(omp_get_max_threads());
+#endif
+        }
+        else
+            OpenMPUtils::SetNumThreads(maxNumThreads);
 
         if (debugMode)
         {
@@ -546,9 +546,9 @@ public:
         {
             stopTimers();
         }
-		std::cout <<"...Trying to allocate memory\n";
-		preparePool();
-		std::cout <<"...Allocate memory OK\n";
+        std::cout <<"...Trying to allocate memory\n";
+        preparePool();
+        std::cout <<"...Allocate memory OK\n";
 
         for (int iter = 0 ; iter< iterations ; iter ++)
         {
@@ -641,18 +641,18 @@ public:
             tryToReinsertNodes();
         }
 
-		// Sino pudo mejorar la malla
-		/*
-		TVolumeMesh* m2 = (TVolumeMesh*)(GenerateMesh(m));
-		m= m2;
-		*/
-		///------------------------------
-		//construct spatial structure with an auxiliary model part
+        // Sino pudo mejorar la malla
+        /*
+        TVolumeMesh* m2 = (TVolumeMesh*)(GenerateMesh(m));
+        m= m2;
+        */
+        ///------------------------------
+        //construct spatial structure with an auxiliary model part
 
-		std::cout <<"...Interpolating and adding new Nodes..." <<"\n";
-		BinBasedFastPointLocator<3> element_finder(r_model_part);
-		element_finder.UpdateSearchDatabase();
-		InterpolateAndAddNewNodes(r_model_part, m,element_finder);
+        std::cout <<"...Interpolating and adding new Nodes..." <<"\n";
+        BinBasedFastPointLocator<3> element_finder(r_model_part);
+        element_finder.UpdateSearchDatabase();
+        InterpolateAndAddNewNodes(r_model_part, m,element_finder);
 
     }
     ///@brief function tryToReinsertNodes
@@ -676,11 +676,11 @@ public:
         // Get back in Kratos
         innerConvertToKratos(refMP , m , removeFreeVertexes);
         delete m;
-        m = NULL;		
-		std::cout <<"...Trying to release memory\n";
-		clearPool();
-		std::cout <<"...Release memory OK\n";
-		
+        m = NULL;
+        std::cout <<"...Trying to release memory\n";
+        clearPool();
+        std::cout <<"...Release memory OK\n";
+
     }
 
 
