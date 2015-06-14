@@ -545,10 +545,10 @@ private:
                     //look if we are already erasing any of the other nodes
                     unsigned int erased_nodes = 0;
                     for (PointIterator i = res.begin(); i != res.begin() + n_points_in_radius; i++)
-                        erased_nodes += (*i)->GetValue(ERASE_FLAG);
+                        erased_nodes += (*i)->Is(TO_ERASE);
 
                     if (erased_nodes < 1) //we cancel the node if no other nodes are being erased
-                        in->GetValue(ERASE_FLAG) = 1;
+                        in->Set(TO_ERASE, true);
 
                 }
                 else if ((in)->FastGetSolutionStepValue(IS_STRUCTURE) != 1.0)   //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
@@ -566,7 +566,7 @@ private:
                         k++;
                     }
                     if (counter > 0)
-                        in->GetValue(ERASE_FLAG) = 1;
+                        in->Set(TO_ERASE, true);
                 }
             }
 
@@ -583,7 +583,7 @@ private:
 //                for(unsigned int i=0; i<geom.size(); i++)
 //                {
 //                   if(geom[i].FastGetSolutionStepValue(IS_STRUCTURE) == 0) //we identify the node that is "free" to move
-//                         { geom[i].GetValue(ERASE_FLAG) = 1;}
+//                         { geom[i].Set(TO_ERASE, true);}
 //                }
 //            }
 
@@ -618,7 +618,7 @@ private:
                         if(h < havg * 0.4) //cancel it if it gets too close
                         {
                             KRATOS_WATCH(geom[iii].Id());
-                            geom[iii].GetValue(ERASE_FLAG) = 1;
+                            geom[iii].Set(TO_ERASE, true);
                         }
                     }
 
@@ -632,7 +632,7 @@ private:
 
 //             Node<3>::Pointer temp = ThisModelPart.Nodes()(807);
 
-//             KRATOS_WATCH(temp->GetValue(ERASE_FLAG));
+//             KRATOS_WATCH(temp->Is(TO_ERASE));
 //             KRATOS_WATCH(temp->Id());
 
 //             KRATOS_WATCH(ThisModelPart.Nodes().size());

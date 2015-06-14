@@ -220,23 +220,23 @@ public:
 
                         double erased_nodes = 0;
                         for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-                            erased_nodes += (*i)->GetValue(ERASE_FLAG);
+                            erased_nodes += (*i)->Is(TO_ERASE);
 
 
                         if( erased_nodes < 1.0) //we cancel the node if no other nodes are being erased
-                            in->GetValue(ERASE_FLAG)=1;
+                            in->Set(TO_ERASE,true);
 
                     }
                 }
                 /*
-                if (in->GetValue(ERASE_FLAG)!=1.0)
+                if (in->Is(TO_ERASE)!=1.0)
                 	{
                 	for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius; i++)
                 		{
                 		// not to remove the boundary nodes
                 		if ( (*i)->FastGetSolutionStepValue(IS_BOUNDARY)!=1.0  )
                 				{
-                				(*i)->GetValue(ERASE_FLAG)=0.0;
+                				(*i)->Set(TO_ERASE,false);
                 				KRATOS_WATCH("ERASING NODE!!!!!!!!!!!")
                 				}
                 		}
@@ -248,7 +248,7 @@ public:
                     in != ThisModelPart.NodesEnd(); in++)
             {
                 if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 || (in)->FastGetSolutionStepValue(IS_STRUCTURE) == 1.0 || (in)->FastGetSolutionStepValue(FLAG_VARIABLE) == 5.0 )
-                    in->GetValue(ERASE_FLAG) = 0;
+                    in->Set(TO_ERASE, false);
 
             }
 
@@ -962,14 +962,14 @@ public:
         //if this is a node added during refinement, but isnt contained in any element
         if (aux_after_ref[in->GetId()]==0 && in->GetId()>aux_before_ref.size() && in->GetId()<aux_after_ref.size())
         	{
-        	in->GetValue(ERASE_FLAG)=1;
+        	in->Set(TO_ERASE,true);
         	KRATOS_WATCH("This is that ugly ugly lonely interior node a666a. IT SHALL BE TERRRRMINATED!!!!!!")
         	KRATOS_WATCH(in->GetId())
         	}
         //if this was an interior node after first step and became single due to derefinement - erase it
         if (aux_after_ref[in->GetId()]==0 && in->GetId()<aux_before_ref.size() && aux_before_ref[in->GetId()]!=0)
         	{
-        	in->GetValue(ERASE_FLAG)=1;
+        	in->Set(TO_ERASE,true);
         	KRATOS_WATCH("This is that ugly ugly lonely interior node. IT SHALL BE TERRRRMINATED!!!!!!")
         	}
         }
@@ -1142,7 +1142,7 @@ private:
         pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
         pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
         pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
-        pnode->GetValue(ERASE_FLAG)=0.0;
+        pnode->Set(TO_ERASE,false);
 
         pnode->FastGetSolutionStepValue(IS_BOUNDARY,1)=0.0;
         pnode->FastGetSolutionStepValue(IS_STRUCTURE,1)=0.0;

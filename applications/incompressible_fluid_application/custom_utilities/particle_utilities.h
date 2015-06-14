@@ -133,7 +133,7 @@ public:
         {
             Node < 3 > ::Pointer pnode = *(node_it.base());
 
-            pnode->GetValue(ERASE_FLAG) = true;
+            pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
         }
@@ -187,7 +187,7 @@ public:
 
                     noalias(disp) += small_dt*veulerian;
 
-                    (pparticle)->GetValue(ERASE_FLAG) = false;
+                    (pparticle)->Set(TO_ERASE, false);
 
                     noalias(acc_particle) = ZeroVector(3);
                     noalias(acc_particle1) = ZeroVector(3);
@@ -235,9 +235,9 @@ public:
             double norm_v = norm_2(v_old);
 
             if(norm_delta_disp*3.0 < norm_v*dt )
-                it->GetValue(ERASE_FLAG) = true;
+                it->Set(TO_ERASE, true);
             if(norm_delta_disp* (0.333333333333333*0.001) >  norm_v*dt )
-                it->GetValue(ERASE_FLAG) = true;
+                it->Set(TO_ERASE, true);
         }
 
         //perform the erase
@@ -429,7 +429,7 @@ public:
 
         for (ModelPart::NodesContainerType::iterator pparticle = rLagrangianModelPart.NodesBegin(); pparticle != rLagrangianModelPart.NodesEnd(); pparticle++)
         {
-            pparticle->SetValue(ERASE_FLAG,false);
+            pparticle->Set(TO_ERASE,false);
         }
 
 
@@ -490,7 +490,7 @@ public:
                         /* KRATOS_WATCH("BOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR");
                          KRATOS_WATCH("BOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR");
                          KRATOS_WATCH("BOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR");	*/
-                        pparticle->SetValue(ERASE_FLAG,true);
+                        pparticle->Set(TO_ERASE,true);
                         #pragma omp atomic
                         counter -=1.0;
                     }
@@ -499,7 +499,7 @@ public:
                 {
                     if(counter  > 20.0)
                     {
-                        pparticle->SetValue(ERASE_FLAG,true);
+                        pparticle->Set(TO_ERASE,true);
                         #pragma omp atomic
                         counter -=1.0;
                     }
@@ -644,7 +644,7 @@ public:
         {
             Node < 3 > ::Pointer pnode = *(node_it.base());
 
-            //pnode->GetValue(ERASE_FLAG) = true;
+            //pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
         }
@@ -678,7 +678,7 @@ public:
                     bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
                     if(is_found==false)
                     {
-                        pparticle->SetValue(ERASE_FLAG,true);
+                        pparticle->Set(TO_ERASE,true);
                     }
                     if (is_found == true)
                     {
@@ -703,7 +703,7 @@ public:
                         ////////////////////
 
 
-                        //(pparticle)->GetValue(ERASE_FLAG) = false;
+                        //(pparticle)->Set(TO_ERASE, false);
                         //double pp=(iparticle)->X();
                         //double pp1=(iparticle)->Y();
                         //double pp2=(iparticle)->Z();
@@ -762,7 +762,7 @@ public:
         {
             Node < 3 > ::Pointer pnode = *(node_it.base());
 
-            //pnode->GetValue(ERASE_FLAG) = true;
+            //pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
         }
@@ -796,7 +796,7 @@ public:
                     bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
                     if(is_found==false)
                     {
-                        pparticle->SetValue(ERASE_FLAG,true);
+                        pparticle->Set(TO_ERASE,true);
                     }
                     if (is_found == true)
                     {
@@ -829,7 +829,7 @@ public:
                         ////////////////////
 
 
-                        //(pparticle)->GetValue(ERASE_FLAG) = false;
+                        //(pparticle)->Set(TO_ERASE, false);
                         //double pp=(iparticle)->X();
                         //double pp1=(iparticle)->Y();
                         //double pp2=(iparticle)->Z();
@@ -885,7 +885,7 @@ public:
                 node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
         {
             Node < 3 > ::Pointer pnode = *(node_it.base());
-            pnode->GetValue(ERASE_FLAG) = true;
+            pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
         }
@@ -941,7 +941,7 @@ public:
 
                         noalias(disp) += small_dt*veulerian;
 
-                        (pparticle)->GetValue(ERASE_FLAG) = false;
+                        (pparticle)->Set(TO_ERASE, false);
 
                         noalias(acc_particle) = ZeroVector(3);
                         noalias(acc_particle1) = ZeroVector(3);
@@ -1192,8 +1192,8 @@ public:
                     }
 
                     /*if( density_element ==1.00 )density=1.0;
-                    else if(density_element >1.00 and density_element<500){density=1.0; pparticle->GetValue(ERASE_FLAG) = true;}
-                    else if( density_element >=500.00 and density_element<1000) {density=1000.0;  pparticle->GetValue(ERASE_FLAG) = true;}
+                    else if(density_element >1.00 and density_element<500){density=1.0; pparticle->Set(TO_ERASE, true);}
+                    else if( density_element >=500.00 and density_element<1000) {density=1000.0;  pparticle->Set(TO_ERASE, true);}
                     else if(density_element=1000.0) density=1000.0;*/
                 }
             }

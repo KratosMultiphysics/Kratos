@@ -185,7 +185,7 @@ public:
             if(erase == true)
             {
                 n_erased += 1;
-                in->GetValue(ERASE_FLAG) = true;
+                in->Set(TO_ERASE, true);
                 std::cout << "erasing outer node at " << in->X() << " " << in->Y() << " " << in->Z() << std::endl;
             }
         }

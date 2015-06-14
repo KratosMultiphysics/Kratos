@@ -189,7 +189,7 @@ namespace Kratos
 						{
 						if (in->FastGetSolutionStepValue(IS_BOUNDARY)==0.0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0.0)
 							{
-							in->GetValue(ERASE_FLAG)=1;
+							in->Set(TO_ERASE,true);
 							//below is just for the bladder example
 							
 							}
@@ -854,14 +854,14 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			//if this is a node added during refinement, but isnt contained in any element
 			if (aux_after_ref[in->GetId()]==0 && in->GetId()>aux_before_ref.size() && in->GetId()<aux_after_ref.size())
 				{
-				in->GetValue(ERASE_FLAG)=1;
+				in->Set(TO_ERASE,true);
 				KRATOS_WATCH("This is that ugly ugly lonely interior node a666a. IT SHALL BE TERRRRMINATED!!!!!!")
 				KRATOS_WATCH(in->GetId())
 				}
 			//if this was an interior node after first step and became single due to derefinement - erase it			
 			if (aux_after_ref[in->GetId()]==0 && in->GetId()<aux_before_ref.size() && aux_before_ref[in->GetId()]!=0)
 				{
-				in->GetValue(ERASE_FLAG)=1;
+				in->Set(TO_ERASE,true);
 				KRATOS_WATCH("This is that ugly ugly lonely interior node. IT SHALL BE TERRRRMINATED!!!!!!")
 				}
 			}

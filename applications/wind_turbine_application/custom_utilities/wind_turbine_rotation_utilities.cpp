@@ -1789,17 +1789,17 @@ void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
         itr != mrGlobalModelPart.NodesEnd();
         itr++)
     {
-        itr->GetValue(ERASE_FLAG) = true;
+        itr->Set(TO_ERASE, true);
     }
 
-    // marking nodes belonging to elements and conditions with ERASE_FLAG = false
+    // marking nodes belonging to elements and conditions with TO_ERASE = false
     for (ModelPart::ElementsContainerType::iterator itr = mrGlobalModelPart.ElementsBegin();
         itr != mrGlobalModelPart.ElementsEnd();
         itr++)
     {
         for( unsigned int n = 0; n < mNumberOfNodesPerElement; n++ )
         {
-            itr->GetGeometry()[n].GetValue(ERASE_FLAG) = false;
+            itr->GetGeometry()[n].Set(TO_ERASE, false);
         }
     }
 
@@ -1809,7 +1809,7 @@ void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
     {
         for( unsigned int n = 0; n < mNumberOfNodesPerElement-1; n++ )
         {
-            itr->GetGeometry()[n].GetValue(ERASE_FLAG) = false;
+            itr->GetGeometry()[n].Set(TO_ERASE, false);
         }
     }
 
@@ -1818,7 +1818,7 @@ void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
         itr != mrGlobalModelPart.NodesEnd();
         itr++)
     {
-        if (itr->GetValue(ERASE_FLAG) == true)
+        if (itr->Is(TO_ERASE) == true)
             orphanCounter++;
     }
 

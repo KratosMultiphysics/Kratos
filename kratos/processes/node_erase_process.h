@@ -59,6 +59,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 
 // External includes
+#include "includes/kratos_flags.h"
+
 
 
 // Project includes
@@ -152,7 +154,7 @@ public:
 
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
         {
-            if( static_cast<bool>(i_node->GetValue(ERASE_FLAG)) == false)
+            if( static_cast<bool>(i_node->Is(TO_ERASE)) == false)
                 (mr_model_part.Nodes()).push_back(*(i_node.base()));
         }
 

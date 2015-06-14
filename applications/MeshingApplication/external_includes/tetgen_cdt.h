@@ -254,8 +254,8 @@ namespace Kratos
 			for (ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
 			{
 				if ( static_cast<bool>(i_node->FastGetSolutionStepValue(IS_BOUNDARY)) == true)
-					i_node->GetValue(ERASE_FLAG) = false;
-				if ( static_cast<bool>(i_node->GetValue(ERASE_FLAG)) == false)
+					i_node->Set(TO_ERASE, false);
+				if ( static_cast<bool>(i_node->Is(TO_ERASE)) == false)
 					(ThisModelPart.Nodes()).push_back(*(i_node.base()));
 			}
 
@@ -358,7 +358,7 @@ namespace Kratos
 			for(unsigned int i=0; i< static_cast<unsigned int>(outnew.numberofpoints); i++)
 			{
 				if(el_per_node[i] == 0) //node is alone
-					ThisModelPart.Nodes().find( i+1 )->SetValue(ERASE_FLAG,true);
+					ThisModelPart.Nodes().find( i+1 )->Set(TO_ERASE,true);
 			}
 
 			//do erasing
@@ -367,7 +367,7 @@ namespace Kratos
 			aux_nodes_container.swap(ThisModelPart.Nodes());
 			for (ModelPart::NodesContainerType::iterator i_node = aux_nodes_container.begin() ; i_node != aux_nodes_container.end() ; i_node++)
 			{
-				if ( static_cast<bool>(i_node->GetValue(ERASE_FLAG)) == false)
+				if ( static_cast<bool>(i_node->Is(TO_ERASE)) == false)
 					(ThisModelPart.Nodes()).push_back(*(i_node.base()));
 			}
 

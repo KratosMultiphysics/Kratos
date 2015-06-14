@@ -151,7 +151,7 @@ public:
         {
             PointTypePointer pnode = *(node_it.base());
 
-            pnode->GetValue(ERASE_FLAG) = true;
+            pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
             //putting the nodes of the destination_model part in an auxiliary list
@@ -382,7 +382,7 @@ public:
         {
             PointTypePointer pnode = *(node_it.base());
 
-            pnode->GetValue(ERASE_FLAG) = true;
+            pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
             //putting the nodes of the destination_model part in an auxiliary list
@@ -464,7 +464,7 @@ public:
 
                             noalias(disp) += small_dt*veulerian;
 
-                            (*it_found)->GetValue(ERASE_FLAG) = false;
+                            (*it_found)->Set(TO_ERASE, false);
 
                             if (substep == 0 && use_eulerian_velocity == true)
                             {
@@ -523,7 +523,7 @@ public:
         {
             Node < 3 > ::Pointer pnode = *(node_it.base());
 
-            pnode->GetValue(ERASE_FLAG) = true;
+            pnode->Set(TO_ERASE, true);
             node_it->GetValue(IS_VISITED) = 0;
 
             //reset the position to the position at the end of the step
@@ -558,7 +558,7 @@ public:
             while(substep++ < subdivisions)
             {
                 ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-                (iparticle)->GetValue(ERASE_FLAG) = true;
+                (iparticle)->Set(TO_ERASE, true);
 
                 Node < 3 > ::Pointer pparticle = *(iparticle.base());
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -607,7 +607,7 @@ public:
 
                     noalias(disp) += small_dt*veulerian;
 
-                    (pparticle)->GetValue(ERASE_FLAG) = false;
+                    (pparticle)->Set(TO_ERASE, false);
                     //	KRATOS_WATCH("585")
 
                     //compute particle velocity
@@ -651,7 +651,7 @@ public:
 //			for (ModelPart::NodesContainerType::iterator it = rLagrangianModelPart.NodesBegin();
 //			        it != rLagrangianModelPart.NodesEnd(); it++)
 //			{
-//				if (it->GetValue (ERASE_FLAG) != true)
+//				if (it->Is(TO_ERASE)!= true)
 //				{
 //					array_1d<double,3> delta_disp = it->FastGetSolutionStepValue (DISPLACEMENT);
 //					noalias (delta_disp) -= it->FastGetSolutionStepValue (DISPLACEMENT,1);
@@ -663,9 +663,9 @@ public:
 //					array_1d<double,3> v_old = it->FastGetSolutionStepValue (VELOCITY,1);
 //					double norm_v = norm_2 (v_old);
 //					if (norm_delta_disp*3.0 < norm_v*dt )
-//						it->GetValue (ERASE_FLAG) = true;
+//						it->Set(TO_ERASE, true);
 //					if (norm_delta_disp*0.333333333333333 >  norm_v*dt )
-//						it->GetValue (ERASE_FLAG) = true;
+//						it->Set(TO_ERASE, true);
 //				}
 //			}
 
@@ -848,7 +848,7 @@ public:
         for (ModelPart::NodesContainerType::iterator pparticle = rLagrangianModelPart.NodesBegin();
                 pparticle != rLagrangianModelPart.NodesEnd(); pparticle++)
         {
-            pparticle->SetValue(ERASE_FLAG,false);;
+            pparticle->Set(TO_ERASE,false);;
         }
 
         //count particles that fall within an element
@@ -897,13 +897,13 @@ public:
                 double& counter = pelement->GetValue(YOUNG_MODULUS);
 
                 if(counter < min_number_of_particles)
-                    pparticle->SetValue(ERASE_FLAG,true);
+                    pparticle->Set(TO_ERASE,true);
                 else if(counter > max_number_of_particles) //delete if there are too many
                 {
                     #pragma omp atomic
                     counter -= 1;
 
-                    pparticle->SetValue(ERASE_FLAG,true);
+                    pparticle->Set(TO_ERASE,true);
                 }
             }
 

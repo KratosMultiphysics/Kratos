@@ -151,7 +151,7 @@ public:
 
         for(ModelPart::ElementsContainerType::iterator i_elem = temp_container.begin() ; i_elem != temp_container.end() ; i_elem++)
         {
-            if( static_cast<bool>(i_elem->GetValue(ERASE_FLAG)) == false)
+            if( static_cast<bool>(i_elem->Is(TO_ERASE)) == false)
                 (mr_model_part.Elements()).push_back(*(i_elem.base()));
         }
 

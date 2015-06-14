@@ -191,10 +191,10 @@ namespace Kratos
                             //look if we are already erasing any of the other nodes
                             double erased_nodes = 0;
                             for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-                                erased_nodes += in->GetValue(ERASE_FLAG);
+                                erased_nodes += in->Is(TO_ERASE);
 
                             if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
-                                in->GetValue(ERASE_FLAG)=1;
+                                in->Set(TO_ERASE,true);
                         }
                         else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
                         {
@@ -212,7 +212,7 @@ namespace Kratos
                                 k++;
                             }
                             if(counter > 0)
-                                in->GetValue(ERASE_FLAG)=1;
+                                in->Set(TO_ERASE,true);
                         }
                     }
 
@@ -877,14 +877,14 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			//if this is a node added during refinement, but isnt contained in any element
 			if (aux_after_ref[in->GetId()]==0 && in->GetId()>aux_before_ref.size() && in->GetId()<aux_after_ref.size())
 				{
-				in->GetValue(ERASE_FLAG)=1;
+				in->Set(TO_ERASE,true);
 				KRATOS_WATCH("This is that ugly ugly lonely interior node a666a. IT SHALL BE TERRRRMINATED!!!!!!")
 				KRATOS_WATCH(in->GetId())
 				}
 			//if this was an interior node after first step and became single due to derefinement - erase it			
 			if (aux_after_ref[in->GetId()]==0 && in->GetId()<aux_before_ref.size() && aux_before_ref[in->GetId()]!=0)
 				{
-				in->GetValue(ERASE_FLAG)=1;
+				in->Set(TO_ERASE,true);
 				KRATOS_WATCH("This is that ugly ugly lonely interior node. IT SHALL BE TERRRRMINATED!!!!!!")
 				}
 			}

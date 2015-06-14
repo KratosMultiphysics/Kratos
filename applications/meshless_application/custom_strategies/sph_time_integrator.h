@@ -235,12 +235,12 @@ public:
         for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
             i!=ThisModelPart.ElementsEnd(); i++)
         {
-            if (i->GetGeometry()(0)->GetValue(ERASE_FLAG) == true ){
+            if (i->GetGeometry()(0)->Is(TO_ERASE) == true ){
                 ParticleWeakVectorType& neighbours = i->GetValue(NEIGHBOUR_ELEMENTS);
 
                 for(ParticleWeakIteratorType neighbour_iterator =neighbours.begin(); neighbour_iterator != neighbours.end(); neighbour_iterator++)
                 {
-                    neighbour_iterator->GetGeometry()(0)->GetValue(ERASE_FLAG) = true ;
+                    neighbour_iterator->GetGeometry()(0)->Set(TO_ERASE, true) ;
 
                 }
             }
@@ -249,12 +249,12 @@ public:
         for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
             i!=ThisModelPart.ElementsEnd(); i++)
         {
-            if (i->GetGeometry()(0)->GetValue(ERASE_FLAG) == true ){
+            if (i->GetGeometry()(0)->Is(TO_ERASE) == true ){
                 ParticleWeakVectorType& neighbours = i->GetValue(NEIGHBOUR_ELEMENTS);
 
                 for(ParticleWeakIteratorType neighbour_iterator =neighbours.begin(); neighbour_iterator != neighbours.end(); neighbour_iterator++)
                 {
-                    neighbour_iterator->GetGeometry()(0)->GetValue(ERASE_FLAG) = true ;
+                    neighbour_iterator->GetGeometry()(0)->Set(TO_ERASE, true) ;
 
                 }
             }
@@ -449,7 +449,7 @@ public:
             if (erase == true)
             {
                 n_erased += 1;
-                in->GetValue(ERASE_FLAG) = true;
+                in->Set(TO_ERASE, true);
             }
         }
 

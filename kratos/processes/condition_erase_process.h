@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 
 
 namespace Kratos
@@ -151,7 +152,7 @@ public:
 
         for(ModelPart::ConditionsContainerType::iterator i_elem = temp_container.begin() ; i_elem != temp_container.end() ; i_elem++)
         {
-            if( static_cast<bool>(i_elem->GetValue(ERASE_FLAG)) == false)
+            if( static_cast<bool>(i_elem->Is(TO_ERASE)) == false)
                 (mr_model_part.Conditions()).push_back(*(i_elem.base()));
         }
 

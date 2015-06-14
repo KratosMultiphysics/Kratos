@@ -193,7 +193,7 @@ public:
             if(erase == true)
             {
                 n_erased += 1;
-                in->GetValue(ERASE_FLAG) = true;
+                in->Set(TO_ERASE, true);
             }
         }
 

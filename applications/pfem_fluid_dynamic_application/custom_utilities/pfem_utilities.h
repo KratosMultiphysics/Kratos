@@ -731,7 +731,7 @@ public:
             if (erase == true)
             {
                 n_erased += 1;
-                in->GetValue(ERASE_FLAG) = true;
+                in->Set(TO_ERASE, true);
             }
         }
 
@@ -767,7 +767,7 @@ public:
                 for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
-                    if (static_cast<bool> (i->GetValue(ERASE_FLAG)) == false) //we can erase the current node only if the neighb is not to be erased
+                    if (static_cast<bool> (i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased
                     {
                         double dx = i->X() - in->X();
                         double dy = i->Y() - in->Y();
@@ -776,7 +776,7 @@ public:
                         double dist2 = dx * dx + dy * dy + dz*dz;
 
                         if (dist2 < fact2 * hnode2)
-                            in->GetValue(ERASE_FLAG) = true;
+                            in->Set(TO_ERASE, true);
                     }
                 }
             }
@@ -1226,7 +1226,7 @@ public:
                             //if thats not the wall node, remove it
                             if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0)
                             {
-                                geom[i].GetValue(ERASE_FLAG) = true;
+                                geom[i].Set(TO_ERASE, true);
                                 std::cout << "geom[i] = " << geom[i] << std::endl;
                                 //KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
                             }
@@ -1335,7 +1335,7 @@ public:
                                 //if thats not the wall node, remove it
                                 if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
                                 {
-                                    geom[i].GetValue(ERASE_FLAG) = true;
+                                    geom[i].Set(TO_ERASE, true);
                                     std::cout << "geom[i] = " << geom[i] << std::endl;
 
                                     KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
@@ -1419,7 +1419,7 @@ public:
                             //if thats not the wall node, remove it
                             if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0 && geom[i].FastGetSolutionStepValue(IS_INTERFACE) == 0.0)
                             {
-                                geom[i].GetValue(ERASE_FLAG) = true;
+                                geom[i].Set(TO_ERASE, true);
                                 //KRATOS_WATCH("NODE TOUCHING THE INTERFACE - WILL BE ERASED!!!!")
                                 //KRATOS_WATCH(outer_prod)
                             }
@@ -1432,7 +1432,7 @@ public:
             /*for(ModelPart::NodeIterator ind = ThisModelPart.NodesBegin(); ind != ThisModelPart.NodesEnd(); ++ind)
                     {
                     if(ind->FastGetSolutionStepValue(IS_INTERFACE) ==1.0)
-                            ind->GetValue(ERASE_FLAG) = 0.0;
+                            ind->Set(TO_ERASE, false);
 
                     }*/
 
@@ -1531,7 +1531,7 @@ public:
                         if (fabs(dist_to_surf) < factor * hnode2)
                         {
                             geom[non_interface_id].SetLock();
-                            geom[non_interface_id].GetValue(ERASE_FLAG) = true;
+                            geom[non_interface_id].Set(TO_ERASE, true);
 
                             geom[non_interface_id].UnSetLock();
 
