@@ -681,10 +681,10 @@ private:
                     //look if we are already erasing any of the other nodes
                     double erased_nodes = 0;
                     for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-                        erased_nodes += in->GetValue(ERASE_FLAG);
+                        erased_nodes += in->Is(TO_ERASE);
 
                     if( erased_nodes < 1) //we cancel the node if no other nodes are being erased
-                        in->GetValue(ERASE_FLAG)=1;
+                        in->Set(TO_ERASE,true);
 
                 }
                 else if ( (in)->FastGetSolutionStepValue(IS_STRUCTURE)!=1.0) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2 * h_factor)
@@ -703,7 +703,7 @@ private:
                         k++;
                     }
                     if(counter > 0)
-                        in->GetValue(ERASE_FLAG)=1;
+                        in->Set(TO_ERASE,true);
                 }
             }
 
@@ -1150,7 +1150,7 @@ private:
         pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
         pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
         pnode->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
-        pnode->GetValue(ERASE_FLAG)=0.0;
+        pnode->Set(TO_ERASE,false);
         pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
         pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
     }

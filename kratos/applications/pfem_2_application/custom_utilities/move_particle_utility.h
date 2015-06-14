@@ -1584,14 +1584,14 @@ namespace Kratos
 							}
 							else 
 							{
-								pparticle->GetValue(ERASE_FLAG)=true; //so we just delete it!
+								pparticle->Is(TO_ERASE)=true; //so we just delete it!
 								//and we correct the value
 								if (number_of_particles_in_elem>mmaximum_number_of_particles)
 										number_of_particles_in_elem=mmaximum_number_of_particles;
 							}
 						}
 						else 
-							pparticle->GetValue(ERASE_FLAG)=true; //so we just delete it!
+							pparticle->Is(TO_ERASE)=true; //so we just delete it!
 						*/
 
 						
@@ -3452,7 +3452,7 @@ namespace Kratos
 					WeakPointerVector< Node<3> >::iterator iparticle = ielem->GetValue(NEIGHBOUR_NODES).begin();
 					for (unsigned int i=0; i!=(extra_particles);i++)
 					{	
-						iparticle->GetValue(ERASE_FLAG)=true;
+						iparticle->Is(TO_ERASE)=true;
 						iparticle++;
 					}
 					*/ 

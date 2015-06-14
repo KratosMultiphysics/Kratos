@@ -161,7 +161,7 @@ public:
                 if (dist_sq<0.1*(i->GetValue(NODAL_H))*(i->GetValue(NODAL_H)) && in->GetId()>i->GetId())
                     //if (dist_sq<0.001 && in->GetId()>i->GetId())
                 {
-                    i->GetValue(ERASE_FLAG)= true;
+                    i->Is(TO_ERASE)= true;
                     KRATOS_WATCH("ERASING NODE!!!!!!");
                     KRATOS_WATCH(in->GetId());
 

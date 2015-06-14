@@ -157,7 +157,7 @@ public:
                 for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
-                    if(i->GetValue(ERASE_FLAG) == false) //we can erase the current node only if the neighb is not to be erased
+                    if(i->Is(TO_ERASE) == false) //we can erase the current node only if the neighb is not to be erased
                     {
                         double dx = i->X() - in->X();
                         double dy = i->Y() - in->Y();
@@ -166,7 +166,7 @@ public:
                         double dist2 = dx*dx + dy*dy + dz*dz;
 
                         if(dist2 < fact2 *  hnode2)
-                            in->GetValue(ERASE_FLAG) = true;
+                            in->Set(TO_ERASE, true);
                     }
                 }
             }
@@ -190,7 +190,7 @@ public:
         			{
         			if (i->FastGetSolutionStepValue(IS_STRUCTURE)==false)
         				{
-        				i->GetValue(ERASE_FLAG)= true;
+        				i->Is(TO_ERASE)= true;
         				KRATOS_WATCH("ERASING NODE!!!!!!");
         				KRATOS_WATCH(in->GetId());
         				}

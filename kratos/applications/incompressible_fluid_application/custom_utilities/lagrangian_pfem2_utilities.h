@@ -198,7 +198,7 @@ public:
 		    Element::Pointer pelement;
 
 		    bool is_found = SearchStructure.FindPointOnMesh(current_position, N, pelement, result_begin, max_results);
-		    (iparticle)->GetValue(ERASE_FLAG) = true;
+		    (iparticle)->Set(TO_ERASE, true);
 
 		    if (is_found == true)
 		    {
@@ -236,7 +236,7 @@ public:
 
 			noalias(current_position) += small_dt*veulerian;
 
-			(pparticle)->GetValue(ERASE_FLAG) = false;
+			(pparticle)->Set(TO_ERASE, false);
 
 
     //KRATOS_WATCH("619")
@@ -282,9 +282,9 @@ public:
 //	    bool erase_el = false;
 	    for(unsigned int i=0; i<geom.size(); i++)
 	    {
-		if(geom[i].GetValue(ERASE_FLAG))
+		if(geom[i].Is(TO_ERASE))
 		{
-		    it->SetValue(ERASE_FLAG,true);
+		    it->Set(TO_ERASE,true);
 		    nerased_el++;
 		    break;
 		}
@@ -300,7 +300,7 @@ public:
 
 	    for(ModelPart::ElementsContainerType::iterator it = temp_elems_container.begin() ; it != temp_elems_container.end() ; it++)
 	    {
-		if( static_cast<bool>(it->GetValue(ERASE_FLAG)) == false)
+		if( static_cast<bool>(it->Is(TO_ERASE)) == false)
 		    (rModelPart.Elements()).push_back(*(it.base()));
 	    }
 	}
@@ -388,7 +388,7 @@ public:
 // 	    //count the nodes to be erased
 // 	    int nerased = 0;
 // 	    for(unsigned int i=0; i<geom.size(); i++)
-// 	      if(geom[i].GetValue(ERASE_FLAG) == true)
+// 	      if(geom[i].Is(TO_ERASE)== true)
 // 		nerased++;
 // 	      
 // 	    //fix the pressure if needed (don't if the velocity is fixed)
@@ -481,7 +481,7 @@ public:
             if (erase == true)
             {
                 n_erased += 1;
-                in->GetValue(ERASE_FLAG) = true;
+                in->Set(TO_ERASE, true);
             }
         }
 
@@ -515,7 +515,7 @@ public:
                 for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
-                    if (static_cast<bool> (i->GetValue(ERASE_FLAG)) == false) //we can erase the current node only if the neighb is not to be erased
+                    if (static_cast<bool> (i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased
                     {
                         double dx = i->X() - in->X();
                         double dy = i->Y() - in->Y();
@@ -524,7 +524,7 @@ public:
                         double dist2 = dx * dx + dy * dy + dz*dz;
 
                         if (dist2 < fact2 * hnode2)
-                            in->GetValue(ERASE_FLAG) = true;
+                            in->Set(TO_ERASE, true);
                     }
                 }
             }

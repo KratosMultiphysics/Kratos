@@ -103,11 +103,11 @@ public:
 
             if(min_damage > damage_limit)
         {
-            it->SetValue(ERASE_FLAG,true);
+            it->Set(TO_ERASE,true);
             }
             else
             {
-                it->SetValue(ERASE_FLAG,false);
+                it->Set(TO_ERASE,false);
                 for(unsigned int i=0; i<geom.size(); i++)
                     geom[i].SetValue(IS_INACTIVE,false);
             }

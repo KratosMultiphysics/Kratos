@@ -352,7 +352,7 @@ public:
             if(erase == true)
             {
                 n_erased += 1;
-                in->GetValue(ERASE_FLAG) = true;
+                in->Set(TO_ERASE, true);
             }
         }
 
@@ -379,7 +379,7 @@ public:
                 for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                         i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
                 {
-                    if( bool(i->GetValue(ERASE_FLAG)) == false) //we can erase the current node only if the neighb is not to be erased
+                    if( bool(i->Is(TO_ERASE)) == false) //we can erase the current node only if the neighb is not to be erased
                     {
                         double dx = i->X() - in->X();
                         double dy = i->Y() - in->Y();
@@ -388,7 +388,7 @@ public:
                         double dist2 = dx*dx + dy*dy + dz*dz;
 
                         if(dist2 < fact2 *  hnode2)
-                            in->GetValue(ERASE_FLAG) = true;
+                            in->Set(TO_ERASE, true);
                     }
                 }
             }
@@ -552,7 +552,7 @@ public:
                             //if thats not the wall node, remove it
                             if (geom[i].FastGetSolutionStepValue(IS_FREE_SURFACE)==0.0 && geom[i].FastGetSolutionStepValue(IS_FLUID)==1.0  && geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
                             {
-                                geom[i].GetValue(ERASE_FLAG)=true;
+                                geom[i].Set(TO_ERASE,true);
                                 KRATOS_WATCH("NODE CLOSE TO THE FS - WILL BE ERASED!!!!")
                             }
                         }
@@ -576,7 +576,7 @@ public:
         {
             if (in->FastGetSolutionStepValue(DISTANCE)>0.00 && in->FastGetSolutionStepValue(DISTANCE)<crit_distance && in->FastGetSolutionStepValue(IS_STRUCTURE)==0)
             {
-                in->GetValue(ERASE_FLAG)=true;
+                in->Set(TO_ERASE,true);
                 KRATOS_WATCH("NODE EXCESSIVELY CLOSE TO WALL!!!!! BLADDER FUNCTION!!!!!!!!!!!!!!!!!!!!!!!!!!111")
             }
         }
@@ -644,7 +644,7 @@ public:
                             //if thats not the wall node, remove it
                             if (geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
                             {
-                                geom[i].GetValue(ERASE_FLAG)=true;
+                                geom[i].Set(TO_ERASE,true);
                                 //KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
                             }
                         }
@@ -744,7 +744,7 @@ public:
                                 //never remove a Lagrangian inlet node
                                 if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && geom[i].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0.0)
                                 {
-                                    geom[i].GetValue(ERASE_FLAG)=true;
+                                    geom[i].Set(TO_ERASE,true);
                                     KRATOS_WATCH("NODE TOUCHING THE WALL - WILL BE ERASED!!!!")
                                 }
                             }
@@ -782,7 +782,7 @@ public:
                             //if thats not the wall node, remove it
                             if (geom[i].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
                             {
-                                geom[i].GetValue(ERASE_FLAG)=true;
+                                geom[i].Set(TO_ERASE,true);
                                 //KRATOS_WATCH("NODE CLOSE TO THE WALL - WILL BE ERASED!!!!")
                             }
                         }
@@ -824,7 +824,7 @@ public:
                             //if thats not the wall node, remove it
                             if (geom[iii].FastGetSolutionStepValue(IS_STRUCTURE)==0.0)
                             {
-                                geom[iii].GetValue(ERASE_FLAG)=true;
+                                geom[iii].Set(TO_ERASE,true);
                                 KRATOS_WATCH("NODE CLOSE TO THE WALL - WILL BE ERASED!!!!")
                             }
                         }
@@ -907,7 +907,7 @@ public:
                 }
                 else
                 {
-                    in->GetValue(ERASE_FLAG)=true;
+                    in->Set(TO_ERASE,true);
                     KRATOS_WATCH("Marking free surface node for erasing (in this problem it is the one that passed through the membrane)!!!")
                 }
             }
@@ -924,7 +924,7 @@ public:
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
         	in!=ThisModelPart.NodesEnd(); in++)
         {
-        in->GetValue(ERASE_FLAG)=false;
+        in->Set(TO_ERASE,false);
 
         }
         */
@@ -934,7 +934,7 @@ public:
         {
             if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)!=1.0)
             {
-                in->GetValue(ERASE_FLAG)=true;
+                in->Set(TO_ERASE,true);
                 KRATOS_WATCH("Marking lonelynodes!!!")
             }
 
@@ -1189,7 +1189,7 @@ public:
 
             )
             {
-                //i->GetValue(ERASE_FLAG)=true;
+                //i->Set(TO_ERASE,true);
                 //set to zero the pressure
                 (i)->FastGetSolutionStepValue(PRESSURE) = 0;
 
@@ -1233,7 +1233,7 @@ public:
     			)
     		{
 
-    			i->GetValue(ERASE_FLAG)=true;
+    			i->Set(TO_ERASE,true);
 
 
 

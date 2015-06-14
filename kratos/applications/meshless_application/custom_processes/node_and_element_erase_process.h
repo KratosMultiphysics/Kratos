@@ -67,7 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -163,7 +163,7 @@ public:
 
         for(ModelPart::ElementsContainerType::iterator i_elem = temp_elements_container.begin() ; i_elem != temp_elements_container.end() ; i_elem++)
         {
-            if( static_cast<bool>(i_elem->GetGeometry()(0)->GetValue(ERASE_FLAG)) == false){
+            if( static_cast<bool>(i_elem->GetGeometry()(0)->Is(TO_ERASE)) == false){
 
                 i_elem->SetId( i_elem->GetGeometry()(0)->Id() );
 

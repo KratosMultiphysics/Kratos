@@ -1115,7 +1115,7 @@ public:
         int j = 0;
         for( ModelPart::NodesContainerType::iterator inode = mParticMesh->NodesBegin(); inode != mParticMesh->NodesEnd(); inode++)
         {
-            if (!inode->GetValue(ERASE_FLAG))
+            if (!inode->Is(TO_ERASE))
             {
                 Kratos::array_1d<double, 3> & velocity = inode->FastGetSolutionStepValue(VELOCITY,1);
                 Kratos::array_1d<double, 3> & displace = inode->FastGetSolutionStepValue(DISPLACEMENT,1);
@@ -1540,7 +1540,7 @@ public:
 
                     if(KRATOS_OCL_4_ARRAY_W(mParticlesLocal,i) < 0)
                     {
-                        inode->SetValue(ERASE_FLAG,true);
+                        inode->Set(TO_ERASE,true);
                         inode->X() += 30;
                     }
                 }
@@ -1586,7 +1586,7 @@ public:
                 {
                     ModelPart::NodesContainerType::iterator inode = mParticMesh->NodesBegin() + KRATOS_OCL_4_ARRAY_W(mParticlesLocal,i);
 
-                    if(!inode->GetValue(ERASE_FLAG))
+                    if(!inode->Is(TO_ERASE))
                     {
                         if((mParticlesLocalI[i]) > 0 )
                         {
@@ -1607,7 +1607,7 @@ public:
                 {
                     ModelPart::NodesContainerType::iterator inode = mParticMesh->NodesBegin() + KRATOS_OCL_4_ARRAY_W(mParticlesLocal,i);
 
-                    if(!inode->GetValue(ERASE_FLAG))
+                    if(!inode->Is(TO_ERASE))
                     {
                         if((mParticlesLocalI[i]) > 0 )
                         {
@@ -1615,7 +1615,7 @@ public:
 
                             if(el_it->GetValue(YOUNG_MODULUS) < mMinParticles)
                             {
-                                inode->SetValue(ERASE_FLAG,true);
+                                inode->Set(TO_ERASE,true);
                                 inode->X() += 30;
                             }
                             else if(el_it->GetValue(YOUNG_MODULUS) > mMaxParticles)
@@ -1623,7 +1623,7 @@ public:
                                 #pragma omp critical
                                 el_it->GetValue(YOUNG_MODULUS)--;
 
-                                inode->SetValue(ERASE_FLAG,true);
+                                inode->Set(TO_ERASE,true);
                                 inode->X() += 30;
                             }
                         }
@@ -1656,13 +1656,13 @@ public:
 
 // 			no_it = mParticMesh->NodesEnd();
 
-                    while(no_it != mParticMesh->NodesEnd() && !no_it->GetValue(ERASE_FLAG)) no_it++;
+                    while(no_it != mParticMesh->NodesEnd() && !no_it->Is(TO_ERASE)) no_it++;
 
                     for (unsigned int i = 0; i < pos.size1(); i++)
                     {
                         if (no_it != mParticMesh->NodesEnd())
                         {
-                            no_it->SetValue(ERASE_FLAG,false);
+                            no_it->Set(TO_ERASE,false);
 
                             Kratos::array_1d<double, 3> newCoords;
                             newCoords[0] = pos(i, 0);
@@ -1691,7 +1691,7 @@ public:
                             for (unsigned int j = 0; j < 2 + 1; j++)
                                 noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
 
-                            while(no_it != mParticMesh->NodesEnd() && !no_it->GetValue(ERASE_FLAG)) no_it++;
+                            while(no_it != mParticMesh->NodesEnd() && !no_it->Is(TO_ERASE)) no_it++;
                         }
                         else
                         {
@@ -1734,7 +1734,7 @@ public:
 
             if (i < localIndex && mParticlesLocalI[i] != -1 && KRATOS_OCL_4_ARRAY_W(mParticlesLocal,i) != -2 )
             {
-                if ((mParticMesh->NodesBegin()+KRATOS_OCL_4_ARRAY_W(mParticlesLocal,i))->GetValue(ERASE_FLAG) == false)
+                if ((mParticMesh->NodesBegin()+KRATOS_OCL_4_ARRAY_W(mParticlesLocal,i))->Is(TO_ERASE) == false)
                 {
                     int elementId = mParticlesLocalI[i];
 

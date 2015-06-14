@@ -292,7 +292,7 @@ public:
                         //look if we are already erasing any of the other nodes
                         double erased_nodes = 0;
                         for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
-                            erased_nodes += (*i)->GetValue(ERASE_FLAG);
+                            erased_nodes += (*i)->Is(TO_ERASE);
 
                         /*
                         	//to avoid remove of near boundary nodes
@@ -305,7 +305,7 @@ public:
                         	}
                         */
                         if( erased_nodes < 1.0) //we cancel the node if no other nodes are being erased
-                            in->GetValue(ERASE_FLAG)=1;
+                            in->Set(TO_ERASE,true);
 
 
                     }
@@ -325,7 +325,7 @@ public:
                             k++;
                         }
                         if(counter > 0)
-                            in->GetValue(ERASE_FLAG)=1;
+                            in->Set(TO_ERASE,true);
                     }
                 }
 
@@ -335,7 +335,7 @@ public:
                     in != ThisModelPart.NodesEnd(); in++)
             {
                 if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
-                    in->GetValue(ERASE_FLAG) = 0;
+                    in->Set(TO_ERASE, false);
 
             }
 
@@ -1380,13 +1380,13 @@ private:
 
         pnode->FastGetSolutionStepValue(IS_BOUNDARY)=0.0;
         pnode->FastGetSolutionStepValue(IS_STRUCTURE)=0.0;
-        pnode->GetValue(ERASE_FLAG)=0.0;
+        pnode->Set(TO_ERASE,false);
         pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
         pnode->FastGetSolutionStepValue(IS_FLUID)=1.0;
 
         pnode->FastGetSolutionStepValue(IS_BOUNDARY,1)=0.0;
         pnode->FastGetSolutionStepValue(IS_STRUCTURE,1)=0.0;
-        pnode->GetValue(ERASE_FLAG)=0.0;
+        pnode->Set(TO_ERASE,false);
         pnode->FastGetSolutionStepValue(IS_FREE_SURFACE,1)=0.0;
         pnode->FastGetSolutionStepValue(IS_FLUID,1)=1.0;
         //pnode->FastGetSolutionStepValue(IS_VISITED)=0.0;
@@ -1497,7 +1497,7 @@ private:
 
                                     //earse bad node
                                     geom[2].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-                                    geom[2].GetValue(ERASE_FLAG) = 1.0;
+                                    geom[2].Set(TO_ERASE, true);
                                 }
                                 else
                                 {
@@ -1529,7 +1529,7 @@ private:
 
                                     //earse bad node
                                     geom[0].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-                                    geom[0].GetValue(ERASE_FLAG) = 1.0;
+                                    geom[0].Set(TO_ERASE, true);
                                 }
                                 else
                                 {
@@ -1561,7 +1561,7 @@ private:
 
                                     //earse bad node
                                     geom[1].FastGetSolutionStepValue(IS_INTERFACE) = 0.0;
-                                    geom[1].GetValue(ERASE_FLAG) = 1.0;
+                                    geom[1].Set(TO_ERASE, true);
                                 }
                                 else
                                 {
@@ -1644,14 +1644,14 @@ private:
 
                 ModelPart::NodesContainerType::iterator inode = ThisModelPart.Nodes().find(raw_seg_list[seg]);
                 inode->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-                inode->GetValue(ERASE_FLAG) = 0.0;
+                inode->Set(TO_ERASE, false);
 
                 ModelPart::NodesContainerType::iterator iinode = ThisModelPart.Nodes().find(raw_seg_list[seg+1]);
                 iinode->FastGetSolutionStepValue(IS_INTERFACE) = 1.0;
-                iinode->GetValue(ERASE_FLAG) = 0.0;
+                iinode->Set(TO_ERASE, false);
 
-                //ThisModelPart.Nodes()[raw_seg_list[seg]].GetValue(ERASE_FLAG) = 0.0;
-                //ThisModelPart.Nodes()[raw_seg_list[seg + 1]].GetValue(ERASE_FLAG) = 0.0;
+                //ThisModelPart.Nodes()[raw_seg_list[seg]].Set(TO_ERASE, false);
+                //ThisModelPart.Nodes()[raw_seg_list[seg + 1]].Set(TO_ERASE, false);
             }
         }
 

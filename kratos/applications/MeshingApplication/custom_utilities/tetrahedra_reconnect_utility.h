@@ -225,7 +225,7 @@ public:
                 shownMessage = true;
                 continue;
             }
-            i_node->SetValue(ERASE_FLAG ,v->flag == 1);
+            i_node->Set(TO_ERASE ,v->flag == 1);
         }
         if (debugMode) std::cout << " Generating Elements for Kratos " << "\n";
         //generate new nodes

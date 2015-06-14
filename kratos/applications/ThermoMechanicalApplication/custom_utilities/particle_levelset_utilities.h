@@ -172,7 +172,7 @@ public:
             while(substep++ < subdivisions)
             {
                 ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-                (iparticle)->GetValue(ERASE_FLAG) = true;
+                (iparticle)->Set(TO_ERASE, true);
 
                 Node < 3 > ::Pointer pparticle = *(iparticle.base());
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -221,7 +221,7 @@ public:
 
                     noalias(disp) += small_dt*veulerian;
 
-                    (pparticle)->GetValue(ERASE_FLAG) = false;
+                    (pparticle)->Set(TO_ERASE, false);
                     //	KRATOS_WATCH("585")
 
 
@@ -405,7 +405,7 @@ public:
         for (ModelPart::NodesContainerType::iterator pparticle = rLagrangianModelPart.NodesBegin();
                 pparticle != rLagrangianModelPart.NodesEnd(); pparticle++)
         {
-            pparticle->SetValue(ERASE_FLAG,false);
+            pparticle->Set(TO_ERASE,false);
             pparticle->SetValue(NL_ITERATION_NUMBER,(rEulerianModelPart.ElementsBegin())->Id());	
             pparticle->SetValue(IS_ESCAPED,false);
             pparticle->SetValue(IS_VISITED,0);	    
@@ -448,7 +448,7 @@ public:
 		else
 		{
 		  if( is_scaped == false) //delete if it is not an escaped particle
-		    iparticle->SetValue(ERASE_FLAG,true);
+		    iparticle->Set(TO_ERASE,true);
 		}		  
             }
         }
@@ -803,7 +803,7 @@ private:
 		     if( (ptr_begin + ii)->GetValue(SCALE) == kkk && (ptr_begin + ii)->GetValue(IS_VISITED) == 0){
 		        bool is_escaped = (ptr_begin + ii)->GetValue(IS_ESCAPED);
 			if( is_escaped==false )
-		            (ptr_begin + ii)->SetValue(ERASE_FLAG,true);//CHECK ESCASPED NODES 
+		            (ptr_begin + ii)->Set(TO_ERASE,true);//CHECK ESCASPED NODES 
 			(ptr_begin + ii)->SetValue(IS_VISITED,1);
 			swt = true;
 			break;
@@ -883,7 +883,7 @@ private:
 	      {
 		bool is_escaped = (ele_pt_ptr + ij)->GetValue(IS_ESCAPED);
 		if( is_escaped==false ){
-		   (ele_pt_ptr + ij)->SetValue(ERASE_FLAG,true);
+		   (ele_pt_ptr + ij)->Set(TO_ERASE,true);
 		   aux_ptr_elem_size--;
 		}	  
 	      }
@@ -1134,7 +1134,7 @@ bool operator()(TRefrenceType  ptr_a, TRefrenceType ptr_b)
 // 		     if( (ptr_begin + ii)->GetValue(SCALE) == kkk && (ptr_begin + ii)->GetValue(IS_VISITED) == 0){
 // 		        bool is_escaped = (ptr_begin + ii)->GetValue(IS_ESCAPED);
 // 			if( is_escaped==false )
-// 		            (ptr_begin + ii)->SetValue(ERASE_FLAG,true);//CHECK ESCASPED NODES 
+// 		            (ptr_begin + ii)->Set(TO_ERASE,true);//CHECK ESCASPED NODES 
 // 			(ptr_begin + ii)->SetValue(IS_VISITED,1);
 // 			swt = true;
 // 			break;
