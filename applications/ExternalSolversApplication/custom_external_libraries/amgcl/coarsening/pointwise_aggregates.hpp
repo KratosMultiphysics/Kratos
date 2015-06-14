@@ -89,10 +89,13 @@ class pointwise_aggregates {
 
         /// \copydoc amgcl::coarsening::plain_aggregates::plain_aggregates
         template <class Matrix>
-        pointwise_aggregates(const Matrix &A, const params &prm) : count(0)
+        pointwise_aggregates(const Matrix &A, const params &prm, unsigned min_aggregate)
+            : count(0)
         {
             if (prm.block_size == 1) {
                 plain_aggregates aggr(A, prm);
+
+                remove_small_aggregates(A.nrows, 1, min_aggregate, aggr);
 
                 count = aggr.count;
                 strong_connection.swap(aggr.strong_connection);
@@ -104,6 +107,10 @@ class pointwise_aggregates {
                 Matrix Ap = pointwise_matrix(A, prm.block_size);
 
                 plain_aggregates pw_aggr(Ap, prm);
+
+                remove_small_aggregates(
+                        Ap.nrows, prm.block_size, min_aggregate, pw_aggr);
+
                 count = pw_aggr.count * prm.block_size;
 
 #pragma omp parallel
@@ -143,6 +150,41 @@ class pointwise_aggregates {
                         }
                     }
                 }
+            }
+        }
+
+        static void remove_small_aggregates(
+                size_t n, unsigned block_size, unsigned min_aggregate,
+                plain_aggregates &aggr
+                )
+        {
+            if (min_aggregate <= 1) return; // nothing to do
+
+            // Count entries in each of the aggregates
+            std::vector<ptrdiff_t> count(aggr.count, 0);
+
+            for(size_t i = 0; i < n; ++i) {
+                ptrdiff_t id = aggr.id[i];
+                if (id != removed) ++count[id];
+            }
+
+            // If any aggregate has less entries than required, remove it.
+            // Renumber the rest of the aggregates to leave no gaps.
+            size_t m = 0;
+            for(size_t i = 0; i < aggr.count; ++i) {
+                if (block_size * count[i] < min_aggregate) {
+                    count[i] = removed;
+                } else {
+                    count[i] = m++;
+                }
+            }
+
+            // Update aggregate count and aggregate ids.
+            aggr.count = m;
+
+            for(size_t i = 0; i < n; ++i) {
+                ptrdiff_t id = aggr.id[i];
+                if (id != removed) aggr.id[i] = count[id];
             }
         }
 

@@ -109,7 +109,7 @@ struct smoothed_aggregation {
         const size_t n = rows(A);
 
         TIC("aggregates");
-        Aggregates aggr(A, prm.aggr);
+        Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
         prm.aggr.eps_strong *= 0.5;
         TOC("aggregates");
 
