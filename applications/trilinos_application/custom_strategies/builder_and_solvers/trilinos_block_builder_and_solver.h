@@ -72,6 +72,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
+#include "EpetraExt_RowMatrixOut.h"
+#include "EpetraExt_MultiVectorOut.h"
 // #include "epetra_test_err.h"
 
 
@@ -373,11 +375,18 @@ public:
 
         if(norm_b != 0.00)
         {
-	    if (this->GetEchoLevel()>1)
+            if (this->GetEchoLevel()>1)
                 if (mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
-		
-	    if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+
+            if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, r_model_part);
+
+            if (this->GetEchoLevel()>3)
+            {
+                EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", A, "matrixA", "block_matrix", true);
+                EpetraExt::MultiVectorToMatrixMarketFile( "b.mm", b, "vectorb","rhs_vector",true);
+                KRATOS_THROW_ERROR(std::logic_error,"stopping after printing the matrix","")
+            }
 
             BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
         }
@@ -415,8 +424,8 @@ public:
 
         if(BaseType::GetEchoLevel()>0)
         {
-	  if(this->mrComm.MyPID() == 0)
-            std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+            if(this->mrComm.MyPID() == 0)
+                std::cout << "Building Time : " << building_time.elapsed() << std::endl;
         }
 
         //apply dirichlet conditions
@@ -436,8 +445,8 @@ public:
 
         if(BaseType::GetEchoLevel()>0)
         {
-	  if(this->mrComm.MyPID() == 0)
-            std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+            if(this->mrComm.MyPID() == 0)
+                std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
         }
         if (BaseType::GetEchoLevel()== 3)
         {
