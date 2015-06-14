@@ -239,7 +239,7 @@ struct smoothed_aggr_emin {
         typedef typename backend::value_type<Matrix>::type Val;
 
         TIC("aggregates");
-        Aggregates aggr(A, prm.aggr);
+        Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
         prm.aggr.eps_strong *= 0.5;
         TOC("aggregates");
 

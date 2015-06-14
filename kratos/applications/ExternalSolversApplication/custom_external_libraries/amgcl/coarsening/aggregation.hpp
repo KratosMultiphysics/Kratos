@@ -127,7 +127,7 @@ struct aggregation {
         const size_t n = rows(A);
 
         TIC("aggregates");
-        Aggregates aggr(A, prm.aggr);
+        Aggregates aggr(A, prm.aggr, prm.nullspace.cols);
         TOC("aggregates");
 
         TIC("interpolation");
