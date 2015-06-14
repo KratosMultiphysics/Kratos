@@ -26,8 +26,8 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 //#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-// #include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
+// #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "spaces/ublas_space.h"
@@ -154,8 +154,8 @@ public:
 
         // Solution scheme: Aitken iterations
         const double DefaultAitkenOmega = 1.0;
-//         SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalAitkenStaticScheme< TSparseSpace, TDenseSpace > (DefaultAitkenOmega) );
-        SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
+        SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalAitkenStaticScheme< TSparseSpace, TDenseSpace > (DefaultAitkenOmega) );
+//         SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
 
         // Convergence criteria
         const double NearlyZero = 1.0e-20;
