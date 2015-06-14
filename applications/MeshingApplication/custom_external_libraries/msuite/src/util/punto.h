@@ -291,7 +291,7 @@ public:
         const punto &pderecho,
         const punto &arista,
         const punto &pizquierdo,
-        int modo=0);
+        int modo);
 
     // miscelaneo
     friend bool inters2d(
