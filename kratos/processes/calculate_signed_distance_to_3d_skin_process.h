@@ -1516,28 +1516,38 @@ public:
     {
         // Assign a distance limit
         double dist_limit = 1e-5;
-        bool distChangedToLimit = false; //variable to indicate that a distance value < tolerance is set to a limit distance = tolerance
-
+//         bool distChangedToLimit = false; //variable to indicate that a distance value < tolerance is set to a limit distance = tolerance
+// 
+//         for(unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             if(fabs(ElementalDistances[i_node]) < dist_limit)
+//             {
+//                 ElementalDistances[i_node] = dist_limit;
+//                 distChangedToLimit = true;
+//             }
+//         }
+// 
+//         // Check, if this approach changes the split-flag (might be, that Element is not cut anymore if node with zero distance gets a positive limit distance value
+//         unsigned int numberNodesPositiveDistance = 0;
+//         for(unsigned int i_node = 0; i_node < 4; i_node++)
+//         {
+//             if((ElementalDistances[i_node]) > 0)
+//                 numberNodesPositiveDistance++;
+//         }
+        
         for(unsigned int i_node = 0; i_node < 4; i_node++)
         {
-            if(fabs(ElementalDistances[i_node]) < dist_limit)
+            double & di = ElementalDistances[i_node];
+            if(fabs(di) < dist_limit)
             {
-                ElementalDistances[i_node] = dist_limit;
-                distChangedToLimit = true;
+                if(di >= 0) di = dist_limit;
+                else di = -dist_limit;
             }
         }
 
-        // Check, if this approach changes the split-flag (might be, that Element is not cut anymore if node with zero distance gets a positive limit distance value
-        unsigned int numberNodesPositiveDistance = 0;
-        for(unsigned int i_node = 0; i_node < 4; i_node++)
-        {
-            if((ElementalDistances[i_node]) > 0)
-                numberNodesPositiveDistance++;
-        }
-
         // Element is not set
-        if(numberNodesPositiveDistance == 4 && distChangedToLimit == true)
-            Element->GetValue(SPLIT_ELEMENT) = false;
+//         if(numberNodesPositiveDistance == 4 && distChangedToLimit == true)
+//             Element->GetValue(SPLIT_ELEMENT) = false;
     }
 
     ///******************************************************************************************************************
@@ -1697,7 +1707,7 @@ public:
             low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinate(i+1);
         }
         
-        // loop over all structure nodes
+        // loop over all nodes in the bounding box
         for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
             i_node != mrFluidModelPart.NodesEnd();
             i_node++)
@@ -1709,7 +1719,7 @@ public:
             }
         }
         
-        // loop over all structure nodes
+        // loop over all skin nodes
         for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
             i_node != mrSkinModelPart.NodesEnd();
             i_node++)
