@@ -95,11 +95,11 @@ class PrintGraphPrinter:
 
     #
     def identity(item):
-    return item
+        return item
 
     #
     def first(iterable, predicate=identity):
-    for item in iterable:
-        if predicate(item):
-            return item
+        for item in iterable:
+            if predicate(item):
+                return item
         raise ValueError('No satisfactory value found')
