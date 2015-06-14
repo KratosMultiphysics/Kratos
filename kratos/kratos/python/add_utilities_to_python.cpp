@@ -66,6 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/deflation_utils.h"
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
+#include "utilities/convect_particles_utilities.h"
+
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -173,6 +175,18 @@ namespace Kratos
                     .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
                     ;
 
+            class_<ParticleConvectUtily<2> > ("ParticleConvectUtily2D", init< typename BinBasedFastPointLocator < 2 >::Pointer >())
+                    .def("MoveParticles_Substepping", &ParticleConvectUtily<2>::MoveParticles_Substepping)
+                    .def("MoveParticles_RK4", &ParticleConvectUtily<2>::MoveParticles_RK4)
+                    ;
+
+            class_<ParticleConvectUtily<3> > ("ParticleConvectUtily3D", init< typename BinBasedFastPointLocator < 3 >::Pointer >())
+                    .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
+                    .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
+                    ;                    
+                    
+
+                    
            class_<IsosurfacePrinterApplication, boost::noncopyable >
                     ("IsosurfacePrinterApplication",
                      init<ModelPart& >() )
