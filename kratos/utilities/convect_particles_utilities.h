@@ -106,8 +106,10 @@ public:
 
     //**********************************************************************************************
     //**********************************************************************************************
-    ///this function moves the mesh as xn+1 = xn + vn*dt and sets the mesh velocity to vn
+    ///this function moves all the nodes contained in rModelPart from their position at time tn to the one at time
+    ///tn+1 by following the trajectories. This is done by performing "subdivions" forward euler steps within each time step
     ///@param rModelPart the model part on which we work
+    ///@param subdivisions number of forward euler substeps used in advancing in time
     void MoveParticles_Substepping(ModelPart& rModelPart, unsigned int subdivisions)
     {
         KRATOS_TRY
@@ -269,16 +271,15 @@ public:
             {
                 const array_1d<double,3> x = initial_position + (dt)*v3;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
+                if( is_found == false) goto end_of_particle;
                 Geometry< Node < 3 > >& geom = pelement->GetGeometry();
                 noalias(v4) = N[0] * ( geom[0].FastGetSolutionStepValue(VELOCITY));
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v4) += N[k] * ( geom[k].FastGetSolutionStepValue(VELOCITY) );
             }
 
-            if(is_found == false)
-                (iparticle)->Set(TO_ERASE, true);
-            else
-                (iparticle)->Set(TO_ERASE, false);
+
+            (iparticle)->Set(TO_ERASE, false);
             //finalize step
             noalias(x) = initial_position;
             noalias(x) += 0.16666666666666666666667*dt*v1;
@@ -289,7 +290,7 @@ public:
             iparticle->FastGetSolutionStepValue(DISPLACEMENT) = x - iparticle->GetInitialPosition();
             noalias(pparticle->Coordinates()) = x;
             
-            end_of_particle:  ;
+            end_of_particle:  (iparticle)->Set(TO_ERASE, true);
         }
 
         KRATOS_CATCH("")
