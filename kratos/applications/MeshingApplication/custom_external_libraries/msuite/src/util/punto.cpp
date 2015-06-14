@@ -571,7 +571,7 @@ double diedro(
     const punto &pderecho,
     const punto &arista,
     const punto &pizquierdo,
-    int modo)
+    int modo=0)
 {
     double m;
     punto xi,xd,a;
