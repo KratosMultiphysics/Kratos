@@ -50,7 +50,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *
 * ***********************************************************/
 
-#if !defined(KRATOS_INTERSECT_TRIANGLES_CASES)
+#if !defined(KRATOS_INTERSECT_TRIANGLES_CASES_INCLUDED)
 #define  KRATOS_INTERSECT_TRIANGLES_CASES_INCLUDED
 //System includes
 //External includes
@@ -521,5 +521,5 @@ private:
 
 }//namespace Kratos.
 
-#endif /* KRATOS_INTERSECT_TRIANGLES_CASES defined */
+#endif /* KRATOS_INTERSECT_TRIANGLES_CASES_INCLUDED defined */
 
