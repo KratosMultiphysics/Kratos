@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 
 // External includes
-
+#include "includes/kratos_flags.h"
 
 // Project includes
 #include "includes/define.h"
