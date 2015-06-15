@@ -175,12 +175,12 @@ namespace Kratos
                     .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
                     ;
 
-            class_<ParticleConvectUtily<2> > ("ParticleConvectUtily2D", init< typename BinBasedFastPointLocator < 2 >::Pointer >())
+            class_<ParticleConvectUtily<2> > ("ParticleConvectUtily2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
                     .def("MoveParticles_Substepping", &ParticleConvectUtily<2>::MoveParticles_Substepping)
                     .def("MoveParticles_RK4", &ParticleConvectUtily<2>::MoveParticles_RK4)
                     ;
 
-            class_<ParticleConvectUtily<3> > ("ParticleConvectUtily3D", init< typename BinBasedFastPointLocator < 3 >::Pointer >())
+            class_<ParticleConvectUtily<3> > ("ParticleConvectUtily3D", init< BinBasedFastPointLocator < 3 >::Pointer >())
                     .def("MoveParticles_Substepping", &ParticleConvectUtily<3>::MoveParticles_Substepping)
                     .def("MoveParticles_RK4", &ParticleConvectUtily<3>::MoveParticles_RK4)
                     ;                    
