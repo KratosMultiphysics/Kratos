@@ -114,7 +114,7 @@ class RestartUtility:
 
         #print(" ::[Restart Utility]:: Clean Post Restart Files)")
 
-        # remove previous results after restart:
+        # remove posterior results after restart:
         file_ending_type = ".post.bin"
         self.CleanPosteriorFileType(restart_step, file_ending_type)
 
@@ -124,12 +124,12 @@ class RestartUtility:
         file_ending_type = ".post.msh"
         self.CleanPosteriorFileType(restart_step, file_ending_type)
 
-        # remove previous graphs after restart:
+        # remove posterior graphs after restart:
 
         file_ending_type = "graph.png"
         self.CleanPosteriorFileType(restart_step+1, file_ending_type)
 
-        # remove previous restart files:
+        # remove posterior restart files:
         file_ending_type = ".rest"
         self.CleanPosteriorFileType(restart_step+1, file_ending_type)
 
