@@ -18,6 +18,8 @@ class TimeOperationUtility(object):
 
         self.time_counter = 0
 
+        self.last_seen_current_time = 0
+
         self.tolerance = 0
 
     #
@@ -31,6 +33,9 @@ class TimeOperationUtility(object):
 
         # set step time
         self.time_step = time_step
+
+        # set last seen current time
+        self.last_seen_current_time = starting_time - time_step
 
         # set time frequency
         self.time_frequency = time_frequency
@@ -55,18 +60,31 @@ class TimeOperationUtility(object):
         # set step counters
         self.id_counter = int(self.starting_time / self.time_frequency)
 
+
     #
     def perform_time_operation(self, current_time):
 
         execute = False
+        
+        if(self.last_seen_current_time < current_time):
+            
+            if(current_time + self.tolerance >= self.ending_time):
+                execute = True
+                self.id_counter = self.id_counter + 1
+            elif(current_time + self.tolerance >= self.time_counter):
+                execute = True
+                self.time_counter = self.time_counter + self.time_frequency
+                self.id_counter   = self.id_counter + 1
 
-        if(current_time + self.tolerance >= self.ending_time):
-            execute = True
-            self.id_counter = self.id_counter + 1
-        elif(current_time + self.tolerance >= self.time_counter):
-            execute = True
-            self.time_counter = self.time_counter + self.time_frequency
-            self.id_counter   = self.id_counter + 1
+        elif(self.last_seen_current_time == current_time):
+            
+            if(current_time + self.tolerance >= self.ending_time):
+                execute = True
+            elif(current_time + self.tolerance >= self.time_counter):
+                execute = True
+ 
+                
+        self.last_seen_current_time = current_time
 
         return execute
 
