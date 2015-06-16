@@ -570,7 +570,7 @@ void SphericParticle::DisplacementDueToRotation(const double indentation,
 {
     const array_1d<double, 3>& other_ang_vel = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
     const array_1d<double, 3>& my_delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
-    const array_1d<double, 3>& other_delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
+    const array_1d<double, 3>& other_delta_rotation = p_neighbour->GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
     array_1d<double, 3> my_arm_vector;
     array_1d<double, 3> other_arm_vector;
     array_1d<double, 3> my_vel_at_contact_point_due_to_rotation;
@@ -1000,8 +1000,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             // For translation movement delta displacement
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
             DeltDisp[0] = delta_displ[0] - wall_delta_disp_at_contact_point[0];
-            DeltDisp[0] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
-            DeltDisp[0] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
+            DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
+            DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {            
                 const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
