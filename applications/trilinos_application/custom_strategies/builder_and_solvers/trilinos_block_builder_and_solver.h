@@ -380,6 +380,13 @@ public:
 
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, r_model_part);
+            
+            if (this->GetEchoLevel()>3)
+            {
+                EpetraExt::RowMatrixToMatrixMarketFile( "A.mm", A, "matrixA", "lhs_matrix", true);
+                EpetraExt::MultiVectorToMatrixMarketFile( "b.mm", b, "vectorb","rhs_vector",true);
+                KRATOS_THROW_ERROR(std::logic_error,"stopping after printing the matrix","")
+            }
 
             if (this->GetEchoLevel()>3)
             {
@@ -950,14 +957,20 @@ public:
 
         int NumEntries;    // number of nonzero entries extracted
 
-
+        std::vector<unsigned int> fixed_ids;
+        fixed_ids.reserve(1000);
+        
         for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); ++dof_it)
         {
+            if (dof_it->IsFixed()) fixed_ids.push_back(dof_it->EquationId());
+            
+            
             if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
             {
                 if (dof_it->IsFixed())
                 {
-
+                    
+                    
                     int GlobalRow = dof_it->EquationId();  // row to extract
                     int Length = A.NumGlobalEntries(dof_it->EquationId());  // length of Values and Indices
 
@@ -992,6 +1005,41 @@ public:
                     delete [] Indices;
                     delete [] gb;
                     delete [] bb;
+
+                }
+            }
+
+        }
+        
+        
+        //now set the columns to zero
+        for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); ++dof_it)
+        {
+            if(dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
+            {
+                if ( ! dof_it->IsFixed())  //NOT FIXED!!
+                {                   
+                    int GlobalRow = dof_it->EquationId();  // row to extract
+                    int Length = A.NumGlobalEntries(dof_it->EquationId());  // length of Values and Indices
+
+                    double* Values = new double[Length];     // extracted values for this row
+                    int* Indices = new int[Length];          // extracted global column indices for the corresponding values
+
+                    A.ExtractGlobalRowCopy(GlobalRow, Length, NumEntries, Values, Indices);
+
+                    // put 0.0 in each row A[ii] and 1.0 on the diagonal
+                    for (int ii=0; ii<Length; ii++)
+                    {
+                        
+                        if ( std::find(fixed_ids.begin(), fixed_ids.end(), Indices[ii])  != fixed_ids.end()   )//if the node is in the fixed list
+                            Values[ii]=0.0;
+                    }
+
+                    A.ReplaceGlobalValues(GlobalRow, Length, Values, Indices);
+
+                    delete [] Values;
+                    delete [] Indices;
+
 
                 }
             }
