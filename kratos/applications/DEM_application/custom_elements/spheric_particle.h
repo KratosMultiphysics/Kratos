@@ -209,16 +209,6 @@ virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
                                      double dt,
                                      const bool multi_stage_RHS);
 
-virtual void CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& other_to_me_vect,
-                                                 const double& other_radius,
-                                                 const double& radius_sum,
-                                                 double& kn,
-                                                 double& kt,
-                                                 double& equiv_visco_damp_coeff_normal,
-                                                 double& equiv_visco_damp_coeff_tangential,
-                                                 double& equiv_tg_of_fri_ang,
-                                                 SphericParticle* neighbour_iterator);
-
 virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                     double RelVel[3],
                     double LocalCoordSystem[3][3],
