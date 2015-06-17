@@ -28,6 +28,16 @@ namespace Kratos {
         void InitializeContact(SphericParticle* const element1, SphericParticle* const element2);  
         
         void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta = 0.0);
+        void CalculateForces(const double OldLocalContactForce[3],
+                            double LocalElasticContactForce[3],
+                            double LocalDeltDisp[3],
+                            double LocalRelVel[3],            
+                            double indentation,
+                            double previous_indentation,
+                            double ViscoDampingLocalContactForce[3],
+                            double& cohesive_force,
+                            SphericParticle* element1,
+                            SphericParticle* element2); 
         
         void CalculateForcesWithFEM(const double OldLocalContactForce[3], double LocalElasticContactForce[3],
                                     double LocalDeltDisp[3], double LocalRelVel[3], double indentation,
@@ -47,12 +57,16 @@ namespace Kratos {
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
                                             DEMWall* const wall);
         
-        void CalculateTangentialForce(const double normal_force,
-                                      double LocalElasticContactForce[3],
-                                      const double LocalDeltDisp[3],            
-                                      bool& sliding,
-                                      SphericParticle* const element1,
-                                      SphericParticle* const element2);
+        void CalculateTangentialForce(const double normal_contact_force,
+                                    const double OldLocalContactForce[3],
+                                    double LocalElasticContactForce[3],
+                                    const double ViscoDampingLocalContactForce[3],
+                                    const double LocalDeltDisp[3],            
+                                    bool& sliding,
+                                    SphericParticle* const element1,
+                                    SphericParticle* const element2,
+                                    double indentation,
+                                    double previous_indentation);
         void CalculateTangentialForceWithFEM(const double normal_contact_force,
                                              const double OldLocalContactForce[3],
                                       double LocalElasticContactForce[3],
@@ -67,8 +81,10 @@ namespace Kratos {
         void CalculateViscoDampingForce(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         bool sliding,
-                                        SphericParticle* const element,
-                                        SphericParticle* const element2);                                        
+                                        SphericParticle* const element1,
+                                        SphericParticle* const element2,
+                                        double indentation);            
+        
         void CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                         double ViscoDampingLocalContactForce[3],
                                         bool sliding,
