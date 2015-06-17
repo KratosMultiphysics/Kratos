@@ -97,14 +97,16 @@ namespace Kratos {
         virtual void InitializeContact(SphericParticle * const element1, SphericParticle * const element2);
         virtual void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta=0.0);
 
-        virtual void CalculateForces(double LocalElasticContactForce[3],
-                                    double LocalDeltDisp[3],
-                                    double LocalRelVel[3],            
-                                    double indentation,
-                                    double ViscoDampingLocalContactForce[3],
-                                    double& cohesive_force,
-                                    SphericParticle * const element1,
-                                    SphericParticle * const element2);
+        virtual void CalculateForces(const double OldLocalContactForce[3],
+                            double LocalElasticContactForce[3],
+                            double LocalDeltDisp[3],
+                            double LocalRelVel[3],            
+                            double indentation,
+                            double previous_indentation,
+                            double ViscoDampingLocalContactForce[3],
+                            double& cohesive_force,
+                            SphericParticle* element1,
+                            SphericParticle* element2); 
         
         virtual void CalculateForcesWithFEM(const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
