@@ -475,6 +475,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
     unsigned int new_size              = rNeighbours.size();
     std::vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
+    std::vector<array_1d<double, 3> > temp_neighbours_elastic_contact_forces(new_size);
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
@@ -485,14 +486,17 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
         for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
 
             if (static_cast<int>(rNeighbours[i]->Id()) == mFemOldNeighbourIds[j]) {
-                noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
+                noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
+                noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
                 break;
             }
         }
     }
 
     mFemOldNeighbourIds.swap(temp_neighbours_ids);
-    mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_contact_forces);
+    mNeighbourRigidFacesElasticContactForce.swap(temp_neighbours_elastic_contact_forces);
+    mNeighbourRigidFacesTotalContactForce.swap(temp_neighbours_contact_forces);
+    mNeighbourRigidFacesPram.resize(0);
 }
 
 //**************************************************************************************************************************************************
@@ -1443,7 +1447,6 @@ void SphericParticle::AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
 
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
-
     // Saving contact forces (We need to, since tangential elastic force is history-dependent)
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourRigidFacesElasticContactForce[iRigidFaceNeighbour],GlobalElasticContactForce)
     DEM_COPY_SECOND_TO_FIRST_3(mNeighbourRigidFacesTotalContactForce[iRigidFaceNeighbour],GlobalContactForce)

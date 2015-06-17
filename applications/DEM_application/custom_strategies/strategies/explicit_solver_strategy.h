@@ -1319,9 +1319,6 @@ namespace Kratos
             #pragma omp parallel for 
             for (int i = 0; i < number_of_particles; i++){
                 mListOfSphericParticles[i]->mNeighbourRigidFaces.resize(0);
-                mListOfSphericParticles[i]->mNeighbourRigidFacesPram.resize(0);
-                mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce.resize(0);
-                mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce.resize(0);
             }
            
             moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetOriginalRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
@@ -1337,10 +1334,6 @@ namespace Kratos
                 }
                 this->GetRigidFaceResults()[i].clear();
                 this->GetRigidFaceResultsDistances()[i].clear();   
-
-                std::size_t size = mListOfSphericParticles[i]->mNeighbourRigidFaces.size();
-                mListOfSphericParticles[i]->mNeighbourRigidFacesTotalContactForce.resize(size);
-                mListOfSphericParticles[i]->mNeighbourRigidFacesElasticContactForce.resize(size);
             }
                                      
             //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;

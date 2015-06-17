@@ -221,10 +221,8 @@ void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, dou
     /*
     if(this->GetValue(CONTACT_SIGMA) != 0.0)
     {
-     //KRATOS_WATCH( ( this->GetValue(CONTACT_SIGMA) - this->GetValue(CONTACT_TAU) ) /(this->GetValue(CONTACT_SIGMA) ) )
     }
     */
-   // KRATOS_WATCH( (this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2]-this->GetValue(LOCAL_CONTACT_FORCE_LOW)[2])/this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2]  )
     
   }
   

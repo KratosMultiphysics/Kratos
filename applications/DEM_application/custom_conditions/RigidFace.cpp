@@ -153,14 +153,14 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 double ContactForce[3] = {0.0};
 
                 unsigned int ino = 16 * i_nei;
-                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
+                const std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
                 
                 weight[0] = neighbour_rigid_faces_pram[ino + 10];
                 weight[1] = neighbour_rigid_faces_pram[ino + 11];
                 weight[2] = neighbour_rigid_faces_pram[ino + 12];
                 weight[3] = neighbour_rigid_faces_pram[ino + 13];
 
-                array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
+                const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
                 ContactForce[0] = neighbour_rigid_faces_contact_force[0];
                 ContactForce[1] = neighbour_rigid_faces_contact_force[1];
                 ContactForce[2] = neighbour_rigid_faces_contact_force[2];
@@ -203,14 +203,14 @@ void RigidFace3D::CalculateElasticForces(VectorType& rElasticForces,
                 double ContactElasticForce[3] = {0.0};
 
                 unsigned int ino = 16 * i_nei;
-                std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
+                const std::vector<double>& neighbour_rigid_faces_pram = rNeighbours[i]->mNeighbourRigidFacesPram;
                 
                 weight[0] = neighbour_rigid_faces_pram[ino + 10];
                 weight[1] = neighbour_rigid_faces_pram[ino + 11];
                 weight[2] = neighbour_rigid_faces_pram[ino + 12];
                 weight[3] = neighbour_rigid_faces_pram[ino + 13];
 
-                array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
+                const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
                 ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
                 ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
                 ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];

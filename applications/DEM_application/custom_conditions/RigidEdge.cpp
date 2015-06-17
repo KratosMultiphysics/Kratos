@@ -209,7 +209,7 @@ void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo
                 weight[2] = neighbour_rigid_faces_pram[ino + 12];
                 weight[3] = neighbour_rigid_faces_pram[ino + 13];
                 
-                array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
+                const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];                    
                 ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
                 ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
                 ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];

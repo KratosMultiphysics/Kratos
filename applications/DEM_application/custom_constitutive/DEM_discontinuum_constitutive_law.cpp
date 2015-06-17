@@ -311,7 +311,6 @@ namespace Kratos {
                 
         //DAMPING FORCE
         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
-        //KRATOS_WATCH(ViscoDampingLocalContactForce[2])
         
         if ( !sliding ) { 
             ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
@@ -356,7 +355,6 @@ namespace Kratos {
     void DEMDiscontinuumConstitutiveLaw::CalculateNormalForceHertz(double LocalElasticContactForce[3], double kn_el, double indentation) {
         KRATOS_TRY
         LocalElasticContactForce[2] = kn_el * pow(indentation, 1.5); //  1 --- Hertzian (non-linear compression, linear tension)
-        KRATOS_WATCH(LocalElasticContactForce[2])
         KRATOS_CATCH("")  
     }
 

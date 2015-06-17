@@ -932,7 +932,7 @@ namespace Kratos {
 
             for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
-                    neigh_forces = mNeighbourRigidFacesElasticContactForce[j]; //TODO: should this be elastic or total??
+                    neigh_forces = mNeighbourRigidFacesTotalContactForce[j]; 
                     break;
                 }
             }
