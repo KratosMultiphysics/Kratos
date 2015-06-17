@@ -55,12 +55,12 @@ namespace Kratos {
         const double equiv_shear_modulus = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
         
         //Get equivalent Poisson's Modulus
-        double equiv_poisson = 0.0;
+        /*double equiv_poisson = 0.0;
         if ((my_poisson + other_poisson) != 0.0) {
             equiv_poisson                 = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
         } else {
             equiv_poisson                 = 0.0;
-        }                  
+        }      */            
         
         //Normal and Tangent elastic constants
         mKn = 1.3333333333333333 * equiv_young * sqrt(equiv_radius);
@@ -138,10 +138,10 @@ namespace Kratos {
         
         const double tangential_damping_coefficient = normal_damping_coefficient;
                
-        if (!sliding) {
-            ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
-        }
+        //if (!sliding) { //tangential forces are not calculated yet, so sliding can never be true
+        ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
+        ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
+        //}
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForce(const double normal_contact_force,
@@ -294,10 +294,10 @@ namespace Kratos {
         
         const double tangential_damping_coefficient = normal_damping_coefficient;
                
-        if (!sliding) {
-            ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
-            ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
-        }
+        //if (!sliding) { //tangential forces are not calculated yet, so sliding can never be true
+        ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
+        ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
+        //}
     }
     
     double DEM_D_Tsuji_viscous_Coulomb::CalculateNormalForce(const double indentation, SphericParticle* const element1, SphericParticle* const element2){
