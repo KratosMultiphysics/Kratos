@@ -82,13 +82,10 @@ namespace Kratos {
                 
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = cl * a * cos(v) * cos(u) / 
                     pow(pow(sin(v), 6) * (pow(sin(u), 6) + pow(cos(u), 6)) + pow(cos(v), 6), 0.166666667); 
-                KRATOS_WATCH(mListOfCoordinates[i + number_of_spheres_per_pass * j][0])
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = cl * b * cos(v) * sin(u) / 
                     pow(pow(sin(v), 6) * (pow(sin(u), 6) + pow(cos(u), 6)) + pow(cos(v), 6), 0.166666667); 
-                KRATOS_WATCH(mListOfCoordinates[i + number_of_spheres_per_pass * j][1])
                 mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = cl * c * sin(v) / 
                     pow(pow(sin(v), 6) * (pow(sin(u), 6) + pow(cos(u), 6)) + pow(cos(v), 6), 0.166666667);
-                KRATOS_WATCH(mListOfCoordinates[i + number_of_spheres_per_pass * j][2])
 //                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] =
 //                    
 //                    cl * 0.5 * sin(u) * cos(v) / 
