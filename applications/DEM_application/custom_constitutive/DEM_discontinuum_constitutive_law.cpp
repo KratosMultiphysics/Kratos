@@ -64,10 +64,12 @@ namespace Kratos {
         std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called."<<std::endl<<std::flush;
     }
     
-    void DEMDiscontinuumConstitutiveLaw::CalculateForces(double LocalElasticContactForce[3],
+    void DEMDiscontinuumConstitutiveLaw::CalculateForces(const double OldLocalContactForce[3],
+                                                        double LocalElasticContactForce[3],
                                                         double LocalDeltDisp[3],
                                                         double LocalRelVel[3],            
                                                         double indentation,
+                                                        double previous_indentation,
                                                         double ViscoDampingLocalContactForce[3],
                                                         double& cohesive_force,
                                                         SphericParticle* element1,
