@@ -896,13 +896,13 @@ namespace Kratos
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition  
                                                                  //we are studying a certain condition here
                     index = i * dim;    //*2;                 
-                    geom(i)->SetLock();                    
+                    geom[i].SetLock();                    
                     
-                    array_1d<double, 3>& node_rhs      = geom(i)->FastGetSolutionStepValue(CONTACT_FORCES);
-                    array_1d<double, 3>& node_rhs_elas = geom(i)->FastGetSolutionStepValue(ELASTIC_FORCES);
-                    array_1d<double, 3>& node_rhs_tang = geom(i)->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-                    double& node_pressure = geom(i)->FastGetSolutionStepValue(DEM_PRESSURE);                  
-                    double& node_area = geom(i)->FastGetSolutionStepValue(DEM_NODAL_AREA);
+                    array_1d<double, 3>& node_rhs      = geom[i].FastGetSolutionStepValue(CONTACT_FORCES);
+                    array_1d<double, 3>& node_rhs_elas = geom[i].FastGetSolutionStepValue(ELASTIC_FORCES);
+                    array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+                    double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);                  
+                    double& node_area = geom[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
                     array_1d<double, 3> rhs_cond_comp;
                     
                     for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
@@ -920,7 +920,7 @@ namespace Kratos
                     
                     node_rhs_tang += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
                     
-                    geom(i)->UnSetLock();
+                    geom[i].UnSetLock();
                     
                 }                                 
             }          

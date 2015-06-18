@@ -170,11 +170,10 @@ public:
                              
                 Element::GeometryType& geom = it->GetGeometry();
               
-                //if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false)
-                if( geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) )
+                if( geom[0].IsNot(DEMFlags::FIXED_VEL_X) && geom[0].IsNot(DEMFlags::FIXED_VEL_Y) && geom[0].IsNot(DEMFlags::FIXED_VEL_Z) )
                 {
-                    particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-                    double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+                    particle_forces  = geom[0].FastGetSolutionStepValue(TOTAL_FORCES);
+                    double mass = geom[0].FastGetSolutionStepValue(NODAL_MASS);
 
                 
                     particle_forces[0] += mass * gravity[0];
@@ -208,8 +207,8 @@ public:
                                                         
                 Element::GeometryType& geom = it->GetGeometry();
               
-                if (geom(0)->IsNot(DEMFlags::FIXED_VEL_X) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(0)->IsNot(DEMFlags::FIXED_VEL_Z) &&
-                    geom(1)->IsNot(DEMFlags::FIXED_VEL_X) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Y) && geom(1)->IsNot(DEMFlags::FIXED_VEL_Z)) {                
+                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) && geom[0].IsNot(DEMFlags::FIXED_VEL_Y) && geom[0].IsNot(DEMFlags::FIXED_VEL_Z) &&
+                    geom[1].IsNot(DEMFlags::FIXED_VEL_X) && geom[1].IsNot(DEMFlags::FIXED_VEL_Y) && geom[1].IsNot(DEMFlags::FIXED_VEL_Z)) {                
    
                     contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);                
                     double module = 0.0;

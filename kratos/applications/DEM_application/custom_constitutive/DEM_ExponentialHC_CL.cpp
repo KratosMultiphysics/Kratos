@@ -42,11 +42,11 @@ namespace Kratos {
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_ExponentialHC::CalculateContactArea(double mRadius, double other_radius, double &calculation_area) {
+    void DEM_ExponentialHC::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
         
         KRATOS_TRY 
-        double rmin = mRadius;
-        if (other_radius < mRadius) rmin = other_radius;
+        double rmin = radius;
+        if (other_radius < radius) rmin = other_radius;
         calculation_area = KRATOS_M_PI * rmin*rmin;
         KRATOS_CATCH("")  
     }
@@ -295,9 +295,9 @@ namespace Kratos {
         const double mDamageMaxDisplacementFactor = element1->GetProperties()[DAMAGE_FACTOR];
         const double mTensionLimit = element1->GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2
         const double &other_radius = element2->GetRadius();
-        const double mRadius = element1->GetRadius();
+        const double my_radius = element1->GetRadius();
         const double initial_delta = mNeighbourDelta_count; //*
-        const double initial_dist = (other_radius + mRadius - initial_delta);
+        const double initial_dist = (other_radius + my_radius - initial_delta);
         double current_def = indentation / initial_dist;
         double u_max = mHistoryMaxInd;
         double kn_plas = kn_el; // modificable en el futuro con un input         double kn_plas = mYoungPlastic / equiv_young * kn_el;

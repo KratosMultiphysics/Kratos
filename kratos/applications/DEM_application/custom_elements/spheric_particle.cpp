@@ -68,7 +68,7 @@ void SphericParticle::Initialize()
     mRadius                   = GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
     double density            = GetDensity();
     double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-    mass                      = 4 *KRATOS_M_PI_3 * density * mRadius * mRadius * mRadius;
+    mass                      = 4 *KRATOS_M_PI_3 * density * GetRadius() * GetRadius() * GetRadius();
     mRealMass                 = mass;
     
     if (this->IsNot(BLOCKED)) GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MATERIAL) = GetParticleMaterial();
@@ -76,7 +76,7 @@ void SphericParticle::Initialize()
     mClusterId = -1;
 
     if (this->Is(DEMFlags::HAS_ROTATION) ){
-        double moment_of_inertia = 0.4 * mass * mRadius * mRadius;
+        double moment_of_inertia = 0.4 * mass * GetRadius() * GetRadius();
         GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
     }
 
@@ -277,7 +277,7 @@ void SphericParticle::CalculateMaxBallToBallIndentation(double& r_current_max_in
         noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
         double other_radius                  = ineighbour->GetRadius();
         double distance                      = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum                    = mRadius + other_radius;
+        double radius_sum                    = GetRadius() + other_radius;
         double indentation                   = radius_sum - distance;
 
         r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;
@@ -297,7 +297,7 @@ void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_in
         int ContactType         = RF_Pram[ino1 + 15];
         
         if(ContactType > 0){
-            double indentation = mRadius - DistPToB;
+            double indentation = GetRadius() - DistPToB;
             r_current_max_indentation = (indentation > r_current_max_indentation) ? indentation : r_current_max_indentation;    
             
         }
@@ -332,9 +332,9 @@ void SphericParticle::CalculateElasticEnergyOfContacts(double& r_elastic_energy)
         SphericParticle* ineighbour = mNeighbourElements[i];
 
         const double &other_radius          = ineighbour->GetRadius();
-        double radius_sum                   = mRadius + other_radius;
+        double radius_sum                   = GetRadius() + other_radius;
         double radius_sum_i                 = 1.0 / radius_sum;
-        double equiv_radius                 = 2.0 * mRadius * other_radius * radius_sum_i;
+        double equiv_radius                 = 2.0 * GetRadius() * other_radius * radius_sum_i;
         double equiv_area                   = 0.25 * KRATOS_M_PI * equiv_radius * equiv_radius; // 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
         double equiv_young;
         double equiv_poisson;
@@ -416,7 +416,6 @@ void SphericParticle::ComputeNewNeighboursHistoricalData(std::vector<int>& mTemp
         noalias(mTempNeighbourTotalContactForces[i]) = vector_of_zeros;
 
         for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++){
-
             if (static_cast<int>(i_neighbour->Id()) == mOldNeighbourIds[j]){
                 noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
                 noalias(mTempNeighbourTotalContactForces[i])   = mNeighbourTotalContactForces[j];
@@ -440,12 +439,10 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     std::vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
 
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
-
         temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());
         noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
 
         for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
-
             if (static_cast<int>(rNeighbours[i]->Id()) == mFemOldNeighbourIds[j]) {
                 noalias(temp_neighbours_elastic_contact_forces[i]) = mNeighbourRigidFacesElasticContactForce[j];
                 noalias(temp_neighbours_contact_forces[i]) = mNeighbourRigidFacesTotalContactForce[j];
@@ -531,9 +528,9 @@ void SphericParticle::DisplacementDueToRotation(const double indentation,
     array_1d<double, 3> my_delta_disp_at_contact_point_due_to_rotation;
     array_1d<double, 3> other_delta_disp_at_contact_point_due_to_rotation;
     
-    const double radius_sum        = mRadius + other_radius;
+    const double radius_sum        = GetRadius() + other_radius;
     const double inv_radius_sum    = 1.0 / radius_sum;
-    const double my_arm_length     = mRadius      - indentation * mRadius      * inv_radius_sum;
+    const double my_arm_length     = GetRadius()  - indentation * GetRadius()  * inv_radius_sum;
     const double other_arm_length  = other_radius - indentation * other_radius * inv_radius_sum;
         
     my_arm_vector[0] = -OldLocalCoordSystem[2][0] * my_arm_length;
@@ -585,7 +582,7 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         array_1d<double, 3> e1;
         
         DEM_COPY_SECOND_TO_FIRST_3(e1, OldLocalCoordSystem[2]);
-        DEM_MULTIPLY_BY_SCALAR_3(e1, -mRadius)
+        DEM_MULTIPLY_BY_SCALAR_3(e1, -GetRadius())
         
         array_1d<double, 3> new_axes1 = e1;
            
@@ -633,7 +630,7 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         array_1d<double, 3> other_to_me_vect;
         noalias(other_to_me_vect) = this->GetGeometry()[0].Coordinates() - p_neighbour->GetGeometry()[0].Coordinates();
         double distance            = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum          = mRadius + other_radius;
+        double radius_sum          = GetRadius() + other_radius;
         double indentation         = radius_sum - distance;
     
         array_1d<double, 3> radial_vector = - other_to_me_vect;
@@ -642,7 +639,7 @@ void SphericParticle::DisplacementDueToRotationMatrix(double DeltDisp[3],
         GeometryFunctions::normalize(radial_vector);
         GeometryFunctions::normalize(other_radial_vector);
         
-        double arm = mRadius - indentation * mRadius / radius_sum; //////////////////////////LINEAR FORMULATION: SHOULD BE COMPUTED BY THE CONSTITUTIVE LAW
+        double arm = GetRadius() - indentation * GetRadius() / radius_sum; //////////////////////////LINEAR FORMULATION: SHOULD BE COMPUTED BY THE CONSTITUTIVE LAW
         double other_arm = other_radius - indentation * other_radius / radius_sum;
         
         radial_vector *= arm;
@@ -672,26 +669,25 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                                      double indentation,
                                      bool wall)
 {
-    double MA[3] = {0.0};
-
-    GeometryFunctions::CrossProduct(LocalCoordSystem2, Force, MA);
     
-    double arm = mRadius - indentation;
-    
+    double arm_length = GetRadius() - indentation;
     if(!wall) {
         const double other_radius = p_neighbour->GetRadius();
-        double radius_sum          = mRadius + other_radius;
-        arm = mRadius - indentation * mRadius / radius_sum;
+        const double radius_sum   = GetRadius() + other_radius;
+        arm_length = GetRadius() - indentation * GetRadius() / radius_sum;
     }
-   
-    mContactMoment[0] -= MA[0] * arm;
-    mContactMoment[1] -= MA[1] * arm;
-    mContactMoment[2] -= MA[2] * arm;
+    
+    array_1d<double, 3> arm_vector;
+    arm_vector[0] = -LocalCoordSystem2[0] * arm_length;
+    arm_vector[1] = -LocalCoordSystem2[1] * arm_length;
+    arm_vector[2] = -LocalCoordSystem2[2] * arm_length;
+    
+    GeometryFunctions::CrossProduct(arm_vector, Force, mContactMoment);
 
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
         
-        double rolling_friction_coeff       = GetRollingFriction() * mRadius;
+        double rolling_friction_coeff       = GetRollingFriction() * GetRadius();
         const double other_rolling_friction = p_neighbour->GetRollingFriction();
         double other_rolling_friction_coeff = other_rolling_friction * p_neighbour->GetRadius();
         double equiv_rolling_friction_coeff = std::min(rolling_friction_coeff, other_rolling_friction_coeff);
@@ -704,15 +700,15 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
 
             GeometryFunctions::CrossProduct(LocalCoordSystem2, MaxRotaMoment, CoordSystemMoment1);
             if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0) {
-				double det_coor_sys_moment_i_1 = 1.0 / DEM_MODULUS_3(CoordSystemMoment1);
-				DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment1, det_coor_sys_moment_i_1)
-			}
+                double det_coor_sys_moment_i_1 = 1.0 / DEM_MODULUS_3(CoordSystemMoment1);
+                DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment1, det_coor_sys_moment_i_1)
+            }
                   
             GeometryFunctions::CrossProduct(MaxRotaMoment, CoordSystemMoment1, CoordSystemMoment2);
             if (DEM_MODULUS_3(CoordSystemMoment2) > 0.0) {
-				double det_coor_sys_moment_i_2 = 1.0 / DEM_MODULUS_3(CoordSystemMoment2);
-				DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, det_coor_sys_moment_i_2)
-			}
+                double det_coor_sys_moment_i_2 = 1.0 / DEM_MODULUS_3(CoordSystemMoment2);
+                DEM_MULTIPLY_BY_SCALAR_3(CoordSystemMoment2, det_coor_sys_moment_i_2)
+            }
                              
             if (DEM_MODULUS_3(CoordSystemMoment1) > 0.0 && DEM_MODULUS_3(CoordSystemMoment2) > 0.0) GeometryFunctions::CrossProduct(CoordSystemMoment2, CoordSystemMoment1, MR);
             double AbsoluteNormalLocalElasticContactForce = fabs(NormalLocalElasticContactForce);
@@ -726,15 +722,12 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
                 mContactMoment[1] += MR[1] * equiv_rolling_friction_coeff;
                 mContactMoment[2] += MR[2] * equiv_rolling_friction_coeff;
             }
-
             else {
                 mContactMoment = - rInitialRotaMoment;
             }
         } // if (equiv_rolling_friction_coeff != 0.0)
     } // if (this->Is(DEMFlags::HAS_ROLLING_FRICTION) )
-    
-    
-    
+            
 }
 
 void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elastic_force,
@@ -766,7 +759,7 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
         noalias(other_to_me_vect)  = this->GetGeometry()[0].Coordinates() - ineighbour->GetGeometry()[0].Coordinates();
         const double& other_radius = ineighbour->GetRadius();
         double distance            = DEM_MODULUS_3(other_to_me_vect);
-        double radius_sum          = mRadius + other_radius;
+        double radius_sum          = GetRadius() + other_radius;
         double indentation         = radius_sum - distance;
 
         DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
@@ -932,7 +925,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             }
         }
         if (ContactType == 1 || ContactType == 2 || ContactType == 3) {
-            double indentation = -(DistPToB - mRadius) - ini_delta;
+            double indentation = -(DistPToB - GetRadius()) - ini_delta;
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
 
@@ -950,7 +943,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 const array_1d<double,3>& AngularVel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 const array_1d<double,3>& delta_rotation = GetGeometry()[0].FastGetSolutionStepValue(DELTA_ROTATION);
                 
-                const double actual_arm_length = mRadius - indentation;
+                const double actual_arm_length = GetRadius() - indentation;
                 array_1d<double, 3> actual_arm_vector;
                 actual_arm_vector[0] = -LocalCoordSystem[2][0] * actual_arm_length;
                 actual_arm_vector[1] = -LocalCoordSystem[2][1] * actual_arm_length;
@@ -997,9 +990,9 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
         
             //WEAR        
             if (wall->GetProperties()[PRINT_WEAR]) {                
-                const double area                        = KRATOS_M_PI * mRadius * mRadius;
+                const double area                        = KRATOS_M_PI * GetRadius() * GetRadius();
                 const double density                     = GetDensity();
-                const double inverse_of_volume           = 1.0 / (4.0 * 0.333333333333333 * area * mRadius);
+                const double inverse_of_volume           = 1.0 / (4.0 * 0.333333333333333 * area * GetRadius());
                 ComputeWear(LocalCoordSystem, vel, DeltVel, mTimeStep, density, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
             } //wall->GetProperties()[PRINT_WEAR] if        
         } //ContactType if          
@@ -1314,7 +1307,7 @@ void SphericParticle::Calculate(const Variable<double>& rVariable, double& Outpu
                 mass = mass / (1 - coeff);
             }
 
-            double K = KRATOS_M_PI * GetYoung() * mRadius; //M. Error, should be the same that the local definition.
+            double K = KRATOS_M_PI * GetYoung() * GetRadius(); //M. Error, should be the same that the local definition.
 
             Output = 0.34 * sqrt(mass / K);
 

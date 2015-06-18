@@ -114,7 +114,7 @@ namespace Kratos {
                     other_to_me_vect[1] * other_to_me_vect[1] +
                     other_to_me_vect[2] * other_to_me_vect[2]);
 
-            double radius_sum = mRadius + neighbour_iterator->GetRadius();
+            double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
 
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup;
@@ -192,7 +192,7 @@ namespace Kratos {
             int ino1 = i * 16;
             double DistPToB = RF_Pram[ino1 + 9];
             int iNeighborID = static_cast<int> (RF_Pram[ino1 + 14]);
-            double initial_delta = -(DistPToB - mRadius);
+            double initial_delta = -(DistPToB - GetRadius());
 
             mFemIniNeighbourIds[i] = iNeighborID;
             mFemMappingNewIni[i] = i;
@@ -205,7 +205,7 @@ namespace Kratos {
     {
 
         double alpha = 1.0;
-        double external_sphere_area = 4 * KRATOS_M_PI * mRadius*mRadius;
+        double external_sphere_area = 4 * KRATOS_M_PI * GetRadius()*GetRadius();
 
         double total_equiv_area = 0.0;
 
@@ -221,8 +221,8 @@ namespace Kratos {
             SphericParticle* ini_cont_neighbour_iterator = mContinuumIniNeighbourElements[i];
 
             double other_radius = ini_cont_neighbour_iterator->GetRadius();
-            double equiv_radius = 2 * mRadius * other_radius / (mRadius + other_radius);
-            double equiv_area = (0.25) * KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
+            double equiv_radius = 2 * GetRadius() * other_radius / (GetRadius() + other_radius);
+            double equiv_area = (0.25) * KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective radius.
             total_equiv_area += equiv_area;
 
             mcont_ini_neigh_area[index] = equiv_area; //*
@@ -330,7 +330,7 @@ namespace Kratos {
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                     other_to_me_vect[1] * other_to_me_vect[1] +
                     other_to_me_vect[2] * other_to_me_vect[2]);
-            double radius_sum = mRadius + other_radius;
+            double radius_sum = GetRadius() + other_radius;
             double initial_delta = mNeighbourDelta[i_neighbour_count]; //*
             double initial_dist = (radius_sum - initial_delta);
             double indentation = initial_dist - distance; //#1
@@ -366,16 +366,11 @@ namespace Kratos {
             double equiv_young = 2.0 * myYoung * other_young / (myYoung + other_young);
             double calculation_area = 0.0;
 
-            //            double rmin = mRadius;
-            //            if (other_radius < mRadius) rmin = other_radius;
-            //            calculation_area = KRATOS_M_PI * rmin*other_radius;    
-
-
             if (mapping_new_cont != -1) {
-                mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateContactArea(mRadius, other_radius, calculation_area);
+                mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateContactArea(GetRadius(), other_radius, calculation_area);
                 mContinuumConstitutiveLawArray[mapping_new_cont]-> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
             } else {
-                mDiscontinuumConstitutiveLaw -> CalculateContactArea(mRadius, other_radius, calculation_area);
+                mDiscontinuumConstitutiveLaw -> CalculateContactArea(GetRadius(), other_radius, calculation_area);
                 mDiscontinuumConstitutiveLaw -> CalculateElasticConstants(kn_el, kt_el, initial_dist, equiv_young, equiv_poisson, calculation_area);
             }
 
@@ -700,7 +695,7 @@ namespace Kratos {
 
             //Judge if its neighbor            
             double other_radius = i_neighbour->GetRadius();
-            double radius_sum = mRadius + other_radius;
+            double radius_sum = GetRadius() + other_radius;
             array_1d<double, 3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i_neighbour->GetGeometry()[0].Coordinates();
             double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
             double indentation = radius_sum - distance - ini_delta;
@@ -810,7 +805,7 @@ namespace Kratos {
              //Judge if its neighbour
           
              double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-             double radius_sum                   = mRadius + other_radius;
+             double radius_sum                   = GetRadius() + other_radius;
              array_1d<double,3> other_to_me_vect = this->GetGeometry()[0].Coordinates() - i->GetGeometry()[0].Coordinates();
              double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
              double indentation                  = radius_sum - distance - ini_delta;
@@ -938,7 +933,7 @@ namespace Kratos {
             }
 
             //Judge if its neighbor                  
-            double indentation = -(DistPToB - mRadius) - ini_delta;
+            double indentation = -(DistPToB - GetRadius()) - ini_delta;
 
             if (indentation > 0.0) {
                 mNeighbourRigidFaces.push_back(mFemTempNeighbours[i]);
@@ -1064,7 +1059,7 @@ namespace Kratos {
                     mass /= 1 - coeff;
                 }
 
-                double K = GetYoung() * KRATOS_M_PI * mRadius;
+                double K = GetYoung() * KRATOS_M_PI * GetRadius();
 
                 Output = 0.34 * sqrt(mass / K);
 
@@ -1161,7 +1156,7 @@ namespace Kratos {
         }
 
         /*double& mSectionalInertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_INERTIA);   
-        mSectionalInertia                 = 0.25 * KRATOS_M_PI * mRadius * mRadius * mRadius  * mRadius ;   */
+        mSectionalInertia                 = 0.25 * KRATOS_M_PI * GetRadius() * GetRadius() * GetRadius()  * GetRadius() ;   */
 
         /*double& mRepresentativeVolume    = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
         mRepresentativeVolume            = 0.0;*/
@@ -1205,7 +1200,7 @@ namespace Kratos {
 
     void SphericContinuumParticle::FinalOperationsStresTensor(ProcessInfo& rCurrentProcessInfo, double& rRepresentative_Volume) {
 
-        double sphere_volume = 1.33333333333333333 * KRATOS_M_PI * mRadius * mRadius * mRadius;
+        double sphere_volume = 1.33333333333333333 * KRATOS_M_PI * GetRadius() * GetRadius() * GetRadius();
 
         if ((rRepresentative_Volume <= sphere_volume)) {
             rRepresentative_Volume = sphere_volume;
@@ -1232,7 +1227,7 @@ namespace Kratos {
         KRATOS_TRY
 
         double gap = distance - radius_sum;
-        double real_distance = mRadius + 0.5 * gap;
+        double real_distance = GetRadius() + 0.5 * gap;
         rRepresentative_Volume += 0.33333333333333 * (real_distance * calculation_area);
 
         array_1d<double, 3> normal_vector_on_contact = -1 * other_to_me_vect; //outwards	      
@@ -1339,7 +1334,7 @@ namespace Kratos {
 //NOTE::
 /*
  * #1: Here, Initial_delta is expected to be positive if it is embedding and negative if there's a separation.
- * #2: 0.25 is because we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
+ * #2: 0.25 is because we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
  * #3: For detached particles we enter only if the indentation is > 0. For attached particles we enter only if the particle is still attached.
  * #4: we use incremental calculation. YADE develops a complicated "absolute method"
  * #5: We only store in the initial neighbors array the ones that are cohesive or the ones that have positive or negative initial indentation. In other words,
@@ -1393,7 +1388,7 @@ namespace Kratos {
 //                   double equiv_tension  = (mTension  + other_tension ) * 0.5;
 //                   double equiv_cohesion = (mCohesion + other_cohesion) * 0.5;
 // 
-//                   double equiv_radius     = (mRadius + other_radius) * 0.5 ;
+//                   double equiv_radius     = (GetRadius() + other_radius) * 0.5 ;
 //                   double equiv_area       = KRATOS_M_PI * equiv_radius * equiv_radius;
 //                   double equiv_poisson    = (mPoisson + other_poisson) * 0.5 ;
 //                   double equiv_young      = (mYoung  + other_young)  * 0.5;
