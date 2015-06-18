@@ -682,7 +682,9 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     arm_vector[1] = -LocalCoordSystem2[1] * arm_length;
     arm_vector[2] = -LocalCoordSystem2[2] * arm_length;
     
-    GeometryFunctions::CrossProduct(arm_vector, Force, mContactMoment);
+    array_1d<double, 3> moment_of_this_neighbour;
+    GeometryFunctions::CrossProduct(arm_vector, Force, moment_of_this_neighbour);
+    noalias(mContactMoment) += moment_of_this_neighbour;
 
     // ROLLING FRICTION
     if (this->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
