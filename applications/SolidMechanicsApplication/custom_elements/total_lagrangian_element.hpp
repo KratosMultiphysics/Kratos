@@ -204,6 +204,11 @@ protected:
      */
     double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+
     ///@}
     ///@name Protected  Access
     ///@{

@@ -1572,12 +1572,6 @@ double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, Proces
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
-
-    if( dimension == 2 )
-        rTotalMass *= GetProperties()[THICKNESS];
-
     
     //Compute the Volume Change acumulated:
     GeneralVariables Variables;
@@ -1585,7 +1579,6 @@ double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, Proces
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    double VolumeChange = 0;
     //reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -1593,16 +1586,19 @@ double& LargeDisplacementElement::CalculateTotalMass( double& rTotalMass, Proces
 	this->CalculateKinematics(Variables,PointNumber);
 	
 	//getting informations for integration
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
-	//compute point volume change
+	//compute point volume changes
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 	
-	VolumeChange += PointVolumeChange * IntegrationWeight;
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * IntegrationWeight;
+
       }
 
-    rTotalMass *= VolumeChange;
+    if( dimension == 2 )
+      rTotalMass *= GetProperties()[THICKNESS];
+
 
     return rTotalMass;
 

@@ -341,7 +341,7 @@ double& AxisymSpatialLagrangianElement::CalculateTotalMass( double& rTotalMass, 
 	this->CalculateKinematics(Variables,PointNumber);
 	
 	//getting informations for integration
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
 	double PointVolumeChange = 0;
@@ -350,8 +350,6 @@ double& AxisymSpatialLagrangianElement::CalculateTotalMass( double& rTotalMass, 
 	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
 
       }
-
-    rTotalMass *=  GetGeometry().DomainSize();
 
     return rTotalMass;
 
