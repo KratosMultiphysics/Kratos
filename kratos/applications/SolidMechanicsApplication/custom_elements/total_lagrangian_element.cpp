@@ -364,6 +364,21 @@ void TotalLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariable
     rVariables.detF0 = MathUtils<double>::Det(rVariables.F0);
 }
 
+
+//************************************CALCULATE VOLUME CHANGE*************************
+//************************************************************************************
+
+double& TotalLagrangianElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+{
+    KRATOS_TRY
+      
+    rVolumeChange = 1.0;
+
+    return rVolumeChange;
+
+    KRATOS_CATCH( "" )
+}
+
 //************************************************************************************
 //************************************************************************************
 
