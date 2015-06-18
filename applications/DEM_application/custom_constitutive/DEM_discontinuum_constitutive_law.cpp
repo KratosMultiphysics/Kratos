@@ -33,11 +33,11 @@ namespace Kratos {
         //std::cout << "Law destructor..." ; 
     }
 
-    void DEMDiscontinuumConstitutiveLaw::CalculateContactArea(double mRadius, double other_radius, double &calculation_area) {
+    void DEMDiscontinuumConstitutiveLaw::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
         
         KRATOS_TRY
-        double rmin = mRadius;
-        if (other_radius < mRadius) rmin = other_radius;
+        double rmin = radius;
+        if (other_radius < radius) rmin = other_radius;
         calculation_area = KRATOS_M_PI * rmin*rmin;
         KRATOS_CATCH("")  
     }

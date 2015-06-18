@@ -34,11 +34,11 @@ namespace Kratos {
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_Dempack1::CalculateContactArea(double mRadius, double other_radius, double &calculation_area) {
+    void DEM_Dempack1::CalculateContactArea(double radius, double other_radius, double &calculation_area) {
         
         KRATOS_TRY
-        double rmin = mRadius;
-        if (other_radius < mRadius) rmin = other_radius;
+        double rmin = radius;
+        if (other_radius < radius) rmin = other_radius;
         calculation_area = KRATOS_M_PI * rmin*rmin;
         KRATOS_CATCH("")  
     }

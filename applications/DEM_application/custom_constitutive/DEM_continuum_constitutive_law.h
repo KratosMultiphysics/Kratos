@@ -55,7 +55,7 @@ namespace Kratos {
                 bool sliding,
                 int mDampType);
 
-        virtual void CalculateContactArea(double mRadius,
+        virtual void CalculateContactArea(double radius,
                 double other_radius,
                 double &calculation_area) {
         };

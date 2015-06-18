@@ -57,11 +57,11 @@ namespace Kratos
           double density            = GetDensity();
 
           double& mass              = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-          mass                      = KRATOS_M_PI_3 * density * mRadius * mRadius * 1.0;
+          mass                      = KRATOS_M_PI_3 * density * GetRadius() * GetRadius() * 1.0;
           mRealMass                 = mass;
 
           if (this->Is(DEMFlags::HAS_ROTATION) ){
-            double moment_of_inertia = 0.5 * mass * mRadius * mRadius;   
+            double moment_of_inertia = 0.5 * mass * GetRadius() * GetRadius();   
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }                                                                        
 
@@ -79,7 +79,7 @@ namespace Kratos
       { 
 
         double alpha = 1.0;
-        double sphere_perimeter = 2*KRATOS_M_PI*mRadius;  
+        double sphere_perimeter = 2*KRATOS_M_PI * GetRadius();  
         
         double total_equiv_perimeter = 0.0;
 
@@ -96,7 +96,7 @@ namespace Kratos
             ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
         {   
             double other_radius     = ini_cont_neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-            double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
+            double equiv_radius     = 2*GetRadius() * other_radius / (GetRadius() + other_radius);        
             //double equiv_area       = (0.25)*KRATOS_M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
             total_equiv_perimeter  += equiv_radius;
         
@@ -169,7 +169,7 @@ namespace Kratos
         double Dummy_Dummy = 0.0;
         GeometryFunctions::normalize(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
 
-        array_1d<double,3> x_centroid      = (mRadius + 0.5*gap) * normal_vector_on_contact;
+        array_1d<double,3> x_centroid      = (GetRadius() + 0.5*gap) * normal_vector_on_contact;
       
         array_1d<double,3> surface_baricenter = x_centroid;
         

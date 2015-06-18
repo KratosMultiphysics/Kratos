@@ -97,8 +97,8 @@ namespace Kratos
             const double &other_radius            = neighbour_iterator->GetRadius();
             const double &other_temperature       = neighbour_iterator->GetTemperature();
             
-            double rmin = mRadius;
-            if(other_radius<mRadius) rmin = other_radius;
+            double rmin = GetRadius();
+            if(other_radius < GetRadius()) rmin = other_radius;
             double calculation_area = KRATOS_M_PI*rmin*rmin;
 
             array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
@@ -143,7 +143,7 @@ namespace Kratos
 //            
 //            double ThermalConductivity = 50;
 //            double inv_distance = 1/distance;
-//            //double inv_distance = 1/(mRadius+other_radius);
+//            //double inv_distance = 1/(GetRadius()+other_radius);
 //            
 //            mConvectiveHeatFlux = - convective_heat_transfer_coefficient * boundary_particle_surface_area * (mTemperature - ambient_temperature);
 //                                  
