@@ -441,6 +441,7 @@ void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
     for (unsigned int i = 0; i<rNeighbours.size(); i++){
         temp_neighbours_ids[i] = static_cast<int>(rNeighbours[i]->Id());
         noalias(temp_neighbours_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbours_elastic_contact_forces[i]) = vector_of_zeros;
 
         for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
             if (static_cast<int>(rNeighbours[i]->Id()) == mFemOldNeighbourIds[j]) {
@@ -785,9 +786,10 @@ void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& r_elast
 
         GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);   
         
-        double OldLocalElasticContactForce[3] = {0.0}; 
+        double OldLocalElasticContactForce[3] = {0.0};
+
         GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, mNeighbourElasticContactForces[i], OldLocalElasticContactForce); // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
-        
+
         const double previous_indentation = indentation + LocalDeltDisp[2];
         
         if (indentation > 0.0) {
@@ -964,13 +966,14 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
             
             double OldLocalElasticContactForce[3] = {0.0}; 
-            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce); 
 
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce); 
             const double previous_indentation = indentation + LocalDeltDisp[2];
             
             if (indentation > 0.0) {
                 double LocalRelVel[3]            = {0.0};
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);            
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
+
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall);         
             }
 
