@@ -142,8 +142,7 @@ class ConditionsUtility:
                 node.SetSolutionStepValue(POINT_TORQUE, moment)
 
     #
-    def RestartImposedDisp(self):
-
+    def RestartImposedDisp(self):  #msi: there should be an Else where the imposed displacement comming from a imposed velocity is recalculated in case of modifying timestep
         if(self.incr_disp == False):
             for node in self.model_part.Nodes:
                 ImposedDisp = node.GetSolutionStepValue(IMPOSED_DISPLACEMENT)
