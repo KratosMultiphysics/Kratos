@@ -113,8 +113,21 @@ public:
 			*a = '\0';
 			char** empty_argv = &a;
 
+#if MPI_VERSION < 2
 			MPI_Init(&argc, &empty_argv);
-
+#else
+                        int provided;
+                        MPI_Init_thread(&argc, &empty_argv, MPI_THREAD_MULTIPLE, &provided);
+                        
+                        if(provided < MPI_THREAD_MULTIPLE)
+                        {
+                            int rank;
+                            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+                            if(rank==0)
+                                std::cout<< "MPI_Init_thread returns : " << provided << std::endl;
+                            
+                        }
+#endif
 			delete[] a;
 		}
 
