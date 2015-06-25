@@ -45,8 +45,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* *********************************************************
 *
 *   Last Modified by:    $Author: AMini $
-*   Date:                $Date: Mai 2015 $
-*   Revision:            $Revision: 1.3 $
+*   Date:                $Date: June 2015 $
+*   Revision:            $Revision: 1.4 $
 *
 * ***********************************************************/
 
@@ -101,13 +101,12 @@ void LaplacianMeshMovingElement<2>::CalculateLocalSystem(MatrixType& rLeftHandSi
 
     //Define Matrixes and Variables
     unsigned int NumNodes = GetGeometry().PointsNumber();
-    const SizeType LocalSize = NumNodes * 2;
 
-    if(rLeftHandSideMatrix.size1() != LocalSize)
-        rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
+    if(rLeftHandSideMatrix.size1() != NumNodes)
+        rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
 
-    if(rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize,false);
+    if(rRightHandSideVector.size() != NumNodes)
+        rRightHandSideVector.resize(NumNodes,false);
 
     unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
@@ -124,16 +123,19 @@ void LaplacianMeshMovingElement<2>::CalculateLocalSystem(MatrixType& rLeftHandSi
     //Compute LHS
     noalias(rLeftHandSideMatrix) = prod(DN_DX,trans(DN_DX));
 
+
     //Compute Deltaposition
     const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
     const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,1);
+    const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,1);
 
     //Compute Dirichlet Contribution
     temp_vec_np[0] = disp0[ComponentIndex];
     temp_vec_np[1] = disp1[ComponentIndex];
+    temp_vec_np[2] = disp2[ComponentIndex];
 
     //Compute RHS
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp_vec_np);
+    noalias(rRightHandSideVector) -= prod (rLeftHandSideMatrix,temp_vec_np);
 
 
     //Compute Conductivity to modify LHS and RHS
@@ -167,11 +169,11 @@ void LaplacianMeshMovingElement<2>::CalculateLocalSystem(MatrixType& rLeftHandSi
 
             disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-            grad(0,0) += DN_DX(i,0)*disp[0];
-            grad(1,0) += DN_DX(i,1)*disp[0];
-            grad(0,1) += DN_DX(i,1)*disp[0];
-            grad(0,2) += DN_DX(i,2)*disp[0];
-            grad(1,2) += DN_DX(i,2)*disp[1];
+            grad(0,0) += DN_DX(i,0)*disp[0]+DN_DX(i,0)*disp[0]-DN_DX(i,0)*disp[0]*DN_DX(i,0)*disp[0]-DN_DX(i,0)*disp[1]*DN_DX(i,0)*disp[1]-DN_DX(i,0)*disp[2]*DN_DX(i,0)*disp[2];
+            grad(1,0) += DN_DX(i,1)*disp[0]+DN_DX(i,0)*disp[1]-DN_DX(i,1)*disp[0]*DN_DX(i,0)*disp[0]-DN_DX(i,1)*disp[1]*DN_DX(i,0)*disp[1]-DN_DX(i,1)*disp[2]*DN_DX(i,0)*disp[2];
+            grad(0,1) += DN_DX(i,1)*disp[0]+DN_DX(i,0)*disp[1]-DN_DX(i,1)*disp[0]*DN_DX(i,0)*disp[0]-DN_DX(i,1)*disp[1]*DN_DX(i,0)*disp[1]-DN_DX(i,1)*disp[2]*DN_DX(i,0)*disp[2];
+            grad(1,1) += DN_DX(i,1)*disp[1]+DN_DX(i,1)*disp[1]-DN_DX(i,1)*disp[0]*DN_DX(i,1)*disp[0]-DN_DX(i,1)*disp[1]*DN_DX(i,1)*disp[1]-DN_DX(i,1)*disp[2]*DN_DX(i,1)*disp[2];
+
         }
 
         Matrix eps = grad;
@@ -200,13 +202,12 @@ void LaplacianMeshMovingElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSi
 
     //Define matrices and variables
     unsigned int NumNodes = GetGeometry().PointsNumber();
-    const SizeType LocalSize = NumNodes * 3;
 
-    if(rLeftHandSideMatrix.size1() != LocalSize)
-        rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+    if(rLeftHandSideMatrix.size1() != NumNodes)
+        rLeftHandSideMatrix.resize(NumNodes,NumNodes);
 
-    if(rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize);
+    if(rRightHandSideVector.size() != NumNodes)
+        rRightHandSideVector.resize(NumNodes);
 
     unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
