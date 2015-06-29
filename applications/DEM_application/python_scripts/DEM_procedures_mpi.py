@@ -125,8 +125,8 @@ class MultifileList(object):
 
 class DEMIo(DEM_procedures.DEMIo):
 
-    def __init__(self):
-        super(DEMIo,self).__init__()
+    def __init__(self, DEM_parameters):
+        super(DEMIo,self).__init__(DEM_parameters)
 
     def EnableMpiVariables(self):
         self.spheres_variables.append(PARTITION_INDEX)
