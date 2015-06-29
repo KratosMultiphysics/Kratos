@@ -16,6 +16,13 @@ if(Subversion_FOUND)
       "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
       "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
       )
+else(Subversion_FOUND)
+  # if svn is not found use 0 as a default placeholder
+  set (KRATOS_SVN_REVISION_WC_REVISION 0)
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
+    "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
+    )
 endif(Subversion_FOUND) 
 
 #set compiler flags
@@ -55,7 +62,7 @@ if(${MSVC10})
 endif(${MSVC10}) 
 
 if(${MSVC11})
-  message("detected compiler as MSVC10")
+  message("detected compiler as MSVC11")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC11}) 
