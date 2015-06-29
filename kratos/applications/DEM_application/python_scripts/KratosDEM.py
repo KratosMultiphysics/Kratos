@@ -56,7 +56,7 @@ else:
 
 # Import utilities from models
 procedures    = DEM_procedures.Procedures(DEM_parameters)
-demio         = DEM_procedures.DEMIo()
+demio         = DEM_procedures.DEMIo(DEM_parameters)
 report        = DEM_procedures.Report()
 parallelutils = DEM_procedures.ParallelUtils()
 materialTest  = DEM_procedures.MaterialTest()
