@@ -8,7 +8,7 @@ set (KratosMultiphysics_VERSION_MINOR 3)
 #get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
 
-FIND_PACKAGE(Subversion)
+find_package(Subversion QUIET)
 if(Subversion_FOUND)
   include(FindSubversion)
   Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
