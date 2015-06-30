@@ -111,7 +111,7 @@ class PostUtils(object):
         self.post_utilities = PostUtilities()
 
         self.vel_trap_graph_counter = 0
-        self.dem_io = DEMIo()
+        self.dem_io = DEMIo(DEM_parameters)
         self.vel_trap_graph_frequency = int(self.dem_io.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
@@ -665,7 +665,7 @@ class DEMFEMProcedures(object):
 
     def PrintGraph(self, time):
 
-        if DEM_parameters.TestType == "None":            
+        if self.DEM_parameters.TestType == "None":            
             if(self.graph_counter == self.graph_frequency):
                 self.graph_counter = 0
                 if self.RigidFace_model_part.NumberOfMeshes() > 1:
@@ -680,9 +680,17 @@ class DEMFEMProcedures(object):
                             total_force[1] = 0.0
                             total_force[2] = 0.0
                             
-                            PostUtilities().IntegrationOfForces(mesh_nodes, total_force)
+                            total_moment = Array3()
+
+                            total_moment[0] = 0.0
+                            total_moment[1] = 0.0
+                            total_moment[2] = 0.0
+                            
+                            rotation_center = self.RigidFace_model_part.GetMesh(mesh_number)[ROTATION_CENTER]
+                            
+                            PostUtilities().IntegrationOfForces(mesh_nodes, total_force, rotation_center, total_moment)
                                                                                       
-                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+"\n")
+                            self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_force[0]).rjust(13)+" "+str("%.6g"%total_force[1]).rjust(13)+" "+str("%.6g"%total_force[2]).rjust(13)+" "+str("%.6g"%total_moment[0]).rjust(13)+" "+str("%.6g"%total_moment[1]).rjust(13)+" "+str("%.6g"%total_moment[2]).rjust(13)+"\n")
                             self.graph_forces[self.RigidFace_model_part.GetMesh((mesh_number))[IDENTIFIER]].flush()
 
             self.graph_counter += 1
