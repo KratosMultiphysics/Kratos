@@ -52,15 +52,7 @@ namespace Kratos {
         
         const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-        const double equiv_shear_modulus = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
-        
-        //Get equivalent Poisson's Modulus
-        /*double equiv_poisson = 0.0;
-        if ((my_poisson + other_poisson) != 0.0) {
-            equiv_poisson                 = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
-        } else {
-            equiv_poisson                 = 0.0;
-        }      */            
+        const double equiv_shear_modulus = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);                   
         
         //Normal and Tangent elastic constants
         mKn = 1.3333333333333333 * equiv_young * sqrt(equiv_radius);
