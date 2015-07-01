@@ -224,25 +224,26 @@ class DEMFEMUtilities
                                 array_1d<double, 3 > displacement;
                                 array_1d<double, 3 > old_coordinates;
                                 noalias(old_coordinates) = node->Coordinates();
+                                                                
+                                array_1d<double, 3 > velocity_due_to_rotation;
+                                CrossProduct(angular_velocity_changed, relative_position, velocity_due_to_rotation);
                                 
+                                array_1d<double, 3 >& velocity = node->FastGetSolutionStepValue(VELOCITY);
+                                noalias(velocity) = linear_velocity_changed + velocity_due_to_rotation;  
+                                                                
                                 if (!fixed_mesh) {
                                     // NEW POSITION
                                     noalias(node->Coordinates()) = center_position + relative_position;
 
                                     // DISPLACEMENT
-                                    noalias(displacement) = node->Coordinates() - node->GetInitialPosition().Coordinates();
+                                    noalias( node->FastGetSolutionStepValue(DISPLACEMENT) ) = node->Coordinates() - node->GetInitialPosition().Coordinates();
+                                    noalias( node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) ) = node->Coordinates() - old_coordinates;
                                 } else {
-                                    displacement[0] = 0.0;
-                                    displacement[1] = 0.0;
-                                    displacement[2] = 0.0;
+                                    (node->FastGetSolutionStepValue(DISPLACEMENT)).clear(); //Set values to zero
+                                    noalias( node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) ) = velocity * dt; //But still there must be some delta_displacement (or motion won't be detected by the spheres!)
                                 }
 
-                                array_1d<double, 3 > velocity_due_to_rotation;
-                                CrossProduct(angular_velocity_changed, relative_position, velocity_due_to_rotation);
-                               
-                                noalias( node->FastGetSolutionStepValue(VELOCITY) ) = linear_velocity_changed + velocity_due_to_rotation; 
-                                noalias( node->FastGetSolutionStepValue(DISPLACEMENT) ) = displacement;
-                                noalias( node->FastGetSolutionStepValue(DELTA_DISPLACEMENT) ) = node->Coordinates() - old_coordinates;
+                                                               
                             }
                         }
                     }
