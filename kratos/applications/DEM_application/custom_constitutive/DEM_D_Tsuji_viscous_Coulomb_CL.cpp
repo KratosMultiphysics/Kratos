@@ -109,20 +109,18 @@ namespace Kratos {
         const double other_ln_of_restit_coeff = element2->GetLnOfRestitCoeff();
             
         double my_coefficient_of_restitution;
-        if (my_ln_of_restit_coeff == 1.0) my_coefficient_of_restitution = 0.0;
+        if (my_ln_of_restit_coeff > 0.0) my_coefficient_of_restitution = 0.0;
         else my_coefficient_of_restitution = exp(my_ln_of_restit_coeff);
         
         double other_coefficient_of_restitution;
-        if (other_ln_of_restit_coeff == 1.0) other_coefficient_of_restitution = 0.0;        
+        if (other_ln_of_restit_coeff > 0.0) other_coefficient_of_restitution = 0.0;        
         else other_coefficient_of_restitution = exp(other_ln_of_restit_coeff);
         
         const double equiv_coefficient_of_restitution = 0.5 * (my_coefficient_of_restitution + other_coefficient_of_restitution);        
         
         double normal_damping_coefficient;
         
-        if (equiv_coefficient_of_restitution == 0) normal_damping_coefficient = 0.0;
-        
-        else normal_damping_coefficient = (0.833333333333 * equiv_coefficient_of_restitution * equiv_coefficient_of_restitution - 2.25 * equiv_coefficient_of_restitution + 1.41666666666666) * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
+        normal_damping_coefficient = (0.833333333333 * equiv_coefficient_of_restitution * equiv_coefficient_of_restitution - 2.25 * equiv_coefficient_of_restitution + 1.41666666666666) * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
         
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient * LocalRelVel[2];
         
