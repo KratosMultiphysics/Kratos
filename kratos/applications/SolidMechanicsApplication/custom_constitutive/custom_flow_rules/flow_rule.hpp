@@ -139,9 +139,13 @@ namespace Kratos
       double IncrementalPlasticShearStrain; 
 
       double Temperature;
-
+      
+      double CharacteristicSize;
+      
       Matrix TrialIsoStressMatrix;
-	    
+    
+      Matrix StrainMatrix;
+    
       ThermalVariables Thermal;
 
     public:
@@ -286,8 +290,8 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
-    void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
+
+    virtual void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
     {
       //set yield criterion
       mpYieldCriterion = pYieldCriterion;
@@ -299,7 +303,7 @@ namespace Kratos
 
     };
 
-    void InitializeMaterial (const Properties& rMaterialProperties)
+    virtual void InitializeMaterial (const Properties& rMaterialProperties)
     {
 
       mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);	
