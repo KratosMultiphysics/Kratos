@@ -142,6 +142,12 @@ KRATOS_CREATE_VARIABLE( double, HARDENING_EXPONENT )
 KRATOS_CREATE_VARIABLE( double, REFERENCE_HARDENING_MODULUS )
 KRATOS_CREATE_VARIABLE( double, INFINITY_HARDENING_MODULUS )
 
+//material : isotropic damage
+KRATOS_CREATE_VARIABLE( double, DAMAGE_VARIABLE )
+KRATOS_CREATE_VARIABLE( double, DAMAGE_THRESHOLD )
+KRATOS_CREATE_VARIABLE( double, STRENGTH_RATIO )
+KRATOS_CREATE_VARIABLE( double, FRACTURE_ENERGY )
+
 //thermal
 KRATOS_CREATE_VARIABLE( double, THERMAL_EXPANSION_COEFFICIENT )
 KRATOS_CREATE_VARIABLE( double, REFERENCE_TEMPERATURE )
@@ -422,16 +428,29 @@ void KratosSolidMechanicsApplication::Register()
     Serializer::Register( "HyperElasticPlasticUPJ2PlaneStrain2DLaw", mHyperElasticPlasticUPJ2PlaneStrain2DLaw );
     Serializer::Register( "HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw );
 
+    //Linear Elastic Plastic laws
+    Serializer::Register( "LinearElasticPlastic3DLaw", mLinearElasticPlastic3DLaw );
+    Serializer::Register( "LinearElasticPlasticPlaneStrain2DLaw", mLinearElasticPlasticPlaneStrain2DLaw );
+    Serializer::Register( "LinearElasticPlasticPlaneStress2DLaw", mLinearElasticPlasticPlaneStress2DLaw );
+    
+    //Isotropic Damage laws
+    Serializer::Register( "IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw );
+    Serializer::Register( "IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw );
+    Serializer::Register( "IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw );
+
     //Flow Rules
     Serializer::Register( "NonLinearAssociativePlasticFlowRule", mNonLinearAssociativePlasticFlowRule );
     Serializer::Register( "LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule );
+    Serializer::Register( "IsotropicDamageFlowRule", mIsotropicDamageFlowRule );
 
     //Yield Criteria
     Serializer::Register( "MisesHuberYieldCriterion", mMisesHuberYieldCriterion );
+    Serializer::Register( "SimoJuYieldCriterion", mSimoJuYieldCriterion );
     
     //Hardening Laws
     Serializer::Register( "NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw );
     Serializer::Register( "LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw );
+    Serializer::Register( "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw );
 
     //Register Variables
 
@@ -516,6 +535,12 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( HARDENING_EXPONENT )
     KRATOS_REGISTER_VARIABLE( REFERENCE_HARDENING_MODULUS )
     KRATOS_REGISTER_VARIABLE( INFINITY_HARDENING_MODULUS )
+
+    //material : isotropic damage
+    KRATOS_REGISTER_VARIABLE( DAMAGE_VARIABLE )
+    KRATOS_REGISTER_VARIABLE( DAMAGE_THRESHOLD )
+    KRATOS_REGISTER_VARIABLE( STRENGTH_RATIO )
+    KRATOS_REGISTER_VARIABLE( FRACTURE_ENERGY )
 
     //thermal
     KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION_COEFFICIENT );
