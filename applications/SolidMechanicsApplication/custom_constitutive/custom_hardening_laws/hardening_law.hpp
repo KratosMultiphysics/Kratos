@@ -58,39 +58,53 @@ public:
 	{
 	private:
 
-  	  double         mRateFactor;
+        double         mRateFactor;
 
-  	  const double*  mpDeltaGamma;
-	  const double*  mpLameMu_bar;
+        const double*  mpDeltaGamma;
+        const double*  mpLameMu_bar;
 
-	  const double*  mpDeltaTime;
-  	  const double*  mpTemperature;	
+        const double*  mpDeltaTime;
+        const double*  mpTemperature;	
 
-	  const double*  mpEquivalentPlasticStrain;
-	  const double*  mpEquivalentPlasticStrainOld;		
+        const double*  mpEquivalentPlasticStrain;
+        const double*  mpEquivalentPlasticStrainOld;		
+        
+        const double* mpCharacteristicSize;
+        
+        const Matrix* mpStrainMatrix;
+        const Matrix* mpStressMatrix;
 
 	public:
 
-          //Set Parameters
-          void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };	
-          void SetDeltaGamma  (const double& rDeltaGamma)  { mpDeltaGamma = &rDeltaGamma;   };
-          void SetLameMu_bar  (const double& rLameMu_bar)  { mpLameMu_bar = &rLameMu_bar;   };
-          void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
-          void SetTemperature (const double& rTemperature) { mpTemperature = &rTemperature; };
+        //Set Parameters
+        void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };	
+        void SetDeltaGamma  (const double& rDeltaGamma)  { mpDeltaGamma = &rDeltaGamma;   };
+        void SetLameMu_bar  (const double& rLameMu_bar)  { mpLameMu_bar = &rLameMu_bar;   };
+        void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
+        void SetTemperature (const double& rTemperature) { mpTemperature = &rTemperature; };
 
-	  void SetEquivalentPlasticStrain    (const double& rEquivalentPlasticStrain)    { mpEquivalentPlasticStrain = &rEquivalentPlasticStrain;       };
-          void SetEquivalentPlasticStrainOld (const double& rEquivalentPlasticStrainOld) { mpEquivalentPlasticStrainOld = &rEquivalentPlasticStrainOld; };
+        void SetEquivalentPlasticStrain    (const double& rEquivalentPlasticStrain)    { mpEquivalentPlasticStrain = &rEquivalentPlasticStrain;       };
+        void SetEquivalentPlasticStrainOld (const double& rEquivalentPlasticStrainOld) { mpEquivalentPlasticStrainOld = &rEquivalentPlasticStrainOld; };
 
-	  //Get Parameters
- 	  const double& GetRateFactor  () const { return  mRateFactor;   };
-          const double& GetDeltaGamma  () const { return *mpDeltaGamma;  };
-          const double& GetLameMu_bar  () const { return *mpLameMu_bar;  };
-          const double& GetDeltaTime   () const { return *mpDeltaTime;   };
-	  const double& GetTemperature () const { return *mpTemperature; };
+        void SetCharacteristicSize (const double& rCharacteristicSize) {mpCharacteristicSize = &rCharacteristicSize;}
 
-          const double& GetEquivalentPlasticStrain       () const { return *mpEquivalentPlasticStrain;       };
-          const double& GetEquivalentPlasticStrainOld    () const { return *mpEquivalentPlasticStrainOld;    };
+        void SetStrainMatrix (const Matrix& rStrainMatrix) {mpStrainMatrix = &rStrainMatrix;}
+        void SetStressMatrix (const Matrix& rStressMatrix) {mpStressMatrix = &rStressMatrix;}
 
+        //Get Parameters
+        const double& GetRateFactor  () const { return  mRateFactor;   };
+        const double& GetDeltaGamma  () const { return *mpDeltaGamma;  };
+        const double& GetLameMu_bar  () const { return *mpLameMu_bar;  };
+        const double& GetDeltaTime   () const { return *mpDeltaTime;   };
+        const double& GetTemperature () const { return *mpTemperature; };
+
+        const double& GetEquivalentPlasticStrain       () const { return *mpEquivalentPlasticStrain;       };
+        const double& GetEquivalentPlasticStrainOld    () const { return *mpEquivalentPlasticStrainOld;    };
+
+        const double& GetCharacteristicSize () const {return *mpCharacteristicSize; }
+        
+        const Matrix& GetStrainMatrix () const { return *mpStrainMatrix; }
+        const Matrix& GetStressMatrix () const { return *mpStressMatrix; }
 	};
 
 
