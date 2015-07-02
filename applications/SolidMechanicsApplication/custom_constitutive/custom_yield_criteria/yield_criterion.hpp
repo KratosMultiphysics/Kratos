@@ -61,16 +61,16 @@ class YieldCriterion
 	{
 	private:
 
-		const double* mpStressNorm;
-		HardeningLaw::Parameters HardeningParameters;
+        const double* mpStressNorm;
+        HardeningLaw::Parameters HardeningParameters;
 
 	public:
-                //Set Parameters
+    
+        //Set Parameters
 		void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
 
 		//Get Parameters
 		const double& GetStressNorm  () const { return *mpStressNorm;  };
-
 
 		//Set Hardening Parameters
 		void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
@@ -81,7 +81,12 @@ class YieldCriterion
 		
 		void SetEquivalentPlasticStrain       (const double& rEquivalentPlasticStrain)       {  HardeningParameters.SetEquivalentPlasticStrain(rEquivalentPlasticStrain);       };
 		void SetEquivalentPlasticStrainOld    (const double& rEquivalentPlasticStrainOld)    {  HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
-		
+
+        void SetCharacteristicSize (const double& rCharacteristicSize) {HardeningParameters.SetCharacteristicSize(rCharacteristicSize);}
+        
+        void SetStrainMatrix (const Matrix& rStrainMatrix) { HardeningParameters.SetStrainMatrix(rStrainMatrix); }
+        void SetStressMatrix (const Matrix& rStressMatrix) { HardeningParameters.SetStressMatrix(rStressMatrix); }
+
 		//Get Hardening Parameters
 		const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
 		const double& GetDeltaGamma  () const { return HardeningParameters.GetDeltaGamma();   };
@@ -94,6 +99,10 @@ class YieldCriterion
 		
 		const HardeningLaw::Parameters& GetHardeningParameters  () const { return HardeningParameters; };
 
+        const double& GetCharacteristicSize () const {return HardeningParameters.GetCharacteristicSize();}
+        
+		const Matrix& GetStrainMatrix () const { return HardeningParameters.GetStrainMatrix(); }
+        const Matrix& GetStressMatrix () const { return HardeningParameters.GetStressMatrix(); }
 	};
 
         ///@name Type Definitions
