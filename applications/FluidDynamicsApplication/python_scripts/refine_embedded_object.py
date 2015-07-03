@@ -61,7 +61,6 @@ class MeshAdaptor:
         minAngle = 5
 
 
-        reconnector.setMaxNumThreads(4)
         reconnector.setBlockSize(2048)
         reconnector.OptimizeQuality(self.model_part, simIter, iterations, ProcessByNode, ProcessByFace, ProcessByEdge, saveToFile, removeFreeVertexes, evaluateInParallel, reInsertNodes, debugMode,minAngle)
         meshIsValid = reconnector.EvaluateQuality()
