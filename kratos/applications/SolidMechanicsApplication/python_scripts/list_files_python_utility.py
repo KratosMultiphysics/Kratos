@@ -105,7 +105,7 @@ class ListFilesUtility:
                         problempath = os.path.join(self.problem_path, "_List_" + str(self.file_list[lfile]) + "_" + self.problem_name + ".post.lst")
 
                         if(self.FileExists(problempath) == False):
-                            self.header_in_list[lfile]
+                            self.header_in_list[lfile] = True
                                 
                         listfile = open(problempath, "a")
 
