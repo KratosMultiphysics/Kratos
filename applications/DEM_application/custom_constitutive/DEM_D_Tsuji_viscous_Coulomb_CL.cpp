@@ -59,11 +59,11 @@ namespace Kratos {
     void DEM_D_Tsuji_viscous_Coulomb::InitializeContact(SphericParticle* const element1,
                                                  SphericParticle* const element2) {
         //Get equivalent Radius
-        const double my_radius     = element1->GetRadius();
-        const double other_radius  = element2->GetRadius();
-        const double radius_sum    = my_radius + other_radius;
-        const double radius_sum_i  = 1.0 / radius_sum;
-        const double equiv_radius  = my_radius * other_radius * radius_sum_i;
+        const double my_radius       = element1->GetRadius();
+        const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
         
         //Get equivalent Young's Modulus
         const double my_young        = element1->GetYoung();
@@ -124,8 +124,9 @@ namespace Kratos {
                //Get equivalent mass
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
-        const double equiv_mass = sqrt(my_mass * other_mass);
                 
+        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);        
+        
         //Get equivalent ln of restitution coefficient
         const double my_ln_of_restit_coeff    = element1->GetLnOfRestitCoeff();
         const double other_ln_of_restit_coeff = element2->GetLnOfRestitCoeff();
@@ -145,6 +146,10 @@ namespace Kratos {
         normal_damping_coefficient = (0.833333333333 * equiv_coefficient_of_restitution * equiv_coefficient_of_restitution - 2.25 * equiv_coefficient_of_restitution + 1.41666666666666) * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
         
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient * LocalRelVel[2];
+        
+        //const double RCTS = 2.0 * sqrt(my_mass / mKn);
+        
+        //std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
         
         // TANGENTIAL FORCE
         
