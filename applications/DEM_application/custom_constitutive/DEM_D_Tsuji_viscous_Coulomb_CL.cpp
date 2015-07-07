@@ -49,7 +49,7 @@ namespace Kratos {
         const double h9 = 6276.757;
         const double h10 = -1489.915;        
         
-        const double alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*h7+e*(h8+e*(h9+e*h10))))))));
+        const double alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))));
         
         gamma = sqrt( 1.0/(1.0 - (1.0+e)*(1.0+e) * exp(alpha) ) - 1.0);     
         
