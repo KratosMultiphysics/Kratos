@@ -767,8 +767,8 @@ public:
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
-				KRATOS_WATCH(file_name.str())
-				mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+		//KRATOS_WATCH(file_name.str())
+		mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
                 if ( mResultFile == 0) //error handler can not be zero
                 {
                     std::stringstream buffer;
