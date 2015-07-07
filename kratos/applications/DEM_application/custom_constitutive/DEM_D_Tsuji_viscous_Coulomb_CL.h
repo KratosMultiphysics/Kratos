@@ -95,6 +95,8 @@ namespace Kratos {
     private:
 
         friend class Serializer;
+        
+        void CalculateGamma( const double e, double & gamma);
 
         virtual void save(Serializer& rSerializer) const {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)

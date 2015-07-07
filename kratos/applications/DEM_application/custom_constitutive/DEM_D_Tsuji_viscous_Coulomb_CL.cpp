@@ -32,6 +32,28 @@ namespace Kratos {
     ///////////NEW IMPLEMENTATION/////////////////////
     //////////////////////////////////////////////////
     //////////////////////////////////////////////////
+    void DEM_D_Tsuji_viscous_Coulomb::CalculateGamma( const double e, double & gamma){
+    
+        if(e==0.0) {
+            gamma = 20.0;//Approximate value for restit. coeff of 0.001
+            return;
+        }
+        const double h1 = -6.918798;
+        const double h2 = -16.41105;
+        const double h3 = 146.8049;
+        const double h4 = -796.4559;
+        const double h5 = 2928.711;
+        const double h6 = -7206.864;
+        const double h7 = 11494.29;
+        const double h8 = -11342.18;
+        const double h9 = 6276.757;
+        const double h10 = -1489.915;        
+        
+        const double alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*h7+e*(h8+e*(h9+e*h10))))))));
+        
+        gamma = sqrt( 1.0/(1.0 - (1.0+e)*(1.0+e) * exp(alpha) ) - 1.0);     
+        
+    }
     
     
     void DEM_D_Tsuji_viscous_Coulomb::InitializeContact(SphericParticle* const element1,
@@ -99,7 +121,7 @@ namespace Kratos {
                                                                 SphericParticle* const element2,
                                                                 double indentation) {                                        
         
-        //Get equivalent mass
+               //Get equivalent mass
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
         const double equiv_mass = sqrt(my_mass * other_mass);
@@ -107,15 +129,15 @@ namespace Kratos {
         //Get equivalent ln of restitution coefficient
         const double my_ln_of_restit_coeff    = element1->GetLnOfRestitCoeff();
         const double other_ln_of_restit_coeff = element2->GetLnOfRestitCoeff();
-            
+        
         double my_coefficient_of_restitution;
         if (my_ln_of_restit_coeff > 0.0) my_coefficient_of_restitution = 0.0;
         else my_coefficient_of_restitution = exp(my_ln_of_restit_coeff);
-        
+
         double other_coefficient_of_restitution;
         if (other_ln_of_restit_coeff > 0.0) other_coefficient_of_restitution = 0.0;        
         else other_coefficient_of_restitution = exp(other_ln_of_restit_coeff);
-        
+
         const double equiv_coefficient_of_restitution = 0.5 * (my_coefficient_of_restitution + other_coefficient_of_restitution);        
         
         double normal_damping_coefficient;
@@ -262,7 +284,7 @@ namespace Kratos {
             
         double coefficient_of_restitution;
         
-        if (my_ln_of_restit_coeff == 1.0) coefficient_of_restitution = 0.0;
+        if (my_ln_of_restit_coeff > 0.0) coefficient_of_restitution = 0.0;
         
         else coefficient_of_restitution = exp(my_ln_of_restit_coeff);
         
@@ -276,7 +298,12 @@ namespace Kratos {
         
         if (!my_ln_of_restit_coeff) normal_damping_coefficient = 0.0;
         
-        else normal_damping_coefficient = (0.833333333333 * coefficient_of_restitution * coefficient_of_restitution - 2.25 * coefficient_of_restitution + 1.41666666666666) * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
+        else {
+            //normal_damping_coefficient = (0.833333333333 * coefficient_of_restitution * coefficient_of_restitution - 2.25 * coefficient_of_restitution + 1.41666666666666) * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
+            double gamma = 0.0;
+            CalculateGamma(coefficient_of_restitution, gamma);        
+            normal_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
+        }
         
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient * LocalRelVel[2];
         
