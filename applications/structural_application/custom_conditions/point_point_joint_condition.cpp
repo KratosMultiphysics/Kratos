@@ -78,14 +78,12 @@ namespace Kratos
 PointPointJointCondition::PointPointJointCondition( IndexType NewId, Node<3>::Pointer const& node1, Node<3>::Pointer const& node2 ) 
     : Condition( NewId, GeometryType::Pointer( new Line3D2<Node<3> >( node1, node2 ) ) )
 {
-    KRATOS_WATCH(NewId);
 //     mStiffnessMatrix = ZeroMatrix(6,6);
 }
 
 PointPointJointCondition::PointPointJointCondition( IndexType NewId, NodesArrayType const& ThisNodes ) 
     : Condition( NewId, GeometryType::Pointer( new Line3D2<Node<3> >( ThisNodes ) ) )
 {
-    KRATOS_WATCH(NewId);
 //     mStiffnessMatrix = ZeroMatrix(6,6);
 }
 
