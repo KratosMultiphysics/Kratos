@@ -10,8 +10,9 @@ include (GenerateExportHeader)
 
 find_package(Subversion QUIET)
 if(Subversion_FOUND)
+  get_filename_component(ABS_PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR} REALPATH)
   include(FindSubversion)
-  Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
+  Subversion_WC_INFO(${ABS_PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
   configure_file(
       "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
       "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
