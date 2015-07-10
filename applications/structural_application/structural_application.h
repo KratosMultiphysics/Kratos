@@ -71,7 +71,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 #include "custom_elements/total_lagrangian.h"
-#include "custom_elements/total_lagrangian_vel.h"
 //#include "custom_elements/linear_incompresible_element.h"
 #include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
@@ -86,14 +85,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/shell_isotropic.h"
 #include "custom_elements/shell_anisotropic.h"
 #include "custom_elements/shell_anisotropic_linear.h"
-#include "custom_elements/linear_element.h"
 #include "custom_elements/crisfield_truss_element.h"
-#include "custom_elements/Hypoelastic_element.h"
 #include "custom_elements/ebst.h"
 #include "custom_elements/ebst_vel.h"
 #include "custom_elements/pfem_contact_element3D.h"
 #include "custom_elements/pfem_contact_element3D_vel.h"
-#include "custom_elements/linear_elastic_truss.h"
 
 #include "custom_conditions/pointforce3D.h"
 #include "custom_conditions/node_tying_lagrange.h"
@@ -435,19 +431,10 @@ public:
 private:
     ///@name Member Variables
     ///@{
-    const LinearElasticTruss mLinearElasticTruss3D2N;
 
     const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
     const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
-    const LinearElement mLinearElement2D3N;
-    const LinearElement mLinearElement2D6N;
-    const LinearElement mLinearElement2D4N;
-    const LinearElement mLinearElement2D8N;
-    const LinearElement mLinearElement2D9N;
-    const LinearElement mLinearElement3D4N;
-    const LinearElement mLinearElement3D8N;
     const BeamElement mBeamElement3D2N;
-    const HypoelasticElement mHypoelasticElement2D3N;
     const ShellIsotropic mIsoShellElement;
     const ShellAnisotropic mAnisoShellElement;
     const ShellAnisotropicLinear mAnisoLinearShellElement;
@@ -467,10 +454,6 @@ private:
     const TotalLagrangian mTotalLagrangian3D8N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
-	
-    const TotalLagrangianVelocityBased mTotalLagrangianVelocityBased2D3N;
-    const TotalLagrangianVelocityBased mTotalLagrangianVelocityBased3D4N;
-	
 	
     const MixedLagrangian mMixedLagrangian2D3N;
     const MixedLagrangian mMixedLagrangian2D4N;
@@ -539,8 +522,6 @@ private:
     mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
-    const PfemContactElement3D mPfemContactElement3D;
-    const PfemContactElement3DVel mPfemContactElement3DVel;
     const Face2D  mFace2D;
     const Face3D  mFace3D3N;
     const Face3D  mFace3D6N;

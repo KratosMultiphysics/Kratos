@@ -309,18 +309,9 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESCRIBED_DELTA_DISPLACEMENT)
 //  KRATOS_CREATE_VARIABLE(int, ACTIVATION_LEVEL)
 
 KratosStructuralApplication::KratosStructuralApplication():
-    mLinearElasticTruss3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mLinearElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mLinearElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mLinearElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mLinearElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8<Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mLinearElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9<Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
-    mLinearElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mLinearElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mHypoelasticElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mIsoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAnisoShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAnisoLinearShellElement( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -337,9 +328,6 @@ KratosStructuralApplication::KratosStructuralApplication():
     mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
 	
-    mTotalLagrangianVelocityBased2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mTotalLagrangianVelocityBased3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-
     // mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     //mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
@@ -388,8 +376,6 @@ KratosStructuralApplication::KratosStructuralApplication():
     mUnsaturatedSoilsElement3PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mPfemContactElement3D( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mPfemContactElement3DVel( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
 
     mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -674,19 +660,10 @@ void KratosStructuralApplication::Register()
 //   KRATOS_REGISTER_VARIABLE(ELASTIC_LEFT_CAUCHY_GREEN_OLD)
 //
 //   KRATOS_REGISTER_VARIABLE(ACTIVATION_LEVEL)
-    KRATOS_REGISTER_ELEMENT( "LinearElasticTruss3D2N", mLinearElasticTruss3D2N )
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
     KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
-    KRATOS_REGISTER_ELEMENT( "HypoelasticElement2D3N", mHypoelasticElement2D3N )
     //KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement2D3N", mLinearIncompresibleElement2D3N )
     //KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement3D4N", mLinearIncompresibleElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement2D3N", mLinearElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement2D6N", mLinearElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement2D4N", mLinearElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement2D8N", mLinearElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement2D9N", mLinearElement2D9N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement3D4N", mLinearElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "LinearElement3D8N",   mLinearElement3D8N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian", mTotalLagrangian3D4N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D4N", mTotalLagrangian2D4N )
@@ -701,9 +678,6 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D20N", mTotalLagrangian3D20N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D27N", mTotalLagrangian3D27N )
 	
-   KRATOS_REGISTER_ELEMENT( "TotalLagrangianVelocityBased2D3N", mTotalLagrangianVelocityBased2D3N )
-   KRATOS_REGISTER_ELEMENT( "TotalLagrangianVelocityBased3D4N", mTotalLagrangianVelocityBased3D4N )
-  
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D4N", mMixedLagrangian3D4N )
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D10N", mMixedLagrangian3D10N )
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D6N", mMixedLagrangian3D6N )
@@ -711,8 +685,6 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D8N", mMixedLagrangian3D8N )
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D20N", mMixedLagrangian3D20N )
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D27N", mMixedLagrangian3D27N )
-    KRATOS_REGISTER_ELEMENT( "PfemContactElement3D", mPfemContactElement3D )
-    KRATOS_REGISTER_ELEMENT( "PfemContactElement3DVel", mPfemContactElement3DVel )
 
 
     KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
