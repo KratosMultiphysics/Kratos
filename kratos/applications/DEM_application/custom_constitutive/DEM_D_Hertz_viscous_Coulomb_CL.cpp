@@ -210,7 +210,7 @@ namespace Kratos {
         const double my_young              = element->GetYoung();
         const double my_poisson            = element->GetPoisson();
         
-        const double gamma = -1.0 * my_ln_of_restit_coeff / (sqrt(KRATOS_M_PI * KRATOS_M_PI + my_ln_of_restit_coeff * my_ln_of_restit_coeff));
+        const double gamma = - my_ln_of_restit_coeff / sqrt(KRATOS_M_PI * KRATOS_M_PI + my_ln_of_restit_coeff * my_ln_of_restit_coeff);
         
         const double wall_young         = my_young;
         const double wall_poisson       = my_poisson;
