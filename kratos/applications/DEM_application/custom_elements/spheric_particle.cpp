@@ -675,7 +675,10 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
     if(!wall) {
         const double other_radius = p_neighbour->GetRadius();
         const double radius_sum   = GetRadius() + other_radius;
-        arm_length = GetRadius() - indentation * GetRadius() / radius_sum;
+        const double other_young = p_neighbour->GetYoung();
+        const double my_young = GetYoung();
+        arm_length = GetRadius() - indentation * other_young / (other_young + my_young);
+
     }
     
     array_1d<double, 3> arm_vector;
