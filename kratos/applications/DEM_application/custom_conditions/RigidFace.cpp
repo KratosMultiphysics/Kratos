@@ -143,6 +143,8 @@ void RigidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
     
     for (unsigned int i=0; i<rNeighbours.size(); i++)
     {
+        if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
+        
         std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
 
         for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
