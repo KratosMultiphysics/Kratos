@@ -351,24 +351,13 @@ KratosStructuralApplication::KratosStructuralApplication():
     mKinematicLinear3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
     mKinematicLinear3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mKinematicLinear3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2Phase3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2Phase3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2Phase3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement2Phase3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+    mUnsaturatedSoilsElement2PhaseSmallStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement2PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement2PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement2PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement2PhaseSmallStrain3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement2PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3Phase3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3Phase3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3Phase3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mUnsaturatedSoilsElement3Phase3D15N( 0, Element::GeometryType::Pointer( new Prism3D15<Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
+    mUnsaturatedSoilsElement3PhaseSmallStrain3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement3PhaseSmallStrain3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10<Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement3PhaseSmallStrain3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20<Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mUnsaturatedSoilsElement3PhaseSmallStrain3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27<Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
@@ -698,24 +687,13 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "IsoShellElement", mIsoShellElement )
     KRATOS_REGISTER_ELEMENT( "AnisoShellElement", mAnisoShellElement )
     KRATOS_REGISTER_ELEMENT( "AnisoLinearShellElement", mAnisoLinearShellElement )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2Phase3D10N", mUnsaturatedSoilsElement2Phase3D10N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2Phase3D20N", mUnsaturatedSoilsElement2Phase3D20N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2Phase3D27N", mUnsaturatedSoilsElement2Phase3D27N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2Phase3D15N", mUnsaturatedSoilsElement2Phase3D15N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement1PhaseSmallStrain3D10N", mUnsaturatedSoilsElement1PhaseSmallStrain3D10N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement1PhaseSmallStrain3D20N", mUnsaturatedSoilsElement1PhaseSmallStrain3D20N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement1PhaseSmallStrain3D27N", mUnsaturatedSoilsElement1PhaseSmallStrain3D27N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement1PhaseSmallStrain3D15N", mUnsaturatedSoilsElement1PhaseSmallStrain3D15N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement1PhaseSmallStrain3D8N", mUnsaturatedSoilsElement1PhaseSmallStrain3D8N )
+    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2PhaseSmallStrain3D4N", mUnsaturatedSoilsElement2PhaseSmallStrain3D4N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2PhaseSmallStrain3D10N", mUnsaturatedSoilsElement2PhaseSmallStrain3D10N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2PhaseSmallStrain3D20N", mUnsaturatedSoilsElement2PhaseSmallStrain3D20N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2PhaseSmallStrain3D27N", mUnsaturatedSoilsElement2PhaseSmallStrain3D27N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2PhaseSmallStrain3D15N", mUnsaturatedSoilsElement2PhaseSmallStrain3D15N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement2PhaseSmallStrain3D8N", mUnsaturatedSoilsElement2PhaseSmallStrain3D8N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3Phase3D10N", mUnsaturatedSoilsElement3Phase3D10N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3Phase3D20N", mUnsaturatedSoilsElement3Phase3D20N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3Phase3D27N", mUnsaturatedSoilsElement3Phase3D27N )
-    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3Phase3D15N", mUnsaturatedSoilsElement3Phase3D15N )
+    KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3PhaseSmallStrain3D4N", mUnsaturatedSoilsElement3PhaseSmallStrain3D4N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3PhaseSmallStrain3D10N", mUnsaturatedSoilsElement3PhaseSmallStrain3D10N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3PhaseSmallStrain3D20N", mUnsaturatedSoilsElement3PhaseSmallStrain3D20N )
     KRATOS_REGISTER_ELEMENT( "UnsaturatedSoilsElement3PhaseSmallStrain3D27N", mUnsaturatedSoilsElement3PhaseSmallStrain3D27N )

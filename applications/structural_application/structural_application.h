@@ -76,10 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/beam_element.h"
 #include "custom_elements/kinematic_linear.h"
 #include "custom_elements/membrane_element.h"
-#include "custom_elements/unsaturated_soils_element_1phase_small_strain.h"
-#include "custom_elements/unsaturated_soils_element_2phase.h"
 #include "custom_elements/unsaturated_soils_element_2phase_small_strain.h"
-#include "custom_elements/unsaturated_soils_element_3phase.h"
 #include "custom_elements/unsaturated_soils_element_3phase_small_strain.h"
 // #include "custom_elements/upc_test_element.h"
 #include "custom_elements/shell_isotropic.h"
@@ -88,8 +85,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/crisfield_truss_element.h"
 #include "custom_elements/ebst.h"
 #include "custom_elements/ebst_vel.h"
-#include "custom_elements/pfem_contact_element3D.h"
-#include "custom_elements/pfem_contact_element3D_vel.h"
 
 #include "custom_conditions/pointforce3D.h"
 #include "custom_conditions/node_tying_lagrange.h"
@@ -474,52 +469,18 @@ private:
     const KinematicLinear mKinematicLinear3D27N;
     const KinematicLinear mKinematicLinear3D6N;
     const KinematicLinear mKinematicLinear3D15N;
-    const UnsaturatedSoilsElement_2phase
-    mUnsaturatedSoilsElement2Phase3D10N;
-    const UnsaturatedSoilsElement_2phase
-    mUnsaturatedSoilsElement2Phase3D20N;
-    const UnsaturatedSoilsElement_2phase
-    mUnsaturatedSoilsElement2Phase3D27N;
-    const UnsaturatedSoilsElement_2phase
-    mUnsaturatedSoilsElement2Phase3D15N;
-    const UnsaturatedSoilsElement_1phase_SmallStrain
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D10N;
-    const UnsaturatedSoilsElement_1phase_SmallStrain
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D20N;
-    const UnsaturatedSoilsElement_1phase_SmallStrain
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D27N;
-    const UnsaturatedSoilsElement_1phase_SmallStrain
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D15N;
-    const UnsaturatedSoilsElement_1phase_SmallStrain
-    mUnsaturatedSoilsElement1PhaseSmallStrain3D8N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D10N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D20N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D27N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D15N;
-    const UnsaturatedSoilsElement_2phase_SmallStrain
-    mUnsaturatedSoilsElement2PhaseSmallStrain3D8N;
-    const UnsaturatedSoilsElement_3phase
-    mUnsaturatedSoilsElement3Phase3D10N;
-    const UnsaturatedSoilsElement_3phase
-    mUnsaturatedSoilsElement3Phase3D20N;
-    const UnsaturatedSoilsElement_3phase
-    mUnsaturatedSoilsElement3Phase3D27N;
-    const UnsaturatedSoilsElement_3phase
-    mUnsaturatedSoilsElement3Phase3D15N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D10N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D20N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D27N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D15N;
-    const UnsaturatedSoilsElement_3phase_SmallStrain
-    mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
+    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D4N;
+    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D8N;
+    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D10N;
+    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D15N;
+    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D20N;
+    const UnsaturatedSoilsElement_2phase_SmallStrain mUnsaturatedSoilsElement2PhaseSmallStrain3D27N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D4N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D8N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D10N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D15N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D20N;
+    const UnsaturatedSoilsElement_3phase_SmallStrain mUnsaturatedSoilsElement3PhaseSmallStrain3D27N;
     const Ebst mEbst3D3N;
     const EbstVel mEbstVel3D3N;
     const Face2D  mFace2D;
