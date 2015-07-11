@@ -43,7 +43,15 @@ namespace Kratos {
 
         return return_value;
     }
-    
+
+    static double rand_lognormal(double mean, double stddev, double max_radius, double min_radius){
+        const double normal_mean = log(mean * mean / sqrt(stddev * stddev + mean * mean));
+        const double normal_stddev = sqrt(log(1 + stddev * stddev / (mean * mean)));
+        double normally_distributed_value = rand_normal(normal_mean, normal_stddev, max_radius, min_radius);
+
+        return exp(normally_distributed_value);
+    }
+
     static void AddRandomPerpendicularVelocityToGivenVelocity(array_1d<double, 3 >& velocity, const double angle_in_degrees){
         
         double velocity_modulus = sqrt(velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]);
@@ -249,7 +257,6 @@ namespace Kratos {
         Geometry< Node < 3 > >::PointsArrayType nodelist;
 
         nodelist.push_back(pnew_node);
-
         Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_params);
         Kratos::SphericParticle* spheric_p_particle = dynamic_cast<Kratos::SphericParticle*> (p_particle.get());
 
