@@ -34,7 +34,7 @@ namespace Kratos {
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateGamma( const double e, double & gamma){
     
-        if(e==0.0) {
+        if(e<0.001) {
             gamma = 20.0;//Approximate value for restit. coeff of 0.001
             return;
         }
@@ -75,8 +75,9 @@ namespace Kratos {
         const double equiv_shear_modulus = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);                   
         
         //Normal and Tangent elastic constants
-        mKn = 1.3333333333333333 * equiv_young * sqrt(equiv_radius);
-        mKt = 8.0 * equiv_shear_modulus * sqrt(equiv_radius);
+        const double sqrt_equiv_radius = sqrt(equiv_radius);
+        mKn = 1.3333333333333333 * equiv_young * sqrt_equiv_radius;
+        mKt = 8.0 * equiv_shear_modulus * sqrt_equiv_radius;
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateForces(const double OldLocalContactForce[3],
@@ -109,7 +110,7 @@ namespace Kratos {
         CalculateTangentialForce(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element1, element2, indentation, previous_indentation);
         
-        if (sliding) ViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[1] = 0.0;                
+        //if (sliding) ViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[1] = 0.0;                
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
@@ -139,15 +140,16 @@ namespace Kratos {
 
         const double equiv_coefficient_of_restitution = 0.5 * (my_coefficient_of_restitution + other_coefficient_of_restitution);        
         
-        double normal_damping_coefficient;
+        //double normal_damping_coefficient;
         
-        normal_damping_coefficient = (0.833333333333 * equiv_coefficient_of_restitution * equiv_coefficient_of_restitution - 2.25 * equiv_coefficient_of_restitution + 1.41666666666666) * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
+        //normal_damping_coefficient = (0.833333333333 * equiv_coefficient_of_restitution * equiv_coefficient_of_restitution - 2.25 * equiv_coefficient_of_restitution + 1.41666666666666) * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
         
-        const double tangential_damping_coefficient = normal_damping_coefficient;
+        
         
         double gamma = 0.0;
         CalculateGamma(equiv_coefficient_of_restitution, gamma);        
-        normal_damping_coefficient = 2.0 * gamma * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
+        const double normal_damping_coefficient = 2.0 * gamma * sqrt(equiv_mass * mKn * sqrt(indentation));
+        const double tangential_damping_coefficient = normal_damping_coefficient;
         
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
@@ -165,8 +167,18 @@ namespace Kratos {
                                                                 double indentation,
                                                                 double previous_indentation) { 
         
-        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * sqrt(indentation) * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * sqrt(indentation) * LocalDeltDisp[1];
+        
+        const double sqrt_indentation = sqrt(indentation); //for optimization purposes only
+        
+        if(previous_indentation < indentation) {
+            LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * sqrt_indentation * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * sqrt_indentation * LocalDeltDisp[1];
+        }
+        else {
+            const double minoring_factor = sqrt (indentation / previous_indentation);
+            LocalElasticContactForce[0] = OldLocalContactForce[0] * minoring_factor - mKt * sqrt_indentation * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalContactForce[1] * minoring_factor - mKt * sqrt_indentation * LocalDeltDisp[1];
+        }
         
         const double my_tg_of_friction_angle    = element1->GetTgOfFrictionAngle();
         const double other_tg_of_friction_angle = element2->GetTgOfFrictionAngle();
@@ -244,7 +256,7 @@ namespace Kratos {
         CalculateTangentialForceWithFEM(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element, wall, indentation, previous_indentation);
         
-        if (sliding) ViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[1] = 0.0;
+        //if (sliding) ViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[1] = 0.0;
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForceWithFEM(const double normal_contact_force,
@@ -257,9 +269,10 @@ namespace Kratos {
                                                                       DEMWall* const wall,
                                                                       double indentation,
                                                                       double previous_indentation) {
-                                                                        
-        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * sqrt(indentation) * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * sqrt(indentation) * LocalDeltDisp[1];
+
+        const double sqrt_indentation = sqrt(indentation); //for optimization purposes only
+        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * sqrt_indentation * LocalDeltDisp[0];
+        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * sqrt_indentation * LocalDeltDisp[1];
         
         const double WallBallFriction = wall->mTgOfFrictionAngle;
         
@@ -325,7 +338,7 @@ namespace Kratos {
             //normal_damping_coefficient = (0.833333333333 * coefficient_of_restitution * coefficient_of_restitution - 2.25 * coefficient_of_restitution + 1.41666666666666) * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
             double gamma = 0.0;
             CalculateGamma(coefficient_of_restitution, gamma);        
-            normal_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
+            normal_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKn * sqrt(indentation));
         }
         
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient * LocalRelVel[2];
