@@ -490,7 +490,6 @@ os.chdir(main_path)
 spreader_out_path = os.getcwd() + '/out_data.txt'
 spreader_in_path  = os.getcwd() +  '/in_data.txt'
 spreader_scanner.PrintData(spreader_in_path, spreader_out_path)
-out_file = open('out_data_old.txt', 'w')  
 #Z
 # Print times and more info
 KRATOSprint(report.FinalReport(timer))
