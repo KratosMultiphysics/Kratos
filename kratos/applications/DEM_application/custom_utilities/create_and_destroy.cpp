@@ -47,7 +47,7 @@ namespace Kratos {
     static double rand_lognormal(double mean, double stddev, double max_radius, double min_radius){
         const double normal_mean = log(mean * mean / sqrt(stddev * stddev + mean * mean));
         const double normal_stddev = sqrt(log(1 + stddev * stddev / (mean * mean)));
-        double normally_distributed_value = rand_normal(normal_mean, normal_stddev, max_radius, min_radius);
+        double normally_distributed_value = rand_normal(normal_mean, normal_stddev, log(max_radius), log(min_radius));
 
         return exp(normally_distributed_value);
     }
