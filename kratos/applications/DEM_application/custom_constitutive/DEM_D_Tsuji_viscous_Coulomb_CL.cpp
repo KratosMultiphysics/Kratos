@@ -128,13 +128,12 @@ namespace Kratos {
         const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
-        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn * sqrt(indentation));
         const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal;                
               
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];  
-                                          
+        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];                                                                         
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForce(const double normal_contact_force,
@@ -298,7 +297,7 @@ namespace Kratos {
         
         const double my_mass    = element->GetMass();              
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
+        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn * sqrt(indentation));
         const double tangential_damping_coefficient = normal_damping_coefficient;                
               
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
