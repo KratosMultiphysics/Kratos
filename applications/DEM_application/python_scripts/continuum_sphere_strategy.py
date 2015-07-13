@@ -2,6 +2,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+import sphere_strategy as SolverStrategy
+BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
+
+
 def Var_Translator(variable):
 
     if (variable == "OFF" or variable == "0" or variable == 0):
@@ -12,7 +16,7 @@ def Var_Translator(variable):
     return variable
 
 
-class ExplicitStrategy:
+class ExplicitStrategy(BaseExplicitStrategy):   
 
     def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, Param):
 
@@ -211,7 +215,13 @@ class ExplicitStrategy:
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
         self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
-
+        
+        for properties in self.model_part.Properties:            
+            self.ModifyProperties(properties)
+            
+        for properties in self.inlet_model_part.Properties:            
+            self.ModifyProperties(properties)
+                    
         # CONTINUUM
 
         self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
@@ -234,18 +244,7 @@ class ExplicitStrategy:
             
         # OTHERS
 
-        self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
-
-        for properties in self.model_part.Properties:
-            
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-            
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            
-            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+        self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)        
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -317,3 +316,14 @@ class ExplicitStrategy:
 
     def AddClusterVariables(self, model_part, Param):
         pass
+    
+    
+    def ModifyProperties(self, properties):
+        BaseExplicitStrategy.ModifyProperties(self, properties)
+        
+        ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]            
+        ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()        
+        ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)
+        
+        
+        

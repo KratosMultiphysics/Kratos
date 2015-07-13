@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+import math
 
 
 def Var_Translator(variable):
@@ -190,15 +191,15 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-        self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
-
-        
-        for properties in self.model_part.Properties:
+        self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)                
             
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)           
-                
+        
+        for properties in self.model_part.Properties:            
+            self.ModifyProperties(properties)
+            
+        for properties in self.inlet_model_part.Properties:            
+            self.ModifyProperties(properties)
+                                            
         self.contact_model_part = ModelPart("dummy")
         
         # RESOLUTION METHODS AND PARAMETERS
@@ -249,4 +250,87 @@ class ExplicitStrategy:
 
         print("DOFs for the DEM solution added correctly")
         
+    def rest_coeff_diff(self, gamma, desired_coefficient_of_restit):
+
+        if gamma <= 1.0/math.sqrt(2.0) :
+            return math.exp(-gamma/math.sqrt(1.0-gamma*gamma)*(math.pi-math.atan(2.0*gamma*math.sqrt(1.0-gamma*gamma)/(-2.0*gamma*gamma+1.0))))-desired_coefficient_of_restit
+        elif gamma < 1.0 :
+            return math.exp(-gamma/math.sqrt(1.0-gamma*gamma)*math.atan(2.0*gamma*math.sqrt(1.0-gamma*gamma)/(2.0*gamma*gamma-1.0)))-desired_coefficient_of_restit
+        elif gamma == 1.0 :
+            return 0.135335283 - desired_coefficient_of_restit                
+        else:
+            return math.exp(-gamma/math.sqrt(gamma*gamma-1.0)*math.log((gamma/math.sqrt(gamma*gamma-1.0)+1.0)/(gamma/math.sqrt(gamma*gamma-1.0)-1.0)))-desired_coefficient_of_restit
+            
+            
+    def RootByBisection(self, f, a, b, tol, maxiter, restit_coefficient):
+        k=0
+        gamma = 0.5 * (a + b)
+        
+        while b - a > tol and k <= maxiter:
+            restit_coeff_trial = self.rest_coeff_diff(gamma, restit_coefficient)
+            #print("gamma: " + str(gamma) + "  RC: " + str(restit_coeff_trial))
+            
+            if self.rest_coeff_diff(a,restit_coefficient) * restit_coeff_trial < 0:
+                b = gamma
+                
+            elif restit_coeff_trial == 0:                    
+                return gamma
+                
+            else:
+                a = gamma
+                
+            gamma = 0.5 * (a + b)
+            k += 1
+            
+        return gamma
+    
+    def GammaForHertzThornton(self, e):
+            
+        if e<0.001 :                
+            return 20.0 #Approximate value for restit. coeff of 0.001
+        
+        h1  = -6.918798;
+        h2  = -16.41105;
+        h3  =  146.8049;
+        h4  = -796.4559;
+        h5  =  2928.711;
+        h6  = -7206.864;
+        h7  =  11494.29;
+        h8  = -11342.18;
+        h9  =  6276.757;
+        h10 = -1489.915;        
+        
+        alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))));
+        
+        return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0);     
+    
+    def ModifyProperties(self, properties):
+        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)      
+        
+        
+        ln_of_restit_coeff = properties[LN_OF_RESTITUTION_COEFF]
+        if ln_of_restit_coeff>0.0:
+            restit_coefficient = 0.0
+        else:
+            restit_coefficient = math.exp(ln_of_restit_coeff)
+            
+        write_gamma = False
+        
+        if DiscontinuumConstitutiveLawString == 'DEM_D_Linear_viscous_Coulomb' :                        
+            gamma = self.RootByBisection(self.rest_coeff_diff, 0.0, 16.0, 0.0001, 300, restit_coefficient)
+            write_gamma = True
+            
+        elif DiscontinuumConstitutiveLawString == 'DEM_D_Tsuji_viscous_Coulomb' :
+            gamma = self.GammaForHertzThornton(restit_coefficient)
+            write_gamma = True
+            
+        else:
+            pass
+        
+        if write_gamma == True:
+            properties[DAMPING_GAMMA] = gamma            
+            print("gamma is: " + str(properties[DAMPING_GAMMA]) + "****************************************************************************************************")
+    
     
