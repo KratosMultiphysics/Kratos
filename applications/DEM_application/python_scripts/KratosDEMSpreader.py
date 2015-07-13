@@ -343,6 +343,7 @@ step = 0
 
 #G
 import spreader
+steps_between_exit_control = 100
 total_expected_n_particles = 310000 + spheres_model_part.NumberOfNodes(0)
 spreader_scanner = spreader.scanner(spheres_model_part, total_expected_n_particles,
                                     0.3228763689092158, 0.1570796326794897, 2)   
