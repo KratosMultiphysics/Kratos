@@ -120,40 +120,21 @@ namespace Kratos {
                                                                 SphericParticle* const element2,
                                                                 double indentation) {                                        
         
-        //Get equivalent mass
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
                 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);        
         
-        //Get equivalent ln of restitution coefficient
-        const double my_ln_of_restit_coeff    = element1->GetLnOfRestitCoeff();
-        const double other_ln_of_restit_coeff = element2->GetLnOfRestitCoeff();
-        
-        double my_coefficient_of_restitution;
-        if (my_ln_of_restit_coeff > 0.0) my_coefficient_of_restitution = 0.0;
-        else my_coefficient_of_restitution = exp(my_ln_of_restit_coeff);
-
-        double other_coefficient_of_restitution;
-        if (other_ln_of_restit_coeff > 0.0) other_coefficient_of_restitution = 0.0;        
-        else other_coefficient_of_restitution = exp(other_ln_of_restit_coeff);
-
-        const double equiv_coefficient_of_restitution = 0.5 * (my_coefficient_of_restitution + other_coefficient_of_restitution);        
-        
-        //double normal_damping_coefficient;
-        
-        //normal_damping_coefficient = (0.833333333333 * equiv_coefficient_of_restitution * equiv_coefficient_of_restitution - 2.25 * equiv_coefficient_of_restitution + 1.41666666666666) * sqrt(equiv_mass * mKn) * sqrt(sqrt(indentation));
-        
-        
-        
-        double gamma = 0.0;
-        CalculateGamma(equiv_coefficient_of_restitution, gamma);        
-        const double normal_damping_coefficient = 2.0 * gamma * sqrt(equiv_mass * mKn * sqrt(indentation));
-        const double tangential_damping_coefficient = normal_damping_coefficient;
-        
-        ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
-        ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
-        ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];
+        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
+        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
+        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
+        const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal;                
+              
+        ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+        ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];  
+                                          
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForce(const double normal_contact_force,
@@ -315,42 +296,15 @@ namespace Kratos {
                                                                 DEMWall* const wall,
                                                                 double indentation) {                                        
         
-        const double my_mass               = element->GetMass();
-        const double my_ln_of_restit_coeff = element->GetLnOfRestitCoeff();
-            
-        double coefficient_of_restitution;
-        
-        if (my_ln_of_restit_coeff > 0.0) coefficient_of_restitution = 0.0;
-        
-        else coefficient_of_restitution = exp(my_ln_of_restit_coeff);
-        
-        //const double RCTS = 2.0 * sqrt(my_mass / mKn);
-        
-        //std::cout << "1% of Rayleigh's critical time step is = " << 0.01 * RCTS << std::endl;
-        
-        // NORMAL FORCE
-        
-        double normal_damping_coefficient;
-        
-        if (!my_ln_of_restit_coeff) normal_damping_coefficient = 0.0;
-        
-        else {
-            //normal_damping_coefficient = (0.833333333333 * coefficient_of_restitution * coefficient_of_restitution - 2.25 * coefficient_of_restitution + 1.41666666666666) * sqrt(my_mass * mKn) * sqrt(sqrt(indentation));
-            double gamma = 0.0;
-            CalculateGamma(coefficient_of_restitution, gamma);        
-            normal_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKn * sqrt(indentation));
-        }
-        
-        ViscoDampingLocalContactForce[2] = - normal_damping_coefficient * LocalRelVel[2];
-        
-        // TANGENTIAL FORCE
-        
-        const double tangential_damping_coefficient = normal_damping_coefficient;
-               
-        //if (!sliding) { //tangential forces are not calculated yet, so sliding can never be true
+        const double my_mass    = element->GetMass();              
+        const double gamma = element->GetProperties()[DAMPING_GAMMA];
+        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = normal_damping_coefficient;                
+              
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
-        //}
+        ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];  
+        
     }
     
     double DEM_D_Tsuji_viscous_Coulomb::CalculateNormalForce(const double indentation, SphericParticle* const element1, SphericParticle* const element2){

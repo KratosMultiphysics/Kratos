@@ -225,13 +225,7 @@ if (DEM_parameters.dem_inlet_option):
     if ( max_FEM_node_Id > max_node_Id):
         max_node_Id = max_FEM_node_Id
     
-    creator_destructor.SetMaxNodeId(max_node_Id)                            
-        
-    for properties in DEM_inlet_model_part.Properties:
-            
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
+    creator_destructor.SetMaxNodeId(max_node_Id)                                               
 
     # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    

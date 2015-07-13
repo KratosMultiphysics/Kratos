@@ -575,9 +575,7 @@ class DEMFEMProcedures(object):
         
         self.graph_forces = {}  
         
-        
-        
-        
+                        
         def open_balls_graph_files(self,spheres_model_part):
             #os.chdir(self.graphs_path)
             for mesh_number in range(1, self.spheres_model_part.NumberOfMeshes()):
@@ -585,9 +583,7 @@ class DEMFEMProcedures(object):
                  self.particle_graph_forces[self.spheres_model_part.GetMesh((mesh_number))[TOP]] = open(str(self.DEM_parameters.problem_name) + "_" + str( self.spheres_model_part.GetMesh((mesh_number))[TOP]) + "_particle_force_graph.grf", 'w');
         
         self.particle_graph_forces = {}      
-        
-        
-        
+                        
         
         if self.TestType == "None":  
             print (self.graphs_path)

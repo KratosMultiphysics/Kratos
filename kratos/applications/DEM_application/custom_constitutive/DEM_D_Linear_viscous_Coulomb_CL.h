@@ -102,7 +102,7 @@ namespace Kratos {
         void CalculateTangentialForce(const double normal_contact_force,
                                     const double OldLocalContactForce[3],
                                     double LocalElasticContactForce[3],
-                                    const double ViscoDampingLocalContactForce[3],
+                                    double ViscoDampingLocalContactForce[3],
                                     const double LocalDeltDisp[3],            
                                     bool& sliding,
                                     SphericParticle* const element1,
@@ -112,7 +112,7 @@ namespace Kratos {
         void CalculateTangentialForceWithFEM(const double normal_contact_force,
                                             const double OldLocalContactForce[3],
                                             double LocalElasticContactForce[3],
-                                            const double ViscoDampingLocalContactForce[3],
+                                            double ViscoDampingLocalContactForce[3],
                                             const double LocalDeltDisp[3],            
                                             bool& sliding,
                                             SphericParticle* const element,
@@ -134,6 +134,8 @@ namespace Kratos {
 
     private:
 
+        void CalculateGamma( const double e, double & gamma);
+        
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const {
