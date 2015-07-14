@@ -65,6 +65,7 @@
       <Item id="DeltaTime" pid="Time step" dv="0.01" help=""/>
       <Item id="EndTime" pid="Total time" dv="1" help=""/>
       <Item id="TimeStepPredictionLevel" pid="Time step prediction" timeIntMeth="Explicit" dv="Automatic" ivalues="Automatic,RefreshEveryTimeStep,UseCustomDeltaTime" values="Automatic,Refresh every time step, Use custom delta time" help="Automatic: Preditcion at first time step; RefreshEveryTimeStep: Prediction every time step; UseCustomDeltaTime: Don't predict a stable delta time"/>
+      <Item id="UseRayleighDamping" pid="Use Rayleigh damping" timeIntMeth="Explicit" dv="No" ivalues="Yes,No" values="Yes,No" help="If set to yes, write ALPHA_RAYLEIGH and BETA_RAYLEIGH values at structural modelpart"/>      
       <Item id="NumberOfSteps" pid="Number of Steps" state="hidden" dv="1" help=""/>
     </Container>
     <Container id="Non-Linear" pid="Non-Linear" class="Tab" analysType="Non-Linear" help="" open="0" icon="nonlinear.gif">
