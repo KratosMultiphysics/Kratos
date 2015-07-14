@@ -894,6 +894,7 @@ namespace Kratos {
         std::vector<int> fem_temp_neighbours_ids; //these temporal vectors are very small, saving them as a member of the particle loses time (usually they consist on 1 member).
         std::vector<double> fem_temp_neighbours_delta;
         std::vector<array_1d<double, 3> > fem_temp_neighbours_contact_forces;
+        std::vector<array_1d<double, 3> > fem_temp_neighbours_elastic_contact_forces;
         std::vector<int> fem_temp_neighbours_mapping;
 
         fem_temp_neighbours_ids.resize(fem_temp_size);
@@ -915,6 +916,7 @@ namespace Kratos {
             int iNeighborID = static_cast<int> (RF_Pram[ino1 + 14]);
             double ini_delta = 0.0;
             array_1d<double, 3> neigh_forces = vector_of_zeros;
+            array_1d<double, 3> neigh_forces_elastic = vector_of_zeros;
             double mapping_new_ini = -1;
 
             for (unsigned int k = 0; k != mFemIniNeighbourIds.size(); k++) {
@@ -927,6 +929,7 @@ namespace Kratos {
 
             for (unsigned int j = 0; j != mFemOldNeighbourIds.size(); j++) {
                 if (static_cast<int> ((mFemTempNeighbours[i])->Id()) == mFemOldNeighbourIds[j]) {
+                    neigh_forces_elastic = mNeighbourRigidFacesElasticContactForce[j];
                     neigh_forces = mNeighbourRigidFacesTotalContactForce[j]; 
                     break;
                 }
@@ -942,6 +945,7 @@ namespace Kratos {
                 fem_temp_neighbours_mapping[fem_neighbour_counter] = mapping_new_ini;
                 fem_temp_neighbours_delta[fem_neighbour_counter] = ini_delta;
                 fem_temp_neighbours_contact_forces[fem_neighbour_counter] = neigh_forces;
+                fem_temp_neighbours_elastic_contact_forces[fem_neighbour_counter] = neigh_forces_elastic;
 
                 fem_neighbour_counter++;
             }
@@ -952,12 +956,14 @@ namespace Kratos {
         fem_temp_neighbours_ids.resize(final_size);
         fem_temp_neighbours_delta.resize(final_size);
         fem_temp_neighbours_contact_forces.resize(final_size);
+        fem_temp_neighbours_elastic_contact_forces.resize(final_size);
         fem_temp_neighbours_mapping.resize(final_size);
 
         mFemMappingNewIni.swap(fem_temp_neighbours_mapping);
         mFemOldNeighbourIds.swap(fem_temp_neighbours_ids);
         mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
-        mNeighbourRigidFacesElasticContactForce.swap(fem_temp_neighbours_contact_forces);
+        mNeighbourRigidFacesElasticContactForce.swap(fem_temp_neighbours_elastic_contact_forces);
+        mNeighbourRigidFacesTotalContactForce.swap(fem_temp_neighbours_contact_forces);
 
         KRATOS_CATCH("")
     }
