@@ -1270,21 +1270,16 @@ public:
         }
 
         rResult[0].resize( 2, 2 );
-
         rResult[1].resize( 2, 2 );
         rResult[2].resize( 2, 2 );
         rResult[3].resize( 2, 2 );
         rResult[4].resize( 2, 2 );
         rResult[5].resize( 2, 2 );
 
-//             double thirdCoord= 1-rPoint[0]-rPoint[1];
-        double thirdCoord_DX = -1;
-        double thirdCoord_DY = -1;
-
-        rResult[0]( 0, 0 ) = ( 4 * thirdCoord_DX ) * thirdCoord_DX;
-        rResult[0]( 0, 1 ) = ( 4 * thirdCoord_DY ) * thirdCoord_DX;
-        rResult[0]( 1, 0 ) = ( 4 * thirdCoord_DX ) * thirdCoord_DY;
-        rResult[0]( 1, 1 ) = ( 4 * thirdCoord_DY ) * thirdCoord_DY;
+        rResult[0]( 0, 0 ) = 4.0;
+        rResult[0]( 0, 1 ) = 4.0;
+        rResult[0]( 1, 0 ) = 4.0;
+        rResult[0]( 1, 1 ) = 4.0;
         rResult[1]( 0, 0 ) = 4.0;
         rResult[1]( 0, 1 ) = 0.0;
         rResult[1]( 1, 0 ) = 0.0;
@@ -1293,18 +1288,19 @@ public:
         rResult[2]( 0, 1 ) = 0.0;
         rResult[2]( 1, 0 ) = 0.0;
         rResult[2]( 1, 1 ) = 4.0;
-        rResult[3]( 0, 0 ) = 4 * thirdCoord_DX + 4 * thirdCoord_DX;
-        rResult[3]( 0, 1 ) = 4 * thirdCoord_DY;
-        rResult[3]( 1, 0 ) = 4 * thirdCoord_DY;
+        rResult[3]( 0, 0 ) = -8.0;
+        rResult[3]( 0, 1 ) = -4.0;
+        rResult[3]( 1, 0 ) = -4.0;
         rResult[3]( 1, 1 ) = 0.0;
         rResult[4]( 0, 0 ) = 0.0;
         rResult[4]( 0, 1 ) = 4.0;
         rResult[4]( 1, 0 ) = 4.0;
         rResult[4]( 1, 1 ) = 0.0;
         rResult[5]( 0, 0 ) = 0.0;
-        rResult[5]( 0, 1 ) = 4.0;
-        rResult[5]( 1, 0 ) = 4 * thirdCoord_DX;
-        rResult[5]( 1, 1 ) = 4 * thirdCoord_DY + 4 * thirdCoord_DY;
+        rResult[5]( 0, 1 ) = -4.0;
+        rResult[5]( 1, 0 ) = -4.0;
+        rResult[5]( 1, 1 ) = -8.0;
+
         return rResult;
     }
 
