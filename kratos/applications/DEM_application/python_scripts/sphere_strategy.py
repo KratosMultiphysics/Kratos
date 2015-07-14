@@ -333,6 +333,5 @@ class ExplicitStrategy:
         
         if write_gamma == True:
             properties[DAMPING_GAMMA] = gamma            
-            print("gamma is: " + str(properties[DAMPING_GAMMA]) + "****************************************************************************************************")
     
     
