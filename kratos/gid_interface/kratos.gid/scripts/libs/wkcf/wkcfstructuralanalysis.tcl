@@ -1516,12 +1516,20 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set TimeIntegrationMethod [::xmlutils::setXml $cxpath $cproperty]
     set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.TimeStepPredictionLevel"
     set TimeStepPredictionLevel [::xmlutils::setXml $cxpath $cproperty]
-  
+    set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.UseRayleighDamping"
+    set UseRayleighDamping [::xmlutils::setXml $cxpath $cproperty]
+    
     puts $fileid ""
     puts $fileid "${trailing_spaces}max_delta_time  = time_step"
     puts $fileid "${trailing_spaces}time_integration_method = \"$TimeIntegrationMethod\""
     puts $fileid "${trailing_spaces}explicit_integration_scheme = \"CentralDifferences\""
     puts $fileid "${trailing_spaces}time_step_prediction_level  = \"$TimeStepPredictionLevel\""
+   
+    if {($UseRayleighDamping eq "Yes")} {
+    puts $fileid "${trailing_spaces}rayleigh_damping = True"
+    } else {
+    puts $fileid "${trailing_spaces}rayleigh_damping = False"
+    }
     puts $fileid ""
   
     if {($useshells eq "Yes")||($usebeams eq "Yes")} {
