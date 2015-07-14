@@ -14,15 +14,6 @@ sys.path.insert(0,'')
 # DEM Application
 import DEM_explicit_solver_var as DEM_parameters
 
-# TO_DO: Ungly fix. Change it. I don't like this to be in the main...
-# Strategy object
-if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
-    import sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
-    import continuum_sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
-    import thermal_continuum_sphere_strategy as SolverStrategy    
-
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # Kratos MPI
@@ -47,6 +38,15 @@ else:
 #
 #
 #
+
+# TO_DO: Ungly fix. Change it. I don't like this to be in the main...
+# Strategy object
+if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+    import sphere_strategy as SolverStrategy
+elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+    import continuum_sphere_strategy as SolverStrategy
+elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+    import thermal_continuum_sphere_strategy as SolverStrategy    
 
 ##############################################################################
 #                                                                            #
@@ -88,7 +88,6 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object and set the search strategy
 solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -344,17 +343,13 @@ while ( time < DEM_parameters.FinalTime):
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(time)
     
-    
     #### GENERAL FORCE GRAPHS ############################
     #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
     #DEMFEMProcedures.PrintBallsGraph(time)  
     
-    
-
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
-
 
     if ( DEM_parameters.OutputTimeStep - time_to_print < 1e-2*dt  ):            
 
@@ -385,7 +380,6 @@ while ( time < DEM_parameters.FinalTime):
     
     #AFTER PRINTING OPERATIONS
     #
-  
 
     #if((step%500) == 0):
       #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
