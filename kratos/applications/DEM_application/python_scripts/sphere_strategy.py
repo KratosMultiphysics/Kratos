@@ -263,6 +263,8 @@ class ExplicitStrategy:
             
             
     def RootByBisection(self, f, a, b, tol, maxiter, restit_coefficient):
+        if restit_coefficient == 1.0:
+            return 0.0
         k=0
         gamma = 0.5 * (a + b)
         
