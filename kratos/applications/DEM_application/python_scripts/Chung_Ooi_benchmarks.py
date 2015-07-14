@@ -5,13 +5,13 @@ import sys
 from math import sin, cos
 import shutil
 
-import plot_variables           # Related to benchmarks in Chung, Ooi
-import Chung_Ooi_class as COC   # Related to benchmarks in Chung, Ooi
-from glob import glob
-
 # Kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+
+import plot_variables           # Related to benchmarks in Chung, Ooi
+import Chung_Ooi_class as COC   # Related to benchmarks in Chung, Ooi
+from glob import glob
 
 sys.path.insert(0,'')
 # DEM Application
