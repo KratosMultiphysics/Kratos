@@ -26,9 +26,9 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==3:
         
         final_time                      = 0.00031
-        dt                              = 1.1e-7  #1.1e-9 # Complies Rayleigh's condition
+        dt                              = 1.0e-8  #1.1e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
-        number_of_points_in_the_graphic = 17
+        number_of_points_in_the_graphic = 6
         
     elif benchmark_number==4:
         
@@ -61,7 +61,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==8:
         
         final_time                      = 0.02
-        dt                              = 5.0e-7 # Complies Rayleigh's condition
+        dt                              = 5.0e-6 #5.0e-7 # Complies Rayleigh's condition
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
                 
@@ -90,16 +90,22 @@ class Benchmark1:
                    
         for node in modelpart.Nodes:
             if node.Id == 1:
-                node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
-            else:
                 node.SetSolutionStepValue(VELOCITY_X, -self.initial_normal_vel)
+            else:
+                node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
 
     def get_final_data(self, modelpart):
         pass
     
-    def print_results(self, number_of_points_in_the_graphic):
-        pass
-    
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+        
+        normal_contact_force_outfile_name = 'variables_for_node_1.txt'
+        gnuplot_script_name = 'benchmark1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 20 u 1:8 w lp lt -1 lw 1.5 ps 1 pt 4")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
+            
 class Benchmark2:
     
     def __init__(self):
@@ -113,8 +119,14 @@ class Benchmark2:
     def get_final_data(self, modelpart):
         pass
     
-    def print_results(self, number_of_points_in_the_graphic):
-        pass
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
+        
+        normal_contact_force_outfile_name = 'variables_for_node_1.txt'
+        gnuplot_script_name = 'benchmark2_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + normal_contact_force_outfile_name + "' every 10 u 1:10 w lp lt 3 lw 1.5 ps 1 pt 6")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
         
 class Benchmark3:
     
@@ -144,15 +156,23 @@ class Benchmark3:
         restitution_coefficient = -final_vel / self.initial_normal_vel
         self.restitution_numbers_list.append(restitution_coefficient)
     
-    def print_results(self, number_of_points_in_the_graphic):
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        self.restitution_numbers_vector_list_outfile = open("benchmark3_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat', 'w')
+        restitution_numbers_vector_list_outfile_name = "benchmark3_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+        self.restitution_numbers_vector_list_outfile = open(restitution_numbers_vector_list_outfile_name, 'w')
     
         for i in range(0, number_of_points_in_the_graphic):
             first_col = 1/(number_of_points_in_the_graphic-1) * i
-            self.restitution_numbers_vector_list_outfile.write("%3.1f %4.1f %11.8f" % (first_col, first_col, self.restitution_numbers_list[i]) + '\n')
+            self.restitution_numbers_vector_list_outfile.write("%6.4f %6.4f %11.8f" % (first_col, first_col, self.restitution_numbers_list[i]) + '\n')
         self.restitution_numbers_vector_list_outfile.close()
         
+        gnuplot_script_name = 'benchmark9_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set grid; plot '" + restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
+                
 class Benchmark4:
     
     def __init__(self):
@@ -194,20 +214,33 @@ class Benchmark4:
         self.tangential_restitution_coefficient_list.append(tangential_restitution_coefficient)
         self.angles_list.append(self.degrees)
     
-    def print_results(self, number_of_points_in_the_graphic):
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        self.final_angular_vel_list_outfile = open("benchmark4_dt_" + str(dt) + '_final_angular_vel_list_data.dat', 'w')
-        self.rebound_angle_list_outfile = open("benchmark4_dt_" + str(dt) + '_rebound_angle_list_data.dat', 'w')
-        self.tangential_restitution_coefficient_list_outfile = open("benchmark4_dt_" + str(dt) + '_tangential_restitution_coefficient_list_data.dat', 'w')
-
+        tangential_restitution_coefficient_list_outfile_name = "benchmark4_dt_" + str(dt) + '_tangential_restitution_coefficient_list_data.dat'
+        final_angular_vel_list_outfile_name = "benchmark4_dt_" + str(dt) + '_final_angular_vel_list_data.dat'
+        rebound_angle_list_outfile_name = "benchmark4_dt_" + str(dt) + '_rebound_angle_list_data.dat'
+        self.tangential_restitution_coefficient_list_outfile = open(tangential_restitution_coefficient_list_outfile_name, 'w')
+        self.final_angular_vel_list_outfile = open(final_angular_vel_list_outfile_name, 'w')
+        self.rebound_angle_list_outfile = open(rebound_angle_list_outfile_name, 'w')
+        
         for i in range(0, number_of_points_in_the_graphic):
+            self.tangential_restitution_coefficient_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.tangential_restitution_coefficient_list[i]) + '\n')
             self.final_angular_vel_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.final_angular_vel_list[i]) + '\n')
             self.rebound_angle_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.rebound_angle_list[i]) + '\n')
-            self.tangential_restitution_coefficient_list_outfile.write("%14.8f %14.8f" % (self.angles_list[i], self.tangential_restitution_coefficient_list[i]) + '\n')
+        self.tangential_restitution_coefficient_list_outfile.close()
         self.final_angular_vel_list_outfile.close()
         self.rebound_angle_list_outfile.close()
-        self.tangential_restitution_coefficient_list_outfile.close()
+                
+        gnuplot_script_name = 'benchmark4_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set multiplot layout 3, 1; set grid;\
+                                    plot [0:90][.4:1] '" + tangential_restitution_coefficient_list_outfile_name + "' w lp lt 3 lw 1.5 ps 2 pt 4;\
+                                    plot [0:90][-800:0] '" + final_angular_vel_list_outfile_name + "' w lp lt 4 lw 1.5 ps 2 pt 6;\
+                                    plot [0:90][-30:90] '" + rebound_angle_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 8; unset multiplot")
         
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
+                
 class Benchmark5:
     
     def __init__(self):
@@ -245,17 +278,26 @@ class Benchmark5:
         self.Vst_prima_div_mu_per_Vcn_prima_list.append(Vst_prima_div_mu_per_Vcn_prima)
         self.r_w1_prima_div_mu_per_Vcn_list.append(r_w1_prima_div_mu_per_Vcn)
     
-    def print_results(self, number_of_points_in_the_graphic):
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        self.Vst_prima_div_mu_per_Vcn_prima_list_outfile = open("benchmark5_dt_" + str(dt) + '_Vst_prima_div_mu_per_Vcn_prima_list_data.dat', 'w')
-        self.r_w1_prima_div_mu_per_Vcn_list_outfile = open("benchmark5_dt_" + str(dt) + '_r_w1_prima_div_mu_per_Vcn_list_data.dat', 'w')
+        Vst_prima_div_mu_per_Vcn_prima_list_outfile_name = "benchmark5_dt_" + str(dt) + '_Vst_prima_div_mu_per_Vcn_prima_list_data.dat'
+        r_w1_prima_div_mu_per_Vcn_list_outfile_name = "benchmark5_dt_" + str(dt) + '_r_w1_prima_div_mu_per_Vcn_list_data.dat'
+        self.Vst_prima_div_mu_per_Vcn_prima_list_outfile = open(Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, 'w')
+        self.r_w1_prima_div_mu_per_Vcn_list_outfile = open(r_w1_prima_div_mu_per_Vcn_list_outfile_name, 'w')
 
         for i in range(0, number_of_points_in_the_graphic):
             self.Vst_prima_div_mu_per_Vcn_prima_list_outfile.write("%14.8f %14.8f" % (self.Vst_div_mu_per_Vcn_list[i], self.Vst_prima_div_mu_per_Vcn_prima_list[i]) + '\n')
             self.r_w1_prima_div_mu_per_Vcn_list_outfile.write("%14.8f %14.8f" % (self.Vst_div_mu_per_Vcn_list[i], self.r_w1_prima_div_mu_per_Vcn_list[i]) + '\n')
         self.Vst_prima_div_mu_per_Vcn_prima_list_outfile.close()
         self.r_w1_prima_div_mu_per_Vcn_list_outfile.close()
-
+        
+        gnuplot_script_name = 'benchmark5_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set multiplot layout 2, 1; set grid; plot [0:14][-4:6] '" + Vst_prima_div_mu_per_Vcn_prima_list_outfile_name + "' \
+        w lp lt -1 lw 1.5 ps 3 pt 8; plot [0:20][-6:0] '" + r_w1_prima_div_mu_per_Vcn_list_outfile_name + "' w lp lt 3 lw 1.5 ps 2 pt 4; unset multiplot")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
+        
 class Benchmark6:
     
     def __init__(self):
@@ -298,16 +340,25 @@ class Benchmark6:
         self.Vst_div_Vcn_list.append(Vst_div_Vcn)
         self.Vst_prima_div_Vcn_prima_list.append(Vst_prima_div_Vcn_prima)
     
-    def print_results(self, number_of_points_in_the_graphic):
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        self.beta_list_outfile = open("benchmark6_dt_" + str(dt) + '_beta_list_data.dat', 'w')
-        self.Vst_prima_div_Vcn_prima_list_outfile = open("benchmark6_dt_" + str(dt) + '_Vst_prima_div_Vcn_prima_data.dat', 'w')
+        beta_list_outfile_name = "benchmark6_dt_" + str(dt) + '_beta_list_data.dat'
+        Vst_prima_div_Vcn_prima_list_outfile_name = "benchmark6_dt_" + str(dt) + '_Vst_prima_div_Vcn_prima_data.dat'
+        self.beta_list_outfile = open(beta_list_outfile_name, 'w')
+        self.Vst_prima_div_Vcn_prima_list_outfile = open(Vst_prima_div_Vcn_prima_list_outfile_name, 'w')
 
         for i in range(0, number_of_points_in_the_graphic):
             self.beta_list_outfile.write("%14.8f %14.8f" % (self.special_quantity_list[i], self.beta_list[i]) + '\n')
             self.Vst_prima_div_Vcn_prima_list_outfile.write("%14.8f %14.8f" % (self.Vst_div_Vcn_list[i], self.Vst_prima_div_Vcn_prima_list[i]) + '\n')
         self.beta_list_outfile.close()
         self.Vst_prima_div_Vcn_prima_list_outfile.close()
+        
+        gnuplot_script_name = 'benchmark6_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set multiplot layout 2, 1; set grid; plot [0:25][-1:.6] '" + beta_list_outfile_name + "' w lp lt -1 lw 1.5 ps 3 pt 8;\
+                                    plot [0:8][-2:8] '" + Vst_prima_div_Vcn_prima_list_outfile_name + "'w lp lt 3 lw 1.5 ps 2 pt 4; unset multiplot")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
         
 class Benchmark7:
     
@@ -347,16 +398,27 @@ class Benchmark7:
         self.final_tangential_center_vel_list.append(final_tangential_center_velocity)
         self.final_angular_vel_list.append(final_angular_vel)
         
-    def print_results(self, number_of_points_in_the_graphic):
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        self.final_tangential_center_vel_list_outfile = open("benchmark7_dt_" + str(dt) + '_final_tangential_center_vel_list_data.dat', 'w')
-        self.final_angular_vel_list_outfile = open("benchmark7_dt_" + str(dt) + '_final_angular_vel_list_data.dat', 'w')
+        final_tangential_center_vel_list_outfile_name = "benchmark7_dt_" + str(dt) + '_final_tangential_center_vel_list_data.dat'
+        final_angular_vel_list_outfile_name = "benchmark7_dt_" + str(dt) + '_final_angular_vel_list_data.dat'
+        self.final_tangential_center_vel_list_outfile = open(final_tangential_center_vel_list_outfile_name, 'w')
+        self.final_angular_vel_list_outfile = open(final_angular_vel_list_outfile_name, 'w')
         
         for i in range(0, number_of_points_in_the_graphic):
             self.final_tangential_center_vel_list_outfile.write("%14.8f %14.8f" % (self.initial_angular_vel_list[i], self.final_tangential_center_vel_list[i]) + '\n')
             self.final_angular_vel_list_outfile.write("%14.8f %14.8f" % (self.initial_angular_vel_list[i], self.final_angular_vel_list[i]) + '\n')
         self.final_tangential_center_vel_list_outfile.close()
-        self.final_angular_vel_list_outfile.close()    
+        self.final_angular_vel_list_outfile.close()
+        
+        gnuplot_script_name = 'benchmark7_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set multiplot layout 2, 1; set grid; set bmargin 0; set format x \"\"; set ytics -5, 5; set key bottom;\
+                                    plot [0:25][-10:10] '" + final_tangential_center_vel_list_outfile_name + "' w lp lw 1.5 ps 2 pt 4;\
+                                    set bmargin; set tmargin 0; set format x \"%g\"; set ytics 0, 5, 20; set key top;\
+                                    plot [0:25][0:25] '" + final_angular_vel_list_outfile_name + "' w lp lw 1.5 lt 3 ps 2 pt 6; unset multiplot")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
     
 class Benchmark8:
     
@@ -404,15 +466,34 @@ class Benchmark8:
     
     def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        self.beta_list_outfile = open("benchmark8_dt_" + str(dt) + '_beta_list_data.dat', 'w')
-        self.Vst_prima_div_Vcn_prima_list_outfile = open("benchmark8_dt_" + str(dt) + '_Vst_prima_div_Vcn_prima_data.dat', 'w')
+        beta_list_outfile_name = 'benchmark8_dt_' + str(dt) + 's_beta_list_data.dat'
+        Vst_prima_div_Vcn_prima_list_outfile_name = 'benchmark8_dt_' + str(dt) + 's_Vst_prima_div_Vcn_prima_list_data.dat'
+        self.beta_list_outfile = open(beta_list_outfile_name, 'w')
+        self.Vst_prima_div_Vcn_prima_list_outfile = open(Vst_prima_div_Vcn_prima_list_outfile_name, 'w')
         
         for i in range(0, number_of_points_in_the_graphic):
             self.beta_list_outfile.write("%14.8f %14.8f" % (self.special_quantity_list[i], self.beta_list[i]) + '\n')
             self.Vst_prima_div_Vcn_prima_list_outfile.write("%14.8f %14.8f" % (self.Vst_div_Vcn_list[i], self.Vst_prima_div_Vcn_prima_list[i]) + '\n')
+        
         self.beta_list_outfile.close()
         self.Vst_prima_div_Vcn_prima_list_outfile.close()
         
+        gnuplot_script_name = 'benchmark8_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name, 'w')
+        self.gnuplot_outfile.write("set multiplot layout 2, 1; set grid; plot [0:25] [-1:.6] '" + beta_list_outfile_name + "' w lp lt -1 lw 1.5 ps 3 pt 8;\
+                                    plot [0:8] [-2:10] '" + Vst_prima_div_Vcn_prima_list_outfile_name + "'w lp lt 3 lw 1.5 ps 2 pt 4; unset multiplot")
+        self.gnuplot_outfile.close()
+        print_gnuplot_files_on_screen(gnuplot_script_name)
+        
+        """pdf_script_name = 'benchmark9_dt_' + str(dt) + 's.pdf'
+        self.pdf_outfile = open(pdf_script_name, 'w')
+        self.pdf_outfile.write("set terminal pdfcairo monochrome solid size 5 in, 3 in; set output '" + pdf_script_name + "'; \
+                                set grid; plot 'benchmark9_dt_2e-07s_restitution_numbers_vector_list_data.dat' u 1:2 w lp ps 2 pt 6, \
+                                'benchmark9_dt_2e-07s_restitution_numbers_vector_list_data.dat' u 1:3 w lp ps 2 pt 6")
+        self.pdf_outfile.close()
+        create_pdf_document(pdf_script_name)"""
+        
+
 class Benchmark9:
     
     def __init__(self):
@@ -467,16 +548,16 @@ class Benchmark9:
         
         gnuplot_script_name = 'benchmark9_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("plot '" + restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp ps 2 pt 6, '"\
-                                            + restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp ps 2 pt 6")
+        self.gnuplot_outfile.write("plot '" + restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                            + restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.gnuplot_outfile.close()
         print_gnuplot_files_on_screen(gnuplot_script_name)
         
         pdf_script_name = 'benchmark9_dt_' + str(dt) + 's.pdf'
         self.pdf_outfile = open(pdf_script_name, 'w')
-        self.pdf_outfile.write("set terminal pdfcairo monochrome solid size 5 in, 3 in; set output '" + pdf_script_name + "'; \
-                                set grid; plot 'benchmark9_dt_2e-07s_restitution_numbers_vector_list_data.dat' u 1:2 w lp ps 2 pt 6, \
-                                'benchmark9_dt_2e-07s_restitution_numbers_vector_list_data.dat' u 1:3 w lp ps 2 pt 6")
+        self.pdf_outfile.write("set terminal pdfcairo solid size 5 in, 3 in; set output '" + pdf_script_name + "'; \
+                                set grid; plot '" + restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                + restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.pdf_outfile.close()
         create_pdf_document(pdf_script_name)
                         
@@ -543,9 +624,7 @@ def delete_archives(nodeplotter):
     folders_to_delete_list.extend(glob('*ists'))
     folders_to_delete_list.extend(glob('*ults'))
     folders_to_delete_list.extend(glob('*he__'))
-    
-    if not nodeplotter:
-        folders_to_delete_list.extend(glob('*aphs'))
+    folders_to_delete_list.extend(glob('*aphs'))
     
     for to_erase_folder in folders_to_delete_list:
         shutil.rmtree(to_erase_folder)
