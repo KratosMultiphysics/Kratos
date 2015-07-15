@@ -271,7 +271,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
     KRATOSprint(report.BeginReport(timer))
 
-    print("Computing points in the curve... There are only", 1 + number_of_points_in_the_graphic - iteration, "points left....",'\n')
+    print("Computing points in the curve...", 1 + number_of_points_in_the_graphic - iteration, "point(s) left to finish....",'\n')
 
     mesh_motion = DEMFEMUtilities()
 
@@ -281,6 +281,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     list_of_nodes_ids = [1]
        
     if nodeplotter:
+        os.chdir(main_path)
         plotter = plot_variables.variable_plotter(spheres_model_part, list_of_nodes_ids) #Related to the benchmark in Chung, Ooi
     
     step = 0  
@@ -365,6 +366,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
             time_old_print = time
                 
         if nodeplotter:
+            os.chdir(main_path)
             plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
 
     ############################################################################
@@ -389,6 +391,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     demio.CloseMultifiles()
 
     if nodeplotter:
+        os.chdir(main_path)
         plotter.close_files() #Related to the benchmark in Chung, Ooi
 
     os.chdir(main_path)
@@ -399,5 +402,5 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
 benchmark.print_results(number_of_points_in_the_graphic, dt)
 
-COC.delete_archives(nodeplotter) #.......Removing some unuseful files 
+#COC.delete_archives(nodeplotter) #.......Removing some unuseful files 
 
