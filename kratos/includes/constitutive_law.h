@@ -128,9 +128,9 @@ public:
       
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_TENSOR );
     
-    KRATOS_DEFINE_LOCAL_FLAG( INITIAL_CONFIGURATION );
-    KRATOS_DEFINE_LOCAL_FLAG( LAST_KNOWN_CONFIGURATION );
-    KRATOS_DEFINE_LOCAL_FLAG( FINAL_CONFIGURATION );
+    KRATOS_DEFINE_LOCAL_FLAG( INITIAL_CONFIGURATION ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
+    KRATOS_DEFINE_LOCAL_FLAG( LAST_KNOWN_CONFIGURATION ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
+    KRATOS_DEFINE_LOCAL_FLAG( FINAL_CONFIGURATION ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
     
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
     
@@ -214,7 +214,7 @@ public:
     
       Flags                mOptions;
       const double*        mDeterminantF;
-      double*              mDeterminantF0;
+      double*              mDeterminantF0; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 
       /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
 
@@ -225,7 +225,7 @@ public:
       const Matrix*        mpShapeFunctionsDerivatives;
 
       const Matrix*        mpDeformationGradientF;
-      Matrix*              mpDeformationGradientF0;
+      Matrix*              mpDeformationGradientF0; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Matrix*              mpConstitutiveMatrix;
      
       const ProcessInfo*   mpCurrentProcessInfo;
@@ -243,7 +243,7 @@ public:
       {  
         //Initialize parameters with a non-coherent value
 	mDeterminantF=NULL;
-	mDeterminantF0=NULL;
+	mDeterminantF0=NULL; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	//Initialize pointers to NULL
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
@@ -270,14 +270,14 @@ public:
       {  
         //Initialize parameters with a non-coherent value
 	mDeterminantF=NULL;
-	mDeterminantF0=NULL;
+	mDeterminantF0=NULL; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	//Initialize pointers to NULL
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
-	mpDeformationGradientF0=NULL;
+	mpDeformationGradientF0=NULL; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	mpConstitutiveMatrix=NULL;
       };
 
@@ -288,13 +288,13 @@ public:
       Parameters (const Parameters & rNewParameters)
         :mOptions(rNewParameters.mOptions)
         ,mDeterminantF(rNewParameters.mDeterminantF)
-        ,mDeterminantF0(rNewParameters.mDeterminantF0)
+        ,mDeterminantF0(rNewParameters.mDeterminantF0) //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	,mpStrainVector(rNewParameters.mpStrainVector)
 	,mpStressVector(rNewParameters.mpStressVector)
 	,mpShapeFunctionsValues(rNewParameters.mpShapeFunctionsValues)
 	,mpShapeFunctionsDerivatives(rNewParameters.mpShapeFunctionsDerivatives)
 	,mpDeformationGradientF(rNewParameters.mpDeformationGradientF)
-	,mpDeformationGradientF0(rNewParameters.mpDeformationGradientF0)
+	,mpDeformationGradientF0(rNewParameters.mpDeformationGradientF0) //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	,mpConstitutiveMatrix(rNewParameters.mpConstitutiveMatrix)
 	,mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
 	,mpMaterialProperties(rNewParameters.mpMaterialProperties)
@@ -371,7 +371,7 @@ public:
 	if(!mpDeformationGradientF)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
 
-	if(!mpDeformationGradientF0)
+	if(!mpDeformationGradientF0) //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF0 NOT SET","");
 
 	if(!mpStrainVector)
@@ -400,13 +400,13 @@ public:
 
       void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
       void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=&rDeterminantF;};
-      void SetDeterminantF0                (double& rDeterminantF0)                   {mDeterminantF0=&rDeterminantF0;};
+      void SetDeterminantF0                (double& rDeterminantF0)                   {mDeterminantF0=&rDeterminantF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
  
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
       void SetDeformationGradientF         (const Matrix& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
-      void SetDeformationGradientF0        (Matrix& rDeformationGradientF0)           {mpDeformationGradientF0=&rDeformationGradientF0;};
+      void SetDeformationGradientF0        (Matrix& rDeformationGradientF0)           {mpDeformationGradientF0=&rDeformationGradientF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 
       void SetStrainVector                 (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
       void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};     
@@ -426,9 +426,9 @@ public:
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
-      Matrix& GetDeformationGradientF0           () {return *mpDeformationGradientF0;};
+      Matrix& GetDeformationGradientF0           () {return *mpDeformationGradientF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 
-      double& GetDeterminantF0                   () {return *mDeterminantF0;};
+      double& GetDeterminantF0                   () {return *mDeterminantF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Vector& GetStrainVector                    () {return *mpStrainVector;};
       Vector& GetStressVector                    () {return *mpStressVector;};
 
@@ -446,10 +446,10 @@ public:
        */ 
       
       double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=*mDeterminantF; return rDeterminantF;};
-      double& GetDeterminantF0                 (double & rDeterminantF0) {rDeterminantF0=*mDeterminantF0; return rDeterminantF0;};
+      double& GetDeterminantF0                 (double & rDeterminantF0) {rDeterminantF0=*mDeterminantF0; return rDeterminantF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
-      Matrix& GetDeformationGradientF0         (Matrix & rDeformationGradientF0) {rDeformationGradientF0=*mpDeformationGradientF0; return rDeformationGradientF0;};
+      Matrix& GetDeformationGradientF0         (Matrix & rDeformationGradientF0) {rDeformationGradientF0=*mpDeformationGradientF0; return rDeformationGradientF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Vector& GetStressVector                  (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       Matrix& GetConstitutiveMatrix            (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
   
@@ -923,6 +923,9 @@ public:
 				     StressMeasure rStressFinal);
       
 
+    //TODO: Add a public access to push/pull the constitutive law tensor as agreed with JMC
+    
+    
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
