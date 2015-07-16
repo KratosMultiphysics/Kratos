@@ -27,9 +27,9 @@ namespace Kratos
       
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                5 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIAL_CONFIGURATION,       6 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, LAST_KNOWN_CONFIGURATION,    7 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINAL_CONFIGURATION,         8 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIAL_CONFIGURATION,       6 ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, LAST_KNOWN_CONFIGURATION,    7 ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINAL_CONFIGURATION,         8 ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  9 );
   
