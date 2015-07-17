@@ -98,6 +98,9 @@ bool PlaneStrain::Has( const Variable<double>& rThisVariable )
 
 bool PlaneStrain::Has( const Variable<Vector>& rThisVariable )
 {
+    if(rThisVariable == STRESSES)
+        return true;
+
     return false;
 }
 
@@ -127,7 +130,19 @@ double& PlaneStrain::GetValue( const Variable<double>& rThisVariable, double& rV
 
 Vector& PlaneStrain::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
-    return( rValue );
+    if ( rThisVariable == STRESSES )
+    {
+        if(rValue.size() != 6)
+            rValue.resize(6, false);
+        rValue(0) = mCurrentStress(0);
+        rValue(1) = mCurrentStress(1);
+        rValue(2) = mNU * (mCurrentStress(0) + mCurrentStress(1));
+        rValue(3) = mCurrentStress(2);
+        rValue(4) = 0.0;
+        rValue(5) = 0.0;
+    }
+
+    return rValue;
 }
 
 Matrix& PlaneStrain::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
@@ -189,10 +204,24 @@ void PlaneStrain::InitializeMaterial( const Properties& props,
                                       const GeometryType& geom,
                                       const Vector& ShapeFunctionsValues )
 {
+    mCurrentStress = ZeroVector( 3 );
     mE  = props[YOUNG_MODULUS];
     mNU = props[POISSON_RATIO];
     mDE = props[DENSITY];
+}
 
+void PlaneStrain::InitializeNonLinearIteration( const Properties& rMaterialProperties,
+                                                const GeometryType& rElementGeometry,
+                                                const Vector& rShapeFunctionsValues,
+                                                const ProcessInfo& rCurrentProcessInfo )
+{
+}
+
+void PlaneStrain::FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+                                              const GeometryType& rElementGeometry,
+                                              const Vector& rShapeFunctionsValues,
+                                              const ProcessInfo& rCurrentProcessInfo )
+{
 }
 
 /**
@@ -213,7 +242,6 @@ void PlaneStrain::CalculateElasticMatrix( Matrix& C, const double E, const doubl
     C( 2, 0 ) = 0.0;
     C( 2, 1 ) = 0.0;
     C( 2, 2 ) = c3;
-    //KRATOS_WATCH("inside D");
 }
 
 /**
@@ -229,17 +257,8 @@ void PlaneStrain::CalculateStress( const Vector& StrainVector, Vector& StressVec
     StressVector[0] = c1 * StrainVector[0] + c2 * ( StrainVector[1] ) ;
     StressVector[1] = c1 * StrainVector[1] + c2 * ( StrainVector[0] ) ;
     StressVector[2] = c3 * StrainVector[2];
-    /*
-    double sigma_z = (mNU)*(StressVector[0] + StressVector[1]);
-    double sigma_m = (StressVector[0] + StressVector[1] + sigma_z)/3.00;
-    array_1d<double,4> Des;
-    Des[0] = StressVector[0] - sigma_m;
-    Des[1] = StressVector[1] - sigma_m;
-    Des[2] = StressVector[2];
-    Des[3] = StressVector[3] - sigma_m;
-    KRATOS_WATCH(StressVector)
-    KRATOS_WATCH(Des)
-    */
+
+    noalias( mCurrentStress ) = StressVector;
 }
 
 
@@ -301,9 +320,6 @@ int PlaneStrain::Check(const Properties& props, const GeometryType& geom, const 
 
     if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
         KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
-
-    if(MATERIAL_PARAMETERS.Key() == 0 || props[MATERIAL_PARAMETERS][0]<0.00 || props[MATERIAL_PARAMETERS][1]<0.00 )
-        KRATOS_THROW_ERROR(std::invalid_argument,"MATERIAL_PARAMETERS has Key zero or invalid value ","");
 
     return 0;
 
