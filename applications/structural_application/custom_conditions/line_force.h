@@ -74,26 +74,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-class LineForce3D
+class LineForce
     : public Condition
 {
 public:
 
-    // Counted pointer of LineForce3D
-    KRATOS_CLASS_POINTER_DEFINITION( LineForce3D );
+    // Counted pointer of LineForce
+    KRATOS_CLASS_POINTER_DEFINITION( LineForce );
 
 
     // Constructor void
-    LineForce3D();
+    LineForce();
 
     // Constructor using an array of nodes
-    LineForce3D( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineForce( IndexType NewId, GeometryType::Pointer pGeometry );
 
     // Constructor using an array of nodes with properties
-    LineForce3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    LineForce( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~LineForce3D();
+    virtual ~LineForce();
 
 
     // Name Operations
@@ -222,7 +222,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
 
-}; // class LineForce3D.
+}; // class LineForce.
 
 } // namespace Kratos.
 

@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/line_force_3d.h"
+#include "custom_conditions/line_force.h"
 #include "structural_application.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
@@ -72,18 +72,18 @@ namespace Kratos
 // -------- //
 
 // Constructor
-LineForce3D::LineForce3D()
+LineForce::LineForce()
 {
 }
 
 // Constructor
-LineForce3D::LineForce3D( IndexType NewId, GeometryType::Pointer pGeometry )
+LineForce::LineForce( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
 }
 
 // Constructor
-LineForce3D::LineForce3D( IndexType NewId, GeometryType::Pointer pGeometry,
+LineForce::LineForce( IndexType NewId, GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
@@ -91,23 +91,23 @@ LineForce3D::LineForce3D( IndexType NewId, GeometryType::Pointer pGeometry,
 
 //***********************************************************************************
 //***********************************************************************************
-Condition::Pointer LineForce3D::Create( IndexType NewId,
+Condition::Pointer LineForce::Create( IndexType NewId,
                                         NodesArrayType const& ThisNodes,
                                         PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer( new LineForce3D( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Condition::Pointer( new LineForce( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //***********************************************************************************
 //***********************************************************************************
 // Destructor
-LineForce3D::~LineForce3D()
+LineForce::~LineForce()
 {
 }
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::EquationIdVector( EquationIdVectorType& rResult,
+void LineForce::EquationIdVector( EquationIdVectorType& rResult,
                                     ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -128,7 +128,7 @@ void LineForce3D::EquationIdVector( EquationIdVectorType& rResult,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::GetDofList( DofsVectorType& ElementalDofList,
+void LineForce::GetDofList( DofsVectorType& ElementalDofList,
                               ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -146,7 +146,7 @@ void LineForce3D::GetDofList( DofsVectorType& ElementalDofList,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
+void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -216,7 +216,7 @@ void LineForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+void LineForce::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo )
 {
@@ -228,7 +228,7 @@ void LineForce3D::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
+void LineForce::CalculateMassMatrix( MatrixType& rMassMatrix,
                               ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -238,7 +238,7 @@ void LineForce3D::CalculateMassMatrix( MatrixType& rMassMatrix,
 
 //***********************************************************************************
 //***********************************************************************************
-void LineForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
+void LineForce::CalculateDampingMatrix( MatrixType& rDampingMatrix,
                               ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -253,7 +253,7 @@ void LineForce3D::CalculateDampingMatrix( MatrixType& rDampingMatrix,
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int LineForce3D::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
+int LineForce::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
 {
     return 0;
 }
