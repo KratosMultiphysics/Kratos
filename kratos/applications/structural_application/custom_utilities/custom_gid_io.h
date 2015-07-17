@@ -217,6 +217,22 @@ public:
                                                        ValuesOnIntPoint[index](3),
                                                        ValuesOnIntPoint[index](4),
                                                        ValuesOnIntPoint[index](5) );
+                                if(ValuesOnIntPoint[i].size() ==3 )
+                                    GiD_fWrite3DMatrix( ResultFile, it->Id(),
+                                                       ValuesOnIntPoint[index](0),
+                                                       ValuesOnIntPoint[index](1),
+                                                       0.0,
+                                                       ValuesOnIntPoint[index](2),
+                                                       0.0,
+                                                       0.0 );
+                                if(ValuesOnIntPoint[i].size() ==4 )
+                                    GiD_fWrite3DMatrix( ResultFile, it->Id(),
+                                                       ValuesOnIntPoint[index](0), //o_xx
+                                                       ValuesOnIntPoint[index](1), //o_yy
+                                                       ValuesOnIntPoint[index](3), //o_zz
+                                                       ValuesOnIntPoint[index](2), //o_xy
+                                                       0.0,
+                                                       0.0 );
                             }
                             else if( (rVariable == MATERIAL_PARAMETERS)
                                      || (rVariable == INTERNAL_VARIABLES) )
@@ -255,6 +271,22 @@ public:
                                                        ValuesOnIntPoint[index](3),
                                                        ValuesOnIntPoint[index](4),
                                                        ValuesOnIntPoint[index](5) );
+                                if(ValuesOnIntPoint[i].size() ==3 )
+                                    GiD_fWrite3DMatrix( ResultFile, it->Id(),
+                                                       ValuesOnIntPoint[index](0), //o_xx
+                                                       ValuesOnIntPoint[index](1), //o_yy
+                                                       0.0,
+                                                       ValuesOnIntPoint[index](2), //o_xy
+                                                       0.0,
+                                                       0.0 );
+                                if(ValuesOnIntPoint[i].size() ==4 )
+                                    GiD_fWrite3DMatrix( ResultFile, it->Id(),
+                                                       ValuesOnIntPoint[index](0), //o_xx
+                                                       ValuesOnIntPoint[index](1), //o_yy
+                                                       ValuesOnIntPoint[index](3), //o_zz
+                                                       ValuesOnIntPoint[index](2), //o_xy
+                                                       0.0,
+                                                       0.0 );
                             }
                             else if( (rVariable == MATERIAL_PARAMETERS)
                                      || (rVariable == INTERNAL_VARIABLES) )
