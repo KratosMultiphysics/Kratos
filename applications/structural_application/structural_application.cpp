@@ -64,8 +64,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
 #include "geometries/triangle_2d_3.h"
-//#include "geometries/triangle_3d.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -344,6 +344,11 @@ KratosStructuralApplication::KratosStructuralApplication():
     mMixedLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mMixedLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
 
+    mKinematicLinear2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mKinematicLinear2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mKinematicLinear2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mKinematicLinear2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+    mKinematicLinear2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
     mKinematicLinear3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mKinematicLinear3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
     mKinematicLinear3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
@@ -378,6 +383,8 @@ KratosStructuralApplication::KratosStructuralApplication():
     mFacePressure3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mFacePressure3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mFacePressure3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
+    mLineForce2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mLineForce2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mLineForce3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mFaceForce3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mFaceForce3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
@@ -676,6 +683,11 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D27N", mMixedLagrangian3D27N )
 
 
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D3N", mKinematicLinear2D3N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D4N", mKinematicLinear2D4N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D6N", mKinematicLinear2D6N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D8N", mKinematicLinear2D8N )
+    KRATOS_REGISTER_ELEMENT( "KinematicLinear2D9N", mKinematicLinear2D9N )
     KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
     KRATOS_REGISTER_ELEMENT( "KinematicLinear3D10N", mKinematicLinear3D10N )
     KRATOS_REGISTER_ELEMENT( "KinematicLinear3D8N", mKinematicLinear3D8N )
@@ -714,6 +726,8 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "FacePressure3D4N", mFacePressure3D4N )
     KRATOS_REGISTER_CONDITION( "FacePressure3D8N", mFacePressure3D8N )
     KRATOS_REGISTER_CONDITION( "FacePressure3D9N", mFacePressure3D9N )
+    KRATOS_REGISTER_CONDITION( "LineForce2D2N", mLineForce2D2N )
+    KRATOS_REGISTER_CONDITION( "LineForce2D3N", mLineForce2D3N )
     KRATOS_REGISTER_CONDITION( "LineForce3D2N", mLineForce3D2N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D3N", mFaceForce3D3N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D6N", mFaceForce3D6N )

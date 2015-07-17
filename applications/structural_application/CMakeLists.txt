@@ -90,7 +90,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face3D.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_pressure3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/faceforce3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/node_tying_lagrange.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/node_tying_lagrange_z.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/master_contact_face_3D_newmark.cpp 

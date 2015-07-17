@@ -93,7 +93,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/face3D.h"
 #include "custom_conditions/face_pressure3D.h"
 #include "custom_conditions/faceforce3D.h"
-#include "custom_conditions/line_force_3d.h"
+#include "custom_conditions/line_force.h"
 #include "custom_conditions/contact_link_3D.h"
 #include "custom_conditions/contact_link_3D_newmark.h"
 #include "custom_conditions/master_contact_face_3D.h"
@@ -462,6 +462,11 @@ private:
     const MixedLagrangian mMixedLagrangian3D20N;
     const MixedLagrangian mMixedLagrangian3D27N;
 
+    const KinematicLinear mKinematicLinear2D3N;
+    const KinematicLinear mKinematicLinear2D4N;
+    const KinematicLinear mKinematicLinear2D6N;
+    const KinematicLinear mKinematicLinear2D8N;
+    const KinematicLinear mKinematicLinear2D9N;
     const KinematicLinear mKinematicLinear3D4N;
     const KinematicLinear mKinematicLinear3D10N;
     const KinematicLinear mKinematicLinear3D8N;
@@ -494,7 +499,9 @@ private:
     const FacePressure3D  mFacePressure3D4N;
     const FacePressure3D  mFacePressure3D8N;
     const FacePressure3D  mFacePressure3D9N;
-    const LineForce3D mLineForce3D2N;
+    const LineForce mLineForce2D2N;
+    const LineForce mLineForce2D3N;
+    const LineForce mLineForce3D2N;
     const FaceForce3D mFaceForce3D3N;
     const FaceForce3D mFaceForce3D6N;
     const FaceForce3D mFaceForce3D4N;
