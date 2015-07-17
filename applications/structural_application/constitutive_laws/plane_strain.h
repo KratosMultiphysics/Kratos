@@ -136,9 +136,19 @@ public:
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial( const Properties& props,
-                             const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues );
+    virtual void InitializeMaterial( const Properties& props,
+                                     const GeometryType& geom,
+                                     const Vector& ShapeFunctionsValues );
+
+    virtual void InitializeNonLinearIteration( const Properties& rMaterialProperties,
+                                               const GeometryType& rElementGeometry,
+                                               const Vector& rShapeFunctionsValues,
+                                               const ProcessInfo& rCurrentProcessInfo );
+
+    virtual void FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+                                             const GeometryType& rElementGeometry,
+                                             const Vector& rShapeFunctionsValues,
+                                             const ProcessInfo& rCurrentProcessInfo );
 
     /**
      * Calculates the constitutive matrix for a given strain vector
@@ -160,15 +170,15 @@ public:
      * As this constitutive law describes only linear elastic material properties
      * this function is rather useless and in fact does nothing
      */
-    /*			void InitializeSolutionStep( const Properties& props,
-    					const GeometryType& geom, //this is just to give the array of nodes
-    					const Vector& ShapeFunctionsValues ,
-    					const ProcessInfo& CurrentProcessInfo);
+    /*            void InitializeSolutionStep( const Properties& props,
+                        const GeometryType& geom, //this is just to give the array of nodes
+                        const Vector& ShapeFunctionsValues ,
+                        const ProcessInfo& CurrentProcessInfo);
 
-    			void FinalizeSolutionStep( const Properties& props,
-    					const GeometryType& geom, //this is just to give the array of nodes
-    					const Vector& ShapeFunctionsValues ,
-    					const ProcessInfo& CurrentProcessInfo);
+                void FinalizeSolutionStep( const Properties& props,
+                        const GeometryType& geom, //this is just to give the array of nodes
+                        const Vector& ShapeFunctionsValues ,
+                        const ProcessInfo& CurrentProcessInfo);
     */
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
@@ -255,8 +265,8 @@ private:
      */
     void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
 
-    double mE,mNU, mDE;
-
+    double mE, mNU, mDE;
+    Vector mCurrentStress;
 
 
 
