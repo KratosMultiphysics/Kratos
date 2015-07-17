@@ -112,7 +112,6 @@ public:
     typedef ConstitutiveLaw ConstitutiveLawType;
 
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    /// Counted pointer of KinematicLinear
 
     KRATOS_CLASS_POINTER_DEFINITION( KinematicLinear );
 
@@ -161,10 +160,10 @@ public:
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
     void InitializeSolutionStep( ProcessInfo& CurrentProcessInfo );
-    
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
-    
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+
+    void InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
+
+    void FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
@@ -172,11 +171,9 @@ public:
 
     void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<int>& rVariable,
-                                      std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    void SetValueOnIntegrationPoints( const Variable<int>& rVariable, std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                      std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    void SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
     void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
@@ -318,21 +315,17 @@ private:
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
 
-    void CalculateBodyForces(
-        Vector& BodyForce,
-        const ProcessInfo& CurrentProcessInfo
-    );
+    void CalculateBodyForces( Vector& BodyForce, const ProcessInfo& CurrentProcessInfo );
 
     void InitializeVariables();
 
     void InitializeMaterial( std::vector<std::vector<Matrix> >& C );
 
-    void CalculateAndAddExtForceContribution(
-        const Vector& N,
-        const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce,
-        VectorType& mResidualVector,
-        double weight );
+    void CalculateAndAddExtForceContribution( const Vector& N,
+                                              const ProcessInfo& CurrentProcessInfo,
+                                              Vector& BodyForce,
+                                              VectorType& mResidualVector,
+                                              double weight );
 
     //************************************************************************************
     //************************************************************************************
@@ -343,16 +336,17 @@ private:
 
     void AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, double Weight, double detJ );
     
-    void CalculateAndAdd_ExtForceContribution(const Vector& N, const ProcessInfo& CurrentProcessInfo,
-        Vector& BodyForce, VectorType& rRightHandSideVector, double weight, double detJ);
+    void CalculateAndAdd_ExtForceContribution( const Vector& N, const ProcessInfo& CurrentProcessInfo,
+                                               const Vector& BodyForce, VectorType& rRightHandSideVector,
+                                               double weight, double detJ);
 
     void AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ );
 
-    void CalculateStiffnesMatrix( Matrix& K, const
-                                  Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ );
+    void CalculateStiffnesMatrix( Matrix& K, const Matrix& tan_C, const Matrix& B_Operator, double Weight, double detJ );
 
     void CalculateStressAndTangentialStiffness( Vector& StressVector, Matrix& tanC_U,
-            Vector& StrainVector, const Matrix& B_Operator, int PointNumber, const ProcessInfo& CurrentProcessInfo );
+                                                Vector& StrainVector, const Matrix& B_Operator,
+                                                int PointNumber, const ProcessInfo& CurrentProcessInfo );
 
     void CalculateStrain( const Matrix& B, const Matrix& Displacements, Vector& StrainVector );
 
