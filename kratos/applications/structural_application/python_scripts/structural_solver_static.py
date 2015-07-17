@@ -15,15 +15,16 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_EINS_DT)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(ACCELERATION_NULL)
-    model_part.AddNodalSolutionStepVariable(ACCELERATION_EINS);
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
-    model_part.AddNodalSolutionStepVariable(ACCELERATION);
-    model_part.AddNodalSolutionStepVariable(REACTION);
-    # model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(INSITU_STRESS);
-    model_part.AddNodalSolutionStepVariable(FACE_LOAD);
+    model_part.AddNodalSolutionStepVariable(ACCELERATION_EINS)
+    model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(ROTATION)
+    model_part.AddNodalSolutionStepVariable(REACTION)
+    # model_part.AddNodalSolutionStepVariable(BODY_FORCE)
+    model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(INSITU_STRESS)
+    model_part.AddNodalSolutionStepVariable(FACE_LOAD)
 
     print("variables for the dynamic structural solution added correctly")
 
@@ -31,9 +32,9 @@ def AddVariables(model_part, config=None):
 def AddDofs(model_part, config=None):
     for node in model_part.Nodes:
         # adding dofs
-        node.AddDof(DISPLACEMENT_X, REACTION_X);
-        node.AddDof(DISPLACEMENT_Y, REACTION_Y);
-        node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+        node.AddDof(DISPLACEMENT_X, REACTION_X)
+        node.AddDof(DISPLACEMENT_Y, REACTION_Y)
+        node.AddDof(DISPLACEMENT_Z, REACTION_Z)
     print("dofs for the dynamic structural solution added correctly")
 
 
@@ -70,7 +71,7 @@ class StaticStructuralSolver:
 
         # creating the solution strategy
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.time_scheme, self.structure_linear_solver, self.conv_criteria, self.MaxNewtonRapshonIterations, self.CalculateReactionFlag, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
-        self.solver.Check();
+        self.solver.Check()
 
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
         #(self.solver).SetMoveMeshFlag(True)
