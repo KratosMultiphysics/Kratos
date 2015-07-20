@@ -70,11 +70,9 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y)
         node.AddDof(VELOCITY_Z)
         node.AddDof(PRESSURE)
-
         #node.AddDof(MESH_VELOCITY_X)
         #node.AddDof(MESH_VELOCITY_Y)
         #node.AddDof(MESH_VELOCITY_Z)
-
     levelset_solver.AddDofs(model_part, distance_settings)
     print("dofs for the monolithic solver added correctly")
 
@@ -83,15 +81,12 @@ class MonolithicSolver:
     #
 
     def __init__(self, model_part, domain_size,linear_solver_iterations=300, linear_solver_tolerance=1e-5,dynamic_tau_levelset=0.01):
-
         self.model_part = model_part
         self.domain_size = domain_size
-
         self.alpha = -0.0
         self.move_mesh_strategy = 0
         # self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched(
             # self.alpha, self.move_mesh_strategy, self.domain_size)
-
         self.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulent(self.domain_size)
         self.time_scheme.Check(self.model_part)
 
@@ -162,12 +157,11 @@ class MonolithicSolver:
             conv_elem = "SUPGConv2D"
             conv_cond = "Condition2D"
         else:
-            conv_elem = "SUPGConv3D"
+            conv_elem = "SUPGConv3D" #"SUPGConvLevelSet"#"SUPGConv3D"
             conv_cond = "Condition3D"
         self.level_set_model_part = ModelPart("level_set_model_part")
         self.conv_generator = ConnectivityPreserveModeler()
-        (self.conv_generator).GenerateModelPart(self.model_part,
-                                                self.level_set_model_part, conv_elem, conv_cond)
+        (self.conv_generator).GenerateModelPart(self.model_part,self.level_set_model_part, conv_elem, conv_cond)
         #(ParallelFillCommunicator(self.level_set_model_part)).Execute();
 
         # constructing the convection solver for the distance
@@ -197,8 +191,8 @@ class MonolithicSolver:
         self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(
             self.level_set_model_part)
-        self.max_distance = self.max_edge_size * 10.0 #Ojo antes 5.0
-        self.max_levels = 25  # self.max_distance/self.min_edge_size
+        self.max_distance = self.max_edge_size * 5.0 #Ojo antes 5.0
+        self.max_levels = 25
 
         self.max_ns_iterations = 8
         self.internal_step_counter = 1
@@ -208,7 +202,7 @@ class MonolithicSolver:
 
         # volume correction
         self.volume_correction_switch = True
-        self.negative_volume_correction=True
+        self.negative_volume_correction=False
 
         # element size
         self.maxmin = []
@@ -228,15 +222,6 @@ class MonolithicSolver:
         # mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
         BiphasicFillingUtilities().ApplyFluidProperties(self.model_part, mu1, self.rho1, mu2, self.rho2)
-# for node in self.model_part.Nodes:
-# dist = node.GetSolutionStepValue(DISTANCE)
-# if(dist < 0):
-# node.SetSolutionStepValue(DENSITY,0,self.rho1)
-# node.SetSolutionStepValue(VISCOSITY,0,mu1)
-# else:
-# node.SetSolutionStepValue(DENSITY,0,self.rho2)
-# node.SetSolutionStepValue(VISCOSITY,0,mu2)
-    #
 
     def Initialize(self):
         # creating the solution strategy
@@ -264,11 +249,7 @@ class MonolithicSolver:
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau = self.dynamic_tau_levelset
-        
-        
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE, NODAL_AREA,self.max_levels,self.max_distance)
-        
-        # self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
             AMGCLIterativeSolverType.GMRES,
@@ -314,7 +295,6 @@ class MonolithicSolver:
     def DoRedistance(self):
         # redistance if required
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA, self.max_levels, self.max_distance)
-        # self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
 
      #
     def ConvectDistance(self):
@@ -323,8 +303,6 @@ class MonolithicSolver:
         (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU, self.dynamic_tau_levelset)  # self.dynamic_tau
         (self.level_set_solver).Solve()
         BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,self.max_distance)
-     #
-      #
 
     def Solve(self, step):
         # at the beginning of the calculations do a div clearance step
@@ -352,7 +330,23 @@ class MonolithicSolver:
         # Time to compute the Element Distance Gradient
         self.distance_utilities.ComputeElementalGradient(self.model_part)
 
+        # Checking the Conditions for the Redistance:CDL
+        redistance_now=False
         if(self.internal_step_counter >= self.next_redistance):
+            redistance_now=True
+            print("")
+            print("")
+            print("Forced Redistance due to the number os time steps without redistance")
+            print("")
+            print("")
+        else:
+            min_open_node_distance=self.distance_utilities.CheckForRedistance(self.model_part)
+            print(" min_open_node_distance %f" %min_open_node_distance)
+            if (min_open_node_distance==0.0): #<(self.CFL*self.max_edge_size)):
+                redistance_now=True
+                print("Forced Redistance CFL=%f" % self.CFL, " Max_Edge= %f " %self.max_edge_size, " Min_open_node_distance= %f" %min_open_node_distance)
+
+        if(redistance_now==True):
             #net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             #BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume, self.max_edge_size)
             
@@ -373,14 +367,6 @@ class MonolithicSolver:
         Efficiency=(WetVolumeBeforeCorrection-self.OldWetVolume)/(self.model_part.ProcessInfo[NET_INPUT_MATERIAL]-self.OldNetInletVolume)
         Efficiency=max(0,min(Efficiency,1.0))
         self.model_part.ProcessInfo[INJECTION_EFFICIENCY]=Efficiency
-        print("......")
-        print("Efficiency :" + str(Efficiency))
-        print("New_NET_INPUT_MATERIAL :" + str(self.model_part.ProcessInfo[NET_INPUT_MATERIAL]))
-        print("OLD_NET_INPUT_MATERIAL :" + str(self.OldNetInletVolume))
-        print("OLD_OldWetVolume :" + str(self.OldWetVolume))
-        print("WetVolumeBeforeCorrection :" + str(WetVolumeBeforeCorrection))
-        print("......")
-        print("......")
 
 
         if(self.volume_correction_switch and step > self.vol_cr_step):
@@ -389,10 +375,6 @@ class MonolithicSolver:
             print("Performed Volume Correction")
         else: # Ojo que lo acabo de
             self.model_part.ProcessInfo[WET_VOLUME] = BiphasicFillingUtilities().ComputeWetVolume(self.model_part) #fluid_model_part.ProcessInfo[WET_VOLUME]
-        
-        print("self.model_part.ProcessInfo[WET_VOLUME] :" + str(self.model_part.ProcessInfo[WET_VOLUME]))
-        print("......")
-        print("......")
 
         
         Timer.Start("ApplyFluidProperties")
@@ -400,10 +382,6 @@ class MonolithicSolver:
         BiphasicFillingUtilities().ViscosityBasedSolidification(self.model_part,100.0)
         #self.IncreaseCSmagToSOlidify(50.0)
         Timer.Stop("ApplyFluidProperties")
-        # Recompute normals if necessary
-# if(self.ReformDofSetAtEachStep == True):
-# if self.use_slip_conditions == True:
-# self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,35.0)#,0.0,35.0
 
         Timer.Start("self.solve")
 

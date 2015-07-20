@@ -35,6 +35,7 @@
 #include "custom_elements/thermal_face3d.h"
 #include "custom_elements/environment_contact.h"
 #include "custom_elements/SUPG_conv_2d.h"
+#include "custom_elements/SUPG_conv_3d_levelset.h"
 //#include "custom_elements/Poisson_3d.h"
 
 namespace Kratos
@@ -232,7 +233,7 @@ private:
     const SUPGConvDiff3D  mSUPGConvDiff3D;
     const SUPGConv3D  mSUPGConv3D;
     const SUPGConv2D  mSUPGConv2D;  
-
+    const SUPGConvLevelSet  mSUPGConvLevelSet;
 
  //   const Poisson3D mPoisson3D;
     ///@}

@@ -72,8 +72,8 @@ KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
     mSUPGConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mSUPGConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConv3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
-
+    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+	mSUPGConvLevelSet(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
    // mPoisson3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
     
     
@@ -130,8 +130,9 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_ELEMENT("SUPGConvDiff3D", mSUPGConvDiff3D);
     KRATOS_REGISTER_ELEMENT("SUPGConv3D", mSUPGConv3D);
     KRATOS_REGISTER_ELEMENT("SUPGConv2D", mSUPGConv2D);
-    
-    //KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);    
+    KRATOS_REGISTER_ELEMENT("SUPGConv3D", mSUPGConv3D);    
+    //KRATOS_REGISTER_ELEMENT("Poisson3D", mPoisson3D);
+	KRATOS_REGISTER_ELEMENT("SUPGConvLevelSet", mSUPGConvLevelSet); 
 }
 
 }  // namespace Kratos.
