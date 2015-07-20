@@ -39,6 +39,7 @@ def AddVariables(model_part, settings):
     model_part.AddNodalSolutionStepVariable(IS_VISITED);
     model_part.AddNodalSolutionStepVariable(SOLIDFRACTION);
     model_part.AddNodalSolutionStepVariable(MOULD_INNER_TEMPERATURE);
+
     print("variables for the THERMAL_SOLVER added correctly")
 
 
@@ -133,8 +134,7 @@ class Solver:
                                                                         self.ReformDofSetAtEachStep,
                                                                         self.MoveMeshFlag,
                                                                         self.ApplyLineSearches)
-            
-            
+
         #self.stage2_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,
                                                                 #self.stage1_time_scheme,
                                                                 #self.symmetric_linear_solver,
@@ -147,7 +147,6 @@ class Solver:
         
         self.Check()
         self.SetEchoLevel(self.echo_level)
-        
 
     def Solve(self):
 
@@ -201,12 +200,12 @@ class Solver:
             self.stage0_solver.Solve()
         else:
             BDFVector = self.model_part.ProcessInfo.GetValue(BDF_COEFFICIENTS)
-            print("DELTA_TIME=",self.model_part.ProcessInfo[DELTA_TIME])
+            #print("DELTA_TIME=",self.model_part.ProcessInfo[DELTA_TIME])
             print(BDFVector)
             aux1 = BDFVector[1]/BDFVector[0]
             aux2 = BDFVector[2]/BDFVector[0]
-            print("aux1 = ",aux1)
-            print("aux2 = ",aux2)
+            #print("aux1 = ",aux1)
+            #print("aux2 = ",aux2)
             for node in self.model_part.Nodes:
                 Told = node.GetSolutionStepValue(TEMPERATURE,1)
                 Toldold = node.GetSolutionStepValue(TEMPERATURE,2)
@@ -220,7 +219,6 @@ class Solver:
             #store "unknown" in the database without history
             self.variable_utils.SaveScalarVar(TEMPERATURE,TEMPERATURE,self.model_part.Nodes)
             self.activation_utils.ActivateElementsAndConditions( self.model_part, DISTANCE,  self.max_distance, True)  #0.0, True) 
-            
             
             self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP,1)
             self.stage1_solver.Solve()        
