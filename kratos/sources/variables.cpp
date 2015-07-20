@@ -508,6 +508,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, COMPUTED_DISTANCE )
   KRATOS_CREATE_VARIABLE( double, MATERIAL )
 
+
   //vectors
 
   //for General kratos application: 
@@ -717,6 +718,8 @@ namespace Kratos
   Kratos::Variable<double> SOLIDIF_MODULUS_US( "SOLIDIF MODULUS (in)" );
   Kratos::Variable<double> TEMPERATURES_US( "TEMPERATURES (F)" );
   KRATOS_CREATE_VARIABLE(double,FRONT_MEETING)
+  KRATOS_CREATE_VARIABLE( double, MOULD_AVERAGE_TEMPERATURE ) 
+  
 
   //------------------------------------------------------------------------------//
   //------------------------------------------------------------------------------//
@@ -1368,7 +1371,8 @@ namespace Kratos
       KRATOS_REGISTER_VARIABLE(SOLIDIF_MODULUS_US)
       KRATOS_REGISTER_VARIABLE(TEMPERATURES_US)
       KRATOS_REGISTER_VARIABLE(FRONT_MEETING)
-
+	  KRATOS_REGISTER_VARIABLE(  MOULD_AVERAGE_TEMPERATURE )
+  
 
       //Register objects with general definition
       Serializer::Register( "Node", Node<3>() );
