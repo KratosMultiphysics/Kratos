@@ -263,14 +263,17 @@ class ExplicitStrategy:
             
             
     def RootByBisection(self, f, a, b, tol, maxiter, restit_coefficient):
-        if restit_coefficient == 1.0:
+        
+        if restit_coefficient < 0.001 :
+            restit_coefficient = 0.001
+        
+        if restit_coefficient > 0.999 :
             return 0.0
         k=0
         gamma = 0.5 * (a + b)
         
         while b - a > tol and k <= maxiter:
             restit_coeff_trial = self.rest_coeff_diff(gamma, restit_coefficient)
-            #print("gamma: " + str(gamma) + "  RC: " + str(restit_coeff_trial))
             
             if self.rest_coeff_diff(a,restit_coefficient) * restit_coeff_trial < 0:
                 b = gamma
@@ -289,7 +292,7 @@ class ExplicitStrategy:
     def GammaForHertzThornton(self, e):
             
         if e<0.001 :                
-            return 20.0 #Approximate value for restit. coeff of 0.001
+            e = 0.001
             
         if e>0.999 :
             return 0.0
