@@ -115,31 +115,71 @@ class PostUtils(object):
         self.vel_trap_graph_frequency = int(self.dem_io.VelTrapGraphExportFreq/spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 #that means it is not possible to print results with a higher frequency than the computations delta time
+        
+        self.previous_vector_of_inner_nodes = []
+        self.previous_time = 0.0;
 
-    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
+    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem, compute_flow):
 
         if (self.DEM_parameters.VelocityTrapOption):
+            
+            self.vel_trap_graph_counter += 1
+            
             if (self.vel_trap_graph_counter == self.vel_trap_graph_frequency):
                 self.vel_trap_graph_counter = 0
-            average_velocity = Array3()
-            low_point = Array3()
+                average_velocity = Array3()
+                low_point = Array3()
 
-            low_point[0] = self.DEM_parameters.VelocityTrapMinX
-            low_point[1] = self.DEM_parameters.VelocityTrapMinY
-            low_point[2] = self.DEM_parameters.VelocityTrapMinZ
-            high_point = Array3()
-            high_point[0] = self.DEM_parameters.VelocityTrapMaxX
-            high_point[1] = self.DEM_parameters.VelocityTrapMaxY
-            high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
+                low_point[0] = self.DEM_parameters.VelocityTrapMinX
+                low_point[1] = self.DEM_parameters.VelocityTrapMinY
+                low_point[2] = self.DEM_parameters.VelocityTrapMinZ
+                high_point = Array3()
+                high_point[0] = self.DEM_parameters.VelocityTrapMaxX
+                high_point[1] = self.DEM_parameters.VelocityTrapMaxY
+                high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
 
-            average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
-            f = open(file_name, 'a')
-            tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2]) + "\n"
-            f.write(tmp)
-            f.flush()
-            f.close()
+                average_velocity = self.post_utilities.VelocityTrap(self.spheres_model_part, low_point, high_point)
+                
+                if compute_flow == True:
+                    vector_of_inner_nodes = []
+                    for node in self.spheres_model_part.Nodes:
+                        if (node.X > low_point[0]) & (node.Y > low_point[1]) & (node.Z > low_point[2]) & (node.X < high_point[0]) & (node.Y < high_point[1]) & (node.Z < high_point[2]) :
+                            vector_of_inner_nodes.append(node)
+                            
+                    crossing_spheres = 0
+                    crossing_volume = 0.0
+                    
+                    for node in vector_of_inner_nodes:
+                        id_found = False
+                        for previous_node in self.previous_vector_of_inner_nodes:
+                            if node.Id == previous_node.Id:
+                                id_found = True
+                                break
+                        if id_found == False:
+                            print(node.Id)
+                            crossing_spheres = crossing_spheres + 1
+                            radius = node.GetSolutionStepValue(RADIUS)
+                            crossing_volume = crossing_volume + 4.0/3.0 * math.pi * radius*radius*radius
+                        
+                    time_between_measures = self.spheres_model_part.ProcessInfo.GetValue(TIME) - self.previous_time                
+                    number_of_spheres_flow = crossing_spheres / time_between_measures
+                    net_volume_flow = crossing_volume / time_between_measures
+                    
+                    self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
+                    self.previous_vector_of_inner_nodes = vector_of_inner_nodes
+                    
+                
+                f = open(file_name, 'a')
+                tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
+                if compute_flow == True:
+                    tmp = tmp + "   " + str(net_volume_flow)  + "   " + str(number_of_spheres_flow)             
+                tmp = tmp + "\n" 
+                
+                f.write(tmp)
+                f.flush()
+                
 
-            self.vel_trap_graph_counter += 1
+                
 
 class Procedures(object):
 
