@@ -156,7 +156,7 @@ class PostUtils(object):
                                 id_found = True
                                 break
                         if id_found == False:
-                            print(node.Id)
+                            #print(node.Id)
                             crossing_spheres = crossing_spheres + 1
                             radius = node.GetSolutionStepValue(RADIUS)
                             crossing_volume = crossing_volume + 4.0/3.0 * math.pi * radius*radius*radius
