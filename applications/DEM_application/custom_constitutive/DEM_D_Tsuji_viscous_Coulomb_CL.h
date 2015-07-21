@@ -25,9 +25,9 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;      
         
-        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2);  
+        void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);  
         
-        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta = 0.0);
+        void InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation, const double ini_delta = 0.0);
         void CalculateForces(const double OldLocalContactForce[3],
                             double LocalElasticContactForce[3],
                             double LocalDeltDisp[3],
