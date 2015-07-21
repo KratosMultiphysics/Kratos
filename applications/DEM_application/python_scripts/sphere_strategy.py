@@ -290,6 +290,9 @@ class ExplicitStrategy:
             
         if e<0.001 :                
             return 20.0 #Approximate value for restit. coeff of 0.001
+            
+        if e>0.999 :
+            return 0.0
         
         h1  = -6.918798;
         h2  = -16.41105;
@@ -332,6 +335,6 @@ class ExplicitStrategy:
             pass
         
         if write_gamma == True:
-            properties[DAMPING_GAMMA] = gamma            
+            properties[DAMPING_GAMMA] = gamma  
     
     
