@@ -106,9 +106,9 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-	void SUPGConvLevelSet::CalculatePenalty(VectorType& penalty);
+	void CalculatePenalty(VectorType& penalty);
 
-	void SUPGConvLevelSet::CalculateDistanceGradient(array_1d<double,3>& grad_D);
+	void CalculateDistanceGradient(array_1d<double,3>& grad_D);
 	
 	//void CalculateRightHandSide(VectorType	ightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
