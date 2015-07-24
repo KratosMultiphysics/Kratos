@@ -14,15 +14,6 @@ sys.path.insert(0,'')
 # DEM Application
 import DEM_explicit_solver_var as DEM_parameters
 
-# TO_DO: Ungly fix. Change it. I don't like this to be in the main...
-# Strategy object
-if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
-    import sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
-    import continuum_sphere_strategy as SolverStrategy
-elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
-    import thermal_continuum_sphere_strategy as SolverStrategy    
-
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # Kratos MPI
@@ -42,10 +33,15 @@ else:
     print("Running under OpenMP........")
 
 #EXTRA IMPORTS
-#
-#
-#
-#
+
+# TO_DO: Ungly fix. Change it. I don't like this to be in the main...
+# Strategy object
+if   (DEM_parameters.ElementType == "SphericPartDEMElement3D"     or DEM_parameters.ElementType == "CylinderPartDEMElement2D"):
+    import sphere_strategy as SolverStrategy
+elif (DEM_parameters.ElementType == "SphericContPartDEMElement3D" or DEM_parameters.ElementType == "CylinderContPartDEMElement2D"):
+    import continuum_sphere_strategy as SolverStrategy
+elif (DEM_parameters.ElementType == "ThermalSphericContPartDEMElement3D"):
+    import thermal_continuum_sphere_strategy as SolverStrategy    
 
 ##############################################################################
 #                                                                            #
@@ -74,6 +70,7 @@ cluster_model_part    = ModelPart("Cluster_Part");
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
 mapping_model_part      = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
+
 #EXTRA ModelPart Operations
 #
 #
@@ -86,8 +83,6 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object and set the search strategy
 solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-
-
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -144,7 +139,6 @@ solver.AddDofs(DEM_inlet_model_part)
 # Creating necessary directories
 main_path = os.getcwd()
 [post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
-
 
 os.chdir(main_path)
 
@@ -221,73 +215,11 @@ if (DEM_parameters.dem_inlet_option):
         max_node_Id = max_FEM_node_Id
     
     creator_destructor.SetMaxNodeId(max_node_Id)                            
-        
-    for properties in DEM_inlet_model_part.Properties:
-            
-            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
-            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)             
 
     # constructing the inlet and intializing it (must be done AFTER the spheres_model_part Initialize)    
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)    
     DEM_inlet.InitializeDEM_Inlet(spheres_model_part, creator_destructor)
-  eres_model_part      = ModelPart("SpheresPart");
-rigid_face_model_part = ModelPart("RigidFace_Part");  
-mixed_model_part      = ModelPart("Mixed_Part");
-cluster_model_part    = ModelPart("Cluster_Part");
-DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part      = ModelPart("Mappingmodel_part")
-contact_model_part    = ""
-#EXTRA ModelPart Operations
-#
-#
-#
 
-# Constructing a creator/destructor object
-creator_destructor = ParticleCreatorDestructor()
-#
-#
-
-# Creating a solver object and set the search strategy
-solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
-
-
-
-# Add variables
-procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
-procedures.AddSpheresVariables(spheres_model_part, DEM_parameters)
-procedures.AddMpiVariables(spheres_model_part)
-solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
-procedures.AddCommonVariables(cluster_model_part, DEM_parameters)
-procedures.AddClusterVariables(cluster_model_part, DEM_parameters)
-procedures.AddMpiVariables(cluster_model_part)
-procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
-procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
-solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
-procedures.AddMpiVariables(rigid_face_model_part)
-
-# Reading the model_part
-spheres_mp_filename   = DEM_parameters.problem_name + "DEM"
-model_part_io_spheres = ModelPartIO(spheres_mp_filename)
-
-# Perform the initial partition
-[model_part_io_spheres, spheres_model_part, MPICommSetup] = parallelutils.PerformInitialPartition(spheres_model_part, model_part_io_spheres, spheres_mp_filename)
-
-model_part_io_spheres.ReadModelPart(spheres_model_part)
-
-rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
-model_part_io_fem = ModelPartIO(rigidFace_mp_filename)
-model_part_io_fem.ReadModelPart(rigid_face_model_part)
-
-clusters_mp_filename = DEM_parameters.problem_name + "DEM_Clusters"
-model_part_io_clusters = ModelPartIO(clusters_mp_filename)
-model_part_io_clusters.ReadModelPart(cluster_model_part)
-
-DEM_Inlet_filename = DEM_parameters.problem_name + "DEM_Inlet"  
-model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
-model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
    #ProceduresSetPredefinedSkin(spheres_model_part)
@@ -369,6 +301,7 @@ while (time < DEM_parameters.FinalTime):
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
+
     spheres_model_part.ProcessInfo[TIME]            = time
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
@@ -400,7 +333,6 @@ while (time < DEM_parameters.FinalTime):
     
     #### SOLVE #########################################
     solver.Solve()
-    ####
     
 #G
     if step % steps_between_exit_control == 0:
@@ -421,24 +353,22 @@ while (time < DEM_parameters.FinalTime):
     os.chdir(graphs_path)
     # measuring mean velocities in a certain control volume (the 'velocity trap')
     if (DEM_parameters.VelocityTrapOption):
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
+        compute_flow = False
+        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time, compute_flow)
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
     materialTest.PrintGraph(time)
     
-    
     #### GENERAL FORCE GRAPHS ############################
     #DEMFEMProcedures.MeasureForces()
     DEMFEMProcedures.PrintGraph(time)
     #DEMFEMProcedures.PrintBallsGraph(time)  
-    
-    
 
     #### GiD IO ##########################################
     time_to_print = time - time_old_print
 
-    if ( time_to_print >= DEM_parameters.OutputTimeStep):
+    if ( DEM_parameters.OutputTimeStep - time_to_print < 1e-2*dt  ):            
         
         KRATOSprint("*******************  PRINTING RESULTS FOR GID  ***************************")
         KRATOSprint("                        ("+ str(spheres_model_part.NumberOfElements(0)) + " elements)")
@@ -486,6 +416,7 @@ DEMFEMProcedures.FinalizeBallsGraphs(spheres_model_part)
 #    Procedures.FinalizeGraphs()
 
 demio.CloseMultifiles()
+
 os.chdir(main_path)
 #G
 spreader_out_path = os.getcwd() + '/out_data.txt'
