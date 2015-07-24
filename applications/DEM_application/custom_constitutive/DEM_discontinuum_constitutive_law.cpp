@@ -57,11 +57,11 @@ namespace Kratos {
     }    
     
     void DEMDiscontinuumConstitutiveLaw::InitializeContact(SphericParticle* element1, SphericParticle* element2) {        
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called."<<std::endl<<std::flush;
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContact) should not be called.","")
     }
     
     void DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM(SphericParticle* const element, DEMWall* const wall, const double ini_delta){
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called."<<std::endl<<std::flush;
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::InitializeContactWithFEM) should not be called.","")
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateForces(const double OldLocalContactForce[3],
@@ -107,12 +107,12 @@ namespace Kratos {
     }
     
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForce(double indentation,  SphericParticle* element1, SphericParticle* element2) {        
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called."<<std::endl<<std::flush;
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForce) should not be called.","")
         return 0.0;
     }
     
     double DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall){
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM) should not be called."<<std::endl<<std::flush;
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateNormalForceWithFEM) should not be called.","")
         return 0.0;
     }
     
@@ -122,7 +122,7 @@ namespace Kratos {
                                                                     bool& sliding,
                                                                     SphericParticle* const element1,
                                                                     SphericParticle* const element2) {        
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForce) should not be called."<<std::endl<<std::flush;        
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForce) should not be called.","")
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM(const double OldLocalContactForce[3],
@@ -133,16 +133,16 @@ namespace Kratos {
                                                     DEMWall* const wall,
                                                     double indentation,
                                                     double previous_indentation) {
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM) should not be called."<<std::endl<<std::flush;        
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateTangentialForceWithFEM) should not be called.","")
     }
 
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2) {        
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called."<<std::endl<<std::flush;
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForce) should not be called.","")
         return 0.0;        
     }
     
     double DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall){
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called."<<std::endl<<std::flush;
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateCohesiveNormalForceWithFEM) should not be called.","")
         return 0.0;
     }
     
@@ -151,7 +151,7 @@ namespace Kratos {
                                                                     bool sliding,
                                                                     SphericParticle* element1,
                                                                     SphericParticle* element2) {
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForce) should not be called."<<std::endl<<std::flush;        
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForce) should not be called.","")
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
@@ -160,7 +160,7 @@ namespace Kratos {
                                                     SphericParticle* const element,
                                                     DEMWall* const wall,
                                                     double indentation){
-        std::cout<<"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM) should not be called."<<std::endl<<std::flush;        
+        KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateViscoDampingForceWithFEM) should not be called.","")
     }
     
     
