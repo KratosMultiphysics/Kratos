@@ -21,7 +21,7 @@
 
 namespace Kratos {
 
-    static double rand_normal(double mean, double stddev, double max_radius, double min_radius) {
+    static double rand_normal(const double mean, const double stddev, const double max_radius, const double min_radius) {
 
         if (!stddev) return mean;
 
@@ -44,7 +44,7 @@ namespace Kratos {
         return return_value;
     }
 
-    static double rand_lognormal(double mean, double stddev, double max_radius, double min_radius){
+    static double rand_lognormal(const double mean, const double stddev, const double max_radius, const double min_radius){
         const double normal_mean = log(mean * mean / sqrt(stddev * stddev + mean * mean));
         const double normal_stddev = sqrt(log(1 + stddev * stddev / (mean * mean)));
         double normally_distributed_value = rand_normal(normal_mean, normal_stddev, log(max_radius), log(min_radius));
@@ -248,8 +248,12 @@ namespace Kratos {
             radius = max_radius;
         } else {
             double std_deviation = (*r_params)[STANDARD_DEVIATION];
+            std::string distribution_type = (*r_params)[PROBABILITY_DISTRIBUTION];
             double min_radius = 0.5 * radius;
-            radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+            
+            if(distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+            else if(distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+            else KRATOS_THROW_ERROR(std::runtime_error,"Unknown probability distribution.","")
         }
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, has_sphericity, has_rotation, initial);
