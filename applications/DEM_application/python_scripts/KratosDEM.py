@@ -33,11 +33,6 @@ else:
     print("Running under OpenMP........")
 
 #EXTRA IMPORTS
-#
-#
-#
-#
-#
 
 # TO_DO: Ungly fix. Change it. I don't like this to be in the main...
 # Strategy object
@@ -100,7 +95,6 @@ procedures.AddMpiVariables(cluster_model_part)
 procedures.AddCommonVariables(DEM_inlet_model_part, DEM_parameters)
 procedures.AddSpheresVariables(DEM_inlet_model_part, DEM_parameters)
 solver.AddAdditionalVariables(DEM_inlet_model_part, DEM_parameters)  
-#
 procedures.AddCommonVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
 procedures.AddMpiVariables(rigid_face_model_part)
@@ -141,10 +135,6 @@ solver.AddDofs(DEM_inlet_model_part)
 
 #Utilities
 
-# set the constitutive law
-#
-#
-#
 
 # Creating necessary directories
 main_path = os.getcwd()
@@ -283,7 +273,6 @@ post_utils = DEM_procedures.PostUtils(DEM_parameters, spheres_model_part)
 
 step = 0  
 while ( time < DEM_parameters.FinalTime):
-    #
     dt   = spheres_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     step += 1
@@ -292,7 +281,6 @@ while ( time < DEM_parameters.FinalTime):
     spheres_model_part.ProcessInfo[DELTA_TIME]      = dt
     spheres_model_part.ProcessInfo[TIME_STEPS]      = step
     
-    #
     rigid_face_model_part.ProcessInfo[TIME]       = time
     rigid_face_model_part.ProcessInfo[DELTA_TIME] = dt
     rigid_face_model_part.ProcessInfo[TIME_STEPS] = step
@@ -320,8 +308,6 @@ while ( time < DEM_parameters.FinalTime):
     
     #### SOLVE #########################################
     solver.Solve()
-    #
-    #
     
     #### TIME CONTROL ##################################
     
@@ -379,9 +365,6 @@ while ( time < DEM_parameters.FinalTime):
 
         time_old_print = time
     
-    #AFTER PRINTING OPERATIONS
-    #
-
     #if((step%500) == 0):
       #if (( DEM_parameters.ContactMeshOption =="ON") and (DEM_parameters.TestType!= "None"))  :
           #MaterialTest.OrientationStudy(contact_model_part, step)
