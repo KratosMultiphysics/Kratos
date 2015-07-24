@@ -68,7 +68,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==9:
                 
         final_time                      = 0.001 #0.0005
-        dt                              = 2e-7 #6.4e-8 # Complies Rayleigh's condition
+        dt                              = 2e-8 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
         number_of_points_in_the_graphic = 10
             
