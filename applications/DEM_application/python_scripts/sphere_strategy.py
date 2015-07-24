@@ -330,7 +330,7 @@ class ExplicitStrategy:
             gamma = self.RootByBisection(self.rest_coeff_diff, 0.0, 16.0, 0.0001, 300, restit_coefficient)
             write_gamma = True
             
-        elif DiscontinuumConstitutiveLawString == 'DEM_D_Tsuji_viscous_Coulomb' :
+        elif DiscontinuumConstitutiveLawString == 'DEM_D_Hertz_viscous_Coulomb' :
             gamma = self.GammaForHertzThornton(restit_coefficient)
             write_gamma = True
             

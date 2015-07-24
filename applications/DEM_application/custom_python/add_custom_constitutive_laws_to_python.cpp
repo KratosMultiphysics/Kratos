@@ -54,10 +54,6 @@ namespace Kratos {
             class_<DEM_D_Hertz_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Hertz_viscous_Coulomb",init<>())
                     ;
             
-            class_<DEM_D_Tsuji_viscous_Coulomb, bases< DEMDiscontinuumConstitutiveLaw >, boost::noncopyable >("DEM_D_Tsuji_viscous_Coulomb",init<>())
-                    ;
-
-            
             
 //            DEM Continuum Constitutive Laws :  
 
