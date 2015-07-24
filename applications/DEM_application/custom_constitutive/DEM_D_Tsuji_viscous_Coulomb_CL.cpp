@@ -1,14 +1,12 @@
 // System includes
+//Authors: M.A. Celigueta and S. Latorre (CIMNE)
+//   Date: July 2015
+
 #include <string>
 #include <iostream>
 
-// External includes
-
-
-// Project includes
-#include "DEM_application.h"
 #include "DEM_D_Tsuji_viscous_Coulomb_CL.h"
-#include "../custom_elements/spheric_particle.h"
+
 
 namespace Kratos {
 
@@ -24,35 +22,7 @@ namespace Kratos {
     void DEM_D_Tsuji_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
         std::cout << " Assigning DEM_D_Tsuji_viscous_Coulomb to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }                    
-        
-    //////////////////////////////////////////////////
-    //////////////////////////////////////////////////
-    ///////////NEW IMPLEMENTATION/////////////////////
-    //////////////////////////////////////////////////
-    //////////////////////////////////////////////////
-    
-    void DEM_D_Tsuji_viscous_Coulomb::CalculateGamma( const double e, double & gamma){
-    
-        if(e<0.001) {
-            gamma = 20.0;//Approximate value for restit. coeff of 0.001
-            return;
-        }
-        const double h1  = -6.918798;
-        const double h2  = -16.41105;
-        const double h3  =  146.8049;
-        const double h4  = -796.4559;
-        const double h5  =  2928.711;
-        const double h6  = -7206.864;
-        const double h7  =  11494.29;
-        const double h8  = -11342.18;
-        const double h9  =  6276.757;
-        const double h10 = -1489.915;        
-        
-        const double alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))));
-        
-        gamma = sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * exp(alpha)) - 1.0);     
-    }
+    }                            
     
     void DEM_D_Tsuji_viscous_Coulomb::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
         //Get equivalent Radius
@@ -94,7 +64,7 @@ namespace Kratos {
         
         InitializeContact(element1, element2, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);
+        LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2);                                                      
         
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2, indentation);
@@ -109,7 +79,6 @@ namespace Kratos {
         CalculateTangentialForce(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element1, element2, indentation, previous_indentation);
         
-        //if (sliding) ViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[1] = 0.0;                
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],
@@ -128,7 +97,6 @@ namespace Kratos {
         const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
         const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
         const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-        //const double equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal;                
         const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);                
               
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
@@ -179,13 +147,10 @@ namespace Kratos {
                 LocalElasticContactForce[1] = LocalElasticContactForce[1] * MaximumAdmisibleShearForce / ActualElasticShearForce;
                 ViscoDampingLocalContactForce[0] = 0.0;
                 ViscoDampingLocalContactForce[1] = 0.0;
-            }
-            
-            else {
-                
+            }            
+            else {                
                 const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
-                double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0]\
-                                                        + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
+                double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
         
                 ViscoDampingLocalContactForce[0] *= ActualViscousShearForce / ViscoDampingLocalContactForceModule;
                 ViscoDampingLocalContactForce[1] *= ActualViscousShearForce / ViscoDampingLocalContactForceModule;
@@ -230,7 +195,7 @@ namespace Kratos {
         
         InitializeContactWithFEM(element, wall, indentation);
         
-        LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
+        LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
         cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
         
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
@@ -245,7 +210,6 @@ namespace Kratos {
         CalculateTangentialForceWithFEM(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
                                         sliding, element, wall, indentation, previous_indentation);
         
-        //if (sliding) ViscoDampingLocalContactForce[0] = ViscoDampingLocalContactForce[1] = 0.0;
     }
     
     void DEM_D_Tsuji_viscous_Coulomb::CalculateTangentialForceWithFEM(const double normal_contact_force,
@@ -280,13 +244,10 @@ namespace Kratos {
                 LocalElasticContactForce[1] = LocalElasticContactForce[1] * MaximumAdmisibleShearForce / ActualElasticShearForce;
                 ViscoDampingLocalContactForce[0] = 0.0;
                 ViscoDampingLocalContactForce[1] = 0.0;
-            }
-            
-            else {
-                
+            }            
+            else {                
                 const double ActualViscousShearForce = MaximumAdmisibleShearForce - ActualElasticShearForce;
-                double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0]\
-                                                        + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
+                double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] + ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
         
                 ViscoDampingLocalContactForce[0] *= ActualViscousShearForce / ViscoDampingLocalContactForceModule;
                 ViscoDampingLocalContactForce[1] *= ActualViscousShearForce / ViscoDampingLocalContactForceModule;
@@ -306,7 +267,6 @@ namespace Kratos {
         const double my_mass    = element->GetMass();              
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
         const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        //const double tangential_damping_coefficient = normal_damping_coefficient; 
         const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
               
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
@@ -315,11 +275,7 @@ namespace Kratos {
         
     }
     
-    double DEM_D_Tsuji_viscous_Coulomb::CalculateNormalForce(const double indentation, SphericParticle* const element1, SphericParticle* const element2){
-        return 0.666666666666666666667 * mKn * indentation;
-    }
-    
-    double DEM_D_Tsuji_viscous_Coulomb::CalculateNormalForceWithFEM(const double indentation, SphericParticle* const element, DEMWall* const wall){
+    double DEM_D_Tsuji_viscous_Coulomb::CalculateNormalForce(const double indentation){
         return 0.666666666666666666667 * mKn * indentation;
     }
 

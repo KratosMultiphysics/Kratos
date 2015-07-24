@@ -1,10 +1,12 @@
+//Authors: M.A. Celigueta and S. Latorre (CIMNE)
+//   Date: July 2015
 
 #if !defined(DEM_D_TSUJI_VISCOUS_COULOMB_CL_H_INCLUDED)
 #define  DEM_D_TSUJI_VISCOUS_COULOMB_CL_H_INCLUDED
 
-/* Project includes */
-//#include "../custom_elements/spheric_continuum_particle.h"
+#include "DEM_application.h"
 #include "DEM_discontinuum_constitutive_law.h"
+#include "../custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
@@ -44,13 +46,7 @@ namespace Kratos {
                                     double previous_indentation, double ViscoDampingLocalContactForce[3], double& cohesive_force,
                                     SphericParticle* const element, DEMWall* const wall);
         
-        double CalculateNormalForce(const double indentation,
-                                    SphericParticle* const element1,
-                                    SphericParticle* const element2);
-        
-        double CalculateNormalForceWithFEM(const double indentation,
-                                    SphericParticle* const element,
-                                    DEMWall* const wall);
+        double CalculateNormalForce(const double indentation);
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2);
@@ -98,8 +94,6 @@ namespace Kratos {
 
         friend class Serializer;
         
-        void CalculateGamma( const double e, double & gamma);
-
         virtual void save(Serializer& rSerializer) const {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMDiscontinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
