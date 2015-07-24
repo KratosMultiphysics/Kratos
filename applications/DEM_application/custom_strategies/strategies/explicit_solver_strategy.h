@@ -896,8 +896,7 @@ namespace Kratos
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition  
                                                                  //we are studying a certain condition here
                     index = i * dim;    //*2;                 
-                    geom[i].SetLock();                    
-                    
+                                                           
                     array_1d<double, 3>& node_rhs      = geom[i].FastGetSolutionStepValue(CONTACT_FORCES);
                     array_1d<double, 3>& node_rhs_elas = geom[i].FastGetSolutionStepValue(ELASTIC_FORCES);
                     array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
@@ -905,10 +904,11 @@ namespace Kratos
                     double& node_area = geom[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
                     array_1d<double, 3> rhs_cond_comp;
                     
-                    for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                   
-                        
-                        node_rhs[j]      = node_rhs[j]      + rhs_cond[index+j];
-                        node_rhs_elas[j] = node_rhs_elas[j] + rhs_cond_elas[index+j];
+                    geom[i].SetLock(); 
+                    
+                    for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them                                           
+                        node_rhs[j]      +=  rhs_cond[index+j];
+                        node_rhs_elas[j] +=  rhs_cond_elas[index+j];
                         rhs_cond_comp[j] = rhs_cond[index+j];
                     }
                                                            
@@ -918,7 +918,7 @@ namespace Kratos
                     
                     node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
                     
-                    node_rhs_tang += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
+                    noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
                     
                     geom[i].UnSetLock();
                     
