@@ -112,14 +112,18 @@ namespace Kratos
             /**
              * Operations
              */
+            bool Has( const Variable<int>& rThisVariable );
             bool Has( const Variable<double>& rThisVariable );
             bool Has( const Variable<Vector>& rThisVariable );
             bool Has( const Variable<Matrix>& rThisVariable );
 
+            int& GetValue( const Variable<int>& rThisVariable, int& rValue );
             double& GetValue( const Variable<double>& rThisVariable, double& rValue );
             Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
             Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
+            void SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                           const ProcessInfo& rCurrentProcessInfo );
             void SetValue( const Variable<double>& rThisVariable, const double& rValue,
                            const ProcessInfo& rCurrentProcessInfo );
             void SetValue( const Variable<array_1d<double, 3 > >& rThisVariable,
@@ -145,9 +149,19 @@ namespace Kratos
                                          const Vector& ShapeFunctionsValues,
                                          const ProcessInfo& CurrentProcessInfo );
 
+            void InitializeNonLinearIteration( const Properties& props,
+                                               const GeometryType& geom, //this is just to give the array of nodes
+                                               const Vector& ShapeFunctionsValues,
+                                               const ProcessInfo& CurrentProcessInfo );
+
             void ResetMaterial( const Properties& props,
                                 const GeometryType& geom,
                                 const Vector& ShapeFunctionsValues );
+
+            void FinalizeNonLinearIteration( const Properties& props,
+                                             const GeometryType& geom, //this is just to give the array of nodes
+                                             const Vector& ShapeFunctionsValues,
+                                             const ProcessInfo& CurrentProcessInfo );
 
             void FinalizeSolutionStep( const Properties& props,
                                        const GeometryType& geom, //this is just to give the array of nodes
