@@ -87,6 +87,11 @@ Isotropic3D::~Isotropic3D()
 {
 }
 
+bool Isotropic3D::Has( const Variable<int>& rThisVariable )
+{
+    return false;
+}
+
 bool Isotropic3D::Has( const Variable<double>& rThisVariable )
 {
     if ( rThisVariable == PRESTRESS_FACTOR || rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO )
@@ -114,6 +119,11 @@ bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
     return false;
 }
 
+
+int& Isotropic3D::GetValue( const Variable<int>& rThisVariable, int& rValue )
+{
+    return rValue;
+}
 
 double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
@@ -183,6 +193,11 @@ Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rV
         KRATOS_THROW_ERROR( std::logic_error, "Matrix Variable case not considered", "" );
 }
 
+void Isotropic3D::SetValue( const Variable<int>& rThisVariable, const int& rValue,
+                            const ProcessInfo& rCurrentProcessInfo )
+{
+}
+
 void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                             const ProcessInfo& rCurrentProcessInfo )
 {
@@ -242,13 +257,26 @@ void Isotropic3D::InitializeSolutionStep( const Properties& props,
 {
 }
 
-void Isotropic3D::FinalizeSolutionStep( const Properties& props,
-                                        const GeometryType& geom, //this is just to give the array of nodes
-                                        const Vector& ShapeFunctionsValues ,
-                                        const ProcessInfo& CurrentProcessInfo )
+void Isotropic3D::InitializeNonLinearIteration( const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
+        const ProcessInfo& CurrentProcessInfo )
 {
 }
 
+void Isotropic3D::FinalizeNonLinearIteration( const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
+        const ProcessInfo& CurrentProcessInfo )
+{
+}
+
+void Isotropic3D::FinalizeSolutionStep( const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
+        const ProcessInfo& CurrentProcessInfo )
+{
+}
 
 void  Isotropic3D::CalculateMaterialResponse( const Vector& StrainVector,
         const Matrix& DeformationGradient,
