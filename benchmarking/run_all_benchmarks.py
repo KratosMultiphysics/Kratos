@@ -32,8 +32,9 @@ except:
 # DEM application
 try:
     os.chdir(ApplicationsRoot + "DEM_application/test_examples")
-    import DEM_benchmarks
-    Text += DEM_benchmarks.Run()
+    import DEM_benchmarks_run_all_benchmarks
+    os.chdir(ApplicationsRoot + "DEM_application/test_examples/basic_benchmarks")
+    Text +=  DEM_benchmarks_run_all_benchmarks.Run()
 except:
     pass    
 
