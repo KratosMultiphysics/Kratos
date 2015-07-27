@@ -94,9 +94,9 @@ namespace Kratos {
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 double& cohesive_force,
                                                                 SphericParticle* const element,
-                                                                DEMWall* const wall) {
+                                                                DEMWall* const wall,
+                                                                bool& sliding) {
         
-        bool sliding = false;
         InitializeContactWithFEM(element, wall);
                 
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
