@@ -68,6 +68,18 @@ if(${MSVC11})
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
 endif(${MSVC11}) 
 
+if(${MSVC12})
+  message("detected compiler as MSVC12")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC12}) 
+
+if(${MSVC14})
+  message("detected compiler as MSVC14")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC14}) 
+
 #tell the linker to give an error if undefined functions are found
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
