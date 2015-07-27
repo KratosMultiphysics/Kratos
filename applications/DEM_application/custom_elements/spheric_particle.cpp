@@ -974,7 +974,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
                 double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
 
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation, previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall);         
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
+                                                                     previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);         
             }
 
             double LocalContactForce[3]  = {0.0};
@@ -1110,7 +1111,9 @@ void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double
     double weight_0 = 1.0 - (distance_1 + distance_2) * inverse_of_total_distance;
     double weight_1 = 1.0 - (distance_2 + distance_0) * inverse_of_total_distance;
     double weight_2 = 1.0 - (distance_0 + distance_1) * inverse_of_total_distance; // It could be also: weight_2 = 1.0 - weight_0 - weight_1;
-
+    
+    
+    
     wall->GetGeometry()[0].SetLock();
     wall->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) += weight_0 * non_dim_volume_wear;
     wall->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) += weight_0 * non_dim_impact_wear;
