@@ -55,6 +55,12 @@ class MdpaCreator(object):
 
         mdpa.write('End Nodes')
         mdpa.write('\n')
+        mdpa.write('Begin Elements SphericParticle3D')
+        for element in model_part.Elements:
+            mdpa.write(str(element.Id) + ' ' +'1'+' ' + str(element.GetNode(0).Id ))
+            mdpa.write('\n')
+
+        mdpa.write('End Elements')
         mdpa.write('\n')
         mdpa.write('Begin NodalData RADIUS')
         mdpa.write('\n')
