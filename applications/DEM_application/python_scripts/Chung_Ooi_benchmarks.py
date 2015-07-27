@@ -402,5 +402,5 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
 benchmark.print_results(number_of_points_in_the_graphic, dt)
 
-#COC.delete_archives(nodeplotter) #.......Removing some unuseful files 
+COC.delete_archives(nodeplotter) #.......Removing some unuseful files 
 
