@@ -15,8 +15,7 @@ def Run():
     Text = "\n========== DEM BENCHMARKS ==========\n\n"
     error1_3, error2_3, error3_3 = basic_benchmarks.Run(3)
     Text += "Test 3: "
-    sys.path.append(os.getcwd())
-
+    
     if (error1_3 < 10.0):
         Text += "OK!........"
         Text += "Test 3 SUCCESSFUL\n"
@@ -26,8 +25,7 @@ def Run():
 
     error1_4, error2_4, error3_4 = basic_benchmarks.Run(4)
     Text += "Test 4: "
-    sys.path.append(os.getcwd())
-
+    
     if (error1_4 < 10.0 and error2_4 < 10.0 and error3_4 < 10.0):
         Text += "OK!........"
         Text += "Test 4 SUCCESSFUL\n"
@@ -37,14 +35,13 @@ def Run():
 
     error1_7, error2_7, error3_7 = basic_benchmarks.Run(7)
     Text += "Test 7: "
-    sys.path.append(os.getcwd())
-
+    
     if (error1_7 < 10.0 and error2_7 < 10.0):
         Text += "OK!........"
-        Text += "Test 7 SUCCESSFUL\n"
+        Text += "Test 7 SUCCESSFUL\n\n\n"
     else:
         Text += "KO!............"
-        Text += "Test 7 FAILED\n"
+        Text += "Test 7 FAILED\n\n\n"
     
     return Text
 
