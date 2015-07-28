@@ -234,7 +234,7 @@ class MonolithicSolver:
                 self.model_part, self.domain_size, 0.08)
         if(self.domain_size == 3):
             (self.PfemUtils).MarkNodesTouchingWall(
-                self.model_part, self.domain_size, 0.33)
+                self.model_part, self.domain_size, 0.1)
 # (self.ActOnWalls).Execute();
         (self.node_erase_process).Execute()
 

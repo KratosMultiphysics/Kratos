@@ -25,7 +25,7 @@
 #include "includes/kratos_application.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
-
+#include "containers/flags.h"
 #include "includes/variables.h"
 #include "pfem_fluid_dynamic_application_variables.h"
 
