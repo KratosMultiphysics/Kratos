@@ -40,7 +40,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==5:
                 
         final_time                      = 0.0000005
-        dt                              = 3.5e-11  #3.6e-12 # Complies Rayleigh's condition
+        dt                              = 3.3e-10  #3.6e-12 # Complies Rayleigh's condition
         output_time_step                = 0.00000005
         number_of_points_in_the_graphic = 17
                 
@@ -495,7 +495,8 @@ class Benchmark5:
         
     def compute_errors(self, Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, r_w1_prima_div_mu_per_Vcn_list_outfile_name):
         
-        lines_Chung = list(range(38, 53)); lines_DEM = list(range(0, 15))
+        lines_Chung = list(range(49, 53)); lines_DEM = list(range(11, 15)) # Sliding regime for the time being
+        #lines_Chung = list(range(38, 53)); lines_DEM = list(range(0, 15)) # Whole diagram
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
         with open('paper_data/benchmark5_graph1.dat') as inf:
@@ -515,11 +516,12 @@ class Benchmark5:
         
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
-            
+                    
         for i, j in zip(DEM_data, Chung_data):
             final_Vst_prima_div_mu_per_Vcn_prima_error+=fabs(i-j)
-            
+                
         final_Vst_prima_div_mu_per_Vcn_prima_error/=summation_of_Chung_data
+                
         print("Error in final Vst prima div mu per Vcn prima =", 100*final_Vst_prima_div_mu_per_Vcn_prima_error,"%")
 
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
@@ -541,7 +543,7 @@ class Benchmark5:
         
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
-            
+                        
         for i, j in zip(DEM_data, Chung_data):
             final_r_w1_prima_div_mu_per_Vcn_error+=fabs(i-j)
             
@@ -610,9 +612,11 @@ class Benchmark6:
         self.beta_list_outfile.close()
         self.Vst_prima_div_Vcn_prima_list_outfile.close()
         
-        self.create_gnuplot_scripts(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name, dt)
+        #self.create_gnuplot_scripts(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name, dt)
         
-        self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
+        
+        return error1, error2, error3
         
     def create_gnuplot_scripts(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name, dt):
         
@@ -637,7 +641,8 @@ class Benchmark6:
         
     def compute_errors(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name):
         
-        lines_Chung = list(range(1, 17)); lines_DEM = list(range(0, 16))
+        lines_Chung = list(range(1, 7)); lines_DEM = list(range(16, 10, -1)) # Sliding regime for the time being
+        #lines_Chung = list(range(1, 17)); lines_DEM = list(range(0, 16)) # Whole diagram
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
         with open('paper_data/benchmark6_graph1.dat') as inf:
@@ -647,6 +652,7 @@ class Benchmark6:
                     Chung_data.append(float(parts[1]))
                 i+=1
         i = 0
+        
         with open(beta_list_outfile_name) as inf:
             for line in inf:
                 if i in lines_DEM:
@@ -654,16 +660,18 @@ class Benchmark6:
                     DEM_data.append(float(parts[1]))
                 i+=1
         final_beta_list_outfile_name_error = 0
-        
+             
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
-            
+                            
+        DEM_data.reverse()   
         for i, j in zip(DEM_data, Chung_data):
             final_beta_list_outfile_name_error+=fabs(i-j)
-            
+                                
         final_beta_list_outfile_name_error/=summation_of_Chung_data
         print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
-
+        
+        lines_Chung = list(range(13, 17)); lines_DEM = list(range(12, 16)) # Sliding regime for the time being
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
         with open('paper_data/benchmark6_graph2.dat') as inf:
@@ -683,15 +691,19 @@ class Benchmark6:
         
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
-            print(summation_of_Chung_data)
+            
           
         for i, j in zip(DEM_data, Chung_data):
             final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
-            print(final_Vst_prima_div_Vcn_prima_error)
-            
+                    
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
         print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
         
+        error1 = 100*final_beta_list_outfile_name_error
+        error2 = 100*final_Vst_prima_div_Vcn_prima_error
+        error3 = 0
+        
+        return error1, error2, error3
 
 class Benchmark7:
     
@@ -894,9 +906,11 @@ class Benchmark8:
         self.beta_list_outfile.close()
         self.Vst_prima_div_Vcn_prima_list_outfile.close()
         
-        self.create_gnuplot_scripts(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name, dt)
+        #self.create_gnuplot_scripts(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name, dt)
         
-        self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
+        error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
+        
+        return error1, error2, error3
         
     def create_gnuplot_scripts(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name, dt):
         
@@ -921,7 +935,8 @@ class Benchmark8:
                 
     def compute_errors(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name):
         
-        lines_Chung = []; lines_DEM = []; lines_Chung = list(range(1, 18)); lines_DEM = list(range(0, 17))
+        lines_Chung = []; lines_DEM = []; lines_Chung = list(range(1, 7)); lines_DEM = list(range(0, 6)) # Sliding regime for the time being
+        #lines_Chung = []; lines_DEM = []; lines_Chung = list(range(1, 18)); lines_DEM = list(range(0, 17)) # Whole diagram
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
         with open('paper_data/benchmark8_graph1.dat') as inf:
@@ -944,11 +959,13 @@ class Benchmark8:
             
         for i, j in zip(DEM_data, Chung_data):
             final_beta_list_outfile_name_error+=fabs(i-j)
-            print(fabs((i-j)/j))
+            
         final_beta_list_outfile_name_error/=summation_of_Chung_data
         print("Error in final beta =", 100*final_beta_list_outfile_name_error,"%")
 
-        lines_Chung = list(range(1, 17)); lines_DEM = list(range(0, 16))
+        lines_Chung = []; lines_DEM = []; lines_DEM = list(range(4, 0, -1)); lines_Chung = list(range(13, 17)) # Sliding regime for the time being
+        #lines_Chung = list(range(1, 17)); lines_DEM = list(range(0, 16)) # Whole diagram
+                
         Chung_data = []; DEM_data = []; summation_of_Chung_data = 0
         i = 0
         with open('paper_data/benchmark8_graph2.dat') as inf:
@@ -968,13 +985,19 @@ class Benchmark8:
         
         for j in Chung_data:
             summation_of_Chung_data+=abs(j)
-            
+        
+        DEM_data.reverse()
         for i, j in zip(DEM_data, Chung_data):
             final_Vst_prima_div_Vcn_prima_error+=fabs(i-j)
-            print(fabs((i-j)/j))
+            
         final_Vst_prima_div_Vcn_prima_error/=summation_of_Chung_data
         print("Error in final Vst prima div Vcn =", 100*final_Vst_prima_div_Vcn_prima_error,"%")
-     
+    
+        error1 = 100*final_beta_list_outfile_name_error
+        error2 = 100*final_Vst_prima_div_Vcn_prima_error
+        error3 = 0
+        
+        return error1, error2, error3
 
 class Benchmark9:
     
