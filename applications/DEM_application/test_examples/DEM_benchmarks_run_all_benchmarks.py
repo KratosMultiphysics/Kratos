@@ -9,42 +9,30 @@ dem_scripts_path = '../test_examples/basic_benchmarks'
 sys.path.append(dem_scripts_path)
 import basic_benchmarks
 import benchmarking
+os.chdir(dem_scripts_path)
+
 
 def Run():
     
-    Text = "\n========== DEM BENCHMARKS ==========\n\n"
-    error1_3, error2_3, error3_3 = basic_benchmarks.Run(3)
-    Text += "Test 3: "
+    Text  = "\n========== DEM BENCHMARKS ===========\n"
+    Text += "========== SLIDING REGIME ===========\n\n"
     
-    if (error1_3 < 10.0):
-        Text += "OK!........"
-        Text += "Test 3 SUCCESSFUL\n"
-    else:
-        Text += "KO!............"
-        Text += "Test 3 FAILED\n"
+    for benchmark in range(3, 9):
+        
+        error1, error2, error3 = basic_benchmarks.Run(benchmark)
+        
+        Text += "Test " + str(benchmark) + ":"
 
-    error1_4, error2_4, error3_4 = basic_benchmarks.Run(4)
-    Text += "Test 4: "
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            Text += " OK!........ Test " + str(benchmark) + " SUCCESSFUL\n"
+        else:
+            Text += " KO!........ Test " + str(benchmark) + " FAILED\n"
     
-    if (error1_4 < 10.0 and error2_4 < 10.0 and error3_4 < 10.0):
-        Text += "OK!........"
-        Text += "Test 4 SUCCESSFUL\n"
-    else:
-        Text += "KO!............"
-        Text += "Test 4 FAILED\n"
-
-    error1_7, error2_7, error3_7 = basic_benchmarks.Run(7)
-    Text += "Test 7: "
-    
-    if (error1_7 < 10.0 and error2_7 < 10.0):
-        Text += "OK!........"
-        Text += "Test 7 SUCCESSFUL\n\n\n"
-    else:
-        Text += "KO!............"
-        Text += "Test 7 FAILED\n\n\n"
+    Text +="\n\n"
     
     return Text
 
+    
 def RunBenchmark(ExamplePath):
 
     if platform.system()=="Windows":
@@ -60,4 +48,4 @@ def RunBenchmark(ExamplePath):
                 ExamplePath)
        
 if __name__ == '__main__':
-    Run()
+    print(Run())
