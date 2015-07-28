@@ -178,8 +178,15 @@ class Benchmark3:
         #self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)
         
         error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
-                
-        return error1, error2, error3
+        
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 3:")
+        
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 3 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 3 FAILED\n")
         
     def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):    
         
@@ -292,8 +299,16 @@ class Benchmark4:
         
         error1, error2, error3 = self.compute_errors(self.tangential_restitution_coefficient_list_outfile_name, self.final_angular_vel_list_outfile_name,\
                                     self.rebound_angle_list_outfile_name)
-                                    
-        return error1, error2, error3
+        
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 4:")
+        
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 4 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 4 FAILED\n")                           
+        
         
     def create_gnuplot_scripts(self, tangential_restitution_coefficient_list_outfile_name, final_angular_vel_list_outfile_name,\
                                rebound_angle_list_outfile_name, dt):    
@@ -468,8 +483,16 @@ class Benchmark5:
         
         error1, error2, error3 = self.compute_errors(self.Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, self.r_w1_prima_div_mu_per_Vcn_list_outfile_name)
         
-        return error1, error2, error3
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 5:")
         
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 5 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 5 FAILED\n")
+            
+                
     def create_gnuplot_scripts(self, Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, r_w1_prima_div_mu_per_Vcn_list_outfile_name, dt):
                                    
         gnuplot_script_name_1 = 'benchmark5_comparison_1_dt_' + str(dt) + 's.gp'
@@ -616,7 +639,15 @@ class Benchmark6:
         
         error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
         
-        return error1, error2, error3
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 6:")
+        
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 6 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 6 FAILED\n")
+        
         
     def create_gnuplot_scripts(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name, dt):
         
@@ -768,7 +799,15 @@ class Benchmark7:
         
         error1, error2, error3 = self.compute_errors(self.final_tangential_center_vel_list_outfile_name, self.final_angular_vel_list_outfile_name)
         
-        return  error1, error2, error3
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 7:")
+        
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 7 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 7 FAILED\n")
+            
         
     def create_gnuplot_scripts(self, final_tangential_center_vel_list_outfile_name, final_angular_vel_list_outfile_name, dt):
         
@@ -910,7 +949,15 @@ class Benchmark8:
         
         error1, error2, error3 = self.compute_errors(self.beta_list_outfile_name, self.Vst_prima_div_Vcn_prima_list_outfile_name)
         
-        return error1, error2, error3
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 8:")
+        
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 8 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 8 FAILED\n")
+    
         
     def create_gnuplot_scripts(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name, dt):
         
