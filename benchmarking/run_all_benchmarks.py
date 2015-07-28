@@ -34,9 +34,7 @@ try:
     os.chdir(ApplicationsRoot + "DEM_application/test_examples")
     import DEM_benchmarks_run_all_benchmarks
     os.chdir(ApplicationsRoot + "DEM_application/test_examples/basic_benchmarks")
-    Text_to_flush = DEM_benchmarks_run_all_benchmarks.Run()
-    print(Text_to_flush)
-    Text += Text_to_flush
+    Text += DEM_benchmarks_run_all_benchmarks.Run()
 except:
     pass    
 
