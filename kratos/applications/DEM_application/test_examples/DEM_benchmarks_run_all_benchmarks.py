@@ -14,21 +14,34 @@ os.chdir(dem_scripts_path)
 
 def Run():
     
-    Text  = "\n========== DEM BENCHMARKS ===========\n"
-    Text += "========== SLIDING REGIME ===========\n\n"
-    
+    f = open("errors.txt", "w")
+    f.write("\n========== DEM BENCHMARKS ===========\n")
+    f.write("========== SLIDING REGIME ===========\n\n")
+    f.close()
+    Text=""
+        
     for benchmark in range(3, 9):
-        
-        error1, error2, error3 = basic_benchmarks.Run(benchmark)
-        
-        Text += "Test " + str(benchmark) + ":"
-
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
-            Text += " OK!........ Test " + str(benchmark) + " SUCCESSFUL\n"
+      
+        if platform.system()=="Windows":
+            os.system("python Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
         else:
-            Text += " KO!........ Test " + str(benchmark) + " FAILED\n"
+            if sys.version_info >= (3, 0):
+                os.system("python3 Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
+            else:
+                os.system("python -3 Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
+                
+    os.remove("BenchTemp.txt")
+        
+    f = open("errors.txt")
+    file_contents = f.read()
+    f.close()
     
-    Text +="\n\n"
+    Text += file_contents.rstrip("\n")
+    Text += "\n\n\n"
+    
+    print(Text)
+    
+    os.remove("errors.txt")
     
     return Text
 
