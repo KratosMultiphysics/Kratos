@@ -7,13 +7,13 @@ kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 dem_scripts_path = '../test_examples/basic_benchmarks'
 sys.path.append(dem_scripts_path)
-import basic_benchmarks
 import benchmarking
 os.chdir(dem_scripts_path)
 
 
 def Run():
     
+    print("\nStarting DEM Benchmarks..............\n")
     f = open("errors.txt", "w")
     f.write("\n========== DEM BENCHMARKS ===========\n")
     f.write("========== SLIDING REGIME ===========\n\n")
@@ -22,6 +22,8 @@ def Run():
         
     for benchmark in range(3, 9):
       
+        print("Running Benchmark " + str(benchmark) + " of 8.............\n")    
+        
         if platform.system()=="Windows":
             os.system("python Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
         else:
@@ -38,9 +40,7 @@ def Run():
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
-    
-    print(Text)
-    
+        
     os.remove("errors.txt")
     
     return Text
