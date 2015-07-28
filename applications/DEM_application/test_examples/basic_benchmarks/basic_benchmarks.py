@@ -270,7 +270,8 @@ def Run(benchmark_number):
         report.total_steps_expected = int(final_time / dt)
 
         KRATOSprint(report.BeginReport(timer))
-
+        
+        print("Running Benchmark " + str(benchmark_number) + " of 8 ...\n")
         print("Computing points in the curve...", 1 + number_of_points_in_the_graphic - iteration, "point(s) left to finish....",'\n')
 
         mesh_motion = DEMFEMUtilities()
