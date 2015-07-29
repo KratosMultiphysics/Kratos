@@ -15,6 +15,8 @@ from glob import glob
 
 sys.path.insert(0,'')
 # DEM Application
+
+os.chdir("/home/latorre/kratos/applications/DEM_application/test_examples/basic_benchmarks/")
 import DEM_explicit_solver_var as DEM_parameters
 
 # Strategy object
