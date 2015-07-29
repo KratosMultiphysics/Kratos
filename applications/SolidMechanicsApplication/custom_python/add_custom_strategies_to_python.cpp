@@ -286,6 +286,8 @@ void  AddCustomStrategiesToPython()
       .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
       .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
       .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+      .def("SetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
+      .def("GetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
       ;
     
     // Component Wise Newton-Raphson Strategy
@@ -302,6 +304,9 @@ void  AddCustomStrategiesToPython()
       .def("GetInitializePerformedFlag", &ComponentWiseNewtonRaphsonStrategyType::GetInitializePerformedFlag)
       .def("SetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
       .def("GetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+      .def("SetFinalizeSolutionStepFlag", &ComponentWiseNewtonRaphsonStrategyType::SetFinalizeSolutionStepFlag)
+      .def("GetFinalizeSolutionStepFlag", &ComponentWiseNewtonRaphsonStrategyType::GetFinalizeSolutionStepFlag)
+
       ;
   
     // Residual Based Newton-Raphson Line Search Strategy
@@ -318,6 +323,8 @@ void  AddCustomStrategiesToPython()
       .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetInitializePerformedFlag)
       .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
       .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
+      .def("SetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetFinalizeSolutionStepFlag)
+      .def("GetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetFinalizeSolutionStepFlag)
       ;
      
 
