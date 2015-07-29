@@ -515,8 +515,7 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
         ConstitutiveLaw::Parameters& rValues,
         const int & rPointNumber)
 {
-    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
-
+    
     if(rVariables.detF<0){
         
 	std::cout<<" Element: "<<this->Id()<<std::endl;
@@ -1177,7 +1176,6 @@ void LargeDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
         }
     }
 
-
     KRATOS_CATCH( "" )
 }
 
@@ -1195,8 +1193,6 @@ void LargeDisplacementElement::CalculateAndAddInternalForces(VectorType& rRightH
     VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
 
-    // std::cout<<std::endl;
-    // std::cout<<" Fint "<<InternalForces<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1665,7 +1661,7 @@ void LargeDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
     double TotalMass = 0;
 
     TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
-
+    
     Vector LumpFact = ZeroVector(number_of_nodes);
 
     LumpFact  = GetGeometry().LumpingFactors( LumpFact );
@@ -1680,6 +1676,7 @@ void LargeDisplacementElement::CalculateMassMatrix( MatrixType& rMassMatrix, Pro
             rMassMatrix( index, index ) = temp;
         }
     }
+
 
     KRATOS_CATCH( "" )
 }
