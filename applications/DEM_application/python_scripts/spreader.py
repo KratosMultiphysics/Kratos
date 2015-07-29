@@ -60,7 +60,7 @@ class scanner:
                     self.t_values[i]  = time
                     self.x_values[i]  = node.X
                     self.y_values[i]  = node.Y
-                    self.vz_values[i] = node.Z
+                    self.z_values[i]  = node.Z
                     self.vx_values[i] = node.GetSolutionStepValue(VELOCITY_X)
                     self.vy_values[i] = node.GetSolutionStepValue(VELOCITY_Y)
                     self.vz_values[i] = node.GetSolutionStepValue(VELOCITY_Z)
