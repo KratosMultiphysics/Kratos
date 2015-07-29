@@ -388,6 +388,9 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     //Current Deformation Gradient [dx_n+1/dx_n]
     CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
+    //Determinant of the deformation gradient F
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ

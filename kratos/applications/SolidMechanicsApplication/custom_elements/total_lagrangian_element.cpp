@@ -231,6 +231,9 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_0]
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], mInvJ0[rPointNumber] );
 
+    //Determinant of the deformation gradient F
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+
     //
     //
     //
@@ -248,7 +251,6 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B,rVariables.F,rVariables.DN_DX);
-
 
     KRATOS_CATCH( "" )
 }

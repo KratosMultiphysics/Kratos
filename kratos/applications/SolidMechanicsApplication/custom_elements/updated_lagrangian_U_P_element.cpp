@@ -220,6 +220,10 @@ void UpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariable
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
+    //Determinant of the deformation gradient F
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+
+
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
