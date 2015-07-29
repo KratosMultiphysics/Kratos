@@ -36,8 +36,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
-#ifndef KRATOS_NONNEWTONIAN_VMS2D_H
-#define	KRATOS_NONNEWTONIAN_VMS2D_H
+#ifndef KRATOS_NONNEWTONIAN_VMS_H
+#define	KRATOS_NONNEWTONIAN_VMS_H
 
 // System includes
 #include <string>
@@ -299,51 +299,54 @@ protected:
                                       const ProcessInfo &rProcessInfo)
     {
 	KRATOS_TRY
-	double mu = this->GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+	double mu = Density * this->GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);   
 	double m_coef = rProcessInfo[M];
 	double app_mu = 0.0;
 	double aux_1;
 	double gamma_dot = this->EquivalentStrainRate(rDN_DX);
 	
-	unsigned int nodes_number = 3;
-   	double yield = 0.0;
-    	double friction_angle_tangent = 0.0;
-	double cohesion = 0.0;
+	GeometryType& rGeom = this->GetGeometry();
+    const unsigned int nodes_number = rGeom.PointsNumber();
+	
 
+   	double yield = 0.0;
+    double friction_angle_tangent = 0.0;
+	double cohesion = 0.0;
+	
 	for (unsigned int ii = 0; ii < nodes_number; ++ii)
     	{
 		friction_angle_tangent += this->GetGeometry()[ii].FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE);
 		cohesion +=  this->GetGeometry()[ii].FastGetSolutionStepValue(YIELD_STRESS);//this is the COHESION of Mohr Coulomb failure criteria!!!
-		if(this->GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) > 0.0)  //nodes with zero solid pressure does not have  any yield. Otherwise negative yield values appears (if water pressure > 0)
-		{
+        if(this->GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE) > 0.0) //nodes with zero solid pressure does not have  any yield. Otherwise negative yield values appears (if water pressure > 0)
+            {
 		    yield +=  this->GetGeometry()[ii].FastGetSolutionStepValue(PRESSURE);
 // 		    if(GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0){
 // 			water_pressure +=  GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);
 // 		    }
-		}
-	}
+            }
+        }
 	friction_angle_tangent /= nodes_number;
 	yield /= nodes_number;
-    	cohesion /= nodes_number;
+    cohesion /= nodes_number;
 	yield *= friction_angle_tangent;
-    	yield += cohesion;
+    yield += cohesion;
 
 	////////EXPONENCIAL MODEL
 	if (gamma_dot > 1e-8)
-	{
+    {
 		aux_1 = 1.0 - exp(-(m_coef * gamma_dot));
 		app_mu = mu + (yield / gamma_dot) * aux_1;
 		// 			gamma_dot_inv = 1.0/gamma_dot;
 		if (app_mu < mu)
-		{
+        {
 		    KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  APPARENT VISCOSITY < VISCOSITY !!!!!!!!", this->Id());
-		}
-	}
+        }
+    }
 	else
-	{
+    {
 		app_mu = mu + yield * m_coef ;
 		// // 			gamma_dot_inv = 0.0;
-	}
+    }
 
         return app_mu;
 	KRATOS_CATCH("")
