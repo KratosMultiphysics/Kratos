@@ -33,7 +33,6 @@ except:
 try:
     os.chdir(ApplicationsRoot + "DEM_application/test_examples")
     import DEM_benchmarks_run_all_benchmarks
-    os.chdir(ApplicationsRoot + "DEM_application/test_examples/basic_benchmarks")
     Text += DEM_benchmarks_run_all_benchmarks.Run()
 except:
     pass    
@@ -104,9 +103,9 @@ except:
 
 # SwimmingDem application
 try:
-    os.chdir(ApplicationsRoot + "swimming_DEM_application/test_examples/hydrodynamic_forces")
-    import hydrodynamic_forces
-    Text += hydrodynamic_forces.Run()
+    os.chdir(ApplicationsRoot + "swimming_DEM_application/test_examples")
+    import swimming_DEM_run_all_benchmarks
+    Text += swimming_DEM_run_all_benchmarks.Run()
 except:
     pass
 
