@@ -164,7 +164,10 @@ public:
 
         //set flags to start correcty the calculations
         this->mSolutionStepIsInitialized = false;
+
         this->mInitializeWasPerformed = false;
+
+	this->mFinalizeSolutionStep = true;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
         this->GetBuilderAndSolver()->SetCalculateReactionsFlag(this->mCalculateReactionsFlag);

@@ -165,7 +165,10 @@ public:
 
         //set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
+
         mInitializeWasPerformed = false;
+
+	mFinalizeSolutionStep = true;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -223,7 +226,10 @@ public:
 
         //set flags to start correcty the calculations
         mSolutionStepIsInitialized = false;
+
         mInitializeWasPerformed = false;
+
+	mFinalizeSolutionStep = true;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
         GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
@@ -313,6 +319,16 @@ public:
     unsigned int GetMaxIterationNumber()
     {
         return mMaxIterationNumber;
+    }
+
+    void SetFinalizeSolutionStepFlag(bool FinalizeSolutionStepFlag = true)
+    {
+      mFinalizeSolutionStep = FinalizeSolutionStepFlag;
+    }
+
+    bool GetFinalizeSolutionStepFlag()
+    {
+      return mFinalizeSolutionStep;
     }
 
     //level of echo for the solving strategy
@@ -642,8 +658,12 @@ public:
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
-        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+	if( mFinalizeSolutionStep ){
+	 
+	  pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+	  
+	  pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+	}
 
         //Cleaning memory after the solution
         pScheme->Clean();
@@ -879,6 +899,8 @@ protected:
     //flag to allow keeping system matrix constant during iterations
     bool mKeepSystemConstantDuringIterations;
 
+   //flag to allow to not finalize the solution step, so the historical variables are not updated
+    bool mFinalizeSolutionStep;
 
 
     /*@} */
