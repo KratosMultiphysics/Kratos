@@ -201,7 +201,7 @@ def AddAndInitializeProcessInfoVariables(model_part, pp):
     model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
     model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
     model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, 0)
-    model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 1)  # needed in the basic for the continuum.
+    #model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 1)  # needed in the basic for the continuum.
     
 def AddDofs(model_part):
 
@@ -828,7 +828,7 @@ def Run(debug_mode = False):
     model_part = ModelPart("OneBallModelPart")
     AddVariables(model_part)
 
-    model_part_io_solid = ModelPartIO("hydrodynamic_forces", True)
+    model_part_io_solid = ModelPartIO("hydrodynamic_forces")
     model_part_io_solid.ReadModelPart(model_part)
     model_part.SetBufferSize(2)
     AddDofs(model_part)
@@ -1326,5 +1326,11 @@ def Run(debug_mode = False):
         
     return Benchmark.text_to_print
 
-if __name__ == '__main__':
-    print(Run(True))        
+if __name__ == '__main__':    
+    #print(Run(True))        
+    text_to_print = Run(False)
+    f = open("hydrodynamic_forces.txt",'w')
+    f.write(text_to_print)
+    f.close
+    
+    
