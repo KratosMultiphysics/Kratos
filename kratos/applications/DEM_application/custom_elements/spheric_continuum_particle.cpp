@@ -582,9 +582,7 @@ namespace Kratos {
         KRATOS_WATCH("ERROR: THIS FUNCTION MUST NOT BE CALLED FROM 3D ELEMENT")
     }
 
-    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) { //Note: this function is only called once by now in the continuum strategy         
-        //const ProcessInfo& r_process_info = rCurrentProcessInfo;
-        //ContinuumSphereMemberDeclarationFirstStep(r_process_info);           
+    void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {         
         KRATOS_TRY
         if (mStressStrainOption) {
 
@@ -1159,13 +1157,7 @@ namespace Kratos {
             for (int j = i; j < 3; j++) {
                 mSymmStressTensor[i][j] = mSymmStressTensor[j][i] = 0.0;
             }
-        }
-
-        /*double& mSectionalInertia         = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_INERTIA);   
-        mSectionalInertia                 = 0.25 * KRATOS_M_PI * GetRadius() * GetRadius() * GetRadius()  * GetRadius() ;   */
-
-        /*double& mRepresentativeVolume    = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
-        mRepresentativeVolume            = 0.0;*/
+        }      
 
     }
 
