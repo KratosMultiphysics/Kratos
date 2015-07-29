@@ -22,7 +22,7 @@ def Run():
         
     for benchmark in range(3, 9):
       
-        print("Running Benchmark " + str(benchmark) + " of 8.............\n")    
+        print("Running Benchmark " + str(benchmark) + " of 8.............")    
         
         if platform.system()=="Windows":
             os.system("python Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
