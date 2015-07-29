@@ -45,20 +45,6 @@ def Run():
     
     return Text
 
-    
-def RunBenchmark(ExamplePath):
 
-    if platform.system()=="Windows":
-        os.system("python " + ExamplePath)
-    else:
-        if sys.version_info >= (3, 0):
-            os.system(
-                "python3 " +
-                ExamplePath)
-        else:
-            os.system(
-                "python -3 " +
-                ExamplePath)
-       
 if __name__ == '__main__':
     print(Run())
