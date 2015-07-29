@@ -202,6 +202,10 @@ class MechanicalSolver:
         self.model_part.ProcessInfo[STABILIZATION_FACTOR] = factor
 
     #
+    def SetFinalizeSolutionStepFlag(self, flag):
+        self.mechanical_solver.SetFinalizeSolutionStepFlag(flag)
+
+    #
     def SetRestart(self, load_restart):
         # check if is a restart file is loaded
         if(load_restart):
