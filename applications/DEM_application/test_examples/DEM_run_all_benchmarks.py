@@ -40,7 +40,10 @@ def Run():
                 else:
                     subprocess.check_call(["python", "-3", path + "/Chung_Ooi_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
         except:
-            print("\nDEM Benchmarks: A problem was found in Benchmark " + str(benchmark) + "... Resuming...\n")
+            print("\nA problem was found in Benchmark " + str(benchmark) + "... Resuming...\n")
+            g = open("errors.txt", "a")
+            g.write("Test " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
+            g.close()
     
     print('\n')
     f.close()
@@ -49,7 +52,7 @@ def Run():
     g = open("errors.txt")
     file_contents = g.read()
     g.close()
-    #os.remove("errors.txt")
+    os.remove("errors.txt")
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
