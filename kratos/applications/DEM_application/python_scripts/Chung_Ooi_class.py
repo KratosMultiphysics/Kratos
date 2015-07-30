@@ -187,6 +187,7 @@ class Benchmark3:
             error_file.write(" OK!........ Test 3 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 3 FAILED\n")
+        error_file.close()
         
     def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):    
         
@@ -308,7 +309,7 @@ class Benchmark4:
             error_file.write(" OK!........ Test 4 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 4 FAILED\n")                           
-        
+        error_file.close()
         
     def create_gnuplot_scripts(self, tangential_restitution_coefficient_list_outfile_name, final_angular_vel_list_outfile_name,\
                                rebound_angle_list_outfile_name, dt):    
@@ -491,7 +492,7 @@ class Benchmark5:
             error_file.write(" OK!........ Test 5 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 5 FAILED\n")
-            
+        error_file.close()    
                 
     def create_gnuplot_scripts(self, Vst_prima_div_mu_per_Vcn_prima_list_outfile_name, r_w1_prima_div_mu_per_Vcn_list_outfile_name, dt):
                                    
@@ -647,7 +648,7 @@ class Benchmark6:
             error_file.write(" OK!........ Test 6 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 6 FAILED\n")
-        
+        error_file.close()
         
     def create_gnuplot_scripts(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name, dt):
         
@@ -807,7 +808,7 @@ class Benchmark7:
             error_file.write(" OK!........ Test 7 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 7 FAILED\n")
-            
+        error_file.close()    
         
     def create_gnuplot_scripts(self, final_tangential_center_vel_list_outfile_name, final_angular_vel_list_outfile_name, dt):
         
@@ -957,7 +958,7 @@ class Benchmark8:
             error_file.write(" OK!........ Test 8 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 8 FAILED\n")
-    
+        error_file.close()
         
     def create_gnuplot_scripts(self, beta_list_outfile_name, Vst_prima_div_Vcn_prima_list_outfile_name, dt):
         
