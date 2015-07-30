@@ -52,9 +52,11 @@ namespace Kratos {
         double CalculateNormalForce(const double indentation);
         
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
-                                            SphericParticle* const element2);
+                                            SphericParticle* const element2,
+                                            const double indentation);
         double CalculateCohesiveNormalForceWithFEM(SphericParticle* const element,
-                                            DEMWall* const wall);
+                                            DEMWall* const wall,
+                                            const double indentation);
         
         void CalculateTangentialForce(const double normal_contact_force,
                                     const double OldLocalContactForce[3],
