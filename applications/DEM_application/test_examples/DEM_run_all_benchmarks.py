@@ -25,7 +25,7 @@ def Run():
     
     f=open("BenchTemp.txt", "w")
 
-    for benchmark in range(3, 6):
+    for benchmark in range(3, 9):
       
         print("Running Benchmark " + str(benchmark) + " of 8.............")
              
@@ -49,7 +49,7 @@ def Run():
     g = open("errors.txt")
     file_contents = g.read()
     g.close()
-    os.remove("errors.txt")
+    #os.remove("errors.txt")
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
