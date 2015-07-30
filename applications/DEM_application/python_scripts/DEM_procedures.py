@@ -161,14 +161,14 @@ class PostUtils(object):
                             if node.Id == previous_node.Id:
                                 id_found = True
                                 break
-                        if id_found == False:
+                        if id_found == False: #This only happens if None of the previous nodes were capable of setting id_found = True.
                             #print(node.Id)
                             crossing_spheres = crossing_spheres + 1
                             radius = node.GetSolutionStepValue(RADIUS)
                             crossing_volume = crossing_volume + 4.0/3.0 * math.pi * radius*radius*radius
                         
                     time_between_measures = self.spheres_model_part.ProcessInfo.GetValue(TIME) - self.previous_time                
-                    number_of_spheres_flow = crossing_spheres / time_between_measures
+                    number_of_spheres_flow = float(crossing_spheres) / time_between_measures
                     net_volume_flow = crossing_volume / time_between_measures
                     
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
