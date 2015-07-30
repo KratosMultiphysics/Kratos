@@ -246,7 +246,7 @@ namespace Kratos {
         InitializeContact(element1, element2);
         
         LocalElasticContactForce[2]  = CalculateNormalForce(indentation, element1, element2);
-        cohesive_force               = CalculateCohesiveNormalForce(element1, element2);                                                      
+        cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);                                                      
         
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, sliding, element1, element2);
         
@@ -291,7 +291,7 @@ namespace Kratos {
         InitializeContactWithFEM(element, wall);
         
         LocalElasticContactForce[2]  = CalculateNormalForceWithFEM(indentation, element, wall);
-        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall);                                                      
+        cohesive_force               = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);                                                      
         
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, sliding, element, wall, indentation);
         
@@ -315,11 +315,11 @@ namespace Kratos {
         return mKn* indentation;
     }
 
-    double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2){        
-        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForce( element1, element2);                
+    double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){        
+        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForce(element1, element2, indentation);                
     }
-    double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall){
-        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM( element, wall);
+    double DEM_D_Linear_viscous_Coulomb::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation){
+        return DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM( element, wall, indentation);
     }
     
     void DEM_D_Linear_viscous_Coulomb::CalculateTangentialForce(const double normal_contact_force,

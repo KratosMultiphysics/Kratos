@@ -154,8 +154,8 @@ namespace Kratos {
                                                     double indentation);
 
 
-        double CalculateStandardCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2);
-        double CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall);
+        double CalculateStandardCohesiveNormalForce(SphericParticle * const element1, SphericParticle * const element2, const double indentation);
+        double CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation);
 
         void CalculateStandardTangentialForce(const double normal_force,
                                             double LocalElasticContactForce[3],

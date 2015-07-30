@@ -169,30 +169,42 @@ namespace Kratos {
     ////////////////////////////////////////////////
     
     double DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForce(SphericParticle* const element1,
-                                                                    SphericParticle* const element2){
+                                                                                SphericParticle* const element2,
+                                                                                const double indentation) {
                 
-        //Get equivalent Radius
-        const double my_radius     = element1->GetRadius();
-        const double other_radius  = element2->GetRadius();
-        const double cohesion_radius = my_radius > other_radius ? other_radius : my_radius;
+        const double equiv_cohesion = 0.5 * (element1->GetParticleCohesion() + element2->GetParticleCohesion());
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+        const double my_radius       = element1->GetRadius();
+        const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
         
-        //Get cohesion Area
-        const double cohesion_area = KRATOS_M_PI * cohesion_radius * cohesion_radius;
+        const double contact_radius = sqrt(equiv_radius * indentation);
         
-        //Get cohesion stress (user input)
-        const double cohesion = 0.5 * ( element1->GetParticleCohesion() + element2->GetParticleCohesion() ); 
+        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * KRATOS_M_PI * contact_radius * contact_radius * contact_radius / equiv_young);
         
-        //Force
-        return cohesion_area * cohesion;
+        return cohesive_force;
     }
     
-    double DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall){
-        
-        const double cohesion         = element->GetParticleCohesion();
+    double DEMDiscontinuumConstitutiveLaw::CalculateStandardCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) {
+                
+        const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
         const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
-        const double element_radius   = element->GetRadius();
-        const double area             = KRATOS_M_PI * element_radius * element_radius;
-        return equiv_cohesion * area;
+        const double my_young         = element->GetYoung();
+        const double my_poisson       = element->GetPoisson();
+        const double equiv_young      = my_young / (1.0 - my_poisson * my_poisson); // Equivalent Young Modulus for RIGID WALLS
+        const double equiv_radius     = element->GetRadius(); // Equivalent Radius for RIGID WALLS
+                
+        const double contact_radius = sqrt(equiv_radius * indentation);
+        
+        const double cohesive_force = equiv_young * sqrt(8.0 * equiv_cohesion * KRATOS_M_PI * contact_radius * contact_radius * contact_radius / equiv_young);
+        
+        return cohesive_force;
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateStandardTangentialForce(const double normal_force,
