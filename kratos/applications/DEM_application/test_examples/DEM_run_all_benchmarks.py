@@ -1,48 +1,59 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
+import subprocess
 import sys
 import platform
 
 kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
-dem_scripts_path = '../test_examples/basic_benchmarks'
-sys.path.append(dem_scripts_path)
+path = '../test_examples'
+sys.path.append(path)
 import benchmarking
-os.chdir(dem_scripts_path)
+path = os.getcwd()
+path += '/basic_benchmarks'
+os.chdir(path)
 
 
 def Run():
     
     print("\nStarting DEM Benchmarks..............\n")
-    f = open("errors.txt", "w")
-    f.write("\n========== DEM BENCHMARKS ===========\n")
-    f.write("========== SLIDING REGIME ===========\n\n")
-    f.close()
+    g = open("errors.txt", "w")
+    g.write("\n========== DEM BENCHMARKS ===========\n")
+    g.write("========== SLIDING REGIME ===========\n\n")
+    g.close()
     Text=""
-        
-    for benchmark in range(3, 9):
+    
+    f=open("BenchTemp.txt", "w")
+
+    for benchmark in range(3, 6):
       
-        print("Running Benchmark " + str(benchmark) + " of 8.............")    
-        
-        if platform.system()=="Windows":
-            os.system("python Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
-        else:
-            if sys.version_info >= (3, 0):
-                os.system("python3 Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
+        print("Running Benchmark " + str(benchmark) + " of 8.............")
+             
+        try:
+            if platform.system()=="Windows":
+                subprocess.check_call(["python", path + "/Chung_Ooi_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
+                            
             else:
-                os.system("python -3 Chung_Ooi_benchmarks.py " + str(benchmark) + " > BenchTemp.txt")
-                
-    os.remove("BenchTemp.txt")
-        
-    f = open("errors.txt")
-    file_contents = f.read()
+                if sys.version_info >= (3, 0):
+                    subprocess.check_call(["python3", path + "/Chung_Ooi_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
+                    
+                else:
+                    subprocess.check_call(["python", "-3", path + "/Chung_Ooi_benchmarks.py", str(benchmark), ">", "BenchTemp.txt"], stdout=f, stderr=f)
+        except:
+            print("\nDEM Benchmarks: A problem was found in Benchmark " + str(benchmark) + "... Resuming...\n")
+    
+    print('\n')
     f.close()
+    os.remove("BenchTemp.txt")        
+    
+    g = open("errors.txt")
+    file_contents = g.read()
+    g.close()
+    os.remove("errors.txt")
     
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
         
-    os.remove("errors.txt")
-    
     return Text
 
 
