@@ -250,7 +250,7 @@ class ExplicitStrategy:
 
         print("DOFs for the DEM solution added correctly")
         
-    def rest_coeff_diff(self, gamma, desired_coefficient_of_restit):
+    def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
         if gamma <= 1.0/math.sqrt(2.0) :
             return math.exp(-gamma/math.sqrt(1.0-gamma*gamma)*(math.pi-math.atan(2.0*gamma*math.sqrt(1.0-gamma*gamma)/(-2.0*gamma*gamma+1.0))))-desired_coefficient_of_restit
@@ -262,23 +262,23 @@ class ExplicitStrategy:
             return math.exp(-gamma/math.sqrt(gamma*gamma-1.0)*math.log((gamma/math.sqrt(gamma*gamma-1.0)+1.0)/(gamma/math.sqrt(gamma*gamma-1.0)-1.0)))-desired_coefficient_of_restit
             
             
-    def RootByBisection(self, f, a, b, tol, maxiter, restit_coefficient):
+    def RootByBisection(self, f, a, b, tol, maxiter, coefficient_of_restitution):
         
-        if restit_coefficient < 0.001 :
-            restit_coefficient = 0.001
+        if coefficient_of_restitution < 0.001 :
+            coefficient_of_restitution = 0.001
         
-        if restit_coefficient > 0.999 :
+        if coefficient_of_restitution > 0.999 :
             return 0.0
         k=0
         gamma = 0.5 * (a + b)
         
         while b - a > tol and k <= maxiter:
-            restit_coeff_trial = self.rest_coeff_diff(gamma, restit_coefficient)
+            coefficient_of_restitution_trial = self.coeff_of_rest_diff(gamma, coefficient_of_restitution)
             
-            if self.rest_coeff_diff(a,restit_coefficient) * restit_coeff_trial < 0:
+            if self.coeff_of_rest_diff(a, coefficient_of_restitution) * coefficient_of_restitution_trial < 0:
                 b = gamma
                 
-            elif restit_coeff_trial == 0:                    
+            elif coefficient_of_restitution_trial == 0:                    
                 return gamma
                 
             else:
@@ -317,21 +317,16 @@ class ExplicitStrategy:
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)      
         
-        
-        ln_of_restit_coeff = properties[LN_OF_RESTITUTION_COEFF]
-        if ln_of_restit_coeff>0.0:
-            restit_coefficient = 0.0
-        else:
-            restit_coefficient = math.exp(ln_of_restit_coeff)
-            
+        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+                    
         write_gamma = False
         
         if DiscontinuumConstitutiveLawString == 'DEM_D_Linear_viscous_Coulomb' :                        
-            gamma = self.RootByBisection(self.rest_coeff_diff, 0.0, 16.0, 0.0001, 300, restit_coefficient)
+            gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
             write_gamma = True
             
         elif DiscontinuumConstitutiveLawString == 'DEM_D_Hertz_viscous_Coulomb' :
-            gamma = self.GammaForHertzThornton(restit_coefficient)
+            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
             write_gamma = True
             
         else:
