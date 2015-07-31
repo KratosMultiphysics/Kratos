@@ -1373,6 +1373,7 @@ double SphericParticle::GetYoung()                                              
 double SphericParticle::GetRollingFriction()                                             { return GetFastProperties()->GetRollingFriction();                                }
 double SphericParticle::GetPoisson()                                                     { return GetFastProperties()->GetPoisson();                                        }
 double SphericParticle::GetTgOfFrictionAngle()                                           { return GetFastProperties()->GetTgOfFrictionAngle() ;                             }
+double SphericParticle::GetCoefficientOfRestitution()                                    { return GetFastProperties()->GetCoefficientOfRestitution();                                }
 double SphericParticle::GetLnOfRestitCoeff()                                             { return GetFastProperties()->GetLnOfRestitCoeff();                                }
 double SphericParticle::GetDensity()                                                     { return GetFastProperties()->GetDensity();                                        }
 int    SphericParticle::GetParticleMaterial()                                            { return GetFastProperties()->GetParticleMaterial();                               }
@@ -1382,6 +1383,7 @@ void   SphericParticle::SetYoungFromProperties(double* young)                   
 void   SphericParticle::SetRollingFrictionFromProperties(double* rolling_friction)       { GetFastProperties()->SetRollingFrictionFromProperties( rolling_friction);        }
 void   SphericParticle::SetPoissonFromProperties(double* poisson)                        { GetFastProperties()->SetPoissonFromProperties( poisson);                         }
 void   SphericParticle::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { GetFastProperties()->SetTgOfFrictionAngleFromProperties( tg_of_friction_angle);  }
+void   SphericParticle::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)     { GetFastProperties()->SetCoefficientOfRestitutionFromProperties( coefficient_of_restitution);      }
 void   SphericParticle::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { GetFastProperties()->SetLnOfRestitCoeffFromProperties( ln_of_restit_coeff);      }
 void   SphericParticle::SetDensityFromProperties(double* density)                        { GetFastProperties()->SetDensityFromProperties( density);                         }
 void   SphericParticle::SetParticleMaterialFromProperties(int* particle_material)        { GetFastProperties()->SetParticleMaterialFromProperties( particle_material);      }
@@ -1402,6 +1404,7 @@ double SphericParticle::SlowGetYoung()                                          
 double SphericParticle::SlowGetRollingFriction()                                         { return GetProperties()[ROLLING_FRICTION_OPTION];                                 }
 double SphericParticle::SlowGetPoisson()                                                 { return GetProperties()[POISSON_RATIO];                                           }
 double SphericParticle::SlowGetTgOfFrictionAngle()                                       { return GetProperties()[PARTICLE_FRICTION];                                       }
+double SphericParticle::SlowGetCoefficientOfRestitution()                                         { return GetProperties()[COEFFICIENT_OF_RESTITUTION];                                 }
 double SphericParticle::SlowGetLnOfRestitCoeff()                                         { return GetProperties()[LN_OF_RESTITUTION_COEFF];                                 }
 double SphericParticle::SlowGetDensity()                                                 { return GetProperties()[PARTICLE_DENSITY];                                        }
 int    SphericParticle::SlowGetParticleMaterial()                                        { return GetProperties()[PARTICLE_MATERIAL];                                       }
