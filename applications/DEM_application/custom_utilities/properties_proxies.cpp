@@ -39,10 +39,14 @@ namespace Kratos {
     double* PropertiesProxy::pGetTgOfFrictionAngle()                                          { return  mTgOfFrictionAngle;                 } 
     void    PropertiesProxy::SetTgOfFrictionAngleFromProperties(double* tg_of_friction_angle) { mTgOfFrictionAngle = tg_of_friction_angle;  }
       
+    double  PropertiesProxy::GetCoefficientOfRestitution()                                             { return *mCoefficientOfRestitution;                   } 
+    double* PropertiesProxy::pGetCoefficientOfRestitution()                                            { return  mCoefficientOfRestitution;                   } 
+    void    PropertiesProxy::SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution)     { mCoefficientOfRestitution = coefficient_of_restitution;      }  
+    
     double  PropertiesProxy::GetLnOfRestitCoeff()                                             { return *mLnOfRestitCoeff;                   } 
     double* PropertiesProxy::pGetLnOfRestitCoeff()                                            { return  mLnOfRestitCoeff;                   } 
-    void    PropertiesProxy::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = ln_of_restit_coeff;      }  
-      
+    void    PropertiesProxy::SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff)     { mLnOfRestitCoeff = ln_of_restit_coeff;      }
+ 
     double  PropertiesProxy::GetDensity()                                                     { return *mDensity;                           }
     double* PropertiesProxy::pGetDensity()                                                    { return  mDensity;                           }
     void    PropertiesProxy::SetDensityFromProperties(double* density)                        { mDensity = density;                         }  
@@ -57,15 +61,16 @@ namespace Kratos {
         
     PropertiesProxy PropertiesProxy::operator= (PropertiesProxy props) {
           
-        mId                = props.GetId();
-        mYoung             = props.pGetYoung();
-        mPoisson           = props.pGetPoisson();
-        mRollingFriction   = props.pGetRollingFriction();
-        mTgOfFrictionAngle = props.pGetTgOfFrictionAngle();
+        mId                       = props.GetId();
+        mYoung                    = props.pGetYoung();
+        mPoisson                  = props.pGetPoisson();
+        mRollingFriction          = props.pGetRollingFriction();
+        mTgOfFrictionAngle        = props.pGetTgOfFrictionAngle();
+        mCoefficientOfRestitution = props.pGetCoefficientOfRestitution();
         mLnOfRestitCoeff   = props.pGetLnOfRestitCoeff();
-        mDensity           = props.pGetDensity();
-        mParticleMaterial  = props.pGetParticleMaterial();
-        mParticleCohesion  = props.pGetParticleCohesion();
+        mDensity                  = props.pGetDensity();
+        mParticleMaterial         = props.pGetParticleMaterial();
+        mParticleCohesion         = props.pGetParticleCohesion();
                        
         return *this;
     } 
@@ -129,6 +134,9 @@ namespace Kratos {
             aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
             vector_of_proxies[properties_counter].SetTgOfFrictionAngleFromProperties(aux_pointer);
               
+            aux_pointer = &( props_it->GetValue(COEFFICIENT_OF_RESTITUTION) );
+            vector_of_proxies[properties_counter].SetCoefficientOfRestitutionFromProperties(aux_pointer);
+
             aux_pointer = &( props_it->GetValue(LN_OF_RESTITUTION_COEFF) );
             vector_of_proxies[properties_counter].SetLnOfRestitCoeffFromProperties(aux_pointer);
              
