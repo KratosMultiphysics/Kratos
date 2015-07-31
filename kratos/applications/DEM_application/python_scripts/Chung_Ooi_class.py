@@ -26,7 +26,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==3:
         
         final_time                      = 0.00031
-        dt                              = 9.0e-8  #1.1e-9 # Complies Rayleigh's condition
+        dt                              = 1.0e-9  #1.1e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 6
         
@@ -142,14 +142,14 @@ class Benchmark3:
                    
         number = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
         
-        if not number:
-            ln_e = 1.0
+        if number_of_points_in_the_graphic == 1:
+            number = 0
         else:
-            ln_e = log(number)
+            number = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
         
         for node in modelpart.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(VELOCITY_Z)
-            modelpart.GetProperties()[1][LN_OF_RESTITUTION_COEFF] = ln_e
+            modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
     def get_final_data(self, modelpart):
      
@@ -1060,22 +1060,17 @@ class Benchmark9:
             number = 0
         else:
             number = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
-        
-        if not number:
-            ln_e = 1.0
-        else:
-            ln_e = log(number)
-        
+                
         for node in modelpart.Nodes:
             
             if node.Id == 1:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
                 node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
-                modelpart.GetProperties()[1][LN_OF_RESTITUTION_COEFF] = ln_e
+                modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
             else:
                 node.SetSolutionStepValue(VELOCITY_X, -self.initial_normal_vel)
                 node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
-                modelpart.GetProperties()[1][LN_OF_RESTITUTION_COEFF] = ln_e
+                modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = number
 
     def get_final_data(self, modelpart):
         
@@ -1128,22 +1123,17 @@ class Benchmark10:
             coefficient_of_restitution = 0
         else:
             coefficient_of_restitution = 1.0/(number_of_points_in_the_graphic-1) * (iteration - 1)
-        
-        if not coefficient_of_restitution:
-            ln_e = 1.0
-        else:
-            ln_e = log(coefficient_of_restitution)
-                
+                        
         for node in modelpart.Nodes:
             
             if node.Id == 1:
                 node.SetSolutionStepValue(VELOCITY_X,  self.initial_normal_vel)
                 node.SetSolutionStepValue(VELOCITY_Z,  self.initial_normal_vel)
-                modelpart.GetProperties()[1][LN_OF_RESTITUTION_COEFF] = ln_e
+                modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = coefficient_of_restitution
             else:
                 node.SetSolutionStepValue(VELOCITY_X, -1.2 * self.initial_normal_vel)
                 node.SetSolutionStepValue(VELOCITY_Z,  1.6 * self.initial_normal_vel)
-                modelpart.GetProperties()[1][LN_OF_RESTITUTION_COEFF] = ln_e
+                modelpart.GetProperties()[1][COEFFICIENT_OF_RESTITUTION] = coefficient_of_restitution
 
     def get_final_data(self, modelpart):
         
