@@ -40,7 +40,7 @@ illuminance                              : lx { reference, basic }
 radionuclide activity                    : Bq { reference, basic }
 absorbed dose specific energy  kerma     : Gy { reference, basic }
 dynamic viscosity                        : Pa*s { reference, basic }
-surface tension                          : N/m { reference, basic }
+surface tension                          : N/m { reference, basic }, 1.0e-2 N/cm, 1.0e-3 N/mm
 angular acceleration                     : rad/s^2 { reference, basic }
 heat flux density                        : W/m^2 { reference, basic }, 1.0e3 erg/s*cm^2
 heat capacity                            : J/K { reference, basic }, 1.0e7 erg/K

@@ -343,13 +343,13 @@ END CONDITION
 
 CONDITION: Distributed_Line_Load
 CONDTYPE: over lines
-CONDMESHTYPE: over face elements multiple
+CONDMESHTYPE: over body elements multiple
 QUESTION: Line_Load_X#UNITS#
-VALUE: 0.0N/m
+VALUE: 0.0N/m^2
 QUESTION: Line_Load_Y#UNITS#
-VALUE: 0.0N/m
+VALUE: 0.0N/m^2
 QUESTION: Line_Load_Z#UNITS#
-VALUE: 0.0N/m
+VALUE: 0.0N/m^2
 HELP: Value of line loads (neumann-condition)
 image: images/Pressure.gif
 END CONDITION

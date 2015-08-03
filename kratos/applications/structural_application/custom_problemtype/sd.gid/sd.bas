@@ -136,26 +136,32 @@ Begin Conditions PointForce3D
 *end nodes
 End Conditions
 
-Begin Conditions LineForce2D2N
+Begin Conditions LineForce3D2N
 *set cond Distributed_Line_Load *elems *canRepeat
 *loop elems *onlyInCond
-*if(ElemsNnodeFace==2)
-*condID *ElemsMat *\
-*GlobalNodes(1) *GlobalNodes(2)
-//ElementAssignment *condID *ElemsNum
-*set var condID= condID+1
+*if(ElemsNnode==2)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum  *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
 *endif
 *end elems
 End Conditions
 
-Begin Conditions LineForce2D3N
+Begin Conditions LineForce3D3N
 *set cond Distributed_Line_Load *elems *canRepeat
 *loop elems *onlyInCond
-*if(ElemsNnodeFace==3)
-*condID *ElemsMat *\
-*GlobalNodes(1) *GlobalNodes(2) *GlobalNodes(3)
-//ElementAssignment *condID *ElemsNum
-*set var condID= condID+1
+*if(ElemsNnode==3)
+*set var i=0
+*set var j= ElemsNnode
+*ElemsNum  *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
 *endif
 *end elems
 End Conditions
@@ -362,6 +368,10 @@ End NodalData
 
 Begin NodalData FACE_LOAD
 *set cond Distributed_Surface_Load *nodes
+*loop nodes *OnlyInCond
+*NodesNum 0 [3] ( *cond(1), *cond(2), *cond(3) )
+*end nodes
+*set cond Distributed_Line_Load *nodes
 *loop nodes *OnlyInCond
 *NodesNum 0 [3] ( *cond(1), *cond(2), *cond(3) )
 *end nodes
