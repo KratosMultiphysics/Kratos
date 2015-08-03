@@ -1225,7 +1225,7 @@ public:
      * @param C the given Tensor
      * @param alpha
      */
-    void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, double alpha )
+    static void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, double alpha )
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
@@ -1245,7 +1245,7 @@ public:
      * @param C the given Tensor
      * @param alpha
      */
-    void OuterProductFourthOrderTensor(const double alpha, const Matrix& A,const Matrix& B, Fourth_Order_Tensor& Result)
+    static void OuterProductFourthOrderTensor(const double alpha, const Matrix& A,const Matrix& B, Fourth_Order_Tensor& Result)
     {
         for(unsigned int i = 0; i < 3; ++i)
         {
