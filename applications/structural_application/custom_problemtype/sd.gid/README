@@ -1,0 +1,9 @@
+DESCRIPTION:
+    sd.cnd  condition description (e.g. FIx Displacement, Distributed Load)
+    sd.mat  material description (e.g. Isotropic3D, DruckerPrager)
+    sd.prb  simulation parameters (e.g. static/dynamics, solver)
+    sd.bas  generate the MDPA for KRATOS simulation
+    sd.win.bat/sd.unix.bat  shell script will be called by GiD
+    *.py.bas    generate python scripts for KRATOS simulation
+    clean_mdpa.py  remove empty data blocks in MDPA (currently only working in Linux, Python needs to be installed if using on Windows)
+
