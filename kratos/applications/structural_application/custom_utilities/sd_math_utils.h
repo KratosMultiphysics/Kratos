@@ -926,8 +926,6 @@ public:
 
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
     {
-
-
         // Simetrias seguras
         //  Cijkl = Cjilk;
         //  Cijkl = Cklji;
@@ -1221,6 +1219,49 @@ public:
 
         return;
     }
+
+    /**
+     * Scales a given 4th order tensor by a scalar (C = C*a)
+     * @param C the given Tensor
+     * @param alpha
+     */
+    void ScaleFourthOrderTensor( Fourth_Order_Tensor& C, double alpha )
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                        C[i][j](k,l) *= alpha;
+                }
+            }
+        }
+    }
+
+    /**
+     * Computes outer product of two 2nd order tensors (Matrix) and add to a given 4th order tensor (Result += alpha * (A \odot B))
+     * @param C the given Tensor
+     * @param alpha
+     */
+    void OuterProductFourthOrderTensor(const double alpha, const Matrix& A,const Matrix& B, Fourth_Order_Tensor& Result)
+    {
+        for(unsigned int i = 0; i < 3; ++i)
+        {
+            for(unsigned int j = 0; j < 3; ++j)
+            {
+                for(unsigned int k = 0; k < 3; ++k)
+                {
+                    for(unsigned int l = 0; l < 3; ++l)
+                    {
+                        Result[i][j](k, l) += alpha * A(i, j) * B(k, l);
+                    }
+                }
+            }
+        }
+    }
+
     /**
     * Generates the fourth order deviatoric unity tensor
     * @param Unity the deviatoric unity (will be overwritten)
