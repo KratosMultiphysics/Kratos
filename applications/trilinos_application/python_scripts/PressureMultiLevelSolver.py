@@ -10,7 +10,7 @@ def MultilevelLinearSolver(tolerance, max_iterations):
     aztec_parameters = ParameterList()
     aztec_parameters.set("AZ_solver", "AZ_bicgstab")
     aztec_parameters.set("AZ_output", "AZ_none")
-    aztec_parameters.set("AZ_output", 10)
+    #aztec_parameters.set("AZ_output", 10)
 
     # settings of the ML solver
     MLList = ParameterList()
