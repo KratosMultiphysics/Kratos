@@ -63,12 +63,12 @@ KRATOSprint   = procedures.KRATOSprint
 procedures.PreProcessModel(DEM_parameters)
 
 # Prepare modelparts
-spheres_model_part      = ModelPart("SpheresPart");
+spheres_model_part    = ModelPart("SpheresPart");
 rigid_face_model_part = ModelPart("RigidFace_Part");  
 mixed_model_part      = ModelPart("Mixed_Part");
 cluster_model_part    = ModelPart("Cluster_Part");
 DEM_inlet_model_part  = ModelPart("DEMInletPart")
-mapping_model_part      = ModelPart("Mappingmodel_part")
+mapping_model_part    = ModelPart("Mappingmodel_part")
 contact_model_part    = ""
 
 #EXTRA ModelPart Operations
@@ -275,19 +275,16 @@ step = 0
 
 #G
 import spreader
-steps_between_exit_control = 100
-total_expected_n_particles = 310000 + spheres_model_part.NumberOfNodes(0)
-spreader_scanner = spreader.scanner(spheres_model_part, total_expected_n_particles,
-                                    0.3228763689092158, 0.1570796326794897, 2)   
-#Z
+import spreader_var as spp
 
-def GetPolarRCoordinate2(node):  
-  return node.X ** 2 + node.Y ** 2
+numer_of_particles_rate = DEM_inlet_model_part.GetProperties()[1][INLET_NUMBER_OF_PARTICLES]
+start_time =  DEM_inlet_model_part.GetProperties()[1][INLET_START_TIME]
+stop_time =  DEM_inlet_model_part.GetProperties()[1][INLET_STOP_TIME]
+total_balls_to_be_added = numer_of_particles_rate * (stop_time - start_time)
+total_balls = total_balls_to_be_added + spheres_model_part.NumberOfNodes(0)
+maximum_expected_particle_id = int(total_balls * spp.n_balls_security_factor)
 
-def GetPolarCoordinates(node):
-    x = math.sqrt(node.X ** 2 + node.Y ** 2)
-    y = math.atan2(node.Y, node.X)
-    return x, y
+spreader_scanner = spreader.scanner(spheres_model_part, maximum_expected_particle_id, spp.outermost_disc_radius, spp.cone_angle, spp.number_of_vanes)   
         
 flags = Flags()
 #Z
@@ -335,7 +332,7 @@ while (time < DEM_parameters.FinalTime):
     solver.Solve()
     
 #G
-    if step % steps_between_exit_control == 0:
+    if step % spp.steps_between_exit_control == 0:
         spreader_scanner.UpdateData(time)               
 #Z      
     
