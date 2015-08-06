@@ -11,11 +11,11 @@ def GetPolarCoordinates(node):
     return x, y
 
 class scanner:
-    def __init__(self, model_part, expected_total_number_of_particles,
-             disc_radius, cone_angle, number_of_vanes):
+    def __init__(self, model_part, maximum_expected_particle_id,
+             outermost_disc_radius, cone_angle, number_of_vanes):
         self.model_part = model_part
-        self.n_nodes = expected_total_number_of_particles
-        self.disc_radius_2 = disc_radius ** 2
+        self.n_nodes = maximum_expected_particle_id
+        self.disc_radius_2 = outermost_disc_radius ** 2
         self.n_vanes = number_of_vanes
         self.cone_angle = cone_angle
         self.cos_cone_angle_inv = 1. / math.cos(cone_angle)
