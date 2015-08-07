@@ -209,7 +209,7 @@ class Model:
 *endif
         self.model_part.Properties[*MatNum].SetValue(INERTIA_Y, *MatProp(Iy,real) )
         self.model_part.Properties[*MatNum].SetValue(INERTIA_Z, *MatProp(Iz,real) )
-        self.model_part.Properties[*MatNum].SetValue(TORSIONAL_INERTIA, *MatProp(It,real) )
+        self.model_part.Properties[*MatNum].SetValue(INERTIA_X, *MatProp(It,real) )
 *if(strcmp(MatProp(Beam_Type),"Bernoulli")==0)
         print("Bernoulli beam material is set")
 *else

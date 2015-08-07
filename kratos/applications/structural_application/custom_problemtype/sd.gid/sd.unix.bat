@@ -16,6 +16,8 @@ mv $2/$1-1.dat $2/${1}.py
 mv $2/$1-2.dat $2/${1}_distributed_include.py
 mv $2/$1-3.dat $2/${1}_layers.py
 mv $2/$1-4.dat $2/${1}_shared_include.py
+#check if ess file exist
+if [ -f $2/$1.ess ] ; then pass ; else touch $2/$1.ess ; fi
 #append ess to python script
 cat $2/$1.ess >> $2/$1.py
 #replace the string represent project name
