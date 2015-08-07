@@ -377,6 +377,13 @@ Begin NodalData FACE_LOAD
 *end nodes
 End NodalData
 
+Begin NodalData FORCE
+*set cond Point_Force *nodes
+*loop nodes *OnlyInCond
+*NodesNum 0 [3] ( *cond(2), *cond(4), *cond(6) )
+*end nodes
+End NodalData
+
 Begin NodalData POSITIVE_FACE_PRESSURE
 *set cond Following_Surface_Load *nodes
 *loop nodes *OnlyInCond

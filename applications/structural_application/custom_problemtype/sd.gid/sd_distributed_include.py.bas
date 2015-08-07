@@ -38,6 +38,7 @@ from KratosMultiphysics.mpi import **
 from KratosMultiphysics.MetisApplication import **
 from KratosMultiphysics.DistributedBuildersApplication import **
 from KratosMultiphysics.TrilinosSolversApplication import **
+from KratosMultiphysics.PetscSolversApplication import **
 kernel = Kernel()   #defining kernel
 
 ##################################################################
@@ -145,8 +146,8 @@ class Model:
         self.parallel_space = TrilinosEpetraSpace()
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.parallel_space = TrilinosTpetraSpace()
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        self.parallel_space = PetscSpace()
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.parallel_space = PETScSpace()
 *endif
         self.comm = self.parallel_space.CreateCommunicator(mpi.world)
 
@@ -157,8 +158,8 @@ class Model:
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.structure_linear_solver = TrilinosTpetraSolver()
         # Please add your preferred solver for Trilinos Tpetra backend
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        # TODO: implement PetscSolver
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.structure_linear_solver = PETScSolver()
 *endif
 
         # defining builder_and_solver
@@ -167,8 +168,8 @@ class Model:
         self.builder_and_solver = TrilinosEpetraResidualBasedEliminationBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.builder_and_solver = TrilinosTpetraResidualBasedEliminationBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        # TODO: implement PetscResidualBasedEliminationBuilderAndSolverDeactivation
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.builder_and_solver = PETScResidualBasedEliminationBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
 *endif
 *elseif(strcmp(GenData(Builder_And_Solver),"Residual_Based_Block_Builder_And_Solver")==0)
         # TODO: implement distributed block builder_and_solver
@@ -180,8 +181,8 @@ class Model:
         self.time_scheme = TrilinosEpetraResidualBasedIncrementalUpdateStaticScheme()
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.time_scheme = TrilinosTpetraResidualBasedIncrementalUpdateStaticScheme()
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        # TODO: implement PetscResidualBasedIncrementalUpdateStaticScheme
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.time_scheme = PETScResidualBasedIncrementalUpdateStaticScheme()
 *endif
 *endif
 *if(strcmp(GenData(analysis_type),"quasi-static")==0)
@@ -190,8 +191,8 @@ class Model:
         self.time_scheme = TrilinosEpetraResidualBasedNewmarkScheme(*dissipationradius)
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.time_scheme = TrilinosTpetraResidualBasedNewmarkScheme(*dissipationradius)
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        # TODO: implement PetscResidualBasedNewmarkScheme
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.time_scheme = PETScResidualBasedNewmarkScheme(*dissipationradius)
 *endif
 *endif
 *if(strcmp(GenData(analysis_type),"dynamic")==0)
@@ -200,8 +201,8 @@ class Model:
         self.time_scheme = TrilinosEpetraResidualBasedNewmarkScheme(*dissipationradius)
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.time_scheme = TrilinosTpetraResidualBasedNewmarkScheme(*dissipationradius)
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        # TODO: implement PetscResidualBasedNewmarkScheme
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.time_scheme = PETScResidualBasedNewmarkScheme(*dissipationradius)
 *endif
 *endif
 
@@ -216,8 +217,8 @@ class Model:
         self.conv_criteria = TrilinosEpetraMultiphaseFlowCriteria(*reltol, *abstol)
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
         self.conv_criteria = TrilinosTpetraMultiphaseFlowCriteria(*reltol, *abstol)
-*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Petsc")==0)
-        # TODO: implement PetscMultiphaseFlowCriteria
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.conv_criteria = PETScMultiphaseFlowCriteria(*reltol, *abstol)
 *endif
 *endif
 
@@ -477,7 +478,7 @@ class Model:
 *if(strcmp(GenData(New_mesh_for_each_step),"1")==0)
         self.gid_io.FinalizeResults()
 *endif
-        if( mpi.rank == 0 ):
+        if(mpi.rank == 0):
             meshname = time+mpi_fn_step
             self.mergefile.write("Files Read "+self.path+self.problem_name+"_"+str(meshname)+".post.bin\n")
             self.mergefile.write("mescape\n")
@@ -492,7 +493,9 @@ class Model:
 
     def FinalizeModel( self ):
         self.gid_io.CloseResultFile()
-        
+        if(mpi.rank == 0):
+            self.mergefile.close()
+
     def Solve( self, time, from_deac, to_deac, from_reac, to_reac ):
         self.deac.Reactivate( self.model_part, from_reac, to_reac )
         self.deac.Deactivate( self.model_part, from_deac, to_deac )
