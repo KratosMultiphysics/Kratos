@@ -281,7 +281,7 @@ numer_of_particles_rate = DEM_inlet_model_part.GetProperties()[1][INLET_NUMBER_O
 start_time =  DEM_inlet_model_part.GetProperties()[1][INLET_START_TIME]
 stop_time =  DEM_inlet_model_part.GetProperties()[1][INLET_STOP_TIME]
 total_balls_to_be_added = numer_of_particles_rate * (stop_time - start_time)
-total_balls = total_balls_to_be_added + spheres_model_part.NumberOfNodes(0)
+total_balls = total_balls_to_be_added + spheres_model_part.NumberOfNodes(0) + rigid_face_model_part.NumberOfNodes(0)
 maximum_expected_particle_id = int(total_balls * spp.n_balls_security_factor)
 
 spreader_scanner = spreader.scanner(spheres_model_part, maximum_expected_particle_id, spp.outermost_disc_radius, spp.cone_angle, spp.number_of_vanes)   
