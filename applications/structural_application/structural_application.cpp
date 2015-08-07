@@ -110,11 +110,6 @@ KRATOS_CREATE_VARIABLE( Matrix , JOINT_STIFFNESS )
 KRATOS_CREATE_VARIABLE( double, DAMAGE_E0 )
 KRATOS_CREATE_VARIABLE( double, DAMAGE_EF )
 
-KRATOS_CREATE_VARIABLE( double, AREA )
-KRATOS_CREATE_VARIABLE( double, IX )
-KRATOS_CREATE_VARIABLE( double, IY )
-KRATOS_CREATE_VARIABLE( double, IZ )
-
 //     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW )
 
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX);
@@ -164,6 +159,13 @@ KRATOS_CREATE_VARIABLE( double, CONTACT_PENETRATION )
 KRATOS_CREATE_VARIABLE( double, BASE )
 KRATOS_CREATE_VARIABLE( double, HEIGHT )
 KRATOS_CREATE_VARIABLE( double, CROSS_AREA )
+KRATOS_CREATE_VARIABLE( double, AREA )
+KRATOS_CREATE_VARIABLE( double, AREA_X )
+KRATOS_CREATE_VARIABLE( double, AREA_Y )
+KRATOS_CREATE_VARIABLE( double, AREA_Z )
+KRATOS_CREATE_VARIABLE( double, INERTIA_X )
+KRATOS_CREATE_VARIABLE( double, INERTIA_Y )
+KRATOS_CREATE_VARIABLE( double, INERTIA_Z )
 KRATOS_CREATE_VARIABLE( double, FC )
 KRATOS_CREATE_VARIABLE( double, FT )
 KRATOS_CREATE_VARIABLE( double, CONCRETE_YOUNG_MODULUS_C )
@@ -386,6 +388,7 @@ KratosStructuralApplication::KratosStructuralApplication():
     mLineForce2D2N( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mLineForce2D3N( 0, Element::GeometryType::Pointer( new Line2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mLineForce3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mLineForce3D3N( 0, Element::GeometryType::Pointer( new Line3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mFaceForce3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mFaceForce3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mFaceForce3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
@@ -449,10 +452,6 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( DAMAGE_E0 )
     KRATOS_REGISTER_VARIABLE( DAMAGE_EF )
         
-    KRATOS_REGISTER_VARIABLE( AREA )
-    KRATOS_REGISTER_VARIABLE( IX )
-    KRATOS_REGISTER_VARIABLE( IY )
-    KRATOS_REGISTER_VARIABLE( IZ )
     KRATOS_REGISTER_VARIABLE( MATRIX_A )
     KRATOS_REGISTER_VARIABLE( MATRIX_B )
     KRATOS_REGISTER_VARIABLE( MATRIX_D )
@@ -516,6 +515,13 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( BASE )
     KRATOS_REGISTER_VARIABLE( HEIGHT )
     KRATOS_REGISTER_VARIABLE( CROSS_AREA )
+    KRATOS_REGISTER_VARIABLE( AREA )
+    KRATOS_REGISTER_VARIABLE( AREA_X )
+    KRATOS_REGISTER_VARIABLE( AREA_Y )
+    KRATOS_REGISTER_VARIABLE( AREA_Z )
+    KRATOS_REGISTER_VARIABLE( INERTIA_X )
+    KRATOS_REGISTER_VARIABLE( INERTIA_Y )
+    KRATOS_REGISTER_VARIABLE( INERTIA_Z )
     KRATOS_REGISTER_VARIABLE( FC )
     KRATOS_REGISTER_VARIABLE( FT )
     KRATOS_REGISTER_VARIABLE( CONCRETE_YOUNG_MODULUS_C )
@@ -729,6 +735,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "LineForce2D2N", mLineForce2D2N )
     KRATOS_REGISTER_CONDITION( "LineForce2D3N", mLineForce2D3N )
     KRATOS_REGISTER_CONDITION( "LineForce3D2N", mLineForce3D2N )
+    KRATOS_REGISTER_CONDITION( "LineForce3D3N", mLineForce3D3N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D3N", mFaceForce3D3N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D6N", mFaceForce3D6N )
     KRATOS_REGISTER_CONDITION( "FaceForce3D4N", mFaceForce3D4N )
