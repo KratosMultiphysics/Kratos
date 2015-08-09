@@ -225,8 +225,20 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-        if(self.DEM_parameters.PostGroupId):
-            model_part.AddNodalSolutionStepVariable(GROUP_ID)   
+        if self.DEM_parameters.PostGroupId:
+            model_part.AddNodalSolutionStepVariable(GROUP_ID) 
+            
+        if self.DEM_parameters.StressStrainOption:       
+          model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
+          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
             
     def AddSpheresVariables(self, model_part, DEM_parameters):
 

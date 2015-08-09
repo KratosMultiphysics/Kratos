@@ -34,6 +34,7 @@ class ExplicitStrategy:
         # Initialization of member variables
 
         # SIMULATION FLAGS
+        self.self_strain_option   = Var_Translator(Param.StressStrainOption)
         self.critical_time_option = Var_Translator(Param.AutoReductionOfTimeStepOption)
         self.trihedron_option = Var_Translator(Param.PostEulerAngles)
         self.rotation_option = Var_Translator(Param.RotationOption)
@@ -161,16 +162,17 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
-        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
-        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
+        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
+        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, 1)
+        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
         
         # TOTAL NUMBER OF INITIALIZED ELEMENTS
-        self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0);
+        self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0)
 
         # TOLERANCES
-        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);               
+        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0)              
 
         # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -250,6 +252,9 @@ class ExplicitStrategy:
 
         print("DOFs for the DEM solution added correctly")
         
+    def PrepareElementsForPrinting(self):
+        (self.cplusplus_strategy).PrepareElementsForPrinting()
+        
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
         if gamma <= 1.0/math.sqrt(2.0) :
@@ -297,23 +302,23 @@ class ExplicitStrategy:
         if e>0.999 :
             return 0.0
         
-        h1  = -6.918798;
-        h2  = -16.41105;
-        h3  =  146.8049;
-        h4  = -796.4559;
-        h5  =  2928.711;
-        h6  = -7206.864;
-        h7  =  11494.29;
-        h8  = -11342.18;
-        h9  =  6276.757;
-        h10 = -1489.915;        
+        h1  = -6.918798
+        h2  = -16.41105
+        h3  =  146.8049
+        h4  = -796.4559
+        h5  =  2928.711
+        h6  = -7206.864
+        h7  =  11494.29
+        h8  = -11342.18
+        h9  =  6276.757
+        h10 = -1489.915        
         
-        alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))));
+        alpha = e*(h1+e*(h2+e*(h3+e*(h4+e*(h5+e*(h6+e*(h7+e*(h8+e*(h9+e*h10)))))))))
         
-        return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0);     
+        return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
     
     def ModifyProperties(self, properties):
-        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME];
+        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties)      
         

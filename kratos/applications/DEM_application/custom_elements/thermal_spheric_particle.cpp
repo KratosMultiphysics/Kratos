@@ -54,25 +54,14 @@ namespace Kratos
     void ThermalSphericParticle::ContinuumSphereMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo){
         SphericContinuumParticle::ContinuumSphereMemberDeclarationFirstStep(rCurrentProcessInfo);
         mSpecificHeat = GetProperties()[SPECIFIC_HEAT];
-        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];  
-        
+        mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];          
     }
+    
     void ThermalSphericParticle::CustomInitialize(){   
         SphericContinuumParticle::CustomInitialize();
-        if (GetGeometry()[0].Coordinates()[1] > 10){   //0.15
-        mTemperature    = 200.0;
-            }
-        else{
-        mTemperature    = 0.0;}
-        
-//        mSkinSphere = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));  per crear la llista de particules de contorn o amb temperatura inicial
-//            mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
-//            mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);  
-        
-        
-//        mTemperature    = 0.0;
-//        mConductiveHeatFlux = 0.0 ;
-        }         
+        if (GetGeometry()[0].Coordinates()[1] > 10){ mTemperature    = 200.0; }
+        else{ mTemperature    = 0.0;}
+    }         
     
     double ThermalSphericParticle::GetTemperature(){return mTemperature;}
 

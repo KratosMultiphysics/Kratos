@@ -387,12 +387,13 @@ namespace Kratos
                    
           GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
           GetSearchControl()     = rCurrentProcessInfo[SEARCH_CONTROL];
-
-          InitializeSolutionStep();
-          InitializeDEMElements();                    
+          
+          InitializeDEMElements();           
           InitializeFEMElements();
           UpdateMaxIdOfCreatorDestructor();
           InitializeClusters(); /// This adds elements to the balls modelpart
+          
+          InitializeSolutionStep();
           
           ApplyPrescribedBoundaryConditions();
           
@@ -1419,6 +1420,30 @@ namespace Kratos
         mcontacts_model_part.GetCommunicator().SetNumberOfColors(r_model_part.GetCommunicator().GetNumberOfColors());
         mcontacts_model_part.GetCommunicator().NeighbourIndices() = r_model_part.GetCommunicator().NeighbourIndices();
     }
+    
+    void PrepareElementsForPrinting() {
+       
+        ProcessInfo& rCurrentProcessInfo    = (*mpDem_model_part).GetProcessInfo();
+        ElementsArrayType& pElements        = (*mpDem_model_part).GetCommunicator().LocalMesh().Elements();
+               
+        vector<unsigned int> element_partition;
+
+        OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), element_partition);
+
+        #pragma omp parallel for
+
+        for(int k=0; k<mNumberOfThreads; k++)
+        { 
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin() + element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin() + element_partition[k+1];
+
+            for (typename ElementsArrayType::iterator it= it_begin; it!=it_end; ++it) {
+                Element* raw_p_element = &(*it);
+                SphericParticle* p_sphere = dynamic_cast<SphericParticle*>( raw_p_element );    
+                p_sphere->PrepareForPrinting(rCurrentProcessInfo);
+            } //loop over ELEMENTS
+        }// loop threads OpenMP        
+    } //PrepareElementsForPrinting
 
     void SynchronizeSolidMesh(ModelPart& r_model_part)
     {

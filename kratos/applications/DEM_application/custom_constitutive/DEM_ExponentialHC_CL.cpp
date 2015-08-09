@@ -230,12 +230,8 @@ namespace Kratos {
                 } else failure_criterion_state = contact_tau / tau_strength;
                 if (failure_criterion_state > 1.0) failure_criterion_state = 1.0;
             }
-
-            /*mContinuumConstitutiveLawArray[mapping_new_cont]-> EvaluateFailureCriteria(contact_sigma, contact_tau, failure_criterion_state, sliding,
-                                          mFailureCriterionOption, mTauZero, mInternalFriccion, mSinContactInternalFriccion, mCosContactInternalFriccion,
-                                          mNeighbourFailureId_count, mIniNeighbourFailureId_mapping, mTensionLimit);      
-             */
         }
+        
         if (search_control == 0) {
             if (mNeighbourFailureId_count != 0) {
                 search_control_vector[OpenMPUtils::ThisThread()] = 1;

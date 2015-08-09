@@ -24,7 +24,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # SIMULATION FLAGS        
   
-        self.self_strain_option             = Var_Translator(Param.StressStrainOption); 
+        self.self_strain_option             = Var_Translator(Param.StressStrainOption)
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
         self.case_option                    = 3  
         self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
@@ -54,7 +54,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         self.search_tolerance = 0.0
         self.coordination_number = 10.0
-        self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension;
+        self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension
 
         if (Param.DeltaOption == "None"):
             self.delta_option = 0
@@ -189,13 +189,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
-        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
-        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
-        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);
-        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option);
+        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
+        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0)
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
 
         # TOLERANCES
-        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
+        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0)
 
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -277,20 +277,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
     
     def AddAdditionalVariables(self, model_part, Param):
 
-        model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
-        model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+        model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group        
         model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
-
-        if(Var_Translator(Param.StressStrainOption)):       
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
 
         # ONLY VISUALIZATION
 
@@ -307,9 +295,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
             node.AddDof(VELOCITY_X, REACTION_X)
             node.AddDof(VELOCITY_Y, REACTION_Y)
             node.AddDof(VELOCITY_Z, REACTION_Z)
-            node.AddDof(ANGULAR_VELOCITY_X, REACTION_X);
-            node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
-            node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+            node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
+            node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
+            node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
 
         print("DOFs for the DEM solution added correctly")
 

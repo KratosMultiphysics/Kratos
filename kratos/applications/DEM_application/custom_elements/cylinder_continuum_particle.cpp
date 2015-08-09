@@ -183,7 +183,7 @@ namespace Kratos
         {
             for (int j=0; j<3; j++)
             {   
-                mStressTensor[i][j] += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
+                (*mStressTensor)(i,j) += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
             
               
             }
