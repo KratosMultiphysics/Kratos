@@ -90,10 +90,6 @@ namespace Kratos {
 
         size_t ini_size = 0;
         size_t continuum_ini_size = 0;
-
-        //default
-        mFailureId = 1;
-
         size_t cont_ini_mapping_index = 0;
 
         unsigned int neighbours_size = mNeighbourElements.size(); //////////////////////
@@ -132,8 +128,6 @@ namespace Kratos {
                 mIniNeighbourToIniContinuum[ini_size - 1] = cont_ini_mapping_index;
 
                 mIniNeighbourFailureId[ini_size - 1] = 0;
-
-                mFailureId = 0; // if a cohesive contact exist, the FailureId becomes 0. 
 
                 continuum_ini_size++;
                 cont_ini_mapping_index++;
@@ -305,7 +299,6 @@ namespace Kratos {
         const array_1d<double, 3>& vel          = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         const array_1d<double, 3>& ang_vel      = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        double& rRepresentative_Volume          = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
         const double moment_of_inertia          = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
         double RotaAcc[3] = {0.0};
 
@@ -499,7 +492,7 @@ namespace Kratos {
             double LocalContactForce[3] = {0.0};
             double GlobalContactForce[3] = {0.0};
 
-            if (mStressStrainOption && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson, 
+            if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {AddPoissonContribution(equiv_poisson, 
                                                                                         LocalCoordSystem, 
                                                                                         LocalElasticContactForce[2], 
                                                                                         calculation_area);}
@@ -517,7 +510,7 @@ namespace Kratos {
                 ComputeMoments(LocalElasticContactForce[2], temp_force, rInitialRotaMoment, LocalCoordSystem[2], neighbour_iterator, indentation);
             }
 
-            if (mContactMeshOption == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
+            if (rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 && (mapping_new_cont != -1) && this->Id() < neighbour_iterator_id) {
                 CalculateOnContactElements(neighbour_iterator_id, 
                                             i_neighbour_count, 
                                             mapping_new_cont, 
@@ -528,15 +521,12 @@ namespace Kratos {
                                             acumulated_damage, 
                                             time_steps);}
 
-            if (mStressStrainOption && mapping_new_cont != -1) {
+            if (rCurrentProcessInfo[STRESS_STRAIN_OPTION] && mapping_new_cont != -1) {
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, 
-                                                        other_to_me_vect, 
+                                                        LocalCoordSystem[2], 
                                                         distance, 
                                                         radius_sum, 
-                                                        calculation_area, 
-                                                        neighbour_iterator, 
-                                                        rCurrentProcessInfo, 
-                                                        rRepresentative_Volume);}            
+                                                        calculation_area);}            
         } //for each neighbor
 
 
@@ -570,11 +560,7 @@ namespace Kratos {
     {
 
         KRATOS_TRY
-        for (int i = 0; i < 3; i++) {
-            for (int j = i; j < 3; j++) {
-                mSymmStressTensor[i][j] = mSymmStressTensor[j][i] = 0.5 * (mStressTensor[i][j] + mStressTensor[j][i]);
-            }
-        }
+        
         KRATOS_CATCH("")
     } //SymmetrizeTensor
 
@@ -584,13 +570,9 @@ namespace Kratos {
 
     void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) {         
         KRATOS_TRY
-        if (mStressStrainOption) {
-
-            double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-            rRepresentative_Volume = 0.0;
-
-            for (int i=0; i<3; i++) {  for (int j=0; j<3; j++) { mStressTensor[i][j] = 0.0; } }          
-        }
+        
+        SphericParticle::InitializeSolutionStep(rCurrentProcessInfo);
+        
         KRATOS_CATCH("")
     }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
 
@@ -599,30 +581,7 @@ namespace Kratos {
         KRATOS_TRY
         if (rCurrentProcessInfo[PRINT_SKIN_SPHERE] == 1) {
             this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(*mSkinSphere);
-        }
-
-        if (mStressStrainOption) {
-
-            const ProcessInfo& r_process_info = rCurrentProcessInfo;
-
-            double& rRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
-
-            FinalOperationsStresTensor(rCurrentProcessInfo, rRepresentative_Volume); //divides all sums by the ball/polyhedron volume
-
-            SymmetrizeTensor(r_process_info); //symmetrizes the tensor. We will work with the symmetric stress tensor always, because the non-symmetric one is being filled while forces are being calculated
-
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) = mSymmStressTensor[0][0];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) = mSymmStressTensor[0][1];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XZ) = mSymmStressTensor[0][2];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YX) = mSymmStressTensor[1][0];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YY) = mSymmStressTensor[1][1];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YZ) = mSymmStressTensor[1][2];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZX) = mSymmStressTensor[2][0];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZY) = mSymmStressTensor[2][1];
-            this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ) = mSymmStressTensor[2][2];
-
-        }
-
+        }        
 
         // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
         KRATOS_CATCH("")
@@ -1030,16 +989,18 @@ namespace Kratos {
             array_1d<double, 3>& total_force = this->GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
             array_1d<double, 3>& velocity = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 
+            const double Dempack_global_damping         = this->GetProperties()[DEMPACK_GLOBAL_DAMPING];
+            
             if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_X)) {
-                total_force[0] = total_force[0] - mDempack_global_damping * fabs(total_force[0]) * GeometryFunctions::sign(velocity[0]);
+                total_force[0] = total_force[0] - Dempack_global_damping * fabs(total_force[0]) * GeometryFunctions::sign(velocity[0]);
             }
 
             if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Y)) {
-                total_force[1] = total_force[1] - mDempack_global_damping * fabs(total_force[1]) * GeometryFunctions::sign(velocity[1]);
+                total_force[1] = total_force[1] - Dempack_global_damping * fabs(total_force[1]) * GeometryFunctions::sign(velocity[1]);
             }
 
             if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Z)) {
-                total_force[2] = total_force[2] - mDempack_global_damping * fabs(total_force[2]) * GeometryFunctions::sign(velocity[2]);
+                total_force[2] = total_force[2] - Dempack_global_damping * fabs(total_force[2]) * GeometryFunctions::sign(velocity[2]);
             }
 
             return;
@@ -1130,7 +1091,7 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if (mTriaxialOption && *mSkinSphere) //could be applied to selected particles.
+        if (rCurrentProcessInfo[TRIAXIAL_TEST_OPTION] && *mSkinSphere) //could be applied to selected particles.
         {
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
         }
@@ -1150,15 +1111,7 @@ namespace Kratos {
     }
 
     void SphericContinuumParticle::CustomInitialize() {
-
-        distances_squared = 0.0;
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = i; j < 3; j++) {
-                mSymmStressTensor[i][j] = mSymmStressTensor[j][i] = 0.0;
-            }
-        }      
-
+        distances_squared = 0.0;           
     }
 
     double SphericContinuumParticle::GetInitialDeltaWithFEM(int index) {
@@ -1195,61 +1148,17 @@ namespace Kratos {
         KRATOS_CATCH("")
 
     }//CalculateOnContactElements                              
-
-    void SphericContinuumParticle::FinalOperationsStresTensor(ProcessInfo& rCurrentProcessInfo, double& rRepresentative_Volume) {
-
-        double sphere_volume = 1.33333333333333333 * KRATOS_M_PI * GetRadius() * GetRadius() * GetRadius();
-
-        if ((rRepresentative_Volume <= sphere_volume)) {
-            rRepresentative_Volume = sphere_volume;
-        } else {
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    mStressTensor[i][j] /= rRepresentative_Volume;
-                }
-            }
-        }
-
-    }
-
-    void SphericContinuumParticle::AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
-            array_1d<double, 3> &other_to_me_vect,
-            const double &distance,
-            const double &radius_sum,
-            const double &calculation_area,
-            //ParticleWeakIteratorType neighbor_iterator, 
-            SphericParticle* neighbour_iterator,
-            ProcessInfo& rCurrentProcessInfo,
-            double &rRepresentative_Volume) {
-
-        KRATOS_TRY
-
-        double gap = distance - radius_sum;
-        double real_distance = GetRadius() + 0.5 * gap;
-        rRepresentative_Volume += 0.33333333333333 * (real_distance * calculation_area);
-
-        array_1d<double, 3> normal_vector_on_contact = -1 * other_to_me_vect; //outwards	      
-        double Dummy_Dummy = 0.0;
-        GeometryFunctions::normalize(normal_vector_on_contact, Dummy_Dummy); // Normalize to unitary module
-        array_1d<double, 3> x_centroid = real_distance * normal_vector_on_contact;
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                mStressTensor[i][j] += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor                                     
-            }
-        }
-        KRATOS_CATCH("")
-    }
+    
 
     void SphericContinuumParticle::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area) {
 
         double force[3];
 
-        for (int i = 0; i < 3; i++) force[i] = mSymmStressTensor[i][0] * LocalCoordSystem[0][0] + mSymmStressTensor[i][1] * LocalCoordSystem[0][1] + mSymmStressTensor[i][2] * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
+        for (int i = 0; i < 3; i++) force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[0][0] + (*mSymmStressTensor)(i,1) * LocalCoordSystem[0][1] + (*mSymmStressTensor)(i,2) * LocalCoordSystem[0][2]; //StressTensor*unitaryNormal0
 
         double sigma_x = force[0] * LocalCoordSystem[0][0] + force[1] * LocalCoordSystem[0][1] + force[2] * LocalCoordSystem[0][2]; // projection to normal to obtain value of the normal stress
 
-        for (int i = 0; i < 3; i++) force[i] = mSymmStressTensor[i][0] * LocalCoordSystem[1][0] + mSymmStressTensor[i][1] * LocalCoordSystem[1][1] + mSymmStressTensor[i][2] * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
+        for (int i = 0; i < 3; i++) force[i] = (*mSymmStressTensor)(i,0) * LocalCoordSystem[1][0] + (*mSymmStressTensor)(i,1) * LocalCoordSystem[1][1] + (*mSymmStressTensor)(i,2) * LocalCoordSystem[1][2]; //StressTensor*unitaryNormal1
 
         double sigma_y = force[0] * LocalCoordSystem[1][0] + force[1] * LocalCoordSystem[1][1] + force[2] * LocalCoordSystem[1][2]; // projection to normal to obtain value of the normal stress
 
@@ -1296,34 +1205,12 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        mpCurrentTime                   = &(rCurrentProcessInfo[TIME]);
-        mDempack_global_damping         = this->GetProperties()[DEMPACK_GLOBAL_DAMPING];
         mSkinSphere                     = &(this->GetGeometry()[0].FastGetSolutionStepValue(SKIN_SPHERE));
-        mFinalSimulationTime            = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
         mContinuumGroup                 = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);
-        mpCaseOption                    = rCurrentProcessInfo[CASE_OPTION];
-        mContactMeshOption              = rCurrentProcessInfo[CONTACT_MESH_OPTION];
-        mTriaxialOption                 = rCurrentProcessInfo[TRIAXIAL_TEST_OPTION];
-        mStressStrainOption             = rCurrentProcessInfo[STRESS_STRAIN_OPTION];
-        if (mTriaxialOption) {mFinalPressureTime = 0.01 * rCurrentProcessInfo[TIME_INCREASING_RATIO] * mFinalSimulationTime;}
-        mFailureCriterionOption = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
-        
-//        mInternalFriccion = GetProperties()[CONTACT_INTERNAL_FRICC];
-//        double atanInternalFriccion = atan(mInternalFriccion);
-//        mSinContactInternalFriccion = sin(atanInternalFriccion);
-//        mCosContactInternalFriccion = cos(atanInternalFriccion);
-//        mTensionLimit = GetProperties()[CONTACT_SIGMA_MIN]*1e6; //N/m2
-//        mTauZero = GetProperties()[CONTACT_TAU_ZERO]*1e6;
-          //nonlinear parameters:
-//        if (mElasticityType == 2) {
-//            mShearEnergyCoef = GetProperties()[SHEAR_ENERGY_COEF]; // *************
-//            mAlpha_tau = rCurrentProcessInfo[SHEAR_ENERGY_COEF];}
         
         KRATOS_CATCH("")
 
     } //ContinuumSphereMemberDeclarationFirstStep
-
-
 
 } // namespace Kratos.
 

@@ -82,7 +82,7 @@ creator_destructor = ParticleCreatorDestructor()
 #
 
 # Creating a solver object and set the search strategy
-solver                 = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
+solver = SolverStrategy.ExplicitStrategy(spheres_model_part, rigid_face_model_part, cluster_model_part, DEM_inlet_model_part, creator_destructor, DEM_parameters)
 
 # Add variables
 procedures.AddCommonVariables(spheres_model_part, DEM_parameters)
@@ -356,6 +356,7 @@ while ( time < DEM_parameters.FinalTime):
 
         os.chdir(post_path)
 
+        solver.PrepareElementsForPrinting()
         if (DEM_parameters.ContactMeshOption == "ON"):
             solver.PrepareContactElementsForPrinting()
         

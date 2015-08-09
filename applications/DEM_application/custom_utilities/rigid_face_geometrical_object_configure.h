@@ -118,23 +118,23 @@ public:
     {
         ///Cfeng:rObject is condition
 	
-	  array_1d<double, 3> Coord;
+        array_1d<double, 3> Coord;
 
-		double xyz_min[3] = { 1e20,  1e20,  1e20};
-		double xyz_max[3] = {-1e20, -1e20, -1e20};
-                
-		for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++)
-		{
-			Coord = rObject->GetGeometry()[inode].Coordinates();
+        double xyz_min[3] = { 1e20,  1e20,  1e20};
+        double xyz_max[3] = {-1e20, -1e20, -1e20};
 
-            xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
-			xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
-			xyz_min[2] = (xyz_min[2] > Coord[2]) ? Coord[2] : xyz_min[2];
+        for (std::size_t inode = 0; inode < rObject->GetGeometry().size(); inode++)
+        {
+                Coord = rObject->GetGeometry()[inode].Coordinates();
 
-			xyz_max[0] = (xyz_max[0] < Coord[0]) ? Coord[0] : xyz_max[0];
-			xyz_max[1] = (xyz_max[1] < Coord[1]) ? Coord[1] : xyz_max[1];
-			xyz_max[2] = (xyz_max[2] < Coord[2]) ? Coord[2] : xyz_max[2];
-		}
+                xyz_min[0] = (xyz_min[0] > Coord[0]) ? Coord[0] : xyz_min[0];
+                xyz_min[1] = (xyz_min[1] > Coord[1]) ? Coord[1] : xyz_min[1];
+                xyz_min[2] = (xyz_min[2] > Coord[2]) ? Coord[2] : xyz_min[2];
+
+                xyz_max[0] = (xyz_max[0] < Coord[0]) ? Coord[0] : xyz_max[0];
+                xyz_max[1] = (xyz_max[1] < Coord[1]) ? Coord[1] : xyz_max[1];
+                xyz_max[2] = (xyz_max[2] < Coord[2]) ? Coord[2] : xyz_max[2];
+        }
 		
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -142,12 +142,14 @@ public:
             rHighPoint[i] = xyz_max[i];
         }
 
+        const double domain_size = rObject->GetGeometry().DomainSize();
+        
         for(std::size_t i = 0; i < 3; i++)
         {
-            if( (rHighPoint[i]-rLowPoint[i]) < 1e-10*rObject->GetGeometry().DomainSize())  //altura no area
+            if( (rHighPoint[i]-rLowPoint[i]) < 1e-10 * domain_size)  //altura no area
             {
-                rHighPoint[i] = rLowPoint[i] + rObject->GetGeometry().DomainSize();
-                  //rLowPoint [i];// + rObject->GetGeometry().DomainSize();
+                rHighPoint[i] = rLowPoint[i] + domain_size;
+                  //rLowPoint [i];// + domain_size;
             }
         }
 

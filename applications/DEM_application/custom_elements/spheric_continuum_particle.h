@@ -77,16 +77,7 @@ namespace Kratos
       virtual void CalculateMeanContactArea(const bool has_mpi, const ProcessInfo& rCurrentProcessInfo, const bool first);      
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
                                               double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage, int time_steps);
-
-      virtual void FinalOperationsStresTensor(ProcessInfo& rCurrentProcessInfo, double& rRepresentative_Volume);                  
-      virtual void AddNeighbourContributionToStressTensor(double GlobalElasticContactForce[3],
-                                                          array_1d<double,3> &other_to_me_vect,
-                                                          const double &distance,
-                                                          const double &radius_sum,
-                                                          const double &corrected_area,
-                                                          SphericParticle* neighbour_iterator,
-                                                          ProcessInfo& rCurrentProcessInfo,
-                                                          double &rRepresentative_Volume);     
+           
       virtual void AddPoissonContribution( const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area);      
 
       /// Turn back information as a string.
@@ -139,31 +130,10 @@ namespace Kratos
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional                
                 
-//        double mDempack_local_damping;
-        double mDempack_global_damping;             
-        double mStressTensor[3][3]; 
-        double mSymmStressTensor[3][3]; 
-        bool mContinuumSimulationOption;
-        bool mContactMeshOption;
-        int mTriaxialOption;
-        int mStressStrainOption;
-
-        double mFinalPressureTime;
-        double mFinalSimulationTime;
+        //double mFinalPressureTime;
+        //double mFinalSimulationTime;
      
-        int mpCaseOption;
-        int  mFailureId;
-        int*  mSkinSphere;
-        
-        const double *mpCurrentTime;
-   
-        int mFailureCriterionOption;
-        
-        double mTension;
-        double mCohesion;
-        double mSectionalInertia;
-        
-
+        int*  mSkinSphere;                           
 
         //sphere neighbour information
         

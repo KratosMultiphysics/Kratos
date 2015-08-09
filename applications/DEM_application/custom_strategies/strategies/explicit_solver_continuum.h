@@ -572,20 +572,14 @@ namespace Kratos
             typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
             typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
 
-            for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)               
-            {
-
+            for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact) {
                 Element* raw_p_contact_element = &(*it_contact);
                 Particle_Contact_Element* p_bond = dynamic_cast<Particle_Contact_Element*>( raw_p_contact_element );    
                 p_bond->PrepareForPrinting();
-
             } //loop over CONTACT ELEMENTS
-
-        }// loop threads OpenMP
-        
+        }// loop threads OpenMP        
         //Important TODO: renumber all id's to avoid repetition across partitions
-
-    } //PrepareContactElementsForPrinting
+    } //PrepareContactElementsForPrinting      
       
     
     void BoundingBoxUtility() {
