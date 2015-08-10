@@ -270,14 +270,17 @@ class MonolithicSolver:
             cond.SetValue(IS_STRUCTURE, 1.0)
         # if we use slip conditions, calculate normals on the boundary
         if (self.use_slip_conditions):
-            (FindConditionsNeighboursProcess(
-                self.model_part, 3, 20)).ClearNeighbours()
+            (FindConditionsNeighboursProcess(self.model_part, 3, 20)).ClearNeighbours()
             (FindConditionsNeighboursProcess(self.model_part, 3, 20)).Execute()
             self.normal_util = NormalCalculationUtils()
-            self.normal_util.CalculateOnSimplex(
-                self.model_part,
-                self.domain_size,
-                IS_STRUCTURE, 0, 35.0)  # ,0.0),180) #35.0)  # ,0.0,35.0
+            ## If needed we swap normals - Mesher is Getting Normals Inside
+            #if(self.swap_normals==True):
+            #    print(".............................")
+            #    print("...Performing Normal Swapping")
+            #    print(".............................")
+            #    self.normal_util.SwapNormals(self.model_part)
+            # Now we compute Normals
+            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size, IS_STRUCTURE, 0, 35.0)  # ,0.0),180) #35.0)  # ,0.0,35.0
 
         # saving inlet nodes
         self.inlet_nodes = []
@@ -285,9 +288,7 @@ class MonolithicSolver:
             if(cond.GetValue(IS_INLET) > 0):
                 for node in cond.GetNodes():
                     self.inlet_nodes.append(node)
-                    
-                    
-                    
+
         #import velocity_convection_utility
         #self.velocity_prediction = velocity_convection_utility.VelocityConvectionUtility(self.model_part)
 

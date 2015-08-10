@@ -213,7 +213,7 @@ namespace Kratos
 			  int is_hot = CheckMaxTemperature(ThisModelPart);
 			  if( is_hot == 1 )
 			  {
-				  double max_presolodification_delta_tem = 10.0;
+				  double max_presolodification_delta_tem = std::min(10.0,max_cooling_delta_temp);
 				  int node_size = ThisModelPart.Nodes().size();
 				  double max_delta_temp = 0.0;
 				  for (int ii = 0; ii < node_size; ii++)
@@ -223,7 +223,7 @@ namespace Kratos
 					  double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 					  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
 					  //current_temp -= old_temp;
-					  max_delta_temp=std::max(-current_temp + old_temp,0.0);
+					  max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
 					  //if( current_temp > max_delta_temp)
 						 // max_delta_temp = current_temp;
 				  }
@@ -256,14 +256,16 @@ namespace Kratos
 				  double current_solidified_volume = 0.0;
 				  double old_solidified_volume = 0.0;
 				  double tot_vol = 0.0;
+				  //double max_delta_temp=0.0;
 
 				  int node_size = ThisModelPart.Nodes().size();	    
 				  for (int ii = 0; ii < node_size; ii++)
 				  {
+					  // Now we look for the Solidifcation Volume
 					  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 					  double vol = it->FastGetSolutionStepValue(NODAL_VOLUME);
 					  double current_S = it->FastGetSolutionStepValue(SOLID_FRACTION);
-					  double old_S = it->FastGetSolutionStepValue(SOLID_FRACTION,1);	
+					  double old_S = it->FastGetSolutionStepValue(SOLID_FRACTION,1);
 
 					  current_solidified_volume += vol*current_S;
 					  old_solidified_volume += vol*old_S;
@@ -280,12 +282,18 @@ namespace Kratos
 						  it->FastGetSolutionStepValue(SOLIDIF_TIME) = solid_time;
 						  it->FastGetSolutionStepValue(SOLIDIF_MODULUS) = 100.0*modulus*sqrt(solid_time); // 100.0 is to convert m to cm.
 					  }
+					  // Now for the maximum change in temperature
+
+					  double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+					  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
+					//  max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
 
 				  }
 
 				  ThisModelPart.GetCommunicator().SumAll(current_solidified_volume);	 
 				  ThisModelPart.GetCommunicator().SumAll(old_solidified_volume);
 				  ThisModelPart.GetCommunicator().SumAll(tot_vol);
+				  //ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
 
 				  if(tot_vol == 0.0)   KRATOS_THROW_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
 
@@ -301,8 +309,9 @@ namespace Kratos
 						if( delta_solid > 0.0 )
 						{
 							delta_solid /= tot_vol;
+							//double K=std::min(solidification_percent/delta_solid, max_cooling_delta_temp / max_delta_temp);
 							//KRATOS_WATCH(delta_solid);
-							double new_dt = (solidification_percent /  delta_solid) * current_dt;
+							double new_dt = solidification_percent/delta_solid * current_dt;
 							if( new_dt > dt_max) new_dt = dt_max; //1.5 * current_dt;//dt_max;
 							else if( new_dt < dt_min) new_dt = dt_min;
 							return new_dt;	      
@@ -326,7 +335,7 @@ namespace Kratos
 
 				  double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
 				  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
-				  max_delta_temp=std::max(-current_temp+old_temp,0.0);
+				  max_delta_temp=std::max(-current_temp+old_temp,max_delta_temp);
 			  }
 
 			  ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
@@ -351,52 +360,47 @@ namespace Kratos
 		  }
 		  KRATOS_CATCH("")	
 	  }
-	  /////FIND AN ESTIMATION FOR SOLIDIFICATION TIME 
-	  double EstimateSolidificationTime(ModelPart& ThisModelPart)
+	  //************************************************************************************************
+	  //*************** FIND AN ESTIMATION FOR SOLIDIFICATION TIME. NO VIRTUAL MOULD *******************
+	  //************************************************************************************************
+	   double EstimateSolidificationTimeNoVirtualMould(ModelPart& ThisModelPart)
 	  {			
 	    KRATOS_TRY	  
 	    
 	    double solidification_time = 0.0;
-/////////////////////////////////////////// ANTIGUO /////////////////////////////////////////////////
-
-////             ConvectionDiffusionSettings::Pointer my_settings = ThisModelPart.GetProcessInfo().GetValue(CONVECTION_DIFFUSION_SETTINGS);
-//// 	
-////             const Variable<double>& rDensityVar = my_settings->GetDensityVariable();	    
-////             const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
-//	    
-//	    
-//// 	    ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + 100;
-//	    const double density = ThisModelPart.GetProcessInfo()[DENSITY];
-//	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
-//	    const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
-//		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	   
-//    	    
-//	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
-//	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];		  
-//	    
-//	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];	
-//	    double tot_vol = 0.0;
-//        double tot_area = 0.0;	    
-//	    int node_size = ThisModelPart.Nodes().size();	    
-//	    for (int ii = 0; ii < node_size; ii++)
-//	    {
-//			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
-//			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
-//			tot_vol += vol;
-//			double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
-//			tot_area += area;
-//	    }
-//		
-//	    
-//		if ( tot_area == 0.0 || tot_vol == 0.0)
-//	      KRATOS_THROW_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
-//	    	    
-//	    solidification_time = density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * 0.5*(TT_solid-mould_temperature));
-//		solidification_time *= pow(tot_vol/tot_area , 0.8);
-//		KRATOS_WATCH(solidification_time);
-//
-
-///////////////////////////////////////////////////////////////////// NUEVO
+	    const double density = ThisModelPart.GetProcessInfo()[DENSITY];
+	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
+	    const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
+		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	   
+    	    
+	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
+	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];		  
+	    
+	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];	
+	    double tot_vol = 0.0;
+        double tot_area = 0.0;	    
+	    int node_size = ThisModelPart.Nodes().size();	    
+	    for (int ii = 0; ii < node_size; ii++)
+		// Compute Part Volume and Area
+	    {
+			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
+			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+			tot_vol += vol;
+			double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
+			tot_area += area;
+	    }
+		
+	    // Check Area is not 0
+		if ( tot_area == 0.0 || tot_vol == 0.0)   KRATOS_THROW_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
+	    // Formula for stimating solidification time	    
+	    solidification_time = density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * 0.5*(TT_solid-mould_temperature));
+		solidification_time *= pow(tot_vol/tot_area , 0.8);
+		return solidification_time;
+		KRATOS_CATCH("")
+	   }
+	  //************************************************************************************************
+	  //**************** FIND AN ESTIMATION FOR SOLIDIFICATION TIME. VIRTUAL MOULD *********************
+	  //************************************************************************************************
 		/* For solving this we are going to suppose that we dissipate all the energy through the mould outer surface. 
 		 We Estimate the inner Energy of the System as the SUM of 3 contributions. The energy loss needed to cool the 
 		 mart, the energy loss needed to make the part chage its phase and the energy needed to cool the mould. The 
@@ -415,6 +419,12 @@ namespace Kratos
 			\Delta t= =( (dE_1/dT+dE_2/dT+dE_2/dT)/ HTC_{env}*Sfact*A_{part} )*ln( ((T_{ini}- T_{env})/(T_{end}- T_{env}) )
 		As starting temperature we suppose the Average temperature, and as initial mould temperature, we suppose the initial mouls temperature
 		 */
+	  double EstimateSolidificationTime(ModelPart& ThisModelPart)
+	  {			
+	    KRATOS_TRY	  
+	    
+	    double solidification_time = 0.0;
+
 		 // Auxiliaty variables
 		double dE1=0.0;
 		double dE2=0.0;
@@ -437,6 +447,7 @@ namespace Kratos
 			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
 			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
 			tot_vol += vol;
+			vol=pow(vol,1.0);
 			// dE1 - First Term
 			//dE_1/dT=V_{part}*C_{part}*\rho_{part}
 			dE1+= vol*density*cc;
@@ -444,7 +455,10 @@ namespace Kratos
 			//dE_3/dT=LH*\rho*V_{part}/(T_{ini}-T_{end})
 			dE3+=LL*density*vol/(initial_temperature-stop_temperature);
 	    }
-
+		double tot_area=0.0;
+		double avg_conductivity=0.0;
+		double avg_density=0.0;
+		double avg_sheat=0.0;
 		 // Loop over the conditions Compute E2, E3 and Denom term
 		 for (ModelPart::ConditionIterator itCond = ThisModelPart.ConditionsBegin(); itCond != ThisModelPart.ConditionsEnd(); itCond++ )
         {
@@ -455,10 +469,13 @@ namespace Kratos
 			const double mould_thickness = itCond->GetProperties()[MOULD_THICKNESS]; 
 			const double mould_vfact= itCond->GetProperties()[MOULD_VFACT];
 			const double mould_sfact= itCond->GetProperties()[MOULD_SFACT];
-			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT]; 
+			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT];
+			const double mould_cond=itCond->GetProperties()[MOULD_CONDUCTIVITY];
 			//const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
 			const double mould_temperature = itCond->GetProperties()[MOULD_TEMPERATURE];
-			const double condition_area=rGeom.DomainSize();
+			double tarea=rGeom.DomainSize();
+			const double condition_area=pow(tarea,1.0);
+			tot_area+=tarea;
 			// dE2 - Second Term
 			//dE_2/dT=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))
 			double aux =condition_area*mould_thickness*mould_vfact*mould_density*mould_specific_heat;
@@ -467,14 +484,27 @@ namespace Kratos
 			// Denom.
 			// HTC_{env}*Sfact*A_{part} )
 			DENOM+= mould_htc_env*condition_area*mould_sfact;
+			// To be used by Chorinov Formulation
+			avg_conductivity+=mould_cond*tarea;
+			avg_density+=mould_density*tarea;
+			avg_sheat+=mould_specific_heat*tarea;
+
 		 }
 
 		 solidification_time = ((dE1+dE2+dE3)/DENOM)*log( (initial_temperature-ambient_temperature)/(stop_temperature-ambient_temperature) );
-		 KRATOS_WATCH(solidification_time);
-		 KRATOS_WATCH(solidification_time);
-		return solidification_time;
 
-	    
+		// Now we will compute Chorinov's Rule
+		avg_conductivity/=tot_area;
+		avg_density/=tot_area;
+		avg_sheat/=tot_area;
+	
+		double solidification_time_chorinov=0.0;
+		const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
+		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
+		solidification_time_chorinov=pow(density*LL/abs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
+		solidification_time_chorinov*=1+(cc*pow((initial_temperature-stop_temperature)/LL,2));
+		solidification_time_chorinov*=pow(tot_vol/tot_area,1.5);
+		return std::max(solidification_time,solidification_time_chorinov);
 	    KRATOS_CATCH("")	
 	  }	
 
@@ -593,7 +623,7 @@ namespace Kratos
 		const double density = ThisModelPart.GetProcessInfo()[DENSITY];
 	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
 		const double initial_temperature= ThisModelPart.GetProcessInfo()[AVERAGE_TEMPERATURE];
-
+		
 		// Loop Over the nodes - Compute E1 term
 	    double tot_vol = 0.0;	    
 	    int node_size = ThisModelPart.Nodes().size();	    
@@ -602,6 +632,7 @@ namespace Kratos
 			ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
 			double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
 			tot_vol += vol;
+			vol=pow(vol,0.8);
 			// dE1 - First Term
 			//dE_1/dT=V_{part}*C_{part}*\rho_{part}
 			dE1+= vol*density*cc;
@@ -609,7 +640,11 @@ namespace Kratos
 			//dE_3/dT=LH*\rho*V_{part}/(T_{ini}-T_{end})
 			dE3+=LL*density*vol/(initial_temperature-stop_temperature);
 	    }
-
+		double tot_area=0.0;
+		double avg_conductivity=0.0;
+		double avg_density=0.0;
+		double avg_sheat=0.0;
+		double avg_env_htc=0.0;
 		 // Loop over the conditions Compute E2, E3 and Denom term
 		 for (ModelPart::ConditionIterator itCond = ThisModelPart.ConditionsBegin(); itCond != ThisModelPart.ConditionsEnd(); itCond++ )
         {
@@ -621,9 +656,13 @@ namespace Kratos
 			const double mould_vfact= itCond->GetProperties()[MOULD_VFACT];
 			const double mould_sfact= itCond->GetProperties()[MOULD_SFACT];
 			const double mould_htc_env= itCond->GetProperties()[MOULD_HTC_ENVIRONMENT]; 
-			//const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
+			const double mould_conductivity = itCond->GetProperties()[MOULD_CONDUCTIVITY];
 			const double mould_temperature = itCond->GetProperties()[MOULD_TEMPERATURE];
-			const double condition_area=rGeom.DomainSize();
+			
+			double tarea=rGeom.DomainSize();
+			tot_area+=tarea;
+			
+			const double condition_area=pow(abs(rGeom.DomainSize()),1.0);
 			// dE2 - Second Term
 			//dE_2/dT=V_{mould}*V_{fact}*\rho_{mould}*C_{mould}*max(0,(T_{mould}-T_{end})/(T_{ini}-T_{end}))
 			double aux =condition_area*mould_thickness*mould_vfact*mould_density*mould_specific_heat;
@@ -632,17 +671,53 @@ namespace Kratos
 			// Denom.
 			// HTC_{env}*Sfact*A_{part} )
 			DENOM+= mould_htc_env*condition_area*mould_sfact;
+		    
+			// To be used by Chorinov Formulation
+			avg_conductivity+=mould_conductivity*tarea;
+			avg_density+=mould_density*tarea;
+			avg_sheat+=mould_specific_heat*tarea;
+			avg_env_htc+=tarea*mould_htc_env*mould_sfact;
 		 }
 
 		 CoolingTime = ((dE1+dE2+dE3)/DENOM)*log( (initial_temperature-ambient_temperature)/(stop_temperature-ambient_temperature) );
-		 KRATOS_WATCH(CoolingTime);
-		 KRATOS_WATCH(CoolingTime);
-		 return CoolingTime;
+		
+		// Now we will compute Chorinov's Rule
+		avg_conductivity/=tot_area;
+		avg_density/=tot_area;
+		avg_sheat/=tot_area;
+		avg_env_htc/=tot_area;
+		double cooling_time_chorinov=0.0;
+		const double htc= ThisModelPart.GetProcessInfo()[HTC];
+		const double solid_temp= ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
+		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
+		cooling_time_chorinov=pow(density*LL/abs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
+		cooling_time_chorinov*=1+(cc*pow((initial_temperature-solid_temp)/LL,2));
+		cooling_time_chorinov*=pow(tot_vol/tot_area,2);
+		// Now we compute the time from solidification to cooling
+		double time_to_cool=(tot_vol*cc*density*abs(solid_temp-stop_temperature))/(avg_env_htc*tot_area*(0.5*initial_temperature+0.5*stop_temperature-ambient_temperature));
+		cooling_time_chorinov+=time_to_cool;
+
+		return std::max(CoolingTime,cooling_time_chorinov);
 	 }
 
+	 /////////////////////////////////////////////////////////////////////////
+	 int CheckMinTemperature(ModelPart& ThisModelPart)
+	 {
+	    double last_temp = 1e9;
+		//double is_hot_point = 1.0;
+		int node_size = ThisModelPart.Nodes().size();
 
-	private:
-
+		for (int ii = 0; ii < node_size; ii++)
+		{
+			ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+			double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+			if( current_temp < last_temp){last_temp = current_temp;   }		      
+		}  
+		ThisModelPart.GetCommunicator().MinAll(last_temp);
+		return last_temp;
+	 }
+	 private:
+		 /////////////////////////////////////////////////////////////////////////////
 	 int CheckMaxTemperature(ModelPart& ThisModelPart)
 	 {
 	    double last_temp = ThisModelPart.GetTable(3).Data().back().first;
@@ -664,8 +739,6 @@ namespace Kratos
 		ThisModelPart.GetCommunicator().MinAll(is_hot_point);
 
 		return (is_hot_point==1.0)? 1 : 0;
-
-
 	 }
 
 	};
