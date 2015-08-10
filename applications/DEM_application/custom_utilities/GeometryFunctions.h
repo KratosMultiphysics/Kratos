@@ -452,7 +452,7 @@ namespace Kratos
         if (L==0)
         {
 
-           // KRATOS_WATCH("WARNING! Nul vector for the rotation!")
+           // KRATOS_WATCH("WARNING! Null vector for the rotation!")
 
         }
 
