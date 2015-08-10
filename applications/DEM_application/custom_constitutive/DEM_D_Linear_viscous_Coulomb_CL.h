@@ -134,8 +134,6 @@ namespace Kratos {
 
 
     private:
-
-        void CalculateGamma( const double e, double & gamma);
         
         friend class Serializer;
 

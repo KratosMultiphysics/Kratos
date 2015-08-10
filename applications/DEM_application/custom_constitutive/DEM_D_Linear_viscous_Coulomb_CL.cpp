@@ -162,40 +162,6 @@ namespace Kratos {
     //////////////////////////////////////////////////
     //////////////////////////////////////////////////
     
-    void DEM_D_Linear_viscous_Coulomb::CalculateGamma( const double e, double & gamma){
-
-        if(e < 0.001) {
-            gamma = 100;
-            return;
-        }
-        gamma = 0.105/e -0.105;
-        
-        /*if(le > 0.0 || le < -3.0) { //restit coeff 0 or <0.001
-            gamma = 57.43618; //value for a coefficient of restitution of 0.001
-            return;
-        }
-        const double h1  =  0.2446517;
-        const double h2  = -0.5433478;
-        const double h3  =  0.9280126;
-        const double h4  = -1.5897793;
-        const double h5  =  1.2102729;
-        const double h6  =  3.3815393;
-        const double h7  =  6.3814014;
-        const double h8  = -34.482428;
-        const double h9  =  25.672467;
-        const double h10 =  94.396267;        
-        
-        const double e= exp(le);
-        const double b = e - 0.5;
-        
-        KRATOS_WATCH(e)
-        KRATOS_WATCH(le)
-                
-        gamma = -1.0 * le * (1.0-le)*(1-0-le) * (h1 + b*(h2 + b*(h3 + b*(h4 + b*(h5 + b*(h6 + b*(h7 + b*(h8 + b*(h9 + b*h10 )))))))));
-        
-        KRATOS_WATCH(gamma)*/
-    }
-    
     void DEM_D_Linear_viscous_Coulomb::InitializeContact(SphericParticle* const element1,
                                                  SphericParticle* const element2) {
         //Get equivalent Radius
