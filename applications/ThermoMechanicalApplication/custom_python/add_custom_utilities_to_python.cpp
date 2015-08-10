@@ -92,10 +92,12 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeDt", &EstimateTimeStep < 3 >::ComputeDt)
     .def("ComputeSolidificationCoolingDt", &EstimateTimeStep < 3 >::ComputeSolidificationCoolingDt)
     .def("EstimateSolidificationTime", &EstimateTimeStep < 3 >::EstimateSolidificationTime)
+	.def("EstimateSolidificationTimeNoVirtualMould", &EstimateTimeStep < 3 >::EstimateSolidificationTimeNoVirtualMould)
     .def("CheckStopTemperature", &EstimateTimeStep < 3 >::CheckStopTemperature)
     .def("ComputeSurfaceWaveDt", &EstimateTimeStep < 3 >::ComputeSurfaceWaveDt)
     .def("CheckIsInTransition", &EstimateTimeStep < 3 >::CheckIsInTransition)
 	.def("EstimateCoolingTime", &EstimateTimeStep < 3 >::EstimateCoolingTime)
+	.def("CheckMinTemperature", &EstimateTimeStep < 3 >::CheckMinTemperature)
     ;
     
     class_<ParticleLevelSetUtils < 2 > >("ParticleLevelSetUtils2D", init<>())
