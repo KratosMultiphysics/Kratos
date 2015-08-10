@@ -216,14 +216,24 @@ namespace Kratos {
                                                                       SphericParticle* const element,
                                                                       DEMWall* const wall,
                                                                       double indentation,
-                                                                      double previous_indentation) {
-
-        LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
-        LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
+                                                                      double previous_indentation) {                       
         
-        const double WallBallFriction = wall->mTgOfFrictionAngle;
         
-        const double MaximumAdmisibleShearForce = normal_contact_force * WallBallFriction;
+        if(previous_indentation < indentation) {
+                LocalElasticContactForce[0] = OldLocalContactForce[0] - mKt * LocalDeltDisp[0];
+                LocalElasticContactForce[1] = OldLocalContactForce[1] - mKt * LocalDeltDisp[1];
+        }
+        else {
+            const double minoring_factor = sqrt (indentation / previous_indentation);
+            LocalElasticContactForce[0] = OldLocalContactForce[0] * minoring_factor - mKt * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalContactForce[1] * minoring_factor - mKt * LocalDeltDisp[1];
+        }
+                        
+        const double my_tg_of_friction_angle    = element->GetTgOfFrictionAngle();
+        const double wall_tg_of_friction_angle = wall->mTgOfFrictionAngle;
+        const double equiv_tg_of_fri_ang        = 0.5 * (my_tg_of_friction_angle + wall_tg_of_friction_angle);    
+        
+        const double MaximumAdmisibleShearForce = normal_contact_force * equiv_tg_of_fri_ang;
         
         const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
         const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
