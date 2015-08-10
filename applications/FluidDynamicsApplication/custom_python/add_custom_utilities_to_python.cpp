@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
+#include "custom_utilities/integration_point_to_node_transformation_utility.h"
 #include "utilities/split_tetrahedra.h"
 
 namespace Kratos
@@ -140,6 +141,14 @@ void  AddCustomUtilitiesToPython()
     .def("SetEchoLevel",&FractionalStepSettingsPeriodic<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
 
+    typedef IntegrationPointToNodeTransformationUtility<2,3> IntegrationPointToNodeTransformationUtility2DType;
+    typedef IntegrationPointToNodeTransformationUtility<3,4> IntegrationPointToNodeTransformationUtility3DType;
+    class_<IntegrationPointToNodeTransformationUtility2DType>("IntegrationPointToNodeTransformationUtility2D")
+        .def("TransformFromIntegrationPointsToNodes",&IntegrationPointToNodeTransformationUtility2DType::TransformFromIntegrationPointsToNodes<double>)
+        ;
+    class_<IntegrationPointToNodeTransformationUtility3DType>("IntegrationPointToNodeTransformationUtility3D")
+        .def("TransformFromIntegrationPointsToNodes",&IntegrationPointToNodeTransformationUtility3DType::TransformFromIntegrationPointsToNodes<double>)
+        ;
 }
 
 
