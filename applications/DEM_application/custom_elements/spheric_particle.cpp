@@ -693,7 +693,7 @@ void SphericParticle::ComputeMoments(double NormalLocalElasticContactForce,
         const double my_young = GetYoung();
         arm_length = GetRadius() - indentation * other_young / (other_young + my_young);
     }
-    
+        
     array_1d<double, 3> arm_vector;
     arm_vector[0] = -LocalCoordSystem2[0] * arm_length;
     arm_vector[1] = -LocalCoordSystem2[1] * arm_length;
@@ -1011,7 +1011,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             rigid_element_force[2] -= GlobalContactForce[2];
             array_1d<double, 3> GlobalContactForce_array;
             DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForce_array,GlobalContactForce)
-
+                    
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 ComputeMoments(LocalElasticContactForce[2], GlobalContactForce_array, rInitialRotaMoment, LocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
             }
