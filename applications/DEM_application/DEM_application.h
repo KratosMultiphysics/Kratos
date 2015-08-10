@@ -141,8 +141,6 @@ public:
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        //KRATOS_WATCH("in KratosDEMApplication");
-        //KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
