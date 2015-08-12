@@ -132,7 +132,7 @@ public:
         //std::fill (data().begin(), data().end(), value_type	());
     }
     explicit BOOST_UBLAS_INLINE
-    array_1d (size_type size):
+    array_1d (size_type array_size):
         vector_expression<self_type> ()
     {
         //sin esto no funciona en windows!!
@@ -142,15 +142,15 @@ public:
     }
 
     explicit BOOST_UBLAS_INLINE
-    array_1d (size_type size, value_type v):
+    array_1d (size_type array_size, value_type v):
         vector_expression<self_type> ()
     {
-        std::fill (data().begin(), data().begin() + size, v);
+        std::fill (data().begin(), data().begin() + array_size, v);
     }
     BOOST_UBLAS_INLINE
-    array_1d (size_type size,	const array_type &data):
+    array_1d (size_type array_size,	const array_type & rdata):
         vector_expression<self_type> (),
-        data_ (data) {}
+        data_ (rdata) {}
     BOOST_UBLAS_INLINE
     array_1d (const array_1d &v):
         vector_expression<self_type> (),
@@ -248,7 +248,7 @@ public:
 
     // Resizing
     BOOST_UBLAS_INLINE
-    void resize	(size_type size, bool preserve = true)
+    void resize	(size_type array_size, bool preserve = true)
     {
         if (!preserve)
             std::fill (data_.begin(), data_.end(), value_type	());
