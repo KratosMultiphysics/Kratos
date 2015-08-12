@@ -201,8 +201,8 @@ public:
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
                 Geometry<Node<3> >&geom = it->GetGeometry();
 
-                for(unsigned int i=0; i<TDim+1; i++)
-                    visited[i] = (static_cast<const Node<3> & >(geom[i])).GetValue(IS_VISITED);
+                for(unsigned int j=0; j<TDim+1; j++)
+                    visited[j] = (static_cast<const Node<3> & >(geom[j])).GetValue(IS_VISITED);
 
                 if(IsActive(visited))
                 {
@@ -778,8 +778,8 @@ private:
 
              Geometry<Node < 3 > >& element_geometry = it->GetGeometry();
 
-             for (unsigned int i = 0; i < TDim + 1; i++)
-                 dist[i] = element_geometry[i].GetValue(rDistanceVar);
+             for (unsigned int j = 0; j < TDim + 1; j++)
+                 dist[j] = element_geometry[j].GetValue(rDistanceVar);
 
              bool is_divided = IsDivided(dist);
 
@@ -818,12 +818,12 @@ private:
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
 
-            double& dist = it->FastGetSolutionStepValue(rDistanceVar);
+            double& nodal_dist = it->FastGetSolutionStepValue(rDistanceVar);
             double& is_visited = it->GetValue(IS_VISITED);
 
             if(is_visited == 0.00)
             {
-                dist = 0.00;
+                nodal_dist = 0.00;
                 it->GetSolutionStepValue(rAreaVar) = 0.00;
             }
             else if(is_visited >= 1.00) // This is due to the fact that I'm using the assemble instead of sync
@@ -858,8 +858,8 @@ private:
 
              Geometry<Node < 3 > >& element_geometry = it->GetGeometry();
 
-             for (unsigned int i = 0; i < TDim + 1; i++)
-                 dist[i] = element_geometry[i].GetValue(rDistanceVar);
+             for (unsigned int j = 0; j < TDim + 1; j++)
+                 dist[j] = element_geometry[j].GetValue(rDistanceVar);
 
              bool is_divided = IsDivided(dist);
 
@@ -895,12 +895,12 @@ private:
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
 
-            double& dist = it->FastGetSolutionStepValue(rDistanceVar);
+            double& nodal_dist = it->FastGetSolutionStepValue(rDistanceVar);
             double& is_visited = it->GetValue(IS_VISITED);
 
             if(is_visited == 0.00)
             {
-                dist = 0.00;
+                nodal_dist = 0.00;
                 it->GetSolutionStepValue(rAreaVar) = 0.00;
             }
             else if(is_visited >= 1.00) // This is due to the fact that I'm using the assemble instead of sync
@@ -942,8 +942,8 @@ private:
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
                 Geometry<Node<3> >&geom = it->GetGeometry();
 
-                for(unsigned int i=0; i<TDim+1; i++)
-                    visited[i] = geom[i].GetValue(IS_VISITED);
+                for(unsigned int j=0; j<TDim+1; j++)
+                    visited[j] = geom[j].GetValue(IS_VISITED);
 
                 if(IsActive(visited))
                 {
