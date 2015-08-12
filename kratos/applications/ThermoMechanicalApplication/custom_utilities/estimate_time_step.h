@@ -284,8 +284,8 @@ namespace Kratos
 					  }
 					  // Now for the maximum change in temperature
 
-					  double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
-					  double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
+					  //double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+					  //double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
 					//  max_delta_temp=std::max(-current_temp + old_temp,max_delta_temp);
 
 				  }
@@ -499,8 +499,8 @@ namespace Kratos
 		avg_sheat/=tot_area;
 	
 		double solidification_time_chorinov=0.0;
-		const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
-		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
+		//const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
+		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
 		solidification_time_chorinov=pow(density*LL/abs(initial_temperature-stop_temperature),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		solidification_time_chorinov*=1+(cc*pow((initial_temperature-stop_temperature)/LL,2));
 		solidification_time_chorinov*=pow(tot_vol/tot_area,1.5);
@@ -687,9 +687,9 @@ namespace Kratos
 		avg_sheat/=tot_area;
 		avg_env_htc/=tot_area;
 		double cooling_time_chorinov=0.0;
-		const double htc= ThisModelPart.GetProcessInfo()[HTC];
+		//const double htc= ThisModelPart.GetProcessInfo()[HTC];
 		const double solid_temp= ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
-		const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
+		//const double mould_temperature=ThisModelPart.GetProcessInfo()[MOULD_AVERAGE_TEMPERATURE];	
 		cooling_time_chorinov=pow(density*LL/abs(initial_temperature-solid_temp),2)*(3.1416/(4*avg_conductivity*avg_density*avg_sheat));
 		cooling_time_chorinov*=1+(cc*pow((initial_temperature-solid_temp)/LL,2));
 		cooling_time_chorinov*=pow(tot_vol/tot_area,2);
