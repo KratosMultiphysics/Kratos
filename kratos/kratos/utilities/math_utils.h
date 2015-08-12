@@ -857,7 +857,7 @@ public:
 
       KRATOS_TRY
 
-      Vector Vector;
+      Vector vector;
       
       if(rSize == 0){
 	if(rTensor.size1() == 2)
@@ -868,32 +868,32 @@ public:
 
       if (rSize==3)
         {
-	  Vector.resize(3);
-	  Vector[0]= rTensor(0,0);
-	  Vector[1]= rTensor(1,1);
-	  Vector[2]= rTensor(0,1);
+	  vector.resize(3);
+	  vector[0]= rTensor(0,0);
+	  vector[1]= rTensor(1,1);
+	  vector[2]= rTensor(0,1);
         }
       else if (rSize==4)
         {
-	  Vector.resize(4);
-	  Vector[0]= rTensor(0,0);
-	  Vector[1]= rTensor(1,1);
-	  Vector[2]= rTensor(2,2);
-	  Vector[3]= rTensor(0,1);
+	  vector.resize(4);
+	  vector[0]= rTensor(0,0);
+	  vector[1]= rTensor(1,1);
+	  vector[2]= rTensor(2,2);
+	  vector[3]= rTensor(0,1);
         }
       else if (rSize==6)
         {
-	  Vector.resize(6);
-	  Vector[0]= rTensor(0,0);
-	  Vector[1]= rTensor(1,1);
-	  Vector[2]= rTensor(2,2);
-	  Vector[3]= rTensor(0,1);
-	  Vector[4]= rTensor(1,2);
-	  Vector[5]= rTensor(0,2);
+	  vector.resize(6);
+	  vector[0]= rTensor(0,0);
+	  vector[1]= rTensor(1,1);
+	  vector[2]= rTensor(2,2);
+	  vector[3]= rTensor(0,1);
+	  vector[4]= rTensor(1,2);
+	  vector[5]= rTensor(0,2);
         }
 
         
-      return Vector;
+      return vector;
       KRATOS_CATCH("")
      }
 
