@@ -427,7 +427,7 @@ public:
 
 		// Now we loop until convergence
 		unsigned int iteration=0;
-		double inc_correction=1000.0;
+		//double inc_correction=1000.0;
 		while((iteration<15)&&(exit_loop==false))
 			{
 			correction_old=correction;
@@ -459,7 +459,7 @@ public:
 				wet_volume_right=wet_volume_middle;
 			}
 			
-			inc_correction=upper_correction-lower_correction;
+			//inc_correction=upper_correction-lower_correction;
 
 			iteration++;
 			if((fabs(correction_old-correction)<tol)&&((fabs(wet_volume-wet_volume_old)/wet_volume_old)<tolv)){
