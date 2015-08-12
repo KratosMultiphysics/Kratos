@@ -238,8 +238,8 @@ public:
     template<class TDataType>
     void push_back(std::vector<TDataType> const& rValue)
     {
-        const SizeType size=rValue.size();
-        push_back(size);
+        const SizeType local_size=rValue.size();
+        push_back(local_size);
         push_back(rValue.begin(), rValue.end());
     }
 
@@ -336,11 +336,11 @@ public:
     template<class TDataType>
     void pop_front(std::vector<TDataType>& rValue)
     {
-        SizeType size;
+        SizeType local_size;
 
-        pop_front(size);
+        pop_front(local_size);
 
-        rValue.resize(size);
+        rValue.resize(local_size);
 
         pop_front(rValue.begin(), rValue.end());
     }
@@ -351,11 +351,11 @@ public:
     template<class TDataType>
     void pop_front(boost::numeric::ublas::vector<TDataType>& rValue)
     {
-        SizeType size;
+        SizeType local_size;
 
-        pop_front(size);
+        pop_front(local_size);
 
-        rValue.resize(size,false);
+        rValue.resize(local_size,false);
 
         pop_front(rValue.begin(), rValue.end());
     }
@@ -366,11 +366,11 @@ public:
     void pop_front(array_1d<TDataType, TDimenasion>& rValue)
     {
         /// TODO: I have to take out the resize. Pooyan.
-        SizeType size;
+        SizeType local_size;
 
-        pop_front(size);
+        pop_front(local_size);
 
-        rValue.resize(size);
+        rValue.resize(local_size);
 
         pop_front(rValue.begin(), rValue.end());
     }
