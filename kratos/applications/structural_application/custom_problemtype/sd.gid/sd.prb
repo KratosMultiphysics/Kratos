@@ -38,7 +38,7 @@ TITLE: Solving_Strategies
 QUESTION: Linear_Solver#CB#(SuperLU,MKL_Pardiso)
 VALUE: MKL_Pardiso
 HELP: Linear solver method
-QUESTION: Builder_And_Solver#CB#(Residual_Based_Elimination_Builder_And_Solver_Deactivation,Residual_Based_Block_Builder_And_Solver)
+QUESTION: Builder_And_Solver#CB#(Residual_Based_Elimination_Builder_And_Solver_Deactivation,Residual_Based_Block_Builder_And_Solver_Deactivation)
 VALUE: Residual_Based_Elimination_Builder_And_Solver_Deactivation
 HELP: Builder_And_Solver to build and solve the linear system
 QUESTION: Convergence_Criteria#CB#(Displacement_Criteria,Multiphase_Flow_Criteria)

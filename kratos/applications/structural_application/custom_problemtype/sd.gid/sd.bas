@@ -63,7 +63,6 @@ End Nodes
 *set var condID=1
 *set var condID2=1
 
-*if(strcmp(GenData(Mortar_Application),"1")==0)
 Begin Conditions MortarCondition3D3N
 *set cond Mortar *elems *canRepeat
 *loop elems *OnlyInCond
@@ -123,7 +122,6 @@ Begin Conditions MortarCondition3D9N
 *endif
 *end elems
 End Conditions
-*endif
 
 Begin Conditions PointForce3D
 *set cond Point_Force *nodes
