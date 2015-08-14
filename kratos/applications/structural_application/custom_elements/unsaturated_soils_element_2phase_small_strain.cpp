@@ -596,6 +596,9 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateAll( MatrixType& rLeft
 //    KRATOS_WATCH(Help_K_WU)
 //    KRATOS_WATCH(Help_K_WW)
 
+//    KRATOS_WATCH(rRightHandSideVector)
+//    KRATOS_WATCH(rLeftHandSideMatrix)
+
     KRATOS_CATCH( "" )
 }
 
@@ -631,7 +634,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateLocalSystem( MatrixTyp
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     DampMatrix(rMassMatrix, rCurrentProcessInfo);
 }
@@ -639,7 +642,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::MassMatrix( MatrixType& rMassMa
 ////************************************************************************************
 ////************************************************************************************
 
-void UnsaturatedSoilsElement_2phase_SmallStrain::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateDampingMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -880,31 +883,11 @@ inline void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateAndAddExtForceC
 void UnsaturatedSoilsElement_2phase_SmallStrain::EquationIdVector( EquationIdVectorType& rResult,
         ProcessInfo& CurrentProcessInfo )
 {
-    unsigned int dim_press = 1;//two pressure dofs
-    unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );//3 displacement dofs
-    unsigned int MatSize =
-        ( mNodesPressMax - mNodesPressMin + 1 ) * dim_press +
-        ( mNodesDispMax - mNodesDispMin + 1 ) * dim_disp;
-
-    if ( rResult.size() != MatSize )
-        rResult.resize( MatSize );
-
-    unsigned int adddisp = ( mNodesPressMax - mNodesPressMin + 1 ) * dim_press;
-
-    for ( unsigned int i = ( mNodesPressMin - 1 ); i < mNodesPressMax; i++ )
-    {
-        int index = ( i - mNodesPressMin + 1 ) * dim_press;
-        rResult[index] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-    }
-
-    for ( unsigned int i = ( mNodesDispMin - 1 ); i < mNodesDispMax; i++ )
-    {
-        int index = adddisp + ( i - mNodesDispMin + 1 ) * dim_disp;
-        rResult[index] = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index+1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-        rResult[index+2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-    }
-
+    DofsVectorType ElementalDofList;
+    this->GetDofList(ElementalDofList, CurrentProcessInfo);
+    rResult.resize(ElementalDofList.size());
+    for(unsigned int i = 0; i < ElementalDofList.size(); ++i)
+        rResult[i] = ElementalDofList[i]->EquationId();
 }
 
 //************************************************************************************

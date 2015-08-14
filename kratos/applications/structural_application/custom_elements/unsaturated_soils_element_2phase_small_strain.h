@@ -181,9 +181,10 @@ public:
 //
 //                void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-    // hbui add MassMatrix for consistency with Element
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-    
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateDampingMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Access
     ///@{
@@ -287,8 +288,6 @@ private:
                        ProcessInfo& rCurrentProcessInfo,
                        bool CalculateStiffnessMatrixFlag,
                        bool CalculateResidualVectorFlag );
-
-    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
 
     void CalculateBodyForces(
         Vector& BodyForce,
