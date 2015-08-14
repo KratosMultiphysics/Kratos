@@ -20,11 +20,13 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(ROTATION)
     model_part.AddNodalSolutionStepVariable(REACTION)
+    model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
     # model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(INSITU_STRESS)
     model_part.AddNodalSolutionStepVariable(FACE_LOAD)
+    model_part.AddNodalSolutionStepVariable(FORCE)
 
     print("variables for the dynamic structural solution added correctly")
 
