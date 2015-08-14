@@ -88,14 +88,16 @@ class Model:
 *endif
         self.gid_io = StructuralGidIO( self.path+self.problem_name, post_mode, multi_file_flag, write_deformed_flag, write_elements )
         self.model_part_io = ModelPartIO(self.path+self.problem_name)
+        self.read_partition_file = True
         number_of_partitions = mpi.size
         if number_of_partitions > 1:
-            dimension = 3
-            verbose = 0
-            synchronize_conds = True
-            model_part_io = ModelPartIO(self.path+self.problem_name)
-            partitioning_process = MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions, dimension, verbose, synchronize_conds)
-            partitioning_process.Execute()
+            if self.read_partition_file == True:
+                dimension = 3
+                verbose = 0
+                synchronize_conds = True
+                model_part_io = ModelPartIO(self.path+self.problem_name)
+                partitioning_process = MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions, dimension, verbose, synchronize_conds)
+                partitioning_process.Execute()
             self.model_part_io = ModelPartIO(self.path+self.problem_name+'_'+str(mpi.rank))
             self.model_part_io.ReadModelPart(self.model_part)
         else:
@@ -171,8 +173,14 @@ class Model:
 *elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
         self.builder_and_solver = PETScResidualBasedEliminationBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
 *endif
-*elseif(strcmp(GenData(Builder_And_Solver),"Residual_Based_Block_Builder_And_Solver")==0)
-        # TODO: implement distributed block builder_and_solver
+*elseif(strcmp(GenData(Builder_And_Solver),"Residual_Based_Block_Builder_And_Solver_Deactivation")==0)
+*if(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Epetra")==0)
+        self.builder_and_solver = TrilinosEpetraResidualBasedBlockBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"Trilinos_Tpetra")==0)
+        self.builder_and_solver = TrilinosTpetraResidualBasedBlockBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
+*elseif(strcmp(GenData(Linear_Algebra_BackEnd),"PETSc")==0)
+        self.builder_and_solver = PETScResidualBasedBlockBuilderAndSolverDeactivation(self.comm, self.structure_linear_solver)
+*endif
 *endif
 
         # defining time scheme
@@ -265,6 +273,16 @@ class Model:
         self.model_part.Properties[*MatNum].SetValue(POISSON_RATIO, *MatProp(Poisson_ratio,real) )
         self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
         print "Linear elastic model selected"
+*elseif(strcmp(MatProp(ConstitutiveLaw),"PlaneStrain")==0)
+        self.model_part.Properties[*MatNum].SetValue(YOUNG_MODULUS, *MatProp(Young_modulus,real) )
+        self.model_part.Properties[*MatNum].SetValue(POISSON_RATIO, *MatProp(Poisson_ratio,real) )
+        self.model_part.Properties[*MatNum].SetValue(THICKNESS, *MatProp(Thickness,real) )
+        self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, PlaneStrain() )
+*elseif(strcmp(MatProp(ConstitutiveLaw),"PlaneStress")==0)
+        self.model_part.Properties[*MatNum].SetValue(YOUNG_MODULUS, *MatProp(Young_modulus,real) )
+        self.model_part.Properties[*MatNum].SetValue(POISSON_RATIO, *MatProp(Poisson_ratio,real) )
+        self.model_part.Properties[*MatNum].SetValue(THICKNESS, *MatProp(Thickness,real) )
+        self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, PlaneStress() )
 *elseif(strcmp(MatProp(ConstitutiveLaw),"Isotropic3Dshell")==0)
         self.model_part.Properties[*MatNum].SetValue(DENSITY, *MatProp(Density,real) )
         self.model_part.Properties[*MatNum].SetValue(YOUNG_MODULUS, *MatProp(Young_modulus,real) )
@@ -313,16 +331,6 @@ class Model:
         self.model_part.Properties[*MatNum].SetValue(FRACTURE_ENERGY, *MatProp(Fracture_energy,real) )
         self.model_part.Properties[*MatNum].SetValue(POISSON_RATIO, *MatProp(Poisson_ratio,real) )
         self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, IsotropicDamage3DImplex() )
-*elseif(strcmp(MatProp(ConstitutiveLaw),"PlaneStrain")==0)
-        self.model_part.Properties[*MatNum].SetValue(YOUNG_MODULUS, *MatProp(Young_modulus,real) )
-        self.model_part.Properties[*MatNum].SetValue(POISSON_RATIO, *MatProp(Poisson_ratio,real) )
-        self.model_part.Properties[*MatNum].SetValue(THICKNESS, *MatProp(Thickness,real) )
-        self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, PlaneStrain() )
-*elseif(strcmp(MatProp(ConstitutiveLaw),"PlaneStress")==0)
-        self.model_part.Properties[*MatNum].SetValue(YOUNG_MODULUS, *MatProp(Young_modulus,real) )
-        self.model_part.Properties[*MatNum].SetValue(POISSON_RATIO, *MatProp(Poisson_ratio,real) )
-        self.model_part.Properties[*MatNum].SetValue(THICKNESS, *MatProp(Thickness,real) )
-        self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, PlaneStress() )
 *elseif(strcmp(MatProp(ConstitutiveLaw),"UserDefined")==0)
         append_manual_data = True
         self.model_part.Properties[*MatNum].SetValue(CONSTITUTIVE_LAW, DummyConstitutiveLaw() )
