@@ -120,6 +120,8 @@ public:
 
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
 
+    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+
     typedef typename Element::DofsVectorType DofsVectorType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -131,6 +133,25 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     /**
+     * Constructor for PURE Newmark scheme
+     * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
+     *  numerical dissipation: The generalized alpha method" Journal of applied mechanics, 60, 371-375
+     */
+    ResidualBasedNewmarkScheme() : BaseType()
+    {
+        //For pure Newmark Scheme
+        mAlpha = 0.0;
+        mAlpha_m = 0.0;
+        mBeta = (1.0 + mAlpha - mAlpha_m) * (1.0 + mAlpha - mAlpha_m) / 4.0;
+        mGamma = 0.5 + mAlpha - mAlpha_m;
+
+        std::cout << "PURE Newmark Time !!!!!!!!!!!!!!!!!!!!!" << " alpha_f= " << mAlpha << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+        //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
+        // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
+        // while the iteration is done towards the (...)_EINS DOF value at end of time step
+    }
+
+    /**
      * Constructor.
      * @param mDissipationRadius if the scheme is numerically energy conserving or not
      * 								== 1.0 energy conserving
@@ -138,31 +159,23 @@ public:
      * @ref Chung&Hulbert: "A time integration algorithm for structural dynamics with improved
      *  numerical dissipation: The generalized alpha method" Journal of applied mechanics, 60, 371-375
      */
-    ResidualBasedNewmarkScheme(double mDissipationRadius ): Scheme<TSparseSpace,TDenseSpace>()
+    ResidualBasedNewmarkScheme(double mDissipationRadius ) : BaseType()
     {
-        mElementalDofList.resize(5);
+        mAlpha= mDissipationRadius / (1.0 + mDissipationRadius);
+        mAlpha_m= (2.0 * mDissipationRadius - 1.0) / (mDissipationRadius + 1.0);
+        mBeta= (1.0 + mAlpha - mAlpha_m) * (1.0 + mAlpha - mAlpha_m)/4.0;
+        mGamma= 0.5 + mAlpha - mAlpha_m;
 
-//            	        mAlpha= mDissipationRadius/(1.0+mDissipationRadius);
-
-// 			mAlpha_m= (2.0*mDissipationRadius-1.0)/(mDissipationRadius+1.0);
-        //For pure Newmark Scheme
-        mAlpha= 0.0;
-        mAlpha_m= 0.0;
-
-        mBeta= (1.0+mAlpha-mAlpha_m)*(1.0+mAlpha-mAlpha_m)/4.0;
-
-        mGamma= 0.5+mAlpha-mAlpha_m;
-
-        std::cout << "using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius <<" alpha_f= "<<mAlpha <<" alpha_m= "<<mAlpha_m<<" beta= "<<mBeta<<" gamma= "<<mGamma<< std::endl;
-        std::cout <<"PURE Newmark Time !!!!!!!!!!!!!!!!!!!!!"<<std::endl;
+        std::cout << "using the Generalized alpha Time Integration Scheme with radius= "<< mDissipationRadius << " alpha_f= " << mAlpha << " alpha_m= " << mAlpha_m << " beta= " << mBeta << " gamma= " << mGamma << std::endl;
+//        std::cout <<"PURE Newmark Time !!!!!!!!!!!!!!!!!!!!!"<<std::endl;
         //(...)_NULL DOF at the begin of time step, (...)_EINS DOF at the end of time step, (...)
         // DOF at the midpoint of time step, Please recognize that the name of the DOF is (...)
         // while the iteration is done towards the (...)_EINS DOF value at end of time step
     }
 
     /** Destructor.*/
-    virtual ~ResidualBasedNewmarkScheme
-    () {}
+    virtual ~ResidualBasedNewmarkScheme()
+    {}
 
     /**@name Operators */
 
@@ -451,7 +464,7 @@ public:
 
         ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
 
-        Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
+        BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         //Update nodal values and nodal velocities at mAlpha
         for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ;
                 i != r_model_part.NodesEnd() ; i++)
@@ -527,13 +540,17 @@ public:
         ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
 
         ElementsArrayType& pElements = r_model_part.Elements();
-
-        for (typename ElementsArrayType::ptr_iterator it=pElements.ptr_begin();
-                it!=pElements.ptr_end(); ++it)
+        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
-            //calculate elemental contribution
             (*it)->FinalizeSolutionStep(r_model_part.GetProcessInfo());
         }
+
+        ConditionsArrayType& pConditions = r_model_part.Conditions();
+        for (typename ConditionsArrayType::ptr_iterator it = pConditions.ptr_begin(); it != pConditions.ptr_end(); ++it)
+        {
+            (*it)->FinalizeSolutionStep(r_model_part.GetProcessInfo());
+        }
+
         if(CurrentProcessInfo[CALCULATE_INSITU_STRESS])
         {
             for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
@@ -688,12 +705,11 @@ public:
 
         Matrix MassMatrix;
 
-        (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
+        (rCurrentElement)->InitializeNonLinearIteration(CurrentProcessInfo);
 
-        (rCurrentElement)->
-        CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentElement)->CalculateDampingMatrix(DampingMatrix,CurrentProcessInfo);
+        (rCurrentElement)->CalculateDampingMatrix(DampingMatrix, CurrentProcessInfo);
 
 			if(!(CurrentProcessInfo[QUASI_STATIC_ANALYSIS]))
 			{
@@ -702,8 +718,7 @@ public:
 				AddDynamicsToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
 			}
 
-        AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution,
-                             DampingMatrix, MassMatrix,CurrentProcessInfo);
+        AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution, DampingMatrix, MassMatrix,CurrentProcessInfo);
 
         (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 
