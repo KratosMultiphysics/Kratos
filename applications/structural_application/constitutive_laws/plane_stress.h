@@ -162,13 +162,22 @@ public:
     void InitializeSolutionStep( const Properties& props,
             const GeometryType& geom, //this is just to give the array of nodes
             const Vector& ShapeFunctionsValues ,
-            const ProcessInfo& CurrentProcessInfo
-            );
+            const ProcessInfo& CurrentProcessInfo );
+
+    void InitializeNonLinearIteration( const Properties& rMaterialProperties,
+            const GeometryType& rElementGeometry,
+            const Vector& rShapeFunctionsValues,
+            const ProcessInfo& rCurrentProcessInfo );
+
+    void FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+            const GeometryType& rElementGeometry,
+            const Vector& rShapeFunctionsValues,
+            const ProcessInfo& rCurrentProcessInfo );
 
     void FinalizeSolutionStep( const Properties& props,
             const GeometryType& geom, //this is just to give the array of nodes
             const Vector& ShapeFunctionsValues ,
-            const ProcessInfo& CurrentProcessInfo);
+            const ProcessInfo& CurrentProcessInfo );
                                             
     /**
      * Calculates the cauchy stresses. For a given deformation and stress state
