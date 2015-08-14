@@ -196,8 +196,8 @@ void AddNewRigidBodyAndSpring3D( ModelPart& structural_model_part,
 void  AddCustomUtilitiesToPython()
 {
     class_<DeactivationUtility, boost::noncopyable >
-    ( "DeactivationUtility",
-      init<>() )
+    ( "DeactivationUtility", init<>() )
+    .def( init<int>() )
     .def( "Deactivate", &DeactivationUtility::Deactivate )
     .def( "Reactivate", &DeactivationUtility::Reactivate )
     .def( "ReactivateStressFree", &DeactivationUtility::ReactivateStressFree )
@@ -206,8 +206,8 @@ void  AddCustomUtilitiesToPython()
     ;
 
     class_<VariableTransferUtility, boost::noncopyable >
-    ( "VariableTransferUtility",
-      init<>() )
+    ( "VariableTransferUtility", init<>() )
+    .def(init<typename VariableTransferUtility::LinearSolverType::Pointer>())
     .def( "TransferNodalVariables", &VariableTransferUtility::TransferNodalVariables )
     .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
     .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
