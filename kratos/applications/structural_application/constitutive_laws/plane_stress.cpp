@@ -193,6 +193,20 @@ void PlaneStress::InitializeSolutionStep( const Properties& props,
 {
 }
 
+void PlaneStress::InitializeNonLinearIteration( const Properties& rMaterialProperties,
+                                                const GeometryType& rElementGeometry,
+                                                const Vector& rShapeFunctionsValues,
+                                                const ProcessInfo& rCurrentProcessInfo )
+{
+}
+
+void PlaneStress::FinalizeNonLinearIteration( const Properties& rMaterialProperties,
+                                              const GeometryType& rElementGeometry,
+                                              const Vector& rShapeFunctionsValues,
+                                              const ProcessInfo& rCurrentProcessInfo )
+{
+}
+
 void PlaneStress::FinalizeSolutionStep( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues ,
