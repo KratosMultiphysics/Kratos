@@ -89,20 +89,41 @@ public:
     typedef Geometry<Node<3> >::GeometryType GeometryType;
     typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
+    typedef LinearSolver<SpaceType, DenseSpaceType> LinearSolverType;
 
     /**
      * Constructor.
-                 */
+     */
     VariableTransferUtility()
     {
+        mpLinearSolver = LinearSolverType::Pointer(new SkylineLUFactorizationSolver<SpaceType, DenseSpaceType>());
         std::cout << "VariableTransferUtility created" << std::endl;
+        mEchoLevel = 0;
     }
 
+    VariableTransferUtility(LinearSolverType::Pointer pLinearSolver)
+    {
+        mpLinearSolver = pLinearSolver;
+        std::cout << "VariableTransferUtility created" << std::endl;
+        mEchoLevel = 0;
+    }
+    
     /**
      * Destructor.
-                 */
+     */
     virtual ~VariableTransferUtility()
     {}
+
+    void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
+    
+    int GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
 
     /**
      * Initializes elements of target model part.
@@ -248,7 +269,24 @@ public:
     {
         TransferSpecificVariable( rSource, rTarget, PRESTRESS );
     }
-
+    
+    /**
+     * Transfer of PRESTRESS.
+     * This transfers the in-situ stress from rSource to rTarget.
+     * rSource and rTarget must be identical. Otherwise it will generate errors.
+     * @param rSource the source model part
+     * @param rTarget the target model part
+     */
+    void TransferPrestressIdentically( ModelPart& rSource, ModelPart& rTarget )
+    {
+        std::vector<Vector> PreStresses;
+        for( ModelPart::ElementIterator it = rSource.ElementsBegin();
+                it != rSource.ElementsEnd(); ++it )
+        {
+            it->GetValueOnIntegrationPoints(PRESTRESS, PreStresses, rSource.GetProcessInfo());
+            rTarget.Elements()[it->Id()].SetValueOnIntegrationPoints(PRESTRESS, PreStresses, rTarget.GetProcessInfo());
+        }
+    }
 
     /**
      * Transfer of INSITU_STRESS.
@@ -550,13 +588,13 @@ public:
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<Kratos::Matrix>& rThisVariable)
     {
-
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
         for( ElementsArrayType::ptr_iterator it = TargetMeshElementsArray.ptr_begin();
                 it != TargetMeshElementsArray.ptr_end();
                 ++it )
         {
+            std::cout << (*it)->Id() << std::endl;
             const IntegrationPointsArrayType& integration_points
             = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
             std::vector<Matrix> ValuesOnIntPoint(integration_points.size());
@@ -594,10 +632,11 @@ public:
     source_model_part, Variable<Kratos::Matrix>& rThisVariable)
      * @see TransferVariablesToGaussPoints(ModelPart& source_model_part, ModelPart&
     source_model_part, Variable<double>& rThisVariable)
-                 */
+     */
     void TransferVariablesToGaussPoints(ModelPart& rSource, ModelPart& rTarget,
                                         Variable<Kratos::Vector>& rThisVariable)
     {
+        std::cout << "At TransferVariablesToGaussPoints(rSource, rTarget, Variable<Vector> rThisVariable)" << std::endl;
         ElementsArrayType& SourceMeshElementsArray= rSource.Elements();
         ElementsArrayType& TargetMeshElementsArray= rTarget.Elements();
 
@@ -614,31 +653,35 @@ public:
 #ifdef _OPENMP
         #pragma omp parallel for
 #endif
-        for(int k=0; k<number_of_threads; k++)
+        for(int k = 0; k < number_of_threads; ++k)
         {
             ElementsArrayType::ptr_iterator it_begin =
-                TargetMeshElementsArray.ptr_begin()+element_partition[k];
+                TargetMeshElementsArray.ptr_begin() + element_partition[k];
             ElementsArrayType::ptr_iterator it_end =
-                TargetMeshElementsArray.ptr_begin()+element_partition[k+1];
-            for (ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
+                TargetMeshElementsArray.ptr_begin() + element_partition[k+1];
+            for (ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
+//                KRATOS_WATCH((*it)->Id())
                 const IntegrationPointsArrayType& integration_points
                 = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
 
                 std::vector<Vector> ValuesOnIntPoint(integration_points.size());
-                for(unsigned int point=0; point< integration_points.size(); point++)
+//                KRATOS_WATCH(integration_points.size())
+                for(unsigned int point = 0; point< integration_points.size(); ++point)
                 {
                     Point<3> sourceLocalPoint;
                     Point<3> targetLocalPoint;
-                    noalias(targetLocalPoint)= integration_points[point];
+                    noalias(targetLocalPoint) = integration_points[point];
                     Point<3> targetGlobalPoint;
                     (*it)->GetGeometry().GlobalCoordinates(targetGlobalPoint,targetLocalPoint);
+//                    KRATOS_WATCH(targetGlobalPoint)
                     Element sourceElement;
                     //Calculate Value of rVariable(firstvalue, secondvalue) in OldMesh
-                    ValuesOnIntPoint[point].resize(6,false);
+                    ValuesOnIntPoint[point].resize(6, false);
                     if(FindPartnerElement(targetGlobalPoint, SourceMeshElementsArray,
                                           sourceElement,sourceLocalPoint))
                     {
+//                        KRATOS_WATCH(sourceElement.Id())
                         noalias(ValuesOnIntPoint[point])=
                             ValueVectorInOldMesh(sourceElement, sourceLocalPoint, rThisVariable );
                     }
@@ -807,7 +850,7 @@ public:
                         }
                     }
                 }
-                SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+                mpLinearSolver->Solve(M, g, b);
                 for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
                         it != model_part.NodesEnd() ; it++)
                 {
@@ -832,165 +875,166 @@ public:
      * WARNING: this may cause segmentation faults as the respective variables
      * will be created on nodal level while they are originally intended to be
      * stored on integration points!
-                 */
+     */
+    // serial version
+//    void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
+//    {
+//        ElementsArrayType& ElementsArray= model_part.Elements();
+
+//        //loop over all master surfaces (global search)
+//        for(ModelPart::NodeIterator it = model_part.NodesBegin();
+//                it != model_part.NodesEnd() ; it++)
+//        {
+//            it->GetSolutionStepValue(rThisVariable)
+//            = ZeroVector(6);
+//        }
+
+//        //SetUpEquationSystem
+//        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+//        SpaceType::VectorType g(model_part.NumberOfNodes());
+//        SpaceType::VectorType b(model_part.NumberOfNodes());
+//        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+
+//        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
+//                it != ElementsArray.ptr_end(); ++it )
+//        {
+//            const IntegrationPointsArrayType& integration_points
+//            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+
+//            GeometryType::JacobiansType J(integration_points.size());
+//            J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+
+//            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+//            Matrix InvJ(3,3);
+//            double DetJ;
+//            for(unsigned int point=0; point< integration_points.size(); point++)
+//            {
+//                MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+
+//                double dV= DetJ*integration_points[point].Weight();
+
+//                for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+//                {
+//                    for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
+//                    {
+//                        M(((*it)->GetGeometry()[prim].Id()-1),
+//                          ((*it)->GetGeometry()[sec].Id()-1))+=
+//                              Ncontainer(point, prim)*Ncontainer(point, sec)*dV;
+//                    }
+//                }
+//            }
+//        }
+
+//        for(unsigned int firstvalue=0; firstvalue<6; firstvalue++)
+//        {
+//            noalias(g)= ZeroVector(model_part.NumberOfNodes());
+
+//            noalias(b)= ZeroVector(model_part.NumberOfNodes());
+//            //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
+//            // see Jiao + Heath "Common-refinement-based data tranfer ..."
+//            // International Journal for numerical methods in engineering 61 (2004) 2402--2427
+//            // for general description of L_2-Minimization
+//            for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
+//                    it != ElementsArray.ptr_end();
+//                    ++it )
+//            {
+//                const IntegrationPointsArrayType& integration_points
+//                = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
+
+//                GeometryType::JacobiansType J(integration_points.size());
+//                J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+//                std::vector<Vector> ValuesOnIntPoint(integration_points.size());
+
+//                (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+
+//                const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+//                Matrix InvJ(3,3);
+//                double DetJ;
+//                for(unsigned int point=0; point< integration_points.size(); point++)
+//                {
+//                    MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+
+//                    double dV= DetJ*integration_points[point].Weight();
+
+//                    for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+//                    {
+//                        b(((*it)->GetGeometry()[prim].Id()-1))
+//                        +=(ValuesOnIntPoint[point](firstvalue))
+//                          *Ncontainer(point, prim)*dV;
+//                    }
+//                }
+//            }
+
+//            mpLinearSolver->Solve(M, g, b);
+
+//            for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
+//                    it != model_part.NodesEnd() ; it++)
+//            {
+//                it->GetSolutionStepValue(rThisVariable)(firstvalue)
+//                = g((it->Id()-1));
+//            }
+
+//        }//END firstvalue
+//    }
+    
+        // omp version
     void TransferVariablesToNodes(ModelPart& model_part, Variable<Kratos::Vector>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
 
-//                 std::cout << "line 771" << std::endl;
-
-        //loop over all master surfaces (global search)
+        //reset values at node//update by hbui: we should not do this, since some variable is at node, an then transfer again to node
         for(ModelPart::NodeIterator it = model_part.NodesBegin();
                 it != model_part.NodesEnd() ; it++)
         {
-            it->GetSolutionStepValue(rThisVariable)
-            = ZeroVector(6);
+            it->GetSolutionStepValue(rThisVariable) = ZeroVector(6);
         }
-
-//                 std::cout << "line 781" << std::endl;
 
         //SetUpEquationSystem
-        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        SpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
-        /*
-                        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
-                        it != ElementsArray.ptr_end(); ++it )
-                        {
-        									//SetUpEquationSystem
-                        SpaceType::MatrixType M((*it)->GetGeometry().size(),(*it)->GetGeometry().size());
-                        SpaceType::VectorType g((*it)->GetGeometry().size());
-                        SpaceType::VectorType b((*it)->GetGeometry().size());
-                        noalias(M)= ZeroMatrix((*it)->GetGeometry().size(),(*it)->GetGeometry().size());
+        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
 
-                        const IntegrationPointsArrayType& integration_points
-                        = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+        int number_of_threads = 1;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+#endif
+        vector<unsigned int> element_partition;
+        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        boost::progress_display show_progress( ElementsArray.size() );
 
-                        GeometryType::JacobiansType J(integration_points.size());
-                        J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+        // create the structure for M a priori
+//        Timer::Start("ConstructMatrixStructure");
+        ConstructMatrixStructure(M, ElementsArray, model_part.GetProcessInfo());
+//        Timer::Stop("ConstructMatrixStructure");
 
-                        std::vector<Vector> ValuesOnIntPoint(integration_points.size());
-
-                        (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
-
-                        const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
-
-                        Matrix InvJ(3,3);
-                        double DetJ;
-                        for(unsigned int point=0; point< integration_points.size(); point++)
-                        {
-                        MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
-
-                        double dV= DetJ*integration_points[point].Weight();
-
-                        for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
-                        {
-                        for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
-                        {
-                        M(prim,sec)+=
-                        Ncontainer(point, prim)*Ncontainer(point, sec)*dV;
-                    }
-                    }
-                    }
-
-                        for(unsigned int firstvalue=0; firstvalue<6; firstvalue++)
-                        {
-                        noalias(g)= ZeroVector((*it)->GetGeometry().size());
-
-                        noalias(b)= ZeroVector((*it)->GetGeometry().size());
-        						//Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
-        						// see Jiao + Heath "Common-refinement-based data tranfer ..."
-        						// International Journal for numerical methods in engineering 61 (2004) 2402--2427
-        						// for general description of L_2-Minimization
-
-                        Matrix InvJ(3,3);
-                        double DetJ;
-                        for(unsigned int point=0; point< integration_points.size(); point++)
-                        {
-                        MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
-
-                        double dV= DetJ*integration_points[point].Weight();
-
-                        for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
-                        {
-                        b(prim)
-                        +=(ValuesOnIntPoint[point](firstvalue))
-                        *Ncontainer(point, prim)*dV;
-                    }
-                    }
-
-                        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
-
-                        for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
-                        {
-                        (*it)->GetGeometry()[prim].GetSolutionStepValue(rThisVariable)(firstvalue)
-                        = g(prim);
-                    }
-                    }//END firstvalue
-                    }
-        				*/
+#ifdef _OPENMP
+        //create the array of lock
+        std::vector< omp_lock_t > lock_array(M.size1());
+        unsigned int M_size = M.size1();
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_init_lock(&lock_array[i]);
+#endif
 
 
-//                 std::cout << "line 866" << std::endl;
-
-        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
-                it != ElementsArray.ptr_end(); ++it )
+//        Timer::Start("Assemble Transferred stiffness matrix");
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for(int k = 0; k < number_of_threads; ++k)
         {
-            const IntegrationPointsArrayType& integration_points
-            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
-
-            GeometryType::JacobiansType J(integration_points.size());
-            J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
-
-            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
-
-            Matrix InvJ(3,3);
-            double DetJ;
-            for(unsigned int point=0; point< integration_points.size(); point++)
+            ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+            ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+                
+            for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
-                MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
-
-                double dV= DetJ*integration_points[point].Weight();
-
-                for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
-                {
-                    for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
-                    {
-                        M(((*it)->GetGeometry()[prim].Id()-1),
-                          ((*it)->GetGeometry()[sec].Id()-1))+=
-                              Ncontainer(point, prim)*Ncontainer(point, sec)*dV;
-                    }
-                }
-            }
-        }
-
-//                 std::cout << "line 899" << std::endl;
-
-
-        for(unsigned int firstvalue=0; firstvalue<6; firstvalue++)
-        {
-//                     std::cout << "line 904" << std::endl;
-            noalias(g)= ZeroVector(model_part.NumberOfNodes());
-
-            noalias(b)= ZeroVector(model_part.NumberOfNodes());
-            //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
-            // see Jiao + Heath "Common-refinement-based data tranfer ..."
-            // International Journal for numerical methods in engineering 61 (2004) 2402--2427
-            // for general description of L_2-Minimization
-            for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
-                    it != ElementsArray.ptr_end();
-                    ++it )
-            {
-//                         std::cout << "line 916" << std::endl;
                 const IntegrationPointsArrayType& integration_points
-                = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
+                = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
 
                 GeometryType::JacobiansType J(integration_points.size());
                 J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
-                std::vector<Vector> ValuesOnIntPoint(integration_points.size());
-
-                (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
 
                 const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
 
@@ -1004,31 +1048,103 @@ public:
 
                     for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
                     {
-                        b(((*it)->GetGeometry()[prim].Id()-1))
-                        +=(ValuesOnIntPoint[point](firstvalue))
-                          *Ncontainer(point, prim)*dV;
+                        unsigned int row = ((*it)->GetGeometry()[prim].Id()-1);
+#ifdef _OPENMP
+                        omp_set_lock(&lock_array[row]);
+#endif
+                        for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
+                        {
+                            unsigned int col = ((*it)->GetGeometry()[sec].Id()-1);
+                            M(row, col)+= Ncontainer(point, prim)*Ncontainer(point, sec) * dV;
+                        }
+#ifdef _OPENMP
+                        omp_unset_lock(&lock_array[row]);
+#endif
+                    }
+                }
+                
+                ++show_progress;
+            }
+        }
+//        Timer::Stop("Assemble Transferred stiffness matrix");
+
+        for(unsigned int firstvalue = 0; firstvalue < 6; ++firstvalue)
+        {
+            noalias(g)= ZeroVector(model_part.NumberOfNodes());
+            noalias(b)= ZeroVector(model_part.NumberOfNodes());
+            //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
+            // see Jiao + Heath "Common-refinement-based data tranfer ..."
+            // International Journal for numerical methods in engineering 61 (2004) 2402--2427
+            // for general description of L_2-Minimization
+            
+//            Timer::Start("Assemble Transferred rhs vector");
+#ifdef _OPENMP
+            #pragma omp parallel for
+#endif
+            for(int k = 0; k < number_of_threads; ++k)
+            {
+                ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+                ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+            
+                for( ElementsArrayType::ptr_iterator it = it_begin;
+                        it != it_end;
+                        ++it )
+                {
+                    const IntegrationPointsArrayType& integration_points
+                    = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
+
+                    GeometryType::JacobiansType J(integration_points.size());
+                    J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+                    std::vector<Vector> ValuesOnIntPoint(integration_points.size());
+
+                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+
+                    const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+                    Matrix InvJ(3,3);
+                    double DetJ;
+                    for(unsigned int point=0; point< integration_points.size(); point++)
+                    {
+                        MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+
+                        double dV= DetJ*integration_points[point].Weight();
+
+                        for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+                        {
+                            unsigned int row = ((*it)->GetGeometry()[prim].Id()-1);
+#ifdef _OPENMP
+                            omp_set_lock(&lock_array[row]);
+#endif
+                            b(row) += (ValuesOnIntPoint[point](firstvalue)) * Ncontainer(point, prim) * dV;
+#ifdef _OPENMP
+                            omp_unset_lock(&lock_array[row]);
+#endif
+                        }
                     }
                 }
             }
+//            Timer::Stop("Assemble Transferred rhs vector");
 
-//                     std::cout << "line 943" << std::endl;
+//            Timer::Start("Transfer solve");
+            mpLinearSolver->Solve(M, g, b);
+//            Timer::Stop("Transfer solve");
 
-            SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
-
-//                     std::cout << "line 947" << std::endl;
-
+//            Timer::Start("Transfer result");
             for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
                     it != model_part.NodesEnd() ; it++)
             {
                 it->GetSolutionStepValue(rThisVariable)(firstvalue)
                 = g((it->Id()-1));
             }
-
-//                     std::cout << "line 956" << std::endl;
+//            Timer::Stop("Transfer result");
 
         }//END firstvalue
-
-//                 std::cout << "line 960" << std::endl;
+        
+#ifdef _OPENMP
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_destroy_lock(&lock_array[i]);
+#endif
+        std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
 
     /**
@@ -1046,74 +1162,240 @@ public:
      * will be created on nodal level while they are originally intended to be
      * stored on integration points!
                  */
+//    void TransferVariablesToNodes(ModelPart& model_part, Variable<double>& rThisVariable)
+//    {
+//        ElementsArrayType& ElementsArray= model_part.Elements();
+//        //loop over all master surfaces (global search)
+//        for(ModelPart::NodeIterator it = model_part.NodesBegin();
+//                it != model_part.NodesEnd() ; it++)
+//        {
+//            it->GetSolutionStepValue(rThisVariable)
+//            = 0.0;
+//        }
+// 
+//        //SetUpEquationSystem
+//        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+//        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+//        SpaceType::VectorType g(model_part.NumberOfNodes());
+//        noalias(g)= ZeroVector(model_part.NumberOfNodes());
+//        SpaceType::VectorType b(model_part.NumberOfNodes());
+//        noalias(b)= ZeroVector(model_part.NumberOfNodes());
+//        //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
+//        // see Jiao + Heath "Common-refinement-based data tranfer ..."
+//        // International Journal for numerical methods in engineering 61 (2004) 2402--2427
+//        // for general description of L_2-Minimization
+//        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
+//                it != ElementsArray.ptr_end();
+//                ++it )
+//        {
+//            const IntegrationPointsArrayType& integration_points
+//            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
+// 
+//            GeometryType::JacobiansType J(integration_points.size());
+//            J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+// 
+//            std::vector<double> ValuesOnIntPoint(integration_points.size());
+// 
+//            (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+// 
+//            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+// 
+//            Matrix InvJ(3,3);
+//            double DetJ;
+// 
+//            for(unsigned int point=0; point< integration_points.size(); point++)
+//            {
+//                MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+// 
+//                double dV= DetJ*integration_points[point].Weight();
+//                for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+//                {
+//                    b(((*it)->GetGeometry()[prim].Id()-1))
+//                    +=(ValuesOnIntPoint[point])
+//                      *Ncontainer(point, prim)*dV;
+//                    for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
+//                    {
+//                        M(((*it)->GetGeometry()[prim].Id()-1),
+//                          ((*it)->GetGeometry()[sec].Id()-1))+=
+//                              Ncontainer(point, prim)*Ncontainer(point, sec)*dV;
+//                    }
+//                }
+//            }
+//        }
+//        mpLinearSolver->Solve(M, g, b);
+//        for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
+//                it != model_part.NodesEnd() ; it++)
+//        {
+//            it->GetSolutionStepValue(rThisVariable)
+//            = g((it->Id()-1));
+//        }
+//    }
     void TransferVariablesToNodes(ModelPart& model_part, Variable<double>& rThisVariable)
     {
         ElementsArrayType& ElementsArray= model_part.Elements();
-        //loop over all master surfaces (global search)
-        for(ModelPart::NodeIterator it = model_part.NodesBegin();
-                it != model_part.NodesEnd() ; it++)
-        {
-            it->GetSolutionStepValue(rThisVariable)
-            = 0.0;
-        }
+
+        //reset all values at node to zero// do not do this, some variable need the values at node, e.g. WATER_PRESSURE
+//        for(ModelPart::NodeIterator it = model_part.NodesBegin();
+//                it != model_part.NodesEnd() ; it++)
+//        {
+//            it->GetSolutionStepValue(rThisVariable) = 0.0;
+//        }
 
         //SetUpEquationSystem
-        SpaceType::MatrixType M(model_part.NumberOfNodes(),model_part.NumberOfNodes());
-        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(),model_part.NumberOfNodes());
+        SpaceType::MatrixType M(model_part.NumberOfNodes(), model_part.NumberOfNodes());
         SpaceType::VectorType g(model_part.NumberOfNodes());
-        noalias(g)= ZeroVector(model_part.NumberOfNodes());
         SpaceType::VectorType b(model_part.NumberOfNodes());
-        noalias(b)= ZeroVector(model_part.NumberOfNodes());
-        //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
-        // see Jiao + Heath "Common-refinement-based data tranfer ..."
-        // International Journal for numerical methods in engineering 61 (2004) 2402--2427
-        // for general description of L_2-Minimization
-        for( ElementsArrayType::ptr_iterator it = ElementsArray.ptr_begin();
-                it != ElementsArray.ptr_end();
-                ++it )
+        noalias(M)= ZeroMatrix(model_part.NumberOfNodes(), model_part.NumberOfNodes());
+
+        int number_of_threads = 1;
+#ifdef _OPENMP
+        number_of_threads = omp_get_max_threads();
+#endif
+        vector<unsigned int> element_partition;
+        CreatePartition(number_of_threads, ElementsArray.size(), element_partition);
+        boost::progress_display show_progress( ElementsArray.size() );
+
+        // create the structure for M a priori
+//        Timer::Start("ConstructMatrixStructure");
+        ConstructMatrixStructure(M, ElementsArray, model_part.GetProcessInfo());
+//        Timer::Stop("ConstructMatrixStructure");
+
+#ifdef _OPENMP
+        //create the array of lock
+        std::vector< omp_lock_t > lock_array(M.size1());
+        unsigned int M_size = M.size1();
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_init_lock(&lock_array[i]);
+#endif
+
+
+//        Timer::Start("Assemble Transferred stiffness matrix");
+#ifdef _OPENMP
+        #pragma omp parallel for
+#endif
+        for(int k = 0; k < number_of_threads; ++k)
         {
-            const IntegrationPointsArrayType& integration_points
-            = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
-
-            GeometryType::JacobiansType J(integration_points.size());
-            J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
-
-            std::vector<double> ValuesOnIntPoint(integration_points.size());
-
-            (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
-
-            const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
-
-            Matrix InvJ(3,3);
-            double DetJ;
-
-            for(unsigned int point=0; point< integration_points.size(); point++)
+            ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+            ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+                
+            for( ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it )
             {
-                MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+                const IntegrationPointsArrayType& integration_points
+                = (*it)->GetGeometry().IntegrationPoints((*it)->GetIntegrationMethod());
 
-                double dV= DetJ*integration_points[point].Weight();
-                for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+                GeometryType::JacobiansType J(integration_points.size());
+                J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+
+                const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+                Matrix InvJ(3,3);
+                double DetJ;
+                for(unsigned int point=0; point< integration_points.size(); point++)
                 {
-                    b(((*it)->GetGeometry()[prim].Id()-1))
-                    +=(ValuesOnIntPoint[point])
-                      *Ncontainer(point, prim)*dV;
-                    for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
+                    MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+
+                    double dV= DetJ*integration_points[point].Weight();
+
+                    for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
                     {
-                        M(((*it)->GetGeometry()[prim].Id()-1),
-                          ((*it)->GetGeometry()[sec].Id()-1))+=
-                              Ncontainer(point, prim)*Ncontainer(point, sec)*dV;
+                        unsigned int row = ((*it)->GetGeometry()[prim].Id()-1);
+#ifdef _OPENMP
+                        omp_set_lock(&lock_array[row]);
+#endif
+                        for(unsigned int sec=0 ; sec<(*it)->GetGeometry().size(); sec++)
+                        {
+                            unsigned int col = ((*it)->GetGeometry()[sec].Id()-1);
+                            M(row, col)+= Ncontainer(point, prim)*Ncontainer(point, sec) * dV;
+                        }
+#ifdef _OPENMP
+                        omp_unset_lock(&lock_array[row]);
+#endif
+                    }
+                }
+                
+                ++show_progress;
+            }
+        }
+//        Timer::Stop("Assemble Transferred stiffness matrix");
+
+            noalias(g)= ZeroVector(model_part.NumberOfNodes());
+            noalias(b)= ZeroVector(model_part.NumberOfNodes());
+            //Transfer of GaussianVariables to Nodal Variablias via L_2-Minimization
+            // see Jiao + Heath "Common-refinement-based data tranfer ..."
+            // International Journal for numerical methods in engineering 61 (2004) 2402--2427
+            // for general description of L_2-Minimization
+            
+//            Timer::Start("Assemble Transferred rhs vector");
+#ifdef _OPENMP
+            #pragma omp parallel for
+#endif
+            for(int k = 0; k < number_of_threads; ++k)
+            {
+                ElementsArrayType::ptr_iterator it_begin = ElementsArray.ptr_begin() + element_partition[k];
+                ElementsArrayType::ptr_iterator it_end = ElementsArray.ptr_begin() + element_partition[k+1];
+            
+                for( ElementsArrayType::ptr_iterator it = it_begin;
+                        it != it_end;
+                        ++it )
+                {
+                    const IntegrationPointsArrayType& integration_points
+                    = (*it)->GetGeometry().IntegrationPoints( (*it)->GetIntegrationMethod());
+
+                    GeometryType::JacobiansType J(integration_points.size());
+                    J = (*it)->GetGeometry().Jacobian(J, (*it)->GetIntegrationMethod());
+                    std::vector<double> ValuesOnIntPoint(integration_points.size());
+
+                    (*it)->GetValueOnIntegrationPoints(rThisVariable, ValuesOnIntPoint, model_part.GetProcessInfo());
+//                    std::cout << "ValuesOnIntPoint at element " << (*it)->Id() << ":";
+//                    for(std::size_t i = 0; i < integration_points.size(); ++i)
+//                        std::cout << " " << ValuesOnIntPoint[i];
+//                    std::cout << std::endl;
+
+                    const Matrix& Ncontainer = (*it)->GetGeometry().ShapeFunctionsValues((*it)->GetIntegrationMethod());
+
+                    Matrix InvJ(3,3);
+                    double DetJ;
+                    for(unsigned int point=0; point< integration_points.size(); point++)
+                    {
+                        MathUtils<double>::InvertMatrix(J[point],InvJ,DetJ);
+
+                        double dV= DetJ*integration_points[point].Weight();
+
+                        for(unsigned int prim=0 ; prim<(*it)->GetGeometry().size(); prim++)
+                        {
+                            unsigned int row = ((*it)->GetGeometry()[prim].Id()-1);
+#ifdef _OPENMP
+                            omp_set_lock(&lock_array[row]);
+#endif
+                            b(row) += ValuesOnIntPoint[point] * Ncontainer(point, prim) * dV;
+#ifdef _OPENMP
+                            omp_unset_lock(&lock_array[row]);
+#endif
+                        }
                     }
                 }
             }
-        }
-        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
-        for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
-                it != model_part.NodesEnd() ; it++)
-        {
-            it->GetSolutionStepValue(rThisVariable)
-            = g((it->Id()-1));
-        }
+//            Timer::Stop("Assemble Transferred rhs vector");
+
+//            Timer::Start("Transfer solve");
+            mpLinearSolver->Solve(M, g, b);
+//            Timer::Stop("Transfer solve");
+
+//            Timer::Start("Transfer result");
+            for(ModelPart::NodeIterator it = model_part.NodesBegin() ;
+                    it != model_part.NodesEnd() ; it++)
+            {
+                it->GetSolutionStepValue(rThisVariable) = g((it->Id()-1));
+            }
+//            Timer::Stop("Transfer result");
+
+#ifdef _OPENMP
+        for(unsigned int i = 0; i < M_size; ++i)
+            omp_destroy_lock(&lock_array[i]);
+#endif
+        std::cout << "TransferVariablesToNodes for " << rThisVariable.Name() << " completed" << std::endl;
     }
+
     /**
      * Transfer of rThisVariable stored on nodes form source mesh to target mesh.
      * The transformation is done in a way that ensures a minimization
@@ -1240,7 +1522,7 @@ public:
                     }
                 }
 
-                SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+                mpLinearSolver->Solve(M, g, b);
                 for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                         it != rTarget.NodesEnd() ; it++)
                 {
@@ -1373,7 +1655,7 @@ public:
                     }
                 }
             }
-            SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+            mpLinearSolver->Solve(M, g, b);
             for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                     it != rTarget.NodesEnd() ; it++)
             {
@@ -1475,7 +1757,7 @@ public:
                 }
             }
         }
-        SkylineLUFactorizationSolver<SpaceType, SpaceType>().Solve(M, g, b);
+        mpLinearSolver->Solve(M, g, b);
         for(ModelPart::NodeIterator it = rTarget.NodesBegin() ;
                 it != rTarget.NodesEnd() ; it++)
         {
@@ -1483,6 +1765,7 @@ public:
             = g((it->Id()-1));
         }
     }
+
     /**
      * Auxiliary function.
      * This one calculates the target value of given Variable by shape-function-based
@@ -1501,18 +1784,19 @@ public:
                                 const Variable<Kratos::Matrix>& rThisVariable )
     {
         Matrix newValue(3,3);
-        noalias(newValue)= ZeroMatrix(3,3);
+        noalias(newValue) = ZeroMatrix(3,3);
         Matrix temp(3,3);
 
+        Vector shape_functions_values;
+        shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
+        
         for(unsigned int i=0; i< oldElement.GetGeometry().size(); i++)
         {
-            noalias(temp)= oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
+            noalias(temp) = oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
 
             for(unsigned int k=0; k<3; k++)
                 for(unsigned int l=0; l<3; l++)
-                    newValue(k,l)
-                    +=oldElement.GetGeometry().ShapeFunctionValue( i, localPoint)
-                      *temp(k,l);
+                    newValue(k,l) += shape_functions_values[i] * temp(k,l);
         }
 
         return newValue;
@@ -1539,11 +1823,14 @@ public:
         noalias(newValue) = ZeroVector(6);
         Vector temp(6);
 
+        Vector shape_functions_values;
+        shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
+        
         for(unsigned int i=0; i<oldElement.GetGeometry().size(); i++)
         {
             noalias(temp)= oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
             for(unsigned int k=0; k<6; k++)
-                newValue(k) +=oldElement.GetGeometry().ShapeFunctionValue( i, localPoint)*temp(k);
+                newValue(k) += shape_functions_values[i] * temp(k);
         }
         return newValue;
     }
@@ -1581,11 +1868,12 @@ public:
                                    sourceElement.GetGeometry()(0),sourceElement.GetGeometry()(1),
                                    sourceElement.GetGeometry()(2),sourceElement.GetGeometry()(3)));
 
+        Vector shape_functions_values;
+        shape_functions_values = pPressureGeometry->ShapeFunctionsValues(shape_functions_values, targetPoint);
+        
         for(unsigned int i= 0; i< pPressureGeometry->size(); i++)
         {
-            newValue+=
-                pPressureGeometry->ShapeFunctionValue( i, targetPoint)
-                *sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
+            newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
         }
         return newValue;
     }
@@ -1609,11 +1897,12 @@ public:
     {
         double newValue = 0.0;
 
+        Vector shape_functions_values;
+        shape_functions_values = sourceElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, targetPoint);
+        
         for(unsigned int i= 0; i< sourceElement.GetGeometry().size(); i++)
         {
-            newValue+=
-                sourceElement.GetGeometry().ShapeFunctionValue( i, targetPoint)
-                *sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
+            newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
         }
         return newValue;
     }
@@ -1633,11 +1922,12 @@ public:
     {
         Vector newValue = ZeroVector(3);
 
+        Vector shape_functions_values;
+        shape_functions_values = sourceElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, targetPoint);
+        
         for(unsigned int i=0; i<sourceElement.GetGeometry().size(); i++)
         {
-            newValue+=
-                sourceElement.GetGeometry().ShapeFunctionValue( i, targetPoint)
-                *sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
+            newValue += shape_functions_values[i] * sourceElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable);
         }
         return newValue;
     }
@@ -1670,7 +1960,7 @@ public:
             double minDist = 1.0e120;
             newMinDistFound= false;
             OldElementsSet->clear();
-            //loop over all master surfaces (global search)
+            //loop over all master surfaces (global search) // this is brute force search and should be optimized
             for( ElementsArrayType::ptr_iterator it = OldMeshElementsArray.ptr_begin();
                     it != OldMeshElementsArray.ptr_end(); ++it )
             {
@@ -1728,7 +2018,7 @@ public:
         }
         while(newMinDistFound);
 
-        if(!partner_found)
+        if(!partner_found && GetEchoLevel() > 0)
             std::cout<<" !!!! NO PARTNER FOUND !!!! "<<std::endl;
         return partner_found;
     }
@@ -1753,13 +2043,13 @@ public:
     double ValueMatrixInOldMesh(Element& oldElement, Point<3>&  localPoint,
                                 const Variable<Kratos::Matrix>& rThisVariable, unsigned int firstvalue, unsigned int secondvalue )
     {
-        double newValue= 0.0;
+        double newValue = 0.0;
+        Vector shape_functions_values;
+        shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
 
-        for(unsigned int i=0; i<oldElement.GetGeometry().size(); i++)
+        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
-            newValue
-            +=oldElement.GetGeometry().ShapeFunctionValue( i, localPoint)
-              *oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue,secondvalue);
+            newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue,secondvalue);
         }
         return newValue;
     }
@@ -1776,21 +2066,128 @@ public:
      * @param firstvalue index
      * @see ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
     const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue)
-                 */
+     */
     double ValueVectorInOldMesh(Element& oldElement, Point<3>&  localPoint,
                                 const Variable<Kratos::Vector>& rThisVariable, unsigned int firstvalue )
     {
-        double newValue= 0.0;
-
-        for(unsigned int i=0; i<oldElement.GetGeometry().size(); i++)
+        double newValue = 0.0;
+        Vector shape_functions_values;
+        shape_functions_values = oldElement.GetGeometry().ShapeFunctionsValues(shape_functions_values, localPoint);
+        
+        for(unsigned int i = 0; i < oldElement.GetGeometry().size(); ++i)
         {
-            newValue
-            +=oldElement.GetGeometry().ShapeFunctionValue( i, localPoint)
-              *oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
+            newValue += shape_functions_values[i] * oldElement.GetGeometry()[i].GetSolutionStepValue(rThisVariable)(firstvalue);
         }
         return newValue;
     }
+    
+protected:
+    LinearSolverType::Pointer mpLinearSolver;
+    
+    //**********AUXILIARY FUNCTION**************************************************************
+    //******************************************************************************************
+    void ConstructMatrixStructure (
+        SpaceType::MatrixType& A,
+        ElementsArrayType& rElements,
+        ProcessInfo& CurrentProcessInfo
+    )
+    {
+        std::size_t equation_size = A.size1();
+        std::vector<std::vector<std::size_t> > indices(equation_size);
 
+        Element::EquationIdVectorType ids;
+        for(typename ElementsArrayType::iterator i_element = rElements.begin() ; i_element != rElements.end() ; ++i_element)
+        {
+            if( ! (i_element)->GetValue( IS_INACTIVE ) )
+            {
+                ids.resize((i_element)->GetGeometry().size());
+                for(unsigned int i = 0; i < (i_element)->GetGeometry().size();  ++i)
+                {
+                    ids[i] = (i_element)->GetGeometry()[i].Id() - 1;
+                }
+
+                for(std::size_t i = 0 ; i < ids.size() ; ++i)
+                {
+                    if(ids[i] < equation_size)
+                    {
+                        std::vector<std::size_t>& row_indices = indices[ids[i]];
+                        for(std::size_t j = 0 ; j < ids.size() ; j++)
+                        {
+                            if(ids[j] < equation_size)
+                            {
+                                AddUnique(row_indices,ids[j]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //allocating the memory needed
+        int data_size = 0;
+        for(std::size_t i = 0 ; i < indices.size() ; i++)
+        {
+            data_size += indices[i].size();
+        }
+        A.reserve(data_size, false);
+
+        //filling with zero the matrix (creating the structure)
+#ifndef _OPENMP
+        for(std::size_t i = 0 ; i < indices.size() ; i++)
+        {
+            std::vector<std::size_t>& row_indices = indices[i];
+            std::sort(row_indices.begin(), row_indices.end());
+
+            for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
+            {
+                A.push_back(i,*it,0.00);
+            }
+            row_indices.clear();
+        }
+#else
+        int number_of_threads = omp_get_max_threads();
+        vector<unsigned int> matrix_partition;
+        CreatePartition(number_of_threads, indices.size(), matrix_partition);
+        for( int k=0; k<number_of_threads; k++ )
+        {
+            #pragma omp parallel
+            if( omp_get_thread_num() == k )
+            {
+                for( std::size_t i = matrix_partition[k]; i < matrix_partition[k+1]; i++ )
+                {
+                    std::vector<std::size_t>& row_indices = indices[i];
+                    std::sort(row_indices.begin(), row_indices.end());
+
+                    for(std::vector<std::size_t>::iterator it= row_indices.begin(); it != row_indices.end() ; it++)
+                    {
+                        A.push_back(i, *it, 0.00);
+                    }
+                    row_indices.clear();
+                }
+            }
+        }
+#endif
+    }
+    
+    //**********AUXILIARY FUNCTION**************************************************************
+    //******************************************************************************************
+    inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
+    {
+        std::vector<std::size_t>::iterator i = v.begin();
+        std::vector<std::size_t>::iterator endit = v.end();
+        while ( i != endit && (*i) != candidate)
+        {
+            ++i;
+        }
+        if( i == endit )
+        {
+            v.push_back(candidate);
+        }
+
+    }
+    
+    //**********AUXILIARY FUNCTION**************************************************************
+    //******************************************************************************************
     inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads+1);
@@ -1801,6 +2198,12 @@ public:
             partitions[i] = partitions[i-1] + partition_size ;
     }
 
+private:
+    int mEchoLevel;
+    
+    
+    
+    
 };//Class Scheme
 }//namespace Kratos.
 
