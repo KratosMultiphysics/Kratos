@@ -190,7 +190,7 @@ void LineForce::CalculateRightHandSide( VectorType& rRightHandSideVector,
         
         double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
 
-        if(dim == 2) IntegrationWeight *= GetProperties()[THICKNESS];
+//        if(dim == 2) IntegrationWeight *= GetProperties()[THICKNESS]; // TODO: check
 
         Vector t = ZeroVector( dim );//tangential vector
         for ( unsigned int n = 0; n < GetGeometry().size(); ++n )
