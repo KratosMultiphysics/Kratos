@@ -51,8 +51,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED )
-#define  KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED
+#if !defined(KRATOS_DEACTIVATION_UTILITY_INCLUDED )
+#define  KRATOS_DEACTIVATION_UTILITY_INCLUDED
 
 // System includes
 #include <string>
@@ -102,14 +102,22 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( DeactivationUtility );
 
     /**
-     * Constructor.
-     * The constructor takes the current model_part as argument.
+     * Default Constructor.
      * Please note that reactivation of elements does only work
      * as long as the process that deactivated the elements before
      * is living.
-                 */
+     */
     DeactivationUtility()
     {
+        mEchoLevel = 1;
+    }
+
+    /**
+     * Constructor with echo level
+     */
+    DeactivationUtility(int EchoLevel)
+    {
+        mEchoLevel = EchoLevel;
     }
 
     /**
@@ -126,7 +134,9 @@ public:
      */
     void Initialize( ModelPart& model_part )
     {
-        std::cout << "initializing deactivation utility" << std::endl;
+        if(mEchoLevel > 0)
+            std::cout << "initializing deactivation utility" << std::endl;
+
         //initializing elements
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
@@ -162,7 +172,9 @@ public:
             }
             (*it)->Initialize();
         }
-        std::cout << "deactivation utility initialized" << std::endl;
+
+        if(mEchoLevel > 0)
+            std::cout << "deactivation utility initialized" << std::endl;
     }
 
     /**
@@ -307,7 +319,7 @@ public:
      */
     virtual std::string Info() const
     {
-        return "TrilinosDeactivationUtility";
+        return "DeactivationUtility";
     }
 
     /**
@@ -315,7 +327,7 @@ public:
      */
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "TrilinosDeactivationUtility";
+        rOStream << "DeactivationUtility";
     }
 
     /**
@@ -332,19 +344,20 @@ private:
      */
     PointerVector<Element> mDeactivatedElements;
     PointerVector<Condition> mDeactivatedConditions;
+    int mEchoLevel;
 
     /**
      * Assignment operator
      */
-    //TrilinosDeactivationUtility& operator=(TrilinosDeactivationUtility const& rOther);
+    //DeactivationUtility& operator=(DeactivationUtility const& rOther);
 
     /**
      * Copy constructor
      */
-    //TrilinosDeactivationUtility(TrilinosDeactivationUtility const& rOther);
+    //DeactivationUtility(DeactivationUtility const& rOther);
 
-};//class TrilinosDeactivationUtility
+};//class DeactivationUtility
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED  defined 
+#endif // KRATOS_DEACTIVATION_UTILITY_INCLUDED  defined 
