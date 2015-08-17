@@ -207,7 +207,7 @@ void  AddCustomUtilitiesToPython()
 
     class_<VariableTransferUtility, boost::noncopyable >
     ( "VariableTransferUtility", init<>() )
-    .def(init<typename VariableTransferUtility::LinearSolverType::Pointer>())
+    .def(init<VariableTransferUtility::LinearSolverType::Pointer>())
     .def( "TransferNodalVariables", &VariableTransferUtility::TransferNodalVariables )
     .def( "TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
     .def( "TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
