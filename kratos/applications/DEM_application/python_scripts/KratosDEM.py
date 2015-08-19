@@ -138,7 +138,7 @@ solver.AddDofs(DEM_inlet_model_part)
 
 # Creating necessary directories
 main_path = os.getcwd()
-[post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+[post_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
 
 os.chdir(main_path)
 
@@ -165,7 +165,7 @@ os.chdir(post_path)
 
 multifiles = (
     DEM_procedures.MultifileList(DEM_parameters.problem_name,1 ),
-    DEM_procedures.MultifileList(DEM_parameters.problem_name, 2),
+    DEM_procedures.MultifileList(DEM_parameters.problem_name,2 ),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,5 ),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,10),
     DEM_procedures.MultifileList(DEM_parameters.problem_name,20),
@@ -350,7 +350,6 @@ while ( time < DEM_parameters.FinalTime):
 
         #properties_list = ProceduresMonitorPhysicalProperties(spheres_model_part, physics_calculator, properties_list)
 
-        os.chdir(list_path)
         demio.PrintMultifileLists(time, post_path)
         os.chdir(main_path)
 

@@ -27,7 +27,7 @@ class MdpaCreator(object):
 
         # Creating necessary directories
 
-        self.post_mdpas = str(self.current_path) + '/' + str(self.DEM_parameters.problem_name) + '_post_mdpas'
+        self.post_mdpas = os.path.join(str(self.current_path), str(self.DEM_parameters.problem_name) + '_post_mdpas')
         os.chdir(self.current_path)
         if not os.path.isdir(self.post_mdpas):
             os.makedirs(str(self.post_mdpas))
@@ -542,21 +542,20 @@ class Procedures(object):
 
     def CreateDirectories(self, main_path, problem_name):
         
-        root             = main_path + '/' + problem_name
+        root             = os.path.join(main_path, problem_name)
         post_path        = root + '_Post_Files'
-        list_path        = root + '_Post_Lists'
         data_and_results = root + '_Results_and_Data'
         graphs_path      = root + '_Graphs'
         MPI_results      = root + '_MPI_results'
 
-        shutil.rmtree(main_path + '/' + problem_name + '_Post_Files', ignore_errors = True)
-        shutil.rmtree(main_path + '/' + problem_name + '_Graphs', ignore_errors = True)
+        shutil.rmtree( os.path.join(main_path, problem_name + '_Post_Files'), ignore_errors = True)
+        shutil.rmtree( os.path.join(main_path, problem_name + '_Graphs'    ), ignore_errors = True)
         
-        for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
+        for directory in [post_path, data_and_results, graphs_path, MPI_results]:
             if not os.path.isdir(directory):
                 os.makedirs(str(directory))
 
-        return [post_path,list_path,data_and_results,graphs_path,MPI_results]
+        return [post_path,data_and_results,graphs_path,MPI_results]
     
     def FindMaxNodeIdInModelPart(self, model_part):
 
@@ -923,7 +922,7 @@ class Report(object):
                 + "in hours:"   + str(estimated_sim_duration / 3600.0)  + "hrs." + "\n"\
                 + "in days:"    + str(estimated_sim_duration / 86400.0) + "days" + "\n" 
 
-            if ((estimated_sim_duration / 86400) > 2.0):
+            if ((estimated_sim_duration / 86400.0) > 2.0):
                 report = report +"WARNING!!!:       VERY LASTING CALCULATION" + "\n"
 
         return report
@@ -1165,10 +1164,10 @@ class DEMIo(object):
             if mfilelist.index == mfilelist.step:
                 
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.bin\n")
+                    mfilelist.file.write(os.path.join(post_path,mfilelist.name+"_"+"%.12g"%time+".post.bin\n"))
                 else:
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.msh\n")
-                    mfilelist.file.write(post_path+"/"+mfilelist.name+"_"+"%.12g"%time+".post.res\n")
+                    mfilelist.file.write(os.path.join(post_path,mfilelist.name+"_"+"%.12g"%time+".post.msh\n"))
+                    mfilelist.file.write(os.path.join(post_path,mfilelist.name+"_"+"%.12g"%time+".post.res\n"))
                 mfilelist.file.flush()
                 mfilelist.index = 0
             mfilelist.index += 1
