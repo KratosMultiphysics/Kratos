@@ -1164,10 +1164,10 @@ class DEMIo(object):
             if mfilelist.index == mfilelist.step:
                 
                 if (self.encoding == GiDPostMode.GiD_PostBinary):
-                    mfilelist.file.write(os.path.join(post_path,mfilelist.name+"_"+"%.12g"%time+".post.bin\n"))
+                    mfilelist.file.write(mfilelist.name+"_"+"%.12g"%time+".post.bin\n")
                 else:
-                    mfilelist.file.write(os.path.join(post_path,mfilelist.name+"_"+"%.12g"%time+".post.msh\n"))
-                    mfilelist.file.write(os.path.join(post_path,mfilelist.name+"_"+"%.12g"%time+".post.res\n"))
+                    mfilelist.file.write(mfilelist.name+"_"+"%.12g"%time+".post.msh\n")
+                    mfilelist.file.write(mfilelist.name+"_"+"%.12g"%time+".post.res\n")
                 mfilelist.file.flush()
                 mfilelist.index = 0
             mfilelist.index += 1
