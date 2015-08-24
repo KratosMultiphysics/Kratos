@@ -260,6 +260,12 @@ namespace Kratos
   //ALEApplication
   KRATOS_CREATE_VARIABLE( double, AUX_MESH_VAR )
 
+  //AdjointFluidApplication
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LAMBDA_VELOCITY )
+  KRATOS_CREATE_VARIABLE(double, LAMBDA_PRESSURE )
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY )
+  KRATOS_CREATE_VARIABLE(double, NORMAL_SENSITIVITY )
+
   //for Electric application
   KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL )
   KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL_DT )
@@ -997,6 +1003,14 @@ namespace Kratos
       
 
       //--------------- ALE Application -------------------//
+
+      //--------------- Adjoint Fluid Application -------------------//
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LAMBDA_VELOCITY );
+      KRATOS_REGISTER_VARIABLE( LAMBDA_PRESSURE );
+      KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY );
+      KRATOS_REGISTER_VARIABLE( NORMAL_SENSITIVITY );
+          
+      //--------------- Adjoint Fluid Application -------------------//
 
       //--------------- FOTOELECTRIC Application -------------------//
 
