@@ -140,6 +140,62 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         return BeamProperties
 
 
+    if(SectionType == "UserDefined"):
+
+        if (len(SectionData) < 1):
+            print("Error, Section needs at least the size of section to be given in SectionData")
+            raise
+
+        area   = SectionData[0]
+        radius = sqrt(area)
+
+        inertia_z = SectionData[1]
+        inertia_y = SectionData[2]
+        inertia_polar = inertia_z + inertia_y
+
+        inertia = Matrix(2, 2)
+        inertia[0, 0] = inertia_z
+        inertia[0, 1] = inertia_polar
+        inertia[1, 0] = inertia_polar
+        inertia[1, 1] = inertia_y
+
+        BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(CROSS_AREA, area)
+        BeamProperties.SetValue(MEAN_RADIUS, radius)
+        sides = 25
+        BeamProperties.SetValue(SECTION_SIDES, sides)
+
+        return BeamProperties
+
+
+def SetMaterialProperties(ConstitutiveType, MaterialData, BeamProperties):
+
+    if(ConstitutiveType == "UserDefined"):
+
+        if (len(MaterialData) < 1):
+            print("Error, Material needs some material properties given in MaterialData")
+            raise
+        
+        ConstitutiveMatrix = Matrix(6,6)
+
+        for i in range(0,6):
+            for j in range(0,6):
+                ConstitutiveMatrix[i,j] = 0
+
+        ConstitutiveMatrix[0,0] = MaterialData[1]  # GAy
+        ConstitutiveMatrix[1,1] = MaterialData[1]  # GAz
+        ConstitutiveMatrix[2,2] = MaterialData[0]  # EA
+        
+        ConstitutiveMatrix[3,3] = MaterialData[2]  # EIy
+        ConstitutiveMatrix[4,4] = MaterialData[3]  # EIz
+        ConstitutiveMatrix[5,5] = MaterialData[4]  # GJ
+        
+        
+        BeamProperties.SetValue(LOCAL_CONSTITUTIVE_MATRIX, ConstitutiveMatrix)
+        
+    return BeamProperties
+
+
 def searchCVSValues(properties_filename, shape, size):
     separator = ";"
 

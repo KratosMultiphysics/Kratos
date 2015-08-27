@@ -138,6 +138,8 @@ void SurfaceLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
 
     //auxiliar computation
 
+    //std::cout<<" PointNumber "<<rPointNumber<<" rVarables.J "<<rVariables.J[rPointNumber]<<std::endl;
+
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0);
     rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0);

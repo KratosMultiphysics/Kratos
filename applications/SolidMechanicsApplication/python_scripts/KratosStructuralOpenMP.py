@@ -76,7 +76,9 @@ def SetParallelSize(num_threads):
 echo_level   = general_variables.echo_level
 problem_type = general_variables.ProblemType
 problem_name = general_variables.problem_name
-problem_path = general_variables.problem_path
+
+#problem_path = general_variables.problem_path #fixed path
+problem_path  = os.getcwd() #current path
 
 # defining a model part
 model_part = ModelPart("Solid Domain")

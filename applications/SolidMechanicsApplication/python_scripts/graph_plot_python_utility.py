@@ -58,7 +58,29 @@ class GraphPlotUtility:
             figure_file = open(figure_path, "w")
             line_header  = "Time " + str(self.x_var) + " " + str(self.y_var) + " " +str(self.x_var)+"_X "+str(self.x_var)+"_Y "+str(self.x_var)+"_Z "+str(self.y_var)+"_X "+str(self.y_var)+"_Y "+str(self.y_var)+"_Z "+"\n"
             figure_file.write(line_header)
+            line_header  = "0 0 0 0 0 0 0 0 0\n"
+            figure_file.write(line_header)
             figure_file.close()
+
+        time = self.GetStepTime()
+        
+        X_value = self.GetStepVariable(self.x_var)
+        Y_value = self.GetStepVariable(self.y_var)
+
+        X_value_norm = self.Get3DArrayModulus(X_value)
+        Y_value_norm = self.Get3DArrayModulus(Y_value)
+
+        self.Time.append(time)
+       
+        self.X.append(X_value_norm)
+        self.X_x.append(X_value[0])
+        self.X_y.append(X_value[1])
+        self.X_z.append(X_value[2])
+
+        self.Y.append(Y_value_norm)
+        self.Y_x.append(Y_value[0])
+        self.Y_y.append(Y_value[1])
+        self.Y_z.append(Y_value[2])
 
     #
     def SetPlotVariables(self, x_variable, y_variable, mesh_id):

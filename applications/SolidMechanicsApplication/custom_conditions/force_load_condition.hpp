@@ -247,10 +247,21 @@ public:
 
     //************* STARTING - ENDING  METHODS
 
+
+    /**
+     * Called at the beginning of each solution step
+     */
+    void Initialize();
+
     /**
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Called at the beginning of each iteration
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
 
     //************* GETTING METHODS
@@ -380,6 +391,23 @@ public:
 					 Variable<array_1d<double,3> >& rDestinationVariable, 
 					 const ProcessInfo& rCurrentProcessInfo);
 
+
+    /**
+     * Get on rVariable a double Value
+     */
+    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
+				      std::vector<double>& rValues, 
+				      const ProcessInfo& rCurrentProcessInfo );
+
+    /**
+     * Calculate a double Variable
+     */
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
+				      std::vector<double>& rOutput, 
+				      const ProcessInfo& rCurrentProcessInfo);
+
+
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -416,6 +444,12 @@ protected:
      * Currently selected integration methods
      */
     IntegrationMethod mThisIntegrationMethod;
+
+    
+    /**
+     * Energy variable for loads
+     */
+    double mEnergy; 
 
     ///@}
     ///@name Protected Operators
@@ -500,6 +534,19 @@ protected:
 					       GeneralVariables& rVariables,
 					       Vector& rVectorLoad,
 					       double& rIntegrationWeight );
+
+
+    /**
+     * Get Node Movements for energy computation
+     */
+    void GetCurrentNodalMovements(Vector& rValues, const int& rNode);
+
+
+    /**
+     * Get Current Value, buffer 0 with FastGetSolutionStepValue
+     */    
+    Vector& GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
+
 
     ///@}
     ///@name Protected  Access

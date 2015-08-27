@@ -547,16 +547,19 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
         KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
     }
     
-    rValues.SetDeterminantF0(rVariables.detF0);
-    rValues.SetDeformationGradientF0(rVariables.F0);
-    rValues.SetDeterminantF(rVariables.detF);
-    rValues.SetDeformationGradientF(rVariables.F);
+    //Compute total F: FT 
+    rVariables.detFT = rVariables.detF * rVariables.detF0;
+    rVariables.FT    = prod( rVariables.F, rVariables.F0 );
+
+    rValues.SetDeterminantF(rVariables.detFT);
+    rValues.SetDeformationGradientF(rVariables.FT);
     rValues.SetStrainVector(rVariables.StrainVector);
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rVariables.N);
 }
+
 
 //************************************************************************************
 //************************************************************************************
@@ -577,6 +580,8 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
 
     rVariables.detF0 = 1;
 
+    rVariables.detFT = 1;
+
     rVariables.detJ = 1;
 
     rVariables.B.resize( voigtsize , number_of_nodes * dimension );
@@ -584,6 +589,8 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
     rVariables.F.resize( dimension, dimension );
 
     rVariables.F0.resize( dimension, dimension );
+
+    rVariables.FT.resize( dimension, dimension );
 
     rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
 
@@ -606,6 +613,14 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
 
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+  void LargeDisplacementElement::TransformGeneralVariables(GeneralVariables& rVariables, const double& rPointNumber)
+{
+
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -682,6 +697,9 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
 
         //compute stresses and constitutive parameters
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+	//some transformation of the configuration can be needed (UL element specially)
+        this->TransformGeneralVariables(Variables,PointNumber);
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
@@ -1748,8 +1766,10 @@ void LargeDisplacementElement::CalculateDampingMatrix( MatrixType& rDampingMatri
 void LargeDisplacementElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
 {
     //Deformation Gradient F ( set to identity )
+    unsigned int size =  rVariables.F.size1();
+
     rVariables.detF  = 1;
-    rVariables.F     = IdentityMatrix(3);
+    rVariables.F     = IdentityMatrix(size);
 
 }
 
@@ -1928,14 +1948,14 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 	    //to take in account previous step writing
 	    if( mFinalizedStep ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
-	      Variables.F = prod(Variables.F,Variables.F0);
+	      Variables.FT = prod(Variables.F,Variables.F0);
 	    }	
 
             //Compute Green-Lagrange Strain
             if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
-                this->CalculateGreenLagrangeStrain( Variables.F, Variables.StrainVector );
+                this->CalculateGreenLagrangeStrain( Variables.FT, Variables.StrainVector );
             else
-                this->CalculateAlmansiStrain( Variables.F, Variables.StrainVector );
+                this->CalculateAlmansiStrain( Variables.FT, Variables.StrainVector );
 
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
                 rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
@@ -2020,7 +2040,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        //ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION); //contact domain formulation UL
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -2032,8 +2051,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-            //mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //contact domain formulation UL
-	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values); //contact domain formulation SL
+	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
             if( rOutput[PointNumber].size2() != Variables.ConstitutiveMatrix.size2() )
                 rOutput[PointNumber].resize( Variables.ConstitutiveMatrix.size1() , Variables.ConstitutiveMatrix.size2() , false );
@@ -2070,9 +2088,6 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
         }
     }
-
-
-
 
 
     KRATOS_CATCH( "" )
@@ -2130,7 +2145,7 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	    KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " )
 	  
 
-    //verify that the variables are correctly initialized
+    //verify that nodal variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
@@ -2144,8 +2159,46 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( DENSITY.Key() == 0 )
         KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
-    // if ( BODY_FORCE.Key() == 0 )
-    //     KRATOS_THROW_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+    if ( VOLUME_ACCELERATION.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+
+    //verify that elemental variables are correctly initialized 
+
+    if ( VON_MISES_STRESS.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"VON_MISES_STRESS has Key zero! (check if the application is correctly registered", "" )
+
+    if ( NORM_ISOCHORIC_STRESS.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"NORM_ISOCHORIC_STRESS has Key zero! (check if the application is correctly registered", "" )
+
+    if ( CAUCHY_STRESS_TENSOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"CAUCHY_STRESS_TENSOR has Key zero! (check if the application is correctly registered", "" )
+	  
+    if ( CAUCHY_STRESS_VECTOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"CAUCHY_STRESS_VECTOR has Key zero! (check if the application is correctly registered", "" )
+
+    if ( PK2_STRESS_TENSOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"PK2_STRESS_TENSOR has Key zero! (check if the application is correctly registered", "" )
+	  
+    if ( PK2_STRESS_VECTOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"PK2_STRESS_VECTOR has Key zero! (check if the application is correctly registered", "" )
+
+    if ( GREEN_LAGRANGE_STRAIN_TENSOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"GREEN_LAGRANGE_STRAIN_TENSOR has Key zero! (check if the application is correctly registered", "" )
+	  
+    if ( GREEN_LAGRANGE_STRAIN_VECTOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"GREEN_LAGRANGE_STRAIN_VECTOR has Key zero! (check if the application is correctly registered", "" )
+
+    if ( ALMANSI_STRAIN_TENSOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"ALMANSI_STRAIN_TENSOR has Key zero! (check if the application is correctly registered", "" )
+	  
+    if ( ALMANSI_STRAIN_VECTOR.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"ALMANSI_STRAIN_VECTOR has Key zero! (check if the application is correctly registered", "" )
+
+    if ( CONSTITUTIVE_MATRIX.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"CONSTITUTIVE_MATRIX has Key zero! (check if the application is correctly registered", "" )
+
+    if ( DEFORMATION_GRADIENT.Key() == 0 )
+        KRATOS_THROW_ERROR( std::invalid_argument,"DEFORMATION_GRADIENT has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )

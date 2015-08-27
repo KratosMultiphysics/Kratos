@@ -170,12 +170,6 @@ protected:
     {
     }
 
-    /**
-      * Set Variables of the Element to the Parameters of the Constitutive Law
-      */
-    void SetGeneralVariables(GeneralVariables& rVariables,
-                             ConstitutiveLaw::Parameters& rValues,
-                             const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics

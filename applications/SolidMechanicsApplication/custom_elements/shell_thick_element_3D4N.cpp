@@ -1110,7 +1110,6 @@ namespace Kratos
 		Flags& options = parameters.GetOptions();
 		options.Set(ConstitutiveLaw::COMPUTE_STRESS, RHSrequired);
 		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, LHSrequired);
-		options.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
 
 		// Gauss Loop.
         for(int i = 0; i < 4; i++)
@@ -1423,7 +1422,6 @@ namespace Kratos
 		Flags& options = parameters.GetOptions();
 		options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-		options.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
 
         // Gauss Loop
 

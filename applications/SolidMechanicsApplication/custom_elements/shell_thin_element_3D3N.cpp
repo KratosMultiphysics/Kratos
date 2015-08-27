@@ -938,7 +938,6 @@ namespace Kratos
 		Flags& options = data.SectionParameters.GetOptions();
 		options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS);
 		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, data.CalculateLHS);
-		options.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
 	}
 
 	void ShellThinElement3D3N::CalculateBMatrix(CalculationData& data)

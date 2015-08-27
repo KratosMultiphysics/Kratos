@@ -306,11 +306,38 @@ void ForceLoadCondition::AddExplicitContribution(const VectorType& rRHS,
 //***********************************************************************************
 //***********************************************************************************
 
+void ForceLoadCondition::Initialize()
+{
+    KRATOS_TRY
+
+    mEnergy = 0;
+
+    KRATOS_CATCH( "" )
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
+
 void ForceLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
     ClearNodalForces();
+
+    mEnergy = 0;
+ 
+    KRATOS_CATCH( "" )
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void ForceLoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    mEnergy = 0;
 
     KRATOS_CATCH( "" )
 }
@@ -784,13 +811,121 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
+	Vector Forces = ZeroVector(dimension);
         for ( unsigned int j = 0; j < dimension; j++ )
         {
+	  Forces[i] = rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
 	  rRightHandSideVector[index + j] += rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
         }
+
+	
+	// Energy Calculation:
+	Vector Movements;
+	this->GetCurrentNodalMovements( Movements, i );
+	//Movements *= rVariables.N[i]; 
+
+	mEnergy += inner_prod( Forces, Movements );
+
     }
+   
 
     //KRATOS_WATCH( rRightHandSideVector )
+
+    KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ForceLoadCondition::GetCurrentNodalMovements(Vector& rValues, const int& rNode)
+{
+  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+  if( rValues.size() != dimension )
+    rValues.resize(dimension);
+
+  rValues = ZeroVector(dimension);
+  
+  Vector CurrentValueVector = ZeroVector(3);
+  CurrentValueVector = GetCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
+
+  rValues[0] = CurrentValueVector[0];
+  rValues[1] = CurrentValueVector[1];
+
+  if( dimension == 3 )
+    rValues[2] = CurrentValueVector[2];
+	
+  //take imposed values away
+  if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_X))->IsFixed() )
+    rValues[0] = 0;
+  if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Y))->IsFixed() )
+    rValues[1] = 0;
+
+  if( dimension == 3 )
+    if( (GetGeometry()[rNode].pGetDof(DISPLACEMENT_Z))->IsFixed() )
+      rValues[2] = 0;
+
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+Vector& ForceLoadCondition::GetCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    array_1d<double,3> ArrayValue;
+    ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
+    
+    if( rValue.size() != dimension )
+      rValue.resize(dimension, false);
+
+    for( unsigned int i=0; i<dimension; i++ )
+      {
+	rValue[i] = ArrayValue[i];
+      }
+   
+
+    return rValue;
+
+    KRATOS_CATCH( "" )
+}
+
+
+//*********************************GET DOUBLE VALUE***********************************
+//************************************************************************************
+
+void ForceLoadCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+						      std::vector<double>& rValues,
+						      const ProcessInfo& rCurrentProcessInfo )
+{ 
+    this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ForceLoadCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
+{
+
+    KRATOS_TRY
+
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != integration_points_number )
+        rOutput.resize( integration_points_number, false );
+
+    if ( rVariable == EXTERNAL_ENERGY )
+    {
+      //reading integration points
+      for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+        {
+	  rOutput[PointNumber] = fabs(mEnergy);
+	}
+    }
 
     KRATOS_CATCH( "" )
 }

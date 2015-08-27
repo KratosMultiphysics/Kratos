@@ -48,13 +48,11 @@
 #include "custom_elements/axisym_small_displacement_element.hpp"
 
 #include "custom_elements/total_lagrangian_element.hpp"
-#include "custom_elements/spatial_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_element.hpp"
-#include "custom_elements/axisym_spatial_lagrangian_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_element.hpp"
 
-#include "custom_elements/spatial_lagrangian_U_P_element.hpp"
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
-#include "custom_elements/axisym_spatial_lagrangian_U_P_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/membrane_element.hpp"
 
 #include "custom_elements/shell_thick_element_3D4N.hpp"
@@ -458,6 +456,7 @@ private:
     const TotalLagrangianElement mTotalLagrangianElement3D20N;
     const TotalLagrangianElement mTotalLagrangianElement3D27N;
 
+ 
     //updated lagrangian
     const UpdatedLagrangianElement mUpdatedLagrangianElement2D3N;
     const UpdatedLagrangianElement mUpdatedLagrangianElement2D4N;
@@ -472,29 +471,13 @@ private:
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D20N;
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D27N;
 
-    const UpdatedLagrangianUPElement mUpdatedLagrangianUPElement2D3N;
+    const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D3N;
+    const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D4N;
+    const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D6N;
+    const AxisymUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
 
-    //spatial lagrangian
-    const SpatialLagrangianElement mSpatialLagrangianElement2D3N;
-    const SpatialLagrangianElement mSpatialLagrangianElement2D4N;
-    const SpatialLagrangianElement mSpatialLagrangianElement2D6N;
-    const SpatialLagrangianElement mSpatialLagrangianElement2D8N;
-
-    const SpatialLagrangianElement mSpatialLagrangianElement3D4N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D6N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D8N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D10N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D15N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D20N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D27N;
-
-    const AxisymSpatialLagrangianElement mAxisymSpatialLagrangianElement2D3N;
-    const AxisymSpatialLagrangianElement mAxisymSpatialLagrangianElement2D4N;
-    const AxisymSpatialLagrangianElement mAxisymSpatialLagrangianElement2D6N;
-    const AxisymSpatialLagrangianElement mAxisymSpatialLagrangianElement2D8N;
-
-    const SpatialLagrangianUPElement             mSpatialLagrangianUPElement2D3N;
-    const AxisymSpatialLagrangianUPElement mAxisymSpatialLagrangianUPElement2D3N;
+    const UpdatedLagrangianUPElement             mUpdatedLagrangianUPElement2D3N;
+    const AxisymUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
 	
     const MembraneElement mMembraneElement3D3N;
     

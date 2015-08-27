@@ -84,6 +84,21 @@ public:
     ///@name Operations
     ///@{
 
+    //************* STARTING - ENDING  METHODS
+
+
+    /**
+     * Called at the beginning of each solution step
+     */
+    void Initialize();
+
+
+    /**
+     * Called at the beginning of each iteration
+     */
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
@@ -108,6 +123,23 @@ public:
 				 const Variable<VectorType>& rRHSVariable, 
 				 Variable<array_1d<double,3> >& rDestinationVariable, 
 				 const ProcessInfo& rCurrentProcessInfo);
+
+
+
+
+    /**
+     * Get on rVariable a double Value
+     */
+    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, 
+				      std::vector<double>& rValues, 
+				      const ProcessInfo& rCurrentProcessInfo );
+
+    /**
+     * Calculate a double Variable
+     */
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, 
+				      std::vector<double>& rOutput, 
+				      const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -150,6 +182,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * Energy variable for loads
+     */
+    double mEnergy; 
 
     ///@}
     ///@name Protected Operators
