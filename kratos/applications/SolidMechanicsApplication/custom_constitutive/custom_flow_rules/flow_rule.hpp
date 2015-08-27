@@ -23,6 +23,8 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/properties.h"
+#include "utilities/math_utils.h"
+
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
 
@@ -145,7 +147,8 @@ namespace Kratos
       Matrix TrialIsoStressMatrix;
     
       Matrix StrainMatrix;
-    
+      Matrix MainDirections;
+
       ThermalVariables Thermal;
 
     public:

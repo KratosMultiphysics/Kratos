@@ -166,18 +166,7 @@ protected:
                                       Matrix& rConstitutiveMatrix);
 
 
-    /**
-     * Calculates the constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-                                      const Matrix & rInverseDeformationGradientF,
-                                      Matrix& rConstitutiveMatrix);
-
-
+ 
 private:
 
     ///@name Static Member Variables

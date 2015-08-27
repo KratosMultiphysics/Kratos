@@ -187,21 +187,7 @@ protected:
             Matrix& rConstitutiveMatrix);
 
 
-    /**
-     * Calculates the isochoric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						       const Matrix & rInverseDeformationGradientF,
-						       const Matrix & rIsoStressMatrix,
-						       Matrix& rConstitutiveMatrix);
-
-
-
+ 
     /**
      * Calculates the volumetric constitutive matrix
      * @param rElasticVariables
@@ -211,19 +197,6 @@ protected:
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
              Matrix& rConstitutiveMatrix);
 
-
-    /**
-     * Calculates the volumetric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rInverseDeformationGradientF
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-							const Matrix & rInverseDeformationGradientF,
-							Matrix& rConstitutiveMatrix);
 
 
 
@@ -237,21 +210,6 @@ protected:
     virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
 						     FlowRule::RadialReturnVariables & rReturnMappingVariables,			     
 						     Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the plastic constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rReturnMappingVariables, plastic variables
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     const Matrix & rInverseDeformationGradientF,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
-						     Matrix& rConstitutiveMatrix);
-
 
 
 

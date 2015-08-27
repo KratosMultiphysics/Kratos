@@ -98,18 +98,16 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLef
 
 
 void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const Vector & rIsoStressVector,
-        Matrix& rConstitutiveMatrix)
+									   const Matrix & rIsoStressMatrix,
+									   Matrix& rConstitutiveMatrix)
 {
     rConstitutiveMatrix.clear();
-
-    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
-            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix,
+            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rIsoStressMatrix,
                                           this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
@@ -123,22 +121,19 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const
 
 
 void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const GeometryType& rElementGeometry,
-        const Vector & rShapeFunctions,
-        Matrix& rConstitutiveMatrix)
+									    Matrix& rConstitutiveMatrix)
 
 {
     rConstitutiveMatrix.clear();
 
-    double Pressure = 0;
-    Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
-
+    Vector Factors = ZeroVector(3);
+    Factors = this->CalculateVolumetricPressureFactors( rElasticVariables, Factors );
 
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
-            rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Pressure,
+            rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Factors,
                                           this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
@@ -147,60 +142,6 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (cons
 
 }
 
-
-//******************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX PULL-BACK*******************
-//************************************************************************************
-
-void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const Vector & rIsoStressVector,
-        const Matrix & rInverseDeformationGradientF,
-        Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        for(unsigned int j=0; j<3; j++)
-        {
-            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix, rInverseDeformationGradientF,
-                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
-        }
-
-    }
-
-
-}
-
-//****************COMPUTE VOLUMETRIC CONSTITUTIVE MATRIX PULL-BACK********************
-//************************************************************************************
-
-void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const Matrix & rInverseDeformationGradientF,
-        const GeometryType& rElementGeometry,
-        const Vector & rShapeFunctions,
-        Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-    double Pressure = 0;
-    Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        for(unsigned int j=0; j<3; j++)
-        {
-            rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, Pressure,
-                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
-        }
-
-    }
-
-
-}
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************

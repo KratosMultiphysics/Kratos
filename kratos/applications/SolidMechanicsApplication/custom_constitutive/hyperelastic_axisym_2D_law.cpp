@@ -120,30 +120,6 @@ void HyperElasticAxisym2DLaw::CalculateConstitutiveMatrix (const MaterialRespons
 }
 
 
-//**************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX PULL-BACK*********************
-//************************************************************************************
-
-void HyperElasticAxisym2DLaw::CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-        const Matrix & rInverseDeformationGradientF,
-        Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-
-    for(unsigned int i=0; i<4; i++)
-    {
-        for(unsigned int j=0; j<4; j++)
-        {
-            rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF,
-                                          this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
-        }
-
-    }
-
-
-}
-
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************

@@ -166,21 +166,7 @@ protected:
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Vector & rIsoStressVector,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the isochoric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Vector & rIsoStressVector,
-            const Matrix & rInverseDeformationGradientF,
+            const Matrix & rIsoStressMatrix,
             Matrix& rConstitutiveMatrix);
 
 
@@ -188,31 +174,11 @@ protected:
     /**
      * Calculates the volumetric constitutive matrix
      * @param rElasticVariables
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const GeometryType& rElementGeometry,
-            const Vector & rShapeFunctions,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the volumetric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rInverseDeformationGradientF
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rInverseDeformationGradientF,
-            const GeometryType& rElementGeometry,
-            const Vector & rShapeFunctions,
-            Matrix& rConstitutiveMatrix);
+							Matrix& rConstitutiveMatrix);
 
 
 private:

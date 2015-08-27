@@ -83,14 +83,11 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
-		//only needed 
-		const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+	//only needed 
+	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
 		
-		//2.-Total Deformation Gradient
-        Matrix TotalDeformationGradientF0 = DeformationGradientF;
-
         //4.-Right Cauchy Green
-        Matrix RightCauchyGreen = prod(trans(TotalDeformationGradientF0),TotalDeformationGradientF0);
+        Matrix RightCauchyGreen = prod(trans(DeformationGradientF),DeformationGradientF);
 
         //5.-Green-Lagrange Strain:
 

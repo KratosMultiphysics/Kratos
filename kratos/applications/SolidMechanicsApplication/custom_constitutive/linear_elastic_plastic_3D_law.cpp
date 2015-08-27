@@ -131,36 +131,17 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
-        //only needed 
+ 		
+        //1.-Deformation Gradient
         const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-		
-        //1.-Total Deformation Gradient
-        Matrix TotalDeformationGradientF0 = DeformationGradientF;
-
+        
         //2.-Right Cauchy Green
-        Matrix RightCauchyGreen = prod(trans(TotalDeformationGradientF0),TotalDeformationGradientF0);
+        Matrix RightCauchyGreen = prod(trans(DeformationGradientF),DeformationGradientF);
 
         //3.-Green-Lagrange Strain: E= 0.5*(FT*F-1)
         this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
 
-
-        if( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) || Options.Is( ConstitutiveLaw::FINAL_CONFIGURATION ))
-        {
-            //2.-Total Deformation Gradient
-            Matrix& DeformationGradientF0   = rValues.GetDeformationGradientF0();
-
-            TotalDeformationGradientF0      = prod(DeformationGradientF, DeformationGradientF0);
-	  
-            //3.-Left Cauchy Green
-            Matrix LeftCauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
-	  
-            //4.-Almansi Strain: e= 0.5*(1-invbT*invb)
-            this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
- 
-            //5.-Pull-back Almansi Strain
-            this->TransformStrains(StrainVector,DeformationGradientF,StrainMeasure_Almansi,StrainMeasure_GreenLagrange);
-        }
-      }
+    }
 
     //2.-Calculate Total PK2 stress
     
@@ -233,13 +214,9 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     {
         //1.-Compute total deformation gradient
         const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-        Matrix& DeformationGradientF0      = rValues.GetDeformationGradientF0();
-        
-        Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
-        TotalDeformationGradientF0         = this->DeformationGradient3D( TotalDeformationGradientF0 );
 
         //2.-Push-Forward Left Cauchy-Green tensor b to the new configuration
-        Matrix LeftCauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
+        Matrix LeftCauchyGreenMatrix = prod(DeformationGradientF,trans(DeformationGradientF));
 
         //3.-Almansi Strain: e= 0.5*(1-invFT*invF)
         this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
@@ -305,6 +282,9 @@ void LinearElasticPlastic3DLaw::CalculateLinearElasticMatrix( Matrix& rConstitut
 void LinearElasticPlastic3DLaw::CalculateStress( Vector& rStressVector, const Matrix& rLinearElasticMatrix, const Vector& rStrainVector,
                                                  const GeometryType& rDomainGeometry, FlowRule::RadialReturnVariables& rReturnMappingVariables )
 {
+
+    //1.-2nd Piola Kirchhoff StressVector or Cauchy StressVector
+
     noalias(rStressVector) = prod(rLinearElasticMatrix, rStrainVector);
     Matrix StressMatrix = MathUtils<double>::StressVectorToTensor(rStressVector);
     rReturnMappingVariables.TrialIsoStressMatrix = StressMatrix;

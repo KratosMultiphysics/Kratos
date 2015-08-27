@@ -168,143 +168,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
-
     /**
      * Calculates the Pressure of the domain (element)
      * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * @param rPressure the calculated pressure to be returned
      */
-    double& CalculateDomainPressure (const GeometryType& rElementGeometry,
-                                     const Vector & rShapeFunctions,
-                                     double & rPressure);
+    double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
+					 double & rPressure);
 
 
     /**
-     * Calculates the isochoric constitutive matrix
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * matrix is to be generated for
-     * @param rResult Matrix the result (Constitutive Matrix) will be stored in
+     * Calculates the Volumetric part factors
+     * @param rElasticResponseVariables the material variables
+     * @param rFactors Volumetric stress factors
      */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Vector & rIsoStressVector,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the isochoric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Vector & rIsoStressVector,
-            const Matrix & rInverseDeformationGradientF,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Constitutive isochoric component
-     */
-
-    double& IsochoricConstitutiveComponent( double & rCabcd,
-                                            const MaterialResponseVariables& rElasticVariables,
-                                            const Matrix & rIsoStressMatrix,
-                                            const unsigned int& a, const unsigned int& b,
-                                            const unsigned int& c, const unsigned int& d);
-
-    /**
-     * Constitutive isochoric component pull-back
-     */
-
-    double& IsochoricConstitutiveComponent( double & rCabcd,
-                                            const MaterialResponseVariables& rElasticVariables,
-                                            const Matrix & rIsoStressMatrix,
-                                            const Matrix & rInverseDeformationGradientF,
-                                            const unsigned int& a, const unsigned int& b,
-                                            const unsigned int& c, const unsigned int& d);
-
-
-
-    /**
-     * Calculates the volumetric constitutive matrix
-     * @param rElasticVariables
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rResult Matrix the result (Constitutive Matrix) will be stored in
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const GeometryType& rElementGeometry,
-            const Vector & rShapeFunctions,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the volumetric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rInverseDeformationGradientF
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rInverseDeformationGradientF,
-            const GeometryType& rElementGeometry,
-            const Vector & rShapeFunctions,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Constitutive volumetric component
-     */
-
-    double& VolumetricConstitutiveComponent( double & rCabcd,
-            const MaterialResponseVariables& rElasticVariables,
-            const double & rPressure,
-            const unsigned int& a, const unsigned int& b,
-            const unsigned int& c, const unsigned int& d);
-
-    /**
-     * Constitutive volumetric component pull-back
-     */
-
-    double& VolumetricConstitutiveComponent( double & rCabcd,
-            const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rInverseDeformationGradientF,
-            const double & rPressure,
-            const unsigned int& a, const unsigned int& b,
-            const unsigned int& c, const unsigned int& d);
-
-
-
-    /**
-     * Calculates the isochoric stress vector
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rStressMeasure measure of stress to be calculated
-     * @param rIsoStressVector vector where the stress result is stored
-     */
-    virtual void CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
-                                           StressMeasure rStressMeasure,
-                                           Vector& rIsoStressVector);
-
-    /**
-     * Calculates the volumetric stress vector
-     * @param rElasticVariables
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * @param rVolStressVector vector where the stress result is stored
-     */
-    virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
-                                            const GeometryType& rElementGeometry,
-                                            const Vector & rShapeFunctions,
-                                            Vector& rVolStressVector );
-
+    Vector& CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
+						Vector & rFactors);
 
 
 

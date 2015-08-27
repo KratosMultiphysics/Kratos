@@ -45,10 +45,24 @@ protected:
 
         //kinematic properties
         double J_pow13;
-        double DeterminantF0;
-        double traceCG;           //LeftCauchyGreen or RightCauchyGreen
-        Matrix CauchyGreenMatrix; //LeftCauchyGreen or InverseRightCauchyGreen
+        double DeterminantF;
+        double traceCG;               //LeftCauchyGreen or RightCauchyGreen
+        Matrix CauchyGreenMatrix;     //LeftCauchyGreen or InverseRightCauchyGreen
+        Matrix DeformationGradientF;  //Deformation Gradient Tensor in 3D
         Matrix IdentityMatrix;
+
+
+        //element properties
+        const Vector*        mpShapeFunctionsValues;
+        const GeometryType*  mpElementGeometry;
+
+    public: 
+      void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
+      void SetElementGeometry      (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
+      const Vector& GetShapeFunctionsValues      () const {return *mpShapeFunctionsValues;};
+      const GeometryType& GetElementGeometry     () const {return *mpElementGeometry;};
+      
+
     };
 
 
@@ -59,6 +73,7 @@ public:
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
+
     /**
      * Counted pointer of HyperElastic3DLaw
      */
@@ -165,7 +180,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rValues);
+    virtual void CalculateMaterialResponsePK1 (Parameters & rValues);
 
     /**
      * Computes the material response:
@@ -173,7 +188,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
+    virtual void CalculateMaterialResponsePK2 (Parameters & rValues);
 
     /**
      * Computes the material response:
@@ -181,7 +196,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues);
 
 
     /**
@@ -190,7 +205,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rValues);
+    virtual void CalculateMaterialResponseCauchy (Parameters & rValues);
 
 
     /**
@@ -199,7 +214,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues);
+    virtual void FinalizeMaterialResponsePK1 (Parameters & rValues);
 
     /**
       * Updates the material response:
@@ -207,7 +222,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues);
+    virtual void FinalizeMaterialResponsePK2 (Parameters & rValues);
 
     /**
       * Updates the material response:
@@ -215,7 +230,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
+    virtual void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
 
     /**
       * Updates the material response:
@@ -223,7 +238,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues);
+    virtual void FinalizeMaterialResponseCauchy (Parameters & rValues);
 
 
     /**
@@ -273,11 +288,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
-     */
-    Matrix& DeformationGradient3D (Matrix & Matrix2D);
-
 
     /**
      * Calculates the GreenLagrange strains
@@ -298,25 +308,43 @@ protected:
 
 
     /**
+     * Calculates the stress vector
+     * @param rElasticVariables
+     * matrix is to be generated for
+     * @param rStressMeasure measure of stress to be calculated
+     * @param rStressVector vector where the stress result is stored
+     */
+    void CalculateStress( const MaterialResponseVariables& rElasticVariables,
+                          StressMeasure rStressMeasure,
+                          Vector& rStressVector);
+
+   /**
+     * Calculates the isochoric stress vector
+     * @param rElasticVariables
+     * matrix is to be generated for
+     * @param rStressMeasure measure of stress to be calculated
+     * @param rIsoStressVector vector where the stress result is stored
+     */
+    virtual void CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
+                                           StressMeasure rStressMeasure,
+					   Vector& rIsoStressVector);
+
+    /**
+     * Calculates the volumetric stress vector
+     * @param rElasticResponseVariables the material variables
+     * @param rVolStressVector vector where the stress result is stored
+     */
+    virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
+                                            Vector& rVolStressVector );
+
+    /**
      * Calculates the constitutive matrix
      * @param rElasticVariables
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rInverseDeformationGradientF,
-            Matrix& rConstitutiveMatrix);
+					      Matrix& rConstitutiveMatrix);
 
 
     /**
@@ -328,27 +356,92 @@ protected:
                                    const unsigned int& a, const unsigned int& b,
                                    const unsigned int& c, const unsigned int& d);
 
+							      
     /**
-     * Constitutive component pull-back
+     * Calculates the isochoric constitutive matrix
+     * @param rElasticVariables
+     * @param rIsoStressVector the isochoric stress vector
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
+    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+						       const Matrix & rIsoStressMatrix,
+						       Matrix& rConstitutiveMatrix);
 
-    double& ConstitutiveComponent( double & rCabcd,
-                                   const MaterialResponseVariables& rElasticVariables,
-                                   const Matrix & rInverseDeformationGradientF,
-                                   const unsigned int& a, const unsigned int& b,
-                                   const unsigned int& c, const unsigned int& d);
 
     /**
-     * Calculates the stress vector
+     * Constitutive isochoric component
+     */
+    double& IsochoricConstitutiveComponent( double & rCabcd,
+                                            const MaterialResponseVariables& rElasticVariables,
+                                            const Matrix & rIsoStressMatrix,
+                                            const unsigned int& a, const unsigned int& b,
+                                            const unsigned int& c, const unsigned int& d);
+
+    /**
+     * Calculates the volumetric constitutive matrix
      * @param rElasticVariables
      * matrix is to be generated for
-     * @param rStressMeasure measure of stress to be calculated
-     * @param rStressVector vector where the stress result is stored
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    void CalculateStress( const MaterialResponseVariables& rElasticVariables,
-                          StressMeasure rStressMeasure,
-                          Vector& rStressVector);
+    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+							Matrix& rConstitutiveMatrix);
 
+
+    /**
+     * Constitutive volumetric component
+     */
+
+    double& VolumetricConstitutiveComponent( double & rCabcd,
+					     const MaterialResponseVariables& rElasticVariables,
+					     const Vector& rFactors,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d);
+
+
+    /**
+     * Calculates HyperElasticLaw Factor for the Neo-Hookean model
+     * @param rElasticResponseVariables the material variables
+     * @param rFactor the calculated factor to be returned
+     */
+    virtual double& CalculateVolumetricFactor (const MaterialResponseVariables & rElasticVariables,
+					       double & rFactor);
+
+
+    /**
+     * Calculates the Pressure of the domain (element)
+     * @param rElasticResponseVariables the material variables
+     * @param rPressure the calculated pressure to be returned
+     */
+    virtual double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
+						 double & rPressure);
+
+
+    /**
+     * Calculates the Volumetric part factors
+     * @param rElasticResponseVariables the material variables
+     * @param rFactors Volumetric stress factors
+     */
+    virtual Vector&  CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
+							 Vector & rFactors);
+
+
+    /**
+     * Calculates the Temperature of the domain (element)
+     * @param rElementGeometry the element geometry
+     * @param rShapeFunctions the element shape functions
+     * @param rTemperature the calculated temperature to be returned
+     */
+    virtual double& CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
+						double & rTemperature);
+
+    /**
+     * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
+     * if the matrix passed is 3D is does nothing
+     * if the matrix passed is bigger or smaller throws an error
+     * @param rMatrix : usually the DeformationGradientF
+     */
+    Matrix& Transform2DTo3D (Matrix& rMatrix);
 
 
     /**
