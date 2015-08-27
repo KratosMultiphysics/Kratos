@@ -1,8 +1,8 @@
 /* *********************************************************
  *
  *   Last Modified by:    $Author:   JMCarbonell$
- *   Date:                $Date:     12-06-2012$
- *   Revision:            $Revision: 1.0$
+ *   Date:                $Date:     1-08-2015$
+ *   Revision:            $Revision: 1.6$
  *
  * ***********************************************************/
 
@@ -27,27 +27,23 @@ namespace Kratos
       
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                5 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIAL_CONFIGURATION,       6 ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, LAST_KNOWN_CONFIGURATION,    7 ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINAL_CONFIGURATION,         8 ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  9 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  6 );
   
 
     /**
      * Flags related to the Features of the Contitutive Law
      */
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,             10 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,      11 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              7 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       8 );
 
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,      12 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           13 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,           14 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,           15 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,       9 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           10 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,           11 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,           12 );
 
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                    16 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                  17 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                18 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                    13 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                  14 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                15 );
 
 
     /**
@@ -599,11 +595,11 @@ namespace Kratos
 	      
 	    case StrainMeasure_Almansi:
 	      {
-	      Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector ); //is it defined ¿?
+	      Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector ); 
 	      
 	      CoVariantPushForward (StrainMatrix,rF);  //Almansi
 
-	      rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix , rStrainVector.size() ); //is it defined ¿?
+	      rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix , rStrainVector.size() ); 
 	      }
 	      break;
 
@@ -628,11 +624,11 @@ namespace Kratos
 	    {
 	    case StrainMeasure_GreenLagrange:        
 	      {
-	      Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector ); //is it defined ¿?
+	      Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector ); 
 	      
 	      CoVariantPullBack (StrainMatrix,rF);  //GreenLagrange
 
-	      rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix , rStrainVector.size() ); //is it defined ¿?
+	      rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix , rStrainVector.size() ); 
 	      }
 	      break;
 	      
@@ -811,7 +807,7 @@ namespace Kratos
 
 	   StressMatrix/=J; //Cauchy
 	      
-	   rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() ); //is it defined ¿?
+	   rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() ); 
 	   }
 	   break;
 	      
@@ -832,10 +828,10 @@ namespace Kratos
      * @param rdetF the determinant of the DeformationGradientF matrix between the configurations
      * @param rStressFinal the measure of stress of the returned rStressVector
      */
-   Vector& ConstitutiveLaw::TransformPK2Stresses (Vector& rStressVector,
-				 const Matrix &rF,
-				 const double &rdetF,
-				 StressMeasure rStressFinal)
+    Vector& ConstitutiveLaw::TransformPK2Stresses (Vector& rStressVector,
+						   const Matrix &rF,
+						   const double &rdetF,
+						   StressMeasure rStressFinal)
      {
 
        switch(rStressFinal)
@@ -1004,6 +1000,44 @@ namespace Kratos
 
 
     /**
+     * Methods to transform Constitutive Matrices:
+     * @param rConstitutiveMatrix the constitutive matrix 
+     * @param rF the DeformationGradientF matrix between the configurations
+     */
+
+    /**
+     * This method performs a pull-back of the constitutive matrix
+     */
+    void ConstitutiveLaw::PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
+						       const Matrix & rF )
+    {
+      Matrix OriginalConstitutiveMatrix = rConstitutiveMatrix;
+
+      rConstitutiveMatrix.clear();
+    
+      Matrix InverseF ( 3, 3 );
+      double detF = 0;
+      MathUtils<double>::InvertMatrix( rF, InverseF, detF);
+
+      ConstitutiveMatrixTransformation( rConstitutiveMatrix, OriginalConstitutiveMatrix , InverseF );
+    }
+
+
+    /**
+     * This method performs a push-forward of the constitutive matrix
+     */
+    void ConstitutiveLaw::PushForwardConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
+							  const Matrix & rF )
+    {
+      Matrix OriginalConstitutiveMatrix = rConstitutiveMatrix;
+
+      rConstitutiveMatrix.clear();
+    
+      ConstitutiveMatrixTransformation( rConstitutiveMatrix, OriginalConstitutiveMatrix , rF );
+    }
+
+
+    /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
@@ -1107,6 +1141,231 @@ namespace Kratos
     }
 
 
+    /**
+     * This method performs a pull-back or a push-forward between two constitutive matrices
+     */
+    void ConstitutiveLaw::ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
+							     const Matrix& rOriginalConstitutiveMatrix,
+							     const Matrix & rF )
+    {
+      unsigned int size = rOriginalConstitutiveMatrix.size1();
+      if(  size == 6 ){
+            
+	for(unsigned int i=0; i<6; i++)
+	  {
+	    for(unsigned int j=0; j<6; j++)
+	      {
+		rConstitutiveMatrix( i, j ) = TransformConstitutiveComponent(rConstitutiveMatrix( i, j ), rOriginalConstitutiveMatrix, rF,
+									    this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
+	      }
+
+	  }
+      }
+      else if( size == 4 ){
+
+
+	for(unsigned int i=0; i<4; i++)
+	  {
+	    for(unsigned int j=0; j<4; j++)
+	      {
+		rConstitutiveMatrix( i, j ) = TransformConstitutiveComponent(rConstitutiveMatrix( i, j ), rOriginalConstitutiveMatrix, rF,
+									    this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
+	      }
+
+	  }
+      }
+      else if( size == 3 ){
+
+
+	for(unsigned int i=0; i<3; i++)
+	  {
+	    for(unsigned int j=0; j<3; j++)
+	      {
+		rConstitutiveMatrix( i, j ) = TransformConstitutiveComponent(rConstitutiveMatrix( i, j ), rOriginalConstitutiveMatrix, rF,
+									    this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
+	      }
+
+	  }
+      }
+
+
+    }
+
+
+
+    /**
+     * This method performs a pull-back or a push-forward between two constitutive tensor components
+     */
+    double& ConstitutiveLaw::TransformConstitutiveComponent(double & rCabcd,
+							   const Matrix & rConstitutiveMatrix,
+							   const Matrix & rF,
+							   const unsigned int& a, const unsigned int& b,
+							   const unsigned int& c, const unsigned int& d)
+      
+    {
+
+      rCabcd = 0;
+      double Cijkl=0;
+
+      unsigned int dimension = rF.size1();
+
+      //Cabcd
+      for(unsigned int j=0; j<dimension; j++)
+	{
+	  for(unsigned int l=0; l<dimension; l++)
+	    {
+	      for(unsigned int k=0; k<dimension; k++)
+		{
+		  for(unsigned int i=0; i<dimension; i++)
+		    {
+		      //Cijkl
+		      rCabcd +=rF(a,i)*rF(b,j)*rF(c,k)*rF(d,l)*GetConstitutiveComponent(Cijkl,rConstitutiveMatrix,i,j,k,l);
+		    }
+		}
+	    }
+	}
+
+      return rCabcd;
+
+    }
+
+
+    /**
+     * This method gets the constitutive tensor components 
+     * from a consitutive matrix supplied in voigt notation
+     */
+    double& ConstitutiveLaw::GetConstitutiveComponent(double & rCabcd,
+						      const Matrix& rConstitutiveMatrix,
+						      const unsigned int& a, const unsigned int& b,
+						      const unsigned int& c, const unsigned int& d)
+    {
+      // matrix indices
+      unsigned int k=0, l= 0;
+ 
+      unsigned int size = rConstitutiveMatrix.size1();
+    
+      if( size == 6 ){
+
+	//index k
+	for(unsigned int i=0; i<6; i++)
+	  {
+	    if( a == b ) {
+	      if( this->msIndexVoigt3D6C[i][0] == a && this->msIndexVoigt3D6C[i][1] == b ){
+		k = i;
+		break;
+	      }
+	    }
+	    else{
+	      if( (this->msIndexVoigt3D6C[i][0] == a && this->msIndexVoigt3D6C[i][1] == b) || 
+		  (this->msIndexVoigt3D6C[i][1] == a && this->msIndexVoigt3D6C[i][0] == b) ){
+		k = i;
+		break;
+	      }
+	    }
+	  }
+
+	//index l
+	for(unsigned int i=0; i<6; i++)
+	  {
+	    if( c == d ) {
+	      if( this->msIndexVoigt3D6C[i][0] == c && this->msIndexVoigt3D6C[i][1] == d ){
+		l = i;
+		break;
+	      }
+	    }
+	    else{
+	      if( (this->msIndexVoigt3D6C[i][0] == c && this->msIndexVoigt3D6C[i][1] == d) || 
+		  (this->msIndexVoigt3D6C[i][1] == c && this->msIndexVoigt3D6C[i][0] == d) ){
+		l = i;
+		break;
+	      }
+	    }
+	  }
+      }
+      else if( size == 4 ){
+
+	//index k
+	for(unsigned int i=0; i<4; i++)
+	  {
+	    if( a == b ) {
+	      if( this->msIndexVoigt2D4C[i][0] == a && this->msIndexVoigt2D4C[i][1] == b ){
+		k = i;
+		break;
+	      }
+	    }
+	    else{
+	      if( (this->msIndexVoigt2D4C[i][0] == a && this->msIndexVoigt2D4C[i][1] == b) || 
+		  (this->msIndexVoigt2D4C[i][1] == a && this->msIndexVoigt2D4C[i][0] == b) ){
+		k = i;
+		break;
+	      }
+	    }
+	  }
+
+	//index l
+	for(unsigned int i=0; i<4; i++)
+	  {
+	    if( c == d ) {
+	      if( this->msIndexVoigt2D4C[i][0] == c && this->msIndexVoigt2D4C[i][1] == d ){
+		l = i;
+		break;
+	      }
+	    }
+	    else{
+	      if( (this->msIndexVoigt2D4C[i][0] == c && this->msIndexVoigt2D4C[i][1] == d) || 
+		  (this->msIndexVoigt2D4C[i][1] == c && this->msIndexVoigt2D4C[i][0] == d) ){
+		l = i;
+		break;
+	      }
+	    }
+	  }
+
+      }
+      else if( size == 3 ){
+
+	//index k
+	for(unsigned int i=0; i<4; i++)
+	  {
+	    if( a == b ) {
+	      if( this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b ){
+		k = i;
+		break;
+	      }
+	    }
+	    else{
+	      if( (this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b) || 
+		  (this->msIndexVoigt2D3C[i][1] == a && this->msIndexVoigt2D3C[i][0] == b) ){
+		k = i;
+		break;
+	      }
+	    }
+	  }
+
+	//index l
+	for(unsigned int i=0; i<4; i++)
+	  {
+	    if( c == d ) {
+	      if( this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d ){
+		l = i;
+		break;
+	      }
+	    }
+	    else{
+	      if( (this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d) || 
+		  (this->msIndexVoigt2D3C[i][1] == c && this->msIndexVoigt2D3C[i][0] == d) ){
+		l = i;
+		break;
+	      }
+	    }
+	  }
+
+
+      }
+    
+      rCabcd = rConstitutiveMatrix(k,l);
+    
+      return rCabcd;
+    }
 
     //*** OUTDATED METHODS: ***//
 

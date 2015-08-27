@@ -291,6 +291,10 @@ public:
             (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(DISPLACEMENT_Y);
             (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(DISPLACEMENT_Z);
         }
+	
+	/*   std::cout<<" MESH MOVED "<<std::endl; */
+	/* if( mEchoLevel > 0 ) */
+
         KRATOS_CATCH("")
     }
 

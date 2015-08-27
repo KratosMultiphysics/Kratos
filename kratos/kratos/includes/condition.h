@@ -401,6 +401,13 @@ public:
      */
 
     /**
+     * this is called in the beginning of each solution step
+     */
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
     virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
@@ -411,13 +418,6 @@ public:
      * this is called for non-linear analysis at the end of the iteration process
      */
     virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    /**
-     * this is called in the beginning of each solution step
-     */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -874,7 +874,9 @@ public:
 
     //METHODS TO BE CLEANED: DEPRECATED start
 
-    //NOTE: They will be deleted in April 26, 2014
+
+    //NOTE: They will be deleted in December, 2015
+
 
     /**
      * CONDITIONS inherited from this class must implement this methods

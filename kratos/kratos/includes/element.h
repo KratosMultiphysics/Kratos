@@ -371,6 +371,7 @@ public:
     {
     }
 
+
     /**
      * is called to reset the constitutive law parameters and the material properties
      * the elemental variables will be changed and reset using this method
@@ -395,6 +396,15 @@ public:
      * this methods are: OPTIONAL
      */
 
+
+    /**
+     * this is called in the beginning of each solution step
+     */
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
@@ -409,12 +419,6 @@ public:
     {
     }
 
-    /**
-     * this is called in the beginning of each solution step
-     */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-    {
-    }
 
     /**
      * this is called at the end of each solution step
@@ -422,6 +426,7 @@ public:
     virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
     }
+
 
     /**
      * ELEMENTS inherited from this class have to implement next 
@@ -887,7 +892,8 @@ public:
 
     //METHODS TO BE CLEANED: DEPRECATED start
  
-    //NOTE: They will be deleted in April 26, 2014
+    //NOTE: They will be deleted in December, 2015
+
 
     /**
      * ELEMENTS inherited from this class must implement this methods
