@@ -809,10 +809,8 @@ namespace Kratos
 		// initialize the general variables container
 		
 		rVariables.DeterminantF = 1.0;
-		rVariables.DeterminantF0 = 1.0;
 		
 		rVariables.DeformationGradientF_2D = IdentityMatrix(2,2);
-		rVariables.DeformationGradientF0_2D = IdentityMatrix(2,2);
 		rVariables.StrainVector_2D.resize(3);
 		rVariables.StressVector_2D.resize(3);
 		rVariables.ConstitutiveMatrix_2D.resize(3,3);
@@ -831,8 +829,6 @@ namespace Kratos
 		rMaterialValues.SetStrainVector(rVariables.StrainVector_2D);
 		rMaterialValues.SetStressVector(rVariables.StressVector_2D);
 		rMaterialValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix_2D);
-		rMaterialValues.SetDeterminantF0(rVariables.DeterminantF0);
-		rMaterialValues.SetDeformationGradientF0(rVariables.DeformationGradientF0_2D);
 		rMaterialValues.SetDeterminantF(rVariables.DeterminantF);
 		rMaterialValues.SetDeformationGradientF(rVariables.DeformationGradientF_2D);
 		
@@ -856,8 +852,6 @@ namespace Kratos
 			rMaterialValues.SetStrainVector(rVariables.StrainVector_2D);
 			rMaterialValues.SetStressVector(rVariables.StressVector_2D);
 			rMaterialValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix_2D);
-			rMaterialValues.SetDeterminantF0(rVariables.DeterminantF0);
-			rMaterialValues.SetDeformationGradientF0(rVariables.DeformationGradientF0_2D);
 			rMaterialValues.SetDeterminantF(rVariables.DeterminantF);
 			rMaterialValues.SetDeformationGradientF(rVariables.DeformationGradientF_2D);
 			
@@ -890,8 +884,6 @@ namespace Kratos
 			rMaterialValues.SetStrainVector(rVariables.StrainVector_3D);
 			rMaterialValues.SetStressVector(rVariables.StressVector_3D);
 			rMaterialValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix_3D);
-			rMaterialValues.SetDeterminantF0(rVariables.DeterminantF0);
-			rMaterialValues.SetDeformationGradientF0(rVariables.DeformationGradientF0_3D);
 			rMaterialValues.SetDeterminantF(rVariables.DeterminantF);
 			rMaterialValues.SetDeformationGradientF(rVariables.DeformationGradientF_3D);
 		}

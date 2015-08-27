@@ -102,13 +102,15 @@ protected:
         //general variables for large displacement use
         double  detF;
         double  detF0;
+        double  detFT;
         double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
         Matrix  B;
-        Matrix  F;
-        Matrix  F0;
+        Matrix  F;    //F from the reference to the current configuration ( Delta F )
+        Matrix  F0;   //F in the reference configuration, ( historical F )
+        Matrix  FT;   //FT = F0 * F  ( total F )
         Matrix  DN_DX;
         Matrix  ConstitutiveMatrix;
 
@@ -686,13 +688,20 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Transform Element General Variables
+     */
+    virtual void TransformGeneralVariables(GeneralVariables & rVariables, 
+					   const double& rPointNumber);
 
-   /**
+    /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, 
+				       const double& rPointNumber);
 
 
     /**

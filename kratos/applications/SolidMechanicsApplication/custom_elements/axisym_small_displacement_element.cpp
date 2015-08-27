@@ -107,13 +107,9 @@ void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariable
 
     rVariables.detF  = 1;
 
-    rVariables.detF0 = 1;
-
     rVariables.B.resize( 4 , number_of_nodes * 2 );
 
     rVariables.F.resize( 3, 3 );
-
-    rVariables.F0.resize( 3, 3 );
 
     rVariables.ConstitutiveMatrix.resize( 4, 4 );
 
@@ -124,11 +120,8 @@ void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariable
     rVariables.DN_DX.resize( number_of_nodes, 2 );
 
     //needed parameters for consistency with the general constitutive law: small displacements
-    rVariables.detF0 = 1;
     rVariables.detF  = 1;
     rVariables.F     = identity_matrix<double>(3);
-    rVariables.F0    = identity_matrix<double>(3);
-
 
     //set variables including all integration points values
 

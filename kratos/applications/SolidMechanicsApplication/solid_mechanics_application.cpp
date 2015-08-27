@@ -232,25 +232,12 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mUpdatedLagrangianElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
     mUpdatedLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mUpdatedLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
+    mAxisymUpdatedLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mAxisymUpdatedLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mAxisymUpdatedLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mAxisymUpdatedLagrangianElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-
-    mSpatialLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mAxisymSpatialLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mAxisymSpatialLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mAxisymSpatialLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mAxisymSpatialLagrangianElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mAxisymSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mAxisymUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     
     mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -332,6 +319,7 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement3D20N", mTotalLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement3D27N", mTotalLagrangianElement3D27N )
 
+
     //Register updated lagrangian
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement2D3N", mUpdatedLagrangianElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement2D4N", mUpdatedLagrangianElement2D4N )
@@ -345,28 +333,13 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement3D20N", mUpdatedLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement3D27N", mUpdatedLagrangianElement3D27N )
 
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianElement2D3N", mAxisymUpdatedLagrangianElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianElement2D4N", mAxisymUpdatedLagrangianElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianElement2D6N", mAxisymUpdatedLagrangianElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianElement2D8N", mAxisymUpdatedLagrangianElement2D8N )
+
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N )
-
-    //Register spatial lagrangian
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement2D3N", mSpatialLagrangianElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement2D4N", mSpatialLagrangianElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement2D6N", mSpatialLagrangianElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement2D8N", mSpatialLagrangianElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D4N", mSpatialLagrangianElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D6N", mSpatialLagrangianElement3D6N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D8N", mSpatialLagrangianElement3D8N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D10N", mSpatialLagrangianElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D15N", mSpatialLagrangianElement3D15N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D20N", mSpatialLagrangianElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D27N", mSpatialLagrangianElement3D27N )
-
-    KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D3N", mAxisymSpatialLagrangianElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D4N", mAxisymSpatialLagrangianElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D6N", mAxisymSpatialLagrangianElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D8N", mAxisymSpatialLagrangianElement2D8N )
-
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUPElement2D3N", mSpatialLagrangianUPElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianUPElement2D3N", mAxisymSpatialLagrangianUPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPElement2D3N", mAxisymUpdatedLagrangianUPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
     //Register Conditions
@@ -557,7 +530,7 @@ void KratosSolidMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( CAUCHY_STRESS_VECTOR )
     KRATOS_REGISTER_VARIABLE( PK2_STRESS_VECTOR )
 
-    KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_TENSOR )
+     KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_TENSOR )
     KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_VECTOR )
     KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_VECTOR )
 

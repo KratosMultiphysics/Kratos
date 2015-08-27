@@ -69,7 +69,7 @@ class ListFilesUtility:
     def ReBuildListFiles(self):
 
         self.RemoveListFiles()
-
+                
         # Rebuild List Files from existing problem build
         if(self.print_lists):
 
@@ -92,6 +92,8 @@ class ListFilesUtility:
             file_id.sort()
 
             num_list_files = len(file_id)
+
+            print("::[List Utilities]:: Rebuild Lists (Previous Files:", num_list_files,")")
 
             for lfile in range(0, num_list_files):
                
@@ -116,10 +118,14 @@ class ListFilesUtility:
 
                         problemname = self.problem_name + "_" + str(print_id) + self.output_mode + "\n"
                         listfile.write(problemname)
+
                         listfile.close()
+
                         self.listprint[lfile] = 1
                     else:
                         self.listprint[lfile] = self.listprint[lfile] + 1
+
+
 
     #
     def RemoveListFiles(self):
@@ -157,9 +163,13 @@ class ListFilesUtility:
                             problemname = "Multiple\n"
                             listfile.write(problemname)
                             self.header_in_list[lfile] = False
+                            problemname = self.problem_name + "_" + str(0) + self.output_mode + "\n"
+                            listfile.write(problemname)
+                        
+                        if( current_id !=0 ):
+                            problemname = self.problem_name + "_" + str(current_id) + self.output_mode + "\n"
+                            listfile.write(problemname)
 
-                        problemname = self.problem_name + "_" + str(current_id) + self.output_mode + "\n"
-                        listfile.write(problemname)
                         listfile.close()
                         self.listprint[lfile] = 1
                     else:

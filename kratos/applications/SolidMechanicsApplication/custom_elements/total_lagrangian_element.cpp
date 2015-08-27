@@ -185,20 +185,6 @@ void TotalLagrangianElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
-
-void TotalLagrangianElement::SetGeneralVariables(GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const int & rPointNumber)
-{
-    LargeDisplacementElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
-
-    //Set extra options for the contitutive law
-    Flags &ConstitutiveLawOptions=rValues.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
-
-}
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
@@ -351,19 +337,13 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, ProcessI
 
 void TotalLagrangianElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
 {
-    LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
+    // LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
-    //Calculate Delta Position
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+    // //Deformation Gradient F [dx_n/dx_0] = [dx_n/d£] [d£/dx_0]
+    // noalias( rVariables.F0 ) = prod( rVariables.j[rPointNumber], mInvJ0[rPointNumber] );
 
-    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
-
-    //Deformation Gradient F [dx_n/dx_0] = [dx_n/d£] [d£/dx_0]
-    noalias( rVariables.F0 ) = prod( rVariables.J[rPointNumber], mInvJ0[rPointNumber] );
-
-    //Deformation Gradient F0
-    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0);
+    // //Deformation Gradient F0
+    // rVariables.detF0 = MathUtils<double>::Det(rVariables.F0);
 }
 
 

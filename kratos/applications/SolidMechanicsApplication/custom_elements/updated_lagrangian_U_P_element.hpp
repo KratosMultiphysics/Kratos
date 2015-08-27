@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_U_P_element.hpp"
+#include "custom_elements/large_displacement_U_P_element.hpp"
 
 
 namespace Kratos
@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Updated Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
+/// Spatial Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
@@ -42,7 +42,7 @@ namespace Kratos
  */
 
 class UpdatedLagrangianUPElement
-    : public SpatialLagrangianUPElement
+    : public LargeDisplacementUPElement
 {
 public:
 
@@ -98,7 +98,6 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-
     /**
      * clones the selected element variables, creating a new one
      * @param NewId: the ID of the new element
@@ -108,8 +107,36 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
+
+    //************* GETTING METHODS
+
+    //SET
+
+    /**
+     * Set a double  Value on the Element Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+    //GET:
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+
     //************* STARTING - ENDING  METHODS
 
+    /**
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
+    void Initialize();
+
+    //************************************************************************************
+    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -142,11 +169,20 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * Container for historical total elastic deformation measure
+     */
+    std::vector< Matrix > mDeformationGradientF0;
+
+    /**
+     * Container for the total deformation gradient determinants
+     */
+    Vector mDeterminantF0;
 
     ///@}
     ///@name Protected Operators
     ///@{
-    UpdatedLagrangianUPElement() : SpatialLagrangianUPElement()
+    UpdatedLagrangianUPElement() : LargeDisplacementUPElement()
     {
     }
 
@@ -158,45 +194,52 @@ protected:
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                            GeneralVariables& rVariables,
-                            double& rIntegrationWeight);
+
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                            GeneralVariables& rVariables,
-                            Vector& rVolumeForce,
-                            double& rIntegrationWeight);
+
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-    /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
+   /**
+     * Finalize Element Internal Variables
      */
-    void SetGeneralVariables  (GeneralVariables& rVariables,
-                               ConstitutiveLaw::Parameters& rValues,
-                               const int & rPointNumber);
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
-                             const double& rPointNumber);
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+                                     const double& rPointNumber);
 
+
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    void CalculateDeformationGradient(const Matrix& rDN_DX,
+                                      Matrix& rF,
+                                      Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX);
-
+    virtual void CalculateDeformationMatrix(Matrix& rB,
+                                            Matrix& rF,
+                                            Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
@@ -204,16 +247,10 @@ protected:
     void GetHistoricalVariables( GeneralVariables& rVariables, 
 				 const double& rPointNumber );
 
-
     /**
      * Calculation of the Volume Change of the Element
      */
     virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
-    /**
-     * Calculation of the DN_DX in the updated configuration
-     */
-    void CalculatePushForwardDN_DX(GeneralVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

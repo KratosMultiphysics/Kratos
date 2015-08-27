@@ -525,8 +525,6 @@ void SmallDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
         KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", rVariables.detJ )
     }
 
-    rValues.SetDeterminantF0(rVariables.detF0);
-    rValues.SetDeformationGradientF0(rVariables.F0);
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
 
@@ -549,8 +547,6 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
 
     rVariables.detF  = 1;
 
-    rVariables.detF0 = 1;
-
     rVariables.B.resize( voigtsize, number_of_nodes * dimension );
 
     rVariables.H.resize( dimension, dimension );
@@ -564,10 +560,9 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
     rVariables.DN_DX.resize( number_of_nodes, dimension );
 
     //needed parameters for consistency with the general constitutive law: small displacements
-    rVariables.detF0 = 1;
+
     rVariables.detF  = 1;
     rVariables.F     = identity_matrix<double>(dimension);
-    rVariables.F0    = identity_matrix<double>(dimension);
 
     //set variables including all integration points values
 
@@ -1923,7 +1918,6 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        //ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

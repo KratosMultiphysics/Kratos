@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_element.hpp"
+#include "custom_elements/large_displacement_element.hpp"
 
 
 namespace Kratos
@@ -37,12 +37,12 @@ namespace Kratos
 /// Updated Lagrangian Element for 3D and 2D geometries.
 
 /**
- * Implements a updated Lagrangian definition for structural analysis.
+ * Implements a spatial Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D
  */
 
 class UpdatedLagrangianElement
-    : public SpatialLagrangianElement
+    : public LargeDisplacementElement
 {
 public:
 
@@ -87,7 +87,7 @@ public:
      * @return current integration method selected
      */
     /**
-     * creates a new total lagrangian updated element pointer
+     * creates a  element pointer
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
@@ -104,6 +104,34 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+
+  
+    // //************* GETTING METHODS
+
+    //SET
+
+    /**
+     * Set a double  Value on the Element Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+    //GET:
+
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+
+    //************* STARTING - ENDING  METHODS
+
+    /**
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
+    void Initialize();
 
     //************************************************************************************
     //************************************************************************************
@@ -127,6 +155,26 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Element #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Updated Lagrangian Element #" << Id();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      GetGeometry().PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -138,45 +186,64 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    /**
+     * Container for historical total elastic deformation measure F0 = dx/dX
+     */
+    std::vector< Matrix > mDeformationGradientF0;
+
+    /**
+     * Container for the total deformation gradient determinants
+     */
+    Vector mDeterminantF0;
+
     ///@}
     ///@name Protected Operators
     ///@{
-    UpdatedLagrangianElement() : SpatialLagrangianElement()
+    UpdatedLagrangianElement() : LargeDisplacementElement()
     {
     }
-
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
+
+
 
     /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
+     * Finalize Element Internal Variables
      */
-    void SetGeneralVariables(GeneralVariables& rVariables,
-                             ConstitutiveLaw::Parameters& rValues,
-                             const int & rPointNumber);
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, 
+				       const double& rPointNumber );
+
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
-                             const double& rPointNumber);
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+                                     const double& rPointNumber);
 
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    void CalculateDeformationGradient(const Matrix& rDN_DX,
+                                      Matrix& rF,
+                                      Matrix& rDeltaPosition);
+
+    /**
+     * Calculation of the Deformation Matrix  BL
+     */
+    virtual void CalculateDeformationMatrix(Matrix& rB,
+                                            Matrix& rF,
+                                            Matrix& rDN_DX);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( GeneralVariables& rVariables, 
 				 const double& rPointNumber );
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX);
 
     /**
      * Calculation of the Volume Change of the Element
@@ -201,12 +268,17 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
     ///@}
     ///@name Private Operators
     ///@{
+
+
     ///@}
     ///@name Private Operations
     ///@{
+
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -217,12 +289,9 @@ private:
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
     virtual void save(Serializer& rSerializer) const;
 
     virtual void load(Serializer& rSerializer);
-
 
     ///@name Private Inquiry
     ///@{

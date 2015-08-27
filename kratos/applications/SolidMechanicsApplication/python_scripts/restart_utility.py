@@ -11,7 +11,8 @@ class RestartUtility:
 
     def __init__(self, model_part, problem_path, problem_name):
 
-        self.model_part = model_part
+
+        self.model_part =  model_part
 
         # set restart flags
         self.load_restart_flag = False
@@ -22,6 +23,8 @@ class RestartUtility:
 
         # set problem path
         self.problem_path = problem_path
+
+        print(" problem path ", self.problem_path)
 
         # set serializer flag
         self.serializer_flag = "SERIALIZER_NO_TRACE"
