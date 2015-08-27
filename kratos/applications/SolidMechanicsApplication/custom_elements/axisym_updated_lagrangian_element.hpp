@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_U_P_element.hpp"
+#include "custom_elements/large_displacement_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
+/// Axisym Updated Lagrangian Element 2D geometries.
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D
+ * This works for arbitrary geometries in 2D
  */
 
-class SpatialLagrangianUPElement
-    : public LargeDisplacementUPElement
+class AxisymUpdatedLagrangianElement
+    : public LargeDisplacementElement
 {
 public:
 
@@ -57,38 +57,35 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of SpatialLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUPElement );
+    /// Counted pointer of AxisymUpdatedLagrangianElement
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianElement );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    SpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUPElement(SpatialLagrangianUPElement const& rOther);
+    AxisymUpdatedLagrangianElement(AxisymUpdatedLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~SpatialLagrangianUPElement();
+    virtual ~AxisymUpdatedLagrangianElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUPElement& operator=(SpatialLagrangianUPElement const& rOther);
+    AxisymUpdatedLagrangianElement& operator=(AxisymUpdatedLagrangianElement const& rOther);
 
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
+
     /**
      * creates a new total lagrangian updated element pointer
      * @param NewId: the ID of the new element
@@ -107,8 +104,7 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-
-    //************* GETTING METHODS
+    // //************* GETTING METHODS
 
     //SET
 
@@ -124,7 +120,6 @@ public:
      * Get on rVariable a double Value from the Element Constitutive Law
      */
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
 
 
     //************* STARTING - ENDING  METHODS
@@ -150,7 +145,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -182,7 +176,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    SpatialLagrangianUPElement() : LargeDisplacementUPElement()
+    AxisymUpdatedLagrangianElement() : LargeDisplacementElement()
     {
     }
 
@@ -209,23 +203,32 @@ protected:
                                     double& rIntegrationWeight);
 
     /**
+     * Calculation of the Total Mass of the Element
+     */
+    double& CalculateTotalMass(double& rTotalMass, ProcessInfo& rCurrentProcessInfo);
+
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rK,
+                                     GeneralVariables & rVariables,
+                                     double& rIntegrationWeight
+                                    );
+
+
+
+    /**
      * Initialize Element General Variables
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-   /**
+    /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber );
 
-
-    /**
-      * Set Variables of the Element to the Parameters of the Constitutive Law
-      */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
@@ -235,24 +238,48 @@ protected:
 
 
     /**
+     * Calculate Radius in the current and deformed geometry
+     */
+    void CalculateRadius(double & rCurrentRadius,
+                         double & rReferenceRadius,
+                         const Vector& rN);
+
+    /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
                                       Matrix& rF,
-                                      Matrix& rDeltaPosition);
+                                      Matrix& rDeltaPosition,
+                                      double & rCurrentRadius,
+                                      double & rReferenceRadius);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            Matrix& rF,
-                                            Matrix& rDN_DX);
+                                            Matrix& rDN_DX,
+                                            Vector& rN,
+                                            double & rCurrentRadius);
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
     void GetHistoricalVariables( GeneralVariables& rVariables, 
 				 const double& rPointNumber );
+
+
+    /**
+     * Calculation of the Green Lagrange Strain Vector
+     */
+    void CalculateGreenLagrangeStrain(const Matrix& rF,
+                                      Vector& rStrainVector);
+
+    /**
+     * Calculation of the Almansi Strain Vector
+     */
+    void CalculateAlmansiStrain(const Matrix& rF,
+                                Vector& rStrainVector);
+
 
     /**
      * Calculation of the Volume Change of the Element
@@ -313,7 +340,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SpatialLagrangianUPElement
+}; // Class AxisymUpdatedLagrangianElement
 
 ///@}
 ///@name Type Definitions
@@ -324,4 +351,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 
