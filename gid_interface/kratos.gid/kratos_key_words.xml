@@ -42,14 +42,6 @@
       usennode="Yes" />
       <Item id="UpdatedLagrangian3D" kkword="UpdatedLagrangianElement"
       usennode="Yes" />
-      <Item id="SpatialLagrangian2DPlaneStress" kkword="SpatialLagrangianElement"
-      usennode="Yes" />
-      <Item id="SpatialLagrangian2DPlaneStrain" kkword="SpatialLagrangianElement"
-      usennode="Yes" />
-      <Item id="SpatialLagrangian2DAxisymmetric" kkword="AxisymSpatialLagrangianElement"
-      usennode="Yes" />
-      <Item id="SpatialLagrangian3D" kkword="SpatialLagrangianElement"
-      usennode="Yes" />
       <Item id="Thickness" kkword="THICKNESS" />
       <Item id="Dx" kkword="DISPLACEMENT_X" />
       <Item id="Dy" kkword="DISPLACEMENT_Y" />
@@ -422,22 +414,16 @@
     <Item id="TotalLagrangian3D"
     claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
     active="1" />
+    <Item id="UpdatedLagrangian3D"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
+    active="1" />
     <Item id="UpdatedLagrangian2DPlaneStress"
     claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
     active="1" />
     <Item id="UpdatedLagrangian2DPlaneStrain"
     claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
     active="1" />
-    <Item id="SpatialLagrangian3D"
-    claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
-    active="1" />
-    <Item id="SpatialLagrangian2DPlaneStress"
-    claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
-    active="1" />
-    <Item id="SpatialLagrangian2DPlaneStrain"
-    claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
-    active="1" />
-    <Item id="SpatialLagrangian3D"
+    <Item id="UpdatedLagrangian3D"
     claws="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic"
     active="1" />
     <Item id="CrisfieldTrussElement" 
