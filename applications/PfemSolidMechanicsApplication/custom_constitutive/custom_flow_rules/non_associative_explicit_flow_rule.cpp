@@ -1,13 +1,16 @@
 //
-
+// System includes
 #include <iostream>
 #include<cmath>
 
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
-#include "utilities/math_utils.h"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+// External includes
 #include "includes/ublas_interface.h"
-#include "solid_mechanics_application.h"
+
+// Project includes
+#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+
+#include "pfem_solid_mechanics_application.h"
+
 namespace Kratos
 {
 
@@ -756,7 +759,6 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
    double MaxTimeStep = 0.5;
    TimeStep = MaxTimeStep;
 
-   //Matrix ActualDeformationGradient = rDeformationGradientF0;
    Matrix ActualElasticLeftCauchyGreen = rPreviousElasticCauchyGreen;
    Matrix SubstepDeformationGradient; 
 
@@ -840,8 +842,6 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
 // Search for the change and then continue
 void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolutionWithChange(const Matrix& rDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector,  const double& rTolerance)
 {
-
-   //Matrix FinalDeformationGradient = prod( rDeltaDeformationGradient, rDeformationGradientF0);
 
 // bisecction in elastic Regime
 

@@ -109,7 +109,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
 
 
 
-void HenckyElasticPlasticPlaneStrain2DLaw::ConvertConstitutiveMatrixToAppropiateDimension(Matrix&  rPrincipalTangentMatrix)
+void HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDimension(Matrix&  rPrincipalTangentMatrix)
 {
 
     Matrix AuxiliarMatrix = ZeroMatrix(3);
@@ -133,7 +133,9 @@ void HenckyElasticPlasticPlaneStrain2DLaw::ConvertConstitutiveMatrixToAppropiate
 
 
 
-void HenckyElasticPlasticPlaneStrain2DLaw::CalculatePrincipalAxisHenckyTrial(const Matrix& rCauchyGreenMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStrain)
+void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix, 
+					   FlowRule::RadialReturnVariables& rReturnMappingVariables, 
+					   Vector& rMainStrain)
 {
     Matrix Auxiliar = ZeroMatrix(3);
     Auxiliar(0,0) = rCauchyGreenMatrix(0,0);
@@ -164,7 +166,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculatePrincipalAxisHenckyTrial(con
     rReturnMappingVariables.TrialEigenValues(2) =  rCauchyGreenMatrix(2,2);
 
     for (unsigned int i = 0; i<3; i++)
-           rPrincipalStrain(i) = 0.50*std::log(rReturnMappingVariables.TrialEigenValues(i));
+           rMainStrain(i) = 0.50*std::log(rReturnMappingVariables.TrialEigenValues(i));
 }
 
 

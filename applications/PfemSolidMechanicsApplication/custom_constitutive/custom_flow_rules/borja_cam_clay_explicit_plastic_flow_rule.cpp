@@ -5,9 +5,8 @@
 // External includes
 
 // Project includes
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
-#include "utilities/math_utils.h"
-#include "includes/ublas_interface.h"
+#include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
+
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos

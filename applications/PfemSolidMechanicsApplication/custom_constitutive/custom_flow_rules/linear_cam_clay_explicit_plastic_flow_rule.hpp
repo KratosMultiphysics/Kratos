@@ -15,7 +15,8 @@
 // External includes
 
 // Project includes
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+
 
 namespace Kratos
 {
@@ -44,12 +45,9 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class LinearCamClayExplicitFlowRule
-	  :public CamClayExplicitFlowRule
+  class LinearCamClayExplicitFlowRule 
+            : public CamClayExplicitFlowRule
   {
-  
-
-
    public:
     ///@name Type Definitions
     ///@{

@@ -5,9 +5,11 @@
 // External includes
 
 // Project includes
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
-#include "utilities/math_utils.h"
-#include "includes/ublas_interface.h"
+#include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
+
+
+#include "pfem_solid_mechanics_application.h"
+
 namespace Kratos
 {
 
@@ -15,7 +17,7 @@ namespace Kratos
 
 //************ CONSTRUCTOR ***********
 J2ExplicitFlowRule::J2ExplicitFlowRule()
-   :NonAssociativeExplicitPlasticFlowRule()
+  :NonAssociativeExplicitPlasticFlowRule()
 {
 }
 
@@ -23,7 +25,7 @@ J2ExplicitFlowRule::J2ExplicitFlowRule()
 //************************************************************************************
 
 J2ExplicitFlowRule::J2ExplicitFlowRule(YieldCriterionPointer pYieldCriterion)
-	:NonAssociativeExplicitPlasticFlowRule(pYieldCriterion)
+  :NonAssociativeExplicitPlasticFlowRule(pYieldCriterion)
 {
    
 }
@@ -31,11 +33,9 @@ J2ExplicitFlowRule::J2ExplicitFlowRule(YieldCriterionPointer pYieldCriterion)
 //********* ASSIGMENT OPERATOR
 J2ExplicitFlowRule& J2ExplicitFlowRule::operator=(J2ExplicitFlowRule const& rOther)
 {
-	NonAssociativeExplicitPlasticFlowRule::operator=(rOther);
-	return *this;
-
+  NonAssociativeExplicitPlasticFlowRule::operator=(rOther);
+  return *this;
 }
-
 
 
 //********** COPY CONSTRUCTOR *********
@@ -44,13 +44,13 @@ J2ExplicitFlowRule::J2ExplicitFlowRule(J2ExplicitFlowRule const& rOther)
 {
 }
 
+
 //*******   CLONE ********
 FlowRule::Pointer J2ExplicitFlowRule::Clone() const
 {
   FlowRule::Pointer p_clone(new J2ExplicitFlowRule(*this));
   return p_clone;
 }
-
 
 
 // ********** DESTRUCTOR **************
@@ -65,9 +65,7 @@ void J2ExplicitFlowRule::CalculateKirchhoffStressVector(const Vector& rHenckyStr
      Matrix ElasticMatrix;
      this->ComputeElasticMatrix(rHenckyStrainVector, ElasticMatrix);
 
-
      rKirchhoffStressVector = prod(ElasticMatrix, rHenckyStrainVector);
-
 
 }
 
@@ -78,9 +76,9 @@ void J2ExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector
       Matrix Aux = ZeroMatrix(6);
       rElasticMatrix = Aux;
 
-      double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-      double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-      double diagonal =   Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
+      double Young      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+      double Nu         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+      double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
       double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
       double corte      = Young/(1.0+Nu)/2.0;
 

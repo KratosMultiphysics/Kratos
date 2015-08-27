@@ -38,7 +38,15 @@ NonLinearHenckyElasticPlasticUP3DLaw::NonLinearHenckyElasticPlasticUP3DLaw(const
 
 }
 
- 
+//********************************CLONE***********************************************
+//************************************************************************************
+
+ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticUP3DLaw::Clone() const
+{
+    NonLinearHenckyElasticPlasticUP3DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticUP3DLaw(*this));
+    return p_clone;
+}
+
 NonLinearHenckyElasticPlasticUP3DLaw::~NonLinearHenckyElasticPlasticUP3DLaw()
 {
 }
@@ -65,9 +73,9 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CorrectDomainPressure(Matrix& rStress
     GetDomainPressure( Pressure, rElasticVariables);
    
     for (unsigned int i = 0; i < 3; ++i)
-        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF0; 
+        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF; 
 
-    //std::cout << " THIS DET " << rElasticVariables.DeterminantF0 << std::endl;
+    //std::cout << " THIS DET " << rElasticVariables.DeterminantF << std::endl;
 }
 
 void NonLinearHenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables)
@@ -99,7 +107,7 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
      //GetDomainPressure( Pressure, rElasticVariables);
      GetDomainPressure( Pressure, rElasticVariables);
      
-     Pressure *= rElasticVariables.DeterminantF0;
+     Pressure *= rElasticVariables.DeterminantF;
 
      double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
      double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
@@ -219,14 +227,13 @@ Matrix& NonLinearHenckyElasticPlasticUP3DLaw::GetValue(const Variable<Matrix>& r
       Matrix StressMatrix;
       Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen;
 
-      Matrix DeformationGradientF0 = ZeroMatrix(3);
+      Matrix DeformationGradientF = ZeroMatrix(3);
       for (unsigned int i = 0; i < 3; ++i)
-         DeformationGradientF0(i,i) = 1.0;
-      Matrix IncrementalDeformationGradient = DeformationGradientF0;
-
+         DeformationGradientF(i,i) = 1.0;
+ 
       FlowRule::RadialReturnVariables ReturnMappingVariables;
 
-      mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+      mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
 
       double MeanStress = 0;
       for (unsigned int i = 0; i < 3; ++i)

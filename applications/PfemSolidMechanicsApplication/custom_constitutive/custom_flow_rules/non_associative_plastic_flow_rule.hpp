@@ -90,8 +90,7 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rStressMatrix, const Vector& rPrincipalSrainTrial );
-
+    bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen);
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
 
@@ -165,7 +164,7 @@ namespace Kratos
 	KRATOS_THROW_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
-    void ComputePrincipalAxisStrain(RadialReturnVariables& rReturnMappingVariables, const Matrix& rStrainMatrix, Vector& rPrincipalStrain);
+    void ComputePrincipalAxisStrain(RadialReturnVariables& rReturnMappingVariables, const Matrix& rStrainMatrix, Vector& rPrincipalStrain, Matrix& rEigenVectors);
 //    double& CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress );
 
 	  

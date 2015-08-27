@@ -1,5 +1,3 @@
-// creo que puedo ir directo al tema
-
 // System includes
 #include <string>
 #include <iostream>
@@ -9,9 +7,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "solid_mechanics_application.h"
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.hpp"
-#include "utilities/math_utils.h"
+
+#include "custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.hpp"
+
+#include "pfem_solid_mechanics_application.h"
+
 namespace Kratos
 {
 

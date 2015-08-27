@@ -14,8 +14,9 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solid_mechanics_application.h"
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.hpp"
+
+#include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
 {
