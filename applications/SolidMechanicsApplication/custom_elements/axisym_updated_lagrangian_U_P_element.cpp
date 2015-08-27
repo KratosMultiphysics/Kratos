@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/axisym_spatial_lagrangian_U_P_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_P_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
@@ -24,7 +24,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+AxisymUpdatedLagrangianUPElement::AxisymUpdatedLagrangianUPElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : LargeDisplacementUPElement( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
@@ -34,7 +34,7 @@ AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( IndexType Ne
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+AxisymUpdatedLagrangianUPElement::AxisymUpdatedLagrangianUPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : LargeDisplacementUPElement( NewId, pGeometry, pProperties )
 {
     //mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
@@ -46,7 +46,7 @@ AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( IndexType Ne
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( AxisymSpatialLagrangianUPElement const& rOther)
+AxisymUpdatedLagrangianUPElement::AxisymUpdatedLagrangianUPElement( AxisymUpdatedLagrangianUPElement const& rOther)
     :LargeDisplacementUPElement(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
@@ -57,7 +57,7 @@ AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( AxisymSpatia
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-AxisymSpatialLagrangianUPElement&  AxisymSpatialLagrangianUPElement::operator=(AxisymSpatialLagrangianUPElement const& rOther)
+AxisymUpdatedLagrangianUPElement&  AxisymUpdatedLagrangianUPElement::operator=(AxisymUpdatedLagrangianUPElement const& rOther)
 {
     LargeDisplacementUPElement::operator=(rOther);
 
@@ -78,19 +78,19 @@ AxisymSpatialLagrangianUPElement&  AxisymSpatialLagrangianUPElement::operator=(A
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
-Element::Pointer AxisymSpatialLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer AxisymUpdatedLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new AxisymSpatialLagrangianUPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new AxisymUpdatedLagrangianUPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
 
 //************************************CLONE*******************************************
 //************************************************************************************
 
-Element::Pointer AxisymSpatialLagrangianUPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer AxisymUpdatedLagrangianUPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    AxisymSpatialLagrangianUPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+    AxisymUpdatedLagrangianUPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
 
     //-----------//
@@ -124,13 +124,13 @@ Element::Pointer AxisymSpatialLagrangianUPElement::Clone( IndexType NewId, Nodes
     NewElement.mDeterminantF0 = mDeterminantF0;
 
         
-    return Element::Pointer( new AxisymSpatialLagrangianUPElement(NewElement) );
+    return Element::Pointer( new AxisymUpdatedLagrangianUPElement(NewElement) );
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-AxisymSpatialLagrangianUPElement::~AxisymSpatialLagrangianUPElement()
+AxisymUpdatedLagrangianUPElement::~AxisymUpdatedLagrangianUPElement()
 {
 }
 
@@ -141,7 +141,7 @@ AxisymSpatialLagrangianUPElement::~AxisymSpatialLagrangianUPElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymUpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -154,6 +154,7 @@ void AxisymSpatialLagrangianUPElement::SetValueOnIntegrationPoints( const Variab
     for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
       {
 	mDeterminantF0[PointNumber] = rValues[PointNumber];
+	mConstitutiveLawVector[PointNumber]->SetValue(rVariable, rValues[PointNumber], rCurrentProcessInfo);
       }
 
   }
@@ -174,7 +175,7 @@ void AxisymSpatialLagrangianUPElement::SetValueOnIntegrationPoints( const Variab
 //************************************************************************************
 
 
-void AxisymSpatialLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void AxisymUpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -204,7 +205,7 @@ void AxisymSpatialLagrangianUPElement::GetValueOnIntegrationPoints( const Variab
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::Initialize()
+void AxisymUpdatedLagrangianUPElement::Initialize()
 {
     KRATOS_TRY
 
@@ -232,7 +233,7 @@ void AxisymSpatialLagrangianUPElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymUpdatedLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
 
@@ -240,11 +241,15 @@ void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
 
     rVariables.detF0 = 1;
 
+    rVariables.detFT = 1;
+
     rVariables.B.resize( 4 , number_of_nodes * 2 );
 
     rVariables.F.resize( 3, 3 );
 
     rVariables.F0.resize( 3, 3 );
+
+    rVariables.FT.resize( 3, 3 );
 
     rVariables.ConstitutiveMatrix.resize( 4, 4 );
 
@@ -287,11 +292,11 @@ void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
 ////************************************************************************************
 ////************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
+void AxisymUpdatedLagrangianUPElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
 { 
     //update internal (historical) variables
-    mDeterminantF0[rPointNumber]         = rVariables.detF0 ;
-    mDeformationGradientF0[rPointNumber] = rVariables.F0;
+    mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
+    mDeformationGradientF0[rPointNumber] = prod(rVariables.F, rVariables.F0);
 }
 
 
@@ -299,7 +304,7 @@ void AxisymSpatialLagrangianUPElement::FinalizeStepVariables( GeneralVariables &
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
@@ -320,7 +325,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents&
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
@@ -337,26 +342,11 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents&
 }
 
 
-//************************************************************************************
-//************************************************************************************
-
-void AxisymSpatialLagrangianUPElement::SetGeneralVariables(GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const int & rPointNumber)
-{
-    LargeDisplacementElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
-
-    //Set extra options for the contitutive law
-    Flags &ConstitutiveLawOptions=rValues.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::FINAL_CONFIGURATION);
-
-}
-
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
 
-void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariables,
+void AxisymUpdatedLagrangianUPElement::CalculateKinematics(GeneralVariables& rVariables,
         const double& rPointNumber)
 
 {
@@ -414,7 +404,7 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
 //*************************COMPUTE AXYSIMMETRIC RADIUS********************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateRadius(double & rCurrentRadius,
+void AxisymUpdatedLagrangianUPElement::CalculateRadius(double & rCurrentRadius,
 						       double & rReferenceRadius,
 						       const Vector& rN)
 
@@ -459,7 +449,7 @@ void AxisymSpatialLagrangianUPElement::CalculateRadius(double & rCurrentRadius,
 //*************************COMPUTE DEFORMATION GRADIENT*******************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
+void AxisymUpdatedLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
         Matrix&  rF,
         Matrix&  rDeltaPosition,
         double & rCurrentRadius,
@@ -507,7 +497,7 @@ void AxisymSpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix
 //************************************************************************************
 
 
-void AxisymSpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
+void AxisymUpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
         Matrix& rDN_DX,
         Vector& rN,
         double & rCurrentRadius)
@@ -554,7 +544,7 @@ void AxisymSpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateGreenLagrangeStrain(const Matrix& rF,
+void AxisymUpdatedLagrangianUPElement::CalculateGreenLagrangeStrain(const Matrix& rF,
         Vector& rStrainVector )
 {
     KRATOS_TRY
@@ -599,7 +589,7 @@ void AxisymSpatialLagrangianUPElement::CalculateGreenLagrangeStrain(const Matrix
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
+void AxisymUpdatedLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
         Vector& rStrainVector )
 {
     KRATOS_TRY
@@ -649,7 +639,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
 
 //************************************************************************************
 //************************************************************************************
-void AxisymSpatialLagrangianUPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
 								     GeneralVariables & rVariables,
 								     double& rIntegrationWeight)
 {
@@ -709,7 +699,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddPressureForces(VectorType&
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
         double& rIntegrationWeight)
 {
@@ -796,7 +786,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorT
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
         GeneralVariables& rVariables,
         double& rIntegrationWeight)
 
@@ -875,7 +865,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
         GeneralVariables& rVariables,
         double& rIntegrationWeight)
 {
@@ -914,7 +904,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
         GeneralVariables& rVariables,
         double& rIntegrationWeight)
 
@@ -961,7 +951,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
         GeneralVariables& rVariables,
         double& rIntegrationWeight)
 {
@@ -1008,7 +998,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
+void AxisymUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
         GeneralVariables & rVariables,
         double& rIntegrationWeight)
 {
@@ -1094,7 +1084,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
 
-double& AxisymSpatialLagrangianUPElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
+double& AxisymUpdatedLagrangianUPElement::CalculateTotalMass( double& rTotalMass, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1131,7 +1121,7 @@ double& AxisymSpatialLagrangianUPElement::CalculateTotalMass( double& rTotalMass
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void AxisymUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -1220,7 +1210,7 @@ void AxisymSpatialLagrangianUPElement::CalculateMassMatrix( MatrixType& rMassMat
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+void AxisymUpdatedLagrangianUPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -1234,7 +1224,7 @@ void AxisymSpatialLagrangianUPElement::GetHistoricalVariables( GeneralVariables&
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& AxisymSpatialLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+double& AxisymUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
 {
     KRATOS_TRY
       
@@ -1247,14 +1237,14 @@ double& AxisymSpatialLagrangianUPElement::CalculateVolumeChange( double& rVolume
 
 //************************************************************************************
 //************************************************************************************
-void AxisymSpatialLagrangianUPElement::save( Serializer& rSerializer ) const
+void AxisymUpdatedLagrangianUPElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementUPElement )
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 }
 
-void AxisymSpatialLagrangianUPElement::load( Serializer& rSerializer )
+void AxisymUpdatedLagrangianUPElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementUPElement )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);

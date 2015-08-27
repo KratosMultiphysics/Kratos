@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -34,14 +34,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisym Spatial Lagrangian U-P Element for 2D geometries. For Linear Triangles
+/// Axisym Updated Lagrangian U-P Element for 2D geometries. For Linear Triangles
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 2D
  */
 
-class AxisymSpatialLagrangianUPElement
+class AxisymUpdatedLagrangianUPElement
     : public LargeDisplacementUPElement
 {
 public:
@@ -57,30 +57,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of AxisymSpatialLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymSpatialLagrangianUPElement );
+    /// Counted pointer of AxisymUpdatedLagrangianUPElement
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUPElement );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymUpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymUpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymSpatialLagrangianUPElement(AxisymSpatialLagrangianUPElement const& rOther);
+    AxisymUpdatedLagrangianUPElement(AxisymUpdatedLagrangianUPElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymSpatialLagrangianUPElement();
+    virtual ~AxisymUpdatedLagrangianUPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymSpatialLagrangianUPElement& operator=(AxisymSpatialLagrangianUPElement const& rOther);
+    AxisymUpdatedLagrangianUPElement& operator=(AxisymUpdatedLagrangianUPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -191,7 +191,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    AxisymSpatialLagrangianUPElement() : LargeDisplacementUPElement()
+    AxisymUpdatedLagrangianUPElement() : LargeDisplacementUPElement()
     {
     }
 
@@ -285,21 +285,16 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
-
-    /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
-     */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber);
 
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber );
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, 
+				       const double& rPointNumber );
 
     /**
      * Calculate Element Kinematics
@@ -411,7 +406,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AxisymSpatialLagrangianUPElement
+}; // Class AxisymUpdatedLagrangianUPElement
 
 ///@}
 ///@name Type Definitions
@@ -422,4 +417,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
