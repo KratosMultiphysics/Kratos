@@ -6,8 +6,7 @@
 
 // Project includes
 #include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
-#include "utilities/math_utils.h"
-#include "includes/ublas_interface.h"
+
 #include "pfem_solid_mechanics_application.h"
 
 

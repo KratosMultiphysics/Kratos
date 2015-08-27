@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 
 namespace Kratos
@@ -56,7 +55,7 @@ namespace Kratos
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION( TrescaExplicitFlowRule );
+    KRATOS_CLASS_POINTER_DEFINITION( TrescaExplicitFlowRule );
 
     ///@}
     ///@name Life Cycle

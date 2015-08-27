@@ -171,17 +171,11 @@ protected:
 
 							      
     virtual void ConvertConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix);
-    /**
-     * Calculates the isochoric constitutive matrix
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
 
 
-      virtual void CalculatePrincipalAxisHenckyTrial(const Matrix& rCauchyGreeMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStrain);
-
+    virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix, 
+					   FlowRule::RadialReturnVariables& rReturnMappingVariables, 
+					   Vector& rMainStrain);
 private:
 
     ///@name Static Member Variables

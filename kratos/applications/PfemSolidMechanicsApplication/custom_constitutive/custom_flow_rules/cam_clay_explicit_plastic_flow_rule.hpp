@@ -15,7 +15,8 @@
 // External includes
 
 // Project includes
-#include "../PfemSolidMechanicsApplication/custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+
 
 namespace Kratos
 {

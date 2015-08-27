@@ -37,7 +37,13 @@ NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::NonLinearHenckyElasticPlasticUP
 
 }
 
+ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::Clone() const
+{
+    NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw(*this));
+    return p_clone;
+}
  
+
 NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw::~NonLinearHenckyElasticPlasticUPPlaneStrain2DLaw()
 {
 }

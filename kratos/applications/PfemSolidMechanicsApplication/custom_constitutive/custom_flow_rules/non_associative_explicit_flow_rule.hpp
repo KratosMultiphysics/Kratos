@@ -12,7 +12,11 @@
 // External includes
 #include<cmath>
 // Project includes
+#include "solid_mechanics_application.h"
 #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
+
+
+
 namespace Kratos
 {
   ///@addtogroup ApplicationNameApplication

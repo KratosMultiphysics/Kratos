@@ -1,3 +1,12 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Last modified by:    $Author:                JMCarbonell $
+//   Date:                $Date:                    July 2015 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
+
 // System includes
 #include <iostream>
 
@@ -6,20 +15,22 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/hencky_plastic_3d_law.hpp"
 
-#include "../PfemSolidMechanicsApplication/custom_constitutive/hencky_plastic_3d_law.hpp"
+#include "pfem_solid_mechanics_application.h"
 
-#include "solid_mechanics_application.h"
-//Molt important, el tema de constructors... etc
 namespace Kratos
 {
 
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
 HenckyElasticPlastic3DLaw::HenckyElasticPlastic3DLaw()
    : HyperElasticPlastic3DLaw()
 {
 
 }
+
+
 
 HenckyElasticPlastic3DLaw::HenckyElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
    : HyperElasticPlastic3DLaw( pFlowRule, pYieldCriterion, pHardeningLaw)
@@ -27,6 +38,8 @@ HenckyElasticPlastic3DLaw::HenckyElasticPlastic3DLaw(FlowRulePointer pFlowRule, 
 
 }
 
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
 
 HenckyElasticPlastic3DLaw::HenckyElasticPlastic3DLaw(const HenckyElasticPlastic3DLaw&  rOther)
   : HyperElasticPlastic3DLaw(rOther)
@@ -34,19 +47,45 @@ HenckyElasticPlastic3DLaw::HenckyElasticPlastic3DLaw(const HenckyElasticPlastic3
 
 }
 
- 
+//********************************CLONE***********************************************
+//************************************************************************************
+
+ConstitutiveLaw::Pointer HenckyElasticPlastic3DLaw::Clone() const
+{
+    HenckyElasticPlastic3DLaw::Pointer p_clone(new HenckyElasticPlastic3DLaw(*this));
+    return p_clone;
+}
+
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
+
 HenckyElasticPlastic3DLaw::~HenckyElasticPlastic3DLaw()
 {
 }
 
 
+//************************************************************************************
+//************************************************************************************
+
 
 void HenckyElasticPlastic3DLaw::InitializeMaterial(const Properties& rProps, 
-	const GeometryType& rGeom, const Vector& rShapeFunctionsValues)
+						   const GeometryType& rGeom, 
+						   const Vector& rShapeFunctionsValues)
 {
-   mElasticLeftCauchyGreen = identity_matrix<double> (3);
+   mDeterminantF0                = 1;
+   mInverseDeformationGradientF0 = identity_matrix<double> (3);
+   mElasticLeftCauchyGreen       = identity_matrix<double> (3);
+
    mpFlowRule->InitializeMaterial(mpYieldCriterion, mpHardeningLaw, rProps);
 }
+
+
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
+
+//*****************************MATERIAL RESPONSES*************************************
+//************************************************************************************
 
 
 void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
@@ -60,20 +99,18 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
-    const ProcessInfo&  CurProcessInfo    = rValues.GetProcessInfo();
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-    const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-    const double&   DeterminantF          = rValues.GetDeterminantF();
+    const ProcessInfo& CurrrentProcessInfo = rValues.GetProcessInfo();
+    const Properties& MaterialProperties   = rValues.GetMaterialProperties();
 
-    const GeometryType&  DomainGeometry   = rValues.GetElementGeometry ();
-    const Vector&        ShapeFunctions   = rValues.GetShapeFunctionsValues ();
+    const Matrix&   DeformationGradientF   = rValues.GetDeformationGradientF();
+    const double&   DeterminantF           = rValues.GetDeterminantF();
 
-    Vector& StrainVector                  = rValues.GetStrainVector();
+    const GeometryType&  DomainGeometry    = rValues.GetElementGeometry ();
+    const Vector&        ShapeFunctions    = rValues.GetShapeFunctionsValues ();
 
-    double& DeterminantF0                 = rValues.GetDeterminantF0();
-
-    Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+    Vector& StrainVector                   = rValues.GetStrainVector();
+    Vector& StressVector                   = rValues.GetStressVector();
+    Matrix& ConstitutiveMatrix             = rValues.GetConstitutiveMatrix();
 
     //-----------------------------//
 
@@ -85,38 +122,44 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
 
     FlowRule::RadialReturnVariables ReturnMappingVariables;
+    //ReturnMappingVariables.initialize(); //it has to be called at the start
     ReturnMappingVariables.clear();
+
+    // Initialize variables from the process information
     ReturnMappingVariables.DeltaTime = CurProcessInfo[DELTA_TIME];
 
-    // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
-    double voigtsize = StressVector.size();
- //   VectorSplit SplitStressVector;
-    MatrixSplit SplitConstitutiveMatrix;
+    if(CurrentProcessInfo[IMPLEX] == 1)	
+      ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
+    else
+      ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);
+
 
     //1.- Lame constants
-    const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
-    //const double YoungModulus = 2.0e5;
-    //const double PoissonCoefficient = 0.3;
+    // const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
+    // const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
 
-//    ReturnMappingVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
-//    ReturnMappingVariables.LameMu          =  YoungModulus/(2.0*(1.0+PoissonCoefficient));
+    //ElasticVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
+    //ElasticVariables.LameMu         =  YoungModulus/(2.0*(1.0+PoissonCoefficient));
    
-    ReturnMappingVariables.YoungModulus = YoungModulus;
-    ReturnMappingVariables.PoissonCoefficient    = PoissonCoefficient; 
+    // lluis
+    // ReturnMappingVariables.YoungModulus          =  MaterialProperties[YOUNG_MODULUS];
+    // ReturnMappingVariables.PoissonCoefficient    =  MaterialProperties[POISSON_RATIO]; 
+
+
     //2.-Determinant of the Total Deformation Gradient
-    ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
+    ElasticVariables.DeterminantF = DeterminantF;
 
-    //3.-Compute DeformationGradient (in 3D)
-    
-    Matrix DeformationGradientFbar = DeformationGradientF;
-    DeformationGradientFbar = DeformationGradient3D(DeformationGradientFbar);
+    //3.-Compute Incremental DeformationGradient (in 3D)
+    ElasticVariables.DeformationGradientF = DeformationGradientF;
+    ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
+    ElasticVariables.DeformationGradientF = prod(ElasticVariables.DeformationGradientF,mInverseDeformationGradientF0); 
+
+    //4.-Left Cauchy Green tensor b: (stored in the CauchyGreenMatrix)
+    ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(ElasticVariables.DeformationGradientF));
+    ElasticVariables.CauchyGreenMatrix = prod(ElasticVariables.DeformationGradientF,ElasticVariables.CauchyGreenMatrix);
 
 
-    //4.-Left Cauchy-Green tensor b (without bar) to the new configuration
-    ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(DeformationGradientFbar));
-    ElasticVariables.CauchyGreenMatrix = prod(DeformationGradientFbar,ElasticVariables.CauchyGreenMatrix);
-
+    //TODO: supress this testing zone -------------------
     if (false) {
 
        Matrix f = ZeroMatrix(3);
@@ -127,7 +170,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         int nPassos = 500;
         Matrix DeltaDef = ZeroMatrix(3);
         Matrix StressMatrix;
-        Vector PrincipalStrainTrial = ZeroVector(3);
+        Vector MainStrainTrial = ZeroVector(3);
         for (int i = 0; i < nPassos; ++ i ) {
             std::cout << " i " << i << std::endl;
             if (i < 50) {
@@ -147,11 +190,13 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
             ElasticVariables.CauchyGreenMatrix = prod( DeltaDef, ElasticVariables.CauchyGreenMatrix);
 
             std::cout << " " << ElasticVariables.CauchyGreenMatrix << std::endl;
-            this->CalculatePrincipalAxisHenckyTrial(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, PrincipalStrainTrial);
+            this->CalculateHenckyMainStrain(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, MainStrainTrial);
       
             //2. compute trial stress and perform return mapping
-            //returnmappingvariables.control.plasticregion = mpflowrule->calculatereturnmapping( returnmappingvariables, stressmatrix, principalstraintrial);
-            mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, PrincipalStrainTrial);
+            //returnmappingvariables.control.plasticregion = mpflowrule->calculatereturnmapping( returnmappingvariables, stressmatrix, principalstraintrial);`
+            //mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, MainStrainTrial);
+	    Matrix NewElasticLeftCauchyGreen = ElasticVariables.CauchyGreenMatrix;
+	    mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, StressMatrix, NewElasticLeftCauchyGreen);
 
             mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
@@ -165,82 +210,56 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 
         KRATOS_THROW_ERROR( std::logic_error, "finishing the constitutive test debug zone blah blah blah", "" );
     }
+    //TODO: supress this testing zone -------------------
 
 
-
-
-
-
-    //4.-Almansi Strain:
+    //5.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
-        this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
+        this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix, StrainVector);
     }
 
  
-    //5.-Calculate Total Kirchhoff stress
-    Matrix StressMatrix = ZeroMatrix(3);    
-
-    //Matrix IsochoricStressMatrix = ZeroMatrix(3);
+    //6.-Calculate Total Kirchhoff stress
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-      Vector PrincipalStrainTrial= ZeroVector(3);
-      
-      //2. Compute Trial Stress and perform return mapping
 
-      this->CalculatePrincipalAxisHenckyTrial(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, PrincipalStrainTrial);
-      
-      mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, PrincipalStrainTrial);
-    }
+      Matrix StressMatrix     = ZeroMatrix(3);     
+      Vector HenckyMainStrainVector = ZeroVector(3);
 
+      this->CalculateHenckyMainStrain(ElasticVariables.CauchyGreenMatrix, ReturnMappingVariables, HenckyMainStrainVector);
+      // mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, StressMatrix, HenckyMainStrain );
 
-    //OPTION 1:
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
-    {
+      Matrix HenckyMainStrainMatrix = ZeroMatrix(3);
+      for (unsigned int i = 0; i<3; ++i)
+	HenckyMainStrainMatrix(i,i) = HenckyMainStrainVector[i];
 
-        //Kirchhoff Stress:
-        StressVector = MathUtils<double>::StressTensorToVector(StressMatrix, StressVector.size());
-        if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
-        {
-//            StressVector = SplitStressVector.Isochoric;
-        }
-        else if( Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) )
-        {
-//            StressVector = SplitStressVector.Volumetric;
-        }
+      mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, ElasticVariables.DeformationGradientF, StressMatrix, );
+
+      StressVector = MathUtils<double>::StressTensorToVector(StressMatrix, StressVector.size());
 
     }
 
 
+    //8.-Calculate Constitutive Matrix related to Total Kirchhoff stress
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-
         //initialize constitutive tensors
         ConstitutiveMatrix.clear();
 
         //ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
 
-	Matrix PrincipalTangentMatrix;
 	if (ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION)  ) {
-	   mpFlowRule->CalculatePrincipalAxisAlgorithmicTangent(ReturnMappingVariables, StressMatrix, PrincipalTangentMatrix);
+	   mpFlowRule->CalculatePrincipalAxisAlgorithmicTangent(ReturnMappingVariables, StressMatrix, ConstitutiveMatrix);
         }
         else  {
-           mpFlowRule->CalculatePrincipalAxisAlgorithmicTangent(ReturnMappingVariables, StressMatrix, PrincipalTangentMatrix);
+           mpFlowRule->CalculatePrincipalAxisAlgorithmicTangent(ReturnMappingVariables, StressMatrix, ConstitutiveMatrix);
         }
 
-        this->ConvertConstitutiveMatrixToAppropiateDimension( PrincipalTangentMatrix);
-        ConstitutiveMatrix = PrincipalTangentMatrix; 
+        this->SetConstitutiveMatrixToAppropiateDimension( ConstitutiveMatrix );
 
-        if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
-        {
-//            ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Plastic;
-        }
-        else if( Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) )
-        {
-//            ConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
-        }
     }
 
 
@@ -250,47 +269,68 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
       mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
 
       mElasticLeftCauchyGreen = mpFlowRule->GetElasticLeftCauchyGreen(ReturnMappingVariables);
+
+      ElasticVariables.DeformationGradientF = DeformationGradientF;
+      ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
+      MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
+      mDeterminantF0 = DeterminantF; //special treatment of the determinant 
     }
 
 }
 
 
-void HenckyElasticPlastic3DLaw::ConvertConstitutiveMatrixToAppropiateDimension(Matrix&  PrincipalTangentMatrix)
+//************************************************************************************
+//************************************************************************************
+
+
+void HenckyElasticPlastic3DLaw::SetConstitutiveMatrixToAppropiateDimension(Matrix&  rConstitutiveMatrix)
 {
+
 
 }
 
 
+//************************************************************************************
+//************************************************************************************
 
-Vector& HenckyElasticPlastic3DLaw::GetStressVectorFromMatrix(const Matrix& rStressMatrix, Vector& rPrincipalStress, const Matrix& rEigenVectors)
+
+Vector& HenckyElasticPlastic3DLaw::GetStressVectorFromMatrix(const Matrix& rStressMatrix, 
+							     Vector& rMainStress, 
+							     const Matrix& rEigenVectors)
 {
 //   EigenVectors = mpFlowRule->GetEigenVectors();
 //Ll:
    Matrix auxMatrix = ZeroMatrix(3);
    auxMatrix = prod( rStressMatrix, trans(rEigenVectors));
    auxMatrix = prod( (rEigenVectors), auxMatrix);
-   rPrincipalStress = ZeroVector(3);
+
+   rMainStress = ZeroVector(3);
    for (unsigned int i = 0; i<3; i++)
-      rPrincipalStress(i) = auxMatrix(i,i);
+      rMainStress[i] = auxMatrix(i,i);
 
-   return rPrincipalStress;
-}
-
-void HenckyElasticPlastic3DLaw::FinalizeMaterialResponseKirchhoff (Parameters & rValues)
-{
-  HyperElasticPlastic3DLaw::FinalizeMaterialResponseKirchhoff(rValues);
+   return rMainStress;
 }
 
 
 
-void HenckyElasticPlastic3DLaw::CalculatePrincipalAxisHenckyTrial(const Matrix& rCauchyGreenMatrix, FlowRule::RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStrain)
+//************************************************************************************
+//************************************************************************************
+
+
+  void HenckyElasticPlastic3DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreenMatrix, 
+							    FlowRule::RadialReturnVariables& rReturnMappingVariables, 
+							    Vector& rMainStrain)
 {
-    //Vector rPrincipalStrain = ZeroVector(3);
-    rReturnMappingVariables.EigenVectors = ZeroMatrix(3);
-    rReturnMappingVariables.TrialEigenValues = ZeroVector(3);
-    SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, rReturnMappingVariables.EigenVectors, rReturnMappingVariables.TrialEigenValues);
+    Matrix EigenVectors  = ZeroMatrix(3);
+    Vector EigenValues   = ZeroVector(3);
+    SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues);
+
+    // lluis
+    rReturnMappingVariables.MainDirections     = EigenVectors;
+    // rReturnMappingVariables.TrialEigenValues = EigenValues;
+
     for (unsigned int i = 0; i<3; ++i)
-           rPrincipalStrain(i) = 0.50*std::log(rReturnMappingVariables.TrialEigenValues(i));
+      rMainStrain[i] = 0.50 * std::log(EigenValues[i]);
 }
 
 

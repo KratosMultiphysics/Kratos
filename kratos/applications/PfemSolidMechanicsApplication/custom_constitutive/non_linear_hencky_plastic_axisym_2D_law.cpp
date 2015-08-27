@@ -6,11 +6,10 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.hpp"
 
-#include "../PfemSolidMechanicsApplication/custom_constitutive/non_linear_hencky_plastic_axisym_2D_law.hpp"
+#include "pfem_solid_mechanics_application.h"
 
-#include "solid_mechanics_application.h"
 //Molt important, el tema de constructors... etc
 namespace Kratos
 {
@@ -37,6 +36,11 @@ NonLinearHenckyElasticPlasticAxisym2DLaw::NonLinearHenckyElasticPlasticAxisym2DL
 
 }
 
+ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticAxisym2DLaw::Clone() const
+{
+    NonLinearHenckyElasticPlasticAxisym2DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticAxisym2DLaw(*this));
+    return p_clone;
+}
  
 NonLinearHenckyElasticPlasticAxisym2DLaw::~NonLinearHenckyElasticPlasticAxisym2DLaw()
 {
