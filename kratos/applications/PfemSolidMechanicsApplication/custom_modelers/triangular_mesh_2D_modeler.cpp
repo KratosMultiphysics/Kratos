@@ -2212,7 +2212,7 @@ namespace Kratos
            plastic_power = 0;
            Geometry< Node<3> > rConditionGeom;
            array_1d<double,3> tip_center;
-            tip_center.clear();
+	   tip_center.clear();
 
 
            //LOOP TO CONSIDER ONLY CONTACT CONDITIONS
@@ -3488,7 +3488,7 @@ namespace Kratos
     double RemovedConditions = rModelPart.NumberOfConditions(MeshId);
 
     //***SIZES :::: parameters do define the tolerance in mesh size: 
-    double critical_angle        = -140;
+    double critical_angle        = -120;
     double size_for_side_normal  =  rMeshingVariables.Refine.CriticalRadius;
 
 
@@ -3657,7 +3657,7 @@ namespace Kratos
 		  
 		  if(relative_angle<=1 && relative_angle>=-1 )
 		    condition_angle = (180.0/3.14159) * std::acos(relative_angle);
-
+	    
 		  if(inner_prod(S1,N2)<0) 
 		    condition_angle *=(-1);
 
@@ -3665,12 +3665,26 @@ namespace Kratos
 		   // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
 		   // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
 		   // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
+		  
+
+		  if( condition_angle < -40 ){		    
+		    // std::cout<<"     B NODE "<<in->Id()<<std::endl;
+		    // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
+		    // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
+		    // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
+		    // std::cout<<"     condition_angle "<<condition_angle<<" critical_angle "<<critical_angle<<std::endl;
+		    in->Set(VISITED);
+
+		    Node0.Set(VISITED);
+		    Node2.Set(VISITED);
+		  
+		  }
 
 		  if(condition_angle<critical_angle){
 		
 
 		    //Path of neighbour conditions in 2D:   (NodeA) ---[0]--- (Node0) ---[1]--- (Node1*) ---[2]--- (Node2) ---[2]--- (Node2) ---[3]--- (NodeB)
-
+		    
 		    //realease positions:
 		    node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
 		    node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
