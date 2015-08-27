@@ -12,21 +12,20 @@
 
 // Project includes
 #include "includes/define.h"
-//#include "custom_elements/large_displacement_element.hpp"
-//#include "utilities/math_utils.h"
-//#include "includes/constitutive_law.h"
-//#include "solid_mechanics_application.h"
-#include "custom_elements/axisym_spatial_lagrangian_U_wP_Stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
+#include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
 {
 
+
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
    // Aquest a l'altre no hi és....
-   AxisymSpatialLagrangianUwPStabElement::AxisymSpatialLagrangianUwPStabElement()
-      : AxisymSpatialLagrangianUwPElement()
+   UpdatedLagrangianUwPStabElement::UpdatedLagrangianUwPStabElement()
+      : UpdatedLagrangianUwPElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -35,8 +34,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   AxisymSpatialLagrangianUwPStabElement::AxisymSpatialLagrangianUwPStabElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : AxisymSpatialLagrangianUwPElement( NewId, pGeometry )
+   UpdatedLagrangianUwPStabElement::UpdatedLagrangianUwPStabElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : UpdatedLagrangianUwPElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -45,8 +44,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   AxisymSpatialLagrangianUwPStabElement::AxisymSpatialLagrangianUwPStabElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : AxisymSpatialLagrangianUwPElement( NewId, pGeometry, pProperties )
+   UpdatedLagrangianUwPStabElement::UpdatedLagrangianUwPStabElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : UpdatedLagrangianUwPElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -54,8 +53,10 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   AxisymSpatialLagrangianUwPStabElement::AxisymSpatialLagrangianUwPStabElement( AxisymSpatialLagrangianUwPStabElement const& rOther)
-      :AxisymSpatialLagrangianUwPElement(rOther)
+   UpdatedLagrangianUwPStabElement::UpdatedLagrangianUwPStabElement( UpdatedLagrangianUwPStabElement const& rOther)
+      :UpdatedLagrangianUwPElement(rOther)
+       //,mDeterminantF0(rOther.mDeterminantF0)
+       //,mDeformationGradientF0(rOther.mDeformationGradientF0)
    {
    }
 
@@ -63,9 +64,9 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   AxisymSpatialLagrangianUwPStabElement&  AxisymSpatialLagrangianUwPStabElement::operator=(AxisymSpatialLagrangianUwPStabElement const& rOther)
+   UpdatedLagrangianUwPStabElement&  UpdatedLagrangianUwPStabElement::operator=(UpdatedLagrangianUwPStabElement const& rOther)
    {
-      AxisymSpatialLagrangianUwPElement::operator=(rOther);
+      UpdatedLagrangianUwPElement::operator=(rOther);
 
       return *this;
    }
@@ -74,19 +75,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer AxisymSpatialLagrangianUwPStabElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUwPStabElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new AxisymSpatialLagrangianUwPStabElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUwPStabElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer AxisymSpatialLagrangianUwPStabElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUwPStabElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      AxisymSpatialLagrangianUwPStabElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUwPStabElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -118,26 +119,27 @@ namespace Kratos
 
       NewElement.mDeterminantF0 = mDeterminantF0;
 
-      return Element::Pointer( new AxisymSpatialLagrangianUwPStabElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUwPStabElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   AxisymSpatialLagrangianUwPStabElement::~AxisymSpatialLagrangianUwPStabElement()
+   UpdatedLagrangianUwPStabElement::~UpdatedLagrangianUwPStabElement()
    {
    }
 
+
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymSpatialLagrangianUwPStabElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
-									   const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUwPStabElement::InitializeGeneralVariables (GeneralVariables & rVariables, 
+								     const ProcessInfo& rCurrentProcessInfo)
    {
      KRATOS_TRY
 
-     AxisymSpatialLagrangianUwPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+     UpdatedLagrangianUwPElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
      //stabilization factor
      double StabilizationFactor = 1.0;
@@ -152,16 +154,16 @@ namespace Kratos
      KRATOS_CATCH( "" )
    }
 
-   //************************************************************************************
-   //************************************************************************************
+   //********* STABILIZATION TERM *******************************************************
+   //****************** Fluid Pressure Laplacian ****************************************
 
-   void AxisymSpatialLagrangianUwPStabElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUwPStabElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
 
-      double ScalingConstant ; 
+         double ScalingConstant ;
       double Permeability; double WaterBulk; double DeltaTime;
       GetConstants(ScalingConstant, WaterBulk, DeltaTime, Permeability);
 
@@ -174,7 +176,7 @@ namespace Kratos
 
       double he;
       he = sqrt( 4.0* rIntegrationWeight / sqrt(3.0) );
-      he = sqrt( rIntegrationWeight / 6.14 / rVariables.CurrentRadius);
+      he = sqrt( rIntegrationWeight);
       StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
 
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
@@ -196,7 +198,6 @@ namespace Kratos
       Matrix K = ZeroMatrix(dimension);
       for (unsigned int i = 0; i < dimension; ++i)
          K(i,i) = 1.0;
-
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -234,26 +235,19 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
 
-
-
-
    }
 
 
+   //********* TANGENT MATRIX  STABILIZATION TERM ***************************************
+   //****************** Fluid Pressure Laplacian ****************************************
 
-
-
-   //************************************************************************************
-   //************************************************************************************
-
-   void AxisymSpatialLagrangianUwPStabElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPStabElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
 
-
-      const unsigned int number_of_nodes = GetGeometry().size();
+         const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       double ScalingConstant;
@@ -270,12 +264,18 @@ namespace Kratos
       double he;
       he = sqrt( 4.0* rIntegrationWeight / sqrt(3.0) );
       he = sqrt( rIntegrationWeight);
-      he = sqrt( rIntegrationWeight / 6.14 / rVariables.CurrentRadius);
 
       StabilizationAlpha = he * Caux / ( 6.0) - DeltaTime*Permeability; 
 
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
       StabilizationAlpha *= StabilizationFactor;
+
+      /*double StabilizationAlpha; 
+        double Poisson = GetProperties()[POISSON_RATIO];
+        double Caux = GetProperties()[YOUNG_MODULUS] * (1.0 - Poisson)  / (1.0 + Poisson) / (1.0 - 2.0*Poisson);
+
+        StabilizationAlpha = Caux * ( rIntegrationWeight) / 4.0 / Permeability  - DeltaTime;
+        StabilizationAlpha =  1.1*( rIntegrationWeight) / (4.0 * Permeability * Caux)  - DeltaTime; */
 
       if (StabilizationAlpha < 0.0)
          return;
@@ -313,27 +313,24 @@ namespace Kratos
 
 
       KRATOS_CATCH( "" )
-
-
-
    }
 
 
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymSpatialLagrangianUwPStabElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUwPStabElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
          rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
       rSerializer.save("DeterminantF0",mDeterminantF0);
    }
 
-   void AxisymSpatialLagrangianUwPStabElement::load( Serializer& rSerializer )
+   void UpdatedLagrangianUwPStabElement::load( Serializer& rSerializer )
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
          rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
       rSerializer.load("DeterminantF0",mDeterminantF0);
    }
 
-}  // END KRATOS NAMESPACE
+}

@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_wP_FIC_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_wP_FIC_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_wP_FIC_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_U_wP_FIC_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_U_wP_Stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
 
 namespace Kratos
 {
@@ -40,8 +40,8 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class SpatialLagrangianUwPFICElement
-    : public SpatialLagrangianUwPStabElement
+class UpdatedLagrangianUwPFICElement
+    : public UpdatedLagrangianUwPStabElement
 {
 public:
 
@@ -57,33 +57,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUwPFICElement );
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUwPFICElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    SpatialLagrangianUwPFICElement();
+    UpdatedLagrangianUwPFICElement();
 
     /// Default constructors
-    SpatialLagrangianUwPFICElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianUwPFICElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUwPFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianUwPFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUwPFICElement(SpatialLagrangianUwPFICElement const& rOther);
+    UpdatedLagrangianUwPFICElement(UpdatedLagrangianUwPFICElement const& rOther);
 
 
     /// Destructor.
-    virtual ~SpatialLagrangianUwPFICElement();
+    virtual ~UpdatedLagrangianUwPFICElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUwPFICElement& operator=(SpatialLagrangianUwPFICElement const& rOther);
+    UpdatedLagrangianUwPFICElement& operator=(UpdatedLagrangianUwPFICElement const& rOther);
 
 
     ///@}
@@ -423,7 +423,7 @@ private:
     ///@}
 
 
-}; // Class SpatialLagrangianUwPFICElement
+}; // Class UpdatedLagrangianUwPFICElement
 
 
 
