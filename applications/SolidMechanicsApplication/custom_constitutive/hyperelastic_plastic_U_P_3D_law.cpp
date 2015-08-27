@@ -74,7 +74,7 @@ HyperElasticPlasticUP3DLaw::~HyperElasticPlasticUP3DLaw()
 //************************************************************************************
 
 
-double &  HyperElasticPlasticUP3DLaw::CalculateDomainPressure (const MaterialResponseVariables & rElasticVariables,
+double &  HyperElasticPlasticUP3DLaw::CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
 							double & rPressure)
 {
 
@@ -96,18 +96,18 @@ double &  HyperElasticPlasticUP3DLaw::CalculateDomainPressure (const MaterialRes
 //************************* COMPUTE DOMAIN PRESSURE FACTORS***************************
 //************************************************************************************
 
-Vector&  HyperElasticPlasticUP3DLaw::CalculateDomainPressureFactors (const MaterialResponseVariables & rElasticVariables,
+Vector&  HyperElasticPlasticUP3DLaw::CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
 							      Vector & rFactors)
 							      
 {
     double Pressure = 0;
-    Pressure = CalculateDomainPressure( rElasticVariables, Pressure );
+    Pressure = this->CalculateVolumetricPressure( rElasticVariables, Pressure );
   
     if(rFactors.size()!=3) rFactors.resize(3);
 
     rFactors[0] =  1.0;
     rFactors[1] =  2.0;
-    rFactors[2] =  Pressure*rElasticVariables.DeterminantF0;
+    rFactors[2] =  Pressure*rElasticVariables.DeterminantF;
 
     return rFactors;
 }

@@ -147,16 +147,16 @@ protected:
      * @param rShapeFunctions the element shape functions
      * @param rPressure the calculated pressure to be returned
      */
-    double& CalculateDomainPressure (const MaterialResponseVariables & rElasticVariables,
-                                     double & rPressure);
+    double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
+					 double & rPressure);
 
     /**
      * Calculates the Volumetric part factors
      * @param rElasticResponseVariables the material variables
      * @param rFactors Volumetric stress factors
      */
-    Vector&  CalculateDomainPressureFactors (const MaterialResponseVariables & rElasticVariables,
-					     Vector & rFactors);
+    Vector& CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
+						Vector & rFactors);
 
 
 

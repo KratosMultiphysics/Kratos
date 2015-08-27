@@ -143,7 +143,7 @@ void HyperElasticPlasticUPAxisym2DLaw::CalculateVolumetricConstitutiveMatrix ( c
 
 
     Vector Factors = ZeroVector(3);
-    Factors = CalculateDomainPressureFactors( rElasticVariables, Factors );
+    Factors = this->CalculateVolumetricPressureFactors( rElasticVariables, Factors );
 
     for(unsigned int i=0; i<4; i++)
     {
@@ -189,89 +189,6 @@ void HyperElasticPlasticUPAxisym2DLaw::CalculatePlasticConstitutiveMatrix (const
 
 }
 
-
-
-//***********************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX PULL-BACK**************
-//************************************************************************************
-
-void HyperElasticPlasticUPAxisym2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-								     const Matrix & rInverseDeformationGradientF,
-								     const Matrix & rIsoStressMatrix,
-								     Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-    for(unsigned int i=0; i<4; i++)
-    {
-        for(unsigned int j=0; j<4; j++)
-        {
-	  rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, rIsoStressMatrix,
-                                          this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
-        }
-
-    }
-
-
-}
-
-//***********************COMPUTE VOLUMETRIC CONSTITUTIVE MATRIX PULL-BACK*************
-//************************************************************************************
-
-
-void HyperElasticPlasticUPAxisym2DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
-								       const Matrix & rInverseDeformationGradientF,
-								       Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-    Vector Factors = ZeroVector(3);
-    Factors = CalculateDomainPressureFactors( rElasticVariables, Factors );
-
-    for(unsigned int i=0; i<4; i++)
-    {
-        for(unsigned int j=0; j<4; j++)
-        {
-	  rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, Factors,
-                                          this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
-        }
-
-    }
-
-
-}
-
-
-//***********************COMPUTE PLASTIC CONSTITUTIVE MATRIX PULL-BACK****************
-//************************************************************************************
-
-void HyperElasticPlasticUPAxisym2DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-								   const Matrix & rInverseDeformationGradientF,
-								   FlowRule::RadialReturnVariables & rReturnMappingVariables,
-								   Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-    Matrix IsoStressMatrix = rReturnMappingVariables.TrialIsoStressMatrix;
-
-    FlowRule::PlasticFactors ScalingFactors;
-    mpFlowRule->CalculateScalingFactors( rReturnMappingVariables, ScalingFactors );
-
-
-    for(unsigned int i=0; i<4; i++)
-    {
-        for(unsigned int j=0; j<4; j++)
-        {
-	  rConstitutiveMatrix( i, j ) = PlasticConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, IsoStressMatrix, ScalingFactors,
-									   this->msIndexVoigt2D4C[i][0], this->msIndexVoigt2D4C[i][1], this->msIndexVoigt2D4C[j][0], this->msIndexVoigt2D4C[j][1]);
-        }
-
-    }
-
-
-}
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************

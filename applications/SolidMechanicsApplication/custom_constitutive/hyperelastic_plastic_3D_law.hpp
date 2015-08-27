@@ -1,8 +1,8 @@
 //
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//   Date:                $Date:                July 2015 $
+//   Revision:            $Revision:                  1.0 $
 //
 //
 
@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
 
 
 namespace Kratos
@@ -28,40 +28,9 @@ namespace Kratos
  * The functionality is limited to large displacements 
  */
 
-class HyperElasticPlastic3DLaw : public ConstitutiveLaw
+class HyperElasticPlastic3DLaw : public HyperElastic3DLaw
 {
 protected:
-
-
-    struct MaterialResponseVariables
-    {
-
-        //general material properties
-        double LameMu;
-        double LameLambda;
-
-        //general thermal properties
-        double ThermalExpansionCoefficient;
-        double ReferenceTemperature;
-
-        //kinematic properties
-        double J_pow13;
-        double DeterminantF0;
-        double traceCG;           //LeftCauchyGreen or RightCauchyGreen
-        Matrix CauchyGreenMatrix; //LeftCauchyGreen or InverseRightCauchyGreen
-        Matrix IdentityMatrix;
-
-        //element properties
-        const Vector*        mpShapeFunctionsValues;
-        const GeometryType*  mpElementGeometry;
-
-    public: 
-      void SetShapeFunctionsValues (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
-      void SetElementGeometry      (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
-      const Vector& GetShapeFunctionsValues      () const {return *mpShapeFunctionsValues;};
-      const GeometryType& GetElementGeometry     () const {return *mpElementGeometry;};
-      
-    };
 
     /**
      * Parameters to be used in the volumetric and deviatoric split
@@ -202,13 +171,6 @@ public:
                                const Vector& rShapeFunctionsValues ,
                                const ProcessInfo& rCurrentProcessInfo);
 
-   /**
-     * Computes the material response:
-     * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    virtual void CalculateMaterialResponsePK1 (Parameters & rValues);
 
     /**
      * Computes the material response:
@@ -224,47 +186,8 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues); //Ll:
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues);
 
-    /**
-     * Computes the material response:
-     * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    virtual void CalculateMaterialResponseCauchy (Parameters & rValues);
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues);
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues);
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues
-      * @see   Parameters
-      */
-    virtual void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues);
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -285,15 +208,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+       //virtual String Info() const;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+       //virtual void PrintInfo(std::ostream& rOStream) const;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+       //virtual void PrintData(std::ostream& rOStream) const;
 
 protected:
 
@@ -302,10 +225,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    Matrix mInverseDeformationGradientF0;
+
+    double mDeterminantF0;
   
     Matrix mElasticLeftCauchyGreen;
     
-    FlowRulePointer mpFlowRule;
+    FlowRulePointer       mpFlowRule;
 
     YieldCriterionPointer mpYieldCriterion;
 	
@@ -317,123 +244,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /**
-     * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
-     */
-    Matrix& DeformationGradient3D (Matrix & Matrix2D);
-
-    /**
-     * Calculates the GreenLagrange strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-            Vector& rStrainVector );
-
-
-    /**
-     * Calculates the Almansi strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-                                         Vector& rStrainVector );
-
-							      
-    /**
-     * Calculates the isochoric constitutive matrix
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rIsoStressMatrix,
-            Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the isochoric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						       const Matrix & rInverseDeformationGradientF,
-						       const Matrix & rIsoStressMatrix,
-						       Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Constitutive isochoric component
-     */
-
-    double& IsochoricConstitutiveComponent( double & rCabcd,
-                                            const MaterialResponseVariables& rElasticVariables,
-                                            const Matrix & rIsoStressMatrix,
-                                            const unsigned int& a, const unsigned int& b,
-                                            const unsigned int& c, const unsigned int& d);
-
-    /**
-     * Constitutive isochoric component pull-back
-     */
-
-    double& IsochoricConstitutiveComponent( double & rCabcd,
-                                            const MaterialResponseVariables& rElasticVariables,
-                                            const Matrix & rInverseDeformationGradientF,
-					    const Matrix & rIsoStressMatrix,
-					    const unsigned int& a, const unsigned int& b,
-                                            const unsigned int& c, const unsigned int& d);
-
-
-
-    /**
-     * Calculates the volumetric constitutive matrix
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-             Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the volumetric constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rInverseDeformationGradientF
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-							const Matrix & rInverseDeformationGradientF,
-							Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Constitutive volumetric component
-     */
-
-    double& VolumetricConstitutiveComponent( double & rCabcd,
-            const MaterialResponseVariables& rElasticVariables,
-            const Vector& rFactors,
-            const unsigned int& a, const unsigned int& b,
-            const unsigned int& c, const unsigned int& d);
-
-    /**
-     * Constitutive volumetric component pull-back
-     */
-
-    double& VolumetricConstitutiveComponent( double & rCabcd,
-            const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rInverseDeformationGradientF,
-            const Vector & rFactors,
-            const unsigned int& a, const unsigned int& b,
-            const unsigned int& c, const unsigned int& d);
 
 
     /**
@@ -449,20 +259,6 @@ protected:
 
 
     /**
-     * Calculates the plastic constitutive matrix and makes a pull-back
-     * @param rElasticVariables
-     * @param rReturnMappingVariables, plastic variables
-     * @param rInverseDeformationGradientF
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     const Matrix & rInverseDeformationGradientF,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
-						     Matrix& rConstitutiveMatrix);
-
-
-    /**
      * Constitutive volumetric component
      */
 
@@ -471,18 +267,6 @@ protected:
             const Matrix & rIsoStressMatrix,
             const FlowRule::PlasticFactors & rScalingFactors,			 
             const unsigned int& a, const unsigned int& b,
-            const unsigned int& c, const unsigned int& d);
-
-    /**
-     * Constitutive volumetric component pull-back
-     */
-
-    double& PlasticConstitutiveComponent( double & rCabcd,
-            const MaterialResponseVariables& rElasticVariables,
-            const Matrix & rInverseDeformationGradientF,
-  	    const Matrix & rIsoStressMatrix,
-	    const FlowRule::PlasticFactors & rScalingFactors,
-	    const unsigned int& a, const unsigned int& b,
             const unsigned int& c, const unsigned int& d);
 
 
@@ -499,41 +283,6 @@ protected:
 					   Matrix& rIsoStressMatrix,
                                            Vector& rIsoStressVector);
 
-    /**
-     * Calculates the volumetric stress vector
-     * @param rElasticVariables
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * @param rVolStressVector vector where the stress result is stored
-     */
-    virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
-                                            Vector& rVolStressVector );
-
-
-    /**
-     * Calculates the Temperature of the domain (element)
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * @param rTemperature the calculated temperature to be returned
-     */
-    virtual double& CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
-                                     double & rTemperature);
-    /**
-     * Calculates the Pressure of the domain (element)
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * @param rPressure the calculated pressure to be returned
-     */
-    virtual double& CalculateDomainPressure (const MaterialResponseVariables & rElasticVariables,
-                                     double & rPressure);
-
-    /**
-     * Calculates the Volumetric part factors
-     * @param rElasticResponseVariables the material variables
-     * @param rFactors Volumetric stress factors
-     */
-    virtual Vector&  CalculateDomainPressureFactors (const MaterialResponseVariables & rElasticVariables,
-					     Vector & rFactors);
 
 
     /**
@@ -569,6 +318,8 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
 	
+	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+	rSerializer.save("mDeterminantF0",mDeterminantF0);
 	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
 	rSerializer.save("mpFlowRule",mpFlowRule);
 	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
@@ -579,6 +330,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
 	  
+	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+	rSerializer.load("mDeterminantF0",mDeterminantF0);
 	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
 	rSerializer.load("mpFlowRule",mpFlowRule);
 	rSerializer.load("mpYieldCriterion",mpYieldCriterion);
