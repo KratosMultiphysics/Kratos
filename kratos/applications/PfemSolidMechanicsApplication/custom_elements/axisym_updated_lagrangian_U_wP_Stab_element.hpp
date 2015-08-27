@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/axisym_spatial_lagrangian_U_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
 
 namespace Kratos
 {
@@ -33,15 +33,15 @@ namespace Kratos
    ///@name Kratos Classes
    ///@{
 
-   /// Stabilization of the Axisim Spatial Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. 
+   /// Stabilization of the Axisim Updated Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. 
 
    /**
     * Implements a Large Displacement Lagrangian definition for structural analysis.
     * This works for arbitrary geometries in 3D and 2D (base class)
     */
 
-   class AxisymSpatialLagrangianUwPStabElement
-      : public AxisymSpatialLagrangianUwPElement
+   class AxisymUpdatedLagrangianUwPStabElement
+      : public AxisymUpdatedLagrangianUwPElement
    {
       public:
 
@@ -57,33 +57,33 @@ namespace Kratos
          typedef GeometryData::IntegrationMethod IntegrationMethod;
 
          /// Counted pointer of LargeDisplacementUPElement
-         KRATOS_CLASS_POINTER_DEFINITION( AxisymSpatialLagrangianUwPStabElement );
+         KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUwPStabElement );
          ///@}
 
          ///@name Life Cycle
          ///@{
 
          /// Empty constructor needed for serialization
-         AxisymSpatialLagrangianUwPStabElement();
+         AxisymUpdatedLagrangianUwPStabElement();
 
          /// Default constructors
-         AxisymSpatialLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry);
+         AxisymUpdatedLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-         AxisymSpatialLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+         AxisymUpdatedLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
          ///Copy constructor
-         AxisymSpatialLagrangianUwPStabElement(AxisymSpatialLagrangianUwPStabElement const& rOther);
+         AxisymUpdatedLagrangianUwPStabElement(AxisymUpdatedLagrangianUwPStabElement const& rOther);
 
 
          /// Destructor.
-         virtual ~AxisymSpatialLagrangianUwPStabElement();
+         virtual ~AxisymUpdatedLagrangianUwPStabElement();
 
          ///@}
          ///@name Operators
          ///@{
 
          /// Assignment operator.
-         AxisymSpatialLagrangianUwPStabElement& operator=(AxisymSpatialLagrangianUwPStabElement const& rOther);
+         AxisymUpdatedLagrangianUwPStabElement& operator=(AxisymUpdatedLagrangianUwPStabElement const& rOther);
 
 
          ///@}
@@ -224,10 +224,10 @@ namespace Kratos
          ///@}
 
 
-}; // Class AxisymSpatialLagrangianUwPStabElement
+}; // Class AxisymUpdatedLagrangianUwPStabElement
 
 
 
 } // namespace Kratos
-#endif // KRATOS_SPATIAL_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED
+#endif // KRATOS_UPDATED_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED
 

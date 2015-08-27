@@ -12,11 +12,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/large_displacement_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
-#include "solid_mechanics_application.h"
-#include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
+
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
@@ -26,7 +25,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
    // Aquest a l'altre no hi és....
-   SpatialLagrangianUwPElement::SpatialLagrangianUwPElement()
+   UpdatedLagrangianUwPElement::UpdatedLagrangianUwPElement()
       : LargeDisplacementElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -36,7 +35,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPElement::SpatialLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+   UpdatedLagrangianUwPElement::UpdatedLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
       : LargeDisplacementElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
@@ -46,7 +45,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPElement::SpatialLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+   UpdatedLagrangianUwPElement::UpdatedLagrangianUwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
       : LargeDisplacementElement( NewId, pGeometry, pProperties )
    {
    }
@@ -55,7 +54,7 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPElement::SpatialLagrangianUwPElement( SpatialLagrangianUwPElement const& rOther)
+   UpdatedLagrangianUwPElement::UpdatedLagrangianUwPElement( UpdatedLagrangianUwPElement const& rOther)
       :LargeDisplacementElement(rOther)
        ,mDeformationGradientF0(rOther.mDeformationGradientF0)
        ,mDeterminantF0(rOther.mDeterminantF0)
@@ -67,7 +66,7 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   SpatialLagrangianUwPElement&  SpatialLagrangianUwPElement::operator=(SpatialLagrangianUwPElement const& rOther)
+   UpdatedLagrangianUwPElement&  UpdatedLagrangianUwPElement::operator=(UpdatedLagrangianUwPElement const& rOther)
    {
       LargeDisplacementElement::operator=(rOther);
 
@@ -88,19 +87,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer SpatialLagrangianUwPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUwPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new SpatialLagrangianUwPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUwPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer SpatialLagrangianUwPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUwPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      SpatialLagrangianUwPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUwPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -132,14 +131,14 @@ namespace Kratos
 
       NewElement.mDeterminantF0 = mDeterminantF0;
 
-      return Element::Pointer( new SpatialLagrangianUwPElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUwPElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPElement::~SpatialLagrangianUwPElement()
+   UpdatedLagrangianUwPElement::~UpdatedLagrangianUwPElement()
    {
    }
 
@@ -150,7 +149,7 @@ namespace Kratos
 
 
 
-   void SpatialLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
    {
       rElementalDofList.resize( 0 );
 
@@ -172,7 +171,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -204,7 +203,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::GetValuesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUwPElement::GetValuesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -236,7 +235,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -264,7 +263,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -295,7 +294,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  SpatialLagrangianUwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -309,7 +308,7 @@ namespace Kratos
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
       if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
-         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " SpatialLagrangianUwPElement" )
+         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUwPElement" )
 
             //verify that the variables are correctly initialized
 
@@ -324,7 +323,7 @@ namespace Kratos
    //*********************************SET DOUBLE VALUE***********************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+   void UpdatedLagrangianUwPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
          std::vector<double>& rValues,
          const ProcessInfo& rCurrentProcessInfo )
    {
@@ -354,7 +353,7 @@ namespace Kratos
    //************************************************************************************
 
 
-   void SpatialLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+   void UpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
          std::vector<double>& rValues,
          const ProcessInfo& rCurrentProcessInfo )
    {
@@ -386,7 +385,7 @@ namespace Kratos
 
 
 
-   void SpatialLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUwPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
    {
 
 
@@ -427,7 +426,7 @@ namespace Kratos
 
 
 
-   void SpatialLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
    {
       if ( rVariable == DARCY_FLOW ) {
 
@@ -492,7 +491,7 @@ namespace Kratos
    //**********************************GET TENSOR VALUE**********************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
       if (rVariable == TOTAL_CAUCHY_STRESS) {
 
@@ -532,7 +531,7 @@ namespace Kratos
    //************* STARTING - ENDING  METHODS
    //************************************************************************************
    //************************************************************************************
-   void SpatialLagrangianUwPElement::Initialize()
+   void UpdatedLagrangianUwPElement::Initialize()
    {
       KRATOS_TRY
 
@@ -562,7 +561,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUwPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
       LargeDisplacementElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
@@ -584,7 +583,7 @@ namespace Kratos
    ////************************************************************************************
    ////************************************************************************************
 
-   void SpatialLagrangianUwPElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
+   void UpdatedLagrangianUwPElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
    { 
       //update internal (historical) variables
       mDeterminantF0[rPointNumber]         = rVariables.detF0 ;
@@ -595,7 +594,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
          VectorType& rRightHandSideVector,
          Flags& rCalculationFlags)
 
@@ -630,7 +629,7 @@ namespace Kratos
    //************************************************************************************
 
 
-   void SpatialLagrangianUwPElement::CalculateDeformationMatrix(Matrix& rB,
+   void UpdatedLagrangianUwPElement::CalculateDeformationMatrix(Matrix& rB,
          Matrix& rF,
          Matrix& rDN_DX)
    {
@@ -693,7 +692,7 @@ namespace Kratos
    //*************************COMPUTE DEFORMATION GRADIENT*******************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
+   void UpdatedLagrangianUwPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
          Matrix& rF,
          Matrix& rDeltaPosition)
    {
@@ -747,25 +746,11 @@ namespace Kratos
    //************* COMPUTING  METHODS
    //************************************************************************************
    //************************************************************************************
-   //************************************************************************************
-   //************************************************************************************
 
-   //************************************************************************************
-   void SpatialLagrangianUwPElement::SetGeneralVariables(GeneralVariables& rVariables,
-         ConstitutiveLaw::Parameters& rValues,
-         const int & rPointNumber)
-   {
-      LargeDisplacementElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
-
-      //Set extra options for the contitutive law
-      Flags &ConstitutiveLawOptions=rValues.GetOptions();
-      ConstitutiveLawOptions.Set(ConstitutiveLaw::FINAL_CONFIGURATION);
-
-   }
 
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
-   void SpatialLagrangianUwPElement::CalculateKinematics(GeneralVariables& rVariables,
+   void UpdatedLagrangianUwPElement::CalculateKinematics(GeneralVariables& rVariables,
          const double& rPointNumber)
 
    {
@@ -793,6 +778,9 @@ namespace Kratos
       //Deformation Gradient F [dx_n+1/dx_n] to be updated
       noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
+      //Determinant of the deformation gradient F
+      rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
       Matrix Invj;
       MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
@@ -818,7 +806,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
    {
 
 
@@ -869,7 +857,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
 
       /*if ( this->Id() == 1) {
@@ -904,7 +892,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUwPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
          GeneralVariables& rVariables,
          Vector& rVolumeForce,
          double& rIntegrationWeight)
@@ -938,7 +926,7 @@ namespace Kratos
    //************************** INTERNAL FORCES    *******************************
    //************************************** Idem but with Total Stress ***********
 
-   void SpatialLagrangianUwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
          GeneralVariables & rVariables,
          double& rIntegrationWeight
          )
@@ -984,7 +972,7 @@ namespace Kratos
    //******************************** PRESSURE FORCES  **********************************
    //***************************************** aka: Mass conservation equation **********
 
-   void SpatialLagrangianUwPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUwPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
@@ -1065,7 +1053,7 @@ namespace Kratos
    //****************** STABILIZATION *********************************************************
    //************************* defined in the Stab element ************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUwPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
@@ -1075,7 +1063,7 @@ namespace Kratos
    //******** Kuu Material************************************************************
    //***************** It includes the pw geometric stiffness ************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
          GeneralVariables& rVariables,
          double& rIntegrationWeight)
    {
@@ -1146,7 +1134,7 @@ namespace Kratos
    //******************* Kuug ********************************************************
    //*********************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
          GeneralVariables& rVariables,
          double& rIntegrationWeight)
 
@@ -1207,7 +1195,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
          GeneralVariables& rVariables,
          double& rIntegrationWeight)
    {
@@ -1239,7 +1227,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
          GeneralVariables& rVariables,
          double& rIntegrationWeight)
 
@@ -1337,7 +1325,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
          GeneralVariables& rVariables,
          double& rIntegrationWeight)
    {
@@ -1387,7 +1375,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
@@ -1397,7 +1385,7 @@ namespace Kratos
    //************************************************************************************
    // **** TO BE DESTROYED BECAUSE IT DOES NOT MAKE ANY SENSE ******
    //************************************************************************************
-   void SpatialLagrangianUwPElement::GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability)
+   void UpdatedLagrangianUwPElement::GetConstants(double& rScalingConstant, double& rWaterBulk, double& rDeltaTime, double& rPermeability)
    {
       //double ScalingConstant = GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
@@ -1413,7 +1401,7 @@ namespace Kratos
 
 
    // function to get the Eulerian permeability assuming a constant eulerian permeability
-   void SpatialLagrangianUwPElement::GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor)
+   void UpdatedLagrangianUwPElement::GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor)
    {
 
       unsigned int thisSize = rF.size1();
@@ -1430,7 +1418,7 @@ namespace Kratos
 
    }
 
-   double SpatialLagrangianUwPElement::GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l)
+   double UpdatedLagrangianUwPElement::GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l)
    {
       return 0.0;
 
@@ -1449,7 +1437,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SpatialLagrangianUwPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
+  void UpdatedLagrangianUwPElement::GetHistoricalVariables( GeneralVariables& rVariables, const double& rPointNumber )
   {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
     
@@ -1461,7 +1449,7 @@ namespace Kratos
   //************************************CALCULATE VOLUME CHANGE*************************
   //************************************************************************************
 
-  double& SpatialLagrangianUwPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
+  double& UpdatedLagrangianUwPElement::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
   {
     KRATOS_TRY
       
@@ -1475,14 +1463,14 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUwPElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
          rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
       rSerializer.save("DeterminantF0",mDeterminantF0);
    }
 
-   void SpatialLagrangianUwPElement::load( Serializer& rSerializer )
+   void UpdatedLagrangianUwPElement::load( Serializer& rSerializer )
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
          rSerializer.load("DeformationGradientF0",mDeformationGradientF0);

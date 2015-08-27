@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_wP_STAB_LAG_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_wP_STAB_LAG_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_U_wP_Stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 
 namespace Kratos
 {
@@ -33,12 +33,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian Large Displacement Lagrangian U-Pw Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
-// ONLY THE Lagrangian Permeability tensor terms
+/// Updated Lagrangian Large Displacement  U-Pw Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
+// ONLY STABILIZATION TERMS
 
-
-class SpatialLagrangianUwPStabLagElement
-    : public SpatialLagrangianUwPStabElement
+class UpdatedLagrangianUwPStabElement
+    : public UpdatedLagrangianUwPElement
 {
 public:
 
@@ -54,33 +53,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUwPStabLagElement );
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUwPStabElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    SpatialLagrangianUwPStabLagElement();
+    UpdatedLagrangianUwPStabElement();
 
     /// Default constructors
-    SpatialLagrangianUwPStabLagElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUwPStabLagElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUwPStabLagElement(SpatialLagrangianUwPStabLagElement const& rOther);
+    UpdatedLagrangianUwPStabElement(UpdatedLagrangianUwPStabElement const& rOther);
 
 
     /// Destructor.
-    virtual ~SpatialLagrangianUwPStabLagElement();
+    virtual ~UpdatedLagrangianUwPStabElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUwPStabLagElement& operator=(SpatialLagrangianUwPStabLagElement const& rOther);
+    UpdatedLagrangianUwPStabElement& operator=(UpdatedLagrangianUwPStabElement const& rOther);
 
 
     ///@}
@@ -109,6 +108,8 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
 
+    //************* STARTING - ENDING  METHODS
+
 
     ///@}
     ///@name Access
@@ -131,6 +132,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -140,9 +143,25 @@ protected:
     ///@{
 
 
-    virtual void GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor);
+    /**
+     * Calculation of the Kpp Stabilization Term matrix
+     */
+    virtual void CalculateAndAddKppStab(MatrixType& rK,
+                                        GeneralVariables & rVariables,
+                                        double& rIntegrationWeight
+                                       );
+    /**
+     * Initialize Element General Variables
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    virtual double GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l);
+    /**
+     * Calculation of the Internal Forces due to Pressure-Balance
+     */
+    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+            GeneralVariables & rVariables,
+            double& rIntegrationWeight
+                                                  );
 
     ///@}
     ///@name Protected  Access
@@ -199,7 +218,7 @@ private:
     ///@}
 
 
-}; // Class SpatialLagrangianUwPStabLagElement
+}; // Class UpdatedLagrangianUwPElement
 
 
 

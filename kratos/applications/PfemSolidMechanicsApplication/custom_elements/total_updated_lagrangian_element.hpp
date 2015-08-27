@@ -6,15 +6,16 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_wP_STAB_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TOTAL_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_TOTAL_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_element.hpp"
+
 
 namespace Kratos
 {
@@ -33,11 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian Large Displacement  U-Pw Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
-// ONLY STABILIZATION TERMS
+/// Total Updated Lagrangian Element for 3D and 2D geometries.
 
-class SpatialLagrangianUwPStabElement
-    : public SpatialLagrangianUwPElement
+/**
+ * Implements a updated Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D
+ */
+
+class TotalUpdatedLagrangianElement
+    : public UpdatedLagrangianElement
 {
 public:
 
@@ -47,40 +52,32 @@ public:
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianUwPStabElement );
+    /// Counted pointer of TotalUpdatedLagrangianElement
+    KRATOS_CLASS_POINTER_DEFINITION( TotalUpdatedLagrangianElement );
     ///@}
-
     ///@name Life Cycle
     ///@{
 
-    /// Empty constructor needed for serialization
-    SpatialLagrangianUwPStabElement();
-
     /// Default constructors
-    SpatialLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    TotalUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    TotalUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUwPStabElement(SpatialLagrangianUwPStabElement const& rOther);
-
+    TotalUpdatedLagrangianElement(TotalUpdatedLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~SpatialLagrangianUwPStabElement();
+    virtual ~TotalUpdatedLagrangianElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUwPStabElement& operator=(SpatialLagrangianUwPStabElement const& rOther);
-
+    TotalUpdatedLagrangianElement& operator=(TotalUpdatedLagrangianElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -98,6 +95,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
+
     /**
      * clones the selected element variables, creating a new one
      * @param NewId: the ID of the new element
@@ -107,8 +105,16 @@ public:
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
-
-    //************* STARTING - ENDING  METHODS
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    //int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -125,43 +131,58 @@ public:
     ///@name Friends
     ///@{
     ///@}
+
 protected:
     ///@name Protected static Member Variables
     ///@{
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
-
     ///@}
     ///@name Protected Operators
     ///@{
+    TotalUpdatedLagrangianElement() : UpdatedLagrangianElement()
+    {
+    }
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
-
-    /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-                                        GeneralVariables & rVariables,
-                                        double& rIntegrationWeight
-                                       );
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+
 
     /**
-     * Calculation of the Internal Forces due to Pressure-Balance
+     * Transform Element General Variables
      */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                                  );
+    void TransformGeneralVariables(GeneralVariables & rVariables,
+				   const double& rPointNumber);
+
+
+    /**
+     * Calculate Element Kinematics
+     */
+    void CalculateKinematics(GeneralVariables& rVariables,
+                             const double& rPointNumber);
+
+
+    /**
+     * Get the Historical Deformation Gradient to calculate after finalize the step
+     */
+    void GetHistoricalVariables( GeneralVariables& rVariables, 
+				 const double& rPointNumber );
+
+    /**
+     * Calculation of the Deformation Matrix  BL
+     */
+    void CalculateDeformationMatrix(Matrix& rB,
+                                    Matrix& rF,
+                                    Matrix& rDN_DX);
+
+    /**
+     * Calculation of the Volume Change of the Element
+     */
+    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
 
     ///@}
     ///@name Protected  Access
@@ -181,18 +202,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-
     ///@}
     ///@name Private Operators
     ///@{
-
-
     ///@}
     ///@name Private Operations
     ///@{
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -217,11 +232,15 @@ private:
     ///@{
     ///@}
 
+}; // Class TotalUpdatedLagrangianElement
 
-}; // Class SpatialLagrangianUwPElement
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
 
-
-
-} // namespace Kratos
-#endif // KRATOS_____
-
+} // namespace Kratos.
+#endif // KRATOS_TOTAL_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 

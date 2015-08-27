@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_element.hpp"
 
 namespace Kratos
 {
@@ -33,11 +33,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisymmetric Spatial Lagrangian Large Displacement Lagrangian U-Pw Element.
+/// Axisymmetric Updated Lagrangian Large Displacement Lagrangian U-Pw Element.
 
 
-class AxisymSpatialLagrangianUwPElement
-    : public SpatialLagrangianUwPElement
+class AxisymUpdatedLagrangianUwPElement
+    : public UpdatedLagrangianUwPElement
 {
 public:
 
@@ -53,33 +53,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymSpatialLagrangianUwPElement );
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUwPElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    AxisymSpatialLagrangianUwPElement();
+    AxisymUpdatedLagrangianUwPElement();
 
     /// Default constructors
-    AxisymSpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymUpdatedLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymSpatialLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymUpdatedLagrangianUwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymSpatialLagrangianUwPElement(AxisymSpatialLagrangianUwPElement const& rOther);
+    AxisymUpdatedLagrangianUwPElement(AxisymUpdatedLagrangianUwPElement const& rOther);
 
 
     /// Destructor.
-    virtual ~AxisymSpatialLagrangianUwPElement();
+    virtual ~AxisymUpdatedLagrangianUwPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymSpatialLagrangianUwPElement& operator=(AxisymSpatialLagrangianUwPElement const& rOther);
+    AxisymUpdatedLagrangianUwPElement& operator=(AxisymUpdatedLagrangianUwPElement const& rOther);
 
 
     ///@}
@@ -216,13 +216,6 @@ protected:
     //virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
 
 
-    /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
-     */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues,
-                                     const int & rPointNumber);
-
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
@@ -354,10 +347,10 @@ private:
     ///@}
 
 
-}; // Class SpatialLagrangianUwPElement
+}; // Class UpdatedLagrangianUwPElement
 
 
 
 } // namespace Kratos
-#endif // KRATOS_SPATIAL_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
+#endif // KRATOS_UPDATED_LAGRANGIAN_U_wP_ELEMENT_H_INCLUDED
 

@@ -12,11 +12,9 @@
 
 // Project includes
 #include "includes/define.h"
-//#include "custom_elements/large_displacement_element.hpp"
-//#include "utilities/math_utils.h"
-//#include "includes/constitutive_law.h"
-//#include "solid_mechanics_application.h"
-#include "custom_elements/spatial_lagrangian_U_wP_Stab_Lag_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_Stab_Lag_element.hpp"
+#include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
@@ -26,8 +24,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
    // Aquest a l'altre no hi és....
-   SpatialLagrangianUwPStabLagElement::SpatialLagrangianUwPStabLagElement()
-      : SpatialLagrangianUwPStabElement()
+   UpdatedLagrangianUwPStabLagElement::UpdatedLagrangianUwPStabLagElement()
+      : UpdatedLagrangianUwPStabElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -36,8 +34,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPStabLagElement::SpatialLagrangianUwPStabLagElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : SpatialLagrangianUwPStabElement( NewId, pGeometry )
+   UpdatedLagrangianUwPStabLagElement::UpdatedLagrangianUwPStabLagElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : UpdatedLagrangianUwPStabElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -46,8 +44,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPStabLagElement::SpatialLagrangianUwPStabLagElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : SpatialLagrangianUwPStabElement( NewId, pGeometry, pProperties )
+   UpdatedLagrangianUwPStabLagElement::UpdatedLagrangianUwPStabLagElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : UpdatedLagrangianUwPStabElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -55,8 +53,8 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPStabLagElement::SpatialLagrangianUwPStabLagElement( SpatialLagrangianUwPStabLagElement const& rOther)
-      :SpatialLagrangianUwPStabElement(rOther)
+   UpdatedLagrangianUwPStabLagElement::UpdatedLagrangianUwPStabLagElement( UpdatedLagrangianUwPStabLagElement const& rOther)
+      :UpdatedLagrangianUwPStabElement(rOther)
        //,mDeterminantF0(rOther.mDeterminantF0)
        //,mDeformationGradientF0(rOther.mDeformationGradientF0)
    {
@@ -66,9 +64,9 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   SpatialLagrangianUwPStabLagElement&  SpatialLagrangianUwPStabLagElement::operator=(SpatialLagrangianUwPStabLagElement const& rOther)
+   UpdatedLagrangianUwPStabLagElement&  UpdatedLagrangianUwPStabLagElement::operator=(UpdatedLagrangianUwPStabLagElement const& rOther)
    {
-      SpatialLagrangianUwPStabElement::operator=(rOther);
+      UpdatedLagrangianUwPStabElement::operator=(rOther);
 
       return *this;
    }
@@ -77,19 +75,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer SpatialLagrangianUwPStabLagElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUwPStabLagElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new SpatialLagrangianUwPStabLagElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUwPStabLagElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer SpatialLagrangianUwPStabLagElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUwPStabLagElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      SpatialLagrangianUwPStabLagElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUwPStabLagElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -121,14 +119,14 @@ namespace Kratos
 
       NewElement.mDeterminantF0 = mDeterminantF0;
 
-      return Element::Pointer( new SpatialLagrangianUwPStabLagElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUwPStabLagElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPStabLagElement::~SpatialLagrangianUwPStabLagElement()
+   UpdatedLagrangianUwPStabLagElement::~UpdatedLagrangianUwPStabLagElement()
    {
    }
 
@@ -136,7 +134,7 @@ namespace Kratos
 
    // function to get the Eulerian permeability assuming a constant eulerian permeability
    //**************************************************************************************
-   void SpatialLagrangianUwPStabLagElement::GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor)
+   void UpdatedLagrangianUwPStabLagElement::GetPermeabilityTensor( const double& rPermeability, const Matrix& rF, Matrix& rPermeabilityTensor)
    {
 
       unsigned int thisSize = rF.size1();
@@ -154,7 +152,7 @@ namespace Kratos
 
    // Tangents to the Permeability Tensor with respect to the displacement
    // ********************************************************************
-   double SpatialLagrangianUwPStabLagElement::GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l)
+   double UpdatedLagrangianUwPStabLagElement::GetPermeabilityLDTerm( const Matrix& rPermeability, const Matrix& rF, const int i, const int j, const int k, const int l)
    {
 
       unsigned int thisSize = rF.size1();
@@ -172,14 +170,14 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPStabLagElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUwPStabLagElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
       rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
       rSerializer.save("DeterminantF0",mDeterminantF0);
    }
 
-   void SpatialLagrangianUwPStabLagElement::load( Serializer& rSerializer )
+   void UpdatedLagrangianUwPStabLagElement::load( Serializer& rSerializer )
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
       rSerializer.load("DeformationGradientF0",mDeformationGradientF0);

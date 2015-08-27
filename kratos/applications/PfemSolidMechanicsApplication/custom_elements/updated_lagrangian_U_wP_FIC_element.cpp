@@ -12,11 +12,9 @@
 
 // Project includes
 #include "includes/define.h"
-//#include "custom_elements/large_displacement_element.hpp"
-//#include "utilities/math_utils.h"
-//#include "includes/constitutive_law.h"
-//#include "solid_mechanics_application.h"
-#include "custom_elements/spatial_lagrangian_U_wP_FIC_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_FIC_element.hpp"
+#include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
@@ -26,8 +24,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
    // Aquest a l'altre no hi és....
-   SpatialLagrangianUwPFICElement::SpatialLagrangianUwPFICElement()
-      : SpatialLagrangianUwPStabElement()
+   UpdatedLagrangianUwPFICElement::UpdatedLagrangianUwPFICElement()
+      : UpdatedLagrangianUwPStabElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -36,8 +34,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPFICElement::SpatialLagrangianUwPFICElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : SpatialLagrangianUwPStabElement( NewId, pGeometry )
+   UpdatedLagrangianUwPFICElement::UpdatedLagrangianUwPFICElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : UpdatedLagrangianUwPStabElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -46,8 +44,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPFICElement::SpatialLagrangianUwPFICElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : SpatialLagrangianUwPStabElement( NewId, pGeometry, pProperties )
+   UpdatedLagrangianUwPFICElement::UpdatedLagrangianUwPFICElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : UpdatedLagrangianUwPStabElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -55,8 +53,8 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPFICElement::SpatialLagrangianUwPFICElement( SpatialLagrangianUwPFICElement const& rOther)
-      :SpatialLagrangianUwPStabElement(rOther)
+   UpdatedLagrangianUwPFICElement::UpdatedLagrangianUwPFICElement( UpdatedLagrangianUwPFICElement const& rOther)
+      :UpdatedLagrangianUwPStabElement(rOther)
        //,mDeterminantF0(rOther.mDeterminantF0)
        //,mDeformationGradientF0(rOther.mDeformationGradientF0)
    {
@@ -66,9 +64,9 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   SpatialLagrangianUwPFICElement&  SpatialLagrangianUwPFICElement::operator=(SpatialLagrangianUwPFICElement const& rOther)
+   UpdatedLagrangianUwPFICElement&  UpdatedLagrangianUwPFICElement::operator=(UpdatedLagrangianUwPFICElement const& rOther)
    {
-      SpatialLagrangianUwPStabElement::operator=(rOther);
+      UpdatedLagrangianUwPStabElement::operator=(rOther);
 
       return *this;
    }
@@ -77,19 +75,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer SpatialLagrangianUwPFICElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUwPFICElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new SpatialLagrangianUwPFICElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUwPFICElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer SpatialLagrangianUwPFICElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUwPFICElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      SpatialLagrangianUwPFICElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUwPFICElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -121,14 +119,14 @@ namespace Kratos
 
       NewElement.mDeterminantF0 = mDeterminantF0;
 
-      return Element::Pointer( new SpatialLagrangianUwPFICElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUwPFICElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   SpatialLagrangianUwPFICElement::~SpatialLagrangianUwPFICElement()
+   UpdatedLagrangianUwPFICElement::~UpdatedLagrangianUwPFICElement()
    {
    }
 
@@ -137,7 +135,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  SpatialLagrangianUwPFICElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  UpdatedLagrangianUwPFICElement::Check( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
@@ -151,7 +149,7 @@ namespace Kratos
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
       if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
-         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " SpatialLagrangianUwPElement" )
+         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUwPElement" )
 
             //verify that the variables are correctly initialized
 
@@ -170,7 +168,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPFICElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUwPFICElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
@@ -229,7 +227,7 @@ namespace Kratos
 
 
 
-   void SpatialLagrangianUwPFICElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUwPFICElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
          GeneralVariables & rVariables,
          double& rIntegrationWeight)
    {
@@ -284,14 +282,14 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SpatialLagrangianUwPFICElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUwPFICElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
          rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
       rSerializer.save("DeterminantF0",mDeterminantF0);
    }
 
-   void SpatialLagrangianUwPFICElement::load( Serializer& rSerializer )
+   void UpdatedLagrangianUwPFICElement::load( Serializer& rSerializer )
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
          rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
