@@ -35,13 +35,15 @@
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
 //elements
-#include "custom_elements/spatial_lagrangian_U_wP_element.hpp"
-#include "custom_elements/spatial_lagrangian_U_wP_Stab_element.hpp"
-#include "custom_elements/spatial_lagrangian_U_wP_FIC_element.hpp"
-#include "custom_elements/spatial_lagrangian_U_wP_Stab_Lag_element.hpp"
-#include "custom_elements/spatial_lagrangian_U_wP_second_element.hpp"
-#include "custom_elements/axisym_spatial_lagrangian_U_wP_element.hpp"
-#include "custom_elements/axisym_spatial_lagrangian_U_wP_Stab_element.hpp"
+#include "custom_elements/total_updated_lagrangian_element.hpp"
+#include "custom_elements/total_updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_Stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_FIC_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_Stab_Lag_element.hpp"
+#include "custom_elements/updated_lagrangian_U_wP_second_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_wP_Stab_element.hpp"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -339,15 +341,32 @@ namespace Kratos
     ///@name Member Variables 
     ///@{ 
 
+    //total updated lagrangian
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement2D3N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement2D4N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement2D6N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement2D8N;
 
-    const SpatialLagrangianUwPElement       mSpatialLagrangianUwPElement2D3N;
-    const SpatialLagrangianUwPStabElement       mSpatialLagrangianUwPStabElement2D3N;
-    const SpatialLagrangianUwPFICElement        mSpatialLagrangianUwPFICElement2D3N;
-    const SpatialLagrangianUwPStabLagElement       mSpatialLagrangianUwPStabLagElement2D3N;
-    const SpatialLagrangianUwPSecondElement   mSpatialLagrangianUwPSecondElement2D3N;
-    //const SpatialLagrangianUwPSecondElement       mSpatialLagrangianUwPSecondElement2D3N;
-    const AxisymSpatialLagrangianUwPElement       mAxisymSpatialLagrangianUwPElement2D3N;
-    const AxisymSpatialLagrangianUwPStabElement       mAxisymSpatialLagrangianUwPStabElement2D3N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D4N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D6N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D8N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D10N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D15N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D20N;
+    const TotalUpdatedLagrangianElement mTotalUpdatedLagrangianElement3D27N;
+
+    const TotalUpdatedLagrangianUPElement mTotalUpdatedLagrangianUPElement2D3N;
+
+    //updated lagrangian
+    const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement2D3N;
+    const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
+    const UpdatedLagrangianUwPFICElement                mUpdatedLagrangianUwPFICElement2D3N;
+    const UpdatedLagrangianUwPStabLagElement        mUpdatedLagrangianUwPStabLagElement2D3N;
+    const UpdatedLagrangianUwPSecondElement          mUpdatedLagrangianUwPSecondElement2D3N;
+    //const UpdatedLagrangianUwPSecondElement          mUpdatedLagrangianUwPSecondElement2D3N;
+    const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
+    const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
+
 
     const Condition mCondition2D;
     const Condition mCondition3D;
@@ -364,18 +383,18 @@ namespace Kratos
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainLM2DCondition;
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
 
-    const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw     mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    const NonLinearHenckyCamClayPlasticAxisym2DLaw          mNonLinearHenckyCamClayPlasticAxisym2DLaw;
-    const LinearHenckyCamClayPlasticPlaneStrain2DLaw        mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
-    const LinearHenckyCamClayPlasticAxisym2DLaw                mLinearHenckyCamClayPlasticAxisym2DLaw;
-    const BorjaHenckyCamClayPlasticAxisym2DLaw                  mBorjaHenckyCamClayPlasticAxisym2DLaw;
-    const BorjaHenckyCamClayPlasticPlaneStrain2DLaw             mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
-    const HenckyJ2PlasticPlaneStrain2DLaw                   mHenckyJ2PlasticPlaneStrain2DLaw;
-    const HenckyJ2PlasticAxisym2DLaw                        mHenckyJ2PlasticAxisym2DLaw;
-    const HenckyTrescaPlasticAxisym2DLaw                        mHenckyTrescaPlasticAxisym2DLaw;
-    const HenckyTrescaPlasticPlaneStrain2DLaw                   mHenckyTrescaPlasticPlaneStrain2DLaw;
-    const HenckyMohrCoulombPlasticAxisym2DLaw                        mHenckyMohrCoulombPlasticAxisym2DLaw;
-    const HenckyMohrCoulombPlasticPlaneStrain2DLaw                   mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
+    const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw      mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    const NonLinearHenckyCamClayPlasticAxisym2DLaw                mNonLinearHenckyCamClayPlasticAxisym2DLaw;
+    const LinearHenckyCamClayPlasticPlaneStrain2DLaw            mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    const LinearHenckyCamClayPlasticAxisym2DLaw                      mLinearHenckyCamClayPlasticAxisym2DLaw;
+    const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
+    const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
+    const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
+    const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
+    const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
+    const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
+    const HenckyMohrCoulombPlasticAxisym2DLaw                          mHenckyMohrCoulombPlasticAxisym2DLaw;
+    const HenckyMohrCoulombPlasticPlaneStrain2DLaw                mHenckyMohrCoulombPlasticPlaneStrain2DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
     const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
@@ -384,17 +403,17 @@ namespace Kratos
 
 
     const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
-    const TrescaExplicitFlowRule                 mTrescaExplicitFlowRule; 
-    const MohrCoulombExplicitFlowRule                 mMohrCoulombExplicitFlowRule; 
+    const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
+    const MohrCoulombExplicitFlowRule        mMohrCoulombExplicitFlowRule; 
     const CamClayExplicitFlowRule            mCamClayExplicitFlowRule;
     const LinearCamClayExplicitFlowRule      mLinearCamClayExplicitFlowRule;
-    const BorjaCamClayExplicitFlowRule        mBorjaCamClayExplicitFlowRule;
+    const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
 
     const J2YieldCriterion                   mJ2YieldCriterion;
-    const TrescaYieldCriterion                   mTrescaYieldCriterion;
-    const MohrCoulombYieldCriterion                   mMohrCoulombYieldCriterion;
+    const TrescaYieldCriterion               mTrescaYieldCriterion;
+    const MohrCoulombYieldCriterion          mMohrCoulombYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayKinematicHardeningLaw       mCamClayKinematicHardeningLaw;

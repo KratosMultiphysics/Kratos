@@ -30,6 +30,30 @@ End Properties
 *endif
 *end materials
 *loop materials
+*if(strcmp(MatProp(Type),"Damage")==0)
+*format "%i"
+Begin Properties *MatNum
+*format "%10.5e"
+ DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
+*if(strcmp(MatProp(HARDENING_MODEL),"SIMO_JU")==0)
+*format "%10.5e"
+ STRENGTH_RATIO *MatProp(STRENGTH_RATIO,real)
+*format "%10.5e"
+ FRACTURE_ENERGY *MatProp(FRACTURE_ENERGY,real)
+*format "%10.5e"
+ DAMAGE_THRESHOLD *MatProp(DAMAGE_THRESHOLD,real)
+*endif
+*format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+End Properties
+
+*endif
+*end materials
+*loop materials
 *if(strcmp(MatProp(Type),"Plastic")==0)
 *format "%i"
 Begin Properties *MatNum
@@ -155,9 +179,9 @@ End Nodes
 
 *# Element blocks
 
-*Set cond surface_SpatialLagrangianElement2D3N *elems
+*Set cond surface_UpdatedLagrangianElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements SpatialLagrangianElement2D3N
+Begin Elements UpdatedLagrangianElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -173,9 +197,9 @@ Begin Elements SpatialLagrangianElement2D3N
 End Elements
 
 *endif
-*Set cond surface_SpatialLagrangianUwPElement2D3N *elems
+*Set cond surface_UpdatedLagrangianUwPElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements SpatialLagrangianUwPElement2D3N
+Begin Elements UpdatedLagrangianUwPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -191,9 +215,9 @@ Begin Elements SpatialLagrangianUwPElement2D3N
 End Elements
 
 *endif
-*Set cond surface_SpatialLagrangianUwPStabElement2D3N *elems
+*Set cond surface_UpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements SpatialLagrangianUwPStabElement2D3N
+Begin Elements UpdatedLagrangianUwPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -209,9 +233,9 @@ Begin Elements SpatialLagrangianUwPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymSpatialLagrangianUwPStabElement2D3N *elems
+*Set cond surface_AxisymUpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements AxisymSpatialLagrangianUwPStabElement2D3N
+Begin Elements AxisymUpdatedLagrangianUwPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -227,9 +251,9 @@ Begin Elements AxisymSpatialLagrangianUwPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_SpatialLagrangianUPElement2D3N *elems
+*Set cond surface_UpdatedLagrangianUPElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements SpatialLagrangianUPElement2D3N
+Begin Elements UpdatedLagrangianUPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -245,9 +269,9 @@ Begin Elements SpatialLagrangianUPElement2D3N
 End Elements
 
 *endif
-*Set cond surface_SpatialLagrangianUPStabElement2D3N *elems
+*Set cond surface_UpdatedLagrangianUPStabElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements SpatialLagrangianUPStabElement2D3N
+Begin Elements UpdatedLagrangianUPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -263,9 +287,9 @@ Begin Elements SpatialLagrangianUPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymSpatialLagrangianUPStabElement2D3N *elems
+*Set cond surface_AxisymUpdatedLagrangianUPStabElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements AxisymSpatialLagrangianUPStabElement2D3N
+Begin Elements AxisymUpdatedLagrangianUPStabElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -281,9 +305,9 @@ Begin Elements AxisymSpatialLagrangianUPStabElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymSpatialLagrangianElement2D3N *elems
+*Set cond surface_AxisymUpdatedLagrangianElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements AxisymSpatialLagrangianElement2D3N
+Begin Elements AxisymUpdatedLagrangianElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)
@@ -299,9 +323,9 @@ Begin Elements AxisymSpatialLagrangianElement2D3N
 End Elements
 
 *endif
-*Set cond surface_AxisymSpatialLagrangianUPElement2D3N *elems
+*Set cond surface_AxisymUpdatedLagrangianUPElement2D3N *elems
 *if(CondNumEntities > 0)
-Begin Elements AxisymSpatialLagrangianUPElement2D3N
+Begin Elements AxisymUpdatedLagrangianUPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)

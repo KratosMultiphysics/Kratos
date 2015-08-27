@@ -234,10 +234,10 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariable
     //MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
     MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
     
-    for( unsigned int i=0; i<StressVector.size(); i++)
-      {
-    	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2); 
-      }
+    // for( unsigned int i=0; i<StressVector.size(); i++)
+    //   {
+    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2); 
+    //   }
     
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
 

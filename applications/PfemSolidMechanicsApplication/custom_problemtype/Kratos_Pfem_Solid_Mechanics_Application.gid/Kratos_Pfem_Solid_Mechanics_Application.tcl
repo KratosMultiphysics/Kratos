@@ -126,10 +126,10 @@ proc BeforeMeshGeneration {elementsize} {
 	
 	# check_elemtype LineLoad2DCondition line None
 	# check_elemtype LineLoadAxisym2DCondition line None
-	# check_elemtype SpatialLagrangianElement2D3N surface Triangle
-	# check_elemtype AxisymSpatialLagrangianElement2D3N surface Triangle
-	# check_elemtype SpatialLagrangianUPElement2D3N surface Triangle
-	# check_elemtype AxisymSpatialLagrangianUPElement2D3N surface Triangle
+	# check_elemtype UpdatedLagrangianElement2D3N surface Triangle
+	# check_elemtype AxisymUpdatedLagrangianElement2D3N surface Triangle
+	# check_elemtype UpdatedLagrangianUPElement2D3N surface Triangle
+	# check_elemtype AxisymUpdatedLagrangianUPElement2D3N surface Triangle
 
 	# Look for Elements with custom ElemTypes
 	
@@ -205,10 +205,10 @@ proc BeforeMeshGeneration {elementsize} {
 	# Assign Non-Default Mesh Criteria to Entities
 	# meshtype LineLoad2DCondition line None
 	# meshtype LineLoadAxisym2DCondition line None
-	# meshtype SpatialLagrangianElement2D3N surface Triangle
-	# meshtype AxisymSpatialLagrangianElement2D3N surface Triangle
-	# meshtype SpatialLagrangianUPElement2D3N surface Triangle
-	# meshtype AxisymSpatialLagrangianUPElement2D3N surface Triangle
+	# meshtype UpdatedLagrangianElement2D3N surface Triangle
+	# meshtype AxisymUpdatedLagrangianElement2D3N surface Triangle
+	# meshtype UpdatedLagrangianUPElement2D3N surface Triangle
+	# meshtype AxisymUpdatedLagrangianUPElement2D3N surface Triangle
 
 	# End Meshing Block
 

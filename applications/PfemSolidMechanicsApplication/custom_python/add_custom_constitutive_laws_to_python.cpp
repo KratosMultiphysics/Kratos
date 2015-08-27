@@ -31,13 +31,29 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
+//hardening laws
+#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
 //yield criteria
-//#include "custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.hpp"
 
-//flow rule
-//#include "custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.hpp"
+//flow rules
+#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
+
+#include "custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.hpp"
+
+
 
 //constitutive laws
 //#include "custom_constitutive/hencky_plastic_3d_law.hpp"

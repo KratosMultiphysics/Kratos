@@ -129,10 +129,10 @@ namespace Kratos
 
       KRATOS_TRY
 		    
-	KRATOS_WATCH( "Start Laplacian Smoothing INCREMENTAL" )
+      KRATOS_WATCH( "Start Laplacian Smoothing INCREMENTAL" )
 
-	//defintions for spatial search
-	typedef Node<3>                                  PointType;
+      //defintions for spatial search
+      typedef Node<3>                                  PointType;
       typedef Node<3>::Pointer                  PointPointerType;
       typedef std::vector<PointPointerType>          PointVector;
       typedef PointVector::iterator                PointIterator;
@@ -614,10 +614,18 @@ namespace Kratos
 	std::cout<<"   WARNING: Laplacian smoothing convergence NOT achieved "<<std::endl;
 
 
+
+      //*******************************************************************
+      //MOVE NODES: BOUNDARY SMOOTHING
+	 
+      SetBoundarySmoothing (rModelPart, rNodes, PreservedElements, out, MeshId);
+
+
       //*******************************************************************
       //MOVE NODES: BOUNDARY PROJECTION
 	 
       //SetInsideProjection (rModelPart, out, list_of_neighbor_nodes, MeshId);
+
 
       //*******************************************************************
       //TRANSFER VARIABLES TO NEW NODES POSITION:
@@ -990,6 +998,61 @@ namespace Kratos
     }
 
 
+    /**
+     * boundary smoothing
+     */
+ 
+    std::vector<std::vector<int> > SetBoundaryNeighborNodes (ModelPart& rModelPart, 
+							     std::vector<int> & PreservedElements, 
+							     struct triangulateio &out, 
+							     ModelPart::IndexType MeshId=0)
+    {
+		 
+      std::vector<int> empty_vector(0);
+      std::vector<std::vector<int> >  list_of_neighbor_nodes(out.numberofpoints+1);
+      std::fill( list_of_neighbor_nodes.begin(), list_of_neighbor_nodes.end(), empty_vector );
+
+      bool neighb_set  = false;
+      int  neighb_size = 0;
+      for(int el = 0; el<out.numberoftriangles; el++)
+	{
+	  if(PreservedElements[el])
+	    {
+	      //a) Create list of node neighbors (list_of_neighbor_nodes)
+	      for(int ipn=0; ipn<3; ipn++)
+		{
+		  int nodei_id = out.trianglelist[el*3+ipn];
+		  if(rModelPart.Nodes(MeshId)[nodei_id].Is(BOUNDARY)){
+
+		    for(int jpn=0; jpn<3; jpn++)
+		      {
+			int nodej_id = out.trianglelist[el*3+jpn];
+			if(ipn!=jpn && rModelPart.Nodes(MeshId)[nodej_id].Is(BOUNDARY) ){
+
+			  //add unique node neighbor
+			  neighb_size = list_of_neighbor_nodes[out.trianglelist[el*3+ipn]].size();
+			  neighb_set = false;
+			  for(int npn=0; npn<neighb_size; npn++)
+			    {
+			      if( list_of_neighbor_nodes[out.trianglelist[el*3+ipn]][npn]==(out.trianglelist[el*3+jpn]) ){
+				neighb_set=true;
+			      }
+			    }
+			  if(neighb_set==false){
+			    list_of_neighbor_nodes[out.trianglelist[el*3+ipn]].push_back(out.trianglelist[el*3+jpn]);
+			  }
+			 			  
+			}
+		      }
+		  }
+		}
+	    }
+	}
+
+      return list_of_neighbor_nodes;
+    }
+
+
     std::vector<double>  SetRanks (ModelPart& rModelPart,
 				   struct triangulateio &out,
 				   std::vector<std::vector<int> > & list_of_neighbor_nodes,
@@ -1103,6 +1166,159 @@ namespace Kratos
 	  
     }
       
+
+
+
+    void SetBoundarySmoothing(ModelPart& rModelPart,
+			      NodesContainerType& rNodes,
+			      std::vector<int> & PreservedElements,
+			      struct triangulateio &out,
+			      ModelPart::IndexType MeshId=0)
+    {
+      
+      //defintions for spatial search
+      typedef Node<3>                                  PointType;
+      typedef Node<3>::Pointer                  PointPointerType;
+      typedef std::vector<PointPointerType>          PointVector;
+      typedef PointVector::iterator                PointIterator;
+      typedef std::vector<double>                 DistanceVector;
+      typedef std::vector<double>::iterator     DistanceIterator;
+	
+      typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
+      typedef Tree< KDTreePartition<BucketType> >     KdtreeType; //Kdtree
+      //defintions for spatial search
+
+	
+      //*******************************************************************
+      //NEIGHBOUR NODES:
+      std::vector<std::vector<int> >  list_of_neighbor_nodes= SetBoundaryNeighborNodes(rModelPart,PreservedElements,out,MeshId);
+		
+      //*******************************************************************
+      //MOVE BOUNDARY NODES: LAPLACIAN SMOOTHING:
+	 
+      double convergence_tol =0.001;
+      double smoothing_factor=2; //0.1
+      double smoothing_iters =4; //3
+      double iters=0;
+
+      bool simple = true; //weight = 1;  
+      bool converged=false;
+
+      double MaxLength=0;
+      double NewMaxLength=0;
+
+
+      while ( iters<smoothing_iters && converged==false ){ 
+
+	//std::cout<<" Iter "<< iters <<std::endl;
+
+	array_1d<double,3> P;
+	array_1d<double,3> Q;//neighbour position
+	array_1d<double,3> D;
+	    	    
+	    
+	double TotalWeight = 0;
+	double Weight = 0;
+	array_1d<double,3> TotalDistance;
+
+
+	//convergence variables
+	double Length = 0;
+	MaxLength     = NewMaxLength;
+	NewMaxLength  = 0;
+	   
+	int dimension = 2;
+	for(int in = 0; in<out.numberofpoints; in++)
+	  {
+	    if(rNodes[in+1].Is(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && rNodes[in+1].Is(VISITED) )
+	      {
+		unsigned int NumberOfNeighbours = list_of_neighbor_nodes[in+1].size();
+	    	      
+		TotalDistance.clear();
+		TotalWeight = 0;
+		Weight = 0;
+
+		//point position
+		P[0] = out.pointlist[in*dimension];
+		P[1] = out.pointlist[in*dimension+1];
+		P[2] = 0;
+		     
+		    
+		//std::cout<<" Initial Position: "<<P<<std::endl;
+		Length = 0;
+
+		for(unsigned int i = 0; i < NumberOfNeighbours; i++)
+		  {
+		    //neighbour position
+		    Q[0] = out.pointlist[(list_of_neighbor_nodes[in+1][i]-1)*dimension];
+		    Q[1] = out.pointlist[(list_of_neighbor_nodes[in+1][i]-1)*dimension+1];
+		    Q[2] = 0;
+		    	
+		    D = P-Q;
+			
+		    Length =sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+			  
+
+		    if( simple ){
+
+		      Weight = 1;
+
+		    }
+		    else{
+			  		
+		      if(Length !=0)
+			Weight = ( 1.0/Length );
+		      else
+			Weight = 0;
+		    }
+
+		    if(NewMaxLength<Length)
+		      NewMaxLength = Length;
+			
+		    TotalDistance += (Weight*(Q-P)) ;  		  
+		    TotalWeight   += Weight ;
+		  
+		  }
+		    
+	     
+		if(TotalWeight!=0)
+		  D = ( smoothing_factor / TotalWeight ) * TotalDistance;
+		else
+		  D.clear();
+		    
+
+		P += D;
+
+
+		//std::cout<<" SET BOUNDARY SMOOTHING "<<P<<" from ["<<out.pointlist[in*dimension]<<","<<out.pointlist[in*dimension+1]<<"]"<<std::endl;
+
+		out.pointlist[in*dimension]   = P[0];
+		out.pointlist[in*dimension+1] = P[1];
+		    
+
+	      }
+
+	    rNodes[in+1].Set(VISITED,false);
+	  }
+	  
+
+	if( (NewMaxLength-MaxLength)/NewMaxLength < convergence_tol ){
+	  converged = true;
+	  if( GetEchoLevel() > 0 )
+	    std::cout<<"   Laplacian smoothing convergence achieved "<<std::endl;
+	}
+
+
+	iters++;
+
+      }
+
+      if(iters==smoothing_iters && !converged)
+	std::cout<<"   WARNING: Boundary Laplacian smoothing convergence NOT achieved "<<std::endl;
+
+
+    }
+
 
 
     //Note : to increase de robustness I propose to detect the layer nodes, via setting ranks to nodes 
