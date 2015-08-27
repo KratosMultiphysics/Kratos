@@ -1,46 +1,8 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
 /* *********************************************************
  *
  *   Last Modified by:    $Author:   JMCarbonell$
- *   Date:                $Date:     2-06-2013$
- *   Revision:            $Revision: 1.5$
+ *   Date:                $Date:     1-08-2015$
+ *   Revision:            $Revision: 1.6$
  *
  * ***********************************************************/
 
@@ -127,11 +89,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( VOLUMETRIC_TENSOR_ONLY );
       
     KRATOS_DEFINE_LOCAL_FLAG( TOTAL_TENSOR );
-    
-    KRATOS_DEFINE_LOCAL_FLAG( INITIAL_CONFIGURATION ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-    KRATOS_DEFINE_LOCAL_FLAG( LAST_KNOWN_CONFIGURATION ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-    KRATOS_DEFINE_LOCAL_FLAG( FINAL_CONFIGURATION ); //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-    
+   
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
     
 
@@ -184,14 +142,11 @@ public:
      * @param mOptions flags for the current Constitutive Law Parameters (input data)
 
      * KINEMATIC PARAMETERS:
-     * @param mDeterminantF copy of the determinant of the Current DeformationGradient (although Current F  is also included as a matrix) (input data)
-     * @param mDeterminantF0 copy of the determinant of the Total DeformationGradient  (although Total   F0 is also included as a matrix) (input data)
 
      *** NOTE: Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***
 
+     * @param mDeterminantF copy of the determinant of the Current DeformationGradient (although Current F  is also included as a matrix) (input data)
      * @param mpDeformationGradientF  pointer to the current deformation gradient (can be an empty matrix if a linear strain measure is used) (input data)
-     * @param mpDeformationGradientF0 pointer to the total deformation gradient   (can be an empty matrix if a linear strain measure is used) (input data)
-
      * @param mpStrainVector pointer to the current strains (total strains) (input data) (*can be also OUTPUT with COMPUTE_STRAIN flag)
      * @param mpStressVector pointer to the current stresses (*OUTPUT with COMPUTE_STRESS flag)
      * @param mpConstitutiveMatrix pointer to the material tangent matrix (*OUTPUT with COMPUTE_CONSTITUTIVE_TENSOR flag)
@@ -211,12 +166,11 @@ public:
 
       
     private:
+
+      /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
     
       Flags                mOptions;
       const double*        mDeterminantF;
-      double*              mDeterminantF0; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-
-      /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
 
       Vector*              mpStrainVector;
       Vector*              mpStressVector; 
@@ -225,7 +179,6 @@ public:
       const Matrix*        mpShapeFunctionsDerivatives;
 
       const Matrix*        mpDeformationGradientF;
-      Matrix*              mpDeformationGradientF0; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Matrix*              mpConstitutiveMatrix;
      
       const ProcessInfo*   mpCurrentProcessInfo;
@@ -241,16 +194,13 @@ public:
        */
       Parameters ()
       {  
-        //Initialize parameters with a non-coherent value
-	mDeterminantF=NULL;
-	mDeterminantF0=NULL; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	//Initialize pointers to NULL
+	mDeterminantF=NULL;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
-	mpDeformationGradientF0=NULL;
 	mpConstitutiveMatrix=NULL;
 	mpCurrentProcessInfo=NULL;
 	mpMaterialProperties=NULL;
@@ -268,16 +218,13 @@ public:
       ,mpMaterialProperties(&rMaterialProperties)
       ,mpElementGeometry(&rElementGeometry)
       {  
-        //Initialize parameters with a non-coherent value
-	mDeterminantF=NULL;
-	mDeterminantF0=NULL; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	//Initialize pointers to NULL
+	mDeterminantF=NULL;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
-	mpDeformationGradientF0=NULL; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	mpConstitutiveMatrix=NULL;
       };
 
@@ -288,13 +235,11 @@ public:
       Parameters (const Parameters & rNewParameters)
         :mOptions(rNewParameters.mOptions)
         ,mDeterminantF(rNewParameters.mDeterminantF)
-        ,mDeterminantF0(rNewParameters.mDeterminantF0) //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	,mpStrainVector(rNewParameters.mpStrainVector)
 	,mpStressVector(rNewParameters.mpStressVector)
 	,mpShapeFunctionsValues(rNewParameters.mpShapeFunctionsValues)
 	,mpShapeFunctionsDerivatives(rNewParameters.mpShapeFunctionsDerivatives)
 	,mpDeformationGradientF(rNewParameters.mpDeformationGradientF)
-	,mpDeformationGradientF0(rNewParameters.mpDeformationGradientF0) //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 	,mpConstitutiveMatrix(rNewParameters.mpConstitutiveMatrix)
 	,mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
 	,mpMaterialProperties(rNewParameters.mpMaterialProperties)
@@ -365,14 +310,8 @@ public:
 	if(!mDeterminantF)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"DeterminantF NOT SET","");
 
-	if(!mDeterminantF0)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"DeterminantF0 NOT SET","");
-
 	if(!mpDeformationGradientF)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
-
-	if(!mpDeformationGradientF0) //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
-	  KRATOS_THROW_ERROR(std::invalid_argument,"DeformationGradientF0 NOT SET","");
 
 	if(!mpStrainVector)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"StrainVector NOT SET","");
@@ -400,13 +339,11 @@ public:
 
       void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
       void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=&rDeterminantF;};
-      void SetDeterminantF0                (double& rDeterminantF0)                   {mDeterminantF0=&rDeterminantF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
  
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
       void SetDeformationGradientF         (const Matrix& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
-      void SetDeformationGradientF0        (Matrix& rDeformationGradientF0)           {mpDeformationGradientF0=&rDeformationGradientF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 
       void SetStrainVector                 (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
       void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};     
@@ -426,9 +363,7 @@ public:
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
-      Matrix& GetDeformationGradientF0           () {return *mpDeformationGradientF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
 
-      double& GetDeterminantF0                   () {return *mDeterminantF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Vector& GetStrainVector                    () {return *mpStrainVector;};
       Vector& GetStressVector                    () {return *mpStressVector;};
 
@@ -446,10 +381,8 @@ public:
        */ 
       
       double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=*mDeterminantF; return rDeterminantF;};
-      double& GetDeterminantF0                 (double & rDeterminantF0) {rDeterminantF0=*mDeterminantF0; return rDeterminantF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
-      Matrix& GetDeformationGradientF0         (Matrix & rDeformationGradientF0) {rDeformationGradientF0=*mpDeformationGradientF0; return rDeformationGradientF0;}; //DEPRECATED: TODO: to remove, with the aim of simplifying usage as agreed with JMC
       Vector& GetStressVector                  (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       Matrix& GetConstitutiveMatrix            (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
   
@@ -923,8 +856,26 @@ public:
 				     StressMeasure rStressFinal);
       
 
-    //TODO: Add a public access to push/pull the constitutive law tensor as agreed with JMC
-    
+
+    /**
+     * Methods to transform Constitutive Matrices:
+     * @param rConstitutiveMatrix the constitutive matrix 
+     * @param rF the DeformationGradientF matrix between the configurations
+     */
+
+    /**
+     * This method performs a pull-back of the constitutive matrix
+     */
+    void PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
+				      const Matrix & rF );
+
+
+    /**
+     * This method performs a push-forward of the constitutive matrix
+     */
+    void PushForwardConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
+					 const Matrix & rF );
+
     
     /**
      * This function is designed to be called once to check compatibility with element
@@ -1093,6 +1044,33 @@ protected:
     void CoVariantPullBack( Matrix& rMatrix,
 			    const Matrix& rF );  
  
+
+    /**
+     * This method performs a pull-back or a push-forward between two constitutive matrices
+     */
+    void ConstitutiveMatrixTransformation ( Matrix& rConstitutiveMatrix,
+					    const Matrix& rOriginalConstitutiveMatrix,
+					    const Matrix & rF );
+
+
+    /**
+     * This method performs a pull-back or a push-forward between two constitutive tensor components
+     */
+    double& TransformConstitutiveComponent(double & rCabcd,
+					   const Matrix & rConstitutiveMatrix,
+					   const Matrix & rF,
+					   const unsigned int& a, const unsigned int& b,
+					   const unsigned int& c, const unsigned int& d);
+      
+    /**
+     * This method gets the constitutive tensor components 
+     * from a consitutive matrix supplied in voigt notation
+     */
+    double& GetConstitutiveComponent(double & rCabcd,
+				     const Matrix& rConstitutiveMatrix,
+				     const unsigned int& a, const unsigned int& b,
+				     const unsigned int& c, const unsigned int& d);
+    
      ///@}
 
 
