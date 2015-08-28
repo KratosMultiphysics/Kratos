@@ -1243,21 +1243,21 @@ namespace Kratos
       unsigned int k=0, l= 0;
  
       unsigned int size = rConstitutiveMatrix.size1();
-    
-      if( size == 6 ){
+
+      if( size == 3 ){
 
 	//index k
-	for(unsigned int i=0; i<6; i++)
+	for(unsigned int i=0; i<3; i++)
 	  {
 	    if( a == b ) {
-	      if( this->msIndexVoigt3D6C[i][0] == a && this->msIndexVoigt3D6C[i][1] == b ){
+	      if( this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b ){
 		k = i;
 		break;
 	      }
 	    }
 	    else{
-	      if( (this->msIndexVoigt3D6C[i][0] == a && this->msIndexVoigt3D6C[i][1] == b) || 
-		  (this->msIndexVoigt3D6C[i][1] == a && this->msIndexVoigt3D6C[i][0] == b) ){
+	      if( (this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b) || 
+		  (this->msIndexVoigt2D3C[i][1] == a && this->msIndexVoigt2D3C[i][0] == b) ){
 		k = i;
 		break;
 	      }
@@ -1265,22 +1265,24 @@ namespace Kratos
 	  }
 
 	//index l
-	for(unsigned int i=0; i<6; i++)
+	for(unsigned int i=0; i<3; i++)
 	  {
 	    if( c == d ) {
-	      if( this->msIndexVoigt3D6C[i][0] == c && this->msIndexVoigt3D6C[i][1] == d ){
+	      if( this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d ){
 		l = i;
 		break;
 	      }
 	    }
 	    else{
-	      if( (this->msIndexVoigt3D6C[i][0] == c && this->msIndexVoigt3D6C[i][1] == d) || 
-		  (this->msIndexVoigt3D6C[i][1] == c && this->msIndexVoigt3D6C[i][0] == d) ){
+	      if( (this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d) || 
+		  (this->msIndexVoigt2D3C[i][1] == c && this->msIndexVoigt2D3C[i][0] == d) ){
 		l = i;
 		break;
 	      }
 	    }
 	  }
+
+
       }
       else if( size == 4 ){
 
@@ -1321,20 +1323,20 @@ namespace Kratos
 	  }
 
       }
-      else if( size == 3 ){
+      else if( size == 6 ){
 
 	//index k
-	for(unsigned int i=0; i<3; i++)
+	for(unsigned int i=0; i<6; i++)
 	  {
 	    if( a == b ) {
-	      if( this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b ){
+	      if( this->msIndexVoigt3D6C[i][0] == a && this->msIndexVoigt3D6C[i][1] == b ){
 		k = i;
 		break;
 	      }
 	    }
 	    else{
-	      if( (this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b) || 
-		  (this->msIndexVoigt2D3C[i][1] == a && this->msIndexVoigt2D3C[i][0] == b) ){
+	      if( (this->msIndexVoigt3D6C[i][0] == a && this->msIndexVoigt3D6C[i][1] == b) || 
+		  (this->msIndexVoigt3D6C[i][1] == a && this->msIndexVoigt3D6C[i][0] == b) ){
 		k = i;
 		break;
 	      }
@@ -1342,24 +1344,22 @@ namespace Kratos
 	  }
 
 	//index l
-	for(unsigned int i=0; i<3; i++)
+	for(unsigned int i=0; i<6; i++)
 	  {
 	    if( c == d ) {
-	      if( this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d ){
+	      if( this->msIndexVoigt3D6C[i][0] == c && this->msIndexVoigt3D6C[i][1] == d ){
 		l = i;
 		break;
 	      }
 	    }
 	    else{
-	      if( (this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d) || 
-		  (this->msIndexVoigt2D3C[i][1] == c && this->msIndexVoigt2D3C[i][0] == d) ){
+	      if( (this->msIndexVoigt3D6C[i][0] == c && this->msIndexVoigt3D6C[i][1] == d) || 
+		  (this->msIndexVoigt3D6C[i][1] == c && this->msIndexVoigt3D6C[i][0] == d) ){
 		l = i;
 		break;
 	      }
 	    }
 	  }
-
-
       }
     
       rCabcd = rConstitutiveMatrix(k,l);
