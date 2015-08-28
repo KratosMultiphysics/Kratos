@@ -1324,7 +1324,7 @@ namespace Kratos
       else if( size == 3 ){
 
 	//index k
-	for(unsigned int i=0; i<4; i++)
+	for(unsigned int i=0; i<3; i++)
 	  {
 	    if( a == b ) {
 	      if( this->msIndexVoigt2D3C[i][0] == a && this->msIndexVoigt2D3C[i][1] == b ){
@@ -1342,7 +1342,7 @@ namespace Kratos
 	  }
 
 	//index l
-	for(unsigned int i=0; i<4; i++)
+	for(unsigned int i=0; i<3; i++)
 	  {
 	    if( c == d ) {
 	      if( this->msIndexVoigt2D3C[i][0] == c && this->msIndexVoigt2D3C[i][1] == d ){
