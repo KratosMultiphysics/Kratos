@@ -1,0 +1,37 @@
+project meshapp_tetgen_compilation
+    : 
+    source-location
+       .
+    :
+    requirements 	<include>. 
+		     	<define>TETLIBRARY
+			<define>NDEBUG
+		     	<link>static
+			<threading>multi
+			<warnings>off
+			<toolset>msvc:<cxxflags>"/D_SCL_SECURE_NO_DEPRECATE"
+
+			<toolset>msvc:<define>CPU86
+			<toolset>gcc:<define>LINUX
+	: 
+			default-build release 
+    ;
+
+#################################################################################
+#################################################################################
+## list of files to be build, including dependencies to other libraries
+
+
+lib libtet
+    :  
+	tetgen_obj
+	unoptimized_predicates
+
+    ;
+
+obj tetgen_obj : tetgen.cxx : <optimization>off <cxxflags>"-O2 -fno-fast-math"  ;
+
+obj unoptimized_predicates : predicates.cxx : <optimization>off <cxxflags>"-fno-fast-math" ;
+
+
+install install : libtet : <location>. ;
