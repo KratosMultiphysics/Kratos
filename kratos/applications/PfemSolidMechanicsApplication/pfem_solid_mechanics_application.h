@@ -470,6 +470,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PFEM_SOLID_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_H_INCLUDED  defined 
 
 
