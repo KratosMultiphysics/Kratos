@@ -857,6 +857,7 @@ namespace Kratos {
         fem_temp_neighbours_ids.resize(fem_temp_size);
         fem_temp_neighbours_delta.resize(fem_temp_size);
         fem_temp_neighbours_contact_forces.resize(fem_temp_size);
+        fem_temp_neighbours_elastic_contact_forces.resize(fem_temp_size);
         fem_temp_neighbours_mapping.resize(fem_temp_size);
 
         array_1d<double, 3> vector_of_zeros;
