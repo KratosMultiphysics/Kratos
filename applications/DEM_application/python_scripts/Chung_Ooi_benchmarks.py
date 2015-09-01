@@ -148,7 +148,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     
     # Creating necessary directories
     main_path = os.getcwd()
-    [post_path,list_path,data_and_results,graphs_path,MPI_results] = procedures.CreateDirectories(str(main_path),str(DEM_parameters.problem_name))
+    [post_path, data_and_results, graphs_path, MPI_results] = procedures.CreateDirectories(str(main_path), str(DEM_parameters.problem_name))
 
     os.chdir(main_path)
 
@@ -200,7 +200,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
     os.chdir(post_path)
 
     #Setting up the BoundingBox
-    if(DEM_parameters.BoundingBoxOption == "ON"):
+    if (DEM_parameters.BoundingBoxOption == "ON"):
         procedures.SetBoundingBox(spheres_model_part, cluster_model_part, rigid_face_model_part, creator_destructor)
 
     # Creating a solver object and set the search strategy
@@ -209,7 +209,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
     solver.Initialize()    # Possible modifications of DELTA_TIME
         
-    if ( DEM_parameters.ContactMeshOption =="ON" ) :
+    if (DEM_parameters.ContactMeshOption =="ON"):
         contact_model_part = solver.contact_model_part
 
     # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation  
@@ -351,7 +351,6 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
 
             os.chdir(data_and_results)
 
-            os.chdir(list_path)
             demio.PrintMultifileLists(time, post_path)
             os.chdir(main_path)
 
