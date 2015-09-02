@@ -303,43 +303,43 @@ private:
            itNode != mpAdjointModelPart->NodesEnd(); itNode++)
       {
         if (itNode->IsFixed(VELOCITY_X))
-          itNode->Fix(LAMBDA_VELOCITY_X);
+          itNode->Fix(ADJOINT_VELOCITY_X);
         else
-          itNode->Free(LAMBDA_VELOCITY_X);
+          itNode->Free(ADJOINT_VELOCITY_X);
 
         if (itNode->IsFixed(VELOCITY_Y))
-          itNode->Fix(LAMBDA_VELOCITY_Y);
+          itNode->Fix(ADJOINT_VELOCITY_Y);
         else
-          itNode->Free(LAMBDA_VELOCITY_Y);
+          itNode->Free(ADJOINT_VELOCITY_Y);
 
         if (itNode->IsFixed(PRESSURE))
-          itNode->Fix(LAMBDA_PRESSURE);
+          itNode->Fix(ADJOINT_PRESSURE);
         else
-          itNode->Free(LAMBDA_PRESSURE);
+          itNode->Free(ADJOINT_PRESSURE);
       }
     else if (mDimension == 3)
       for (NodeIterator itNode = mpAdjointModelPart->NodesBegin();
            itNode != mpAdjointModelPart->NodesEnd(); itNode++)
       {
         if (itNode->IsFixed(VELOCITY_X))
-          itNode->Fix(LAMBDA_VELOCITY_X);
+          itNode->Fix(ADJOINT_VELOCITY_X);
         else
-          itNode->Free(LAMBDA_VELOCITY_X);
+          itNode->Free(ADJOINT_VELOCITY_X);
 
         if (itNode->IsFixed(VELOCITY_Y))
-          itNode->Fix(LAMBDA_VELOCITY_Y);
+          itNode->Fix(ADJOINT_VELOCITY_Y);
         else
-          itNode->Free(LAMBDA_VELOCITY_Y);
+          itNode->Free(ADJOINT_VELOCITY_Y);
 
         if (itNode->IsFixed(VELOCITY_Z))
-          itNode->Fix(LAMBDA_VELOCITY_Z);
+          itNode->Fix(ADJOINT_VELOCITY_Z);
         else
-          itNode->Free(LAMBDA_VELOCITY_Z);
+          itNode->Free(ADJOINT_VELOCITY_Z);
 
         if (itNode->IsFixed(PRESSURE))
-          itNode->Fix(LAMBDA_PRESSURE);
+          itNode->Fix(ADJOINT_PRESSURE);
         else
-          itNode->Free(LAMBDA_PRESSURE);
+          itNode->Free(ADJOINT_PRESSURE);
       }
 
     KRATOS_CATCH("");

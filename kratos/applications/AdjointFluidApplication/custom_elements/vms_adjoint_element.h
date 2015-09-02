@@ -80,12 +80,12 @@ namespace Kratos {
  * to the variation in the boundary's shape. The structure is marked by the
  * STRUCTURE flag and the boundary by the BOUNDARY flag. The element requires the
  * solution of the unperturbed fluid problem to be stored in nodal variables
- * VELOCITY and PRESSURE. LAMBDA_VELOCITY and LAMBDA_PRESSURE are used to store
- * the solution of the adjoint problem. The discrete adjoint is based on the
- * monolithic fluid element. Sensitivities are stored in the variable
- * SHAPE_SENSITIVITY and are calculated w.r.t one drag direction which is given
- * by the value of the ProcessInfo variable DRAG_FORCE_TYPE (0: x-direction
- * (default), 1: y-direction, 2: z-direction).
+ * PRIMAL_VELOCITY and PRIMAL_PRESSURE. ADJOINT_VELOCITY and ADJOINT_PRESSURE are
+ * used to store the solution of the adjoint problem. The discrete adjoint is
+ * based on the monolithic fluid element. Sensitivities are stored in the
+ * variable SHAPE_SENSITIVITY and are calculated w.r.t one drag direction which
+ * is given by the value of the ProcessInfo variable DRAG_FORCE_TYPE
+ * (0: x-direction (default), 1: y-direction, 2: z-direction).
  *
  * @see VMS monolithic fluid element for the primal solution
  * @see AdjointFluidStrategy solution strategy for the adjoint fluid problem
@@ -173,47 +173,47 @@ public:
     int ReturnValue = Element::Check(UnusedProcessInfo);
 
     // Check if adjoint and fluid variables are defined.
-    if (LAMBDA_VELOCITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "LAMBDA_VELOCITY Key is 0. Check if "
+    if (ADJOINT_VELOCITY.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument, "ADJOINT_VELOCITY Key is 0. Check if "
                    "the application was correctly registered.","");
-    if (LAMBDA_PRESSURE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "LAMBDA_PRESSURE Key is 0. Check if "
+    if (ADJOINT_PRESSURE.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument, "ADJOINT_PRESSURE Key is 0. Check if "
                    "the application was correctly registered.","");
-    if (VELOCITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check if the "
+    if (PRIMAL_VELOCITY.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument, "PRIMAL_VELOCITY Key is 0. Check if the "
                    "application was correctly registered.","");
-    if (PRESSURE.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check if the "
+    if (PRIMAL_PRESSURE.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument, "PRIMAL_PRESSURE Key is 0. Check if the "
                    "application was correctly registered.","");
 
     // Check if the nodes have adjoint and fluid variables and adjoint dofs.
     for (IndexType iNode = 0; iNode < this->GetGeometry().size(); ++iNode)
     {
-      if (this->GetGeometry()[iNode].SolutionStepsDataHas(LAMBDA_VELOCITY) == false)
+      if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_VELOCITY) == false)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                     "missing LAMBDA_VELOCITY variable on solution step data for node ",
+                     "missing ADJOINT_VELOCITY variable on solution step data for node ",
                      this->GetGeometry()[iNode].Id());
-      if (this->GetGeometry()[iNode].SolutionStepsDataHas(LAMBDA_PRESSURE) == false)
+      if (this->GetGeometry()[iNode].SolutionStepsDataHas(ADJOINT_PRESSURE) == false)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                     "missing LAMBDA_PRESSURE variable on solution step data for node ",
+                     "missing ADJOINT_PRESSURE variable on solution step data for node ",
                      this->GetGeometry()[iNode].Id());
-      if (this->GetGeometry()[iNode].SolutionStepsDataHas(VELOCITY) == false)
+      if (this->GetGeometry()[iNode].SolutionStepsDataHas(PRIMAL_VELOCITY) == false)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                     "missing VELOCITY variable on solution step data for node ",
+                     "missing PRIMAL_VELOCITY variable on solution step data for node ",
                      this->GetGeometry()[iNode].Id());
-      if (this->GetGeometry()[iNode].SolutionStepsDataHas(PRESSURE) == false)
+      if (this->GetGeometry()[iNode].SolutionStepsDataHas(PRIMAL_PRESSURE) == false)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                     "missing PRESSURE variable on solution step data for node ",
+                     "missing PRIMAL_PRESSURE variable on solution step data for node ",
                      this->GetGeometry()[iNode].Id());
-      if (this->GetGeometry()[iNode].HasDofFor(LAMBDA_VELOCITY_X) == false
-          || this->GetGeometry()[iNode].HasDofFor(LAMBDA_VELOCITY_Y) == false
-          || this->GetGeometry()[iNode].HasDofFor(LAMBDA_VELOCITY_Z) == false)
+      if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_VELOCITY_X) == false
+          || this->GetGeometry()[iNode].HasDofFor(ADJOINT_VELOCITY_Y) == false
+          || this->GetGeometry()[iNode].HasDofFor(ADJOINT_VELOCITY_Z) == false)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                     "missing LAMBDA_VELOCITY component degree of freedom on node ",
+                     "missing ADJOINT_VELOCITY component degree of freedom on node ",
                      this->GetGeometry()[iNode].Id());
-      if (this->GetGeometry()[iNode].HasDofFor(LAMBDA_PRESSURE) == false)
+      if (this->GetGeometry()[iNode].HasDofFor(ADJOINT_PRESSURE) == false)
         KRATOS_THROW_ERROR(std::invalid_argument,
-                     "missing LAMBDA_PRESSURE component degree of freedom on node ",
+                     "missing ADJOINT_PRESSURE component degree of freedom on node ",
                      this->GetGeometry()[iNode].Id());
     }
 
@@ -248,7 +248,7 @@ public:
    * -(\partial R / \partial W)^T \Lambda = (\partial Drag / \partial W)^T
    *
    * with R the fluid residual vector and W the vector of fluid variables
-   * (i.e. VELOCITY and PRESSURE) on the nodes.
+   * (i.e. PRIMAL_VELOCITY and PRIMAL_PRESSURE) on the nodes.
    *
    * @param rLeftHandSideMatrix system matrix of the adjoint fluid problem
    * @param rRightHandSideVector derivatives of drag w.r.t fluid variables
@@ -261,12 +261,12 @@ public:
     const SizeType LocalSize = BlockSize * TNumNodes;
     VectorType DragFlagVector = ZeroVector(LocalSize);
 
-    // The partial derivative of the drag w.r.t a fluid variable (e.g. VELOCITY_X)
-    // on a node is calculated from the row of the transpose of the Jacobian
-    // matrix (i.e. the adjoint system matrix) whose index coincides with that
-    // fluid variable. Its value is computed by summing the row's coefficients
-    // which coincide with the velocity component acting in the drag direction
-    // and restricted to the structure's nodes.
+    // The partial derivative of the drag w.r.t a fluid variable (e.g.
+    // PRIMAL_VELOCITY_X) on a node is calculated from the row of the transpose
+    // of the Jacobian matrix (i.e. the adjoint system matrix) whose index
+    // coincides with that fluid variable. Its value is computed by summing the
+    // row's coefficients which coincide with the velocity component acting in
+    // the drag direction and restricted to the structure's nodes.
     //
     // This sum is computed (for all elemental fluid variables) as
     // -prod(rLeftHandSideMatrix, DragFlagVector)
@@ -471,7 +471,7 @@ protected:
       for (IndexType d = 0; d < TDim; ++d)
       {
         rGradP[d] += rDN_DX(iNode,d)
-            * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE);
+            * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_PRESSURE);
       }
     }
   }
@@ -603,7 +603,7 @@ protected:
    *
    * The adjoint system matrix is computed as -(\partial R / \partial W)^T with
    * R the fluid residual vector and W the vector of fluid variables (i.e.
-   * VELOCITY and PRESSURE) on the nodes.
+   * PRIMAL_VELOCITY and PRIMAL_PRESSURE) on the nodes.
    */
   void CalculateAdjointSystemMatrix(MatrixType& rAdjointMatrix)
    {
@@ -684,7 +684,8 @@ protected:
 
     // Derivatives of TauOne, TauTwo w.r.t velocity. These definitions
     // depend on the definitions of TauOne and TauTwo and should be consistent
-    // with the fluid element used to solve for VELOCITY and PRESSURE.
+    // with the fluid element used to solve for PRIMAL_VELOCITY and
+    // PRIMAL_PRESSURE.
     MatrixType TauOneDeriv(TNumNodes,TDim);
     MatrixType TauTwoDeriv(TNumNodes,TDim);
 

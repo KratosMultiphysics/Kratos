@@ -19,11 +19,11 @@ void VMSAdjointElement<2>::GetDofList(DofsVectorType& rElementalDofList,
   for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_VELOCITY_X);
+        ADJOINT_VELOCITY_X);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_VELOCITY_Y);
+        ADJOINT_VELOCITY_Y);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_PRESSURE);
+        ADJOINT_PRESSURE);
   }
 }
 
@@ -41,13 +41,13 @@ void VMSAdjointElement<3>::GetDofList(DofsVectorType& rElementalDofList,
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_VELOCITY_X);
+        ADJOINT_VELOCITY_X);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_VELOCITY_Y);
+        ADJOINT_VELOCITY_Y);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_VELOCITY_Z);
+        ADJOINT_VELOCITY_Z);
     rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(
-        LAMBDA_PRESSURE);
+        ADJOINT_PRESSURE);
   }
 }
 
@@ -65,11 +65,11 @@ void VMSAdjointElement<2>::EquationIdVector(
 
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_VELOCITY_X)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_X)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_VELOCITY_Y)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_Y)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_PRESSURE)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_PRESSURE)
         .EquationId();
   }
 }
@@ -88,13 +88,13 @@ void VMSAdjointElement<3>::EquationIdVector(
 
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_VELOCITY_X)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_X)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_VELOCITY_Y)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_Y)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_VELOCITY_Z)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_VELOCITY_Z)
         .EquationId();
-    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(LAMBDA_PRESSURE)
+    rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(ADJOINT_PRESSURE)
         .EquationId();
   }
 }
@@ -113,11 +113,11 @@ void VMSAdjointElement<2>::GetAdjointValuesVector(VectorType& rValues)
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_VELOCITY_X);
+        ADJOINT_VELOCITY_X);
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_VELOCITY_Y);
+        ADJOINT_VELOCITY_Y);
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_PRESSURE);
+        ADJOINT_PRESSURE);
   }
 }
 
@@ -135,13 +135,13 @@ void VMSAdjointElement<3>::GetAdjointValuesVector(VectorType& rValues)
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_VELOCITY_X);
+        ADJOINT_VELOCITY_X);
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_VELOCITY_Y);
+        ADJOINT_VELOCITY_Y);
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_VELOCITY_Z);
+        ADJOINT_VELOCITY_Z);
     rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(
-        LAMBDA_PRESSURE);
+        ADJOINT_PRESSURE);
   }
 }
 
@@ -158,9 +158,9 @@ void VMSAdjointElement<2>::GetFluidValuesVector(VectorType& rValues)
 
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(VELOCITY_X);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(VELOCITY_Y);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRESSURE);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_PRESSURE);
   }
 }
 
@@ -177,10 +177,10 @@ void VMSAdjointElement<3>::GetFluidValuesVector(VectorType& rValues)
 
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(VELOCITY_X);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(VELOCITY_Y);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(VELOCITY_Z);
-    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRESSURE);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Z);
+    rValues[LocalIndex++] = rGeom[iNode].FastGetSolutionStepValue(PRIMAL_PRESSURE);
   }
 }
 
@@ -196,9 +196,9 @@ void VMSAdjointElement<2>::CalculateAdvectiveVelocity(
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
     rVelocity[0] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        VELOCITY_X) * rN[iNode];
+        PRIMAL_VELOCITY_X) * rN[iNode];
     rVelocity[1] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        VELOCITY_Y) * rN[iNode];
+        PRIMAL_VELOCITY_Y) * rN[iNode];
   }
 }
 
@@ -214,11 +214,11 @@ void VMSAdjointElement<3>::CalculateAdvectiveVelocity(
   for (IndexType iNode = 0; iNode < NumNodes; ++iNode)
   {
     rVelocity[0] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        VELOCITY_X) * rN[iNode];
+        PRIMAL_VELOCITY_X) * rN[iNode];
     rVelocity[1] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        VELOCITY_Y) * rN[iNode];
+        PRIMAL_VELOCITY_Y) * rN[iNode];
     rVelocity[2] += this->GetGeometry()[iNode].FastGetSolutionStepValue(
-        VELOCITY_Z) * rN[iNode];
+        PRIMAL_VELOCITY_Z) * rN[iNode];
   }
 }
 
@@ -237,9 +237,9 @@ void VMSAdjointElement<2>::CalculateVelocityGradient(
     for (IndexType d = 0; d < Dimension; ++d)
     {
       rGradVel(0,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY_X);
+          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
       rGradVel(1,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY_Y);
+          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
     }
   }
 }
@@ -259,11 +259,11 @@ void VMSAdjointElement<3>::CalculateVelocityGradient(
     for (IndexType d = 0; d < Dimension; ++d)
     {
       rGradVel(0,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY_X);
+          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_X);
       rGradVel(1,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY_Y);
+          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Y);
       rGradVel(2,d) += rDN_DX(iNode,d)
-          * this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY_Z);
+          * this->GetGeometry()[iNode].FastGetSolutionStepValue(PRIMAL_VELOCITY_Z);
     }
   }
 }

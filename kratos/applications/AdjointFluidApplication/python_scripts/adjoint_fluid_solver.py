@@ -9,8 +9,10 @@ CheckForPreviousImport()
 
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(LAMBDA_VELOCITY)
-    model_part.AddNodalSolutionStepVariable(LAMBDA_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(ADJOINT_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(ADJOINT_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(PRIMAL_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PRIMAL_PRESSURE)
     model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
     model_part.AddNodalSolutionStepVariable(NORMAL_SENSITIVITY)
     print("variables for the adjoint fluid solver added correctly")
@@ -18,10 +20,10 @@ def AddVariables(model_part):
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
-        node.AddDof(LAMBDA_VELOCITY_X)
-        node.AddDof(LAMBDA_VELOCITY_Y)
-        node.AddDof(LAMBDA_VELOCITY_Z)
-        node.AddDof(LAMBDA_PRESSURE)
+        node.AddDof(ADJOINT_VELOCITY_X)
+        node.AddDof(ADJOINT_VELOCITY_Y)
+        node.AddDof(ADJOINT_VELOCITY_Z)
+        node.AddDof(ADJOINT_PRESSURE)
 
     print("dofs for the adjoint fluid solver added correctly")
 
