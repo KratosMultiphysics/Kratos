@@ -173,7 +173,7 @@ namespace Kratos {
     //**************************************************************************************************************************************************
 
     void SphericContinuumParticle::SetInitialFemContacts() {
-        std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
+        const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
         std::vector<DEMWall*>& rFemNeighbours = this->mNeighbourRigidFaces;
 
         unsigned int fem_neighbours_size = rFemNeighbours.size();
@@ -377,13 +377,13 @@ namespace Kratos {
             //                aux_norm_to_tang = sqrt(kt_el / kn_el);}
 
             //if (mCriticalTimeOption){
-            if (this->Is(DEMFlags::HAS_CRITICAL_TIME)) {
+            /*if (this->Is(DEMFlags::HAS_CRITICAL_TIME)) { //MA: I comment this out because historic or HISTORICAL_MIN_K seems to be doing nothing in the whole DEM application...
                 double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
 
                 if ((kn_el < historic) || (kt_el < historic)) {
                     historic = std::min(kn_el, kt_el);
                 }
-            }
+            }*/
 
             EvaluateDeltaDisplacement(DeltDisp, RelVel, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
@@ -865,7 +865,7 @@ namespace Kratos {
         vector_of_zeros[1] = 0.0;
         vector_of_zeros[2] = 0.0;
 
-        std::vector<double>& RF_Pram = mNeighbourRigidFacesPram;
+        const std::vector<double>& RF_Pram = mNeighbourRigidFacesPram;
 
         for (unsigned int i = 0; i < mFemTempNeighbours.size(); i++) {
 
