@@ -152,10 +152,8 @@ void SphericParticle::CalculateRightHandSide(VectorType& r_right_hand_side_vecto
     bool multi_stage_RHS = false;
 
     ComputeBallToBallContactForce(elastic_force, contact_force, initial_rotation_moment, r_process_info, dt, multi_stage_RHS);
-
-    if (mFemOldNeighbourIds.size() > 0){  //MSI: needed??
-        ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_process_info, dt, search_control);
-    }
+    
+    ComputeBallToRigidFaceContactForce(elastic_force, contact_force, initial_rotation_moment, rigid_element_force, r_process_info, dt, search_control);    
     
     if (this->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
         ComputeAdditionalForces(additional_forces, additionally_applied_moment, r_process_info, gravity);
@@ -304,7 +302,7 @@ void SphericParticle::CalculateMaxBallToFaceIndentation(double& r_current_max_in
 {
     r_current_max_indentation = - std::numeric_limits<double>::max();
 
-    std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
+    const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 
     for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++){
         
@@ -848,7 +846,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(DEMWall* rObj_2, std::size_t 
     KRATOS_TRY
 
 
-    std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
+    const std::vector<double>& RF_Pram = this->mNeighbourRigidFacesPram;
 
     int ino1 = ino * 16;
 
@@ -995,7 +993,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& r_
             if (indentation > 0.0) {
                 double LocalRelVel[3]            = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
-
+                
                 mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
                                                                      previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);         
             }
