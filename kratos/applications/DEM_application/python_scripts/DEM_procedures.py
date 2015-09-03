@@ -224,21 +224,8 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-        if self.DEM_parameters.PostGroupId:
-            model_part.AddNodalSolutionStepVariable(GROUP_ID) 
-            
-        if self.DEM_parameters.StressStrainOption:       
-          model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
-          model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+        model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)                    
+        
             
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
@@ -273,16 +260,22 @@ class Procedures(object):
         if (self.DEM_parameters.PostEulerAngles == "1" or self.DEM_parameters.PostEulerAngles == 1):
             model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-        # FLAGS
-
-        if(Var_Translator(self.DEM_parameters.PostGroupId)):
-            model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differenced groups for plotting, etc..
+        if self.DEM_parameters.StressStrainOption:       
+            model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_XX)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_XY)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_XZ)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_YX)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_YY)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_YZ)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZX)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZY)
+            model_part.AddNodalSolutionStepVariable(DEM_STRESS_ZZ)
+                    
         # ONLY VISUALIZATION
         if (Var_Translator(self.DEM_parameters.PostExportId)):
             model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-
-        if (Var_Translator(self.DEM_parameters.PostGroupId)):
-            model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
+        
             
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
@@ -643,7 +636,6 @@ class DEMFEMProcedures(object):
                         
         
         if self.TestType == "None":  
-            print (self.graphs_path)
             open_graph_files(self,RigidFace_model_part)            
             open_balls_graph_files(self,spheres_model_part)   
 
@@ -663,7 +655,6 @@ class DEMFEMProcedures(object):
         self.print_applied_forces   = Var_Translator(self.DEM_parameters.PostAppliedForces)
         self.print_particle_moment  = Var_Translator(self.DEM_parameters.PostParticleMoment)
         self.print_euler_angles     = Var_Translator(self.DEM_parameters.PostEulerAngles)
-        self.print_group_id         = Var_Translator(self.DEM_parameters.PostGroupId)
         self.print_export_id        = Var_Translator(self.DEM_parameters.PostExportId)
         self.self_strain_option     = Var_Translator(self.DEM_parameters.StressStrainOption)
 
@@ -1063,18 +1054,17 @@ class DEMIo(object):
             self.PushPrintVar(self.PostParticleMoment,  PARTICLE_MOMENT,  self.spheres_variables)
             self.PushPrintVar(self.PostEulerAngles,     EULER_ANGLES,     self.sphere_local_axis_variables)
 
-        # Spheres Strain
-        if ((self.DEM_parameters.ElementType == "SphericContPartDEMElement3D") or (self.DEM_parameters.ElementType == "CylinderContPartDEMElement3D")):
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
-            self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
+        
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, REPRESENTATIVE_VOLUME, self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XX,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XY,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_XZ,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YX,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YY,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_YZ,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZX,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZY,         self.spheres_variables)
+        self.PushPrintVar(self.DEM_parameters.StressStrainOption, DEM_STRESS_ZZ,         self.spheres_variables)
     
     
     def AddArlequinVariables(self):
