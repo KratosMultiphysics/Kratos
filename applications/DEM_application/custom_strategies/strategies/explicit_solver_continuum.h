@@ -172,6 +172,7 @@ namespace Kratos
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
         
         rCurrentProcessInfo[SEARCH_CONTROL_VECTOR].resize(BaseType::mNumberOfThreads);
+        for (int i=0; i<BaseType::mNumberOfThreads; i++) rCurrentProcessInfo[SEARCH_CONTROL_VECTOR][i] = 0;
         this->GetNeighbourCounter().resize(BaseType::mNumberOfThreads);
 
         CreatePropertiesProxies(BaseType::mFastProperties, r_model_part, *BaseType::mpInlet_model_part, *BaseType::mpCluster_model_part);
@@ -185,6 +186,7 @@ namespace Kratos
         mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]);                 
         
         this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+        this->GetSearchControl()         = rCurrentProcessInfo[SEARCH_CONTROL];
 
         BaseType::InitializeSolutionStep();        
         BaseType::InitializeDEMElements();
@@ -215,13 +217,20 @@ namespace Kratos
         this->template RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericContinuumParticles);
         this->template RebuildListOfSphericParticles <SphericParticle>          (r_model_part.GetCommunicator().GhostMesh().Elements(), BaseType::mListOfGhostSphericParticles);
 
-        BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
-        BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
+        bool has_mpi = false;
+        Check_MPI(has_mpi);
+        
+        if(has_mpi){
+                BaseType::RepairPointersToNormalProperties(BaseType::mListOfSphericParticles);
+                BaseType::RepairPointersToNormalProperties(BaseType::mListOfGhostSphericParticles);
+        }
 
         BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfSphericParticles);
         BaseType::RebuildPropertiesProxyPointers(BaseType::mListOfGhostSphericParticles);
 
-        RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's        
+        if(has_mpi){
+                RebuildListsOfPointersOfEachParticle(); //Serialized pointers are lost, so we rebuild them using Id's        
+        }
         
         // 4. Set Initial Contacts        
         if( rCurrentProcessInfo[CASE_OPTION] !=0 ) {            
@@ -280,14 +289,16 @@ namespace Kratos
             {
               if(rCurrentProcessInfo[SEARCH_CONTROL_VECTOR][i]==1)
               {
+                #pragma omp critical
+                {
                 rCurrentProcessInfo[SEARCH_CONTROL]=1;
+                }                
                 std::cout << "From now on, the search is activated because some failure occurred " <<std::endl;   
                 break;
                 
                }
              }             
           }
-
 
             // 1. Search Neighbors /////////////////////////////////     
 
@@ -316,17 +327,11 @@ namespace Kratos
                             this->Particle_Area_Calculate(false); //2nd time
                         }
                     }
-
                 }
-
                 else{
-
                     rCurrentProcessInfo[SEARCH_CONTROL] = 1;
-
                 }
-
           }
-
             
           // 2. Calculate forces   /////////////////////////////////            
           BaseType::GetForce();
@@ -599,12 +604,15 @@ namespace Kratos
           KRATOS_CATCH("")
     }
     
-    void Contact_Calculate_Area()
-    {
-        ModelPart& r_model_part           = BaseType::GetModelPart();
-        bool has_mpi = false;
-        VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
+    void Check_MPI(bool& has_mpi){
+        VariablesList r_modelpart_nodal_variables_list = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
         if(r_modelpart_nodal_variables_list.Has(PARTITION_INDEX) )  has_mpi = true;
+    }
+    
+    void Contact_Calculate_Area()
+    {        
+        bool has_mpi = false;
+        Check_MPI(has_mpi);                
         
         ElementsArrayType& pContactElements = GetAllElements(*BaseType::mpContact_model_part);
               
@@ -691,8 +699,8 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
             bool has_mpi = false;
-            VariablesList r_modelpart_nodal_variables_list = r_model_part.GetNodalSolutionStepVariablesList();
-            if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
+            Check_MPI(has_mpi);
+            
             const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
             #pragma omp parallel for 
