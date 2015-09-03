@@ -122,7 +122,6 @@ class ExplicitStrategy:
 
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
-        self.print_group_id = Var_Translator(Param.PostGroupId)
         self.print_export_skin_sphere = 0
 
         # TIME RELATED PARAMETERS
@@ -163,16 +162,9 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
-        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, 1)
         self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
-        
-        # TOTAL NUMBER OF INITIALIZED ELEMENTS
-        self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0)
-
-        # TOLERANCES
-        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0)              
 
         # GLOBAL PHYSICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -188,13 +180,10 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
-        self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-        self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)                
-            
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)            
         
         for properties in self.model_part.Properties:            
             self.ModifyProperties(properties)
