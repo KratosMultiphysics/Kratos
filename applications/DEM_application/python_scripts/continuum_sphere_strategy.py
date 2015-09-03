@@ -30,7 +30,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
-        self.search_control                = 1
+        self.search_control                 = 1
         if(Var_Translator(Param.DontSearchUntilFailure)):
           print ("Search is not active until a bond is broken.")
           self.search_control                = 0
@@ -145,7 +145,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = Var_Translator(Param.PostExportSkinSphere)
-        self.print_group_id = Var_Translator(Param.PostGroupId)
 
         self.dummy_switch = 0
 
@@ -190,12 +189,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(SEARCH_CONTROL, self.search_control)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0)
-        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0)
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
         self.model_part.ProcessInfo.SetValue(STRESS_STRAIN_OPTION, self.self_strain_option)
-
-        # TOLERANCES
-        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0)
 
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
@@ -205,7 +200,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
 
         # PRINTING VARIABLES
-        self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
         self.model_part.ProcessInfo.SetValue(PRINT_SKIN_SPHERE, self.print_export_skin_sphere)
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
@@ -214,7 +208,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-        self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
         
         for properties in self.model_part.Properties:            
             self.ModifyProperties(properties)
