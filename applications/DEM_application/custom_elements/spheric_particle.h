@@ -309,7 +309,7 @@ DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 int mDimension;
 int mDampType;
 int mElasticityType;
-const double* mSearchControl;
+//const double* mSearchControl;
 
 //array_1d<double, 3> mContactForce; //SLS
 
