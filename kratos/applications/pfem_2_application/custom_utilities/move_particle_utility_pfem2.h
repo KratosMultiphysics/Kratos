@@ -34,7 +34,7 @@ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
 CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
 TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
 
 ==============================================================================
 */
@@ -48,8 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_MOVE_PART_UTILITY_PFEM2_INCLUDED )
-#define  KRATOS_MOVE_PART_UTILITY_FLUID_PFEM2_INCLUDED
+#if !defined(KRATOS_MOVE_PARTICLE_UTILITY_PFEM2_INCLUDED)
+#define  KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_INCLUDED
 
 
 
@@ -136,7 +136,7 @@ namespace Kratos
 			KRATOS_WATCH("initializing moveparticle utility")
 			
 			//tools to move the domain, in case we are using a moving domain approach.
-			mintialized_transfer_tool=false;
+			mintialized_transfer_tool=false; 
 			mcalculation_domain_complete_displacement=ZeroVector(3);
 			mcalculation_domain_added_displacement=ZeroVector(3);
 			
@@ -151,7 +151,7 @@ namespace Kratos
 			//loop in elements to change their ID to their position in the array. Easier to get information later.
 			//DO NOT PARALELIZE THIS! IT MUST BE SERIAL!!!!!!!!!!!!!!!!!!!!!!
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
-			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(unsigned int  ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				ielem->SetId(ii+1);
@@ -161,7 +161,7 @@ namespace Kratos
             // we look for the smallest edge. could be used as a weighting function when going lagrangian->eulerian instead of traditional shape functions(method currently used)
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
 				array_1d<double,3> position_node;
@@ -187,7 +187,7 @@ namespace Kratos
 			//we also calculate the element mean size in the same way, for the courant number
 			//also we set the right size to the LHS column for the pressure enrichments, in order to recover correctly the enrichment pressure
 			#pragma omp parallel for
-			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				
@@ -247,7 +247,8 @@ namespace Kratos
 			//each element will have a list of pointers to all the particles that are inside.
 			//this vector contains the pointers to the vector of (particle) pointers of each element.
 			mpointers_to_particle_pointers_vectors.resize(mnelems);
-
+            //int artz;
+            //std::cin >> artz;
 			int i_int=0; //careful! it's not the id, but the position inside the array!	
 			KRATOS_WATCH("about to create particles")
 			//now we seed: LOOP IN ELEMENTS
@@ -258,12 +259,13 @@ namespace Kratos
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				//before doing anything we must reset the vector of nodes contained by each element
+				(ielem->GetValue(FLUID_PARTICLE_POINTERS)) = ParticlePointerVector( mmaximum_number_of_particles*2, &firstparticle );
 				ParticlePointerVector&  particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 				//now we link the mpointers_to_particle_pointers_vectors to the corresponding element
 				mpointers_to_particle_pointers_vectors(ii) = &particle_pointers;
 				//now we resize the vector of particle pointers. it is double sized because we move the particles from an initial position (first half) to a final position (second half).
-				for(unsigned int j=0; j<(mmaximum_number_of_particles*2); j++)
-					particle_pointers.push_back(&firstparticle);
+				//for(int j=0; j<(mmaximum_number_of_particles*2); j++)
+				//        particle_pointers.push_back(&firstparticle);
 				int & number_of_particles = ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 				number_of_particles=0;
 				//int & number_of_water_particles = ielem->GetValue(NUMBER_OF_WATER_PARTICLES);
@@ -322,9 +324,10 @@ namespace Kratos
 			KRATOS_WATCH(m_nparticles);
 			KRATOS_WATCH(mlast_elem_id);
 			mparticle_printing_tool_initialized=false;
+			//std::cin >> artz;
 		}
 		
-
+         
 		~MoveParticleUtilityPFEM2()
 		{}
 
@@ -413,7 +416,7 @@ namespace Kratos
 						int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 						//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
 						
-						for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
+						for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
 						{
 							//KRATOS_WATCH(iii)
 							if (iii>mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
@@ -446,7 +449,7 @@ namespace Kratos
 			KRATOS_TRY
 			
 			if(mintialized_transfer_tool==false)
-				KRATOS_ERROR(std::logic_error, "TRANSFER TOOL NOT INITIALIZED!", "");
+				KRATOS_THROW_ERROR(std::logic_error, "TRANSFER TOOL NOT INITIALIZED!", "");
 			const unsigned int max_results = 1000;
 			std::cout << "executing transfer tool" << std::endl;
             ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -580,7 +583,7 @@ namespace Kratos
 			
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for firstprivate(vector_mean_velocity)
-			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 				Geometry<Node<3> >& geom = ielem->GetGeometry();
@@ -608,7 +611,7 @@ namespace Kratos
 			if (fully_reset_nodes)
 			{
 				#pragma omp parallel for
-				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
@@ -634,7 +637,7 @@ namespace Kratos
 			else  //for fractional step only!
 			{
 				#pragma omp parallel for
-				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 
@@ -682,7 +685,7 @@ namespace Kratos
 			
 			
 				#pragma omp parallel for
-				for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+				for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 				{
 						ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 						inode->FastGetSolutionStepValue(DELTA_VELOCITY) = inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(PROJECTED_VELOCITY) ;
@@ -694,7 +697,7 @@ namespace Kratos
 
 
 		//to move all the particles across the streamlines. heavy task!
-		void MoveParticles() //,const bool pressure_gradient_integrate) 
+		void MoveParticles(const bool discriminate_streamlines) //,const bool pressure_gradient_integrate) 
 		{
 			
 			KRATOS_TRY
@@ -794,7 +797,7 @@ namespace Kratos
 					ResultIteratorType result_begin = results.begin();
 					bool & erase_flag=pparticle.GetEraseFlag();
 					if (erase_flag==false){
-						MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results, mesh_displacement); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
+						MoveParticle(pparticle,pcurrent_element,elements_in_trajectory,number_of_elements_in_trajectory,result_begin,max_results, mesh_displacement, discriminate_streamlines); //saqué N de los argumentos, no lo necesito ya q empieza SIEMPRE en un nodo y no me importa donde termina
 
 						const int current_element_id = pcurrent_element->Id();
 
@@ -836,7 +839,7 @@ namespace Kratos
 			
 			//now we pass info from the local vector to the elements:
 			#pragma omp parallel for
-			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator old_element = ielembegin+ii;
 				
@@ -876,7 +879,7 @@ namespace Kratos
 			//after having saved data, we reset them to zero, this way it's easier to add the contribution of the surrounding particles.
 			ModelPart::NodesContainerType::iterator inodebegin = mr_model_part.NodesBegin();
 			#pragma omp parallel for
-			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				inode->FastGetSolutionStepValue(DISTANCE)=0.0;
@@ -890,7 +893,7 @@ namespace Kratos
 			//adding contribution, loop on elements, since each element has stored the particles found inside of it
 			ModelPart::ElementsContainerType::iterator ielembegin = mr_model_part.ElementsBegin();
 			#pragma omp parallel for
-			for(int ii=0; ii<mr_model_part.Elements().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
 	
@@ -916,7 +919,7 @@ namespace Kratos
 				int & number_of_particles_in_elem= ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 				ParticlePointerVector&  element_particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
 				
-				for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
+				for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
 				{
 					if (iii==mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
 						break; 
@@ -951,7 +954,7 @@ namespace Kratos
 							//double weight = (1.0 - (sqrt(sq_dist)*weighting_inverse_divisor[j] ) );
 							
 							double weight=N(j);
-							//weight=N(j)*N(j);
+							//weight=N(j)*N(j)*N(j);
 							if (weight<threshold) weight=1e-10;
 							if (weight<0.0) {KRATOS_WATCH(weight)}//;weight=0.0;KRATOS_WATCH(velocity);KRATOS_WATCH(N);KRATOS_WATCH(number_of_particles_in_elem);}//{KRATOS_WATCH(weight); KRATOS_WATCH(geom[j].Id()); KRATOS_WATCH(position);}
 							else 
@@ -976,9 +979,9 @@ namespace Kratos
 				for (int i=0 ; i!=(TDim+1) ; ++i) {
 					geom[i].SetLock();
 					geom[i].FastGetSolutionStepValue(DISTANCE) +=nodes_added_distance[i];
-					geom[i].FastGetSolutionStepValue(MESH_VELOCITY_X) +=nodes_addedvel[3*i+0];
-					geom[i].FastGetSolutionStepValue(MESH_VELOCITY_Y) +=nodes_addedvel[3*i+1];
-					geom[i].FastGetSolutionStepValue(MESH_VELOCITY_Z) +=nodes_addedvel[3*i+2];  //we are updating info to the previous time step!!
+					geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_X) +=nodes_addedvel[3*i+0];
+					geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Y) +=nodes_addedvel[3*i+1];
+					geom[i].FastGetSolutionStepValue(PROJECTED_VELOCITY_Z) +=nodes_addedvel[3*i+2];  //we are updating info to the previous time step!!
 
 					geom[i].FastGetSolutionStepValue(YP) +=nodes_addedweights[i];
 					geom[i].UnSetLock();
@@ -986,7 +989,7 @@ namespace Kratos
 			}
 						
 			#pragma omp parallel for
-			for(int ii=0; ii<mr_model_part.Nodes().size(); ii++)
+			for(unsigned int ii=0; ii<mr_model_part.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator inode = inodebegin+ii;
 				double sum_weights = inode->FastGetSolutionStepValue(YP);
@@ -1050,7 +1053,7 @@ namespace Kratos
 					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
 					
-					for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
 					{
 						//KRATOS_WATCH(iii)
 						if (iii>mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
@@ -1095,15 +1098,13 @@ namespace Kratos
 		//**************************************************************************************************************
 		//**************************************************************************************************************		
 		
-		void PreReseed(const bool viscosity_integrate, const bool add_gravity, int minimum_number_of_particles) 
+		void PreReseed(int minimum_number_of_particles) 
 		{
 			KRATOS_TRY
 			
 
 			ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET];
-			double delta_t = CurrentProcessInfo[DELTA_TIME];	
-			array_1d<double,3> & gravity= CurrentProcessInfo[GRAVITY];
 			const int max_results = 1000;
 			
 			//tools for the paralelization
@@ -1238,7 +1239,7 @@ namespace Kratos
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			//KRATOS_WATCH(number_of_threads);
-			//KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+			//KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
 			elem_partition.resize(number_of_threads + 1);
 			int elem_partition_size = number_of_rows / number_of_threads;
 			elem_partition[0] = 0;
@@ -1400,8 +1401,6 @@ namespace Kratos
 							mesh_distance = 0.0;
 							//oxygen = 0.0;
 							
-							double pressure=0.0;
-							double solid_pressure=0.0;
 							for (unsigned int l = 0; l < (TDim+1); l++)
 							{
 								noalias(vel_complete) += N(j, l) * geom[l].FastGetSolutionStepValue(VELOCITY);
@@ -1441,7 +1440,7 @@ namespace Kratos
 
 							if (keep_looking)
 							{
-								KRATOS_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
+								KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDNT FIND A FREE CELL FOR THE NEW PARTICLE!", "");
 							}
 						    else
 						    {
@@ -1466,7 +1465,7 @@ namespace Kratos
 				mfilter_factor=input_filter_factor;
 				
 				if(lagrangian_model_part.NodesBegin()-lagrangian_model_part.NodesEnd()>0)
-					KRATOS_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
+					KRATOS_THROW_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
 				
 				lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY);
 				lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1499,7 +1498,7 @@ namespace Kratos
 			
 			int counter=0;
 			//ModelPart::NodesContainerType::iterator it_begin = lagrangian_model_part.NodesBegin();
-			for (unsigned int i=0; i!=mmaximum_number_of_particles*mnelems; i++)
+			for (int i=0; i!=mmaximum_number_of_particles*mnelems; i++)
 			{
 				PFEM_Particle_Fluid& pparticle =mparticles_vector[i];
 				if(pparticle.GetEraseFlag()==false && i%mfilter_factor==0)
@@ -1526,7 +1525,7 @@ namespace Kratos
 				mfilter_factor=input_filter_factor;
 				
 				if(lagrangian_model_part.NodesBegin()-lagrangian_model_part.NodesEnd()>0)
-					KRATOS_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
+					KRATOS_THROW_ERROR(std::logic_error, "AN EMPTY MODEL PART IS REQUIRED FOR THE PRINTING OF PARTICLES", "");
 				
 				lagrangian_model_part.AddNodalSolutionStepVariable(VELOCITY);
 				lagrangian_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1585,7 +1584,7 @@ namespace Kratos
 					int & number_of_particles_in_elem=ielem->GetValue(NUMBER_OF_FLUID_PARTICLES);
 					//std::cout << "elem " << ii << " with " << (unsigned int)number_of_particles_in_elem << " particles" << std::endl;
 					
-					for (unsigned int iii=0; iii<number_of_particles_in_elem ; iii++ )
+					for (int iii=0; iii<number_of_particles_in_elem ; iii++ )
 					{
 						//KRATOS_WATCH(iii)
 						if (iii>mmaximum_number_of_particles) //it means we are out of our portion of the array, abort loop!
@@ -1630,7 +1629,8 @@ namespace Kratos
 						 unsigned int & number_of_elements_in_trajectory,						 
 						 ResultIteratorType result_begin,
 						 const unsigned int MaxNumberOfResults,
-						 const array_1d<double,3> mesh_displacement)
+						 const array_1d<double,3> mesh_displacement,
+						 const bool discriminate_streamlines)
 	{
 		
 		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -1656,12 +1656,12 @@ namespace Kratos
 		
 		const float particle_distance = pparticle.GetDistance();
 		array_1d<float,3> particle_velocity = pparticle.GetVelocity();
-		double distance=0.0;
+		//double distance=0.0;
 		array_1d<double,3> last_useful_vel;
 		double sum_Ns_without_other_phase_nodes;
 		//double pressure=0.0;
 		///*****
-		bool flying_water_particle=true; //if a water particle does not find a water element in its whole path, then we add the gravity*dt
+		//bool flying_water_particle=true; //if a water particle does not find a water element in its whole path, then we add the gravity*dt
 		double only_integral  = 0.0 ;
 
 		is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
@@ -1672,18 +1672,9 @@ namespace Kratos
 			vel=ZeroVector(3);
 			vel_without_other_phase_nodes = ZeroVector(3);
 			sum_Ns_without_other_phase_nodes=0.0;
-			distance=0.0;
+			//distance=0.0;
 			
-			if (particle_distance>0.0)
-			//if(true)
-			{
-				for(unsigned int j=0; j<(TDim+1); j++)
-				{
-					noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
-				}
-				flying_water_particle=false;
-			}
-			else //water particle, be careful!
+			if (particle_distance<0.0 && discriminate_streamlines==true)
 			{
 				for(unsigned int j=0; j<(TDim+1); j++)
 				{
@@ -1699,11 +1690,20 @@ namespace Kratos
 				if (sum_Ns_without_other_phase_nodes>0.01)
 				{
 					vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
-					flying_water_particle=false;
+					//flying_water_particle=false;
 				}
 				else
 					vel = particle_velocity;
 			}
+			else // air particle or we are not following streamlines
+			{
+				for(unsigned int j=0; j<(TDim+1); j++)
+				{
+					noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+				}
+				//flying_water_particle=false;
+			}
+
 			
 
 			//calculating substep to get +- courant(substep) = 0.1
@@ -1736,18 +1736,7 @@ namespace Kratos
 					Geometry< Node<3> >& geom = pelement->GetGeometry();//the element we're in
 					sum_Ns_without_other_phase_nodes=0.0;
 
-					if (particle_distance>0.0)
-					//if(true)
-					{
-							vel_without_other_phase_nodes = ZeroVector(3);
-							vel = ZeroVector(3);
-							for(unsigned int j=0; j<(TDim+1); j++)
-							{
-								noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
-							}
-							flying_water_particle=false;
-					}
-					else //water particle, be careful!
+					if (particle_distance<0.0 && discriminate_streamlines==true)
 					{
 						vel_without_other_phase_nodes = ZeroVector(3);
 						
@@ -1766,13 +1755,23 @@ namespace Kratos
 						if (sum_Ns_without_other_phase_nodes>0.01)
 						{
 							vel  = vel_without_other_phase_nodes / sum_Ns_without_other_phase_nodes;
-							flying_water_particle=false;
+							//flying_water_particle=false;
 						}
 						else
 						{
 							particle_velocity += substep_dt * gravity;
 							vel  = particle_velocity;
 						}
+					}
+					else //air particle or we are not discriminating streamlines
+					{
+							vel_without_other_phase_nodes = ZeroVector(3);
+							vel = ZeroVector(3);
+							for(unsigned int j=0; j<(TDim+1); j++)
+							{
+								noalias(vel) += geom[j].FastGetSolutionStepValue(VELOCITY)*N[j]; 
+							}
+							//flying_water_particle=false;
 					}
 					
 					only_integral += 1.0; //values saved for the current time step
@@ -1822,7 +1821,7 @@ namespace Kratos
 		//we start with the first position, then it will enter the loop.
 		array_1d<double,3> coords = pparticle.Coordinates();
 		float & particle_distance = pparticle.GetDistance();
-		double distance=0.0;
+		//double distance=0.0;
 		array_1d<double,3> delta_velocity = ZeroVector(3);
 		
 		array_1d<double,3> delta_velocity_without_air = ZeroVector(3);		
@@ -1857,7 +1856,7 @@ namespace Kratos
 
 				if (sum_Ns_without_water_nodes>0.01)
 				{
-					delta_velocity = delta_velocity_without_water/sum_Ns_without_water_nodes ;
+					//delta_velocity = delta_velocity_without_water/sum_Ns_without_water_nodes ; //commented = using all the velocities always!
 				}
 				//else we use the complete field
 					
@@ -2299,7 +2298,7 @@ namespace Kratos
             double inv_area = 0.0;
             if (area == 0.0)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero area found", "");
             } else
             {
                 inv_area = 1.0 / area;
@@ -2344,7 +2343,7 @@ namespace Kratos
             double inv_vol = 0.0;
             if (vol < 0.000000000000000000000000000001)
             {
-                KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+                KRATOS_THROW_ERROR(std::logic_error, "element with zero vol found", "");
             } else
             {
                 inv_vol = 1.0 / vol;
@@ -2809,9 +2808,9 @@ namespace Kratos
 	//vector<double> mareas_vector; UNUSED SO COMMENTED 
 	int max_nsubsteps;
 	double max_substep_dt;
-	unsigned int mmaximum_number_of_particles;
+	int mmaximum_number_of_particles;
 	std::vector< PFEM_Particle_Fluid  > mparticles_vector; //Point<3>
-	unsigned int mlast_elem_id;
+	int mlast_elem_id;
 	bool modd_timestep;
 	bool mparticle_printing_tool_initialized;
 	unsigned int mfilter_factor;
