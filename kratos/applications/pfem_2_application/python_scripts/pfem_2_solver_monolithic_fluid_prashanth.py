@@ -1,7 +1,7 @@
 from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
-from KratosMultiphysics.ConvectionDiffusionApplication import *
+#from KratosMultiphysics.ConvectionDiffusionApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 #from KratosMultiphysics.OpenCLApplication import *
 #from KratosMultiphysics.GPUSolversApplication import *
@@ -41,6 +41,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
     model_part.AddNodalSolutionStepVariable(FORCE)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
 
 
 def AddDofs(model_part):
@@ -125,17 +126,17 @@ class PFEM2Solver:
         (self.addBC).AddThem()
         
 
-        #RICC TOOLS
-        if self.domain_size==2:
-            self.convection_solver = PureConvectionUtilities2D();
-        else:
-            self.convection_solver = PureConvectionUtilities3D();
-        self.convection_solver.ConstructSystem(self.model_part,DISTANCE,VELOCITY,FORCE);
-        if self.domain_size==2:
-           self.distance_utils = SignedDistanceCalculationUtils2D()
-        else:
-            self.distance_utils = SignedDistanceCalculationUtils3D()
-        self.redistance_step = 0 
+        ##RICC TOOLS
+        #if self.domain_size==2:
+        #    self.convection_solver = PureConvectionUtilities2D();
+        #else:
+        #    self.convection_solver = PureConvectionUtilities3D();
+        #self.convection_solver.ConstructSystem(self.model_part,DISTANCE,VELOCITY,FORCE);
+        #if self.domain_size==2:
+        #   self.distance_utils = SignedDistanceCalculationUtils2D()
+        #else:
+        #    self.distance_utils = SignedDistanceCalculationUtils3D()
+        #self.redistance_step = 0 
         ########
 
         import strategy_python #implicit solver
