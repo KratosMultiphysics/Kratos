@@ -131,7 +131,7 @@ public:
     /// Default constructor.
     PFEM_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
     {
-		this->TO_ERASE=true; //initializing as useless particle
+		this->ERASE_FLAG=true; //initializing as useless particle
 		this->VELOCITY=ZeroVector(3);
 		this->ACCELERATION=ZeroVector(3);
 		this->DISTANCE=0.0;
@@ -145,6 +145,7 @@ public:
 		this->THETA=0.0;
 		this->DENSITY=0.0;
 		this->TOTAL_PLASTIC_DEFORMATION=ZeroVector(6);
+		this->OLD_TOTAL_PLASTIC_DEFORMATION=ZeroVector(6);
 		this->OLD_SIGMA=ZeroVector(6);
 		this->SIGMA=ZeroVector(6);
 		this->HAS_UPDATED_STRESSES=false;
@@ -153,7 +154,7 @@ public:
     
     PFEM_Particle() : Point<3>(0.0, 0.0, 0.0)
     {
-		this->TO_ERASE=true;
+		this->ERASE_FLAG=true;
 		this->VELOCITY=ZeroVector(3);
 		this->ACCELERATION=ZeroVector(3);
 		this->DISTANCE=0.0;
@@ -211,6 +212,10 @@ public:
 	{
 		return this->BULK_MODULUS;
 	}
+	double& GetSecantBulkModulus()
+	{
+		return this->SECANT_BULK_MODULUS;
+	}
 	
 	//returning references
 	array_1d<double,6>& GetSigma() //should be 6 in 3d
@@ -241,6 +246,14 @@ public:
 		return this->TOTAL_PLASTIC_DEFORMATION[i];
 	}
 	
+	array_1d<double,6>& GetOldTotalPlasticDeformation()
+	{
+		return this->OLD_TOTAL_PLASTIC_DEFORMATION;
+	}
+	double& GetOldTotalPlasticDeformation(const unsigned int i)
+	{
+		return this->OLD_TOTAL_PLASTIC_DEFORMATION[i];
+	}
 	//double& GetTemperature()
 	//{
 	//	return this->TEMPERATURE;
@@ -302,7 +315,7 @@ public:
 	*/
 	bool& GetEraseFlag()
 	{
-		return this->TO_ERASE;
+		return this->ERASE_FLAG;
 	}
 	
 	bool& HasUpdatedStresses()
@@ -331,11 +344,13 @@ private:
 	double TEMPERATURE;
 	double SHEAR_MODULUS;
 	double BULK_MODULUS;
+	double SECANT_BULK_MODULUS;
 	double COHESION;
 	double THETA;
 	double DENSITY;
 	double OLD_PRESSURE;
 	double PLASTIC_PRESSURE;
+	array_1d<double,6> OLD_TOTAL_PLASTIC_DEFORMATION;
 	array_1d<double,6> TOTAL_PLASTIC_DEFORMATION;
 	array_1d<double,6> OLD_SIGMA;
 	array_1d<double,6> SIGMA; //should be of size 6 in 3d!
@@ -343,7 +358,7 @@ private:
 	
 	//unsigned int ELEMENT_ID;
 	//double GRADIENT_DISCONTINUITY;
-	bool TO_ERASE;
+	bool ERASE_FLAG;
 	bool HAS_UPDATED_STRESSES;
 	bool PLASTICIZED;
 	
