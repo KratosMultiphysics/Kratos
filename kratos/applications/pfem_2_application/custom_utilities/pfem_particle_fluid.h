@@ -131,12 +131,12 @@ public:
     /// Default constructor.
     PFEM_Particle(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
     {
-		this->TO_ERASE=true; //initializing as useless particle
+		this->ERASE_FLAG=true; //initializing as useless particle
     }
     
     PFEM_Particle() : Point<3>(0.0, 0.0, 0.0)
     {
-		this->TO_ERASE=true;
+		this->ERASE_FLAG=true;
     }
     
     //returning references
@@ -235,7 +235,7 @@ public:
 	*/
 	bool& GetEraseFlag()
 	{
-		return this->TO_ERASE;
+		return this->ERASE_FLAG;
 	}
 	
 	
@@ -263,7 +263,7 @@ private:
 	
 	//unsigned int ELEMENT_ID;
 	//double GRADIENT_DISCONTINUITY;
-	bool TO_ERASE;
+	bool ERASE_FLAG;
 	
 
 
