@@ -28,24 +28,24 @@
 #include "custom_utilities/pfem_particle.h" //hahaha
 #include "custom_utilities/pfem_particle_fluidonly.h" //hahaha
 
+//#include "custom_elements/2fluid_2d.h" //including the file for the element
+//#include "custom_elements/2fluid_3d.h" //including the file for the element
+//#include "custom_elements/fluid_phase_2d.h" //including the file for the element
+#include "custom_elements/fractional_step_pfem_2_2d.h" //including the file for the element
+#include "custom_elements/fractional_step_pfem_2_3d.h" //including the file for the element
+#include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
+#include "custom_elements/monolithic_2fluid_3d.h" //including the file for the element
+//#include "custom_elements/monolithic_3fluid_2d.h" //including the file for the element
+//#include "custom_elements/monolithic_3fluid_3d.h" //including the file for the element
+//#include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
+//#include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
+//#include "custom_elements/fsi_2d.h" //including the file for the element
+//#include "custom_elements/fsi_3d.h" //including the file for the element
+//#include "custom_elements/no_particles_solid_only_2d.h" //including the file for the element
 
 #include "custom_conditions/fixed_velocity_2d.h" //the condition
-#include "custom_conditions/water_fixed_velocity_2d.h" //the condition
-#include "custom_elements/2fluid_2d.h" //including the file for the element
-#include "custom_elements/fluid_phase_2d.h" //including the file for the element
-#include "custom_elements/monolithic_2fluid_2d.h" //including the file for the element
-#include "custom_elements/monolithic_3fluid_2d.h" //including the file for the element
-#include "custom_elements/monolithic_3fluid_3d.h" //including the file for the element
-#include "custom_elements/monolithic_2fluid_3d.h" //including the file for the element
-#include "custom_elements/monolithic_2fluid_3d_partintegration.h" //including the file for the element
-#include "custom_elements/monolithic_2fluid_2d_partintegration.h" //including the file for the element
-
-#include "custom_elements/fsi_2d.h" //including the file for the element
-#include "custom_elements/no_particles_solid_only_2d.h" //including the file for the element
-#include "custom_elements/fsi_3d.h" //including the file for the element
 #include "custom_conditions/fixed_velocity_3d.h" //the condition
-#include "custom_elements/2fluid_3d.h" //including the file for the element
-
+//#include "custom_conditions/water_fixed_velocity_2d.h" //the condition
 
 
 namespace Kratos
@@ -76,6 +76,9 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, SOLID_PRESSURE)
 	KRATOS_DEFINE_VARIABLE(double, SOLID_YP)
 	KRATOS_DEFINE_VARIABLE(double, WATER_DISTANCE)
+	KRATOS_DEFINE_VARIABLE(double, VOLUMETRIC_STRAIN)
+	KRATOS_DEFINE_VARIABLE(double, ELASTIC_PRESSURE)
+	
 	KRATOS_DEFINE_VARIABLE(bool, USEFUL_ELEMENT_FOR_COMBUSTION)
 	KRATOS_DEFINE_VARIABLE(Vector, ENRICH_LHS_ROW_3D)
 	KRATOS_DEFINE_VARIABLE(Vector, WATER_GAUSS_POINT)
@@ -102,6 +105,8 @@ namespace Kratos
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WATER_VELOCITY)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WATER_MESH_VELOCITY)
 
+	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VELOCITY)
+	KRATOS_DEFINE_VARIABLE(double, VOLUME_CORRECTION)
 
 	
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
@@ -258,22 +263,23 @@ namespace Kratos
 		///@} 
 		///@name Member Variables 
 		///@{ 
- 		const PFEM22D   mPFEM22D; 
- 		const PFEM23D   mPFEM23D; 
- 		const FluidPhasePFEM22D   mFluidPhasePFEM22D; 
- 		const MonolithicPFEM22D   mMonolithicPFEM22D; 
- 		const Monolithic3FluidPFEM22D mMonolithic3FluidPFEM22D;
- 		const Monolithic3FluidPFEM23D mMonolithic3FluidPFEM23D;
- 		const MonolithicPFEM23D   mMonolithicPFEM23D; 
- 		const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
- 		const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
- 		const FsiPFEM22D   mFsiPFEM22D; 
- 		const FsiPFEM23D   mFsiPFEM23D; 
- 		const NoParticlesSolidOnlyPFEM22D   mNoParticlesSolidOnlyPFEM22D; 
+ 	
+ 		//const FluidPhasePFEM22D   mFluidPhasePFEM22D; 
+  		const FractionalStepPFEM22D   mFractionalStepPFEM22D; 
+  		const FractionalStepPFEM23D   mFractionalStepPFEM23D; 
+		const MonolithicPFEM22D   mMonolithicPFEM22D; 
+		const MonolithicPFEM23D   mMonolithicPFEM23D; 
+ 		//const Monolithic3FluidPFEM22D mMonolithic3FluidPFEM22D;
+ 		//const Monolithic3FluidPFEM23D mMonolithic3FluidPFEM23D;
+ 		//const MonolithicAutoSlipPFEM22D   mMonolithicAutoSlipPFEM22D; 
+ 		//const MonolithicAutoSlipPFEM23D   mMonolithicAutoSlipPFEM23D; 
+ 		//const FsiPFEM22D   mFsiPFEM22D; 
+ 		//const FsiPFEM23D   mFsiPFEM23D; 
+ 		//const NoParticlesSolidOnlyPFEM22D   mNoParticlesSolidOnlyPFEM22D; 
  		
 		const FixedVelocity2D   mFixedVelocity2D; 
-		const WaterFixedVelocity2D   mWaterFixedVelocity2D; 
- 		const FixedVelocity3D   mFixedVelocity3D; 
+		const FixedVelocity3D   mFixedVelocity3D; 
+		//const WaterFixedVelocity2D   mWaterFixedVelocity2D; 
  		
 
 		///@} 
