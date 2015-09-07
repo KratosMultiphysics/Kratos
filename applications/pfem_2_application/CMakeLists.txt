@@ -10,21 +10,21 @@ set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_2_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/2fluid_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/2fluid_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_phase_2d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_phase_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_pfem_2_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_pfem_2_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_3d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_3fluid_2d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_3fluid_3d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_3d_partintegration.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d_partintegration.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fsi_2d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fsi_3d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/no_particles_solid_only_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fixed_velocity_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/water_fixed_velocity_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_3fluid_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_3fluid_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_3d_partintegration.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_2fluid_2d_partintegration.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fsi_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fsi_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/no_particles_solid_only_2d.cpp
+	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/water_fixed_velocity_2d.cpp
 )
 
 ###############################################################
