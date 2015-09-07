@@ -53,7 +53,7 @@ class SolvingStrategyPython:
 
     #######################################################################
     #######################################################################
-    def Solve(self,model_part,moveparticles,VariableUtils,max_iter):
+    def Solve(self,model_part,moveparticles,VariableUtils,CalculatePressureProjection,max_iter):
         #perform the operations to be performed ONCE and ensure they will not be repeated
         # elemental function "Initialize" is called here
         if(self.InitializeWasPerformed == False):
@@ -65,6 +65,7 @@ class SolvingStrategyPython:
         #identifying the set of DOFs that will be solved during this step
         #organizing the DOFs so to identify the dirichlet conditions
         #resizing the matrix preallocating the "structure"
+        model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
         if (self.SolutionStepIsInitialized == False):
             if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
                 reform_dofs = True
@@ -80,7 +81,7 @@ class SolvingStrategyPython:
         calculate_norm = True
         non_linear_iteration_number = 1
         model_part.ProcessInfo.SetValue(NL_ITERATION_NUMBER, 1)
-        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,model_part,moveparticles,VariableUtils)
+        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,model_part,moveparticles,VariableUtils,CalculatePressureProjection)
         
         
         print ("fist iteration is done")
@@ -91,7 +92,62 @@ class SolvingStrategyPython:
             non_linear_iteration_number =  non_linear_iteration_number +1 
             model_part.ProcessInfo.SetValue(NL_ITERATION_NUMBER, non_linear_iteration_number)
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
-            normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,model_part,moveparticles,VariableUtils)
+            normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,model_part,moveparticles,VariableUtils,CalculatePressureProjection)
+            converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+
+        print("converged in ",non_linear_iteration_number," iterations")
+        #finalize the solution step
+        self.FinalizeSolutionStep(self.CalculateReactionsFlag)
+
+        self.SolutionStepIsInitialized = False
+        
+        #clear if needed - deallocates memory 
+        if(self.ReformDofSetAtEachStep == True):
+                self.Clear();
+
+            
+    #######################################################################
+    #######################################################################
+    def Solve(self,model_part,moveparticles,VariableUtils,CalculatePressureProjection,CalculateVolumetricStrain,max_iter): #CalculatePressure,maxiter
+        #perform the operations to be performed ONCE and ensure they will not be repeated
+        # elemental function "Initialize" is called here
+        if(self.InitializeWasPerformed == False):
+            self.Initialize()
+            self.InitializeWasPerformed = True
+        
+        #perform initializations for the current step
+        #this operation implie
+        #identifying the set of DOFs that will be solved during this step
+        #organizing the DOFs so to identify the dirichlet conditions
+        #resizing the matrix preallocating the "structure"
+        model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
+        if (self.SolutionStepIsInitialized == False):
+            if(self.builder_and_solver.GetDofSetIsInitializedFlag() == False or self.ReformDofSetAtEachStep == True):
+                reform_dofs = True
+            else:
+                reform_dofs = False
+            self.InitializeSolutionStep(reform_dofs);
+            self.SolutionStepIsInitialized = True;
+
+        #perform prediction 
+        self.Predict()
+
+        #execute iteration - only one iteration is done since it is a linear system.
+        calculate_norm = True
+        non_linear_iteration_number = 1
+        model_part.ProcessInfo.SetValue(NL_ITERATION_NUMBER, 1)
+        normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,model_part,moveparticles,VariableUtils,CalculatePressureProjection,CalculateVolumetricStrain)#,CalculatePressure)
+        
+        
+        print ("fist iteration is done")
+        #non linear loop
+        converged = False
+
+        while(non_linear_iteration_number < max_iter and converged == False):
+            non_linear_iteration_number =  non_linear_iteration_number +1 
+            model_part.ProcessInfo.SetValue(NL_ITERATION_NUMBER, non_linear_iteration_number)
+            converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
+            normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm,model_part,moveparticles,VariableUtils,CalculatePressureProjection,CalculateVolumetricStrain)#,CalculatePressure)
             converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
         print("converged in ",non_linear_iteration_number," iterations")
@@ -133,7 +189,7 @@ class SolvingStrategyPython:
         self.scheme.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
 
     #######################################################################
-    def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag,model_part,moveparticles,VariableUtils):
+    def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag,model_part,moveparticles,VariableUtils,CalculatePressureProjection):
 
         #implicit everything
         #self.CalculatePressureProjection()
@@ -141,10 +197,12 @@ class SolvingStrategyPython:
         (moveparticles).ComputeDeltaVelocityForNonLinearIteration();	 #saving velocity from previous iteration
         
         #########################
+        model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
         self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
         self.space_utils.SetToZeroVector(self.Dx)			
         self.space_utils.SetToZeroVector(self.b)
         self.space_utils.SetToZeroMatrix(self.A)
+        
         self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
         self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
         #move the mesh as needed
@@ -152,12 +210,62 @@ class SolvingStrategyPython:
             self.scheme.MoveMesh(self.model_part.Nodes);
         self.scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
         #########################
-        
+        CalculatePressureProjection()
+        #bulk_modulus = 207000000.0 / (3.0 * (1.0-2.0* 0.0))
+        #for node in self.model_part.Nodes:
+        #   pressure = node.GetSolutionStepValue(PRESSURE,1) - node.GetSolutionStepValue(VOLUMETRIC_STRAIN)*bulk_modulus
+        #   node.SetSolutionStepValue(PRESSURE,pressure)
         full_reset=True;
         (moveparticles).ResetBoundaryConditions(full_reset) 
-        (moveparticles).UpdateParticleStresses()	
+        #(moveparticles).UpdateParticleStresses()	
         #finally we save the last pressure for future iterations. No need to do it for the velocity since it is saved in delta_velocity
         (VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
+
+
+        ########################
+        #calculate the norm of the "correction" Dx
+        if(CalculateNormDxFlag == True):
+            normDx = self.space_utils.TwoNorm(self.Dx)
+        else:
+            normDx = 0.0
+            
+        return normDx
+        
+    #######################################################################
+    def ExecuteIteration(self,echo_level,MoveMeshFlag,CalculateNormDxFlag,model_part,moveparticles,VariableUtils,CalculatePressureProjection,CalculateVolumetricStrain):#,CalculatePressure):
+
+        #implicit everything
+        #self.CalculatePressureProjection()
+        model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 20)
+        (moveparticles).ComputeDeltaVelocityForNonLinearIteration();	 #saving velocity from previous iteration
+        
+        #########################
+        model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
+        self.scheme.InitializeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
+        self.space_utils.SetToZeroVector(self.Dx)			
+        self.space_utils.SetToZeroVector(self.b)
+        self.space_utils.SetToZeroMatrix(self.A)
+        
+        self.builder_and_solver.BuildAndSolve(self.scheme,self.model_part,self.A,self.Dx,self.b)
+        self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);
+        #move the mesh as needed
+        if(MoveMeshFlag == True):
+            self.scheme.MoveMesh(self.model_part.Nodes);
+        self.scheme.FinalizeNonLinIteration(self.model_part,self.A,self.Dx,self.b)
+        #########################
+        CalculatePressureProjection()
+        #CalculateVolumetricStrain()
+        #bulk_modulus = 207000000.0 / (3.0 * (1.0-2.0* 0.3))
+        #for node in self.model_part.Nodes:
+        #   pressure = node.GetSolutionStepValue(PRESSURE,1) - node.GetSolutionStepValue(VOLUMETRIC_STRAIN)*bulk_modulus
+        #   node.SetSolutionStepValue(PRESSURE,pressure)
+        full_reset=True;
+        (moveparticles).ResetBoundaryConditions(full_reset) 
+        (moveparticles).UpdateParticleStresses()
+        #CalculatePressure()	
+        #finally we save the last pressure for future iterations. No need to do it for the velocity since it is saved in delta_velocity
+        (VariableUtils).CopyScalarVar(PRESSURE,PRESSUREAUX,self.model_part.Nodes) #we save the pressure of this iteration in order to have the delta_pressure in the next one
+
 
         ########################
         #calculate the norm of the "correction" Dx
