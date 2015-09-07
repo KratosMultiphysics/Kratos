@@ -72,8 +72,8 @@ for node in model_part.Nodes:
         if node.X>0.2919 and node.X<0.3161 and node.Y<0.0481 and node.Y>0.0479:
                 node.Fix(VELOCITY_Y)
                 #node.Fix(VELOCITY_X)
-        #node.SetSolutionStepValue(DISTANCE,0,1.0)
-
+        node.SetSolutionStepValue(BODY_FORCE_Y,0,-9.8)
+        node.SetSolutionStepValue(PRESS_PROJ_Y,0,-9.8)
         
 
                 
@@ -106,11 +106,10 @@ gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
 nsteps=200
 Dt=0.005
 out=0
-out_step=2
+out_step=1
 
 
 gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,0,0)
-gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,0,0)
 gid_io.WriteNodalResults(YP,model_part.Nodes,0,0)
 gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,0,0)
 gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,0,0)
@@ -143,6 +142,7 @@ for step in range(1,nsteps):
           gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
           gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
           gid_io.WriteNodalResults(PRESS_PROJ,model_part.Nodes,time,0)
+          gid_io.WriteNodalResults(PROJECTED_VELOCITY,model_part.Nodes,time,0)
           gid_io.Flush()
 
     
