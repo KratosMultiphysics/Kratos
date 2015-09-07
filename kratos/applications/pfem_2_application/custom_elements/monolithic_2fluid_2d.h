@@ -84,38 +84,14 @@ namespace Kratos
 
       
    protected:
-                                                
-        void CalculateViscousRHS(ProcessInfo& CurrentProcessInfo);
-       
+                                                       
        	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);
                                                                                                                      
                                 
         void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       const double Weight);                   
-                                       
-		void AddViscousTerm(MatrixType& rDampMatrix,
-                                       const boost::numeric::ublas::bounded_matrix<double, 3, 2>& rShapeDeriv,
-                                       const double viscosity_air,
-                                       const double viscosity_water,
-                                       array_1d<double,3>  volumes,
-                                       array_1d<double,3>  signs,
-                                       Matrix Ngauss,
-                                       const double Area);
-                                       
-       void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, (2-1)*6, (2-1)*6 >& rDampMatrix,
-                         boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
-                         const double Weight);
-                         
-       void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 8, 8 > & LocalAxisExtendedDampMatrix,
-						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
-                          std::vector< Matrix >& gauss_gradients, 
-						  array_1d<double,3>&  viscosities,
-						  array_1d<double,3>&  signs,
-						  array_1d<double,3>&  volumes ,
-						  const unsigned int ndivisions);
-						  
-						  
+                                       const double Weight);                        
+                           
 		void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 13, 13 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& rShapeDeriv,
 						  array_1d<double,3>&  distances,
@@ -131,33 +107,6 @@ namespace Kratos
                                        array_1d<double,3>&  viscosities,
                                        const int ndivisions);
                                        
-       void CalculateInterfaceNormal(boost::numeric::ublas::bounded_matrix<double, 3, 2 >& rPoints, array_1d<double,3>&  distances, array_1d<double,2>&  normal, double & interface_area, array_1d<double,3>&  Ninterface);
-
-       bool invert44(boost::numeric::ublas::bounded_matrix<double, 4, 4 > & m , boost::numeric::ublas::bounded_matrix<double, 4, 4 > & inverse );
-       bool invert33(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & m , boost::numeric::ublas::bounded_matrix<double, 3, 3 > & result );
-       
-       inline void CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
-                                         const double xc, const double yc, const double zc,
-                                         array_1d<double, 3 > & N
-                                        );
-                                        
-        inline double CalculateVol(const double x0, const double y0,
-                                      const double x1, const double y1,
-                                      const double x2, const double y2
-                                     );     
-       inline double CalculateVolume2D(
-			const bounded_matrix<double, 3, 3 > & coordinates);                         
-	    inline void CalculateGeometryData(
-			const bounded_matrix<double, 3, 3 > & coordinates,
-			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
-			double& Area);
-			
-		void CalculateRotationParameters(
-			boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints, 
-			array_1d<double,(2+1)>& rDistances,
-            boost::numeric::ublas::bounded_matrix<double,(2),2 >& rRotationMatrix, 
-            boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rRotatedPoints,
-            boost::numeric::ublas::bounded_matrix<double, (2+1), 2 > & DN_DX_in_local_axis);
 template<class T>                                     
 bool InvertMatrix(const T& input, T& inverse)  ;                                      
 
