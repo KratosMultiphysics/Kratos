@@ -106,7 +106,8 @@ public:
     ///@{
 
     /// Pointer definition of Point
-    KRATOS_CLASS_POINTER_DEFINITION(PFEM_Particle_Fluid);
+    //KRATOS_CLASS_POINTER_DEFINITION(PFEM_Particle_Fluid);
+    typedef PFEM_Particle_Fluid* Pointer;
     
     typedef double TDataType; 
 
@@ -131,14 +132,14 @@ public:
     /// Default constructor.
     PFEM_Particle_Fluid(TDataType const& NewX, TDataType const& NewY, TDataType const& NewZ) : Point<3>(NewX, NewY, NewZ)
     {
-		this->TO_ERASE=true; //initializing as useless particle
+		this->ERASE_FLAG=true; //initializing as useless particle
 		this->VELOCITY=ZeroVector(3);
 		this->DISTANCE=0.0;
     }
     
     PFEM_Particle_Fluid() : Point<3>(0.0, 0.0, 0.0)
     {
-		this->TO_ERASE=true;
+		this->ERASE_FLAG=true;
 		this->VELOCITY=ZeroVector(3);
 		this->DISTANCE=0.0;
     }
@@ -189,7 +190,7 @@ public:
 	*/
 	bool& GetEraseFlag()
 	{
-		return this->TO_ERASE;
+		return this->ERASE_FLAG;
 	}
 	
 	
@@ -211,11 +212,20 @@ private:
 	//Element::Pointer ELEMENT_WEAKPOINTER;
 	//unsigned int ELEMENT_ID;
 	//double GRADIENT_DISCONTINUITY;
-	bool TO_ERASE;
+	bool ERASE_FLAG;
 	
 
 
 };
+
+//typedef std::vector<PFEM_Particle_Fluid*> FluidParticlePointerVector;
+
+
+//inline std::ostream& operator << (std::ostream& rOStream,
+//                                 const std::vector<PFEM_Particle_Fluid*>& rThis)
+//{
+//}
+
 
 } //namespace Kratos
 
