@@ -70,9 +70,7 @@ namespace Kratos
      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-     
-     //void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-     
+          
      void AddExplicitContribution(ProcessInfo& CurrentProcessInfo);
      
      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
@@ -85,60 +83,12 @@ namespace Kratos
       
    protected:
    
-        void CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
-                                                    VectorType& rRightHandSideVector,
-                                                    ProcessInfo& rCurrentProcessInfo);
-
-        void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
-        
-        void CalculateLocalFinalVelocitySystem(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo);    
-                                                
-        void CalculateLocalThermalSystem(MatrixType& rLeftHandSideMatrix,
-                                                VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo); 
-                                                
-        void CalculateViscousRHS(ProcessInfo& CurrentProcessInfo);
        
        	void CalculatePressureProjection(ProcessInfo& CurrentProcessInfo);               
-       	
-       	void CalculateMassMatrix(ProcessInfo& CurrentProcessInfo);                                                                                          
-
-        void VelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
-                                      
-        void FractionalVelocityEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);                                      
-
-        void PressureEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
-                                      
-        void ThermalEquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo);
-
-        void GetVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
-                                
-        void GetFractionalVelocityDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);                        
-
-        void GetPressureDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);
-                                
-        void GetThermalDofList(DofsVectorType& rElementalDofList,
-                                ProcessInfo& rCurrentProcessInfo);  
                                 
         void AddViscousTerm(MatrixType& rDampMatrix,
                                        const boost::numeric::ublas::bounded_matrix<double, 4, 3>& rShapeDeriv,
                                        const double Weight); 
-                                       
-        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 12, 12 >& rDampMatrix,
-                         boost::numeric::ublas::bounded_matrix<double, 4, 3 >& rShapeDeriv,
-                         const double Weight);       
-                         
                          
        void AddViscousTerm(boost::numeric::ublas::bounded_matrix<double, 21, 21 > & output,
 						  boost::numeric::ublas::bounded_matrix<double, (4), 3 >& rShapeDeriv,
@@ -148,14 +98,6 @@ namespace Kratos
 						  array_1d<double,6>&  signs,
 						  array_1d<double,6>&  volumes ,
 						  const unsigned int ndivisions);		                 
-                         
-        double CalculateAirDensity(double & temperature_in_celsius);
-
-	    double CalculateAirConductivity(double & temperature_in_celsius);
-
-		
-	    double CalculateAirViscosity(double & temperature_in_celsius);      
-
    
 	   template<class T>                                     
 	   bool InvertMatrix(const T& input, T& inverse)  ;     
