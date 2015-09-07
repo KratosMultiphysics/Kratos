@@ -760,8 +760,8 @@ namespace Kratos
 			//condensing
 			boost::numeric::ublas::bounded_matrix<double, LocalSize , enrich_pressure_dofs+enrich_velocity_dofs  > temp_matrix;
 			temp_matrix = prod(trans(condensed_columns),inverse_enrichments);
-			rLeftHandSideMatrix -=  prod(temp_matrix,condensed_rows);
-			noalias(rRightHandSideVector) -= prod(temp_matrix,rhs_enrich);
+			//rLeftHandSideMatrix -=  prod(temp_matrix,condensed_rows);
+			//noalias(rRightHandSideVector) -= prod(temp_matrix,rhs_enrich);
 			
 			
 			
