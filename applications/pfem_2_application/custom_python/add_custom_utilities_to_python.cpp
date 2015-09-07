@@ -58,8 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_utilities/move_particle_utility_diff.h" 
-#include "custom_utilities/move_particle_utility_diff_fluidonly.h" 
+//#include "custom_utilities/move_particle_utility_diff.h" 
+#include "custom_utilities/move_particle_utility_pfem2.h" 
 #include "custom_utilities/visualization.h" 
 #include "custom_utilities/calculate_water_fraction.h"
 #include "spaces/ublas_space.h"
@@ -82,7 +82,7 @@ namespace Python
 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-
+/*
 		class_< MoveParticleUtilityDiff<2> > ("MoveParticleUtilityDiff2D", init<ModelPart& , int >())
                     .def("MountBinDiff", &MoveParticleUtilityDiff<2>::MountBinDiff)
                     .def("MoveParticlesDiff", &MoveParticleUtilityDiff<2>::MoveParticlesDiff)
@@ -134,49 +134,39 @@ namespace Python
                     .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiff<3>::ExecuteParticlesPritingTool)
                     .def("CorrectFreeSurface", &MoveParticleUtilityDiff<3>::CorrectFreeSurface)
                     ;            
-        
-        
-                    
-        class_< MoveParticleUtilityDiffFluidOnly<2> > ("MoveParticleUtilityDiffFluidOnly2D", init<ModelPart& , int >())
-                    .def("MountBinDiff", &MoveParticleUtilityDiffFluidOnly<2>::MountBinDiff)
-                    .def("MoveParticlesDiff", &MoveParticleUtilityDiffFluidOnly<2>::MoveParticlesDiff)
-                    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityDiffFluidOnly<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
-                    .def("PreReseed", &MoveParticleUtilityDiffFluidOnly<2>::PreReseed)
-                    .def("PostReseed", &MoveParticleUtilityDiffFluidOnly<2>::PostReseed)
-                    .def("ResetBoundaryConditions", &MoveParticleUtilityDiffFluidOnly<2>::ResetBoundaryConditions)
-                    .def("TransferLagrangianToEulerian",&MoveParticleUtilityDiffFluidOnly<2>::TransferLagrangianToEulerian)
-                    .def("ReplaceParticlesVelocityAndDistance",&MoveParticleUtilityDiffFluidOnly<2>::ReplaceParticlesVelocityAndDistance)
-                    .def("FlagSplittedElementsAndTheirNodes", &MoveParticleUtilityDiffFluidOnly<2>::FlagSplittedElementsAndTheirNodes)
-                    .def("CalculateVelOverElemSize", &MoveParticleUtilityDiffFluidOnly<2>::CalculateVelOverElemSize)
-                    .def("CalculateDeltaVelocity", &MoveParticleUtilityDiffFluidOnly<2>::CalculateDeltaVelocity)
-                    .def("IntializeTransferTool", &MoveParticleUtilityDiffFluidOnly<2>::IntializeTransferTool)
-                    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<2>::PreReseedUsingTopographicDomain)
-                    .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<2>::PostReseedOnlyInBoundingBox)
-                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<2>::ExecuteParticlesPritingTool)
-                    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityDiffFluidOnly<2>::ExecuteParticlesPritingToolForDroppletsOnly)
-                    .def("CorrectFreeSurface", &MoveParticleUtilityDiffFluidOnly<2>::CorrectFreeSurface)
-                    ; 
-                    
-		class_< MoveParticleUtilityDiffFluidOnly<3> > ("MoveParticleUtilityDiffFluidOnly3D", init<ModelPart& , int >())
-                    .def("MountBinDiff", &MoveParticleUtilityDiffFluidOnly<3>::MountBinDiff)
-                    .def("MoveParticlesDiff", &MoveParticleUtilityDiffFluidOnly<3>::MoveParticlesDiff)
-                    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityDiffFluidOnly<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
-                    .def("PreReseed", &MoveParticleUtilityDiffFluidOnly<3>::PreReseed)
-                    .def("PostReseed", &MoveParticleUtilityDiffFluidOnly<3>::PostReseed)
-                    .def("ResetBoundaryConditions", &MoveParticleUtilityDiffFluidOnly<3>::ResetBoundaryConditions)
-                    .def("TransferLagrangianToEulerian",&MoveParticleUtilityDiffFluidOnly<3>::TransferLagrangianToEulerian)
-                    .def("ReplaceParticlesVelocityAndDistance",&MoveParticleUtilityDiffFluidOnly<3>::ReplaceParticlesVelocityAndDistance)
-                    .def("FlagSplittedElementsAndTheirNodes", &MoveParticleUtilityDiffFluidOnly<3>::FlagSplittedElementsAndTheirNodes)
-                    .def("CalculateVelOverElemSize", &MoveParticleUtilityDiffFluidOnly<3>::CalculateVelOverElemSize)
-                    .def("CalculateDeltaVelocity", &MoveParticleUtilityDiffFluidOnly<3>::CalculateDeltaVelocity)
-                    .def("IntializeTransferTool", &MoveParticleUtilityDiffFluidOnly<3>::IntializeTransferTool)
-                    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityDiffFluidOnly<3>::PreReseedUsingTopographicDomain)
-                    .def("PostReseedOnlyInBoundingBox", &MoveParticleUtilityDiffFluidOnly<3>::PostReseedOnlyInBoundingBox)
-                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityDiffFluidOnly<3>::ExecuteParticlesPritingTool)
-                    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityDiffFluidOnly<3>::ExecuteParticlesPritingToolForDroppletsOnly)
-                    .def("CorrectFreeSurface", &MoveParticleUtilityDiffFluidOnly<3>::CorrectFreeSurface)
-                    ;             
-                    
+        */
+
+        class_< MoveParticleUtilityPFEM2<2> > ("MoveParticleUtilityPFEM22D", init<ModelPart& , int >())
+                    .def("MountBin", &MoveParticleUtilityPFEM2<2>::MountBin)
+                    .def("MoveParticles", &MoveParticleUtilityPFEM2<2>::MoveParticles)
+                    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityPFEM2<2>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
+                    .def("PreReseed", &MoveParticleUtilityPFEM2<2>::PreReseed)
+                    .def("PostReseed", &MoveParticleUtilityPFEM2<2>::PostReseed)
+                    .def("ResetBoundaryConditions", &MoveParticleUtilityPFEM2<2>::ResetBoundaryConditions)
+                    .def("TransferLagrangianToEulerian",&MoveParticleUtilityPFEM2<2>::TransferLagrangianToEulerian)
+                    .def("CalculateVelOverElemSize", &MoveParticleUtilityPFEM2<2>::CalculateVelOverElemSize)
+                    .def("CalculateDeltaVelocity", &MoveParticleUtilityPFEM2<2>::CalculateDeltaVelocity)
+                    .def("IntializeTransferTool", &MoveParticleUtilityPFEM2<2>::IntializeTransferTool)
+                    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<2>::PreReseedUsingTopographicDomain)
+                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingTool)
+                    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<2>::ExecuteParticlesPritingToolForDroppletsOnly)
+                    ;    
+
+        class_< MoveParticleUtilityPFEM2<3> > ("MoveParticleUtilityPFEM23D", init<ModelPart& , int >())
+                    .def("MountBin", &MoveParticleUtilityPFEM2<3>::MountBin)
+                    .def("MoveParticles", &MoveParticleUtilityPFEM2<3>::MoveParticles)
+                    .def("AccelerateParticlesWithoutMovingUsingDeltaVelocity", &MoveParticleUtilityPFEM2<3>::AccelerateParticlesWithoutMovingUsingDeltaVelocity)
+                    .def("PreReseed", &MoveParticleUtilityPFEM2<3>::PreReseed)
+                    .def("PostReseed", &MoveParticleUtilityPFEM2<3>::PostReseed)
+                    .def("ResetBoundaryConditions", &MoveParticleUtilityPFEM2<3>::ResetBoundaryConditions)
+                    .def("TransferLagrangianToEulerian",&MoveParticleUtilityPFEM2<3>::TransferLagrangianToEulerian)
+                    .def("CalculateVelOverElemSize", &MoveParticleUtilityPFEM2<3>::CalculateVelOverElemSize)
+                    .def("CalculateDeltaVelocity", &MoveParticleUtilityPFEM2<3>::CalculateDeltaVelocity)
+                    .def("IntializeTransferTool", &MoveParticleUtilityPFEM2<3>::IntializeTransferTool)
+                    .def("PreReseedUsingTopographicDomain", &MoveParticleUtilityPFEM2<3>::PreReseedUsingTopographicDomain)
+                    .def("ExecuteParticlesPritingTool", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingTool)
+                    .def("ExecuteParticlesPritingToolForDroppletsOnly", &MoveParticleUtilityPFEM2<3>::ExecuteParticlesPritingToolForDroppletsOnly)
+                    ;    
                     
       	class_<AddFixedVelocityCondition2D > ("AddFixedVelocityCondition2D", init<ModelPart& >())
                     .def("AddThem", &AddFixedVelocityCondition2D::AddThem)
