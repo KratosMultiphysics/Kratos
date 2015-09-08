@@ -811,10 +811,11 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
+	
 	Vector Forces = ZeroVector(dimension);
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  Forces[i] = rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
+	  Forces[j] = rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
 	  rRightHandSideVector[index + j] += rVariables.N[i] * rVectorForce[j] * rIntegrationWeight;
         }
 
