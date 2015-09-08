@@ -26,14 +26,14 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==3:
         
         final_time                      = 0.00031
-        dt                              = 1.0e-9  #1.1e-9 # Complies Rayleigh's condition
+        dt                              = 5.0e-8  #1.1e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 6
         
     elif benchmark_number==4:
         
         final_time                      = 0.0002  #0.00003
-        dt                              = 1.9e-7  #1.9e-9 # Complies Rayleigh's condition
+        dt                              = 1.9e-8  #1.9e-9 # Complies Rayleigh's condition
         output_time_step                = 0.000001
         number_of_points_in_the_graphic = 17
                 
@@ -47,7 +47,7 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==6:
                 
         final_time                      = 0.01
-        dt                              = 5.0e-6  #1.0e-7 # Complies Rayleigh's condition ????????????????
+        dt                              = 5.0e-7  #1.0e-7 # Complies Rayleigh's condition ????????????????
         output_time_step                = 0.00025
         number_of_points_in_the_graphic = 17
         
@@ -61,16 +61,16 @@ def initialize_time_parameters(benchmark_number):
     elif benchmark_number==8:
         
         final_time                      = 0.02
-        dt                              = 5.0e-6 #5.0e-7 # Complies Rayleigh's condition
+        dt                              = 1.0e-6 #5.0e-7 # Complies Rayleigh's condition
         output_time_step                = 0.0001
         number_of_points_in_the_graphic = 17
                 
     elif benchmark_number==9:
                 
         final_time                      = 0.001 #0.0005
-        dt                              = 5e-8 #6.4e-8 # Complies Rayleigh's condition
+        dt                              = 1e-7 #6.4e-8 # Complies Rayleigh's condition
         output_time_step                = 0.000005
-        number_of_points_in_the_graphic = 10
+        number_of_points_in_the_graphic = 6
             
     else: #benchmark_number=10
                 
@@ -193,7 +193,7 @@ class Benchmark3:
         
         gnuplot_script_name_1 = 'benchmark3_comparison_1_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark3_graph1.dat' w lp ls 2 t 'Cast iron'\n")
@@ -320,25 +320,25 @@ class Benchmark4:
         self.gnuplot_outfile.write("plot [0:90][.4:1] '" + tangential_restitution_coefficient_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 0 w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experiment'\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark4_graph1.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_2 = 'benchmark4_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:90][-800:0] '" + final_angular_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Incident angle (deg)'\nset ylabel 'Final angular velocity (rad/s)'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:90][-750:0] '" + final_angular_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 0 w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experiment'\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark4_graph2.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_3 = 'benchmark4_comparison_3_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_3, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Incident angle (deg)'\nset ylabel 'Rebound angle (deg)'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:90][-30:90] '" + rebound_angle_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 0 w lp ls 1 t 'Al. oxide',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 1 w lp ls 2 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experiment'\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark4_graph3.dat' index 2 w p pt 7 ps 2 lt -1 t 'Experimental'\n")
         self.gnuplot_outfile.close()
         
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
@@ -662,8 +662,8 @@ class Benchmark6:
         
         gnuplot_script_name_2 = 'benchmark6_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
-        self.gnuplot_outfile.write("plot [0:8][-2:8] '" + Vst_prima_div_Vcn_prima_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Tangent of incident angle'\nset ylabel 'Tangent of recoil angle'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:7][-2:8] '" + Vst_prima_div_Vcn_prima_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark6_graph2.dat' index 0 w lp ls 1 t 'Al. alloy',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark6_graph2.dat' index 1 w lp ls 2 t 'Nylon'\n")
         self.gnuplot_outfile.close()
@@ -817,15 +817,15 @@ class Benchmark7:
         self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:25][-10:10] '" + final_tangential_center_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark7_graph1.dat' w lp ls 1 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark7_graph1.dat' w lp ls 2 t 'Nylon'\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark7_graph1.dat' w lp ls 2 t 'Copper'\n")
         self.gnuplot_outfile.close()
         
         gnuplot_script_name_2 = 'benchmark7_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Initial angular velocity (rad/s)'\nset ylabel 'Final angular velocity (rad/s)'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:25][0:25] '" + final_angular_vel_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark7_graph2.dat' w lp ls 1 t 'Al. alloy',\\\n")
-        self.gnuplot_outfile.write("'paper_data/benchmark7_graph2.dat' w lp ls 2 t 'Nylon'\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark7_graph2.dat' w lp ls 2 t 'Copper'\n")
         self.gnuplot_outfile.close()
                           
         print_gnuplot_files_on_screen(gnuplot_script_name_1)
@@ -972,7 +972,7 @@ class Benchmark8:
         
         gnuplot_script_name_2 = 'benchmark8_comparison_2_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name_2, 'w')
-        self.gnuplot_outfile.write("set grid\nset key left bottom\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Tangent of incident angle'\nset ylabel 'Tangent of recoil angle'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt 3 ps 3\n")
         self.gnuplot_outfile.write("plot [0:8][-2:8] '" + Vst_prima_div_Vcn_prima_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark8_graph2.dat' index 0 w lp ls 1 t 'Al. alloy',\\\n")
         self.gnuplot_outfile.write("'paper_data/benchmark8_graph2.dat' index 1 w lp ls 2 t 'Nylon'\n")
@@ -1081,10 +1081,10 @@ class Benchmark9:
         restitution_coefficient = -final_vel / self.initial_normal_vel
         self.restitution_numbers_list.append(restitution_coefficient)
     
-    def print_results(self, number_of_points_in_the_graphic, dt):
+    def print_results(self, number_of_points_in_the_graphic, dt=0):
         
-        restitution_numbers_vector_list_outfile_name = 'benchmark9_dt_' + str(dt) + 's_restitution_numbers_vector_list_data.dat'
-        self.restitution_numbers_vector_list_outfile = open(restitution_numbers_vector_list_outfile_name, 'w')
+        self.restitution_numbers_vector_list_outfile_name = "benchmark9_dt_" + str(dt) + '_restitution_numbers_vector_list_data.dat'
+        self.restitution_numbers_vector_list_outfile = open(self.restitution_numbers_vector_list_outfile_name, 'w')
         
         for i in range(0, number_of_points_in_the_graphic):
             if number_of_points_in_the_graphic == 1:
@@ -1093,22 +1093,73 @@ class Benchmark9:
                 first_col = 1/(number_of_points_in_the_graphic-1) * i
             self.restitution_numbers_vector_list_outfile.write("%6.4f %6.4f %11.8f" % (first_col, first_col, self.restitution_numbers_list[i]) + '\n')
         self.restitution_numbers_vector_list_outfile.close()
-        
+                
         gnuplot_script_name = 'benchmark9_dt_' + str(dt) + 's.gp'
         self.gnuplot_outfile = open(gnuplot_script_name, 'w')
-        self.gnuplot_outfile.write("plot '" + restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                            + restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
+        self.gnuplot_outfile.write("set grid; plot '" + self.restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
+                                                      + self.restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
         self.gnuplot_outfile.close()
-        print_gnuplot_files_on_screen(gnuplot_script_name)
         
-        pdf_script_name = 'benchmark9_dt_' + str(dt) + 's.pdf'
-        self.pdf_outfile = open(pdf_script_name, 'w')
-        self.pdf_outfile.write("set terminal pdfcairo solid size 5 in, 3 in; set output '" + pdf_script_name + "'; \
-                                set grid; plot '" + restitution_numbers_vector_list_outfile_name + "' u 1:2 w lp lt 3 lw 1.5 ps 2 pt 4, '"\
-                                + restitution_numbers_vector_list_outfile_name + "' u 1:3 w lp lt 2 lw 1.5 ps 2 pt 6")
-        self.pdf_outfile.close()
-        create_pdf_document(pdf_script_name)
-                        
+        #self.create_gnuplot_scripts(self.restitution_numbers_vector_list_outfile_name, dt)
+        
+        error1, error2, error3 = self.compute_errors(self.restitution_numbers_vector_list_outfile_name)
+        
+        error_filename = 'errors.txt'
+        error_file = open(error_filename, 'a')
+        error_file.write("Test 9:")
+        
+        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+            error_file.write(" OK!........ Test 9 SUCCESSFUL\n")
+        else:
+            error_file.write(" KO!........ Test 9 FAILED\n")
+        error_file.close()
+        
+    def create_gnuplot_scripts(self, restitution_numbers_vector_list_outfile_name, dt):    
+        
+        gnuplot_script_name_1 = 'benchmark9_comparison_1_dt_' + str(dt) + 's.gp'
+        self.gnuplot_outfile = open(gnuplot_script_name_1, 'w')
+        self.gnuplot_outfile.write("set grid\nset key left bottom\nset xlabel 'Coefficient of restitution'\nset ylabel 'Damping ratio'\nset style line 1 pt 8 lt -1 ps 3\nset style line 2 pt 9 lt  3 ps 3\n")
+        self.gnuplot_outfile.write("plot [0:1][0:1] '" + restitution_numbers_vector_list_outfile_name + "' w lp lt 1 lw 1.5 ps 2 pt 5,\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark9_graph1.dat' w lp ls 1 t 'Al. oxide',\\\n")
+        self.gnuplot_outfile.write("'paper_data/benchmark9_graph1.dat' w lp ls 2 t 'Cast iron'\n")
+        self.gnuplot_outfile.close()
+                
+        print_gnuplot_files_on_screen(gnuplot_script_name_1)
+                
+    def compute_errors(self, restitution_numbers_vector_list_outfile_name):
+        
+        lines_Chung = lines_DEM = list(range(0, 6));
+        Chung_data = []; DEM_data = []; summation_of_Chung_data = 0 
+        i = 0
+        with open('paper_data/benchmark9_graph1.dat') as inf:
+            for line in inf:
+                if i in lines_Chung:
+                    parts = line.split()
+                    Chung_data.append(float(parts[1]))
+                i+=1
+        i = 0
+        with open(restitution_numbers_vector_list_outfile_name) as inf:
+            for line in inf:
+                if i in lines_DEM:
+                    parts = line.split()
+                    DEM_data.append(float(parts[1]))
+                i+=1
+        final_restitution_numbers_error = 0
+        
+        for j in Chung_data:
+            summation_of_Chung_data+=abs(j)
+        
+        for i, j in zip(DEM_data, Chung_data):
+            final_restitution_numbers_error+=fabs(i-j)
+        final_restitution_numbers_error/=summation_of_Chung_data
+        
+        print("Error in restitution numbers =", 100*final_restitution_numbers_error,"%")
+        
+        error1 = 100*final_restitution_numbers_error
+        
+        error2 = error3 = 0
+        
+        return error1, error2, error3                    
 
 class Benchmark10:
     
