@@ -179,14 +179,14 @@ void AssembleLoop(ProcessInfo& CurrentProcessInfo)
 	{
 		Element::GeometryType& geom = it->GetGeometry();
 
-	   for (unsigned int i = 0; i < geom.size(); i++)
-				 geom(i)->SetLock();
+	   //for (unsigned int i = 0; i < geom.size(); i++)
+	   //			 geom(i)->SetLock();
 
 		
 		it->AddExplicitContribution(CurrentProcessInfo);
 
-	   for (unsigned int i = 0; i < geom.size(); i++)
-				 geom(i)->UnSetLock();
+	   //for (unsigned int i = 0; i < geom.size(); i++)
+	   //			 geom(i)->UnSetLock();
 
 	}
 
