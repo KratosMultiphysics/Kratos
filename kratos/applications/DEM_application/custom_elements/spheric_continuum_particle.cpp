@@ -922,6 +922,7 @@ namespace Kratos {
         mFemNeighbourDelta.swap(fem_temp_neighbours_delta);
         mNeighbourRigidFacesElasticContactForce.swap(fem_temp_neighbours_elastic_contact_forces);
         mNeighbourRigidFacesTotalContactForce.swap(fem_temp_neighbours_contact_forces);
+        mNeighbourRigidFacesPram.clear();
 
         KRATOS_CATCH("")
     }
