@@ -25,9 +25,9 @@ def Run():
     
     f=open("BenchTemp.txt", "w")
 
-    for benchmark in range(3, 9):
+    for benchmark in range(3, 10):
       
-        print("Running Benchmark " + str(benchmark) + " of 8.............")
+        print("Running Benchmark " + str(benchmark) + " of 9.............")
              
         try:
             if platform.system()=="Windows":
